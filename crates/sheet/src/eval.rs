@@ -108,7 +108,7 @@ pub(crate) fn eval(expr: &Expr, context: &mut dyn Context, budget: &mut usize, d
                 let values: Vec<_> = args.iter().map(|a| eval(a, context, budget, depth + 1)).collect();
                 return context.hook(name, &values);
             }
-            Value::Error(Error::Unsupported(name.clone()))
+            crate::functions::call(name, args, context, budget, depth)
         }
     }
 }

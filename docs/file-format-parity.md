@@ -27,6 +27,21 @@ the other measured files use 2012/main. Container inspection accepts both exact 
 
 ## Observed, undocumented
 
+Arithmetic reference caveats: Microsoft's ATAN2 example prints 29.0456 degrees for
+ATAN2(1.25,2.25); the defined vector angle is 29.054604099077146 degrees.
+The implementation follows the defined angle. A local independent witness,
+`corpus/ms-shipped/1033/ADS_M.vssx`, `visio/masters/master2.xml`, shape 6 Angle,
+uses `ATAN2(EndY-BeginY,EndX-BeginX)` with deltas x=0.30654847917641903 and
+y=-0.28738919922789286. Visio's cached value is -0.7531512809621943 radians;
+standard atan2 gives -0.7531512809621944. This witnesses the normal angle rule,
+not the exact input pair in the reference example.
+
+The TANH reference specifies radians but prints a degree-based result for TANH(-45).
+The implementation follows the stated radians rule; no TANH corpus witness exists.
+Legacy MOD is mentioned on the MODULUS page but has no definition in the Microsoft
+reference tree and no local corpus occurrence. It remains explicitly unsupported pending
+an authoritative definition or observed witness; MODULUS is implemented separately.
+
 `corpus/ms-shipped/1033/PBASLN_U.vstx`, `visio/pages/page1.xml`, contains
 `USE({GUID})` with a bare GUID literal. The Microsoft USE function page describes
 a quoted string argument; the reader also accepts this observed GUID spelling as text.
@@ -91,26 +106,30 @@ All 1387 packages parse, including 5548 seeded mutations with zero panics.
 | Line gradient stops | D | https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-line-gradient-sectionvisio-xml |
 | Opaque unknown parts/elements, macro removal | D | https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx |
 
+## Implemented function groups
+
+Arithmetic/trigonometry and basic logic: ABS, ACOS, AND, ASIN, ATAN, ATAN2, CEILING, COS, COSH, FLOOR, GUARD, IF, INT, MAX, MIN, MODULUS, NOT, OR, PI, POW, ROUND, SIN, SINH, SQRT, TAN, TANH, TRUNC.
+Evidence: `microsoft_arithmetic_and_trig_examples`, `microsoft_guard_logic_and_extrema_examples`,
+`microsoft_rounding_and_modulus_examples`, `function_errors_limits_and_arity`.
+Legacy MOD remains open, as recorded above. This list is implementation coverage, not an oracle rate.
+
 ## Functions not implemented
 
 Initial Phase 1 inventory over all 1387 local packages: 15080738 Cell elements and 6271536
 formula-bearing cells in Visio XML parts. Counts below are lexical function occurrences,
 excluding quoted string literals. Unknown solution-data payloads remain opaque.
-No evaluator is implemented at M1.1. Host hooks are frozen in crates/sheet/tests/hooks.txt;
+Arithmetic/trigonometry and basic logic are implemented with Microsoft example tests.
+Host hooks are frozen in crates/sheet/tests/hooks.txt;
 this inventory does not exclude or reclassify unsupported functions to improve a score.
 
 | Function | Occurrences | Status |
 |---|---:|---|
 | `THEMEVAL` | 516850 | Host hook |
-| `GUARD` | 469458 | Missing |
-| `IF` | 301387 | Missing |
 | `THEMEGUARD` | 130975 | Host hook |
 | `RGB` | 73360 | Missing |
-| `NOT` | 69042 | Missing |
 | `_ELLIPSE_THETA` | 60151 | Missing |
 | `_ELLIPSE_ECC` | 60129 | Missing |
 | `SETF` | 53331 | Missing |
-| `OR` | 50814 | Missing |
 | `GETREF` | 48721 | Missing |
 | `LUM` | 46263 | Missing |
 | `TEXTHEIGHT` | 37991 | Host hook |
@@ -118,23 +137,14 @@ this inventory does not exclude or reclassify unsupported functions to improve a
 | `NURBS` | 33883 | Missing |
 | `INDEX` | 33333 | Missing |
 | `OPENTEXTWIN` | 33330 | Missing |
-| `AND` | 25005 | Missing |
 | `SAT` | 23422 | Missing |
 | `STRSAME` | 19570 | Missing |
-| `MAX` | 18769 | Missing |
-| `ABS` | 18495 | Missing |
 | `ISTHEMED` | 18060 | Host hook |
-| `MIN` | 17370 | Missing |
 | `SETATREFEXPR` | 14164 | Missing |
-| `COS` | 13481 | Missing |
 | `HSL` | 13223 | Missing |
-| `SIN` | 13179 | Missing |
 | `HUE` | 12118 | Missing |
-| `SQRT` | 11601 | Missing |
 | `SHAPETEXT` | 10721 | Host hook |
-| `MODULUS` | 10157 | Missing |
 | `RUNADDONWARGS` | 8464 | Missing |
-| `ATAN2` | 8351 | Missing |
 | `BITXOR` | 8263 | Missing |
 | `POLYLINE` | 7675 | Missing |
 | `ISERROR` | 7633 | Missing |
@@ -167,21 +177,17 @@ this inventory does not exclude or reclassify unsupported functions to improve a
 | `PNTY` | 3292 | Missing |
 | `_WALKGLUE` | 3068 | Host hook |
 | `THEME` | 2680 | Host hook |
-| `TAN` | 2553 | Missing |
 | `ARG` | 1908 | Missing |
 | `CONTAINERSHEETREF` | 1667 | Missing |
 | `CHAR` | 1490 | Missing |
 | `ISERRVALUE` | 1364 | Missing |
 | `SETATREFEVAL` | 1352 | Missing |
-| `INT` | 1330 | Missing |
 | `DEFAULTEVENT` | 1329 | Missing |
-| `ROUND` | 1315 | Missing |
 | `ANG360` | 1232 | Missing |
 | `ISERR` | 1218 | Missing |
 | `FIND` | 1168 | Missing |
 | `FORMATEX` | 1148 | Missing |
 | `LOC` | 1072 | Missing |
-| `CEILING` | 1005 | Missing |
 | `USE` | 823 | Missing |
 | `LOCTOPAR` | 738 | Missing |
 | `ID` | 707 | Missing |
@@ -197,10 +203,8 @@ this inventory does not exclude or reclassify unsupported functions to improve a
 | `FORMULAEXISTS` | 345 | Missing |
 | `LOCALFORMULAEXISTS` | 344 | Missing |
 | `DAY` | 336 | Host hook |
-| `PI` | 308 | Missing |
 | `MSOSHADE` | 251 | Missing |
 | `NEARESTPOINTONPATH` | 249 | Missing |
-| `ATAN` | 234 | Missing |
 | `MAGNITUDE` | 204 | Missing |
 | `LOCTOLOC` | 156 | Missing |
 | `RED` | 145 | Missing |
@@ -215,18 +219,15 @@ this inventory does not exclude or reclassify unsupported functions to improve a
 | `EVALTEXT` | 98 | Missing |
 | `LISTORDER` | 89 | Missing |
 | `HOUR` | 88 | Host hook |
-| `POW` | 86 | Missing |
 | `RIGHT` | 79 | Missing |
 | `WEEKDAY` | 70 | Host hook |
 | `SATDIFF` | 70 | Missing |
 | `MID` | 70 | Missing |
 | `DATE` | 66 | Host hook |
 | `ISERRNA` | 64 | Missing |
-| `FLOOR` | 58 | Missing |
 | `OPENGROUPWIN` | 58 | Missing |
 | `BLEND` | 58 | Missing |
 | `RECTSECT` | 55 | Missing |
-| `ACOS` | 52 | Missing |
 | `USERUI` | 48 | Missing |
 | `PAGENUMBER` | 45 | Host hook |
 | `_MARKER` | 43 | Missing |
@@ -236,7 +237,6 @@ this inventory does not exclude or reclassify unsupported functions to improve a
 | `MINUTE` | 40 | Host hook |
 | `SECOND` | 40 | Host hook |
 | `RAD` | 36 | Missing |
-| `ASIN` | 33 | Missing |
 | `DOCLASTSAVE` | 30 | Host hook |
 | `YEAR` | 30 | Host hook |
 | `MASTERMAP` | 20 | Missing |
