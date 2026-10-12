@@ -10,3 +10,4 @@ workspace = true
 [dependencies]
 diagramcraft-geom.workspace = true
 diagramcraft-color.workspace = true
+serde.workspace = true

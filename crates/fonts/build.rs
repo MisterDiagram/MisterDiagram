@@ -1,10 +1,6 @@
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
-//! Optional craft-fonts build input (https://github.com/storytold/craft-fonts, recipe from its
-//! `docs/integration.md`). With `CRAFT_FONTS_DIR=<checkout>` the fonts in its
-//! `fonts/latin-manifest.txt` (presentation fonts) and `fonts/manifest.txt` are embedded as
-//! `CRAFT_FONTS`, Latin first; unset, `CRAFT_FONTS` is empty. Web (wasm32) builds embed only Inter
-//! Regular/Bold and BIZ UDPGothic Regular, to stay within the web size budget. It only reads the
-//! local checkout: no network.
+//! Pinned OFL Latin faces are always embedded. Optional craft-fonts adds other scripts.
+//! Build input is local only; builds never download fonts.
 use std::fmt::Write as _;
 use std::path::PathBuf;
 
@@ -14,10 +10,18 @@ const EXCLUDED_FAMILIES: &[&str] = &["Source Sans 3", "Source Serif 4", "Source 
 fn main() {
     println!("cargo::rerun-if-env-changed=CRAFT_FONTS_DIR");
     println!("cargo::rerun-if-env-changed=CRAFT_FONTS_REQUIRED");
-    let fallback = std::env::var_os("CRAFT_FONTS_DIR").map(PathBuf::from).unwrap_or_default().join("fonts/biz-ud-pgothic/BIZUDPGothic-Regular.ttf");
+    let local = PathBuf::from(std::env::var_os("CARGO_MANIFEST_DIR").unwrap_or_default()).join("assets");
+    let fallback = local.join("carlito/Carlito-Regular.ttf");
     println!("cargo::rerun-if-changed={}", fallback.display());
     println!("cargo::rustc-env=DIAGRAMCRAFT_FALLBACK_FONT={}", fallback.display());
     let mut src = String::from("pub static CRAFT_FONTS: &[CraftFont] = &[\n");
+    for (dir, family) in [("carlito", "Carlito"), ("caladea", "Caladea"), ("tinos", "Tinos"), ("cousine", "Cousine")] {
+        for (suffix, style) in [("Regular", "Regular"), ("Bold", "Bold"), ("Italic", "Italic"), ("BoldItalic", "Bold Italic")] {
+            embedded(&mut src, &local.join(dir).join(format!("{family}-{suffix}.ttf")), family, style);
+        }
+    }
+    embedded(&mut src, &local.join("arimo/Arimo[wght].ttf"), "Arimo", "Variable");
+    embedded(&mut src, &local.join("arimo/Arimo-Italic[wght].ttf"), "Arimo", "Variable Italic");
     if let Some(dir) = std::env::var_os("CRAFT_FONTS_DIR").map(PathBuf::from) {
         match craft_fonts(&dir) {
             Ok(entries) => src.push_str(&entries),
@@ -80,4 +84,9 @@ fn manifest(dir: &std::path::Path, manifest: &std::path::Path) -> Result<String,
         );
     }
     Ok(out)
+}
+
+fn embedded(out: &mut String, path: &std::path::Path, family: &str, style: &str) {
+    println!("cargo::rerun-if-changed={}", path.display());
+    let _ = writeln!(out, "    CraftFont {{ family: {family:?}, style: {style:?}, scripts: &[\"Latn\"], bytes: include_bytes!({:?}) }},", path);
 }

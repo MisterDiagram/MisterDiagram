@@ -47,6 +47,8 @@ pub struct Witness {
 }
 #[derive(Debug)]
 pub struct Report {
+    pub text_metric_floor: f64,
+    pub text_metrics_included: bool,
     pub cached_hosts: [Rate; 2],
     pub com_hosts: [Rate; 2],
     pub cached_classes: [Rate; 3],
@@ -118,6 +120,13 @@ impl fmt::Display for Report {
         }
         writeln!(
             f,
+            "text-metric promotion: threshold={:.6}% main_denominators={} (both cached and COM must qualify)",
+            self.text_metric_floor,
+            if self.text_metrics_included { "included" } else { "deferred; M2.3 comparison mode" }
+        )?;
+        writeln!(f, "diagnostics below use fully evaluated text, including deferred text rows and their dependents")?;
+        writeln!(
+            f,
             "result={}; tolerance={TOLERANCE}; snapshots isolate SETF writes; string COM values use numeric coercion",
             if self.passed() { "PASS" } else { "FAIL" }
         )?;
@@ -150,7 +159,7 @@ fn record_hosts(rates: &mut [Rate; 2], calls: &BTreeSet<String>, matched: bool) 
     {
         theme.record(matched);
     }
-    if calls.iter().any(|n| matches!(n.as_str(), "TEXTWIDTH" | "TEXTHEIGHT" | "SHAPETEXT")) {
+    if calls.iter().any(|n| diagramcraft_sheet::is_text_metric(n)) {
         text.record(matched);
     }
 }
@@ -590,6 +599,27 @@ fn read_dump(mut reader: impl BufRead, label: &str, mut visit: impl FnMut(DumpRo
 /// Root is the corpus directory. Quick mode includes all generated and blank packages,
 /// then the first 50 sorted shipped packages and only their available completed dumps.
 pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
+    let mut report = run_pass(root, quick, false)?;
+    if text_promoted(&report.cached_hosts[1], &report.com_hosts[1], report.text_metric_floor) {
+        report.text_metrics_included = true;
+    } else {
+        let deferred = run_pass(root, quick, true)?;
+        if (report.packages, report.dump_files) != (deferred.packages, deferred.dump_files) {
+            return Err("corpus coverage changed during the text gate comparison; rerun to include the new input".into());
+        }
+        report.cached = deferred.cached;
+        report.com = deferred.com;
+        report.shipped_cached = deferred.shipped_cached;
+        report.shipped_com = deferred.shipped_com;
+        report.cached_classes = deferred.cached_classes;
+        report.com_classes = deferred.com_classes;
+    }
+    Ok(report)
+}
+fn text_promoted(cached: &Rate, com: &Rate, floor: f64) -> bool {
+    cached.total > 0 && com.total > 0 && cached.percent() >= floor && com.percent() >= floor
+}
+fn run_pass(root: &Path, quick: bool, deferred: bool) -> Result<Report, String> {
     let frozen = include_str!("../../../crates/sheet/tests/floors.toml");
     let cached_floor = floor(frozen, "shipped")? * 100.;
     let com_floor = floor(frozen, "all")? * 100.;
@@ -603,6 +633,8 @@ pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
     files.extend(selected.iter().cloned());
     files.sort();
     let mut report = Report {
+        text_metric_floor: floor(include_str!("../../../crates/sheet/tests/floors.toml"), "text-metric")? * 100.,
+        text_metrics_included: false,
         cached_hosts: Default::default(),
         com_hosts: Default::default(),
         cached_classes: Default::default(),
@@ -658,13 +690,22 @@ pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
             return Err(format!("unmatched shipped dump {}", tsv.display()));
         }
     }
-    let exclude = exclusions();
+    let mut exclude = exclusions();
+    if deferred {
+        exclude.extend(diagramcraft_sheet::TEXT_METRIC_FUNCTIONS.iter().map(|n| (*n).to_string()));
+    }
     let mut diagnostics = Diagnostics::default();
     for path in files {
         let is_shipped = path.starts_with(root.join("ms-shipped"));
         let document = read_package(&path)?;
         let themes = diagramcraft_theme::Themes::from_document(&document).map_err(|e| format!("{}: {e}", path.display()))?;
-        let mut evaluator = Evaluator::new(&document).map_err(|e| format!("{}: {e}", path.display()))?.with_theme_host(&themes);
+        let mut evaluator = Evaluator::new(&document)
+            .map_err(|e| format!("{}: {e}", path.display()))?
+            .with_theme_host(&themes)
+            .with_text_host(&diagramcraft_text::Host);
+        if deferred {
+            evaluator = evaluator.with_deferred_text_metrics();
+        }
         let scopes: Vec<_> = evaluator.scopes().collect();
         for scope in scopes {
             for named in evaluator.source_named_cells(scope).map_err(|e| e.to_string())? {
@@ -769,12 +810,22 @@ mod tests {
     use super::*;
     #[test]
     fn strict_denominator_classes_and_empty_serialized_string() {
-        for formula in ["No Formula", "NOW()", "TEXTWIDTH(1)"] {
+        for formula in ["No Formula", "NOW()"] {
             assert!(cached_excluded("Inh", formula, Some("0"), &function_calls(formula).unwrap(), &exclusions()));
         }
-        for formula in
-            ["THEMEVAL()", "THEMEGUARD(1)", "THEMERESTORE(1)", "THEME(1)", "THEMECBV(1,1)", "THEMEPROP(1)", "ISTHEMED()", "CELLISTHEMED(FALSE)"]
-        {
+        for formula in [
+            "TEXTWIDTH(TheText)",
+            "TEXTHEIGHT(TheText)",
+            "SHAPETEXT(TheText)",
+            "THEMEVAL()",
+            "THEMEGUARD(1)",
+            "THEMERESTORE(1)",
+            "THEME(1)",
+            "THEMECBV(1,1)",
+            "THEMEPROP(1)",
+            "ISTHEMED()",
+            "CELLISTHEMED(FALSE)",
+        ] {
             assert!(
                 !cached_excluded("Inh", formula, Some("0"), &function_calls(formula).unwrap(), &exclusions()),
                 "implemented theme cells must be measured: {formula}"
@@ -868,6 +919,8 @@ mod tests {
     #[test]
     fn shipped_floor_cannot_be_masked_by_overall_and_empty_oracles_fail() {
         let mut report = Report {
+            text_metric_floor: 90.,
+            text_metrics_included: false,
             cached_hosts: Default::default(),
             com_hosts: Default::default(),
             cached_classes: Default::default(),
@@ -948,5 +1001,20 @@ mod tests {
         assert!(diagramcraft_sheet::parse(formula).is_ok());
         assert_eq!(function_calls(formula).unwrap(), BTreeSet::from(["NOW".into()]));
         assert!(function_calls("5'+NOW(").unwrap().contains("NOW")); // Malformed formulas retain lexical call evidence.
+    }
+}
+
+#[cfg(test)]
+mod text_gate_tests {
+    use super::*;
+    #[test]
+    fn both_text_oracles_must_reach_ninety_percent() {
+        let low = Rate { matched: 89, total: 100, excluded: 0 };
+        let ready = Rate { matched: 90, total: 100, excluded: 0 };
+        assert!(!text_promoted(&low, &ready, 90.));
+        assert!(!text_promoted(&ready, &low, 90.));
+        assert!(!text_promoted(&Rate::default(), &ready, 90.));
+        assert!(text_promoted(&ready, &ready, 90.));
+        assert_eq!(diagramcraft_sheet::TEXT_METRIC_FUNCTIONS.len(), 3);
     }
 }

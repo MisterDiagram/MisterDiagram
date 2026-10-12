@@ -69,3 +69,13 @@ The document adapter resolves page sentinels, records selector dependencies and 
 blank/root-style defaults. Theme never depends on vsdx, and vsdx never depends on theme.
 The CLI dump and corpus evaluator use the same injected service. No shipped theme assets
 are compiled into the resolver.
+
+### Phase 2 text retarget
+
+| Local path | Source repo | Source path | Commit | Licence |
+|---|---|---|---|---|
+| `crates/model/src/text.rs` | deckcraft | `crates/model/src/text.rs` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
+| `crates/text/src/lib.rs` | deckcraft | `crates/text/src/lib.rs` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
+| `crates/text/src/bidi.rs` | deckcraft | `crates/text/src/bidi.rs` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
+
+P2-followup embeds the pinned OFL Latin faces in the fonts crate for both native and wasm builds. Optional craft-fonts adds script coverage; system scanning remains off. The oracle harness has an explicit M2.3 comparison mode until both real text-only rates reach 90%; rendering always uses real text evaluation.

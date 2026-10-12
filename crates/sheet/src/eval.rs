@@ -87,6 +87,12 @@ pub trait Context {
     fn shape_text(&mut self, _reference: &str) -> Value {
         Value::Error(Error::Ref)
     }
+    fn shape_text_flags(&mut self, reference: &str, _flags: u32) -> Value {
+        self.shape_text(reference)
+    }
+    fn text_metric(&mut self, _reference: &str, _width: Option<f64>, _height: bool) -> Value {
+        Value::Error(Error::Unsupported("text host".into()))
+    }
     fn cached(&self) -> Value {
         Value::Error(Error::Ref)
     }
@@ -248,6 +254,12 @@ mod tests {
                 "cycle" => Value::Error(Error::Cycle),
                 _ => Value::Error(Error::Ref),
             }
+        }
+        fn shape_text_flags(&mut self, reference: &str, _flags: u32) -> Value {
+            self.shape_text(reference)
+        }
+        fn text_metric(&mut self, _reference: &str, _width: Option<f64>, _height: bool) -> Value {
+            Value::Error(Error::Unsupported("text host".into()))
         }
         fn cached(&self) -> Value {
             Value::Number(42.0)

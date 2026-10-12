@@ -1,9 +1,6 @@
 # Frozen before M1.1. This list may only shrink as host hooks gain implementations.
 # Theme resolution: https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function
 # Text engine: https://learn.microsoft.com/en-us/office/client-developer/visio/textwidth-function
-TEXTWIDTH
-TEXTHEIGHT
-SHAPETEXT
 # Routing/recalculation supplied by the host in later phases.
 _WALKGLUE
 _XFTRIGGER

@@ -30,9 +30,22 @@ pub fn dump_with_theme(
     host: Option<&dyn diagramcraft_sheet::host::ThemeHost>,
     out: &mut impl Write,
 ) -> Result<(), String> {
+    dump_with_hosts(document, selection, host, None, out)
+}
+/// Emit a dump using injected theme and text services.
+pub fn dump_with_hosts(
+    document: &Document,
+    selection: Selection,
+    host: Option<&dyn diagramcraft_sheet::host::ThemeHost>,
+    text: Option<&dyn diagramcraft_model::text::TextHost>,
+    out: &mut impl Write,
+) -> Result<(), String> {
     let mut evaluator = Evaluator::new(document).map_err(|e| e.to_string())?;
     if let Some(host) = host {
         evaluator = evaluator.with_theme_host(host);
+    }
+    if let Some(host) = text {
+        evaluator = evaluator.with_text_host(host);
     }
     let sheets = selected(document, selection)?;
     writeln!(out, "shape_id\tshape_name\tsection\trow\tcell\tname\tformula\tresult_iu\tunits").map_err(io_error)?;

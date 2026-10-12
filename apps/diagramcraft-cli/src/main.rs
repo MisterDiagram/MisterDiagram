@@ -55,7 +55,7 @@ fn execute(args: &[std::ffi::OsString], out: &mut impl Write) -> Result<(), Stri
             };
             let doc = diagramcraft_vsdx::read(Path::new(args.get(1).ok_or("missing file")?)).map_err(|e| e.to_string())?;
             let themes = diagramcraft_theme::Themes::from_document(&doc).map_err(|e| e.to_string())?;
-            diagramcraft_vsdx::dump::dump_with_theme(&doc, selection, Some(&themes), out)
+            diagramcraft_vsdx::dump::dump_with_hosts(&doc, selection, Some(&themes), Some(&diagramcraft_text::Host), out)
         }
         Some("corpus") if args.get(1).and_then(|a| a.to_str()) == Some("check") && args.len() == 2 => {
             let report = diagramcraft_corpus::run(Path::new("corpus"), false)?;

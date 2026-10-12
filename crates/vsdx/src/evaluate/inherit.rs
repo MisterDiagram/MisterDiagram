@@ -10,7 +10,7 @@ pub(super) struct Inheritance<'a> {
     local_cells: BTreeMap<Key, &'a Cell>,
     origins: BTreeMap<Key, Scope>,
     errors: BTreeMap<Scope, Error>,
-    masters: BTreeMap<Scope, Scope>,
+    pub(super) masters: BTreeMap<Scope, Scope>,
     instances: BTreeMap<Scope, (Scope, u32)>,
     remapping: BTreeMap<(Scope, u32), Scope>,
     geometry: BTreeMap<(Scope, u32), Vec<GeometryRow<'a>>>,

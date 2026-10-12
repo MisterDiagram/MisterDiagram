@@ -408,3 +408,5 @@ pub struct Document {
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml
     pub macros_removed: bool,
 }
+
+pub mod text;

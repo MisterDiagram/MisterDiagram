@@ -54,3 +54,43 @@ Craft-fonts commit: `3d9ab3a132ed0eff457e424226a435a901da30d3`. Font files and l
 Adapted `AGENTS.md` from deckcraft `src/AGENTS.md`, commit `be14248577b92059eb2b8c0c9460cceffbc1f01d`, MIT OR Apache-2.0.
 
 Adapted `CLAUDE.md` from deckcraft `src/CLAUDE.md`, commit `be14248577b92059eb2b8c0c9460cceffbc1f01d`, MIT OR Apache-2.0.
+
+### Phase 2 text retarget
+
+| Local path | Source repo | Source path | Commit | Licence |
+|---|---|---|---|---|
+| `crates/model/src/text.rs` | deckcraft | `crates/model/src/text.rs` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
+| `crates/text/src/lib.rs` | deckcraft | `crates/text/src/lib.rs` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
+| `crates/text/src/bidi.rs` | deckcraft | `crates/text/src/bidi.rs` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
+
+### Embedded Latin fonts (P2-followup)
+
+All faces are embedded for headless text shaping and open font substitution. Source: [google/fonts](https://github.com/google/fonts/tree/bd8f81ddb5), commit `bd8f81ddb5` (`bd8f81ddb5c74d5c8897b36ad88b440266245103`).
+
+| Local file | Author | Source path at commit bd8f81ddb5 | Licence | SHA256 |
+|---|---|---|---|---|
+| `crates/fonts/assets/arimo/Arimo-Italic[wght].ttf` | Arimo Project Authors | `ofl/arimo/Arimo-Italic[wght].ttf` | OFL-1.1 | `a80fc54fd0233c1dfe298577c4d00f5ae81d5bb83510975e473c47e699b7f4ed` |
+| `crates/fonts/assets/arimo/Arimo[wght].ttf` | Arimo Project Authors | `ofl/arimo/Arimo[wght].ttf` | OFL-1.1 | `e43898b143ec826ac8cb4034816458a7047fbe0836558de2a1f8c6223ae3e0ca` |
+| `crates/fonts/assets/arimo/OFL.txt` | Arimo Project Authors | `ofl/arimo/OFL.txt` | OFL-1.1 | `11cce536cd2f3864d767003af5dcd739e2e15818cf2279b6175edeadd3960992` |
+| `crates/fonts/assets/caladea/Caladea-Bold.ttf` | Caladea Project Authors | `ofl/caladea/Caladea-Bold.ttf` | OFL-1.1 | `ae3cb2dcbc925809dd29d2a44e9802211cab66be541bacbfc9c08c74b27c3742` |
+| `crates/fonts/assets/caladea/Caladea-BoldItalic.ttf` | Caladea Project Authors | `ofl/caladea/Caladea-BoldItalic.ttf` | OFL-1.1 | `ccabaa7b7e2fdf253d2b1a5fa699dd8a3df8d835a9eb285ad82631a677eb76c0` |
+| `crates/fonts/assets/caladea/Caladea-Italic.ttf` | Caladea Project Authors | `ofl/caladea/Caladea-Italic.ttf` | OFL-1.1 | `4359a8e24f748b6447b1ff6d7a174febe70961d29f8bb8634b56dacd740a3deb` |
+| `crates/fonts/assets/caladea/Caladea-Regular.ttf` | Caladea Project Authors | `ofl/caladea/Caladea-Regular.ttf` | OFL-1.1 | `f1e899278b7b4491aba5b6a8253c4b04c050cc59b21865be5c37559a775153cd` |
+| `crates/fonts/assets/caladea/OFL.txt` | Caladea Project Authors | `ofl/caladea/OFL.txt` | OFL-1.1 | `ccdab61d371d8c8683a128a92cd7d498dbdb1d37689f7cb21f1bf6b16658d213` |
+| `crates/fonts/assets/carlito/Carlito-Bold.ttf` | Carlito Project Authors | `ofl/carlito/Carlito-Bold.ttf` | OFL-1.1 | `bb5d20f79b82599ec72983597437373a80f2d2085fa91fc144fd74e876a594db` |
+| `crates/fonts/assets/carlito/Carlito-BoldItalic.ttf` | Carlito Project Authors | `ofl/carlito/Carlito-BoldItalic.ttf` | OFL-1.1 | `b32928186c119599e03ca6a1ffc680fdcb7fac95772f4b95d989cf6cd3861517` |
+| `crates/fonts/assets/carlito/Carlito-Italic.ttf` | Carlito Project Authors | `ofl/carlito/Carlito-Italic.ttf` | OFL-1.1 | `0b019225e58d702bfedcbd35c21696769f8ee115cb6343f84c2f240312450d1c` |
+| `crates/fonts/assets/carlito/Carlito-Regular.ttf` | Carlito Project Authors | `ofl/carlito/Carlito-Regular.ttf` | OFL-1.1 | `f6418f708baede9789daef5d458c0f53d2a888af9820e8062934e504fedc6595` |
+| `crates/fonts/assets/carlito/OFL.txt` | Carlito Project Authors | `ofl/carlito/OFL.txt` | OFL-1.1 | `58402f82a7c332a700294988fe7554fbb0a63a8d27ccc1ee3bbc640311990a00` |
+| `crates/fonts/assets/cousine/Cousine-Bold.ttf` | Cousine Project Authors | `ofl/cousine/Cousine-Bold.ttf` | OFL-1.1 | `17c8a7245156d2253531c9e529474937b09d9f641c5ae7695c5e33f22822eef4` |
+| `crates/fonts/assets/cousine/Cousine-BoldItalic.ttf` | Cousine Project Authors | `ofl/cousine/Cousine-BoldItalic.ttf` | OFL-1.1 | `848e858726fee0ae27b754e4cd6a2755209bf1428a8c91f747696d58c33906c3` |
+| `crates/fonts/assets/cousine/Cousine-Italic.ttf` | Cousine Project Authors | `ofl/cousine/Cousine-Italic.ttf` | OFL-1.1 | `ea2a76ae3d0ece9cd59f0d30fdc08dd70e8f5f457beee5b0852a7b50c2286c7c` |
+| `crates/fonts/assets/cousine/Cousine-Regular.ttf` | Cousine Project Authors | `ofl/cousine/Cousine-Regular.ttf` | OFL-1.1 | `1da22250675fc4c42fcf3a9736c44bc0570516105331443b663fd5cfbd1412fe` |
+| `crates/fonts/assets/cousine/OFL.txt` | Cousine Project Authors | `ofl/cousine/OFL.txt` | OFL-1.1 | `b81c4d4dc0a9f72c9155e78187316e016e2012a8102468804173dc61468b906d` |
+| `crates/fonts/assets/tinos/OFL.txt` | Tinos Project Authors | `Derived notice: Tinos-Regular.ttf name IDs 0, 13, 14; verbatim OFL body from ofl/cousine/OFL.txt` | OFL-1.1 | `cb3382d4643e8b02c12e322c220a3c76a5020d667e4fd4e7c75e744cca6caa6b` |
+| `crates/fonts/assets/tinos/Tinos-Bold.ttf` | Tinos Project Authors | `ofl/tinos/Tinos-Bold.ttf` | OFL-1.1 | `393269dbab8899f938db19783eca5eac92eb431f7ae0ab45b8349ca895f1a06b` |
+| `crates/fonts/assets/tinos/Tinos-BoldItalic.ttf` | Tinos Project Authors | `ofl/tinos/Tinos-BoldItalic.ttf` | OFL-1.1 | `a5de79f0fe863ea0954757acb3d47b3ccd0a930ce3dd5b97230cd3866790a06e` |
+| `crates/fonts/assets/tinos/Tinos-Italic.ttf` | Tinos Project Authors | `ofl/tinos/Tinos-Italic.ttf` | OFL-1.1 | `5942266ed398b155d7dc23e36833e7ec6be988f2439bdbeb8ef1bede808eaa91` |
+| `crates/fonts/assets/tinos/Tinos-Regular.ttf` | Tinos Project Authors | `ofl/tinos/Tinos-Regular.ttf` | OFL-1.1 | `60a0e8ef0c04dd5dd69ffe91025fa2ae5836cbd35600a82ba031977557e2cb61` |
+
+The pinned Tinos directory has no OFL.txt. Its font name table supplies its copyright and declares OFL-1.1. The adjacent notice combines that exact copyright with the unchanged OFL-1.1 body from the pinned Cousine notice; it is not claimed to be an upstream Tinos file. No other download or licence substitution was used.

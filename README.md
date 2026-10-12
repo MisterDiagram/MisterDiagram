@@ -65,3 +65,5 @@ Shipped dumps cover 104/1181 files and can resume on later nights; all shipped f
 The Craft name belongs to the upstream project and is theirs to keep or drop if they adopt this work.
 
 The Phase 1 reader library loads all 1,387 local corpus packages; deterministic mutation tests cover each package. Evaluation accuracy is being measured against the Phase 1 floors.
+
+Carlito, Caladea, Arimo, Tinos and Cousine are embedded under the SIL Open Font License 1.1; a separate craft-fonts checkout is optional.

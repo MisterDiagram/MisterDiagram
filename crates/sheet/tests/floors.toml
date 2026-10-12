@@ -33,3 +33,7 @@ quick_resolved_matches = 2467451
 quick_resolved_denominator = 2494966
 full_resolved_matches = 7209425
 full_resolved_denominator = 7271082
+
+[promotion]
+# Charles, P2-followup: report text separately until both text oracles reach this rate.
+text-metric = 0.90

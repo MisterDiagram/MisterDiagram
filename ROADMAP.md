@@ -28,3 +28,7 @@ clean independent frozen verification passes.
 - 2026-10-12: M2.2 procedural paints, strokes and arrow primitives. Corpus-derived fill densities and dash lengths tested; rendered fidelity is not yet measured.
 
 - 2026-10-12: M2.3 all eight theme functions evaluated and included in the cell oracles. Full cached98.128577%, resolved99.192198%, theme-only resolved99.875218%. Parity11%; image parity remains unmeasured.
+
+- 2026-10-12: M2.4 partial worktree stopped for the missing Latin font pack. Full cached95.161026% fails the frozen floor; resolved99.100234%, text-only20.248276%. CI fails its mandatory corpus gate. Text rows remainP, parity14%; no M2.4 commit or M2 closure.
+
+- 2026-10-12: M2.4.0 embeds the requested 18 OFL Latin faces and adds Charles's 90% text promotion gate. CI and public no-craft-fonts tests pass (230 tests); quick main oracles98.879415%/99.037858%, text39.341608%/41.824862%, still deferred. Text completion and rendering remain open.

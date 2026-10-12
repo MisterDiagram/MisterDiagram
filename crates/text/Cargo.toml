@@ -10,3 +10,8 @@ workspace = true
 [dependencies]
 diagramcraft-model.workspace = true
 diagramcraft-fonts.workspace = true
+diagramcraft-color.workspace = true
+diagramcraft-geom.workspace = true
+unicode-bidi.workspace = true
+unicode-linebreak.workspace = true
+unicode-segmentation.workspace = true

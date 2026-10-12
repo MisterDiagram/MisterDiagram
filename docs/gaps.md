@@ -63,3 +63,16 @@ no-theme defaults, gradient stops and basic effect values. Full oracle1 is98.128
 oracle2 is99.192198%, and theme-only COM is99.875218%. Theme cached accuracy is91.793858%:
 remaining font IDs, style/color details and effect completeness must be judged alongside
 rendered output. No raster fidelity claim. Theme and text host counts are reported separately.
+
+## G6: M2.4 text fidelity work
+
+The P2-followup embedded Latin pack resolves the missing Calibri-substitute resource.
+The preceding blocked measurements follow as history: the substitute was absent from the read-only craft-fonts checkout.
+All seven tested default families resolve to BIZ UDPGothic. Full oracle 1 is 95.161026%
+against 97.5951%; text-only COM is 20.248276%. Do not commit this Rust work until CI
+passes. The copied text layout, resolved run adapter and function dispatch are partial.
+Empty-text minimum lines, precise metrics, dynamic field formatting, inherited tab
+sets and aligned tab placement remain open. Rendering, export, contact sheets, renderer
+fuzzing, performance gates and independent M2 review have not been reached.
+
+M2.4.0 adds all 18 requested pinned font files, attribution and notices, and the authorized 90% text promotion gate. Arimo variables shape directly. Main floors stay fixed and theme stays included; a deferred text bucket is not milestone acceptance.

@@ -8,6 +8,7 @@ license.workspace = true
 workspace = true
 
 [dependencies]
+diagramcraft-color.workspace = true
 diagramcraft-geom.workspace = true
 diagramcraft-model.workspace = true
 diagramcraft-sheet.workspace = true

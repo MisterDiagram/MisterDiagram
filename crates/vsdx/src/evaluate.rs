@@ -7,7 +7,9 @@ mod geometry;
 mod inherit;
 mod path;
 mod relationships;
+mod text;
 mod transform;
+pub use text::TextBlock;
 const MAX_CELLS: usize = 1_000_000;
 const MAX_SCOPES: usize = 100_000;
 
@@ -45,6 +47,8 @@ struct Snapshot {
 /// Master/style/default inheritance is layered on these scopes separately.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references
 pub struct Evaluator<'a> {
+    defer_text_metrics: bool,
+    text_host: Option<&'a dyn diagramcraft_model::text::TextHost>,
     theme_host: Option<&'a dyn diagramcraft_sheet::host::ThemeHost>,
     inheritance: inherit::Inheritance<'a>,
     pub document: &'a Document,
@@ -84,6 +88,8 @@ impl<'a> Evaluator<'a> {
         }
         let mut result = Self {
             theme_host: None,
+            text_host: None,
+            defer_text_metrics: false,
             document,
             inheritance: Default::default(),
             sheets: BTreeMap::new(),
@@ -133,6 +139,19 @@ impl<'a> Evaluator<'a> {
     /// Inject a theme resolver from the application composition layer.
     pub fn with_theme_host(mut self, host: &'a dyn diagramcraft_sheet::host::ThemeHost) -> Self {
         self.theme_host = Some(host);
+        self.values.clear();
+        self
+    }
+    pub fn with_text_host(mut self, host: &'a dyn diagramcraft_model::text::TextHost) -> Self {
+        self.text_host = Some(host);
+        self.values.clear();
+        self
+    }
+    /// M2.3 comparison mode for the P2-followup promotion gate only. Text rows are
+    /// excluded by the corpus harness; their dependents retain the old cached inputs.
+    /// Rendering and text-only measurement must never select this mode.
+    pub fn with_deferred_text_metrics(mut self) -> Self {
+        self.defer_text_metrics = true;
         self.values.clear();
         self
     }
@@ -703,7 +722,7 @@ impl<'a> Evaluator<'a> {
             Ok(expr) => expr,
             Err(e) => return Value::Error(Error::Parse(e.to_string())),
         };
-        match hook_references(&expr) {
+        match hook_references(&expr, self.defer_text_metrics) {
             Ok(Some(references)) => {
                 for reference in references {
                     if let Ok(reference) = self.remap_master_reference(scope, origin, reference) {
@@ -1018,7 +1037,7 @@ fn split_reference(s: &str) -> Result<Vec<&str>, Error> {
     Ok(out)
 }
 // Only parsed call nodes select the frozen host fallback. Quoted strings and reference names do not.
-fn hook_references(expr: &diagramcraft_sheet::Expr) -> Result<Option<Vec<&str>>, Error> {
+fn hook_references(expr: &diagramcraft_sheet::Expr, defer_text: bool) -> Result<Option<Vec<&str>>, Error> {
     use diagramcraft_sheet::Expr;
     let mut pending = vec![(expr, 0usize)];
     let mut references = Vec::new();
@@ -1038,7 +1057,7 @@ fn hook_references(expr: &diagramcraft_sheet::Expr) -> Result<Option<Vec<&str>>,
                 pending.push((b, depth + 1));
             }
             Expr::Call { name, args } => {
-                let hook = diagramcraft_sheet::is_hook(name);
+                let hook = diagramcraft_sheet::is_hook(name) || defer_text && diagramcraft_sheet::is_text_metric(name);
                 has_hook |= hook;
                 if !hook && !diagramcraft_sheet::functions::IMPLEMENTED.contains(&name.as_str()) {
                     unsupported.get_or_insert_with(|| name.clone());
@@ -1236,11 +1255,32 @@ impl Context for BoundContext<'_, '_> {
         if !name.eq_ignore_ascii_case("TheText") {
             return Value::Error(Error::Ref);
         }
-        let Some(shape) = self.evaluator.shape(scope) else { return Value::Error(Error::Ref) };
-        match shape.text.as_ref().map(limited_text).transpose() {
-            Ok(s) => Value::Text(s.unwrap_or_default()),
-            Err(e) => Value::Error(e),
-        }
+        self.evaluator.text_string(scope, 0).map(Value::Text).unwrap_or_else(Value::Error)
+    }
+    fn shape_text_flags(&mut self, reference: &str, flags: u32) -> Value {
+        let result = (|| {
+            let reference = self.reference(reference)?;
+            let (scope, name) = self.evaluator.reference_target(self.scope, &reference)?;
+            if !name.eq_ignore_ascii_case("TheText") {
+                return Err(Error::Ref);
+            }
+            self.evaluator.text_string(scope, flags)
+        })();
+        result.map(Value::Text).unwrap_or_else(Value::Error)
+    }
+    fn text_metric(&mut self, reference: &str, width: Option<f64>, height: bool) -> Value {
+        let result = (|| {
+            let reference = self.reference(reference)?;
+            let (scope, name) = self.evaluator.reference_target(self.scope, &reference)?;
+            if !name.eq_ignore_ascii_case("TheText") {
+                return Err(Error::Ref);
+            }
+            let host = self.evaluator.text_host.ok_or_else(|| Error::Unsupported("text host".into()))?;
+            let body = self.evaluator.text_body(scope)?;
+            let (w, h) = host.measure(&body, width.map(|v| v * 72.)).map_err(|_| Error::Value)?;
+            Ok(Value::Number(if height { h / 72. } else { w / 72. }))
+        })();
+        result.unwrap_or_else(Value::Error)
     }
     fn cached(&self) -> Value {
         self.cached.clone()
@@ -1475,6 +1515,22 @@ mod tests {
         assert_eq!(e.evaluate(scope, "Width"), Value::Error(Error::Value));
     }
     #[test]
+    fn deferred_text_comparison_preserves_cached_dependencies_only() {
+        let doc = Document {
+            document_sheet: sheet(vec![
+                cell("Metric", "3", Some("TEXTWIDTH(TheText)")),
+                cell("Dependent", "6", Some("Metric*2")),
+                cell("Bad", "8", Some("TEXTWIDTH(TheText)+UNIMPLEMENTEDFUNCTION(1)")),
+            ]),
+            ..Default::default()
+        };
+        let mut live = Evaluator::new(&doc).unwrap();
+        assert!(matches!(live.evaluate(Scope::Document, "Metric"), Value::Error(_)));
+        let mut deferred = Evaluator::new(&doc).unwrap().with_deferred_text_metrics();
+        assert_eq!(deferred.evaluate(Scope::Document, "Dependent"), Value::Number(6.));
+        assert!(matches!(deferred.evaluate(Scope::Document, "Bad"), Value::Error(Error::Unsupported(_))));
+    }
+    #[test]
     fn cached_host_result_belongs_to_whole_cell_not_inner_call() {
         // ALARM_M master2 User.HasText and its dependent Controls.Row_1.YCon.
         let doc = Document {
@@ -1485,12 +1541,12 @@ mod tests {
                 cell("MixedBad", "42", Some("UNIMPLEMENTEDFUNCTION(1)+THEMEVAL()")),
                 cell("Quoted", "42", Some("LEN(\"SHAPETEXT()\")")),
                 cell("Width", "2", None),
-                cell("HostDependent", "3", Some("TEXTWIDTH(Width)+1")),
+                cell("HostDependent", "3", Some("NOW()+Width")),
             ]),
             ..Default::default()
         };
         let mut e = Evaluator::new(&doc).unwrap();
-        assert_eq!(e.evaluate(Scope::Document, "User.HasText"), Value::Number(0.));
+        assert_eq!(e.evaluate(Scope::Document, "User.HasText"), Value::Bool(false));
         assert_eq!(e.evaluate(Scope::Document, "Result"), Value::Number(7.));
         assert!(matches!(e.evaluate(Scope::Document, "Bad"), Value::Error(Error::Unsupported(_))));
         assert!(matches!(e.evaluate(Scope::Document, "MixedBad"), Value::Error(Error::Unsupported(_))));
@@ -1499,7 +1555,7 @@ mod tests {
         e.set_formula(Scope::Document, "Width", "4").unwrap();
         assert!(e.dirty.iter().any(|k| k.name == "hostdependent"));
         for formula in ["Pages[NOW()]!Width", "'THEMEVAL()'!Width", "UNIMPLEMENTEDFUNCTION(1)"] {
-            assert!(hook_references(&diagramcraft_sheet::parse(formula).unwrap()).unwrap().is_none());
+            assert!(hook_references(&diagramcraft_sheet::parse(formula).unwrap(), false).unwrap().is_none());
         }
     }
     #[test]

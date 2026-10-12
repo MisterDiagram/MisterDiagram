@@ -12,9 +12,13 @@ mod references;
 mod relationships;
 mod spatial;
 mod text;
+mod text_metrics;
 mod theme;
 pub use color::default_color;
 pub const IMPLEMENTED: &[&str] = &[
+    "TEXTWIDTH",
+    "TEXTHEIGHT",
+    "SHAPETEXT",
     "THEMEPROP",
     "CELLISTHEMED",
     "THEMEVAL",
@@ -129,6 +133,9 @@ pub const IMPLEMENTED: &[&str] = &[
     "FLOOR",
 ];
 pub(crate) fn call(name: &str, args: &[Expr], context: &mut dyn Context, budget: &mut usize, depth: usize) -> Value {
+    if let Some(value) = text_metrics::call(name, args, context, budget, depth) {
+        return value;
+    }
     if let Some(value) = theme::call(name, args, context, budget, depth) {
         return value;
     }
@@ -281,7 +288,7 @@ mod tests {
     }
     #[test]
     fn microsoft_guard_logic_and_extrema_examples() {
-        near("GUARD(TEXTWIDTH(TheText)+0.5in)", 3.5, 1e-12);
+        near("GUARD(NOW()+0.5in)", 3.5, 1e-12);
         near("IF(Height>1.25in,5,7)", 5., 1e-12);
         assert_eq!(result("AND(Height>1,PinX>1)"), Value::Bool(false));
         assert_eq!(result("OR(Height>1,PinX>1)"), Value::Bool(true));

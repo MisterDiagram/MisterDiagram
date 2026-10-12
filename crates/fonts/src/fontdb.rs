@@ -17,7 +17,7 @@ pub const FALLBACK_FAMILY: &str = "Inter";
 
 /// The always-available last-resort face (BIZ UDPGothic, compiled in from
 /// craft-fonts; licence in ATTRIBUTION.md).
-pub const LAST_RESORT_FAMILY: &str = "BIZ UDPGothic";
+pub const LAST_RESORT_FAMILY: &str = "Carlito";
 
 /// Compiled-in font files: the craft-fonts faces (Latin presentation fonts, then Japanese;
 /// empty without `CRAFT_FONTS_DIR`), then the last-resort face.
@@ -35,9 +35,9 @@ pub fn substitutes(family: &str) -> &'static [&'static str] {
     match family.to_ascii_lowercase().as_str() {
         "calibri" | "calibri light" => &["Carlito", "Liberation Sans", "Arial", "Inter"],
         "cambria" | "cambria math" => &["Caladea", "Liberation Serif", "Times New Roman", "Merriweather"],
-        "arial" | "helvetica" | "helvetica neue" | "arial nova" => &["Liberation Sans", "Arial", "Helvetica Neue", "Helvetica", "Inter"],
-        "times new roman" | "times" => &["Liberation Serif", "Times New Roman", "Times", "Merriweather"],
-        "courier new" | "courier" | "consolas" | "menlo" => &["Liberation Mono", "Courier New", "Menlo", "Courier"],
+        "arial" | "helvetica" | "helvetica neue" | "arial nova" => &["Arimo", "Liberation Sans", "Arial", "Helvetica Neue", "Helvetica", "Inter"],
+        "times new roman" | "times" => &["Tinos", "Liberation Serif", "Times New Roman", "Times", "Merriweather"],
+        "courier new" | "courier" | "consolas" | "menlo" => &["Cousine", "Liberation Mono", "Courier New", "Menlo", "Courier"],
         "aptos" | "aptos display" | "aptos narrow" | "segoe ui" | "segoe ui light" | "segoe ui semibold" | "tahoma" | "verdana" => {
             &["Inter", "Helvetica Neue", "Arial", "Liberation Sans"]
         }
@@ -727,7 +727,7 @@ impl FontDb {
                 return f;
             }
         }
-        for sub in [FALLBACK_FAMILY, "Liberation Sans", "DejaVu Sans"] {
+        for sub in ["Carlito", FALLBACK_FAMILY, "Liberation Sans", "DejaVu Sans"] {
             if let Some(f) = self.try_family(sub, style) {
                 return f;
             }

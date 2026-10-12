@@ -211,6 +211,35 @@ mod tests {
     }
 
     #[test]
+    fn embedded_latin_substitution_and_variable_arimo() {
+        let db = FontDb::with_font_dirs(Vec::new());
+        db.set_system_fallback(false);
+        for (request, family) in [
+            ("Calibri", "Carlito"),
+            ("Cambria", "Caladea"),
+            ("Arial", "Arimo"),
+            ("Helvetica", "Arimo"),
+            ("Times New Roman", "Tinos"),
+            ("Courier New", "Cousine"),
+            ("Consolas", "Cousine"),
+            ("Unknown Latin Face", "Carlito"),
+        ] {
+            for style in ["Regular", "Bold", "Italic", "Bold Italic"] {
+                let face = db.face(request, style);
+                assert_eq!(face.family, family, "{request} {style}");
+                assert_eq!(face.italic, style.contains("Italic"));
+                assert_eq!(face.weight >= 650., style.contains("Bold"));
+                let shaped = shape(&face, "Visio 123", &[], |c| c);
+                assert!(!shaped.is_empty());
+                assert!(shaped.iter().all(|g| g.gid != 0 && g.x_advance >= 0));
+                assert!(!db.outline(&face, face.glyph_for('A')).elements().is_empty());
+            }
+        }
+        assert!(db.face("Arimo", "Regular").is_variable());
+        assert!(db.face("Arimo", "Bold").is_variable());
+    }
+
+    #[test]
     fn craft_fonts_latin_when_present() {
         if !CRAFT_FONTS.iter().any(|f| f.family == "Inter") {
             eprintln!("skipped: built without craft-fonts' Latin manifest (set CRAFT_FONTS_DIR)");

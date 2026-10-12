@@ -4,6 +4,55 @@ Status: pre-alpha, M1 met. All acceptance commands and two independent frozen ve
 
 ## Measured
 
+P2-followup embeds 18 Latin face files from google/fonts commit `bd8f81ddb5`.
+System scanning stays disabled. The public checkout no longer needs craft-fonts for
+Latin shaping. Arimo variable Regular, Bold, Italic and Bold Italic are shaped and
+outlined directly by the existing HarfRust/Skrifa path; no static conversion is needed.
+
+| Visio family | Embedded face |
+|---|---|
+| Calibri, Calibri Light | Carlito |
+| Cambria | Caladea |
+| Arial, Helvetica | Arimo |
+| Times New Roman, Times | Tinos |
+| Courier New, Consolas | Cousine |
+| Unavailable Latin family, including Segoe UI in this checkout | Carlito |
+
+The P2-followup text-metric promotion threshold is 90% in each cell oracle. Below
+that threshold, the main comparison uses M2.3 text-hook dependency semantics and
+excludes direct text-family formulas; the separately printed text rates always use
+real evaluation. Theme remains included. Both main floors are unchanged. A deferred
+text rate is not an M2 acceptance pass: the human gate still requires text inclusion.
+
+The earlier M2.4 measurements and missing-font report below are historical.
+
+M2.4 uncommitted partial run: oracle 1 is 4552375/4783865 (95.161026%), below
+97.5951%; oracle 2 is 7630170/7699447 (99.100234%), with its non-literal subset
+575409/583285 (98.649717%). Text-only COM is 734/3625 (20.248276%); text-only
+cached is 28225/67797 (41.631636%). The three text functions are included.
+These results fail the milestone. The last passing committed implementation is M2.3.
+
+### Font substitutions observed in M2.4
+
+The configured craft-fonts checkout lacks its Latin manifest. The loader's first-choice
+substitutes are listed separately from the actual face selected on this machine.
+No vendor fonts were loaded, copied or embedded.
+
+| Visio family | Intended open substitute | Actual local face |
+|---|---|---|
+| Calibri, Calibri Light | Carlito | BIZ UDPGothic |
+| Arial | Liberation Sans | BIZ UDPGothic |
+| Times New Roman | Liberation Serif | BIZ UDPGothic |
+| Segoe UI | Inter | BIZ UDPGothic |
+| Symbol, Wingdings | Per-glyph open fallback | BIZ UDPGothic |
+
+`diagramcraft-text::tests::report_default_font_substitutes` records the selected faces.
+The missing Latin pack is a resource blocker under the read-only sibling rule. Empty
+text, exact line metrics, dynamic field formatting and aligned tabs also need evaluator
+work. Font availability alone is not asserted to fix the measured discrepancies.
+
+### Last committed measurements
+
 M2.3 full run with all eight theme functions included: oracle1 shipped4627833/4716091
 (98.128577%); oracle2 7633655/7695822 (99.192198%), with non-literal578894/579660
 (99.867854%). Theme-only COM424210/424740 (99.875218%); theme-only cached282245/307477
@@ -67,6 +116,16 @@ ENTITY_M/U.vssx and OBJREL_M/U.vssx use the published 2011/1/core XML namespace;
 the other measured files use 2012/main. Container inspection accepts both exact URIs.
 
 ## Observed, undocumented
+
+P2-followup font-only check (implementation discrepancies, not established reference
+exceptions): in `corpus/generated/basic/0001-probe.vsdx`, master 2 shape 5 TxtHeight
+remains 0.1111111111111111 versus Visio 0.2444444444444444 inches; page 0 shape 5
+TxtHeight becomes 0.2738715277777778 versus Visio 0.2444939358181424. The former
+lacks an empty-text line; the latter applies natural font height to Visio's percentage
+spacing. In `corpus/ms-shipped/1033/ADO_M.vssx`, master 2 shape 45 TxtWidth improves
+from 0.427490234375 to 0.3479410807291667, versus Visio 0.3668267852610678.
+These remain M2.4 metric work, not reasons to change the oracle or its tolerance.
+
 
 `ACCESSBILITY_NEW_M.vssx`, master3 shape6, LineColor and FillBkgnd use
 `IF(ISTHEMED(),THEMEVAL(),RGB(0,0,0))`. With the inherited theme selector 65534

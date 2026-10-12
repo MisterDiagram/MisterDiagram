@@ -3,11 +3,11 @@
 > **Drafted:** 2026-10-11 from the observed app (visio-observed.md) and Microsoft's documentation · **Target:** Microsoft Visio Standard 2021 16.0.20430 (Professional rows marked Pro) · **Status:** Phase 1 reader implemented; authoring, evaluation and rendering remain in progress. Format follows the storytold apps' `docs/parity-checklist.md`: area, feature, priority, Core Y/N, status D/P/M.
 
 <!-- SUMMARY -->
-**Weighted breadth parity: 11%** over 45 Core=Y features.
+**Weighted breadth parity: 14%** over 45 Core=Y features.
 
 | Priority | Features | Done | Partial | Missing | Parity |
 |---|---|---|---|---|---|
-| P0 | 27 | 1 | 6 | 20 | 15% |
+| P0 | 27 | 1 | 8 | 18 | 19% |
 | P1 | 15 | 0 | 1 | 14 | 3% |
 | P2 | 3 | 0 | 0 | 3 | 0% |
 
@@ -18,7 +18,7 @@
 | Shapes | 11% |
 | Stencils | 32% |
 | Connectors | 0% |
-| Text | 0% |
+| Text | 43% |
 | Format | 19% |
 | Arrange | 0% |
 | Layers | 0% |
@@ -77,8 +77,8 @@ Core=N rows (excluded from milestone scoring):
 | Connectors | Connector text that stays with the line; begin and end arrows; line ends per theme | P0 | Y | M |
 | Connectors | AutoConnect arrows and quick shapes | P1 | Y | M |
 | Connectors | Connect Shapes command, Re-Layout Page (flowchart, hierarchy, radial, circular) | P1 | Y | M |
-| Text | Character and paragraph formatting, tabs, bullets, fields (date, page, shape data) | P0 | Y | M |
-| Text | Text block rotation, margins, vertical alignment, text resize behaviour | P0 | Y | M |
+| Text | Character and paragraph formatting, tabs, bullets, fields (date, page, shape data) | P0 | Y | P |
+| Text | Text block rotation, margins, vertical alignment, text resize behaviour | P0 | Y | P |
 | Text | Spelling, find and replace across pages | P2 | Y | M |
 | Format | Fill, line, shadow, effects (glow, soft edge, bevel, 3-D) with the Format Shape pane | P0 | Y | M |
 | Format | Themes, variants, theme colours and effects; THEMEVAL cells follow them | P0 | Y | P |
@@ -127,3 +127,8 @@ Core=N rows (excluded from milestone scoring):
 ## M2.3 theme evidence
 
 - Themes and variants: P, `diagramcraft-theme::resolve::tests::microsoft_themeval_examples_and_variant_selectors`. Package color/font/format tables, variant selectors and eight theme functions are evaluated. Corpus rates include theme cells; final rendered fidelity and full effect coverage remain open.
+
+## M2.4 worktree evidence (not committed)
+
+- Character and paragraph formatting remains partial: `diagramcraft-vsdx::evaluate::text::tests::markers_fields_and_hostile_text` and `diagramcraft-text::tests::finite_wrapping_bidi_and_autofit`. Field display text is retained; full field expansion and aligned tab placement remain open.
+- Text block control remains partial: `diagramcraft-vsdx::evaluate::text::tests::generated_text_group_resolves_runs_and_transforms` and `diagramcraft-text::tests::finite_wrapping_bidi_and_autofit`. Pixel fidelity and exact Visio metrics have not passed.

@@ -51,8 +51,8 @@ allowed: our UI, our/Lucide icons, OFL fonts, and drawings built only from allow
   commit), licence and use. `cargo xtask assets` fails if a file under `assets/`, `docs/images/`
   or `docs/brand/` has no row.
 - **`NOTICE`** keeps the notices the licences require.
-- Fonts live in [storytold/craft-fonts](https://github.com/storytold/craft-fonts), never in this
-  repo (craftrules `standards/fonts.md`). Diagramcraft embeds its `fonts/latin-manifest.txt` and
+- P2-followup explicitly authorizes the pinned OFL Latin fonts in `crates/fonts/assets/`.
+  Other font inputs live in [storytold/craft-fonts](https://github.com/storytold/craft-fonts). Diagramcraft embeds its `fonts/latin-manifest.txt` and
   `fonts/manifest.txt` when built with `CRAFT_FONTS_DIR` (local dev: `.cargo/config.toml` points at
   `/Users/charles/Projects/craft-apps/craft-fonts/src`).
 
