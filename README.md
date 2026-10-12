@@ -1,7 +1,8 @@
 # Diagramcraft
 
 A clean-room, headless Rust implementation of Microsoft Visio's core: ShapeSheet, document
-model, file interoperability, rendering and authoring. Stage: pre-alpha, Phase 1 in progress.
+model, file interoperability, rendering and authoring. Stage: pre-alpha, M1 reader and
+ShapeSheet milestone met.
 
 The reader loads .vsdx, .vssx and .vstx packages and strips macro payloads from .vsdm.
 `info` lists package parts; `sheet` evaluates cells and prints the COM-compatible TSV columns.

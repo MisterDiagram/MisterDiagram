@@ -1,8 +1,8 @@
 # Gaps
 
-Status: pre-alpha, M0 met; Phase 1 in progress.
+Status: pre-alpha, M0 and M1 met; Phase 2 is next.
 
-## G1: ShapeSheet evaluation in progress
+## G1: Remaining ShapeSheet fidelity
 
 The Phase 1 reader loads all 1387 corpus files; 5548 deterministic mutations produce no panics.
 Formula syntax and local/cross-scope evaluation are implemented with bounded errors.
@@ -12,8 +12,10 @@ CLI dumps and both numeric corpus oracles are implemented. Full shipped cached a
 complete host font IDs and implicit master-child materialization remain open.
 Dormant CAD geometry algorithms resume in Phase 2.
 
-Remaining Phase 1 closure work is final acceptance and two clean independent verification
-passes. Further numerical fidelity, complete theme/text hosts and geometry remain later work.
+Phase 1 acceptance and two independent frozen verification passes are complete. Further
+numerical fidelity, complete theme/text hosts and geometry remain later work. Keep the
+Phase 2 planning estimate at 70 to 110 hours: renderer, text and theme work has not yet
+been measured. Phase 1 took approximately 2.3 wall-clock hours with parallel agents.
 
 ## Phase 0 open work
 

@@ -1,6 +1,6 @@
 # File format parity
 
-Status: pre-alpha, Phase 1 numeric requirements met; final acceptance and review pending.
+Status: pre-alpha, M1 met. All acceptance commands and two independent frozen verification passes are clean.
 
 ## Measured
 
