@@ -1,5 +1,12 @@
 # Gaps
 
+## Public-checkout parser follow-up
+
+The XML depth serialization inconsistency is corrected for both Start and Empty
+events. Regression: `depth_boundary_is_independent_of_empty_element_syntax` and
+`public_xml_parser_enforces_depth_for_both_empty_element_forms`; upstream issue #1.
+No parity score is inferred from this resource-boundary correction.
+
 Status: pre-alpha, M0 and M1 met; Phase 2 remains partial after pixel and text-metric measurement.
 
 ## G1: Remaining ShapeSheet fidelity

@@ -172,3 +172,5 @@ Core=N rows (excluded from milestone scoring):
 - P2-followup-3 M2.7.2, vendor master rendering remains P pending pixel parity. `clamped_cycles_are_proven_without_cached_formula_values` and `empty_flowchart_text_does_not_recurse_through_wrapping_width` resolve BASFLO_U Custom1 from interval bounds, matching four freshly observed COM values without cached formula fallback.
 
 - P2-followup-3 M2.4.3, text fidelity remains P until both text oracles promote. Tests: `microsoft_find_example_and_hostile_arguments`, `metric_font_size_grid_matches_com_height_witnesses`, `text_metric_grid_and_empty_fields_match_private_com_witnesses`. Fine metric size rounding and empty fields now match independent COM witnesses; FIND has its reference example and bounded-input tests.
+
+- M2.8.0, public XML resource boundary: `depth_boundary_is_independent_of_empty_element_syntax` and `public_xml_parser_enforces_depth_for_both_empty_element_forms` accept depth 256 and reject depth 257 for both empty-element forms. Reader feature scores stay unchanged; no private-corpus fidelity measurement was made.
