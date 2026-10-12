@@ -1,0 +1,13 @@
+[package]
+name = "diagramcraft-route"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+diagramcraft-model.workspace = true
+diagramcraft-sheet.workspace = true
+diagramcraft-geom.workspace = true

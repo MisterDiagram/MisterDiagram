@@ -1,0 +1,12 @@
+[package]
+name = "diagramcraft-export"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+diagramcraft-render.workspace = true
+diagramcraft-vsdx.workspace = true

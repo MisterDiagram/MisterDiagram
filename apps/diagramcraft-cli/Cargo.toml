@@ -1,0 +1,11 @@
+[package]
+name = "diagramcraft-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+[lints]
+workspace = true
+[dependencies]
+diagramcraft-opc.workspace = true
+[dev-dependencies]
+zip.workspace = true

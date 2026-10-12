@@ -1,0 +1,13 @@
+[package]
+name = "diagramcraft-mcp"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+diagramcraft-engine.workspace = true
+serde_json.workspace = true
+log.workspace = true
