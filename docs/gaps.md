@@ -12,6 +12,12 @@ CLI dumps and both numeric corpus oracles are implemented. Full shipped cached a
 complete host font IDs and implicit master-child materialization remain open.
 Dormant CAD geometry algorithms resume in Phase 2.
 
+M2.8.1 corrects import classification of renamed VBA parts using OPC content
+types, including defaults and overrides. Regression:
+`typed_vba_parts_are_removed_with_default_and_override_content_types`.
+Upstream #2 covers this correction; macro-enabled stencil/template main types
+remain unsupported and are tracked separately in upstream #3.
+
 Phase 1 acceptance and two independent frozen verification passes are complete. Further
 numerical fidelity, complete theme/text hosts and geometry remain later work. Keep the
 Phase 2 planning estimate at 70 to 110 hours: renderer, text and theme work has not yet

@@ -67,6 +67,36 @@ fn macro_payload_removed_and_flagged() {
     assert!(!d.parts.keys().any(|s| s.ends_with("vbaProject.bin")));
 }
 #[test]
+fn typed_vba_parts_are_removed_with_default_and_override_content_types() {
+    for vba_first in [false, true] {
+        let mut p = PackageOut::default();
+        let mut rel = RelsOut::default();
+        rel.add("http://schemas.microsoft.com/visio/2010/relationships/document", "visio/document.xml", false);
+        p.rels("", &rel);
+        p.xml_part(
+            "visio/document.xml",
+            "application/vnd.ms-visio.drawing.main+xml",
+            b"<VisioDocument xmlns='http://schemas.microsoft.com/office/visio/2012/main'/>".to_vec(),
+        );
+        // PackageOut assigns the first .bin type as the default and the other
+        // as an override. Both classifications must reach the importer.
+        let mut parts = [
+            ("custom/renamed.bin", "application/vnd.ms-office.vbaProject", b"synthetic VBA placeholder".as_slice()),
+            ("custom/opaque.bin", "application/octet-stream", b"original opaque bytes".as_slice()),
+        ];
+        if !vba_first {
+            parts.reverse();
+        }
+        for (name, kind, bytes) in parts {
+            p.binary(name, kind, bytes.to_vec());
+        }
+        let d = import(&p.finish().unwrap()).unwrap();
+        assert!(!d.parts.contains_key("custom/renamed.bin"), "VBA default type: {vba_first}");
+        assert!(d.macros_removed);
+        assert_eq!(d.parts["custom/opaque.bin"].bytes, b"original opaque bytes");
+    }
+}
+#[test]
 fn hostile_xml_and_sheet_entry_points() {
     for b in [b"".as_slice(), b"<Shape>", b"<a><b></a>", b"<!DOCTYPE x><x/>", b"<x:a/>", b"<a xmlns:x='u' xmlns:y='u' x:p='1' y:p='2'/>"] {
         assert!(parse_xml(b).is_err(), "{b:?}");
