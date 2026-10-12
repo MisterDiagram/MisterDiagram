@@ -1,17 +1,18 @@
 # Gaps
 
-Status: pre-alpha, Phase 0 in progress. No parity milestone claimed.
+Status: pre-alpha, M0 met; Phase 1 in progress.
 
-## G1: No reader yet
+## G1: ShapeSheet evaluation in progress
 
-Phase 1 implements the Visio document model reader and ShapeSheet evaluator. Phase 0 info
-inspects the OPC container only. Dormant CAD geometry algorithms resume in Phase 2.
+The Phase 1 reader loads all 1387 corpus files; 5548 deterministic mutations produce no panics.
+ShapeSheet evaluation, inheritance, recalc and the two numeric oracles remain in progress.
+Dormant CAD geometry algorithms resume in Phase 2.
 
-Phase 0 estimate remains 20 to 30 hours; re-estimate when corpus measurements are available.
+Phase 1 planned effort remains 70 to 100 hours until evaluator measurements are available.
 
 ## Phase 0 open work
 
-- Visio acceptance: accept.ps1 stalled in Documents.Open on basic/0001-probe.vsdx twice, including after a VM restart. No acceptance PNG, cell dump or part list was produced.
+- Visio acceptance resolved in M0.9: normal-process launch and attachment accepted both test files with 9257 cells and zero errors.
 - Shipped dump: 104/1181 files complete after four hours; all 1181 files copied (725 stencils, 456 templates). Resume in later background sessions. Charles explicitly excludes this remaining dump coverage from M0 blockers.
 
 ## G2: Whole-file info input buffering

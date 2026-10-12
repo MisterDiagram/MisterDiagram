@@ -11,3 +11,7 @@ workspace = true
 diagramcraft-model.workspace = true
 diagramcraft-sheet.workspace = true
 diagramcraft-opc.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+zip.workspace = true

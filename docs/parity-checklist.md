@@ -1,22 +1,22 @@
 # Visio feature checklist
 
-> **Drafted:** 2026-10-11 from the observed app (visio-observed.md) and Microsoft's documentation · **Target:** Microsoft Visio Standard 2021 16.0.20430 (Professional rows marked Pro) · **Status:** every row M (missing), Phase 0 container inspection only. Format follows the storytold apps' `docs/parity-checklist.md`: area, feature, priority, Core Y/N, status D/P/M.
+> **Drafted:** 2026-10-11 from the observed app (visio-observed.md) and Microsoft's documentation · **Target:** Microsoft Visio Standard 2021 16.0.20430 (Professional rows marked Pro) · **Status:** Phase 1 reader implemented; authoring, evaluation and rendering remain in progress. Format follows the storytold apps' `docs/parity-checklist.md`: area, feature, priority, Core Y/N, status D/P/M.
 
 <!-- SUMMARY -->
-**Weighted breadth parity: 0%** over 45 Core=Y features.
+**Weighted breadth parity: 6%** over 45 Core=Y features.
 
 | Priority | Features | Done | Partial | Missing | Parity |
 |---|---|---|---|---|---|
-| P0 | 27 | 0 | 0 | 27 | 0% |
-| P1 | 15 | 0 | 0 | 15 | 0% |
+| P0 | 27 | 1 | 2 | 24 | 7% |
+| P1 | 15 | 0 | 1 | 14 | 3% |
 | P2 | 3 | 0 | 0 | 3 | 0% |
 
 | Area | Parity |
 |---|---|
-| Files | 0% |
+| Files | 24% |
 | Pages | 0% |
 | Shapes | 0% |
-| Stencils | 0% |
+| Stencils | 21% |
 | Connectors | 0% |
 | Text | 0% |
 | Format | 0% |
@@ -26,7 +26,7 @@
 | Data | 0% |
 | Automation | 0% |
 
-Open P0 items: Open and save .vsdx (full fidelity, unknown parts kept), Open .vssx stencils and .vstx templates; save a stencil, Export SVG (with Visio extension namespace), PNG, JPEG, EMF/WMF, PDF (vector, text, links), Multiple pages, background pages, page size and orientation, drawing scale and units, Page tabs: add, rename, reorder, duplicate, delete, Draw tools: rectangle, ellipse, line, freeform, arc, pencil, Drop masters from a stencil; master instances inherit and can be overridden, Selection, move, resize, rotate, flip, duplicate, group and ungroup, Shape text with text block control handle; double-click to edit, Shape data (custom properties) and the Shape Data window, Control handles, connection points (add, move, type in/out/both), Geometry sections with formulas (Width*0.5 style), guarded cells, ShapeSheet model: Object, Geometry, Character, Paragraph, Tabs, Controls, Connection, User, Actions, Scratch, gradient stops, Formula engine: cell references, cross-sheet references (Sheet.N!Cell), GUARD, Inh, THEMEVAL, SETATREF, dependency recalculation, New master from a shape; edit master; document stencil, Read vendor stencil packs (.vssx) and render their masters correctly, Dynamic connector: glue to connection points and to shapes (dynamic glue), _WALKGLUE behaviour, Orthogonal routing with reroute on move; straight and curved styles, Connector text that stays with the line; begin and end arrows; line ends per theme, Character and paragraph formatting, tabs, bullets, fields (date, page, shape data), Text block rotation, margins, vertical alignment, text resize behaviour, Fill, line, shadow, effects (glow, soft edge, bevel, 3-D) with the Format Shape pane, Themes, variants, theme colours and effects; THEMEVAL cells follow them, Align, distribute, same size, bring to front/back, position pane, Layers per page: visible, print, lock, snap, glue, colour; layer membership, Every command on a CLI, a JSON control channel and MCP; headless render to PNG/SVG/PDF, Build a diagram from a script: drop, glue, route, lay out, export.
+Open P0 items: Open and save .vsdx (full fidelity, unknown parts kept), Open .vssx stencils and .vstx templates; save a stencil, Export SVG (with Visio extension namespace), PNG, JPEG, EMF/WMF, PDF (vector, text, links), Multiple pages, background pages, page size and orientation, drawing scale and units, Page tabs: add, rename, reorder, duplicate, delete, Draw tools: rectangle, ellipse, line, freeform, arc, pencil, Drop masters from a stencil; master instances inherit and can be overridden, Selection, move, resize, rotate, flip, duplicate, group and ungroup, Shape text with text block control handle; double-click to edit, Shape data (custom properties) and the Shape Data window, Control handles, connection points (add, move, type in/out/both), Geometry sections with formulas (Width*0.5 style), guarded cells, Formula engine: cell references, cross-sheet references (Sheet.N!Cell), GUARD, Inh, THEMEVAL, SETATREF, dependency recalculation, New master from a shape; edit master; document stencil, Read vendor stencil packs (.vssx) and render their masters correctly, Dynamic connector: glue to connection points and to shapes (dynamic glue), _WALKGLUE behaviour, Orthogonal routing with reroute on move; straight and curved styles, Connector text that stays with the line; begin and end arrows; line ends per theme, Character and paragraph formatting, tabs, bullets, fields (date, page, shape data), Text block rotation, margins, vertical alignment, text resize behaviour, Fill, line, shadow, effects (glow, soft edge, bevel, 3-D) with the Format Shape pane, Themes, variants, theme colours and effects; THEMEVAL cells follow them, Align, distribute, same size, bring to front/back, position pane, Layers per page: visible, print, lock, snap, glue, colour; layer membership, Every command on a CLI, a JSON control channel and MCP; headless render to PNG/SVG/PDF, Build a diagram from a script: drop, glue, route, lay out, export.
 
 Core=N rows (excluded from milestone scoring):
 
@@ -45,10 +45,10 @@ Core=N rows (excluded from milestone scoring):
 | Application shell | Shapes window: open stencils, search shapes, quick shapes, favorites | P0 | N | M |
 | Application shell | ShapeSheet window (sections, cells, formulas, live edit) | P1 | N | M |
 | Application shell | Command palette / Tell me | P1 | N | M |
-| Files | Open and save .vsdx (full fidelity, unknown parts kept) | P0 | Y | M |
-| Files | Open .vssx stencils and .vstx templates; save a stencil | P0 | Y | M |
+| Files | Open and save .vsdx (full fidelity, unknown parts kept) | P0 | Y | P |
+| Files | Open .vssx stencils and .vstx templates; save a stencil | P0 | Y | P |
 | Files | Open legacy .vsd (binary) and .vdx (XML 2003) | P1 | Y | M |
-| Files | Open .vsdm/.vssm/.vstm (drop macros, keep the rest) | P1 | Y | M |
+| Files | Open .vsdm/.vssm/.vstm (drop macros, keep the rest) | P1 | Y | P |
 | Files | Export SVG (with Visio extension namespace), PNG, JPEG, EMF/WMF, PDF (vector, text, links) | P0 | Y | M |
 | Files | Export DWG/DXF; import DWG/DXF as a CAD underlay or converted shapes | P1 | Y | M |
 | Files | Export to PowerPoint (one page per slide, native shapes) and Word | P1 | Y | M |
@@ -66,7 +66,7 @@ Core=N rows (excluded from milestone scoring):
 | Shapes | Geometry sections with formulas (Width*0.5 style), guarded cells | P0 | Y | M |
 | Shapes | Boolean operations: union, combine, fragment, intersect, subtract | P1 | Y | M |
 | Shapes | Protection (lock position, size, aspect, text, delete) | P1 | Y | M |
-| Stencils | ShapeSheet model: Object, Geometry, Character, Paragraph, Tabs, Controls, Connection, User, Actions, Scratch, gradient stops | P0 | Y | M |
+| Stencils | ShapeSheet model: Object, Geometry, Character, Paragraph, Tabs, Controls, Connection, User, Actions, Scratch, gradient stops | P0 | Y | D |
 | Stencils | Formula engine: cell references, cross-sheet references (Sheet.N!Cell), GUARD, Inh, THEMEVAL, SETATREF, dependency recalculation | P0 | Y | M |
 | Stencils | New master from a shape; edit master; document stencil | P0 | Y | M |
 | Stencils | Read vendor stencil packs (.vssx) and render their masters correctly | P0 | Y | M |
@@ -96,3 +96,10 @@ Core=N rows (excluded from milestone scoring):
 | Automation | Every command on a CLI, a JSON control channel and MCP; headless render to PNG/SVG/PDF | P0 | Y | M |
 | Automation | Build a diagram from a script: drop, glue, route, lay out, export | P0 | Y | M |
 | Platforms | macOS, Windows, Linux, web from one workflow | P0 | N | M |
+
+## Phase 1 evidence
+
+- Open and save .vsdx (full fidelity, unknown parts kept): P, `diagramcraft-vsdx::reads_shape_cells_sections_text_and_unknown_content`.
+- Open .vssx stencils and .vstx templates; save a stencil: P, `diagramcraft-vsdx::all_corpus_parses_and_seeded_mutations_never_panic`.
+- Open .vsdm/.vssm/.vstm (drop macros, keep the rest): P, `diagramcraft-vsdx::macro_payload_removed_and_flagged`.
+- ShapeSheet model: Object, Geometry, Character, Paragraph, Tabs, Controls, Connection, User, Actions, Scratch, gradient stops: D, `diagramcraft-vsdx::reads_shape_cells_sections_text_and_unknown_content`.

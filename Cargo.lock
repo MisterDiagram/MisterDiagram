@@ -241,6 +241,8 @@ dependencies = [
  "diagramcraft-model",
  "diagramcraft-opc",
  "diagramcraft-sheet",
+ "thiserror",
+ "zip",
 ]
 
 [[package]]

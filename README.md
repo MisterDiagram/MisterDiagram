@@ -32,3 +32,7 @@ at `../diagramcraft-corpus`, run `cargo xtask corpus --local` to copy and SHA256
 `--update-manifest` is for an intentional new pin, never for accepting a mismatch.
 P0 remains partial because the Visio acceptance script stalled in Documents.Open.
 Shipped dumps cover 104/1181 files and can resume on later nights; all shipped files are local.
+
+The Craft name belongs to the upstream project and is theirs to keep or drop if they adopt this work.
+
+The Phase 1 reader library loads all 1,387 local corpus packages; deterministic mutation tests cover each package. Evaluation is in progress.
