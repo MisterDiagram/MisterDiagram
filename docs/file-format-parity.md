@@ -27,6 +27,15 @@ the other measured files use 2012/main. Container inspection accepts both exact 
 
 ## Observed, undocumented
 
+SETF's reference specifies assignment without a return value. The local inventory has
+24575 SETF-leading formulas with cached V=0 and no E, including expressions outside
+Actions and Events. A single-call witness is `corpus/ms-shipped/1033/MWFCONCTRL_M.vssx`,
+`visio/masters/master2.xml`, shape 23, IsDropTarget:
+`SETF(GetRef(User.Font),IF(ISERRVALUE(FONT("Segoe UI")),FONT("Calibri"),FONT("Segoe UI")))`.
+The evaluator performs the in-memory assignment and returns numeric zero. Source package
+bytes remain immutable. ARG with neither a binding nor a default returns an explicit
+value error pending evidence; SETATREF edit redirection remains the future editing path.
+
 Arithmetic reference caveats: Microsoft's ATAN2 example prints 29.0456 degrees for
 ATAN2(1.25,2.25); the defined vector angle is 29.054604099077146 degrees.
 The implementation follows the defined angle. A local independent witness,
@@ -108,7 +117,7 @@ All 1387 packages parse, including 5548 seeded mutations with zero panics.
 
 ## Implemented function groups
 
-ABS, ACOS, AND, ASIN, ATAN, ATAN2, BLUE, CEILING, COS, COSH, FLOOR, FONT, FONTTOID, FORMAT, FORMATEX, GREEN, GUARD, HSL, HUE, IF, INDEX, INT, LEFT, LEN, LISTSEP, LOOKUP, LUM, MAX, MID, MIN, MODULUS, NOT, OR, PI, POW, RED, RGB, RIGHT, ROUND, SAT, SIN, SINH, SQRT, STRSAME, TAN, TANH, TRUNC.
+ABS, ACOS, AND, ARG, ASIN, ATAN, ATAN2, BLUE, CEILING, COS, COSH, DEPENDSON, EVALCELL, EVALTEXT, FLOOR, FONT, FONTTOID, FORMAT, FORMATEX, GETREF, GREEN, GUARD, HSL, HUE, IF, INDEX, INT, LEFT, LEN, LISTSEP, LOOKUP, LUM, MAX, MID, MIN, MODULUS, NOT, OR, PI, POW, RED, RGB, RIGHT, ROUND, SAT, SETATREF, SETATREFEVAL, SETATREFEXPR, SETF, SIN, SINH, SQRT, STRSAME, TAN, TANH, TRUNC.
 
 Microsoft example and hostile-input tests are in `crates/sheet/src/functions/`.
 Legacy MOD remains open, as recorded above. Implementation coverage is not an oracle rate.
@@ -132,14 +141,11 @@ unsupported function is reclassified to improve an oracle score.
 | `THEMEGUARD` | 130975 | Host hook |
 | `_ELLIPSE_THETA` | 60151 | Missing |
 | `_ELLIPSE_ECC` | 60129 | Missing |
-| `SETF` | 53331 | Missing |
-| `GETREF` | 48721 | Missing |
 | `TEXTHEIGHT` | 37991 | Host hook |
 | `TEXTWIDTH` | 37189 | Host hook |
 | `NURBS` | 33883 | Missing |
 | `OPENTEXTWIN` | 33330 | Missing |
 | `ISTHEMED` | 18060 | Host hook |
-| `SETATREFEXPR` | 14164 | Missing |
 | `SHAPETEXT` | 10721 | Host hook |
 | `RUNADDONWARGS` | 8464 | Missing |
 | `BITXOR` | 8263 | Missing |
@@ -147,13 +153,11 @@ unsupported function is reclassified to improve an oracle score.
 | `ISERROR` | 7633 | Missing |
 | `PNT` | 7337 | Missing |
 | `SHEETREF` | 7281 | Missing |
-| `DEPENDSON` | 7206 | Missing |
 | `BITAND` | 7178 | Missing |
 | `MASTERNAME` | 7071 | Host hook |
 | `SHADE` | 7017 | Missing |
 | `LUMDIFF` | 6718 | Missing |
 | `DOCMD` | 6675 | Missing |
-| `SETATREF` | 6036 | Missing |
 | `MSOTINT` | 5792 | Missing |
 | `TINT` | 5721 | Missing |
 | `LISTSHEETREF` | 5053 | Missing |
@@ -170,11 +174,9 @@ unsupported function is reclassified to improve an oracle score.
 | `PNTY` | 3292 | Missing |
 | `_WALKGLUE` | 3068 | Host hook |
 | `THEME` | 2680 | Host hook |
-| `ARG` | 1908 | Missing |
 | `CONTAINERSHEETREF` | 1667 | Missing |
 | `CHAR` | 1490 | Missing |
 | `ISERRVALUE` | 1364 | Missing |
-| `SETATREFEVAL` | 1352 | Missing |
 | `DEFAULTEVENT` | 1329 | Missing |
 | `ANG360` | 1232 | Missing |
 | `ISERR` | 1218 | Missing |
@@ -204,7 +206,6 @@ unsupported function is reclassified to improve an oracle score.
 | `DATEVALUE` | 110 | Host hook |
 | `ANGLETOPAR` | 106 | Missing |
 | `DATETIME` | 100 | Host hook |
-| `EVALTEXT` | 98 | Missing |
 | `LISTORDER` | 89 | Missing |
 | `HOUR` | 88 | Host hook |
 | `WEEKDAY` | 70 | Host hook |
@@ -229,7 +230,6 @@ unsupported function is reclassified to improve an oracle score.
 | `PAGECOUNT` | 18 | Host hook |
 | `QUEUEMARKEREVENT` | 18 | Missing |
 | `DOCCREATION` | 16 | Host hook |
-| `EVALCELL` | 16 | Missing |
 | `ANGLETOLOC` | 14 | Missing |
 | `SHAPEBINDING` | 10 | Missing |
 | `CONNECTORBINDING` | 10 | Missing |

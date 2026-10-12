@@ -21,6 +21,24 @@ impl HostHooks for CachedHooks {}
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/facenames-element-visiodocument_type-complextypevisio-xml
 pub trait Context {
     fn resolve(&mut self, reference: &str) -> Value;
+    /// Hosts that re-enter evaluation share these limits across every formula boundary.
+    fn enter_eval(&mut self) -> bool {
+        true
+    }
+    fn leave_eval(&mut self) {}
+    fn set_formula(&mut self, _reference: &str, _formula: &str) -> Result<(), Error> {
+        Err(Error::Unsupported("formula assignment".into()))
+    }
+    fn eval_cell(&mut self, _reference: &str, _args: &[(String, Value)]) -> Value {
+        Value::Error(Error::Unsupported("custom formula".into()))
+    }
+    fn argument(&self, _name: &str) -> Option<Value> {
+        None
+    }
+    fn dependency(&mut self, _reference: &str) {}
+    fn shape_text(&mut self, _reference: &str) -> Value {
+        Value::Error(Error::Ref)
+    }
     fn cached(&self) -> Value {
         Value::Error(Error::Ref)
     }
@@ -63,6 +81,14 @@ pub fn formula(formula: &str, context: &mut dyn Context) -> Value {
     }
 }
 pub(crate) fn eval(expr: &Expr, context: &mut dyn Context, budget: &mut usize, depth: usize) -> Value {
+    if !context.enter_eval() {
+        return Value::Error(Error::Limit);
+    }
+    let result = eval_node(expr, context, budget, depth);
+    context.leave_eval();
+    result
+}
+fn eval_node(expr: &Expr, context: &mut dyn Context, budget: &mut usize, depth: usize) -> Value {
     if *budget == 0 || depth > 128 {
         return Value::Error(Error::Limit);
     }
