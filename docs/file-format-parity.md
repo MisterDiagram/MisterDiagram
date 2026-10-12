@@ -721,3 +721,34 @@ and 0.00005-inch slack. Their TxtHeight values now match 0.1944949530707465 and
 FIND now implements the public four-argument contract, including literal search,
 optional one-based start and case-insensitive matching. Microsoft's January 1, 2003
 example returns 12. Oversized strings and invalid start positions return errors.
+
+### Composed width: terminal advance and fixed-point metrics (M2.4.4)
+
+The TEXTWIDTH reference describes composed width but does not specify its terminal
+advance or numeric grid. Twenty cached TxtWidth witnesses across ADO_M, ADO_U,
+ADS_M, ADS_U and ANNOT_M resolve this. ADO master2 shape45 measures 0.366826785261
+inches for six-point text with three-point left and right margins; the previous
+result was 0.347937043135. ADS master2 shape5 measures 0.194218091820 inches at
+eight points with zero margins, previously 0.169053174555.
+
+Candidates were tested in the requested order. Margins already occur once: ADO's
+combined inset is 0.083333333333 inch and ADS has none. Neither duplicating those
+margins nor adding a four-point inset explains the delta. Kerning varies with the
+string and disagrees with both the cached widths and SVG's unkerned advances.
+One terminal space explains the large term. Rounding the font size, then each
+advance (including that space), to 18 fractional bits in inches explains the
+remaining small errors. Add the same 0.00005-inch composed-text allowance observed
+for height. All twenty residuals are 0.000000001 inch, below the unchanged oracle
+tolerance. The allowance is not applied to a truly empty block. Painting retains
+SVG point coordinates, without this metric-only quantization.
+
+Regression: `composed_width_terminal_space_and_advance_grid`. The read-only
+`width_audit` example prints source and effective formulas, text, font, point size,
+margins, unkerned character advances, kerned total and space advance. Session
+records retain all twenty rows and each candidate's numeric residual.
+
+Full M2.4.4 measurement: TxtWidth cached failures fall from 4078 to 1985;
+text-only cached accuracy is 60525/67797 (89.273862%), COM is 6578/7724
+(85.163128%). Both remain outside the main denominators under the unchanged
+90% promotion rule. Main rates remain 98.118866% cached and 99.226552% COM.
+The renderer remains at ten size mismatches, with eight passing groups.

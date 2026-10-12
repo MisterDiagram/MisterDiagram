@@ -122,3 +122,32 @@ fn metric_font_size_grid_matches_com_height_witnesses() {
     };
     assert!((Host.measure(&body, Some(100.)).unwrap().1 / 72. - 0.16671717529296873).abs() < 1e-12);
 }
+
+#[test]
+fn composed_width_terminal_space_and_advance_grid() {
+    // ADO_M/U, ADS_M/U and ANNOT_M: twenty cached TxtWidth witnesses.
+    // https://learn.microsoft.com/en-us/office/client-developer/visio/textwidth-function
+    for (text, size, margin, expected) in [
+        ("Domain", 6., 3., 0.3668267852610678),
+        ("Computer", 6., 3., 0.443158877546224),
+        ("User", 6., 3., 0.2587983733958333),
+        ("Group", 6., 3., 0.3153550750559896),
+        ("Site", 8., 0., 0.1942180918203125),
+        ("Site Link Bridge", 8., 0., 0.7161831186757811),
+        ("Domain", 8., 0., 0.3779758738027344),
+        ("Domain Controller", 8., 2., 0.9144312401493055),
+        ("Label:", 8., 0., 0.2939914988027344),
+        ("A", 12., 0., 0.1341633127675781),
+    ] {
+        let body = TextBody {
+            body: BodyProps { inset_l: Some(margin), inset_r: Some(margin), ..Default::default() },
+            paragraphs: vec![Paragraph {
+                runs: vec![Run::with(text, RunProps { size: Some(size), font: Some("Calibri".into()), ..Default::default() })],
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let width = Host.measure(&body, None).unwrap().0 / 72.;
+        assert!((width - expected).abs() < 2e-9, "{text}: {width} vs {expected}");
+    }
+}

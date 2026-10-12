@@ -817,10 +817,10 @@ fn tab_advance(x: f64, stops: &[diagramcraft_model::text::TabStop], default_tab:
 }
 
 /// Lay out a shape's text body.
-fn layout_inner(body: &TextBody, opts: &Opts) -> TextLayout {
+fn layout_inner(body: &TextBody, opts: &Opts, metric: bool) -> TextLayout {
     let bp = body.body.clone();
     let autofit = bp.autofit.unwrap_or(AutoFit::None);
-    let mut l = layout_scaled(body, &bp, opts, 1.0, 0.0);
+    let mut l = layout_scaled(body, &bp, opts, 1.0, 0.0, metric);
     if let (AutoFit::Shrink { .. }, false) = (autofit, opts.no_shrink)
         && l.overflow
     {
@@ -830,7 +830,7 @@ fn layout_inner(body: &TextBody, opts: &Opts) -> TextLayout {
         for _ in 0..12 {
             let mid = (lo + hi) / 2.0;
             let red: f64 = ((1.0 - mid) * 0.8_f64).min(0.2);
-            let t = layout_scaled(body, &bp, opts, mid, red);
+            let t = layout_scaled(body, &bp, opts, mid, red, metric);
             if t.overflow {
                 hi = mid;
             } else {
@@ -838,12 +838,12 @@ fn layout_inner(body: &TextBody, opts: &Opts) -> TextLayout {
                 best = Some(t);
             }
         }
-        l = best.unwrap_or_else(|| layout_scaled(body, &bp, opts, 0.1, 0.2));
+        l = best.unwrap_or_else(|| layout_scaled(body, &bp, opts, 0.1, 0.2, metric));
     }
     l
 }
 
-fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduce: f64) -> TextLayout {
+fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduce: f64, metric: bool) -> TextLayout {
     let r = opts.rect;
     let vert = bp.vert.unwrap_or(TextDir::Horizontal);
     let rotation = match vert {
@@ -894,7 +894,15 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
             }
             None
         };
-        shaped_paras.push(shape_para(body, pi, scale, opts, number));
+        let mut para = shape_para(body, pi, scale, opts, number);
+        if metric {
+            // Visio composition quantizes advances after quantizing the font size.
+            // ADO_M master2 shape45 and ADS_U master2 shape5 are independent witnesses.
+            for cell in &mut para.cells {
+                cell.adv = (cell.adv / 72. * 262144.).round() / 262144. * 72.;
+            }
+        }
+        shaped_paras.push(para);
     }
     for (pi, p) in shaped_paras.iter().enumerate() {
         let props = &p.props;
@@ -1072,7 +1080,13 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
             } else {
                 None
             };
-            out.content_width = out.content_width.max(width + x0 + mr);
+            let terminal_space = if metric && !p.cells.is_empty() {
+                let style = p.cells.last().and_then(|c| p.styles.get(c.style));
+                style.map_or(0., |st| (measure_str(&st.face, st.size, " ").0 / 72. * 262144.).round() / 262144. * 72.)
+            } else {
+                0.
+            };
+            out.content_width = out.content_width.max(width + x0 + mr + terminal_space);
             let boundary: Vec<bool> = line_cells.iter().map(|c| c.boundary).collect();
             all_lines.push((
                 LineInfo {
@@ -1666,7 +1680,7 @@ impl TextLayout {
 /// Reject unbounded or non-finite caller-built text before shaping or cloning it.
 pub fn layout(body: &TextBody, opts: &Opts) -> Result<TextLayout, String> {
     validate(body, opts.rect)?;
-    Ok(layout_inner(body, opts))
+    Ok(layout_inner(body, opts, false))
 }
 fn validate(body: &TextBody, rect: Rect) -> Result<(), String> {
     let finite = |v: f64| v.is_finite() && v.abs() <= 1_000_000.0;
@@ -1779,13 +1793,13 @@ impl diagramcraft_model::text::TextHost for Host {
         } else {
             body
         };
-        let l = layout(body, &Opts { rect: Rect::new(0., 0., width, 100_000.), fields: &NoFields, prompt_color: None, no_shrink: true })?;
+        let l = layout_inner(body, &Opts { rect: Rect::new(0., 0., width, 100_000.), fields: &NoFields, prompt_color: None, no_shrink: true }, true);
         // Visio adds 0.00005 in to composed, nonempty text, but not to an empty block.
         // Witnesses: generated/basic/0001-probe page0 shape5 and AWSANALYTICS_U master2 shape5.
         // https://learn.microsoft.com/en-us/office/client-developer/visio/textheight-function
         let composed_slack = if composed { 0.00005 * 72. } else { 0. };
         Ok((
-            l.content_width + body.body.inset_l.unwrap_or(0.) + body.body.inset_r.unwrap_or(0.),
+            l.content_width + body.body.inset_l.unwrap_or(0.) + body.body.inset_r.unwrap_or(0.) + composed_slack,
             l.content_height + body.body.inset_t.unwrap_or(0.) + body.body.inset_b.unwrap_or(0.) + composed_slack,
         ))
     }
