@@ -13,8 +13,12 @@ case "$LIMIT" in ''|*[!0-9]*) echo 'timeout must be positive seconds' >&2; exit 
 STAGE="$ROOT/corpus/_vm"
 OUT="$STAGE/out/$NAME"
 mkdir -p "$OUT"
-# Output directories belong to this invocation; previous results must not satisfy DONE.
-find "$OUT" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+# Shipped TSVs are checkpoints across nights. Only completion/watchdog markers are stale.
+if [ "$NAME" = dump-shipped ]; then
+    rm -f "$OUT/DONE" "$OUT/CURRENT"
+else
+    find "$OUT" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+fi
 if [ "$SCRIPT" != "$STAGE/$NAME.ps1" ]; then /bin/cp -f "$SCRIPT" "$STAGE/$NAME.ps1"; fi
 if [ -f "$ROOT/tools/oracle/common.ps1" ]; then /bin/cp -f "$ROOT/tools/oracle/common.ps1" "$STAGE/common.ps1"; fi
 WIN="\\\\Mac\\Home\\Projects\\diagramcraft\\corpus\\_vm\\$NAME.ps1"
@@ -47,7 +51,7 @@ for attempt in 1 2; do
     echo "VM readiness attempt $attempt failed" >&2
  done
 [ "$ready" -eq 1 ] || { echo 'VM did not answer after one retry' >&2; exit 124; }
-cleanup() { ps "Get-ScheduledTask -TaskName diagramcraft-oracle -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:\$false" >/dev/null 2>&1 || true; }
+cleanup() { ps "Get-ScheduledTask -TaskName diagramcraft-oracle -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:\$false -ErrorAction Stop; exit 0" >/dev/null 2>&1 || true; }
 convert() {
     while IFS= read -r -d '' f; do
         if file "$f" | grep -q 'UTF-16'; then
@@ -58,7 +62,7 @@ convert() {
 }
 trap cleanup EXIT
 trap 'exit 130' INT TERM
-ps "Get-ScheduledTask -TaskName visioprobe -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:\$false" >/dev/null
+ps "Get-ScheduledTask -TaskName visioprobe -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:\$false -ErrorAction Stop; exit 0" >/dev/null
 launch() {
     cleanup
     ps "\$ErrorActionPreference='Stop'; \$a=New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File \"$WIN\"'; \$p=New-ScheduledTaskPrincipal -UserId charles -LogonType Interactive; \$s=New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Days 2); Register-ScheduledTask -TaskName diagramcraft-oracle -Action \$a -Principal \$p -Settings \$s -Force | Out-Null; Start-ScheduledTask -TaskName diagramcraft-oracle" >&2
@@ -68,7 +72,7 @@ for attempt in 1 2; do
     launch
     start=$SECONDS
     while [ $((SECONDS-start)) -lt 180 ]; do
-        if [ -s "$OUT/probe-log.txt" ]; then logged=1; break; fi
+        if [ -s "$OUT/probe-log.txt" ] && [ "$OUT/probe-log.txt" -nt "$STAGE/$NAME.ps1" ]; then logged=1; break; fi
         sleep 2
     done
     [ "$logged" -eq 1 ] && break
@@ -82,22 +86,27 @@ fi
 start=$SECONDS
 while [ ! -f "$OUT/DONE" ]; do
     elapsed=$((SECONDS-start))
-    if [ "$elapsed" -ge "$LIMIT" ]; then
-        # Shipped-content dumps may extend beyond 90 minutes only while still making progress.
-        fresh=0
-        if [ "$NAME" = dump-shipped ]; then
-            fresh=$(python3 - "$OUT/probe-log.txt" <<'PY'
+    if [ -f "$OUT/CURRENT" ]; then
+        file_age=$(python3 - "$OUT/CURRENT" <<'AGE'
 import os, sys, time
-print(int(time.time() - os.stat(sys.argv[1]).st_mtime < 600))
-PY
+try:
+    print(int(time.time() - os.stat(sys.argv[1]).st_mtime))
+except FileNotFoundError:
+    print(0)
+AGE
 )
-        fi
-        if [ "$fresh" -eq 0 ]; then
+        if [ "$file_age" -ge 1800 ]; then
             ps 'Stop-Process -Name VISIO -Force -ErrorAction SilentlyContinue' >/dev/null || true
             convert
-            echo "Oracle timed out after $elapsed seconds: $OUT" >&2
+            echo "Per-file oracle timeout: $OUT/CURRENT" >&2
             exit 124
         fi
+    fi
+    if [ "$elapsed" -ge "$LIMIT" ]; then
+        ps 'Stop-Process -Name VISIO -Force -ErrorAction SilentlyContinue' >/dev/null || true
+        convert
+        echo "Oracle timed out after $elapsed seconds: $OUT" >&2
+        exit 124
     fi
     sleep 2
  done

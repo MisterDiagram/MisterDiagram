@@ -32,6 +32,7 @@ pub const RT_CORE: &str = "http://schemas.openxmlformats.org/package/2006/relati
 /// The files of a package, keyed by normalised part name (no leading slash, lowercase).
 pub struct Package {
     parts: HashMap<String, (String, Vec<u8>)>,
+    content_types: std::sync::OnceLock<Option<ContentTypes>>,
 }
 
 impl Package {
@@ -71,7 +72,7 @@ impl Package {
                 return Err(OpcError::InvalidPackage("duplicate part name".into()));
             }
         }
-        Ok(Package { parts })
+        Ok(Package { parts, content_types: std::sync::OnceLock::new() })
     }
     /// Parts in deterministic original-name order.
     pub fn parts(&self) -> Vec<(&str, &[u8])> {
@@ -84,11 +85,19 @@ impl Package {
     pub fn validate_visio(&self) -> Result<(), OpcError> {
         let invalid = |m: &str| OpcError::InvalidPackage(m.into());
         let ct = self.xml("[Content_Types].xml").ok_or_else(|| invalid("missing or invalid content types"))?;
-        if !ct.root.is("Types") {
+        if !root_is(&ct.root, "Types", "http://schemas.openxmlformats.org/package/2006/content-types") {
             return Err(invalid("invalid content types root"));
         }
+        let rel_doc = self.xml("_rels/.rels").ok_or_else(|| invalid("missing or invalid root relationships"))?;
+        if !root_is(&rel_doc.root, "Relationships", "http://schemas.openxmlformats.org/package/2006/relationships") {
+            return Err(invalid("invalid relationships root"));
+        }
         let rels = self.rels("");
-        let rel = rels.first_of("document").filter(|r| !r.external).ok_or_else(|| invalid("missing Visio document relationship"))?;
+        let rel = rels
+            .items
+            .iter()
+            .find(|r| r.type_uri == "http://schemas.microsoft.com/visio/2010/relationships/document" && !r.external)
+            .ok_or_else(|| invalid("missing Visio document relationship"))?;
         let kind = self.content_type(&rel.target).ok_or_else(|| invalid("missing main content type"))?;
         if !matches!(
             kind.as_str(),
@@ -100,7 +109,7 @@ impl Package {
             return Err(invalid("not a supported Visio package"));
         }
         let doc = self.xml(&rel.target).ok_or_else(|| invalid("missing or invalid Visio document part"))?;
-        if !doc.root.is("VisioDocument") {
+        if !root_is(&doc.root, "VisioDocument", "http://schemas.microsoft.com/office/visio/2012/main") {
             return Err(invalid("invalid Visio document root"));
         }
         Ok(())
@@ -112,13 +121,13 @@ impl Package {
     pub fn xml(&self, name: &str) -> Option<xml::Doc> {
         let b = self.get(name)?;
         if b.len() > MAX_XML_PART {
-            log::warn!("pptx: XML part {name} too large");
+            log::warn!("opc: XML part {name} too large");
             return None;
         }
         match xml::parse(b) {
             Ok(d) => Some(d),
             Err(e) => {
-                log::warn!("pptx: {name}: {e}");
+                log::warn!("opc: {name}: {e}");
                 None
             }
         }
@@ -133,32 +142,61 @@ impl Package {
             let (Some(id), Some(ty), Some(target)) = (r.attr("Id"), r.attr("Type"), r.attr("Target")) else { continue };
             let external = r.attr("TargetMode").is_some_and(|m| m.eq_ignore_ascii_case("external"));
             let target = if external { target.to_string() } else { resolve(&base, target) };
-            out.items.push(Rel { id: id.to_string(), kind: ty.rsplit('/').next().unwrap_or(ty).to_string(), target, external });
+            out.items.push(Rel {
+                type_uri: ty.to_string(),
+                id: id.to_string(),
+                kind: ty.rsplit('/').next().unwrap_or(ty).to_string(),
+                target,
+                external,
+            });
         }
         out
     }
     /// Content types: (extension defaults, part overrides).
     pub fn content_type(&self, part: &str) -> Option<String> {
-        let doc = self.xml("[Content_Types].xml")?;
-        let p = format!("/{}", norm(part));
-        for o in doc.root.children_named("Override") {
-            if o.attr("PartName").is_some_and(|n| n.to_ascii_lowercase() == p) {
-                return o.attr("ContentType").map(String::from);
-            }
-        }
-        let ext = part.rsplit('.').next().unwrap_or("").to_ascii_lowercase();
-        doc.root
-            .children_named("Default")
-            .find(|d| d.attr("Extension").is_some_and(|e| e.eq_ignore_ascii_case(&ext)))
-            .and_then(|d| d.attr("ContentType").map(String::from))
+        let types = self
+            .content_types
+            .get_or_init(|| {
+                let doc = self.xml("[Content_Types].xml")?;
+                let mut types = ContentTypes::default();
+                for o in doc.root.children_named("Override") {
+                    if let (Some(name), Some(kind)) = (o.attr("PartName"), o.attr("ContentType")) {
+                        types.overrides.insert(norm(name), kind.to_string());
+                    }
+                }
+                for d in doc.root.children_named("Default") {
+                    if let (Some(ext), Some(kind)) = (d.attr("Extension"), d.attr("ContentType")) {
+                        types.defaults.insert(ext.to_ascii_lowercase(), kind.to_string());
+                    }
+                }
+                Some(types)
+            })
+            .as_ref()?;
+        types.overrides.get(&norm(part)).or_else(|| types.defaults.get(&part.rsplit('.').next().unwrap_or("").to_ascii_lowercase())).cloned()
     }
     pub fn original_name(&self, name: &str) -> Option<&str> {
         self.parts.get(&norm(name)).map(|(n, _)| n.as_str())
     }
 }
 
+#[derive(Default)]
+struct ContentTypes {
+    defaults: HashMap<String, String>,
+    overrides: HashMap<String, String>,
+}
+
+fn root_is(el: &xml::El, local: &str, namespace: &str) -> bool {
+    let declaration = match el.name.split_once(':') {
+        Some((prefix, _)) => format!("xmlns:{prefix}"),
+        None => "xmlns".to_string(),
+    };
+    el.is(local) && el.attrs.iter().any(|(key, value)| key == &declaration && value == namespace)
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct Rel {
+    /// Complete relationship type URI, retained for identity checks.
+    pub type_uri: String,
     pub id: String,
     /// Last segment of the relationship type (`slide`, `image`, `media`…).
     pub kind: String,

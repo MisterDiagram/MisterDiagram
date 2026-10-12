@@ -557,12 +557,12 @@ impl FontDb {
             #[cfg(not(target_arch = "wasm32"))]
             cataloged: std::sync::OnceLock::new(),
             #[cfg(not(target_arch = "wasm32"))]
-            sys: Mutex::new(SysFallback { enabled: true, ..Default::default() }),
+            sys: Mutex::new(SysFallback::default()),
         }
     }
 
     /// Enable or disable the lazy system-font fallback for characters the loaded fonts lack
-    /// (native only; on by default).
+    /// (native only; off by default). Callers must approve the provenance of supplied fonts.
     pub fn set_system_fallback(&self, on: bool) {
         #[cfg(not(target_arch = "wasm32"))]
         {
@@ -572,12 +572,11 @@ impl FontDb {
         let _ = on;
     }
 
-    /// Process-wide database: the bundled fonts, then the installed system fonts, cataloged the
-    /// first time a lookup by family name needs them (or ahead of time by
-    /// [`FontDb::scan_in_background`]).
+    /// Process-wide database containing only attributed craft-fonts faces.
+    /// System directories are never scanned implicitly.
     pub fn global() -> &'static FontDb {
         static DB: std::sync::OnceLock<FontDb> = std::sync::OnceLock::new();
-        DB.get_or_init(|| FontDb::with_font_dirs(system_font_dirs()))
+        DB.get_or_init(|| FontDb::with_font_dirs(Vec::new()))
     }
 
     pub(crate) fn read_faces(&self) -> std::sync::RwLockReadGuard<'_, Vec<Arc<FontFace>>> {
@@ -731,7 +730,7 @@ impl FontDb {
                 return f;
             }
         }
-        for sub in [FALLBACK_FAMILY, "Helvetica Neue", "Arial", "Liberation Sans", "DejaVu Sans", "Segoe UI"] {
+        for sub in [FALLBACK_FAMILY, "Liberation Sans", "DejaVu Sans"] {
             if let Some(f) = self.try_family(sub, style) {
                 return f;
             }
@@ -942,5 +941,21 @@ impl OutlinePen for FlipPen {
     }
     fn close(&mut self) {
         self.0.close_path();
+    }
+}
+
+#[cfg(test)]
+mod provenance_tests {
+    use super::*;
+    #[test]
+    fn global_has_no_implicit_system_font_sources() {
+        let db = FontDb::global();
+        assert!(db.font_dirs.is_empty());
+        #[cfg(not(target_arch = "wasm32"))]
+        assert!(!db.sys.lock().unwrap().enabled);
+        for family in ["Inter", "Calibri", "Arial"] {
+            let face = db.face(family, "Regular");
+            assert!(!["Helvetica Neue", "Arial", "Calibri", "Segoe UI"].contains(&face.family.as_str()));
+        }
     }
 }

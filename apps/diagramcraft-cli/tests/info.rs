@@ -34,6 +34,26 @@ mod tests {
         }
     }
     #[test]
+    fn rejects_unrelated_namespaces_and_malformed_document() {
+        for (uri, xml) in [
+            ("https://example.invalid/document", "<VisioDocument xmlns='http://schemas.microsoft.com/office/visio/2012/main'/>"),
+            ("http://schemas.microsoft.com/visio/2010/relationships/document", "<VisioDocument xmlns='urn:not-visio'/>"),
+            (
+                "http://schemas.microsoft.com/visio/2010/relationships/document",
+                "<VisioDocument xmlns='http://schemas.microsoft.com/office/visio/2012/main' bad=unquoted/>",
+            ),
+        ] {
+            let mut p = PackageOut::default();
+            p.xml_part("visio/document.xml", "application/vnd.ms-visio.drawing.main+xml", xml.as_bytes().to_vec());
+            let mut r = RelsOut::default();
+            r.add(uri, "visio/document.xml", false);
+            p.rels("", &r);
+            let o = invoke(&p.finish().unwrap(), "vsdx");
+            assert!(!o.status.success());
+            assert_eq!(String::from_utf8(o.stderr).unwrap().lines().count(), 1);
+        }
+    }
+    #[test]
     fn truncated_arbitrary_and_zip_bomb_fail_cleanly() {
         let valid = package("application/vnd.ms-visio.drawing.main+xml");
         let mut bomb = valid.clone();

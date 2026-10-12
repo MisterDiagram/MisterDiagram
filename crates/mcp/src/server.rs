@@ -151,7 +151,7 @@ impl Server {
                 Ok(call_tool(self.backend.as_mut(), name, &args).to_value())
             }
             "resources/list" => Ok(json!({"resources": [
-                {"uri": DOC_URI, "name": "document", "title": "Active document", "description": "Slides (titles, layouts, shapes), sections, theme, media and selection of the active presentation (document.inspect)", "mimeType": "application/json"},
+                {"uri": DOC_URI, "name": "document", "title": "Active document", "description": "Phase 0 document state placeholder; Visio authoring is not implemented", "mimeType": "application/json"},
                 {"uri": COMMANDS_URI, "name": "commands", "title": "Commands", "description": "Every command: id, label, menu path, shortcut, params, enabled (engine.commands)", "mimeType": "application/json"},
             ]})),
             "resources/templates/list" => Ok(json!({"resourceTemplates": []})),

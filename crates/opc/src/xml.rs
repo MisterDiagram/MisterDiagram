@@ -232,7 +232,7 @@ pub fn parse(bytes: &[u8]) -> Result<Doc, OpcError> {
     // Skip a UTF-8 BOM; UTF-16 parts (rare) are decoded first.
     let owned;
     let bytes = if bytes.starts_with(&[0xFF, 0xFE]) || bytes.starts_with(&[0xFE, 0xFF]) {
-        owned = decode_utf16(bytes);
+        owned = decode_utf16(bytes)?;
         owned.as_bytes()
     } else {
         bytes.strip_prefix(&[0xEF, 0xBB, 0xBF]).unwrap_or(bytes)
@@ -260,14 +260,14 @@ pub fn parse(bytes: &[u8]) -> Result<Doc, OpcError> {
                 if nodes > MAX_NODES || stack.len() >= MAX_DEPTH {
                     return Err(OpcError::Xml("document too large or too deeply nested".into()));
                 }
-                stack.push(start_el(&b, &reader));
+                stack.push(start_el(&b, &reader)?);
             }
             Event::Empty(b) => {
                 nodes += 1;
                 if nodes > MAX_NODES {
                     return Err(OpcError::Xml("document too large".into()));
                 }
-                let el = start_el(&b, &reader);
+                let el = start_el(&b, &reader)?;
                 match stack.last_mut() {
                     Some(p) => p.children.push(Node::El(el)),
                     None => root = Some(el),
@@ -282,34 +282,39 @@ pub fn parse(bytes: &[u8]) -> Result<Doc, OpcError> {
                 }
             }
             Event::Text(t) => {
+                let text = t.decode().map_err(xml_error)?;
+                check_chars(&text)?;
                 if let Some(p) = stack.last_mut() {
-                    let s = t.decode().map(|c| c.into_owned()).unwrap_or_default();
-                    push_text(p, &s);
+                    push_text(p, &text);
+                } else if !text.trim().is_empty() {
+                    return Err(xml_error("text outside root"));
                 }
             }
             Event::CData(t) => {
-                if let Some(p) = stack.last_mut() {
-                    let s = String::from_utf8_lossy(&t).into_owned();
-                    push_text(p, &s);
-                }
+                let text = t.decode().map_err(xml_error)?;
+                check_chars(&text)?;
+                let p = stack.last_mut().ok_or_else(|| xml_error("CDATA outside root"))?;
+                push_text(p, &text);
             }
             Event::GeneralRef(r) => {
-                if let Some(p) = stack.last_mut() {
-                    let s = if r.is_char_ref() {
-                        r.resolve_char_ref().ok().flatten().map(String::from).unwrap_or_default()
-                    } else {
-                        match r.decode().map(|c| c.into_owned()).unwrap_or_default().as_str() {
-                            "amp" => "&".into(),
-                            "lt" => "<".into(),
-                            "gt" => ">".into(),
-                            "quot" => "\"".into(),
-                            "apos" => "'".into(),
-                            _ => String::new(),
-                        }
-                    };
-                    push_text(p, &s);
-                }
+                let p = stack.last_mut().ok_or_else(|| xml_error("entity outside root"))?;
+                let text = if r.is_char_ref() {
+                    r.resolve_char_ref().map_err(xml_error)?.ok_or_else(|| xml_error("invalid character reference"))?.to_string()
+                } else {
+                    match r.decode().map_err(xml_error)?.as_ref() {
+                        "amp" => "&",
+                        "lt" => "<",
+                        "gt" => ">",
+                        "quot" => "\"",
+                        "apos" => "'",
+                        _ => return Err(xml_error("undeclared entity")),
+                    }
+                    .to_string()
+                };
+                check_chars(&text)?;
+                push_text(p, &text);
             }
+            Event::DocType(_) => return Err(xml_error("DOCTYPE is not supported")),
             Event::Eof => break,
             _ => {}
         }
@@ -333,28 +338,39 @@ fn push_text(p: &mut El, s: &str) {
     }
 }
 
-fn start_el(b: &quick_xml::events::BytesStart, reader: &quick_xml::Reader<&[u8]>) -> El {
-    let name = String::from_utf8_lossy(b.name().as_ref()).into_owned();
-    let mut attrs = vec![];
-    for a in b.attributes().with_checks(false).flatten() {
-        let k = String::from_utf8_lossy(a.key.as_ref()).into_owned();
-        let v =
-            a.decode_and_unescape_value(reader.decoder()).map(|c| c.into_owned()).unwrap_or_else(|_| String::from_utf8_lossy(&a.value).into_owned());
-        attrs.push((k, v));
-    }
-    El { name, attrs, children: vec![] }
+fn xml_error(e: impl std::fmt::Display) -> OpcError {
+    OpcError::Xml(e.to_string())
 }
 
-fn decode_utf16(bytes: &[u8]) -> String {
+fn check_chars(s: &str) -> Result<(), OpcError> {
+    if s.chars().all(xml_char) { Ok(()) } else { Err(xml_error("invalid XML character")) }
+}
+
+fn start_el(b: &quick_xml::events::BytesStart, reader: &quick_xml::Reader<&[u8]>) -> Result<El, OpcError> {
+    let name = std::str::from_utf8(b.name().as_ref()).map_err(xml_error)?.to_string();
+    let mut attrs = vec![];
+    for a in b.attributes() {
+        let a = a.map_err(xml_error)?;
+        let k = std::str::from_utf8(a.key.as_ref()).map_err(xml_error)?.to_string();
+        let v = a.decode_and_unescape_value(reader.decoder()).map_err(xml_error)?.into_owned();
+        check_chars(&v)?;
+        attrs.push((k, v));
+    }
+    Ok(El { name, attrs, children: vec![] })
+}
+
+fn decode_utf16(bytes: &[u8]) -> Result<String, OpcError> {
+    if !bytes.len().is_multiple_of(2) {
+        return Err(xml_error("odd UTF-16 byte length"));
+    }
     let le = bytes.starts_with(&[0xFF, 0xFE]);
     let units: Vec<u16> =
         bytes.get(2..).unwrap_or(&[]).as_chunks::<2>().0.iter().map(|c| if le { u16::from_le_bytes(*c) } else { u16::from_be_bytes(*c) }).collect();
-    let s = String::from_utf16_lossy(&units);
-    // Drop the encoding declaration so quick-xml reads it as UTF-8.
-    match s.strip_prefix("<?xml").and_then(|r| r.find("?>").map(|i| i + 7)) {
+    let s = String::from_utf16(&units).map_err(xml_error)?;
+    Ok(match s.strip_prefix("<?xml").and_then(|r| r.find("?>").map(|i| i + 7)) {
         Some(end) => s.get(end..).unwrap_or("").to_string(),
         None => s,
-    }
+    })
 }
 
 /// Is `c` allowed in XML 1.0 text?
@@ -522,6 +538,23 @@ mod tests {
         assert!(parse(b"").is_err());
         let deep = "<a>".repeat(MAX_DEPTH + 10);
         assert!(parse(deep.as_bytes()).is_err());
+    }
+
+    #[test]
+    fn hostile_xml_is_rejected() {
+        for s in [
+            "<a x=unquoted/>",
+            "<a x='1' x='2'/>",
+            "<a>&unknown;</a>",
+            "garbage<a/>trailing",
+            "<a>abc&#0;def</a>",
+            "<a x='&unknown;'/>",
+            "<!DOCTYPE a><a/>",
+        ] {
+            assert!(parse(s.as_bytes()).is_err(), "{s}");
+        }
+        assert!(parse(b"<a>\xff</a>").is_err());
+        assert!(parse(&[255, 254, 0]).is_err());
     }
 
     #[test]
