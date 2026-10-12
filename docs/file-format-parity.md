@@ -591,3 +591,21 @@ unsupported function is reclassified to improve an oracle score.
 | `TITLE` | 2 | Host hook |
 | `DIRECTORY` | 2 | Host hook |
 | `DESCRIPTION` | 2 | Host hook |
+
+### P2-followup-3: text placement versus SVG
+
+The 16 generated text SVGs expose text rectangles and paragraph baselines.
+`text_blocks_and_unkerned_lines_match_visio_svg` checks all 16 block rectangles and
+the eight line starts and baselines of `text/multiline-wrap.vsdx`. Carlito with kerning
+disabled reproduces the SVG advances: centered Alignment starts at118.857422pt
+(SVG118.86), and the wrapped paragraph starts at9.316406pt (SVG9.32).
+The latter now uses eight lines, with baselines73.8+21.6*n points, instead of seven.
+The existing 4pt margins and percentage baseline (0.9em for 120% spacing) agree with
+all nine alignment drawings. TxtPin/TxtAngle transform the block after layout.
+
+Export extents remain unresolved. SVG block rectangles and glyph ink do not explain
+the extra pixels in the nine text PNGs or page/metric-scale.png. A half-em padding
+experiment failed across these witnesses and was discarded, not calibrated. The
+renderer still uses glyph ink and the minimum text-block height. Bullet placement
+also differs (first text start132.960938pt versus the SVG bullet origin111.97pt);
+these origins include different bullet handling. No oracle was changed.

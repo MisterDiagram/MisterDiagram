@@ -103,3 +103,5 @@ eight of ten groups fail. See the current measured table in file-format-parity.m
 Implemented gradient-stop painting supersedes the earlier M2.5 gap; shadows, advanced effects,
 compound offsets and implicit child materialization remain open. No floor, ceiling, input image
 or comparison denominator was changed to improve a score.
+
+- M2.6.5: all16 SVG text rectangles checked, multiline-wrap now8lines with matching SVG starts/baselines. Logical text export padding remains unresolved, including metric-scale; PNG size mismatches remain hard failures.

@@ -215,3 +215,66 @@ fn empty_flowchart_text_does_not_recurse_through_wrapping_width() {
     }
     // Custom1 has a separate direct Height -> Scratch.Y1 -> Height cycle, still reported by contacts.
 }
+
+#[test]
+fn text_blocks_and_unkerned_lines_match_visio_svg() {
+    use diagramcraft_model::{XmlElement, XmlNode};
+    fn collect<'a>(e: &'a XmlElement, name: &str, out: &mut Vec<&'a XmlElement>) {
+        if e.name == name {
+            out.push(e);
+        }
+        for node in &e.children {
+            if let XmlNode::Element(child) = node {
+                collect(child, name, out);
+            }
+        }
+    }
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    let mut count = 0;
+    for entry in std::fs::read_dir(root.join("generated/text")).unwrap() {
+        let file = entry.unwrap().path();
+        if !file.extension().is_some_and(|s| s == "vsdx") {
+            continue;
+        }
+        let doc = diagramcraft_vsdx::read(&file).unwrap();
+        // The trusted local SVG fixture declares an external SVG DTD; do not load it.
+        let svg = std::fs::read_to_string(file.with_extension("svg")).unwrap();
+        let without_dtd = svg.lines().filter(|line| !line.starts_with("<!DOCTYPE svg PUBLIC")).collect::<Vec<_>>().join("\n");
+        let xml = diagramcraft_vsdx::parse_xml(without_dtd.as_bytes()).unwrap();
+        let mut rects = vec![];
+        collect(&xml, "textRect", &mut rects);
+        let themes = diagramcraft_theme::Themes::from_document(&doc).unwrap();
+        let mut e = diagramcraft_vsdx::evaluate::Evaluator::new(&doc).unwrap().with_theme_host(&themes).with_text_host(&diagramcraft_text::Host);
+        let page = doc.pages.first().unwrap();
+        assert_eq!(rects.len(), page.shapes.len(), "{}", file.display());
+        for (shape, rect) in page.shapes.iter().zip(rects) {
+            let block = e.text_block(diagramcraft_vsdx::evaluate::Scope::PageShape { page: page.id, shape: shape.id }).unwrap();
+            let w = rect.attr("width").unwrap().parse::<f64>().unwrap();
+            let h = rect.attr("height").unwrap().parse::<f64>().unwrap();
+            assert!((block.width - w).abs() < 0.01 && (block.height - h).abs() < 0.01, "{} {:?}", file.display(), (block.width, block.height, w, h));
+        }
+        if file.file_stem().unwrap() == "multiline-wrap" {
+            let drawing = scene::page(&doc, 0, scene::Options::default()).unwrap();
+            let layout = drawing
+                .ops
+                .iter()
+                .find_map(|op| match op {
+                    scene::Op::Text { layout, .. } => Some(layout),
+                    _ => None,
+                })
+                .unwrap();
+            let xs = [9.32, 26.84, 20.87, 23.73, 5.32, 5.87, 34.37, 43.40];
+            assert_eq!(layout.lines.len(), xs.len());
+            for (i, (line, x)) in layout.lines.iter().zip(xs).enumerate() {
+                assert!((line.extent.0 - x).abs() < 0.005, "line {i}: {} != {x}", line.extent.0);
+                assert!((line.baseline - (73.8 + 21.6 * i as f64)).abs() < 1e-6);
+            }
+        }
+        count += 1;
+    }
+    assert_eq!(count, 16);
+}

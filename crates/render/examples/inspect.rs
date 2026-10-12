@@ -42,6 +42,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     scene::Op::Path { path, .. } => println!("  path {:?}", path.bounding_box()),
                     scene::Op::Text { layout, transform } => {
                         println!("  text transform {transform:?}");
+                        for line in &layout.lines {
+                            println!(
+                                "    line para={} start={} end={} extent={:?} top={} baseline={} bottom={}",
+                                line.para, line.start, line.end, line.extent, line.top, line.baseline, line.bottom
+                            );
+                        }
                         for r in &layout.runs {
                             println!("    text {:?} font {} size {} glyphs {:?}", r.cells, r.face.family, r.size, r.glyphs);
                         }

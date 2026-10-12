@@ -561,7 +561,9 @@ fn shape_item(
     let Some(face) = faces.get(fi) else { return };
     let rtl = level % 2 == 1;
     let (Some(&b0), Some(&b1)) = (byte_of.get(range.start), byte_of.get(range.end)) else { return };
-    let params = ShapeParams { features: &[], rtl, script, language: lang };
+    // Visio SVG advances use unkerned metrics (text/align-1-0 and multiline-wrap).
+    let features: Vec<_> = diagramcraft_fonts::feature("-kern").into_iter().collect();
+    let params = ShapeParams { features: &features, rtl, script, language: lang };
     let glyphs = diagramcraft_fonts::shape_range(face, text, b0..b1, &params, |ch| if upper { ch.to_uppercase().next().unwrap_or(ch) } else { ch });
     let upem = face.upem.max(1.0);
     let scale_of = |cell: &Cell| {
