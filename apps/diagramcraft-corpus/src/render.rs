@@ -10,6 +10,8 @@ const NON_TEXT_MAD: f64 = 4.;
 const NON_TEXT_FRACTION: f64 = 0.02;
 const TEXT_MAD: f64 = 8.;
 const TEXT_FRACTION: f64 = 0.05;
+// Charles's P3/M3.0 disclosure ratchet. Pixel ceilings and aggregation stay frozen.
+const MAX_FILE_OUTLIERS: usize = 10;
 fn compatible_size(a: (u32, u32), b: (u32, u32)) -> bool {
     a.0 > 0 && a.1 > 0 && b.0 > 0 && b.1 > 0 && a.0.abs_diff(b.0) <= MAX_SIZE_DELTA && a.1.abs_diff(b.1) <= MAX_SIZE_DELTA
 }
@@ -23,7 +25,7 @@ pub struct FileResult {
     pub error: Option<String>,
 }
 impl FileResult {
-    /// Informational only: the frozen gate aggregates by group.
+    /// Individual pixel exceedance, counted by the P3 disclosure ratchet.
     pub fn over_ceiling(&self, text: bool) -> bool {
         let (mad, fraction) = if text { (TEXT_MAD, TEXT_FRACTION) } else { (NON_TEXT_MAD, NON_TEXT_FRACTION) };
         self.mad.is_some_and(|v| v > mad) || self.differing.is_some_and(|v| v > fraction)
@@ -67,15 +69,24 @@ impl Group {
     }
 }
 impl Report {
+    pub fn outlier_count(&self) -> usize {
+        self.groups.iter().map(|(name, group)| group.files.iter().filter(|file| file.over_ceiling(name == "text")).count()).sum()
+    }
     pub fn passed(&self) -> bool {
-        !self.groups.is_empty() && self.groups.iter().all(|(name, group)| group.passed(name == "text"))
+        !self.groups.is_empty() && self.outlier_count() <= MAX_FILE_OUTLIERS && self.groups.iter().all(|(name, group)| group.passed(name == "text"))
     }
 }
 impl fmt::Display for Report {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(
             f,
-            "render oracle: RGB MAD in 0..255; differing means any RGB channel exceeds 16; frozen 2026-10-12 16:45: non-text ceilings=4/255,2%; text=8/255,5%; size tolerance=1px per axis; common-area comparison; group MAD=unweighted per-file mean, fraction=pixel-weighted common area; individual exceedances are informational"
+            "render oracle: RGB MAD in 0..255; differing means any RGB channel exceeds 16; frozen 2026-10-12 16:45: non-text ceilings=4/255,2%; text=8/255,5%; size tolerance=1px per axis; common-area comparison; group MAD=unweighted per-file mean, fraction=pixel-weighted common area"
+        )?;
+        writeln!(
+            f,
+            "render per-file outliers: count={} maximum={MAX_FILE_OUTLIERS} ratchet={}",
+            self.outlier_count(),
+            if self.outlier_count() <= MAX_FILE_OUTLIERS { "PASS" } else { "FAIL" }
         )?;
         for (name, g) in &self.groups {
             let mismatches = g.files.iter().filter(|r| r.actual.is_some_and(|a| a != r.expected)).count();
@@ -201,6 +212,27 @@ pub fn run(root: &Path) -> Result<Report, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn per_file_outlier_ratchet_rejects_eleven_even_when_groups_pass() {
+        let file = |mad| FileResult {
+            file: "fixture".into(),
+            expected: (100, 100),
+            actual: Some((100, 100)),
+            mad: Some(mad),
+            differing: Some(0.),
+            error: None,
+        };
+        let mut report =
+            Report { groups: BTreeMap::from([("fixture".into(), Group { files: (0..20).map(|i| file(if i < 10 { 5. } else { 0. })).collect() })]) };
+        assert_eq!(report.outlier_count(), 10);
+        assert!(report.passed());
+        assert!(report.to_string().contains("render per-file outliers: count=10 maximum=10 ratchet=PASS"));
+        report.groups.get_mut("fixture").unwrap().files.push(file(5.));
+        assert!(report.groups["fixture"].passed(false));
+        assert_eq!(report.outlier_count(), 11);
+        assert!(!report.passed());
+        assert!(report.to_string().contains("count=11 maximum=10 ratchet=FAIL"));
+    }
     #[test]
     fn per_file_disclosure_does_not_change_group_aggregation() {
         let group = Group {

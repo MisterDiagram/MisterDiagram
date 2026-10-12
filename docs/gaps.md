@@ -162,3 +162,25 @@ coverage as follow-on work so no earlier expansion bypasses that check. These
 are2review cases, not2measured corpus failures; no generated oracle input or
 ceiling was changed. They do not establish compound-line fidelity, which remains
 the separately deferred Phase3 formatting gap.
+
+## G8: Phase 3 per-file render outliers
+
+P3/M3.0 retains the frozen group pixel ceilings and aggregation. The additional
+count ratchet fails `corpus check` above ten individual pixel outliers. Regression:
+`per_file_outlier_ratchet_rejects_eleven_even_when_groups_pass`.
+
+The ten current files, relative to `corpus/generated/`, are:
+
+- `connector/dynamic-glue.vsdx`
+- `connector/move-before.vsdx`
+- `connector/static-glue.vsdx`
+- `line/compound-1.vsdx`
+- `line/compound-2.vsdx`
+- `line/compound-3.vsdx`
+- `line/compound-4.vsdx`
+- `image/emf.vsdx`
+- `page/metric-scale.vsdx`
+- `text/multiline-wrap.vsdx`
+
+The 6,087 cached and 1,311 COM text failures, 17 EMF+ payloads, compound-line
+fidelity and two extreme-stroke cases above carry into Phase 3 as counted gaps.
