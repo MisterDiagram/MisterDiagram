@@ -23,7 +23,9 @@ pub const LAST_RESORT_FAMILY: &str = "BIZ UDPGothic";
 /// empty without `CRAFT_FONTS_DIR`), then the last-resort face.
 pub fn bundled() -> Vec<&'static [u8]> {
     let mut v: Vec<&'static [u8]> = crate::CRAFT_FONTS.iter().map(|f| f.bytes).collect();
-    v.push(include_bytes!(env!("DIAGRAMCRAFT_FALLBACK_FONT")));
+    if !crate::FALLBACK_BYTES.is_empty() {
+        v.push(crate::FALLBACK_BYTES);
+    }
     v
 }
 
@@ -426,34 +428,29 @@ fn enumerate_faces(data: &[u8]) -> Vec<Found> {
 pub(crate) fn last_resort_face() -> Arc<FontFace> {
     static FACE: std::sync::OnceLock<Arc<FontFace>> = std::sync::OnceLock::new();
     FACE.get_or_init(|| {
-        // The font is compiled in (`include_bytes!`), so parsing it can't depend on input; the
-        // `last_resort_face_parses` test proves it on every run.
-        let face = make_face(
-            FontBytes::Static(include_bytes!(env!("DIAGRAMCRAFT_FALLBACK_FONT"))),
-            0,
-            LAST_RESORT_FAMILY.into(),
-            "Regular".into(),
-            Vec::new(),
-        )
-        .unwrap_or_else(|| FontFace {
-            id: NEXT_ID.fetch_add(1, Ordering::Relaxed),
-            family: LAST_RESORT_FAMILY.into(),
-            style: "Regular".into(),
-            weight: 400.0,
-            italic: false,
-            bytes: FontBytes::Static(&[]),
-            index: 0,
-            upem: 1000.0,
-            ascent: 800.0,
-            descent: 200.0,
-            cap_height: 700.0,
-            x_height: 500.0,
-            shaper: None,
-            coords: Vec::new(),
-            location: Location::default(),
-            instance: None,
-            bmp: std::sync::OnceLock::new(),
-        });
+        // Use the optional compiled-in face, or the inert face when fonts are absent.
+        let face =
+            make_face(FontBytes::Static(crate::FALLBACK_BYTES), 0, LAST_RESORT_FAMILY.into(), "Regular".into(), Vec::new()).unwrap_or_else(|| {
+                FontFace {
+                    id: NEXT_ID.fetch_add(1, Ordering::Relaxed),
+                    family: LAST_RESORT_FAMILY.into(),
+                    style: "Regular".into(),
+                    weight: 400.0,
+                    italic: false,
+                    bytes: FontBytes::Static(&[]),
+                    index: 0,
+                    upem: 1000.0,
+                    ascent: 800.0,
+                    descent: 200.0,
+                    cap_height: 700.0,
+                    x_height: 500.0,
+                    shaper: None,
+                    coords: Vec::new(),
+                    location: Location::default(),
+                    instance: None,
+                    bmp: std::sync::OnceLock::new(),
+                }
+            });
         Arc::new(face)
     })
     .clone()

@@ -54,6 +54,10 @@ fn packages(path: &Path, depth: usize, result: &mut Vec<PathBuf>) -> Result<(), 
 fn local_corpus_unit_codes_are_listed() -> Result<(), Box<dyn std::error::Error>> {
     let known = vocabulary(include_str!("units.txt"))?;
     let corpus = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !corpus.exists() {
+        eprintln!("local corpus absent: unit coverage scan skipped");
+        return Ok(());
+    }
     let mut files = Vec::new();
     for group in ["generated", "blank", "ms-shipped"] {
         let path = corpus.join(group);
@@ -62,8 +66,7 @@ fn local_corpus_unit_codes_are_listed() -> Result<(), Box<dyn std::error::Error>
         }
     }
     if files.is_empty() {
-        eprintln!("No local corpora: hydrate with cargo xtask corpus --local to run the unit coverage scan.");
-        return Ok(());
+        return Err("existing corpus must contain unit coverage inputs".into());
     }
     let mut observed = BTreeSet::new();
     let mut unknown = BTreeMap::new();

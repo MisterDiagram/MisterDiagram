@@ -28,6 +28,11 @@ fn main() {
         }
     }
     src.push_str("];\n");
+    if fallback.is_file() {
+        let _ = writeln!(src, "pub(crate) static FALLBACK_BYTES: &[u8] = include_bytes!({:?});", fallback);
+    } else {
+        src.push_str("pub(crate) static FALLBACK_BYTES: &[u8] = &[];\n");
+    }
     let out = PathBuf::from(std::env::var_os("OUT_DIR").unwrap_or_default()).join("craft_fonts.rs");
     if let Err(e) = std::fs::write(&out, src) {
         println!("cargo::error=writing {}: {e}", out.display());

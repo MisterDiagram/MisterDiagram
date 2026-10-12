@@ -885,7 +885,8 @@ mod tests {
     fn corpus_basic_rect_and_probe_inheritance_witnesses() {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus/generated");
         let file = root.join("master/basic-rect.vsdx");
-        if !file.exists() {
+        if !std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus").exists() {
+            eprintln!("local corpus absent: inheritance witnesses skipped");
             return;
         }
         let doc = crate::read(&file).unwrap();
@@ -924,6 +925,10 @@ mod audit {
     #[ignore = "full local corpus construction audit, run explicitly for Phase 1"]
     fn all_corpus_inheritance_construction() {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+        if !root.exists() {
+            eprintln!("local corpus absent: full inheritance audit skipped");
+            return;
+        }
         let mut pending = vec![root.join("generated"), root.join("blank"), root.join("ms-shipped")];
         let mut files = vec![];
         while let Some(path) = pending.pop() {

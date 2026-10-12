@@ -624,7 +624,8 @@ mod tests {
     #[test]
     fn basic_rectangle_corpus_has_every_com_identity_and_unit() {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus/generated/master");
-        if !root.exists() {
+        if !std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus").exists() {
+            eprintln!("local corpus absent: basic rectangle COM dump test skipped");
             return;
         }
         let document = crate::import(&std::fs::read(root.join("basic-rect.vsdx")).unwrap()).unwrap();

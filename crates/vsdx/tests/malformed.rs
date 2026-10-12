@@ -69,10 +69,11 @@ fn random_bytes_and_empty() {
 #[test]
 fn all_corpus_parses_and_seeded_mutations_never_panic() {
     let files = corpus();
-    if files.is_empty() {
+    if !Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus").exists() {
         eprintln!("local corpus absent: corpus mutation pass skipped");
         return;
     }
+    assert!(!files.is_empty(), "existing corpus must contain mutation inputs");
     let mut seed = 0x5eed_u64;
     let mut rnd = |n: usize| {
         seed ^= seed << 13;

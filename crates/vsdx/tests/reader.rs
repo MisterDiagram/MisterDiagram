@@ -156,7 +156,8 @@ fn inherited_empty_page_without_rel_is_valid() {
 #[test]
 fn known_metadata_trees_and_relationship_targets_are_available() {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus/generated/basic/0001-probe.vsdx");
-    if !path.exists() {
+    if !std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus").exists() {
+        eprintln!("local corpus absent: probe reader test skipped");
         return;
     }
     let d = diagramcraft_vsdx::read(path).unwrap();

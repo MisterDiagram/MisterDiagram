@@ -10,6 +10,31 @@ The reader loads .vsdx, .vssx and .vstx packages and strips macro payloads from 
 reporting denominators and frozen acceptance floors. Unsupported formulas return errors.
 Rendering, writing and authoring remain future phases.
 
+## Try it
+
+```sh
+cargo build --workspace
+cargo test --workspace
+cargo run -p diagramcraft-cli -- info /path/to/your-drawing.vsdx
+cargo run -p diagramcraft-cli -- sheet /path/to/your-drawing.vsdx --page 1
+```
+
+Use your own `.vsdx` file. Corpus-dependent tests print a one-line skip message when
+`corpus/` is absent (use `cargo test --workspace -- --nocapture` to see test output).
+When the local corpus exists, its checks remain mandatory and failures are reported.
+
+`cargo run --release -p diagramcraft-cli -- corpus check` needs the generated drawings,
+blank-document dumps, shipped packages and completed COM dumps under `corpus/`.
+The reference corpus is private by design: Visio-generated files can embed Microsoft
+masters and artwork. It is not distributed with this public repository. The scripts in
+[tools/oracle](tools/oracle/) are the regeneration path for a local Visio installation;
+see [the oracle runbook](tools/oracle/README.md) for the VM workflow.
+
+Fonts are optional for a source checkout. `.cargo/config.toml` uses the relative
+`../craft-apps/craft-fonts/src` path; set `CRAFT_FONTS_DIR` to your own checkout to override
+it. If the directory is absent, the existing build warning explains that fonts were not
+embedded. No fonts are downloaded automatically.
+
 ## Build and check
 
 ```sh
@@ -22,8 +47,8 @@ cargo run --release -p diagramcraft-cli -- corpus check
 ```
 
 Use Rust edition 2024 with rustfmt, clippy and wasm32-unknown-unknown available. The local
-`.cargo/config.toml` sets CRAFT_FONTS_DIR to the read-only craft-fonts checkout. Override that
-environment variable for another checkout; BIZ UDPGothic Regular is required as fallback.
+`.cargo/config.toml` points at the optional sibling craft-fonts checkout. Font-enabled builds
+use BIZ UDPGothic Regular as fallback.
 
 See AGENTS.md for operating rules and docs/architecture.md for layers and provenance.
 Generated Visio oracles live in a permanently private companion corpus repo. Microsoft's

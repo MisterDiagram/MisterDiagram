@@ -10,6 +10,10 @@ mod tests {
     #[ignore = "measurement only; run explicitly when recording perf/budgets.toml"]
     fn measure_recalc() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        if !root.join("corpus").exists() {
+            eprintln!("local corpus absent: recalc measurement skipped");
+            return;
+        }
         let path = root.join("corpus/ms-shipped/1033/WFDEP_M.vssx");
         assert!(path.exists(), "largest local stencil required");
         let start = Instant::now();

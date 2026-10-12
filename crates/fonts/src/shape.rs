@@ -98,6 +98,9 @@ mod tests {
 
     #[test]
     fn rtl_items_come_in_visual_order_and_mirror() {
+        if !crate::test_fonts_available() {
+            return;
+        }
         let face = FontDb::global().face(DEFAULT_FAMILY, "Regular");
         let text = "(ab)";
         let p = ShapeParams { rtl: true, ..Default::default() };
@@ -113,6 +116,9 @@ mod tests {
 
     #[test]
     fn clusters_point_into_the_whole_paragraph() {
+        if !crate::test_fonts_available() {
+            return;
+        }
         let face = FontDb::global().face(DEFAULT_FAMILY, "Regular");
         let para = "Hello world";
         let g = shape_range(&face, para, 6..11, &ShapeParams::default(), |c| c);

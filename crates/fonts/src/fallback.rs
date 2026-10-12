@@ -148,6 +148,9 @@ mod tests {
 
     #[test]
     fn requested_face_wins_when_it_covers() {
+        if !crate::test_fonts_available() {
+            return;
+        }
         let db = FontDb::global();
         let inter = db.face(crate::DEFAULT_FAMILY, "Regular");
         let f = db.cascade(&['a'], std::slice::from_ref(&inter), "Regular");
