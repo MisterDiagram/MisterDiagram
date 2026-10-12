@@ -1,48 +1,64 @@
 //! `cargo xtask parity`: recompute the feature-parity summary in docs/parity-checklist.md from its row
-//! table (each PowerPoint feature scored D / P / M, weighted by priority).
+//! table (each Visio feature scored D / P / M, weighted by priority).
 
 use std::path::Path;
 
 const START: &str = "<!-- SUMMARY -->";
 const ROWS: &str = "\n## Rows";
 
-/// (area, feature, priority 0–2, value 0 / 0.5 / 1) for each table row.
-pub fn rows(text: &str) -> Vec<(String, String, u8, f64)> {
+/// (area, feature, priority 0 to 2, value 0 / 0.5 / 1, Core).
+type Row = (String, String, u8, f64, bool);
+pub fn rows(text: &str) -> Result<Vec<Row>, String> {
     let mut out = Vec::new();
-    for l in text.lines() {
-        let cells: Vec<&str> = l.trim().trim_matches('|').split('|').map(str::trim).collect();
-        if cells.len() != 4 {
+    for l in text.lines().map(str::trim).filter(|l| l.starts_with('|')) {
+        let cells: Vec<&str> = l.trim_matches('|').split('|').map(str::trim).collect();
+        if cells.first().is_some_and(|c| *c == "Area" || c.starts_with("---")) {
             continue;
         }
-        let pri = match cells[2] {
+        let [area, feature, pri, core, status] = cells.as_slice() else {
+            return Err(format!("invalid checklist row: {l}"));
+        };
+        let pri = match *pri {
             "P0" => 0,
             "P1" => 1,
             "P2" => 2,
-            _ => continue,
+            _ => return Err(format!("invalid priority: {l}")),
         };
-        let v = match cells[3] {
+        let core = match *core {
+            "Y" => true,
+            "N" => false,
+            _ => return Err(format!("invalid Core: {l}")),
+        };
+        let value = match *status {
             "D" => 1.0,
             "P" => 0.5,
             "M" => 0.0,
-            _ => continue,
+            _ => return Err(format!("invalid status: {l}")),
         };
-        out.push((cells[0].to_string(), cells[1].to_string(), pri, v));
+        out.push(((*area).into(), (*feature).into(), pri, value, core));
     }
-    out
+    if out.is_empty() {
+        return Err("no checklist rows".into());
+    }
+    Ok(out)
 }
-
 fn weight(p: u8) -> f64 {
-    [3.0, 2.0, 1.0][p as usize]
+    match p {
+        0 => 3.0,
+        1 => 2.0,
+        _ => 1.0,
+    }
 }
 
-pub fn summary(rows: &[(String, String, u8, f64)]) -> String {
-    let pct = |rs: &[&(String, String, u8, f64)]| {
+pub fn summary(input: &[Row]) -> String {
+    let rows: Vec<Row> = input.iter().filter(|r| r.4).cloned().collect();
+    let pct = |rs: &[&Row]| {
         let tot: f64 = rs.iter().map(|r| weight(r.2)).sum();
         if tot == 0.0 { 0.0 } else { 100.0 * rs.iter().map(|r| weight(r.2) * r.3).sum::<f64>() / tot }
     };
     let all: Vec<_> = rows.iter().collect();
     let mut s = format!(
-        "**Weighted breadth parity: {:.0}%** over {} features.\n\n| Priority | Features | Done | Partial | Missing | Parity |\n|---|---|---|---|---|---|\n",
+        "**Weighted breadth parity: {:.0}%** over {} Core=Y features.\n\n| Priority | Features | Done | Partial | Missing | Parity |\n|---|---|---|---|---|---|\n",
         pct(&all),
         rows.len()
     );
@@ -54,7 +70,7 @@ pub fn summary(rows: &[(String, String, u8, f64)]) -> String {
     }
     s += "\n| Area | Parity |\n|---|---|\n";
     let mut areas: Vec<&str> = Vec::new();
-    for r in rows {
+    for r in &rows {
         if !areas.contains(&r.0.as_str()) {
             areas.push(&r.0);
         }
@@ -65,6 +81,12 @@ pub fn summary(rows: &[(String, String, u8, f64)]) -> String {
     }
     let open: Vec<&str> = rows.iter().filter(|r| r.2 == 0 && r.3 < 1.0).map(|r| r.1.as_str()).collect();
     s += &format!("\nOpen P0 items: {}.\n", open.join(", "));
+    s += "\nCore=N rows (excluded from milestone scoring):\n\n| Priority | Features | Done | Partial | Missing |\n|---|---|---|---|---|\n";
+    for p in 0..3u8 {
+        let rs: Vec<_> = input.iter().filter(|r| !r.4 && r.2 == p).collect();
+        let n = |v| rs.iter().filter(|r| r.3 == v).count();
+        s += &format!("| P{p} | {} | {} | {} | {} |\n", rs.len(), n(1.0), n(0.5), n(0.0));
+    }
     s
 }
 
@@ -74,7 +96,10 @@ pub fn run(root: &Path) -> Result<(), String> {
     let (Some(a), Some(b)) = (text.find(START), text.find(ROWS)) else {
         return Err("docs/parity-checklist.md needs a `<!-- SUMMARY -->` marker before `## Rows`".into());
     };
-    let rows = rows(&text[b..]);
+    if a >= b {
+        return Err("summary marker must precede rows".into());
+    }
+    let rows = rows(text.get(b..).ok_or("invalid rows boundary")?)?;
     let s = summary(&rows);
     let new = format!("{}{START}\n{s}{}", &text[..a], &text[b..]);
     std::fs::write(&path, new).map_err(|e| e.to_string())?;
@@ -85,15 +110,19 @@ pub fn run(root: &Path) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
     #[test]
-    fn scores_rows() {
-        let t = "| Area | Feature | Priority | Status |\n|---|---|---|---|\n| A | x | P0 | D |\n| A | y | P2 | M |\n| B | z | P1 | P |\n";
-        let r = rows(t);
-        assert_eq!(r.len(), 3);
+    fn core_scoring_preserves_weights_and_excludes_shell() {
+        let r = rows("| A | x | P0 | Y | D |\n| A | y | P2 | Y | M |\n| B | z | P1 | Y | P |\n| UI | shell | P0 | N | M |\n").unwrap();
+        assert_eq!(r.len(), 4);
         let s = summary(&r);
-        // (3·1 + 1·0 + 2·0.5) / 6 = 67%
-        assert!(s.contains("**Weighted breadth parity: 67%**"), "{s}");
-        assert!(s.contains("Open P0 items: ."));
+        assert!(s.contains("**Weighted breadth parity: 67%** over 3 Core=Y features."), "{s}");
+        assert!(s.contains("| P0 | 1 | 0 | 0 | 1 |"));
+        assert!(!s.contains("shell"));
+    }
+    #[test]
+    fn malformed_rows_do_not_silently_change_denominator() {
+        for t in ["", "| A | x | P9 | Y | D |", "| A | x | P0 | ? | D |", "| A | x | P0 | Y | ? |", "| A | x | P0 | D |"] {
+            assert!(rows(t).is_err());
+        }
     }
 }

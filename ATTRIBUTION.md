@@ -47,3 +47,7 @@ Craft-fonts commit: `3d9ab3a132ed0eff457e424226a435a901da30d3`. Font files and l
 | BIZ UDMincho Regular | `fonts/biz-ud-mincho/BIZUDMincho-Regular.ttf` | https://github.com/google/fonts/tree/63833b7d10bb1f86a8f0b91cba2d3ae1f68d1aa3/ofl/bizudmincho | OFL-1.1 (`fonts/biz-ud-mincho/OFL.txt`) |
 | Noto Sans Arabic Regular | `fonts/noto-sans-arabic/NotoSansArabic.ttf` | https://github.com/google/fonts/tree/7085eb89a950e85db5b166b7a58d414544b4140c/ofl/notosansarabic | OFL-1.1 (`fonts/noto-sans-arabic/OFL.txt`) |
 | Noto Sans Thai Regular | `fonts/noto-sans-thai/NotoSansThai.ttf` | https://github.com/google/fonts/tree/8b0a1d0f5983c89bc2b93f1b5fb55f9e252744b5/ofl/notosansthai | OFL-1.1 (`fonts/noto-sans-thai/OFL.txt`) |
+
+Adapted `AGENTS.md` from deckcraft `src/AGENTS.md`, commit `be14248577b92059eb2b8c0c9460cceffbc1f01d`, MIT OR Apache-2.0.
+
+Adapted `CLAUDE.md` from deckcraft `src/CLAUDE.md`, commit `be14248577b92059eb2b8c0c9460cceffbc1f01d`, MIT OR Apache-2.0.
