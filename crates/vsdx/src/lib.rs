@@ -267,7 +267,8 @@ pub fn parse_sheet(e: &XmlElement) -> Result<Sheet, ReadError> {
             return Err(bad("sheet byte limit"));
         }
     }
-    if e.elements().filter(|c| c.is_visio("Cell")).count() > limits::MAX_SHEET_CELLS {
+    let mut sheet_cells = e.elements().filter(|c| c.is_visio("Cell")).count();
+    if sheet_cells > limits::MAX_SHEET_CELLS {
         return Err(bad("sheet cell limit"));
     }
     for section in e.elements().filter(|s| s.is_visio("Section")) {
@@ -282,6 +283,10 @@ pub fn parse_sheet(e: &XmlElement) -> Result<Sheet, ReadError> {
             if cells > limits::MAX_SECTION_CELLS || rows > limits::MAX_SECTION_ROWS {
                 return Err(bad("section cell or row limit"));
             }
+        }
+        sheet_cells = sheet_cells.saturating_add(cells);
+        if sheet_cells > limits::MAX_SHEET_CELLS {
+            return Err(bad("sheet cell limit"));
         }
     }
     let mut sheet = Sheet { attributes: e.attributes.clone(), ..Default::default() };

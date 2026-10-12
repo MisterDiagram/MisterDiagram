@@ -26,6 +26,11 @@ observed shipped section has4243cells; largest XML part is5281894bytes.
 peak RSS; `oversized_image_peak_memory_is_bounded` rejects a10000x10000PNG
 header at3162112bytes. Measurements use macOS `/usr/bin/time -l` child processes;
 these are hostile-fixture measurements, not maximum memory for every document.
+Independent closure verification found a caller-built aggregate gap: five valid
+16384-cell sections were accepted even though the XML path rejected the total.
+M2.9.5 accumulates direct, section-level and row-level cells across the sheet
+before cloning. `caller_built_sheet_cannot_split_cell_budget_across_sections`
+fails before the fix and passes after it; the65536-cell limit is unchanged.
 
 
 M2.8: Charles accepted the human gate on 2026-10-12 at 16:45. The original

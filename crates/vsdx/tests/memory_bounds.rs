@@ -48,3 +48,19 @@ fn geometry_section_peak_memory_is_bounded() {
     eprintln!("100000-row geometry peak RSS: {rss} bytes (limit 200 MiB)");
     assert!(rss < 200 * 1024 * 1024, "{stderr}");
 }
+
+#[test]
+fn caller_built_sheet_cannot_split_cell_budget_across_sections() {
+    use diagramcraft_model::{XmlElement, XmlNode};
+    let cell = XmlElement {
+        name: "Cell".into(),
+        namespace: NS.into(),
+        attributes: [("N".into(), "X".into()), ("V".into(), "0".into())].into(),
+        ..Default::default()
+    };
+    let section = XmlElement { name: "Section".into(), namespace: NS.into(), children: vec![XmlNode::Element(cell); 16_384], ..Default::default() };
+    // Each section is valid in isolation, but the sheet exceeds 65,536 cells.
+    let shape = XmlElement { name: "Shape".into(), namespace: NS.into(), children: vec![XmlNode::Element(section); 5], ..Default::default() };
+    let error = diagramcraft_vsdx::parse_sheet(&shape).err().map(|e| e.to_string());
+    assert_eq!(error.as_deref(), Some("invalid Visio file: sheet cell limit"));
+}
