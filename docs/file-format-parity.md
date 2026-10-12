@@ -48,7 +48,11 @@ floor to its new denominator on 2026-10-12, preserving the97% M1 contract; it ma
 only rise from here. Oracle2:20806040/21055732 (98.814138%), unchanged floor98.6241%;
 non-literal COM3165694/3199229 (98.951779%). Theme remains included.
 Text cached:61710/67797 (91.021727%); COM:12807/14118 (90.713982%). Both exceed90%,
-so text-metric cells now join both main denominators under the existing rule.
+so text-metric cells now join both main denominators permanently. M2.9.2
+records `promoted = true`: either text line falling below90% or its own ratchet
+fails the gate, without removing text from the main denominators. Cached text
+floor90.9875% is the lesser achieved quick/full rate; COM text floor90.7139%
+is the lesser achieved quick/full rate. Main floors are unchanged.
 
 Remaining text failures:6087 cached and1311COM. Cached buckets:1742User.Width,
 1124TxtWidth,1054TxtHeight,746Width,262User.MenuItemTextSize,198Height,

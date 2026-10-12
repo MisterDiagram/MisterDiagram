@@ -50,6 +50,9 @@ pub struct Witness {
 pub struct Report {
     pub render: Option<render::Report>,
     pub text_metric_floor: f64,
+    pub text_promotion_sticky: bool,
+    pub text_cached_floor: f64,
+    pub text_com_floor: f64,
     pub text_metrics_included: bool,
     pub cached_hosts: [Rate; 2],
     pub com_hosts: [Rate; 2],
@@ -82,10 +85,22 @@ impl Report {
     }
     /// Cell accuracy is reported separately; the complete gate also requires rendering.
     pub fn cells_passed(&self) -> bool {
-        self.shipped_cached.total > 0
+        (!self.text_promotion_sticky || self.text_gate_passed())
+            && self.shipped_cached.total > 0
             && self.com.total > 0
             && self.shipped_cached.percent() >= self.cached_floor
             && self.com.percent() >= self.com_floor
+    }
+}
+impl Report {
+    fn text_gate_passed(&self) -> bool {
+        self.cached_hosts[1].total > 0
+            && self.com_hosts[1].total > 0
+            && self.cached_hosts[1].percent() >= self.text_metric_floor.max(self.text_cached_floor)
+            && self.com_hosts[1].percent() >= self.text_metric_floor.max(self.text_com_floor)
+    }
+    fn include_text(&self) -> bool {
+        self.text_promotion_sticky || text_promoted(&self.cached_hosts[1], &self.com_hosts[1], self.text_metric_floor)
     }
 }
 impl fmt::Display for Report {
@@ -134,6 +149,14 @@ impl fmt::Display for Report {
             "text-metric promotion: threshold={:.6}% main_denominators={} (both cached and COM must qualify)",
             self.text_metric_floor,
             if self.text_metrics_included { "included" } else { "deferred; M2.3 comparison mode" }
+        )?;
+        writeln!(
+            f,
+            "text-metric sticky={} cached_floor={:.6}% COM_floor={:.6}% text_gate={}",
+            self.text_promotion_sticky,
+            self.text_cached_floor,
+            self.text_com_floor,
+            if self.text_gate_passed() { "PASS" } else { "FAIL" }
         )?;
         writeln!(f, "diagnostics below use fully evaluated text, including deferred text rows and their dependents")?;
         writeln!(
@@ -352,6 +375,20 @@ fn exclusions() -> BTreeSet<String> {
 }
 fn excluded(calls: &BTreeSet<String>, exclusions: &BTreeSet<String>) -> bool {
     calls.iter().any(|s| exclusions.contains(s) || exclusions.contains("_UCON_...") && s.starts_with("_UCON_"))
+}
+fn promoted(text: &str) -> Result<bool, String> {
+    let mut value = None;
+    for line in text.lines() {
+        if let Some((key, raw)) = line.split('#').next().unwrap_or("").split_once('=')
+            && key.trim() == "promoted"
+        {
+            if value.is_some() {
+                return Err("duplicate promoted flag".into());
+            }
+            value = Some(raw.trim().parse::<bool>().map_err(|_| "invalid promoted flag")?);
+        }
+    }
+    value.ok_or_else(|| "missing promoted flag".into())
 }
 fn floor(text: &str, key: &str) -> Result<f64, String> {
     let mut found = None;
@@ -673,7 +710,7 @@ fn read_dump(mut reader: impl BufRead, label: &str, mut visit: impl FnMut(DumpRo
 /// then the first 50 sorted shipped packages and only their available completed dumps.
 pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
     let mut report = run_pass(root, quick, false)?;
-    if text_promoted(&report.cached_hosts[1], &report.com_hosts[1], report.text_metric_floor) {
+    if report.include_text() {
         report.text_metrics_included = true;
     } else {
         let deferred = run_pass(root, quick, true)?;
@@ -709,6 +746,9 @@ fn run_pass(root: &Path, quick: bool, deferred: bool) -> Result<Report, String> 
     let mut report = Report {
         render: None,
         text_metric_floor: floor(include_str!("../../../crates/sheet/tests/floors.toml"), "text-metric")? * 100.,
+        text_promotion_sticky: promoted(frozen)?,
+        text_cached_floor: floor(frozen, "text-cached-floor")? * 100.,
+        text_com_floor: floor(frozen, "text-com-floor")? * 100.,
         text_metrics_included: false,
         cached_hosts: Default::default(),
         com_hosts: Default::default(),
@@ -1023,6 +1063,9 @@ mod tests {
         let mut report = Report {
             render: None,
             text_metric_floor: 90.,
+            text_promotion_sticky: false,
+            text_cached_floor: 90.,
+            text_com_floor: 90.,
             text_metrics_included: false,
             cached_hosts: Default::default(),
             com_hosts: Default::default(),
@@ -1061,6 +1104,21 @@ mod tests {
         assert!(report.cells_passed(), "cell-only CI gate must still measure cell floors");
         assert!(!report.passed(), "CLI gate must reject failed render comparisons");
         report.render = None;
+        // Promotion is permanent: poor text cannot select the old denominator.
+        report.text_promotion_sticky = true;
+        report.text_cached_floor = 91.;
+        report.text_com_floor = 92.;
+        report.cached_hosts[1] = Rate { matched: 91, total: 100, excluded: 0 };
+        report.com_hosts[1] = Rate { matched: 92, total: 100, excluded: 0 };
+        assert!(report.include_text());
+        assert!(report.cells_passed());
+        for (cached, com) in [(89, 100), (100, 89), (90, 100), (100, 91), (0, 0)] {
+            report.cached_hosts[1].matched = cached;
+            report.com_hosts[1].matched = com;
+            assert!(report.include_text(), "a promoted denominator cannot shrink");
+            assert!(!report.cells_passed(), "text floors must remain mandatory");
+        }
+        report.text_promotion_sticky = false;
         report.shipped_cached = Rate::default();
         assert!(!report.passed());
         report.shipped_cached = Rate { matched: 97, total: 100, excluded: 0 };
@@ -1126,5 +1184,9 @@ mod text_gate_tests {
         assert!(!text_promoted(&Rate::default(), &ready, 90.));
         assert!(text_promoted(&ready, &ready, 90.));
         assert_eq!(diagramcraft_sheet::TEXT_METRIC_FUNCTIONS.len(), 3);
+        assert_eq!(promoted(include_str!("../../../crates/sheet/tests/floors.toml")), Ok(true));
+        for invalid in ["", "promoted=maybe", "promoted=true\npromoted=false"] {
+            assert!(promoted(invalid).is_err());
+        }
     }
 }

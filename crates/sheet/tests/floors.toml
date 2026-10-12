@@ -40,6 +40,15 @@ full_resolved_denominator = 7271082
 [promotion]
 # Charles, P2-followup: report text separately until both text oracles reach this rate.
 text-metric = 0.90
+# M2.9.2: promotion is permanent. Both lines are now mandatory and only ratchet up.
+promoted = true
+# Lesser achieved quick/full rate, rounded down to six decimals, as with main floors.
+text-cached-floor = 0.909875
+text-com-floor = 0.907139
+quick_text_cached_passed = 1686
+quick_text_cached_eligible = 1853
+quick_text_com_passed = 1550
+quick_text_com_eligible = 1633
 
 # P2-followup achieved render observations only. These are not ceilings.
 # RGB MAD uses 0..255. Fractions weight the compared common area.
