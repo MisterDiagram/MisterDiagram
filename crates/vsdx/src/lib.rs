@@ -59,11 +59,14 @@ pub fn import(bytes: &[u8]) -> Result<Document, ReadError> {
         .clone();
     let mut doc = Document { main_part: main.clone(), root_relationships: root_rels, ..Default::default() };
     for (name, bytes) in package.parts() {
-        if name.rsplit('/').next().is_some_and(|s| s.eq_ignore_ascii_case("vbaProject.bin")) {
+        let content_type = package.content_type(name);
+        if content_type.as_deref() == Some("application/vnd.ms-office.vbaProject")
+            || name.rsplit('/').next().is_some_and(|s| s.eq_ignore_ascii_case("vbaProject.bin"))
+        {
             doc.macros_removed = true;
             continue;
         }
-        doc.parts.insert(name.to_string(), Part { bytes: bytes.to_vec(), content_type: package.content_type(name), ..Default::default() });
+        doc.parts.insert(name.to_string(), Part { bytes: bytes.to_vec(), content_type, ..Default::default() });
     }
     doc.macros_removed |= package.content_type(&main).is_some_and(|s| s.contains("macroEnabled"));
     let root = part_xml(&package, &mut doc, &main)?;
