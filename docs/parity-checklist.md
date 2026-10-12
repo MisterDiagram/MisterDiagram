@@ -3,25 +3,25 @@
 > **Drafted:** 2026-10-11 from the observed app (visio-observed.md) and Microsoft's documentation · **Target:** Microsoft Visio Standard 2021 16.0.20430 (Professional rows marked Pro) · **Status:** Phase 1 reader implemented; authoring, evaluation and rendering remain in progress. Format follows the storytold apps' `docs/parity-checklist.md`: area, feature, priority, Core Y/N, status D/P/M.
 
 <!-- SUMMARY -->
-**Weighted breadth parity: 14%** over 45 Core=Y features.
+**Weighted breadth parity: 18%** over 45 Core=Y features.
 
 | Priority | Features | Done | Partial | Missing | Parity |
 |---|---|---|---|---|---|
-| P0 | 27 | 1 | 8 | 18 | 19% |
+| P0 | 27 | 1 | 11 | 15 | 24% |
 | P1 | 15 | 0 | 1 | 14 | 3% |
 | P2 | 3 | 0 | 0 | 3 | 0% |
 
 | Area | Parity |
 |---|---|
-| Files | 24% |
-| Pages | 0% |
+| Files | 32% |
+| Pages | 25% |
 | Shapes | 11% |
 | Stencils | 32% |
 | Connectors | 0% |
 | Text | 43% |
 | Format | 19% |
 | Arrange | 0% |
-| Layers | 0% |
+| Layers | 50% |
 | Containers | 0% |
 | Data | 0% |
 | Automation | 0% |
@@ -49,11 +49,11 @@ Core=N rows (excluded from milestone scoring):
 | Files | Open .vssx stencils and .vstx templates; save a stencil | P0 | Y | P |
 | Files | Open legacy .vsd (binary) and .vdx (XML 2003) | P1 | Y | M |
 | Files | Open .vsdm/.vssm/.vstm (drop macros, keep the rest) | P1 | Y | P |
-| Files | Export SVG (with Visio extension namespace), PNG, JPEG, EMF/WMF, PDF (vector, text, links) | P0 | Y | M |
+| Files | Export SVG (with Visio extension namespace), PNG, JPEG, EMF/WMF, PDF (vector, text, links) | P0 | Y | P |
 | Files | Export DWG/DXF; import DWG/DXF as a CAD underlay or converted shapes | P1 | Y | M |
 | Files | Export to PowerPoint (one page per slide, native shapes) and Word | P1 | Y | M |
 | Files | Print: page setup, fit to pages, headers and footers | P1 | N | M |
-| Pages | Multiple pages, background pages, page size and orientation, drawing scale and units | P0 | Y | M |
+| Pages | Multiple pages, background pages, page size and orientation, drawing scale and units | P0 | Y | P |
 | Pages | Rulers, grid, dynamic grid, guides, snap and glue settings | P0 | N | M |
 | Pages | Page tabs: add, rename, reorder, duplicate, delete | P0 | Y | M |
 | Shapes | Draw tools: rectangle, ellipse, line, freeform, arc, pencil | P0 | Y | M |
@@ -85,7 +85,7 @@ Core=N rows (excluded from milestone scoring):
 | Format | Format Painter, Quick Styles | P1 | Y | M |
 | Arrange | Align, distribute, same size, bring to front/back, position pane | P0 | Y | M |
 | Arrange | Auto Align & Space, Auto Size page | P1 | Y | M |
-| Layers | Layers per page: visible, print, lock, snap, glue, colour; layer membership | P0 | Y | M |
+| Layers | Layers per page: visible, print, lock, snap, glue, colour; layer membership | P0 | Y | P |
 | Containers | Containers (own their members, resize, headings), lists, callouts | P1 | Y | M |
 | Data | Shape data sets, Define Shape Data dialog | P1 | Y | M |
 | Data | Link data to shapes from Excel, data graphics, refresh (Pro) | P2 | Y | M |
@@ -132,3 +132,10 @@ Core=N rows (excluded from milestone scoring):
 
 - Character and paragraph formatting remains partial: `diagramcraft-vsdx::evaluate::text::tests::markers_fields_and_hostile_text` and `diagramcraft-text::tests::finite_wrapping_bidi_and_autofit`. Nonvolatile string/numeric field expansion is tested by `fields_expand_current_values_and_format_pictures`; aligned tabs and font-size spacing by `visio_font_percentage_empty_line_and_aligned_tabs`. Date-host fields retain their saved display.
 - Text block control remains partial: `diagramcraft-vsdx::evaluate::text::tests::generated_text_group_resolves_runs_and_transforms` and `diagramcraft-text::tests::finite_wrapping_bidi_and_autofit`. `probe_connector_empty_text_retains_minimum_line_height` fixes the original empty-label discrepancy. Pixel fidelity and full text metrics have not passed.
+
+## M2.5 output evidence
+
+- PNG, SVG and PDF export: P, `diagramcraft-render::generated_pages_and_foreign_objects_produce_outputs` produces all three formats for all 204 generated drawings. PDF uses vector paths and embedded glyph text; visual and extraction acceptance follow in M2.6. JPEG/EMF export and links remain open.
+- Pages and backgrounds: P, `diagramcraft-render::layers_visibility_print_and_background_pages` checks background inclusion and rejects a background cycle. Page size and drawing scale feed the scene; pixel fidelity is not yet accepted.
+- Layers: P, `diagramcraft-render::layers_visibility_print_and_background_pages` distinguishes hidden screen layers from printable layers. Editing, layer colours, locking, snapping and glue remain open.
+- Geometry and master inheritance remain P, with the generated output test exercising the evaluated path adapter. Shape authoring rows remain M.

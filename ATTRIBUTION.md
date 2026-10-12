@@ -35,6 +35,12 @@
 | `xtask/src/main.rs` | deckcraft | `xtask/src/main.rs` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
 | `xtask/src/layers.rs` | deckcraft | `xtask/src/layers.rs` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
 | `xtask/src/assets.rs` | deckcraft | `xtask/src/assets.rs` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
+| `crates/render/src/raster.rs` | deckcraft | `crates/render/src/lib.rs, crates/render/src/paint.rs, crates/render/src/images.rs` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
+| `crates/render/src/pdf.rs` | deckcraft | `crates/pdf/src/lib.rs` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
+| `crates/render/src/metafile/mod.rs` | vectorcraft | `crates/metafile/src/import.rs` | `806b1a6972288319577d75d097c140f9bf530ce0` | MIT OR Apache-2.0 |
+| `crates/render/src/metafile/emf.rs` | vectorcraft | `crates/metafile/src/import/emf.rs` | `806b1a6972288319577d75d097c140f9bf530ce0` | MIT OR Apache-2.0 |
+| `crates/render/src/metafile/bytes.rs` | vectorcraft | `crates/metafile/src/bytes.rs` | `806b1a6972288319577d75d097c140f9bf530ce0` | MIT OR Apache-2.0 |
+| `crates/render/src/metafile/dib.rs` | vectorcraft | `crates/metafile/src/dib.rs` | `806b1a6972288319577d75d097c140f9bf530ce0` | MIT OR Apache-2.0 |
 
 Fonts are embedded from the external craft-fonts checkout, not copied into this repository. BIZ UDPGothic is the last-resort face. All included faces use OFL-1.1.
 
@@ -94,3 +100,10 @@ All faces are embedded for headless text shaping and open font substitution. Sou
 | `crates/fonts/assets/tinos/Tinos-Regular.ttf` | Tinos Project Authors | `ofl/tinos/Tinos-Regular.ttf` | OFL-1.1 | `60a0e8ef0c04dd5dd69ffe91025fa2ae5836cbd35600a82ba031977557e2cb61` |
 
 The pinned Tinos directory has no OFL.txt. Its font name table supplies its copyright and declares OFL-1.1. The adjacent notice combines that exact copyright with the unchanged OFL-1.1 body from the pinned Cousine notice; it is not claimed to be an upstream Tinos file. No other download or licence substitution was used.
+
+### Renderer dependency assets
+
+| Asset file | Author | Source and version | Licence | Use |
+|---|---|---|---|---|
+| krilla `icc/sRGB-v4.icc`, `icc/sRGB-v2-magic.icc`, `icc/sGrey-v4.icc`, `icc/sGrey-v2-magic.icc` | Clinton Ingram (saucecontrol) | https://github.com/saucecontrol/Compact-ICC-Profiles, bytes distributed by krilla 0.8.2 | CC0-1.0, krilla `icc/LICENSE` | PDF colour profiles |
+| vello_common `assets/probe.rgba` | Vello Authors | https://github.com/linebender/vello, vello_common 0.2.0 | MIT OR Apache-2.0 | Dependency render capability probe, not document art |

@@ -8,3 +8,7 @@ See ATTRIBUTION.md for source commits and licences.
 Craft-fonts faces are SIL Open Font License 1.1; licence files stay in the craft-fonts checkout.
 
 Embedded Latin fonts: Carlito, Caladea, Arimo, Tinos and Cousine, SIL Open Font License 1.1. Copyright notices and the full licence accompany each family in crates/fonts/assets/<family>/OFL.txt. See ATTRIBUTION.md for pinned sources and SHA256 hashes.
+
+Renderer dependencies: Vello Authors, copyright 2026, MIT OR Apache-2.0.
+Krilla's bundled Compact ICC Profiles by Clinton Ingram are CC0-1.0.
+The original CC0 text is distributed in krilla 0.8.2 at icc/LICENSE.

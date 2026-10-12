@@ -14,3 +14,14 @@ kurbo.workspace = true
 diagramcraft-model.workspace = true
 diagramcraft-text.workspace = true
 diagramcraft-theme.workspace = true
+diagramcraft-vsdx.workspace = true
+diagramcraft-sheet.workspace = true
+diagramcraft-fonts.workspace = true
+vello_cpu.workspace = true
+vello_common.workspace = true
+image.workspace = true
+krilla.workspace = true
+base64 = "0.22"
+
+[dev-dependencies]
+resvg = { version = "0.47", default-features = false }

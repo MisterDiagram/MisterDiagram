@@ -82,3 +82,5 @@ spacing, aligned tab placement and formatted nonvolatile fields. The original em
 height matches its corpus witness. Full text metrics and all rendered text remain measured
 gaps until the later render and promotion gates; date/document fields still use their
 saved display while their separate hooks remain deferred.
+
+M2.5 provides PNG/JPEG and EMF foreign objects, page/background/layer rendering and PNG, SVG and vector PDF backends. The generated 204-file output sweep passes. This does not measure pixel agreement. EMF+ and unknown metafile records are skipped with diagnostics; unsupported raster operations and clip subtraction remain visible warnings. Compound line offsets, explicit gradient-stop painting, shadow/effect rendering and inherited child materialization still require renderer work.

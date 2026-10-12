@@ -4,6 +4,10 @@ Status: pre-alpha, M1 met. All acceptance commands and two independent frozen ve
 
 ## Measured
 
+M2.4 shared-coverage refresh: 162/1181 completed shipped dumps, 375 TSVs. Oracle 1 is 4627825/4716091 (98.128408%); oracle 2 is 14252123/14363222 (99.226504%), with non-literal COM 1570864/1586871 (98.991285%). Text-only cached is 34267/67797 (50.543534%) and COM is 3583/7724 (46.387882%), still deferred under the 90% promotion rule. Theme COM is 1053461/1059698 (99.411436%). Shared UTF-16 inputs are decoded in memory without rewriting files.
+
+M2.5 writes PNG, SVG and vector PDF for all 204 generated drawings. This is output coverage, not visual acceptance. PDF embeds the OFL faces and uses native variable coordinates for Arimo. Page/layer/background tests pass; pixel dimensions and appearance remain the M2.6 gate.
+
 M2.4.0 full main counts match M2.3: oracle 1 4627833/4716091 (98.128577%),
 oracle 2 7633655/7695822 (99.192198%), with non-literal 578894/579660 (99.867854%).
 Text-only cached is 25010/67797 (36.889538%); text-only COM is 683/3625
