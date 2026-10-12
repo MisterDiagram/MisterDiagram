@@ -1,0 +1,43 @@
+# U attribute codes from Microsoft's MS-VSDX Cell_Type table, fetched 2026-10-12.
+# https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/6f23bcc4-af93-4023-a380-3e78a228e166
+# Every code named in that table; this list is not an implementation claim.
+AC
+DEG
+DA
+AD
+RAD
+BOOL
+COLOR
+CY
+DATE
+ED
+EH
+EM
+ES
+EW
+HA
+CM
+DL
+FT
+F_I
+IN
+IN_F
+KM
+M
+MI
+MI_F
+MM
+NM
+PER
+YD
+DP
+PNT
+STR
+DE
+C_D
+C
+D
+DT
+P
+P_PT
+PT

@@ -1,0 +1,22 @@
+# Initial exclusion contract from Brief P0. Never extend to improve a score.
+_XFTRIGGER # Event/recalculation counter
+NOW # Clock-dependent
+DATE # Date-dependent
+DATETIME # Date/time-dependent
+DOCLASTSAVE # Document metadata
+DOCLASTEDIT # Document metadata
+DOCLASTPRINT # Document metadata
+DOCCREATION # Document metadata
+PAGECOUNT # Document context
+PAGENUMBER # Page context
+RAND # Random value
+CALLTHIS # External code or side effect
+RUNADDON # External add-on
+RUNADDONWARGS # External add-on
+DOCMD # Application command
+OPENFILE # External file action
+OPENTEXTWIN # UI side effect
+PLAYSOUND # Audio side effect
+QUEUEMARKEREVENT # Event side effect
+HYPERLINK # Navigation side effect
+_UCON_... # Prefix match for internal functions beginning _UCON_; not every leading underscore

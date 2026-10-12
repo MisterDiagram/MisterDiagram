@@ -60,6 +60,7 @@ Host checks (no VM activity):
 ```sh
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/oracle -p 'test_*.py'
 pwsh -NoProfile -File tools/tests/checkpoint.ps1
+pwsh -NoProfile -File tools/tests/shipped-resume.ps1
 bash -n tools/oracle/run-in-vm.sh
 ```
 

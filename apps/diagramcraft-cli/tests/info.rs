@@ -34,6 +34,21 @@ mod tests {
         }
     }
     #[test]
+    fn shipped_2011_core_namespace_is_supported() {
+        // ENTITY_M/U and OBJREL_M/U shipped stencils use the documented 2011 core URI.
+        let mut p = PackageOut::default();
+        p.xml_part(
+            "visio/document.xml",
+            "application/vnd.ms-visio.stencil.main+xml",
+            b"<VisioDocument xmlns='http://schemas.microsoft.com/office/visio/2011/1/core'/>".to_vec(),
+        );
+        let mut r = RelsOut::default();
+        r.add("http://schemas.microsoft.com/visio/2010/relationships/document", "visio/document.xml", false);
+        p.rels("", &r);
+        let o = invoke(&p.finish().unwrap(), "vssx");
+        assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
+    }
+    #[test]
     fn rejects_unrelated_namespaces_and_malformed_document() {
         for (uri, xml) in [
             ("https://example.invalid/document", "<VisioDocument xmlns='http://schemas.microsoft.com/office/visio/2012/main'/>"),

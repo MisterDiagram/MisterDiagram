@@ -109,7 +109,12 @@ impl Package {
             return Err(invalid("not a supported Visio package"));
         }
         let doc = self.xml(&rel.target).ok_or_else(|| invalid("missing or invalid Visio document part"))?;
-        if !root_is(&doc.root, "VisioDocument", "http://schemas.microsoft.com/office/visio/2012/main") {
+        // MS-VSDX Cell_Type documents the earlier core namespace, retained by shipped
+        // ENTITY and OBJREL stencils. Accept these two exact namespaces only.
+        // https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/6f23bcc4-af93-4023-a380-3e78a228e166
+        if !root_is(&doc.root, "VisioDocument", "http://schemas.microsoft.com/office/visio/2012/main")
+            && !root_is(&doc.root, "VisioDocument", "http://schemas.microsoft.com/office/visio/2011/1/core")
+        {
             return Err(invalid("invalid Visio document root"));
         }
         Ok(())

@@ -1,10 +1,12 @@
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 //! Workspace tooling: `cargo xtask <command>`.
 //!
-//! Pure Rust (std + serde_json). External tools (`cargo`, `curl`, `tar`) are
+//! Pure Rust workspace checks and SHA256 corpus hydration. External tools (`cargo`, `curl`, `tar`) are
 //! invoked through `std::process::Command`.
 
 mod assets;
+mod corpus;
+mod corpus_pins;
 mod layers;
 mod parity;
 
@@ -19,6 +21,7 @@ commands:
   layers          enforce the crate dependency layering (docs/architecture.md)
   wasm            cargo check --target wasm32-unknown-unknown for the wasm-safe crates
   ci              fmt --check, clippy -D warnings, test, assets, layers, wasm (stops at first failure)
+  corpus          --local [--update-manifest]: hydrate the pinned private corpus
   parity          recompute the Visio feature-parity summary in docs/parity-checklist.md
 ";
 
@@ -30,6 +33,7 @@ fn main() -> ExitCode {
         Some("wasm") => cmd_wasm(),
         Some("ci") => cmd_ci(),
         Some("parity") => parity::run(&root()),
+        Some("corpus") => corpus::run(&root(), args.get(1..).unwrap_or_default()),
         Some("-h" | "--help" | "help") | None => {
             print!("{USAGE}");
             Ok(())

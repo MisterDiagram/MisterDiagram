@@ -26,3 +26,9 @@ Generated Visio oracles live in a permanently private companion corpus repo. Mic
 shipped stencils and templates stay local under gitignored corpus/. Neither ships here.
 
 Licensed MIT OR Apache-2.0. See ATTRIBUTION.md and NOTICE.
+
+The private reference corpus is pinned by `xtask/src/corpus_pins.rs`. With its clean checkout
+at `../diagramcraft-corpus`, run `cargo xtask corpus --local` to copy and SHA256-verify it.
+`--update-manifest` is for an intentional new pin, never for accepting a mismatch.
+P0 remains partial because the Visio acceptance script stalled in Documents.Open.
+Shipped dumps cover 104/1181 files and can resume on later nights; all shipped files are local.
