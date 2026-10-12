@@ -105,6 +105,8 @@ impl Package {
                 | "application/vnd.ms-visio.stencil.main+xml"
                 | "application/vnd.ms-visio.template.main+xml"
                 | "application/vnd.ms-visio.drawing.macroEnabled.main+xml"
+                | "application/vnd.ms-visio.stencil.macroEnabled.main+xml"
+                | "application/vnd.ms-visio.template.macroEnabled.main+xml"
         ) {
             return Err(invalid("not a supported Visio package"));
         }

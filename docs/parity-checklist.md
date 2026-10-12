@@ -101,7 +101,7 @@ Core=N rows (excluded from milestone scoring):
 
 - Open and save .vsdx (full fidelity, unknown parts kept): P, `diagramcraft-vsdx::reads_shape_cells_sections_text_and_unknown_content`.
 - Open .vssx stencils and .vstx templates; save a stencil: P, `diagramcraft-vsdx::all_corpus_parses_and_seeded_mutations_never_panic`.
-- Open .vsdm/.vssm/.vstm (drop macros, keep the rest): P, `diagramcraft-vsdx::macro_payload_removed_and_flagged`.
+- Open .vsdm/.vssm/.vstm (drop macros, keep the rest): P, `diagramcraft-vsdx::macro_payload_removed_and_flagged` and `imports_macro_enabled_stencils_and_templates_without_vba_payloads`. M2.8.2 admits all six package families in library/CLI tests. Full preservation and real-file fidelity remain partial; renamed typed VBA removal is handled separately by upstream PR #5.
 - ShapeSheet model: Object, Geometry, Character, Paragraph, Tabs, Controls, Connection, User, Actions, Scratch, gradient stops: D, `diagramcraft-vsdx::reads_shape_cells_sections_text_and_unknown_content`.
 
 - Drop masters from a stencil; master instances inherit and can be overridden: P, `diagramcraft-vsdx::evaluate::inherit::tests::corpus_basic_rect_and_probe_inheritance_witnesses`. Read/evaluation subset; editing, host implementations and full corpus accuracy remain open.

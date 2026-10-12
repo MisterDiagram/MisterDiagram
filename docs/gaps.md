@@ -12,6 +12,11 @@ CLI dumps and both numeric corpus oracles are implemented. Full shipped cached a
 complete host font IDs and implicit master-child materialization remain open.
 Dormant CAD geometry algorithms resume in Phase 2.
 
+M2.8.2 extends main-part validation and CLI info to macro-enabled stencils and
+templates. Six package families are admitted, using package metadata for type
+validation. Synthetic imports strip conventional VBA parts and preserve opaque
+content; no runtime or rendered fidelity measurement is claimed.
+
 Phase 1 acceptance and two independent frozen verification passes are complete. Further
 numerical fidelity, complete theme/text hosts and geometry remain later work. Keep the
 Phase 2 planning estimate at 70 to 110 hours: renderer, text and theme work has not yet

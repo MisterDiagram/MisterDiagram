@@ -67,6 +67,27 @@ fn macro_payload_removed_and_flagged() {
     assert!(!d.parts.keys().any(|s| s.ends_with("vbaProject.bin")));
 }
 #[test]
+fn imports_macro_enabled_stencils_and_templates_without_vba_payloads() {
+    for family in ["stencil", "template"] {
+        let mut p = PackageOut::default();
+        let mut rel = RelsOut::default();
+        rel.add("http://schemas.microsoft.com/visio/2010/relationships/document", "visio/document.xml", false);
+        p.rels("", &rel);
+        p.xml_part(
+            "visio/document.xml",
+            &format!("application/vnd.ms-visio.{family}.macroEnabled.main+xml"),
+            b"<VisioDocument xmlns='http://schemas.microsoft.com/office/visio/2012/main'/>".to_vec(),
+        );
+        p.binary("visio/vbaProject.bin", "application/vnd.ms-office.vbaProject", b"synthetic placeholder".to_vec());
+        p.binary("custom/original.dat", "application/octet-stream", b"original data".to_vec());
+        let doc = import(&p.finish().unwrap()).unwrap();
+        assert!(doc.macros_removed);
+        assert!(!doc.parts.contains_key("visio/vbaProject.bin"));
+        assert_eq!(doc.parts["custom/original.dat"].bytes, b"original data");
+        assert_eq!(doc.main_part, "visio/document.xml");
+    }
+}
+#[test]
 fn hostile_xml_and_sheet_entry_points() {
     for b in [b"".as_slice(), b"<Shape>", b"<a><b></a>", b"<!DOCTYPE x><x/>", b"<x:a/>", b"<a xmlns:x='u' xmlns:y='u' x:p='1' y:p='2'/>"] {
         assert!(parse_xml(b).is_err(), "{b:?}");
