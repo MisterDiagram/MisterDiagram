@@ -1,15 +1,15 @@
 # File format parity
 
-Status: pre-alpha, M1 met. Phase 2 is partial and fails its render and text-promotion gates.
+Status: pre-alpha, M1 met. Phase 2 is partial: text promotion passes, four export-size failures remain.
 
 ## Measured
 
-P2-followup-3: all 204 generated drawings render without command failures.
-Eight of ten render groups pass their frozen ceilings. Ten size mismatches remain
-(9 text, 1 page); mismatched files receive no pixel score and always fail. MAD is
-in RGB units from 0 to 255. Oracle images are never resized for this comparison.
+P2-followup-4: all 204 generated drawings render without command failures.
+Nine of ten render groups pass. Four text size mismatches remain; mismatched files
+receive no pixel score and always fail. MAD uses RGB units 0..255. The ceilings
+and oracle images are unchanged.
 
-| Group | Files | Size mismatches | Mean RGB MAD | Pixels over 16 | Gate |
+| Group | Files | Size mismatches | Mean RGB MAD | Pixels over16 | Gate |
 |---|---:|---:|---:|---:|---|
 | arrow | 92 | 0 | 0.543633 | 1.071225% | PASS |
 | basic | 1 | 0 | 0.443949 | 0.745332% | PASS |
@@ -19,39 +19,37 @@ in RGB units from 0 to 255. Oracle images are never resized for this comparison.
 | image | 3 | 0 | 1.602828 | 1.731289% | PASS |
 | line | 37 | 0 | 1.076040 | 1.030076% | PASS |
 | master | 1 | 0 | 1.608085 | 1.791412% | PASS |
-| page | 3 | 1 | 0.642698 | 1.283689% | FAIL |
-| text | 16 | 9 | 2.187714 | 2.393385% | FAIL |
+| page | 3 | 0 | 3.649380 | 1.344992% | PASS |
+| text | 16 | 4 | 3.988622 | 3.257092% | FAIL |
 
-All 204 resvg comparisons pass (worst MAD1.451692); all 204 PDFs have one page,
-and all 16 text drawings have extractable text. Complete character preservation,
-ligature extraction and field reading order remain separate gaps. All 24 paired
-contact sheets now cover 1108/1108 rendered masters with 1108 Visio references.
-Custom1's clamped cycle is resolved by proven bounds, documented below. These
-private observations are not distributable assets. Performance: 25891 ms for the
-largest 43-master stencil, 479 ms for 500 shapes. Performance budgets remain unfrozen.
+All 204 SVG/resvg and PDF checks pass, including extractable text in all 16 text
+PDFs. Ligature extraction and complete reading order remain separate gaps.
+The paired contact sheets cover1108 masters; private observations are not
+redistributable assets. Previous performance observations:25891ms for the largest
+43-master stencil,479ms for500shapes. Budgets remain unfrozen.
 
-CI passes all 8 gates with Charles's 2026-10-12 advisory render rule. Every other
-gate remains mandatory. Strict corpus check exits 1. Render CI becomes mandatory
-again when the human gate freezes the ceilings; M2 remains unaccepted.
+CI passes with only render comparison advisory until the M2 human gate. Strict
+corpus check still fails the four dimensions. No milestone closure is claimed.
 
-Full coverage: 1387 packages, 1181 shipped packages, 162 completed shared shipped
-dumps, 375 TSVs. Oracle 1: 4627375/4716091 (98.118866%), floor 97.5951%.
-Oracle 2: 14252130/14363222 (99.226552%), floor 98.6241%; non-literal COM
-1570871/1586871 (98.991726%). Theme cells remain included. Text cached improves
-from 54294/67797 (80.083190%) at the start of this brief to 57276/67797 (84.481614%);
-text COM improves from 6192/7724 (80.165717%) to 6443/7724 (83.415329%). Neither
-reaches 90%, so both remain separate from the main denominators under Charles's
-rule. The fresh selected BASFLO dump remains in private _vm output, never written
-to the read-only shared dump directory.
+Measured completed coverage:1387packages,1181shipped,301completed shared dumps,
+514TSVs. The shared directory has302dump artifacts including one partial.
+COM text population increased from 7724 to 14118 as coverage grew.
+Oracle1 pre-promotion:4627375/4716091 (98.118866%). Promoted:
+4663847/4783865 (97.491192%), new floor97.4911%. Charles authorized rebasing the
+floor to its new denominator on2026-10-12, preserving the97% M1 contract; it may
+only rise from here. Oracle2:20806040/21055732 (98.814138%), unchanged floor98.6241%;
+non-literal COM3165694/3199229 (98.951779%). Theme remains included.
+Text cached:61710/67797 (91.021727%); COM:12807/14118 (90.713982%). Both exceed90%,
+so text-metric cells now join both main denominators under the existing rule.
 
-Remaining text failures: 10521 cached and 1281 COM. Cached width/width-derived
-buckets contain 4078 TxtWidth, 1879 User.Width, 1620 Width, 314 User.DirArrowOffset,
-265 User.MenuItemTextSize and186 User.TextWidth; height buckets contain 1057
-TxtHeight and 219 Height. Other cached cells total 903. COM User.Width has 658
-failures, Width 203, and other cells 420. Value errors overlap these buckets:
-324 cached TxtHeight, 219 TxtWidth and 108 User.TextHeight. Width measurement,
-field evaluation and inherited formatting still need work; no tolerance changed.
-The private session report retains the ten leading buckets, deltas and witnesses.
+Remaining text failures:6087cached and1311COM. Cached buckets:1742User.Width,
+1124TxtWidth,1054TxtHeight,746Width,262User.MenuItemTextSize,198Height,
+26User.DirArrowOffset; other cached cells935. COM User.Width658, Width231,
+other cells422. These are cell buckets, not uniform root causes. Overlapping
+error buckets include309cached TxtHeight #VALUE!,207TxtWidth #VALUE!,108
+User.TextHeight #VALUE!, and96TxtHeight unsupported FORMAT locale2057.
+Font identity, compatible Segoe metrics, other date pictures and master-specific
+scale handling remain open. No comparison tolerance changed.
 
 M2.5 writes PNG, SVG and vector PDF for all 204 generated drawings. This is output coverage, not visual acceptance. PDF embeds the OFL faces and uses native variable coordinates for Arimo. Page/layer/background tests pass; pixel dimensions and appearance remain the M2.6 gate.
 
@@ -658,7 +656,7 @@ measured image-group differing2.163508%; bicubic measured1.731289%, down from
 JPEG1.588222->1.008614,2.287688%->0.640191%. EMF remains3.292215/3.920718%.
 `image_filter_uses_premultiplied_alpha_and_transparent_border` prevents transparent
 blue from contaminating an opaque red edge. The SVG writer keeps the same border
-and clips it with a nested viewport; all204SVG/PDF checks pass.
+and clips it with a nested viewport; all 204SVG/PDF checks pass.
 
 Only `image/emf.vsdx` has an embedded rendering EMF. Its record ID:count inventory is
 `1:1,10:4,12:4,14:1,18:4,19:2,22:4,24:4,28:4,33:10,34:10,36:22,37:42,39:3,40:11,59:1,60:1,62:1,70:17,75:5,76:1,82:4,84:4,85:2,86:5,87:2,95:5,98:5`.
@@ -796,3 +794,55 @@ Carlito. There is no embedded metric-compatible Segoe face, and no system scan o
 additional font download was introduced. MWFCONCTRL_M master125 shape221 remains
 1.034667529975 versus 1.112060956811 inches. Font identity and compatible metrics
 remain explicit limitations; numerical width multipliers would conceal them.
+
+
+### PNG composition and logical text extents (M2.6.9)
+
+The sixteen generated SVGs remain a placement oracle for TxtPin, margins and
+paragraph baselines (`text_blocks_and_unkerned_lines_match_visio_svg`). They are
+not identical to Visio's bitmap composition: multiline-wrap.svg has eight lines,
+including "narrow text block." on one line; multiline-wrap.png has nine, with
+"block." on the next line. Its nine painted row bands begin at pixels 69,98,126,
+155,186,212,241,270,298. A nonbreaking terminal advance during line breaking
+reproduces this distinction. Exclude that synthetic advance from painted alignment.
+The PNG composition is used consistently by our PNG, SVG and PDF backends.
+
+Export bounds now include logical ascent on both sides of each baseline, and a
+half-em horizontal allowance around glyph ink. Wrapped paragraphs reserve their
+available line box. This is an observed partial approximation, not a complete
+published Visio rule: six previously failing dimensions now agree, but four
+one-pixel residuals remain. No per-file offsets or rounding thresholds were added.
+Multiline-wrap changes 193x385 to 206x385 (Visio 206x385), metric-scale 77x30 to 77x32
+(Visio 77x32), align-1-2 to 385x291, and all three right-aligned cases now match.
+The three align-0-* cases are one pixel too wide (388 instead of387); sizes is
+one pixel short (531 instead of532). Font ink and logical-overhang rounding still
+need work. These files remain hard failures, with no pixel score.
+
+Regression: `png_composition_and_logical_bounds_have_private_witnesses` checks
+six independently exported PNG dimensions and the nine-line composition. The SVG
+placement test continues to check the distinct eight-line SVG witness.
+
+Remaining empty-block TxtHeight errors include APPL_M master7 shape5: Visio
+0.166666666667 inches versus our16.666666666667. The same formula on master2
+shape5 has COM16.666666666667 and already agrees. Thus removing drawing-scale
+conversion globally would break a measured witness. The unresolved cause is
+master-specific scale/context handling, not evidence that the oracle is wrong.
+
+CALNDR_M master9 shape7 supplies a remaining concrete #VALUE! chain:
+TxtHeight calls TEXTHEIGHT(TheText,TxtWidth); two text fields call
+`FORMATEX(Sheet.5!Prop.visStartTime,User.visTimePMFormat,,,User.LCID)` (and
+visFinishTime). The inherited picture is `{{h:mm am/pm}}`, locale1033; source
+values are DATETIME(0.33333333333) and DATETIME(0.375). The DATETIME hook retains an ISO-date cached string, which is not converted to
+a numeric date serial before FORMATEX. It reaches text-picture formatting and
+returns #VALUE!; the calendar formatter also lacks the am/pm token in this
+picture. Visio displays8:00AM and9:00AM; our field evaluation errors, so height
+cannot be measured. This witness explains a
+remaining formatting error, not all1054TxtHeight failures:309are#VALUE!,96are
+unsupported locale2057, and the rest are numerical/other failures.
+
+M2.4.5 changed cached failure buckets as follows: User.Width1879 to1742,
+Width1620 to746, TxtHeight1057 to1054, User.DirArrowOffset314 to26,
+User.MenuItemTextSize265 to262, Height219 to198. Combined with M2.4.4,
+TxtWidth falls4078 to1124. The half-inch Width and0.4-inch Height witnesses
+were Gantt serialization indentation; the remaining buckets include different
+causes and are not claimed solved wholesale.

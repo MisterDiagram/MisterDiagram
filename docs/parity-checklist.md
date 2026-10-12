@@ -176,3 +176,5 @@ Core=N rows (excluded from milestone scoring):
 - M2.4.4 composed width evidence: `diagramcraft-text::tests::composed_width_terminal_space_and_advance_grid` reproduces twenty private cached witnesses. Text remains P until the independent pixel and metric gates pass.
 
 - M2.4.5 text formatting evidence: `diagramcraft-render::text_metric_terminal_fields_and_unit_override_witnesses` and `diagramcraft-sheet::numbered_field_pictures_and_integral_fractions`. Both text rows remain P; no blanket claim for unresolved fonts or export bounds.
+
+- M2.6.9 text block formatting remains P: `png_composition_and_logical_bounds_have_private_witnesses` resolves six dimensions; four one-pixel export residuals remain. SVG block placements retain their separate regression.

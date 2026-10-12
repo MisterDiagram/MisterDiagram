@@ -426,7 +426,11 @@ impl Histogram {
     fn finish(self, kind: &str, witnesses: &mut Vec<Witness>) -> Vec<(String, u64)> {
         let mut counts: Vec<_> = self.counts.into_iter().collect();
         counts.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
-        counts.truncate(10);
+        // Keep all bounded text-cell buckets so promotion reports can account for
+        // the complete remaining failure population, including small buckets.
+        if kind != "text-metric cell" {
+            counts.truncate(10);
+        }
         for (name, _) in &counts {
             if let Some(example) = self.examples.get(name) {
                 let mut example = example.clone();

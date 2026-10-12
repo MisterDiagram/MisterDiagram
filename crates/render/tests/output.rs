@@ -265,15 +265,20 @@ fn text_blocks_and_unkerned_lines_match_visio_svg() {
             assert!((block.width - w).abs() < 0.01 && (block.height - h).abs() < 0.01, "{} {:?}", file.display(), (block.width, block.height, w, h));
         }
         if file.file_stem().unwrap() == "multiline-wrap" {
-            let drawing = scene::page(&doc, 0, scene::Options::default()).unwrap();
-            let layout = drawing
-                .ops
-                .iter()
-                .find_map(|op| match op {
-                    scene::Op::Text { layout, .. } => Some(layout),
-                    _ => None,
-                })
-                .unwrap();
+            // Visio's SVG has eight lines; its PNG export composes nine. Check
+            // the SVG placement contract with the uncomposed layout API.
+            let shape = page.shapes.first().unwrap();
+            let block = e.text_block(diagramcraft_vsdx::evaluate::Scope::PageShape { page: page.id, shape: shape.id }).unwrap();
+            let layout = diagramcraft_text::layout(
+                &block.body,
+                &diagramcraft_text::Opts {
+                    rect: kurbo::Rect::new(0., 0., block.width, block.height),
+                    fields: &diagramcraft_text::NoFields,
+                    prompt_color: None,
+                    no_shrink: false,
+                },
+            )
+            .unwrap();
             let xs = [9.32, 26.84, 20.87, 23.73, 5.32, 5.87, 34.37, 43.40];
             assert_eq!(layout.lines.len(), xs.len());
             for (i, (line, x)) in layout.lines.iter().zip(xs).enumerate() {
@@ -358,5 +363,41 @@ fn text_metric_terminal_fields_and_unit_override_witnesses() {
         let mut e = Evaluator::new(&doc).unwrap().with_theme_host(&themes).with_text_host(&diagramcraft_text::Host);
         let actual = e.evaluate_snapshot(scope, cell).numeric().unwrap();
         assert!((actual - expected).abs() < 1e-6, "{file} {scope:?} {cell}: {actual} != {expected}");
+    }
+}
+
+#[test]
+fn png_composition_and_logical_bounds_have_private_witnesses() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus/generated");
+    if !root.parent().unwrap().exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    for (file, dimensions) in [
+        ("text/multiline-wrap.vsdx", (206, 385)),
+        ("page/metric-scale.vsdx", (77, 32)),
+        ("text/align-1-2.vsdx", (385, 291)),
+        ("text/align-2-0.vsdx", (387, 289)),
+        ("text/align-2-1.vsdx", (387, 289)),
+        ("text/align-2-2.vsdx", (387, 291)),
+    ] {
+        let path = root.join(file);
+        let doc = diagramcraft_vsdx::read(&path).unwrap();
+        let drawing = scene::page(&doc, 0, scene::Options::default()).unwrap();
+        let actual = raster::render(&drawing, scene::Options::default()).unwrap();
+        let expected = raster::decode(&std::fs::read(path.with_extension("png")).unwrap()).unwrap();
+        assert_eq!(expected.dimensions(), dimensions);
+        assert_eq!(actual.dimensions(), expected.dimensions(), "{file}");
+        if file.contains("multiline-wrap") {
+            let lines: usize = drawing
+                .ops
+                .iter()
+                .filter_map(|op| match op {
+                    scene::Op::Text { layout, .. } => Some(layout.lines.len()),
+                    _ => None,
+                })
+                .sum();
+            assert_eq!(lines, 9, "PNG has nine lines; SVG has eight");
+        }
     }
 }

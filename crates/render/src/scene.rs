@@ -258,6 +258,33 @@ fn finish_bounds(scene: &mut Scene, crop: bool) {
                     let r = path.bounding_box();
                     b = Some(b.map_or(r, |b| b.union(r)));
                 }
+                // Export bounds include the logical ascent below the baseline,
+                // not just painted descenders. SVG baselines witness the origin.
+                for run in &layout.runs {
+                    let ascent = run.face.typographic_metrics().0 / run.face.upem * run.size;
+                    if layout.para_lines.get(run.para).is_some_and(|(_, count)| *count > 1) {
+                        // Wrapped paragraphs reserve the complete available line box.
+                        let r = transform.transform_rect_bbox(Rect::new(
+                            layout.inner.x0 - run.size * 0.5,
+                            layout.inner.y0,
+                            layout.inner.x1 + run.size * 0.5,
+                            layout.inner.y0,
+                        ));
+                        b = Some(b.map_or(r, |old| old.union(r)));
+                    }
+                    for (gid, x, y) in &run.glyphs {
+                        let outline = diagramcraft_fonts::FontDb::global().outline(&run.face, *gid);
+                        let ink = outline.bounding_box();
+                        let scale = run.size / run.face.upem;
+                        let (left, right) = if outline.elements().is_empty() {
+                            (*x, *x)
+                        } else {
+                            (x + ink.x0 * scale - run.size * 0.5, x + ink.x1 * scale + run.size * 0.5)
+                        };
+                        let r = transform.transform_rect_bbox(Rect::new(left, y - ascent, right, y + ascent));
+                        b = Some(b.map_or(r, |old| old.union(r)));
+                    }
+                }
                 let Some(b) = b else { continue };
                 b
             }
@@ -479,7 +506,7 @@ fn shapes(
                 _ => (height - original_height) * 0.5,
             };
             let text_transform = scale * block.to_page * Affine::scale(1. / drawing_scale) * Affine::translate((0., -shift));
-            let layout = diagramcraft_text::layout(
+            let layout = diagramcraft_text::layout_for_export(
                 &block.body,
                 &Opts { rect: Rect::new(0., 0., block.width * drawing_scale, height), fields: &NoFields, prompt_color: None, no_shrink: false },
             )

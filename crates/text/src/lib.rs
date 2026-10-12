@@ -717,6 +717,7 @@ fn break_lines(
     default_tab: f64,
     x0_first: f64,
     x0_rest: f64,
+    terminal: bool,
 ) -> Vec<RawLine> {
     let text: String = p.cells.iter().map(|c| c.ch).collect();
     let (allowed, _) = break_opportunities(&text);
@@ -750,7 +751,7 @@ fn break_lines(
             if i > start && allowed.get(i).copied().unwrap_or(false) && breakable(i) {
                 last_break = Some(i);
             }
-            if wrap && x + adv > avail + 0.01 && !c.is_whitespace() && i > start {
+            if wrap && x + adv > avail + 0.01 && (!c.is_whitespace() || c == '\u{a0}') && i > start {
                 // Break at the last opportunity, or force mid-word (between clusters).
                 let b = last_break
                     .filter(|b| *b > start)
@@ -767,7 +768,7 @@ fn break_lines(
             i += 1;
         }
         if i >= n {
-            end = n;
+            end = if terminal { n.saturating_sub(1) } else { n };
             next = n;
         }
         lines.push(RawLine { start, end, next });
@@ -817,10 +818,10 @@ fn tab_advance(x: f64, stops: &[diagramcraft_model::text::TabStop], default_tab:
 }
 
 /// Lay out a shape's text body.
-fn layout_inner(body: &TextBody, opts: &Opts, metric: bool) -> TextLayout {
+fn layout_inner(body: &TextBody, opts: &Opts, metric: bool, terminal: bool) -> TextLayout {
     let bp = body.body.clone();
     let autofit = bp.autofit.unwrap_or(AutoFit::None);
-    let mut l = layout_scaled(body, &bp, opts, 1.0, 0.0, metric);
+    let mut l = layout_scaled(body, &bp, opts, 1.0, 0.0, metric, terminal);
     if let (AutoFit::Shrink { .. }, false) = (autofit, opts.no_shrink)
         && l.overflow
     {
@@ -830,7 +831,7 @@ fn layout_inner(body: &TextBody, opts: &Opts, metric: bool) -> TextLayout {
         for _ in 0..12 {
             let mid = (lo + hi) / 2.0;
             let red: f64 = ((1.0 - mid) * 0.8_f64).min(0.2);
-            let t = layout_scaled(body, &bp, opts, mid, red, metric);
+            let t = layout_scaled(body, &bp, opts, mid, red, metric, terminal);
             if t.overflow {
                 hi = mid;
             } else {
@@ -838,12 +839,12 @@ fn layout_inner(body: &TextBody, opts: &Opts, metric: bool) -> TextLayout {
                 best = Some(t);
             }
         }
-        l = best.unwrap_or_else(|| layout_scaled(body, &bp, opts, 0.1, 0.2, metric));
+        l = best.unwrap_or_else(|| layout_scaled(body, &bp, opts, 0.1, 0.2, metric, terminal));
     }
     l
 }
 
-fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduce: f64, metric: bool) -> TextLayout {
+fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduce: f64, metric: bool, terminal: bool) -> TextLayout {
     let r = opts.rect;
     let vert = bp.vert.unwrap_or(TextDir::Horizontal);
     let rotation = match vert {
@@ -920,7 +921,7 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
         let tabs = props.tabs.clone().unwrap_or_default();
         let first_w = (col_w - first_x - mr).max(1.0);
         let rest_w = (col_w - rest_x - mr).max(1.0);
-        let raw = break_lines(p, first_w, rest_w, wrap, &tabs, props.default_tab.unwrap_or(72.0), first_x, rest_x);
+        let raw = break_lines(p, first_w, rest_w, wrap, &tabs, props.default_tab.unwrap_or(72.0), first_x, rest_x, terminal);
         let before = spacing_pts(props.space_before, p.lead_size, reduce);
         y += before.max(0.0) + prev_after;
         let first_line_idx = all_lines.len();
@@ -1682,8 +1683,25 @@ impl TextLayout {
 /// Reject unbounded or non-finite caller-built text before shaping or cloning it.
 pub fn layout(body: &TextBody, opts: &Opts) -> Result<TextLayout, String> {
     validate(body, opts.rect)?;
-    Ok(layout_inner(body, opts, false))
+    Ok(layout_inner(body, opts, false, false))
 }
+/// Bitmap export composes a nonbreaking terminal space in each paragraph.
+/// Unlike the SVG placement oracle, the PNG of generated/text/multiline-wrap
+/// wraps its final word onto a ninth line. The terminal advance affects wrapping
+/// but is excluded from painted line alignment.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/textwidth-function
+pub fn layout_for_export(body: &TextBody, opts: &Opts) -> Result<TextLayout, String> {
+    validate(body, opts.rect)?;
+    let mut composed = body.clone();
+    for paragraph in &mut composed.paragraphs {
+        if let Some(run) = paragraph.runs.last_mut() {
+            run.text.push('\u{a0}');
+        }
+    }
+    validate(&composed, opts.rect)?;
+    Ok(layout_inner(&composed, opts, false, true))
+}
+
 fn validate(body: &TextBody, rect: Rect) -> Result<(), String> {
     let finite = |v: f64| v.is_finite() && v.abs() <= 1_000_000.0;
     if ![rect.x0, rect.y0, rect.x1, rect.y1].into_iter().all(finite) || body.paragraphs.len() > 4096 {
@@ -1795,7 +1813,12 @@ impl diagramcraft_model::text::TextHost for Host {
         } else {
             body
         };
-        let l = layout_inner(body, &Opts { rect: Rect::new(0., 0., width, 100_000.), fields: &NoFields, prompt_color: None, no_shrink: true }, true);
+        let l = layout_inner(
+            body,
+            &Opts { rect: Rect::new(0., 0., width, 100_000.), fields: &NoFields, prompt_color: None, no_shrink: true },
+            true,
+            false,
+        );
         // Visio adds 0.00005 in to composed, nonempty text, but not to an empty block.
         // Witnesses: generated/basic/0001-probe page0 shape5 and AWSANALYTICS_U master2 shape5.
         // https://learn.microsoft.com/en-us/office/client-developer/visio/textheight-function

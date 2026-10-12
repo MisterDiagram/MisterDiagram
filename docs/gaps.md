@@ -85,38 +85,26 @@ saved display while their separate hooks remain deferred.
 
 M2.5 provides PNG/JPEG and EMF foreign objects, page/background/layer rendering and PNG, SVG and vector PDF backends. The generated 204-file output sweep passes. This does not measure pixel agreement. EMF+ and unknown metafile records are skipped with diagnostics; unsupported raster operations and clip subtraction remain visible warnings. Compound line offsets, explicit gradient-stop painting, shadow/effect rendering and inherited child materialization still require renderer work.
 
-## G7: P2-followup gate failures
+## G7: P2-followup-4 human gate
 
-The current worktree implements render CLI, frozen generated render comparisons,
-resvg/pypdf checks, renderer mutation coverage and paired stencil contacts. It remains
-uncommitted because the mandatory render gate fails CI. There are 10 size mismatches;
-eight of ten groups fail. See the current measured table in file-format-parity.md.
+Nine of ten groups pass; four one-pixel text export residuals remain:
+align-0-0 and align-0-1 are388x289 versus387x289, align-0-2 is388x291 versus387x291,
+and sizes is481x531 versus481x532. Multiline-wrap, metric-scale and right/bottom
+alignment now have matching dimensions. Logical overhang and ascent rounding
+remain an incomplete approximation. Tests: `text_blocks_and_unkerned_lines_match_visio_svg`
+and `png_composition_and_logical_bounds_have_private_witnesses`.
 
-- Arrow and cap-2 dimensions now match all generated witnesses. Arrow profiles and compound stroke bands still differ.
-- Fill and line groups pass their group ceilings. Edge coverage and image resampling remain inaccurate elsewhere.
-- Default foreground/background selection is fixed. Connector text/geometry and inherited master children remain incomplete.
-- Text export bounds and exact metrics remain inaccurate; text promotion stays below 90%.
-- Ligature extraction and reading order in PDF need stronger fidelity coverage beyond nonempty text.
-- Contact rendering now succeeds for 1107/1108 masters. BASFLO_U Custom1 retains a direct Height/Scratch.Y1 cycle.
-- Performance observations have no frozen render budget. The human reviewed the first sheets and kept the ceilings unchanged. M2 acceptance and independent closure have not passed.
+Text promotion passes91.021727% cached and90.713982% COM. Charles authorized the
+oracle1 floor rebase on the promoted denominator to97.4911%; oracle2 remains98.6241%.
+Remaining6087cached/1311COM text failures include font-ID/Segoe metrics, date
+picture and locale formatting, fine advance rounding and master scale/context.
+The measured bucket table and witnesses are in file-format-parity.md and the
+private session report. No oracle values or render ceilings changed.
 
-Implemented gradient-stop painting supersedes the earlier M2.5 gap; shadows, advanced effects,
-compound offsets and implicit child materialization remain open. No floor, ceiling, input image
-or comparison denominator was changed to improve a score.
-
-- M2.6.5: all 16 SVG text rectangles checked, multiline-wrap now8lines with matching SVG starts/baselines. Logical text export padding remains unresolved, including metric-scale; PNG size mismatches remain hard failures.
-
-P2-followup-3 M2.7.2 resolves the final BASFLO_U Custom1 cycle through interval
-bounds. Four COM cells match a fresh private observation, and the master renders.
-Full paired-contact regeneration remains part of the final P2 acceptance pass.
-
-P2-followup-3 final: 8/10 render groups pass; page metric-scale and 9 text files still
-have wrong logical export dimensions. Text remains below 90% at 84.481614% cached
-and 83.415329% COM. Width measurement/overhang, field errors and inherited text
-formatting dominate. All 1108 contact masters render, 24 paired sheets regenerated.
-CI passes with only render comparison advisory; strict corpus remains exit 1.
-
-M2.4.4 resolves the constant TxtWidth term with a terminal space, fixed-point advances and composed-text slack. Regression: `composed_width_terminal_space_and_advance_grid`. Other field, font-identity and export-bound issues remain measured separately.
+All 1108 contact masters render. CI render comparison alone remains advisory;
+strict corpus check still fails, and M2 remains unaccepted. Performance budgets
+and independent closure review remain pending the human gate. PDF ligature
+extraction and full reading order need stronger tests beyond nonempty text.
 
 ## G8: Deferred rendering fidelity (Phase 3 or later)
 

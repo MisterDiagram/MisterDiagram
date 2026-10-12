@@ -3,8 +3,11 @@
 # From this corrected baseline, floors may only rise.
 # Ratcheted to the lesser achieved quick/full rate, rounded down to six decimals.
 # Both CI and full runs use these same floors; exact achieved counts remain below.
+# P2-followup-4, Charles 2026-10-12: text promotion changes the denominator.
+# Rebase to its achieved rate, rounded down to six decimals, above M1 97%.
+# This promoted-denominator floor may only rise; oracle2 is unchanged.
 [oracle1]
-shipped = 0.975951
+shipped = 0.974911
 
 [oracle2]
 all = 0.986241
@@ -115,30 +118,37 @@ within_frozen_ceiling = true
 
 [render_achieved.page]
 files = 3
-size_mismatches = 1
+size_mismatches = 0
 errors = 0
-compared = 2
-mean_mad_rgb = 0.642698
-fraction_over_16 = 0.01283689
-within_frozen_ceiling = false
+compared = 3
+mean_mad_rgb = 3.649380
+fraction_over_16 = 0.01344992
+within_frozen_ceiling = true
 
 [render_achieved.text]
 files = 16
-size_mismatches = 9
+size_mismatches = 4
 errors = 0
-compared = 7
-mean_mad_rgb = 2.187714
-fraction_over_16 = 0.02393385
+compared = 12
+mean_mad_rgb = 3.988622
+fraction_over_16 = 0.03257092
 within_frozen_ceiling = false
 
-# Achieved text-only observations from the final full P2-followup sweep.
-# These records do not replace or lower the promotion threshold above.
 [text-metric.cached]
-passed = 57276
+passed = 61710
 eligible = 67797
-rate = 0.84481614
+rate = 0.91021727
 
 [text-metric.com]
-passed = 6443
-eligible = 7724
-rate = 0.83415329
+passed = 12807
+eligible = 14118
+rate = 0.90713982
+
+[m2_4_text_promotion]
+# Pre-promotion excludes text; promoted includes the qualified text family.
+pre_promotion_passed = 4627375
+pre_promotion_eligible = 4716091
+pre_promotion_rate = 0.98118866
+promoted_passed = 4663847
+promoted_eligible = 4783865
+promoted_rate = 0.97491192
