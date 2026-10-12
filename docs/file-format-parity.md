@@ -108,41 +108,38 @@ All 1387 packages parse, including 5548 seeded mutations with zero panics.
 
 ## Implemented function groups
 
-Arithmetic/trigonometry and basic logic: ABS, ACOS, AND, ASIN, ATAN, ATAN2, CEILING, COS, COSH, FLOOR, GUARD, IF, INT, MAX, MIN, MODULUS, NOT, OR, PI, POW, ROUND, SIN, SINH, SQRT, TAN, TANH, TRUNC.
-Evidence: `microsoft_arithmetic_and_trig_examples`, `microsoft_guard_logic_and_extrema_examples`,
-`microsoft_rounding_and_modulus_examples`, `function_errors_limits_and_arity`.
-Legacy MOD remains open, as recorded above. This list is implementation coverage, not an oracle rate.
+ABS, ACOS, AND, ASIN, ATAN, ATAN2, BLUE, CEILING, COS, COSH, FLOOR, FONT, FONTTOID, FORMAT, FORMATEX, GREEN, GUARD, HSL, HUE, IF, INDEX, INT, LEFT, LEN, LISTSEP, LOOKUP, LUM, MAX, MID, MIN, MODULUS, NOT, OR, PI, POW, RED, RGB, RIGHT, ROUND, SAT, SIN, SINH, SQRT, STRSAME, TAN, TANH, TRUNC.
+
+Microsoft example and hostile-input tests are in `crates/sheet/src/functions/`.
+Legacy MOD remains open, as recorded above. Implementation coverage is not an oracle rate.
+
+Text formatting covers common numeric, fractional, scientific, unit and English Gregorian
+pictures. Explicit non-English locales, non-Gregorian calendars, predefined Office picture IDs
+and specialized era formats return Unsupported. Unit provenance for complex expressions is
+conservative. Unicode scalar indexing and negative MID follow the current documented
+interpretation but lack COM edge-case witnesses.
 
 ## Functions not implemented
 
-Initial Phase 1 inventory over all 1387 local packages: 15080738 Cell elements and 6271536
-formula-bearing cells in Visio XML parts. Counts below are lexical function occurrences,
-excluding quoted string literals. Unknown solution-data payloads remain opaque.
-Arithmetic/trigonometry and basic logic are implemented with Microsoft example tests.
-Host hooks are frozen in crates/sheet/tests/hooks.txt;
-this inventory does not exclude or reclassify unsupported functions to improve a score.
+Inventory over all 1387 local packages: 15080738 Cell elements and 6271536 formula-bearing
+cells in Visio XML parts. Counts are lexical function occurrences outside quoted string
+literals. Unknown solution-data payloads remain opaque. Frozen host hooks are shown; no
+unsupported function is reclassified to improve an oracle score.
 
 | Function | Occurrences | Status |
 |---|---:|---|
 | `THEMEVAL` | 516850 | Host hook |
 | `THEMEGUARD` | 130975 | Host hook |
-| `RGB` | 73360 | Missing |
 | `_ELLIPSE_THETA` | 60151 | Missing |
 | `_ELLIPSE_ECC` | 60129 | Missing |
 | `SETF` | 53331 | Missing |
 | `GETREF` | 48721 | Missing |
-| `LUM` | 46263 | Missing |
 | `TEXTHEIGHT` | 37991 | Host hook |
 | `TEXTWIDTH` | 37189 | Host hook |
 | `NURBS` | 33883 | Missing |
-| `INDEX` | 33333 | Missing |
 | `OPENTEXTWIN` | 33330 | Missing |
-| `SAT` | 23422 | Missing |
-| `STRSAME` | 19570 | Missing |
 | `ISTHEMED` | 18060 | Host hook |
 | `SETATREFEXPR` | 14164 | Missing |
-| `HSL` | 13223 | Missing |
-| `HUE` | 12118 | Missing |
 | `SHAPETEXT` | 10721 | Host hook |
 | `RUNADDONWARGS` | 8464 | Missing |
 | `BITXOR` | 8263 | Missing |
@@ -157,21 +154,17 @@ this inventory does not exclude or reclassify unsupported functions to improve a
 | `LUMDIFF` | 6718 | Missing |
 | `DOCMD` | 6675 | Missing |
 | `SETATREF` | 6036 | Missing |
-| `LOOKUP` | 5975 | Missing |
 | `MSOTINT` | 5792 | Missing |
 | `TINT` | 5721 | Missing |
 | `LISTSHEETREF` | 5053 | Missing |
 | `THEMEPROP` | 5021 | Host hook |
-| `LEN` | 4687 | Missing |
 | `IFERROR` | 4485 | Missing |
 | `_XFTRIGGER` | 4348 | Host hook |
 | `BOUND` | 4264 | Missing |
 | `THEMECBV` | 4180 | Host hook |
 | `FIELDPICTURE` | 4132 | Missing |
-| `FONT` | 4092 | Missing |
 | `PNTX` | 4032 | Missing |
 | `PAR` | 4006 | Missing |
-| `FORMAT` | 3913 | Missing |
 | `SUM` | 3372 | Missing |
 | `GRAVITY` | 3304 | Missing |
 | `PNTY` | 3292 | Missing |
@@ -186,7 +179,6 @@ this inventory does not exclude or reclassify unsupported functions to improve a
 | `ANG360` | 1232 | Missing |
 | `ISERR` | 1218 | Missing |
 | `FIND` | 1168 | Missing |
-| `FORMATEX` | 1148 | Missing |
 | `LOC` | 1072 | Missing |
 | `USE` | 823 | Missing |
 | `LOCTOPAR` | 738 | Missing |
@@ -207,22 +199,16 @@ this inventory does not exclude or reclassify unsupported functions to improve a
 | `NEARESTPOINTONPATH` | 249 | Missing |
 | `MAGNITUDE` | 204 | Missing |
 | `LOCTOLOC` | 156 | Missing |
-| `RED` | 145 | Missing |
-| `GREEN` | 145 | Missing |
-| `BLUE` | 145 | Missing |
 | `MONTH` | 133 | Host hook |
 | `LISTMEMBERCOUNT` | 124 | Missing |
 | `DATEVALUE` | 110 | Host hook |
 | `ANGLETOPAR` | 106 | Missing |
 | `DATETIME` | 100 | Host hook |
-| `LEFT` | 98 | Missing |
 | `EVALTEXT` | 98 | Missing |
 | `LISTORDER` | 89 | Missing |
 | `HOUR` | 88 | Host hook |
-| `RIGHT` | 79 | Missing |
 | `WEEKDAY` | 70 | Host hook |
 | `SATDIFF` | 70 | Missing |
-| `MID` | 70 | Missing |
 | `DATE` | 66 | Host hook |
 | `ISERRNA` | 64 | Missing |
 | `OPENGROUPWIN` | 58 | Missing |
@@ -240,7 +226,6 @@ this inventory does not exclude or reclassify unsupported functions to improve a
 | `DOCLASTSAVE` | 30 | Host hook |
 | `YEAR` | 30 | Host hook |
 | `MASTERMAP` | 20 | Missing |
-| `FONTTOID` | 19 | Missing |
 | `PAGECOUNT` | 18 | Host hook |
 | `QUEUEMARKEREVENT` | 18 | Missing |
 | `DOCCREATION` | 16 | Host hook |
@@ -267,7 +252,6 @@ this inventory does not exclude or reclassify unsupported functions to improve a
 | `_UCON_SIMPLE` | 8 | Missing |
 | `RAND` | 8 | Missing |
 | `LAYOUT` | 8 | Missing |
-| `LISTSEP` | 8 | Missing |
 | `CREATOR` | 6 | Host hook |
 | `PATHLENGTH` | 4 | Missing |
 | `FILENAME` | 4 | Host hook |

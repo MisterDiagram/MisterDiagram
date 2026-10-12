@@ -8,7 +8,8 @@ that the page was consulted during this session.
 |---|---|
 | <https://github.com/storytold/craft-fonts> | `crates/fonts/build.rs`, `crates/fonts/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references> | `crates/vsdx/src/evaluate.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/about-date-time-and-duration-values> | `crates/sheet/src/units.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/about-date-time-and-duration-values> | `crates/sheet/src/functions/text.rs`, `crates/sheet/src/units.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/about-format-pictures> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-formulas> | `crates/sheet/src/eval.rs`, `crates/sheet/src/parser.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-operators> | `crates/sheet/src/eval.rs`, `crates/sheet/src/parser.rs`, `crates/sheet/src/value.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-units-of-measure-visio-shapesheet-reference> | `crates/sheet/src/parser.rs`, `crates/sheet/src/units.rs` |
@@ -18,6 +19,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/asin-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/atan-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/atan2-function> | `crates/sheet/src/functions/numeric.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/blue-function> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/ceiling-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml> | `crates/model/src/lib.rs`, `crates/sheet/src/units.rs`, `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/colorentry-element-colors_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
@@ -34,15 +36,29 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fld-element-text_type-complextypevisio-xml> | `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/floor-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section> | `crates/vsdx/src/evaluate.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/font-function> | `crates/sheet/src/functions/color.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/fonttoid-function> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml> | `crates/vsdx/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/format-function> | `crates/sheet/src/functions/text.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/formatex-function> | `crates/sheet/src/functions/text.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/green-function> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/guard-function> | `crates/sheet/src/functions/mod.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/hsl-function> | `crates/sheet/src/functions/color.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/hue-function> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/icon-element-master_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/if-function> | `crates/sheet/src/functions/mod.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/index-function> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/int-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx> | `crates/model/src/lib.rs`, `crates/opc/src/opc.rs`, `crates/vsdx/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/left-function-visioshapesheet> | `crates/sheet/src/functions/text.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/len-function-visioshapesheet> | `crates/sheet/src/functions/text.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/listsep-function> | `crates/sheet/src/functions/text.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/lookup-function> | `crates/sheet/src/functions/text.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/lum-function> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/mastershortcut-element-masters_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/max-function> | `crates/sheet/src/functions/numeric.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/mid-function-visioshapesheet> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/min-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/modulus-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/not-function> | `crates/sheet/src/functions/numeric.rs` |
@@ -52,16 +68,21 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pi-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pow-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pp-element-text_type-complextypevisio-xml> | `crates/vsdx/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/red-function> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/refby-element-cell_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rel-element-page_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/rgb-function-visioshapesheet> | `crates/sheet/src/functions/color.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/right-function-visioshapesheet> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/round-function-visioshapesheet> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml> | `crates/model/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/sat-function> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/section-element-sheet_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/sin-function-visioshapesheet> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/sinh-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/size-cell-character-section> | `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/sqrt-function> | `crates/sheet/src/functions/numeric.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/strsame-function> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/stylesheet-element-stylesheets_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/tan-function-visioshapesheet> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/tanh-function> | `crates/sheet/src/functions/numeric.rs` |
@@ -83,4 +104,5 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.style.cellssrcexists> | `tools/oracle/common.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.style.section> | `tools/oracle/common.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.visrowindices> | `tools/oracle/common.ps1` |
+| <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/1fac45bf-ef10-4b29-ada1-4acf47fed340> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/6f23bcc4-af93-4023-a380-3e78a228e166> | `crates/sheet/src/units.rs` |

@@ -43,9 +43,13 @@ pub struct Evaluator<'a> {
     active: BTreeSet<Key>,
     work: usize,
     indexed_name_bytes: usize,
+    palette: BTreeMap<u32, [u8; 3]>,
 }
 impl<'a> Evaluator<'a> {
     pub fn new(document: &'a Document) -> Result<Self, Error> {
+        if document.colors.len() > 65536 {
+            return Err(Error::Limit);
+        }
         let mut result = Self {
             document,
             sheets: BTreeMap::new(),
@@ -56,6 +60,7 @@ impl<'a> Evaluator<'a> {
             active: BTreeSet::new(),
             work: 0,
             indexed_name_bytes: 0,
+            palette: document.colors.iter().filter_map(|(i, c)| parse_color(c).map(|c| (*i, c))).collect(),
         };
         result.add_sheet(Scope::Document, &document.document_sheet)?;
         for style in &document.styles {
@@ -431,11 +436,23 @@ impl Context for BoundContext<'_, '_> {
     fn cached(&self) -> Value {
         self.cached.clone()
     }
+    fn unit(&self, reference: &str) -> Option<String> {
+        let (scope, name) = self.evaluator.reference_target(self.scope, reference).ok()?;
+        self.evaluator.cell(scope, &name)?.units.clone()
+    }
     fn color(&self, index: u32) -> Option<[u8; 3]> {
-        parse_color(self.evaluator.document.colors.get(&index)?)
+        self.evaluator.palette.get(&index).copied().or_else(|| diagramcraft_sheet::functions::default_color(index))
     }
     fn color_index(&mut self, rgb: [u8; 3]) -> Option<u32> {
-        self.evaluator.document.colors.iter().find_map(|(index, value)| (parse_color(value) == Some(rgb)).then_some(*index))
+        if let Some(index) = self.evaluator.palette.iter().find_map(|(index, value)| (*value == rgb).then_some(*index)) {
+            return Some(index);
+        }
+        if self.evaluator.palette.len() >= 65536 {
+            return None;
+        }
+        let index = self.evaluator.palette.last_key_value().map_or(Some(24), |(i, _)| i.checked_add(1).map(|i| i.max(24)))?;
+        self.evaluator.palette.insert(index, rgb);
+        Some(index)
     }
     fn font(&self, index: u32) -> Option<String> {
         self.evaluator.document.face_names.get(&index).cloned()

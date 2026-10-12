@@ -9,6 +9,7 @@ pub enum Value {
     Text(String),
     Bool(bool),
     Point(f64, f64),
+    Color { index: u32, rgb: [u8; 3], hsl: Option<[f64; 3]> },
     Error(Error),
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -43,6 +44,7 @@ impl Value {
     pub fn numeric(&self) -> Result<f64, Error> {
         let n = match self {
             Self::Number(n) => *n,
+            Self::Color { index, .. } => f64::from(*index),
             Self::Bool(v) => {
                 if *v {
                     1.0
@@ -63,6 +65,7 @@ impl Value {
         match self {
             Self::Text(s) => s.clone(),
             Self::Number(n) => n.to_string(),
+            Self::Color { index, .. } => index.to_string(),
             Self::Bool(b) => if *b { "TRUE" } else { "FALSE" }.into(),
             Self::Point(x, y) => format!("PNT({x},{y})"),
             Self::Error(e) => e.to_string(),

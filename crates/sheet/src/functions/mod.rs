@@ -1,18 +1,25 @@
 //! ShapeSheet functions with explicit arity, bounded evaluation and reference examples.
 use crate::{Context, Error, Value, eval::eval, parser::Expr};
+mod color;
 mod numeric;
+mod text;
+pub use color::default_color;
 pub const IMPLEMENTED: &[&str] = &[
-    "ABS", "ACOS", "ASIN", "ATAN", "ATAN2", "COS", "COSH", "SIN", "SINH", "TAN", "TANH", "PI", "POW", "SQRT", "GUARD", "IF", "AND", "OR", "NOT",
-    "MIN", "MAX", "INT", "ROUND", "MODULUS", "TRUNC", "CEILING", "FLOOR",
+    "FORMAT", "FORMATEX", "STRSAME", "LEN", "LEFT", "RIGHT", "MID", "INDEX", "LOOKUP", "LISTSEP", "RED", "GREEN", "BLUE", "RGB", "HSL", "HUE", "SAT",
+    "LUM", "FONT", "FONTTOID", "ABS", "ACOS", "ASIN", "ATAN", "ATAN2", "COS", "COSH", "SIN", "SINH", "TAN", "TANH", "PI", "POW", "SQRT", "GUARD",
+    "IF", "AND", "OR", "NOT", "MIN", "MAX", "INT", "ROUND", "MODULUS", "TRUNC", "CEILING", "FLOOR",
 ];
 pub(crate) fn call(name: &str, args: &[Expr], context: &mut dyn Context, budget: &mut usize, depth: usize) -> Value {
+    if let Some(value) = text::call(name, args, context, budget, depth) {
+        return value;
+    }
     match name {
         "GUARD" => guard(args, context, budget, depth),
         "IF" => conditional(args, context, budget, depth),
         "AND" | "OR" => logical(name, args, context, budget, depth),
         _ => {
             let values: Vec<_> = args.iter().map(|arg| eval(arg, context, budget, depth + 1)).collect();
-            numeric::call(name, &values)
+            color::call(name, &values, context).unwrap_or_else(|| numeric::call(name, &values))
         }
     }
 }

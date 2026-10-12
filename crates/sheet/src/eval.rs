@@ -24,6 +24,12 @@ pub trait Context {
     fn cached(&self) -> Value {
         Value::Error(Error::Ref)
     }
+    fn unit(&self, _reference: &str) -> Option<String> {
+        None
+    }
+    fn list_separator(&self) -> &str {
+        ","
+    }
     fn color(&self, _index: u32) -> Option<[u8; 3]> {
         None
     }
