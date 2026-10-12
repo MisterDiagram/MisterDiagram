@@ -122,3 +122,5 @@ have wrong logical export dimensions. Text remains below 90% at 84.481614% cache
 and 83.415329% COM. Width measurement/overhang, field errors and inherited text
 formatting dominate. All 1108 contact masters render, 24 paired sheets regenerated.
 CI passes with only render comparison advisory; strict corpus remains exit 1.
+
+M2.4.4 resolves the constant TxtWidth term with a terminal space, fixed-point advances and composed-text slack. Regression: `composed_width_terminal_space_and_advance_grid`. Other field, font-identity and export-bound issues remain measured separately.
