@@ -564,13 +564,54 @@ fn dump_rows(path: &Path, mut visit: impl FnMut(DumpRow) -> Result<(), String>) 
     }
     read_dump(BufReader::new(file.take(MAX_TSV + 1)), &path.display().to_string(), &mut visit)
 }
+// PowerShell Out-File emits BOM-marked UTF-16. Decode in memory without
+// rewriting shared oracle files; reject malformed surrogates and partial units.
+fn read_utf16_line(reader: &mut impl BufRead, little: bool, output: &mut Vec<u8>) -> Result<usize, String> {
+    let mut units = Vec::new();
+    let mut bytes = 0usize;
+    loop {
+        if reader.fill_buf().map_err(|e| e.to_string())?.is_empty() {
+            break;
+        }
+        let mut pair = [0u8; 2];
+        reader.read_exact(&mut pair).map_err(|e| e.to_string())?;
+        bytes += 2;
+        if bytes > MAX_LINE {
+            return Err("TSV line limit".into());
+        }
+        let unit = if little { u16::from_le_bytes(pair) } else { u16::from_be_bytes(pair) };
+        units.push(unit);
+        if unit == 10 {
+            break;
+        }
+    }
+    let text = String::from_utf16(&units).map_err(|e| e.to_string())?;
+    if text.len() > MAX_LINE {
+        return Err("TSV decoded line limit".into());
+    }
+    output.extend_from_slice(text.as_bytes());
+    Ok(bytes)
+}
 fn read_dump(mut reader: impl BufRead, label: &str, mut visit: impl FnMut(DumpRow) -> Result<(), String>) -> Result<(), String> {
+    let prefix = reader.fill_buf().map_err(|e| format!("{label}: {e}"))?;
+    let utf16 = match prefix.get(..2) {
+        Some([0xff, 0xfe]) => Some(true),
+        Some([0xfe, 0xff]) => Some(false),
+        _ => None,
+    };
+    if utf16.is_some() {
+        reader.consume(2);
+    }
     let mut line = Vec::new();
     let mut rows = 0;
     let mut bytes = 0u64;
     loop {
         line.clear();
-        let n = reader.by_ref().take((MAX_LINE + 1) as u64).read_until(b'\n', &mut line).map_err(|e| e.to_string())?;
+        let n = if let Some(little) = utf16 {
+            read_utf16_line(&mut reader, little, &mut line).map_err(|e| format!("{label}:{}: {e}", rows + 1))?
+        } else {
+            reader.by_ref().take((MAX_LINE + 1) as u64).read_until(b'\n', &mut line).map_err(|e| format!("{label}: {e}"))?
+        };
         if n == 0 {
             break;
         }
@@ -578,7 +619,7 @@ fn read_dump(mut reader: impl BufRead, label: &str, mut visit: impl FnMut(DumpRo
         if n > MAX_LINE || bytes > MAX_TSV {
             return Err("TSV stream limit".into());
         }
-        let text = std::str::from_utf8(&line).map_err(|e| e.to_string())?.trim_end_matches(['\r', '\n']);
+        let text = std::str::from_utf8(&line).map_err(|e| format!("{label}:{}: {e}", rows + 1))?.trim_end_matches(['\r', '\n']);
         if rows == 0 {
             if text.trim_start_matches('\u{feff}') != HEADER {
                 return Err("invalid TSV header".into());
@@ -808,6 +849,31 @@ fn run_pass(root: &Path, quick: bool, deferred: bool) -> Result<Report, String> 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn utf16_dump_matches_utf8_and_rejects_hostile_encoding() {
+        use std::io::Cursor;
+        let text = format!("{HEADER}\n1\tpage:0/shape:1\t1\t0\t0\tWidth\t1\t1\t65\n");
+        for little in [false, true] {
+            let mut encoded = if little { vec![0xff, 0xfe] } else { vec![0xfe, 0xff] };
+            for unit in text.encode_utf16() {
+                encoded.extend_from_slice(&if little { unit.to_le_bytes() } else { unit.to_be_bytes() });
+            }
+            let mut count = 0;
+            read_dump(Cursor::new(encoded), "utf16", |_| {
+                count += 1;
+                Ok(())
+            })
+            .unwrap();
+            assert_eq!(count, 1);
+        }
+        for bytes in [vec![0xff, 0xfe, 0x00], vec![0xff, 0xfe, 0x00, 0xd8], vec![0xff, 0xfe, 0x00, 0xdc]] {
+            assert!(read_dump(Cursor::new(bytes), "hostile", |_| Ok(())).is_err());
+        }
+        assert!(
+            read_dump(Cursor::new(vec![0xff, 0xfe].into_iter().chain(std::iter::repeat_n(65, MAX_LINE + 2)).collect::<Vec<_>>()), "long", |_| Ok(()))
+                .is_err()
+        );
+    }
     #[test]
     fn strict_denominator_classes_and_empty_serialized_string() {
         for formula in ["No Formula", "NOW()"] {
