@@ -9,6 +9,7 @@ mod corpus;
 mod corpus_pins;
 mod layers;
 mod parity;
+mod sources;
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
@@ -17,10 +18,11 @@ const USAGE: &str = "\
 usage: cargo xtask <command>
 
 commands:
+  sources         regenerate docs/sources.md from code and oracle-script citations
   assets          check that every icon/image/font/asset is attributed in ATTRIBUTION.md
   layers          enforce the crate dependency layering (docs/architecture.md)
   wasm            cargo check --target wasm32-unknown-unknown for the wasm-safe crates
-  ci              fmt --check, clippy -D warnings, test, assets, layers, wasm (stops at first failure)
+  ci              fmt --check, clippy -D warnings, test, assets, layers, sources, wasm (stops at first failure)
   corpus          --local [--update-manifest]: hydrate the pinned private corpus
   parity          recompute the Visio feature-parity summary in docs/parity-checklist.md
 ";
@@ -29,6 +31,7 @@ fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let result = match args.first().map(String::as_str) {
         Some("assets") => assets::run(&root()),
+        Some("sources") => sources::run(&root(), false),
         Some("layers") => cmd_layers(),
         Some("wasm") => cmd_wasm(),
         Some("ci") => cmd_ci(),
@@ -168,6 +171,7 @@ fn cmd_ci() -> Result<(), String> {
         ),
         ("assets", Box::new(|| assets::run(&root()))),
         ("layers", Box::new(cmd_layers)),
+        ("sources", Box::new(|| sources::run(&root(), true))),
         ("wasm", Box::new(cmd_wasm)),
     ];
     let mut done = Vec::new();

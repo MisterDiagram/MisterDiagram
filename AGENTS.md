@@ -114,7 +114,7 @@ until Phase 2; the active geom API provides Vec2, Affine and Inches.
 
 ## 5. Quality gates
 
-`cargo xtask ci` runs formatting, Clippy with `-D warnings`, tests, assets, layers and wasm.
+`cargo xtask ci` runs formatting, Clippy with `-D warnings`, tests, assets, layers, source-inventory freshness and wasm.
 It must pass before every commit touching Rust. Commit with `M<phase>.<n>: what`, push to
 `origin master`, never force-push or rewrite history.
 
@@ -139,6 +139,7 @@ Copied into the repo's `AGENTS.md` §7 so every session reads them.
 - **When an oracle disagrees with us, we are wrong until proven otherwise.** Never edit an oracle file, never relax a threshold, floor or denominator to pass. If Visio contradicts the reference page, record it in `file-format-parity.md` under "Observed, undocumented" with the corpus file that shows it, and implement Visio's behaviour. Adding a formula to `volatile.txt` requires a corpus file demonstrating the legitimate difference.
 - **Never-crash outranks features.** No unwrap, expect, panic, todo, unreachable outside tests; hostile-input tests for every parser; every crash fix ships with the regression test that panicked.
 - **Parallel agents:** own `CARGO_TARGET_DIR=target/agent-<name>`, own crates, surgical edits to shared files after re-reading them, manifests edited via a temp file. Commits `M<phase>.<n>: what`, pushed to `master` on srv.
+- **Documentation provenance:** when consulting any non-Microsoft documentation about Visio or its formats, add the source and how it was used to docs/provenance.md section 3 in the same commit.
 - **Reuse discipline:** copy a file with its licence header, add an `ATTRIBUTION.md` row (repo, path, commit, licence), list it in `docs/architecture.md`. GPL and MPL projects are never opened in an editor during implementation.
 - **Milestone closure** follows Charles's review rule: one open discovery pass by a second agent (fresh context, given the acceptance tests and the code, asked to attack), findings tiered blocker/should-fix/nit and folded into the milestone rubric, then verification passes against the frozen rubric until two in a row are clean. A seeded defect for that review is a change to the engine or a parser, never to an oracle, a threshold or a test harness.
 
