@@ -1,6 +1,6 @@
 # Gaps
 
-Status: pre-alpha, M0 and M1 met; M2 human gate accepted; independent review remains before Phase 3.
+Status: pre-alpha, M0 and M1 met; M2 human gate accepted; independent closure verification complete. Phase 3 awaits the next brief.
 
 ## G1: Remaining ShapeSheet fidelity
 
@@ -90,7 +90,9 @@ M2.5 provides PNG/JPEG and EMF foreign objects, page/background/layer rendering 
 Charles accepted the human gate on 2026-10-12 at 16:45. Four one-pixel boundaries
 are accepted under the common-area rule; they remain visible measurements.
 Text promotion and the 97.4911% oracle1 floor stand. Render CI is mandatory again.
-Independent M2 review must finish before Phase 3 begins.
+Independent closure passes 2 and 3 are clean. The aggregate caller-built
+sheet-budget issue from pass 1 is fixed and regression-tested. Phase 3 awaits
+the next brief.
 
 The last full text snapshot has 6087 cached and 1311 COM failures. Counts below are
 measured buckets or confirmed witnesses, not a disjoint root-cause census. A

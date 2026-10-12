@@ -1,8 +1,17 @@
 # File format parity
 
-Status: pre-alpha, M1 met. M2 human gate accepted on 2026-10-12 at 16:45; independent review remains pending.
+Status: pre-alpha, M1 met. M2 human gate accepted on 2026-10-12 at 16:45; independent closure verification has two consecutive clean passes.
 
 ## Measured
+
+M2.9 closure verification: pass 1 found the aggregate caller-built sheet budget
+bypass, fixed with a failing-before/passing-after regression in M2.9.5. Passes 2
+and 3 each have ten YES and zero NO at 3dc3b21. Final P2 acceptance passes all
+six commands, including all eight mandatory CI gates. The renderer mutation
+harness passes 1,387 original packages and 5,548 mutations without a panic.
+All 24 paired sheets were regenerated and a separate drawing-crop scan confirms
+1,108 ink-bearing cells, zero blank. Generated measurements below are unchanged
+to six decimals. M2 is closed; Phase 3 awaits the next brief.
 
 M2.9.4 aggregation disclosure: group MAD is the unweighted arithmetic mean
 of scored per-file RGB MAD. The differing-pixel fraction is weighted by the
@@ -65,8 +74,10 @@ observations are not redistributable assets. Previous performance observations:2
 
 Render comparison is mandatory in CI again. The one-pixel rule is tested in
 `one_pixel_common_area_preserves_rows_and_rejects_two_pixels`; frozen limits are
-checked by `ceilings_match_charles_frozen_record`. Independent M2 review remains
-pending before Phase 3; human acceptance is not review completion.
+checked by `ceilings_match_charles_frozen_record`. Independent closure passes 2
+and 3 are clean at revision 3dc3b21. Pass 1 found the caller-built aggregate
+sheet budget gap; its regression and correction remain recorded. Phase 3 awaits
+the next brief.
 
 Measured completed coverage:1387packages,1181shipped,301completed shared dumps,
 514TSVs. The shared directory has302dump artifacts including one partial.
@@ -114,11 +125,10 @@ outlined directly by the existing HarfRust/Skrifa path; no static conversion is 
 | Courier New, Consolas | Cousine |
 | Unavailable Latin family, including Segoe UI in this checkout | Carlito |
 
-The P2-followup text-metric promotion threshold is 90% in each cell oracle. Below
-that threshold, the main comparison uses M2.3 text-hook dependency semantics and
-excludes direct text-family formulas; the separately printed text rates always use
-real evaluation. Theme remains included. Both main floors are unchanged. A deferred
-text rate is not an M2 acceptance pass: the human gate still requires text inclusion.
+Before promotion, the P2-followup rule required 90% in each text oracle and
+deferred text-family formulas from the main denominators. Promotion is now
+permanent: a later text regression fails its gate and cannot shrink the main
+denominators. Theme remains included. The M2.9.2 ratchets above are mandatory.
 
 The earlier M2.4 measurements and missing-font report below are historical.
 

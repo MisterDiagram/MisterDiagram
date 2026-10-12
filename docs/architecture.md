@@ -85,4 +85,4 @@ are compiled into the resolver.
 | `crates/text/src/lib.rs` | deckcraft | `crates/text/src/lib.rs` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
 | `crates/text/src/bidi.rs` | deckcraft | `crates/text/src/bidi.rs` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
 
-P2-followup embeds the pinned OFL Latin faces in the fonts crate for both native and wasm builds. Optional craft-fonts adds script coverage; system scanning remains off. The oracle harness has an explicit M2.3 comparison mode until both real text-only rates reach 90%; rendering always uses real text evaluation.
+P2-followup embeds the pinned OFL Latin faces in the fonts crate for both native and wasm builds. Optional craft-fonts adds script coverage; system scanning remains off. Text-metric promotion is permanent. Both text lines remain in the main oracle denominators and must pass 90% plus their recorded ratchets; a regression cannot de-promote them. Rendering uses real text evaluation.

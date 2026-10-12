@@ -2,14 +2,15 @@
 
 A clean-room, headless Rust implementation of Microsoft Visio's core: ShapeSheet, document
 model, file interoperability, rendering and authoring. Stage: pre-alpha, M1 reader and
-ShapeSheet milestone met.
+ShapeSheet milestone and M2 rendering milestone met.
 
 The reader loads .vsdx, .vssx and .vstx packages and strips macro payloads from .vsdm.
 `info` lists package parts; `sheet` evaluates cells and prints the COM-compatible TSV columns.
 `corpus check` compares computed values against package caches and local Visio dumps,
 reporting denominators and frozen acceptance floors, plus the generated render comparisons. Unsupported formulas return errors.
-Experimental PNG, SVG and vector PDF rendering is available. Pixel parity
-has not passed the Phase 2 gate. Writing and authoring remain future phases.
+PNG, SVG and vector PDF rendering passes the generated-corpus M2 gate.
+Shipped contact sheets contain drawing ink in all 1,108 master cells; this is
+coverage evidence, not complete visual parity. Writing and authoring remain future phases.
 
 ## Try it
 
@@ -26,7 +27,8 @@ Use your own `.vsdx` file. Corpus-dependent tests print a one-line skip message 
 When the local corpus exists, cell floors and structural tests remain mandatory.
 The M2 human gate was accepted on 2026-10-12. Render comparisons are mandatory
 in `cargo xtask ci`, using the frozen pixel ceilings and a one-pixel size allowance
-with comparison over the common area. Independent M2 review precedes Phase 3.
+with comparison over the common area. Independent M2 closure verification has
+two consecutive clean passes. Phase 3 awaits the next brief.
 
 `cargo run --release -p diagramcraft-cli -- corpus check` needs the generated drawings,
 blank-document dumps, shipped packages and completed COM dumps under `corpus/`.
