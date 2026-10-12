@@ -47,6 +47,8 @@ pub struct Witness {
 }
 #[derive(Debug)]
 pub struct Report {
+    pub cached_classes: [Rate; 3],
+    pub com_classes: [Rate; 3],
     pub cached: Rate,
     pub com: Rate,
     pub shipped_cached: Rate,
@@ -101,6 +103,11 @@ impl fmt::Display for Report {
                 rate.excluded,
                 floor.map(|n| format!("{n:.6}%")).unwrap_or_else(|| "reported separately".into())
             )?;
+        }
+        for (oracle, classes) in [("cached", &self.cached_classes), ("COM", &self.com_classes)] {
+            for (class, rate) in ["literal-constant", "empty-formula", "non-literal"].into_iter().zip(classes) {
+                writeln!(f, "{oracle} {class}: {}/{} ({:.6}%)", rate.matched, rate.total, rate.percent())?;
+            }
         }
         writeln!(
             f,
@@ -335,6 +342,31 @@ fn equal(expected: &Value, actual: &Value) -> bool {
         },
     }
 }
+fn cached_excluded(source: &str, effective: &str, value: Option<&str>, calls: &BTreeSet<String>, exclude: &BTreeSet<String>) -> bool {
+    source == "No Formula" || effective == "No Formula" || value == Some("Themed") || excluded(calls, exclude)
+}
+// An empty XML V serializes an empty string as well as a numeric zero. Do not
+// extend this comparison rule to nonempty text or to error values.
+fn cached_equal(raw: Option<&str>, expected: &Value, actual: &Value) -> bool {
+    raw == Some("") && matches!(actual, Value::Text(s) if s.is_empty()) || equal(expected, actual)
+}
+fn formula_class(formula: &str) -> usize {
+    use diagramcraft_sheet::Expr;
+    fn literal(expr: &Expr) -> bool {
+        match expr {
+            Expr::Number(..) | Expr::Text(..) | Expr::Bool(..) => true,
+            Expr::Unary(_, inner) => literal(inner),
+            _ => false,
+        }
+    }
+    if formula.trim().is_empty() {
+        1
+    } else if diagramcraft_sheet::parse(formula).is_ok_and(|expr| literal(&expr)) {
+        0
+    } else {
+        2
+    }
+}
 fn short(s: &str) -> String {
     s.chars().take(512).collect()
 }
@@ -552,6 +584,8 @@ pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
     files.extend(selected.iter().cloned());
     files.sort();
     let mut report = Report {
+        cached_classes: Default::default(),
+        com_classes: Default::default(),
         cached: Rate::default(),
         com: Rate::default(),
         shipped_cached: Rate::default(),
@@ -615,8 +649,10 @@ pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
                 let Some(formula) = named.cell.formula.as_deref() else {
                     continue;
                 };
-                let calls = function_calls(formula)?;
-                if named.cell.value.as_deref() == Some("Themed") || excluded(&calls, &exclude) {
+                let effective = evaluator.effective_formula(scope, &named.name);
+                let effective = effective.as_deref().unwrap_or(formula);
+                let calls = function_calls(effective)?;
+                if cached_excluded(formula, effective, named.cell.value.as_deref(), &calls, &exclude) {
                     report.cached.excluded += 1;
                     if is_shipped {
                         report.shipped_cached.excluded += 1;
@@ -627,7 +663,8 @@ pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
                 original.error = None;
                 let expected = evaluator.cached_cell(&original);
                 let actual = evaluator.evaluate_snapshot(scope, &named.name);
-                let matched = equal(&expected, &actual);
+                let matched = cached_equal(named.cell.value.as_deref(), &expected, &actual);
+                report.cached_classes[formula_class(effective)].record(matched);
                 report.cached.record(matched);
                 if is_shipped {
                     report.shipped_cached.record(matched);
@@ -674,6 +711,7 @@ pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
                         (Some(a), Ok(b)) => (a - b).abs() <= TOLERANCE,
                         _ => false,
                     };
+                    report.com_classes[formula_class(&row.formula)].record(matched);
                     report.com.record(matched);
                     if is_shipped {
                         report.shipped_com.record(matched);
@@ -705,6 +743,25 @@ pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn strict_denominator_classes_and_empty_serialized_string() {
+        for formula in ["No Formula", "NOW()", "THEMEVAL()", "TEXTWIDTH(1)"] {
+            assert!(cached_excluded("Inh", formula, Some("0"), &function_calls(formula).unwrap(), &exclusions()));
+        }
+        assert!(cached_excluded("No Formula", "1", Some("1"), &BTreeSet::new(), &exclusions()));
+        assert!(!cached_excluded("Inh", "Width*2", Some("4"), &BTreeSet::new(), &exclusions()));
+        for f in ["-1 in", "TRUE", "\"hello\"", "25%"] {
+            assert_eq!(formula_class(f), 0, "{f}");
+        }
+        assert_eq!(formula_class("  "), 1);
+        for f in ["Width", "RGB(1,2,3)", "1+2", "broken("] {
+            assert_eq!(formula_class(f), 2, "{f}");
+        }
+        assert!(cached_equal(Some(""), &Value::Number(0.), &Value::Text(String::new())));
+        assert!(!cached_equal(Some("0"), &Value::Number(0.), &Value::Text(String::new())));
+        assert!(!cached_equal(Some(""), &Value::Number(0.), &Value::Text("x".into())));
+        assert!(!cached_equal(Some(""), &Value::Number(0.), &Value::Error(diagramcraft_sheet::Error::Ref)));
+    }
     #[test]
     fn functions_ignore_strings_and_match_only_calls() {
         let names = function_calls(r#"IF(1,"NOW() "" RAND()",_UCON_X (2))+Sheet.1!NOW+SUM(2)"#).unwrap();
@@ -779,6 +836,8 @@ mod tests {
     #[test]
     fn shipped_floor_cannot_be_masked_by_overall_and_empty_oracles_fail() {
         let mut report = Report {
+            cached_classes: Default::default(),
+            com_classes: Default::default(),
             cached: Rate { matched: 999, total: 1000, excluded: 0 },
             shipped_cached: Rate { matched: 90, total: 100, excluded: 0 },
             com: Rate { matched: 90, total: 100, excluded: 0 },

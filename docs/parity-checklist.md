@@ -109,3 +109,8 @@ Core=N rows (excluded from milestone scoring):
 - Geometry sections with formulas (Width*0.5 style), guarded cells: P, `diagramcraft-vsdx::evaluate::path::tests::path_sampling_and_nearest_use_inherited_rows_and_partial_overrides`. Read/evaluation subset; editing, host implementations and full corpus accuracy remain open.
 
 - Formula engine: cell references, cross-sheet references (Sheet.N!Cell), GUARD, Inh, THEMEVAL, SETATREF, dependency recalculation: P, `diagramcraft-vsdx::evaluate::tests::dirty_recalc_orders_dependencies_and_retains_unrelated_cache`. Read/evaluation subset; editing, host implementations and full corpus accuracy remain open.
+
+## M2.0 evidence
+
+- ShapeSheet model remains D: `diagramcraft-vsdx::dump::tests::basic_rectangle_corpus_has_every_com_identity_and_unit` checks all basic-rectangle COM identities and units, including Connection and Actions rows.
+- Formula engine remains P: `diagramcraft-corpus::tests::strict_denominator_classes_and_empty_serialized_string` protects the corrected cached-oracle denominator, formula classification and empty-string cache comparison. Theme and text hosts remain open.

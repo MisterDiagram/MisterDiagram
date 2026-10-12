@@ -903,6 +903,7 @@ fn section_prefix(section: &Section) -> Result<String, Error> {
         "Property" => "Prop".into(),
         "Control" => "Controls".into(),
         "Connection" => "Connections".into(),
+        "Action" => "Actions".into(),
         "Layer" => "Layers".into(),
         "FillGradient" => "FillGradientStops".into(),
         "LineGradient" => "LineGradientStops".into(),
@@ -921,7 +922,8 @@ pub fn cell_name(section: &Section, row: &Row, position: usize, cell: &Cell) -> 
     let one = index.checked_add(1).ok_or(Error::Limit)?;
     Ok(match section.name.as_str() {
         "Geometry" => format!("{prefix}.{}{index}", cell.name),
-        "Scratch" | "Connection" | "Tabs" if row.name.is_none() => format!("{prefix}.{}{one}", cell.name),
+        "Connection" if row.name.is_none() => connection_name(index, &cell.name)?,
+        "Scratch" | "Tabs" if row.name.is_none() => format!("{prefix}.{}{one}", cell.name),
         "Character" | "Paragraph" | "Field" | "Layer" | "FillGradient" | "LineGradient" => {
             if index == 0 {
                 format!("{prefix}.{}", cell.name)
@@ -931,10 +933,23 @@ pub fn cell_name(section: &Section, row: &Row, position: usize, cell: &Cell) -> 
         }
         _ => {
             let row_name = row.name.clone().unwrap_or_else(|| format!("Row_{one}"));
-            let omit = (matches!(section.name.as_str(), "User" | "Property") && cell.name == "Value")
+            let omit = (matches!(section.name.as_str(), "Actions" | "Action") && cell.name == "Menu")
+                || (matches!(section.name.as_str(), "User" | "Property") && cell.name == "Value")
                 || (matches!(section.name.as_str(), "Control" | "Controls") && cell.name == "X");
             if omit { format!("{prefix}.{row_name}") } else { format!("{prefix}.{row_name}.{}", cell.name) }
         }
+    })
+}
+/// Universal names observed in generated/master/basic-rect.sheet.tsv.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-row-connection-points-section
+pub(crate) fn connection_name(index: u32, column: &str) -> Result<String, Error> {
+    let one = index.checked_add(1).ok_or(Error::Limit)?;
+    Ok(if matches!(column, "X" | "Y" | "F" | "G" | "H" | "I" | "J" | "K" | "L") {
+        format!("Connections.{column}{one}")
+    } else if index == 0 {
+        format!("Connections.{column}")
+    } else {
+        format!("Connections.{column}[{one}]")
     })
 }
 fn unquote(s: &str) -> String {

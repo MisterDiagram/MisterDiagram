@@ -1,6 +1,6 @@
 # Gaps
 
-Status: pre-alpha, M0 and M1 met; Phase 2 is next.
+Status: pre-alpha, M0 and M1 met; Phase 2 M2.0 review fixes complete; geometry next.
 
 ## G1: Remaining ShapeSheet fidelity
 
@@ -30,3 +30,16 @@ deckcraft caps. Review finding N-3 is recorded; no Phase 0 change.
 ## G3: Closed stderr handling
 
 Resolved in Phase 1 CLI: stderr writes are fallible and their errors are ignored while preserving the failure exit status. Review finding N-4 originally measured exit 1 without panic.
+
+## G4: M1 discovery follow-up (M2.0)
+
+S-1 separates literal, empty and non-literal formulas in both oracle reports. S-2 excludes
+No Formula and filters effective inherited formulas, with Charles authorizing a new floor
+on that corrected denominator (at least 97%). S-3/S-4 fix explicit inches, master drawing
+units and complete COM Connection/Actions rows. S-5 records the document evaluator in L2
+vsdx with L1 host interfaces for the upcoming theme/text implementations.
+Regression: `basic_rectangle_corpus_has_every_com_identity_and_unit`; all 5748 source rows
+have a computed identity and matching units. N-1 compares an empty V with empty Text only.
+
+All five M2.0 closure checks pass. Final strict cached rate 97.595111%; resolved
+99.152024%, with non-literal resolved 99.836044%. Read-only shipped coverage 104/1181.

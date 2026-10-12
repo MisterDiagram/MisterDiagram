@@ -4,6 +4,25 @@ Status: pre-alpha, M1 met. All acceptance commands and two independent frozen ve
 
 ## Measured
 
+M2.0 strict-denominator final run: oracle 1 shipped 4302905/4408935
+(97.595111%); oracle 2 7209425/7271082 (99.152024%), including its non-literal
+subset 154666/154920 (99.836044%). This run includes 1387 packages and 317 TSVs,
+with 104/1181 shipped dumps. Theme/text hooks are still excluded at M2.0.
+Oracle 1 now excludes No Formula and applies hook/volatile filters to the inherited
+effective formula. Charles authorized recording the corrected floor, at least 97%,
+instead of retaining the rate from the old denominator. The empty V/empty Text
+comparison is narrow and leaves nonempty strings and errors strict.
+
+M2.0 quick run: shipped oracle 1 108652/109327 (99.382586%); oracle 2
+2467451/2494966 (98.897179%), giving 6811 additional matches over M1's quick run
+without reducing the 98.6241% resolved floor. The basic-rectangle page-1 dump has
+5020 eligible rows, 728 exclusions and zero differences, including all units and row
+identities. Explicit U=IN is code 65; absent units use the cell/context default, with
+master drawing units from its PageSheet. Connection rows expose all fourteen COM
+columns; Actions include omitted reserved columns.
+
+The following Phase 1 measurements are retained as historical results on the old denominator.
+
 Phase 1 full comparison after accuracy fixes: 1387 packages and 317 TSVs,
 including 104/1181 shipped dumps. Oracle 1 shipped: 5247024/5355260 (97.978884%).
 Oracle 2: 7181152/7271082 (98.763183%). The original requirements were 97% and 90%.

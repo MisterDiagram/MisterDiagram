@@ -147,7 +147,16 @@ struct Slot<'a> {
 fn dump_sheet(evaluator: &mut Evaluator<'_>, scope: Scope, id: u32, identity: &str, out: &mut impl Write) -> Result<(), String> {
     let mut slots = BTreeMap::new();
     for named in evaluator.resolved_named_cells(scope) {
-        if let Some((s, r, c, u)) = metadata(evaluator, scope, &named) {
+        if let Some((s, r, c, mut u)) = metadata(evaluator, scope, &named) {
+            if u == 73
+                && !(s == 1 && r == 10 && matches!(c, 4 | 5))
+                && let Scope::MasterShape { master, .. } = scope
+            {
+                // A master's drawing units come from its own PageSheet.
+                if let Some(cell) = evaluator.sheet(Scope::Master(master)).and_then(|sheet| sheet.cells.iter().find(|c| c.name == "DrawingScale")) {
+                    u = unit_code(cell, u);
+                }
+            }
             // Probe and blank COM Style.Section traversal omits XML gradient sections and LayerMember.
             // https://learn.microsoft.com/en-us/office/vba/api/visio.style.section
             if matches!(scope, Scope::Style(_)) && (matches!(s, 248 | 249) || (s == 1 && r == 6)) {
@@ -342,7 +351,7 @@ fn metadata(evaluator: &Evaluator<'_>, scope: Scope, n: &NamedCell<'_>) -> Optio
         "Field" => 8,
         "Control" | "Controls" => 9,
         "Geometry" => u16::try_from(section.index.unwrap_or(0)).ok()?.checked_add(10).filter(|n| *n < 240)?,
-        "Action" => 240,
+        "Action" | "Actions" => 240,
         "Layer" => 241,
         "User" => 242,
         "Property" => 243,
@@ -366,7 +375,19 @@ fn metadata(evaluator: &Evaluator<'_>, scope: Scope, n: &NamedCell<'_>) -> Optio
     };
     let c = column(s, &n.cell.name, n.row.is_none())?;
     let default = match s {
-        6 | 7 => {
+        7 => match c {
+            0..=3 => 73,
+            6 => 231,
+            _ => 32,
+        },
+        240 => {
+            if matches!(c, 0..=2 | 14..=16) {
+                231
+            } else {
+                32
+            }
+        }
+        6 => {
             if c < 2 {
                 73
             } else {
@@ -418,7 +439,7 @@ fn metadata(evaluator: &Evaluator<'_>, scope: Scope, n: &NamedCell<'_>) -> Optio
 fn column(section: u16, name: &str, section_cell: bool) -> Option<u16> {
     let names: &[&str] = match section {
         6 => &["X", "Y", "A", "B", "C", "D"],
-        7 => &["X", "Y", "DirX", "DirY", "Type", "AutoGen"],
+        7 => &["X", "Y", "DirX", "DirY", "Type", "AutoGen", "Prompt", "F", "G", "H", "I", "J", "K", "L"],
         8 => &["Value", "_Unused1", "Format", "Type", "UICat", "UICod", "UIFmt", "Calendar", "G", "H", "ObjectKind"],
         9 => &["X", "Y", "XDyn", "YDyn", "XCon", "YCon", "CanGlue", "Type", "Prompt"],
         10..=239 => {
@@ -438,7 +459,7 @@ fn column(section: u16, name: &str, section_cell: bool) -> Option<u16> {
             "ReadOnly",
             "Invisible",
             "BeginGroup",
-            "_Unused9",
+            "FlyoutChild",
             "_Unused10",
             "_Unused11",
             "_Unused12",
@@ -487,13 +508,8 @@ fn unit_code(cell: &Cell, fallback: u16) -> u16 {
         Some("MM") => 70,
         Some("M") => 71,
         Some("FT") => 66,
-        Some("IN") => {
-            if fallback == 73 {
-                73
-            } else {
-                65
-            }
-        }
+        Some("IN") => 65,
+        Some("DL") => 73,
         Some("DEG") => 81,
         Some("RAD") => 83,
         Some("DATE") => 40,
@@ -530,6 +546,20 @@ fn supplement(slots: &mut BTreeMap<(u16, u16, u16), Slot<'_>>) -> Result<(), Str
                 });
             }
         }
+        if s == 7 {
+            // Visio exposes all fourteen columns even where XML omits empty cells.
+            for (c, field) in ["X", "Y", "DirX", "DirY", "Type", "AutoGen", "Prompt", "F", "G", "H", "I", "J", "K", "L"].iter().enumerate() {
+                let c = u16::try_from(c).map_err(|_| "connection column limit")?;
+                let name = crate::evaluate::connection_name(u32::from(r), field).map_err(|e| e.to_string())?;
+                slots.entry((s, r, c)).or_insert_with(|| Slot {
+                    name,
+                    cell: None,
+                    src: (s, r, c),
+                    units: if c == 6 { 231 } else { 32 },
+                    synthetic: Some(Value::Number(0.0)),
+                });
+            }
+        }
         if s == 9 {
             let base = item
                 .name
@@ -549,6 +579,20 @@ fn supplement(slots: &mut BTreeMap<(u16, u16, u16), Slot<'_>>) -> Result<(), Str
                 units: 32,
                 synthetic: Some(Value::Number(0.0)),
             });
+        }
+        if s == 240 {
+            let base = item.name.rsplit_once('.').map(|(base, _)| base).unwrap_or(&item.name);
+            let base = if item.src.2 == 0 { item.name.as_str() } else { base };
+            for (c, name, units) in [
+                (1, format!("{base}._Unused1"), 231),
+                (2, format!("{base}._Unused2"), 231),
+                (10, format!("{base}I2{}", u32::from(r) + 1), 32),
+                (11, format!("{base}J2{}", u32::from(r) + 1), 32),
+                (12, format!("{base}K2{}", u32::from(r) + 1), 32),
+                (13, format!("{base}L2{}", u32::from(r) + 1), 32),
+            ] {
+                slots.entry((s, r, c)).or_insert_with(|| Slot { name, cell: None, src: (s, r, c), units, synthetic: Some(Value::Number(0.0)) });
+            }
         }
         if s == 241 {
             let suffix = if r == 0 { String::new() } else { format!("[{}]", u32::from(r) + 1) };
@@ -577,6 +621,41 @@ fn supplement(slots: &mut BTreeMap<(u16, u16, u16), Slot<'_>>) -> Result<(), Str
 mod tests {
     use super::*;
     use diagramcraft_model::{Page, Sheet};
+    #[test]
+    fn basic_rectangle_corpus_has_every_com_identity_and_unit() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus/generated/master");
+        if !root.exists() {
+            return;
+        }
+        let document = crate::import(&std::fs::read(root.join("basic-rect.vsdx")).unwrap()).unwrap();
+        let mut out = Vec::new();
+        dump(&document, Selection::Page(1), &mut out).unwrap();
+        let actual = String::from_utf8(out).unwrap();
+        let rows: BTreeMap<_, _> = actual
+            .lines()
+            .skip(1)
+            .map(|line| {
+                let fields: Vec<_> = line.split('\t').collect();
+                (fields[..6].join("\t"), fields[8])
+            })
+            .collect();
+        let expected = std::fs::read_to_string(root.join("basic-rect.sheet.tsv")).unwrap();
+        for line in expected.lines().skip(1) {
+            let fields: Vec<_> = line.split('\t').collect();
+            let key = fields[..6].join("\t");
+            assert_eq!(rows.get(&key).copied(), Some(fields[8]), "{key}");
+        }
+    }
+    #[test]
+    fn explicit_inches_and_connection_columns() {
+        assert_eq!(unit_code(&Cell { units: Some("IN".into()), ..Default::default() }, 73), 65);
+        assert_eq!(unit_code(&Cell::default(), 73), 73);
+        assert_eq!(unit_code(&Cell { units: Some("DL".into()), ..Default::default() }, 32), 73);
+        assert_eq!(column(7, "Prompt", false), Some(6));
+        assert_eq!(crate::evaluate::connection_name(1, "DirX").unwrap(), "Connections.DirX[2]");
+        assert_eq!(crate::evaluate::connection_name(0, "H").unwrap(), "Connections.H1");
+        assert!(crate::evaluate::connection_name(u32::MAX, "X").is_err());
+    }
     #[test]
     fn invalid_selection_and_writer_errors_are_returned() {
         let doc = Document::default();

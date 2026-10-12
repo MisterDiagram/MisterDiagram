@@ -1,8 +1,10 @@
-# Brief P1 acceptance floors. These may only rise.
+# P2 S-2: Charles authorized resetting oracle 1 to the corrected denominator rate.
+# Excludes No Formula and filters inherited effective formulas. M1 minimum remains 97%.
+# From this corrected baseline, floors may only rise.
 # Ratcheted to the lesser achieved quick/full rate, rounded down to six decimals.
 # Both CI and full runs use these same floors; exact achieved counts remain below.
 [oracle1]
-shipped = 0.979788
+shipped = 0.975951
 
 [oracle2]
 all = 0.986241
@@ -19,3 +21,15 @@ quick_cached_matches = 141932
 quick_cached_denominator = 142654
 quick_resolved_matches = 2460640
 quick_resolved_denominator = 2494966
+
+[m2_0_strict]
+# New cached denominator excludes No Formula and effective inherited hooks/volatile.
+# Full strict run after Connection and Actions naming fixes.
+full_cached_matches = 4302905
+full_cached_denominator = 4408935
+quick_cached_matches = 108652
+quick_cached_denominator = 109327
+quick_resolved_matches = 2467451
+quick_resolved_denominator = 2494966
+full_resolved_matches = 7209425
+full_resolved_denominator = 7271082

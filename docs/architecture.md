@@ -2,15 +2,18 @@
 
 Page coordinates are inches, y-up, origin bottom-left. Dependencies go to strictly lower layers. Apps are exempt. UI crates are forbidden in L0 to L6.
 
-| Layer | Crates |
-|---|---|
-| L0 | geom, color, opc |
-| L1 | sheet, model, fonts |
-| L2 | text, theme, vsdx |
-| L3 | route, render |
-| L4 | export |
-| L5 | engine |
-| L6 | mcp |
+| Layer | Crates | Responsibility |
+|---|---|---|
+| L0 | geom, color, opc | Geometry, colour and package primitives. |
+| L1 | sheet, model, fonts | sheet: formula syntax, values, units, functions and host traits; model: document structures; fonts: shaping database. |
+| L2 | text, theme, vsdx | vsdx: package reading, document evaluator, inheritance, dependency tracking and dirty recalc; text/theme: model-based host implementations. |
+| L3 | route, render | Routing and rendered outputs. |
+| L4 | export | External format export. |
+| L5 | engine | Commands and session state. |
+| L6 | mcp | Protocol adapter. |
+
+The L2 document evaluator supplies adapters to theme and text hosts using L1 traits and
+model inputs. Theme and text do not depend on vsdx; L2 sibling dependencies remain forbidden.
 
 ## Copied from siblings
 
