@@ -21,6 +21,18 @@ impl HostHooks for CachedHooks {}
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/facenames-element-visiodocument_type-complextypevisio-xml
 pub trait Context {
     fn resolve(&mut self, reference: &str) -> Value;
+    fn theme_selector(&mut self, cell: &str) -> Value {
+        self.resolve(cell)
+    }
+    fn host_cell(&self) -> String {
+        String::new()
+    }
+    fn theme_default(&mut self, _cell: &str) -> Value {
+        Value::Error(Error::Value)
+    }
+    fn theme(&mut self, _name: &str, _args: &[Value]) -> Value {
+        Value::Error(Error::Unsupported("theme host".into()))
+    }
     /// Hosts that re-enter evaluation share these limits across every formula boundary.
     fn enter_eval(&mut self) -> bool {
         true
@@ -253,7 +265,8 @@ mod tests {
         assert_eq!(formula("1/0", &mut TestContext), Value::Error(Error::Div0));
         assert_eq!(formula("Missing", &mut TestContext), Value::Error(Error::Ref));
         assert_eq!(formula("cycle", &mut TestContext), Value::Error(Error::Cycle));
-        assert_eq!(formula("THEMEVAL()", &mut TestContext), Value::Number(42.0));
+        assert_eq!(formula("NOW()", &mut TestContext), Value::Number(42.0));
+        assert!(matches!(formula("THEMEVAL()", &mut TestContext), Value::Error(Error::Unsupported(_))));
         assert!(matches!(formula("UNKNOWN()", &mut TestContext), Value::Error(Error::Unsupported(_))));
     }
     #[test]

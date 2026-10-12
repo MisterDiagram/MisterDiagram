@@ -3,11 +3,11 @@
 > **Drafted:** 2026-10-11 from the observed app (visio-observed.md) and Microsoft's documentation · **Target:** Microsoft Visio Standard 2021 16.0.20430 (Professional rows marked Pro) · **Status:** Phase 1 reader implemented; authoring, evaluation and rendering remain in progress. Format follows the storytold apps' `docs/parity-checklist.md`: area, feature, priority, Core Y/N, status D/P/M.
 
 <!-- SUMMARY -->
-**Weighted breadth parity: 10%** over 45 Core=Y features.
+**Weighted breadth parity: 11%** over 45 Core=Y features.
 
 | Priority | Features | Done | Partial | Missing | Parity |
 |---|---|---|---|---|---|
-| P0 | 27 | 1 | 5 | 21 | 13% |
+| P0 | 27 | 1 | 6 | 20 | 15% |
 | P1 | 15 | 0 | 1 | 14 | 3% |
 | P2 | 3 | 0 | 0 | 3 | 0% |
 
@@ -19,7 +19,7 @@
 | Stencils | 32% |
 | Connectors | 0% |
 | Text | 0% |
-| Format | 0% |
+| Format | 19% |
 | Arrange | 0% |
 | Layers | 0% |
 | Containers | 0% |
@@ -81,7 +81,7 @@ Core=N rows (excluded from milestone scoring):
 | Text | Text block rotation, margins, vertical alignment, text resize behaviour | P0 | Y | M |
 | Text | Spelling, find and replace across pages | P2 | Y | M |
 | Format | Fill, line, shadow, effects (glow, soft edge, bevel, 3-D) with the Format Shape pane | P0 | Y | M |
-| Format | Themes, variants, theme colours and effects; THEMEVAL cells follow them | P0 | Y | M |
+| Format | Themes, variants, theme colours and effects; THEMEVAL cells follow them | P0 | Y | P |
 | Format | Format Painter, Quick Styles | P1 | Y | M |
 | Arrange | Align, distribute, same size, bring to front/back, position pane | P0 | Y | M |
 | Arrange | Auto Align & Space, Auto Size page | P1 | Y | M |
@@ -123,3 +123,7 @@ Core=N rows (excluded from milestone scoring):
 ## M2.2 paint evidence
 
 - Format and connector-arrow rows remain M until an output backend and render comparisons exist. `diagramcraft-render::style::tests::measured_line_families_and_fill_density` checks the observed dash families and procedural fill coverage; `all_patterns_and_arrow_sizes_are_finite_and_bounded` checks all identifiers and sizes.
+
+## M2.3 theme evidence
+
+- Themes and variants: P, `diagramcraft-theme::resolve::tests::microsoft_themeval_examples_and_variant_selectors`. Package color/font/format tables, variant selectors and eight theme functions are evaluated. Corpus rates include theme cells; final rendered fidelity and full effect coverage remain open.

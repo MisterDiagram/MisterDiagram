@@ -11,3 +11,4 @@ workspace = true
 diagramcraft-model.workspace = true
 diagramcraft-color.workspace = true
 diagramcraft-opc.workspace = true
+diagramcraft-sheet.workspace = true

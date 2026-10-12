@@ -96,6 +96,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/iserrna-function> | `crates/sheet/src/functions/extras.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/iserror-function-visioshapesheet> | `crates/sheet/src/functions/extras.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/iserrvalue-function> | `crates/sheet/src/functions/extras.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/isthemed-function> | `crates/sheet/src/functions/theme.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/language-function> | `crates/sheet/src/functions/mod.rs`, `crates/sheet/src/language.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/left-function-visioshapesheet> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/len-function-visioshapesheet> | `crates/sheet/src/functions/text.rs` |
@@ -187,8 +188,12 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/tan-function-visioshapesheet> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/tanh-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/text-element-shapesheet_type-complextypevisio-xml> | `crates/vsdx/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function> | `crates/sheet/src/functions/theme.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/themecbv-function> | `crates/sheet/src/functions/theme.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/themeguard-function> | `crates/sheet/src/functions/theme.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/themeindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function> | `crates/sheet/src/eval.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/themerestore-function> | `crates/sheet/src/functions/theme.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function> | `crates/sheet/src/eval.rs`, `crates/sheet/src/functions/theme.rs`, `crates/sheet/src/host.rs`, `crates/theme/src/resolve.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/tint-function> | `crates/sheet/src/functions/color_adjust.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/tp-element-text_type-complextypevisio-xml> | `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/trigger-elementvisio-xml> | `crates/model/src/lib.rs` |
@@ -219,14 +224,23 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.visrowindices> | `crates/vsdx/src/dump.rs`, `tools/oracle/common.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.vissectionindices> | `crates/vsdx/src/dump.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.visunitcodes> | `crates/vsdx/src/dump.rs` |
+| <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/1e7e9b7e-d116-41c0-9c53-5e57c26042a4> | `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/1fac45bf-ef10-4b29-ada1-4acf47fed340> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/21efe913-d726-4b89-933c-20e8662d90d5> | `crates/vsdx/src/evaluate/inherit.rs` |
+| <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/25689058-b1e7-4d3c-a833-0a4c7180f5f2> | `crates/theme/src/resolve.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/360407c5-34d8-417d-b08d-4044fd858a5e> | `crates/vsdx/src/evaluate.rs` |
+| <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/43361fc1-8acc-410f-a853-c36ff053682d> | `crates/theme/src/resolve.rs` |
+| <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/4f684ea2-7ae3-40d7-8956-b0a7a5cf2a26> | `crates/sheet/src/host.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/59214758-549c-4f99-a4de-de2bf5fb08d3> | `crates/vsdx/src/evaluate/defaults.rs`, `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/64509af3-e393-4ac1-9474-949c50d4b06f> | `crates/vsdx/src/evaluate/inherit.rs` |
+| <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/68bb0221-d8a1-476e-a132-8c60a49cea63> | `crates/theme/src/resolve.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/6f23bcc4-af93-4023-a380-3e78a228e166> | `crates/sheet/src/units.rs` |
+| <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/723529ce-4ac3-416d-b7be-362aa28be341> | `crates/theme/src/resolve.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/735b599d-1359-4767-8593-1c508a885779> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/74428617-9833-4d73-aa7f-f3a6f043a12d> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/7ae7c325-097c-4225-adf5-e7b8b6695639> | `crates/vsdx/src/evaluate/inherit.rs` |
+| <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/7c2c0bc3-4bd3-46b1-b368-8b2e907cda67> | `crates/sheet/src/functions/theme.rs` |
+| <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/b81d9641-31a2-4f60-9b74-eba256dd58e2> | `crates/sheet/src/functions/theme.rs` |
+| <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/bd72b8b3-fbf7-4463-ad23-cd8a5cc4acfd> | `crates/sheet/src/functions/theme.rs`, `crates/theme/src/resolve.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/c5e4da4b-c1d0-4cdd-a418-04fccbc098ae> | `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/f91b1356-cff1-4c71-8a04-247007cbe4c9> | `crates/sheet/src/language.rs` |

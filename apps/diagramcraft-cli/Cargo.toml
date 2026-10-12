@@ -9,5 +9,6 @@ workspace = true
 diagramcraft-opc.workspace = true
 diagramcraft-vsdx.workspace = true
 diagramcraft-corpus = { path = "../diagramcraft-corpus" }
+diagramcraft-theme.workspace = true
 [dev-dependencies]
 zip.workspace = true

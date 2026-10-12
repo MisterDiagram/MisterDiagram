@@ -60,3 +60,12 @@ Adapted `CLAUDE.md` from deckcraft `src/CLAUDE.md`, commit `be14248577b92059eb2b
 The native `apps/diagramcraft-corpus` crate shares corpus-oracle logic between the CLI and
 integration tests. It is an application harness above the core layers, exempt like the CLI;
 no core crate depends on it. This avoids an upward dependency from sheet tests to the reader.
+
+## Phase 2 host composition
+
+`sheet::host::ThemeHost` accepts formula values and a bounded reference context. Applications
+construct `theme::Themes` from the model's package parts and inject it into `vsdx::Evaluator`.
+The document adapter resolves page sentinels, records selector dependencies and supplies
+blank/root-style defaults. Theme never depends on vsdx, and vsdx never depends on theme.
+The CLI dump and corpus evaluator use the same injected service. No shipped theme assets
+are compiled into the resolver.

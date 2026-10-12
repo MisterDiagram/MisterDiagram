@@ -1,13 +1,5 @@
 # Frozen before M1.1. This list may only shrink as host hooks gain implementations.
 # Theme resolution: https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function
-THEMEVAL
-THEME
-THEMECBV
-THEMEGUARD
-THEMERESTORE
-THEMEPROP # corpus/ms-shipped/1033/ASSOCIATIONS_UML_CLASS_M.vstx#visio/masters/master3.xml
-ISTHEMED
-CELLISTHEMED # corpus/ms-shipped/1033/BSTORM_EXPL_M.vstx#visio/masters/master3.xml
 # Text engine: https://learn.microsoft.com/en-us/office/client-developer/visio/textwidth-function
 TEXTWIDTH
 TEXTHEIGHT

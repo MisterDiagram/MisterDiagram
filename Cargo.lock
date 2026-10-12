@@ -115,6 +115,7 @@ version = "0.0.1"
 dependencies = [
  "diagramcraft-corpus",
  "diagramcraft-opc",
+ "diagramcraft-theme",
  "diagramcraft-vsdx",
  "zip",
 ]
@@ -132,6 +133,7 @@ version = "0.0.1"
 dependencies = [
  "diagramcraft-model",
  "diagramcraft-sheet",
+ "diagramcraft-theme",
  "diagramcraft-vsdx",
 ]
 
@@ -246,6 +248,7 @@ dependencies = [
  "diagramcraft-color",
  "diagramcraft-model",
  "diagramcraft-opc",
+ "diagramcraft-sheet",
 ]
 
 [[package]]

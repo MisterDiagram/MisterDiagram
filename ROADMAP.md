@@ -26,3 +26,5 @@ clean independent frozen verification passes.
 - 2026-10-12: M2.1 all fifteen geometry row kinds to kurbo paths, bounded NURBS/splines, section flags and y-up group transforms. Private corpus witness and numerical tests added; renderer work remains next.
 
 - 2026-10-12: M2.2 procedural paints, strokes and arrow primitives. Corpus-derived fill densities and dash lengths tested; rendered fidelity is not yet measured.
+
+- 2026-10-12: M2.3 all eight theme functions evaluated and included in the cell oracles. Full cached98.128577%, resolved99.192198%, theme-only resolved99.875218%. Parity11%; image parity remains unmeasured.

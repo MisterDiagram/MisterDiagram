@@ -1,6 +1,6 @@
 # Gaps
 
-Status: pre-alpha, M0 and M1 met; Phase 2 M2.0 review fixes complete; geometry next.
+Status: pre-alpha, M0 and M1 met; Phase 2 theme evaluation implemented; text and output work remain.
 
 ## G1: Remaining ShapeSheet fidelity
 
@@ -57,3 +57,9 @@ line patterns 0..23, cap/join/compound bands, straight-corner rounding and arrow
 Mixed curve/line corner rounding and precise curved-arrow profiles still need render-oracle work;
 no visual score is claimed before Step 6. Marker size extrapolation outside corpus sizes
 1,2,4 remains unmeasured.
+
+M2.3 removes all eight theme functions from hooks and adds package theme/variant lookup,
+no-theme defaults, gradient stops and basic effect values. Full oracle1 is98.128577%,
+oracle2 is99.192198%, and theme-only COM is99.875218%. Theme cached accuracy is91.793858%:
+remaining font IDs, style/color details and effect completeness must be judged alongside
+rendered output. No raster fidelity claim. Theme and text host counts are reported separately.

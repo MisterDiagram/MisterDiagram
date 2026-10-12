@@ -21,7 +21,19 @@ pub enum Selection {
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.cell.formulau
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.cell.name
 pub fn dump(document: &Document, selection: Selection, out: &mut impl Write) -> Result<(), String> {
+    dump_with_theme(document, selection, None, out)
+}
+/// Emit a dump using the application-provided theme service.
+pub fn dump_with_theme(
+    document: &Document,
+    selection: Selection,
+    host: Option<&dyn diagramcraft_sheet::host::ThemeHost>,
+    out: &mut impl Write,
+) -> Result<(), String> {
     let mut evaluator = Evaluator::new(document).map_err(|e| e.to_string())?;
+    if let Some(host) = host {
+        evaluator = evaluator.with_theme_host(host);
+    }
     let sheets = selected(document, selection)?;
     writeln!(out, "shape_id\tshape_name\tsection\trow\tcell\tname\tformula\tresult_iu\tunits").map_err(io_error)?;
     for (scope, id, identity) in sheets {

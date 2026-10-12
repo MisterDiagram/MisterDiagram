@@ -9,3 +9,4 @@ workspace = true
 diagramcraft-vsdx.workspace = true
 diagramcraft-sheet.workspace = true
 diagramcraft-model.workspace = true
+diagramcraft-theme.workspace = true

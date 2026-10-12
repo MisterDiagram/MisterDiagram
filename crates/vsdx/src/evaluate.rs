@@ -45,6 +45,7 @@ struct Snapshot {
 /// Master/style/default inheritance is layered on these scopes separately.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references
 pub struct Evaluator<'a> {
+    theme_host: Option<&'a dyn diagramcraft_sheet::host::ThemeHost>,
     inheritance: inherit::Inheritance<'a>,
     pub document: &'a Document,
     sheets: BTreeMap<Scope, &'a Sheet>,
@@ -82,6 +83,7 @@ impl<'a> Evaluator<'a> {
             return Err(Error::Limit);
         }
         let mut result = Self {
+            theme_host: None,
             document,
             inheritance: Default::default(),
             sheets: BTreeMap::new(),
@@ -127,6 +129,12 @@ impl<'a> Evaluator<'a> {
         }
         result.install_inheritance()?;
         Ok(result)
+    }
+    /// Inject a theme resolver from the application composition layer.
+    pub fn with_theme_host(mut self, host: &'a dyn diagramcraft_sheet::host::ThemeHost) -> Self {
+        self.theme_host = Some(host);
+        self.values.clear();
+        self
     }
     fn add_shapes(&mut self, shapes: &'a [Shape], parent: Scope) -> Result<(), Error> {
         if shapes.len() > MAX_SCOPES {
@@ -395,11 +403,12 @@ impl<'a> Evaluator<'a> {
     pub fn effective_formula(&self, scope: Scope, name: &str) -> Option<String> {
         let key = self.canonical_key(scope, name)?;
         let origin = self.formula_origin(scope, &key.name).or_else(|| self.baseline_provider(scope, &key.name)).unwrap_or(scope);
-        self.overrides
-            .get(&key)
-            .or_else(|| self.overrides.get(&Key { scope: origin, name: key.name.clone() }))
-            .cloned()
-            .or_else(|| self.cell(scope, name)?.formula.clone())
+        self.overrides.get(&key).or_else(|| self.overrides.get(&Key { scope: origin, name: key.name.clone() })).cloned().or_else(|| {
+            let cell = self.cell(scope, name)?;
+            cell.formula
+                .clone()
+                .or_else(|| (cell.value.as_deref() == Some("Themed") && cell.units.as_deref() != Some("STR")).then(|| "THEMEVAL()".into()))
+        })
     }
     pub fn display_reference(&self, scope: Scope, name: &str, reference: &str) -> Result<String, Error> {
         let origin = self.formula_origin(scope, name).unwrap_or(scope);
@@ -507,6 +516,9 @@ impl<'a> Evaluator<'a> {
             }
             let formula = self.overrides.get(&key).or_else(|| self.overrides.get(&provider)).cloned().or_else(|| cell.formula.clone());
             match formula.as_deref() {
+                None if cell.value.as_deref() == Some("Themed") && cell.units.as_deref() != Some("STR") => {
+                    self.compute_formula(scope, origin, cached, "THEMEVAL()")
+                }
                 None | Some("No Formula") => self.cached_cell(cell),
                 Some("Inh") => Value::Error(Error::Ref),
                 Some(formula) => self.compute_formula(scope, origin, cached, formula),
@@ -754,7 +766,7 @@ impl<'a> Evaluator<'a> {
             && let Some(rgb) = cell.value.as_deref().and_then(parse_color)
             && let Some(index) = self.document.colors.iter().find_map(|(i, v)| (parse_color(v) == Some(rgb)).then_some(*i))
         {
-            return Value::Number(f64::from(index));
+            return Value::Number(f64::from(index) + if cell.name == "TextBkgnd" { 1. } else { 0. });
         }
         if cell.name == "Font"
             && cell.error.is_none()
@@ -1053,6 +1065,46 @@ impl BoundContext<'_, '_> {
     }
 }
 impl Context for BoundContext<'_, '_> {
+    fn host_cell(&self) -> String {
+        self.evaluator.stack.last().map(|k| k.name.clone()).unwrap_or_default()
+    }
+    /// Page inheritance for the theme component sentinel.
+    /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/1e7e9b7e-d116-41c0-9c53-5e57c26042a4
+    fn theme_selector(&mut self, name: &str) -> Value {
+        let value = self.resolve(name);
+        if value.numeric() != Ok(65534.) {
+            return value;
+        }
+        let page = match self.scope {
+            Scope::PageShape { page, .. } => Scope::Page(page),
+            Scope::MasterShape { master, .. } => Scope::Master(master),
+            _ => Scope::Document,
+        };
+        self.evaluator.add_dependency_key(Key { scope: page, name: name.to_ascii_lowercase() });
+        let value = self.evaluator.evaluate_inner(page, name);
+        if value.numeric() == Ok(65534.) && page != Scope::Document {
+            self.evaluator.add_dependency_key(Key { scope: Scope::Document, name: name.to_ascii_lowercase() });
+            return self.evaluator.evaluate_inner(Scope::Document, name);
+        }
+        value
+    }
+    fn theme_default(&mut self, name: &str) -> Value {
+        let prototype = if name.starts_with("char.") { name.split('[').next().unwrap_or(name) } else { name };
+        if !defaults::cell(Scope::PageShape { page: 0, shape: 0 }, prototype).is_some_and(|c| c.formula.as_deref() == Some("THEMEVAL()")) {
+            return Value::Error(Error::Value);
+        }
+        if self.scope != Scope::Style(0) && self.evaluator.cell(Scope::Style(0), name).is_some() {
+            self.evaluator.add_dependency_key(Key { scope: Scope::Style(0), name: name.to_ascii_lowercase() });
+            return self.evaluator.evaluate_inner(Scope::Style(0), name);
+        }
+        defaults::cell(self.scope, name).map(|cell| self.evaluator.cached_cell(cell)).unwrap_or(Value::Error(Error::Value))
+    }
+    fn theme(&mut self, name: &str, args: &[Value]) -> Value {
+        match self.evaluator.theme_host {
+            Some(host) => host.theme(name, args, self),
+            None => diagramcraft_sheet::host::no_theme(name, args, self),
+        }
+    }
     fn enter_eval(&mut self) -> bool {
         if self.evaluator.eval_depth >= 128 || self.evaluator.eval_work >= 100000 {
             return false;
@@ -1406,6 +1458,23 @@ mod tests {
         assert_eq!(e.evaluate(Scope::Document, "User.InchPrec"), Value::Number(16.));
     }
     #[test]
+    fn no_theme_gradient_defaults_and_text_background_color_index() {
+        let mut doc = fixture();
+        doc.colors.insert(25, "#ffffff".into());
+        doc.face_names.insert(4, "Calibri".into());
+        doc.styles.push(diagramcraft_model::Style { id: 0, ..Default::default() });
+        let mut e = Evaluator::new(&doc).unwrap();
+        let scope = Scope::PageShape { page: 7, shape: 1 };
+        assert_eq!(e.evaluate(scope, "LineGradientStops.GradientStopColor[10]"), Value::Number(1.));
+        assert_eq!(e.evaluate(scope, "FillGradientStops.GradientStopColorTrans[2]"), Value::Number(0.));
+        assert_eq!(e.cached_cell(&cell("TextBkgnd", "#ffffff", None)), Value::Number(26.));
+        assert_eq!(e.cached_cell(&cell("FillForegnd", "#ffffff", None)), Value::Number(25.));
+        e.set_formula(scope, "Char.Font", "IF(ISTHEMED(),THEMEVAL(),FONT(\"Calibri\"))").unwrap();
+        assert_eq!(e.evaluate(scope, "Char.Font"), Value::Number(4.));
+        e.set_formula(scope, "Width", "THEMEVAL()").unwrap();
+        assert_eq!(e.evaluate(scope, "Width"), Value::Error(Error::Value));
+    }
+    #[test]
     fn cached_host_result_belongs_to_whole_cell_not_inner_call() {
         // ALARM_M master2 User.HasText and its dependent Controls.Row_1.YCon.
         let doc = Document {
@@ -1416,7 +1485,7 @@ mod tests {
                 cell("MixedBad", "42", Some("UNIMPLEMENTEDFUNCTION(1)+THEMEVAL()")),
                 cell("Quoted", "42", Some("LEN(\"SHAPETEXT()\")")),
                 cell("Width", "2", None),
-                cell("HostDependent", "3", Some("THEMEVAL(Width)+1")),
+                cell("HostDependent", "3", Some("TEXTWIDTH(Width)+1")),
             ]),
             ..Default::default()
         };
@@ -1742,7 +1811,7 @@ mod tests {
         let s = &mut doc.pages[0].shapes[0].sheet;
         s.cells.push(cell("CycleA", "0", Some("CycleB")));
         s.cells.push(cell("CycleB", "0", Some("CycleA")));
-        s.cells.push(cell("Hook", "42", Some("THEMEVAL()")));
+        s.cells.push(cell("Hook", "42", Some("NOW()")));
         s.cells.push(cell("Inherited", "7", Some("Inh")));
         let mut e = Evaluator::new(&doc).unwrap();
         let scope = Scope::PageShape { page: 7, shape: 1 };

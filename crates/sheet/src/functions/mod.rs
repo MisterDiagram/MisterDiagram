@@ -12,8 +12,17 @@ mod references;
 mod relationships;
 mod spatial;
 mod text;
+mod theme;
 pub use color::default_color;
 pub const IMPLEMENTED: &[&str] = &[
+    "THEMEPROP",
+    "CELLISTHEMED",
+    "THEMEVAL",
+    "THEME",
+    "THEMECBV",
+    "THEMEGUARD",
+    "THEMERESTORE",
+    "ISTHEMED",
     "LISTSHEETREF",
     "TINT",
     "SHADE",
@@ -120,6 +129,9 @@ pub const IMPLEMENTED: &[&str] = &[
     "FLOOR",
 ];
 pub(crate) fn call(name: &str, args: &[Expr], context: &mut dyn Context, budget: &mut usize, depth: usize) -> Value {
+    if let Some(value) = theme::call(name, args, context, budget, depth) {
+        return value;
+    }
     if let Some(value) = relationships::call(name, args, context, budget, depth) {
         return value;
     }

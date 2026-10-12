@@ -4,6 +4,15 @@ Status: pre-alpha, M1 met. All acceptance commands and two independent frozen ve
 
 ## Measured
 
+M2.3 full run with all eight theme functions included: oracle1 shipped4627833/4716091
+(98.128577%); oracle2 7633655/7695822 (99.192198%), with non-literal578894/579660
+(99.867854%). Theme-only COM424210/424740 (99.875218%); theme-only cached282245/307477
+(91.793858%). The first quick run after inclusion was85.928890% resolved, recovering
+to99.038099% before the full sweep. Floors remain97.5951% and98.6241%.
+Coverage remains1387packages,317TSVs,104/1181shipped dumps. Text metrics remain hooks
+until M2.4. These measurements establish evaluation coverage, not rendered fidelity.
+
+
 M2.0 strict-denominator final run: oracle 1 shipped 4302905/4408935
 (97.595111%); oracle 2 7209425/7271082 (99.152024%), including its non-literal
 subset 154666/154920 (99.836044%). This run includes 1387 packages and 317 TSVs,
@@ -58,6 +67,18 @@ ENTITY_M/U.vssx and OBJREL_M/U.vssx use the published 2011/1/core XML namespace;
 the other measured files use 2012/main. Container inspection accepts both exact URIs.
 
 ## Observed, undocumented
+
+`ACCESSBILITY_NEW_M.vssx`, master3 shape6, LineColor and FillBkgnd use
+`IF(ISTHEMED(),THEMEVAL(),RGB(0,0,0))`. With the inherited theme selector 65534
+and no page theme, Visio takes the false branch and returns custom black (palette25).
+The [ISTHEMED reference](https://learn.microsoft.com/en-us/office/client-developer/visio/isthemed-function)
+describes a simple positive-value test, but the page-inheritance sentinel must be
+resolved first. The implementation follows the corpus observation.
+
+In generated `arrow/begin-00.vsdx`, TextBkgnd stores V=`#ffffff`, mapped to palette25,
+while its COM ResultIU is26. TextBkgnd's RGB cache conversion includes the cell's
+one-based palette offset; ordinary fill and line color caches do not.
+
 
 The [MSOTINT reference](https://learn.microsoft.com/en-us/office/client-developer/visio/msotint-function)
 parameter text reverses the observed sign. In HIERARCHICALORGCHART_U.vstx page1

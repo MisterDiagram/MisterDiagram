@@ -47,6 +47,8 @@ pub struct Witness {
 }
 #[derive(Debug)]
 pub struct Report {
+    pub cached_hosts: [Rate; 2],
+    pub com_hosts: [Rate; 2],
     pub cached_classes: [Rate; 3],
     pub com_classes: [Rate; 3],
     pub cached: Rate,
@@ -109,6 +111,11 @@ impl fmt::Display for Report {
                 writeln!(f, "{oracle} {class}: {}/{} ({:.6}%)", rate.matched, rate.total, rate.percent())?;
             }
         }
+        for (oracle, hosts) in [("cached", &self.cached_hosts), ("COM", &self.com_hosts)] {
+            for (kind, rate) in ["theme", "text-metric"].into_iter().zip(hosts) {
+                writeln!(f, "{oracle} {kind}: {}/{} ({:.6}%)", rate.matched, rate.total, rate.percent())?;
+            }
+        }
         writeln!(
             f,
             "result={}; tolerance={TOLERANCE}; snapshots isolate SETF writes; string COM values use numeric coercion",
@@ -133,6 +140,18 @@ impl fmt::Display for Report {
             )?;
         }
         Ok(())
+    }
+}
+fn record_hosts(rates: &mut [Rate; 2], calls: &BTreeSet<String>, matched: bool) {
+    let [theme, text] = rates;
+    if calls
+        .iter()
+        .any(|n| matches!(n.as_str(), "THEMEVAL" | "THEME" | "THEMEGUARD" | "THEMERESTORE" | "THEMECBV" | "THEMEPROP" | "ISTHEMED" | "CELLISTHEMED"))
+    {
+        theme.record(matched);
+    }
+    if calls.iter().any(|n| matches!(n.as_str(), "TEXTWIDTH" | "TEXTHEIGHT" | "SHAPETEXT")) {
+        text.record(matched);
     }
 }
 fn walk(root: &Path) -> Result<Vec<PathBuf>, String> {
@@ -584,6 +603,8 @@ pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
     files.extend(selected.iter().cloned());
     files.sort();
     let mut report = Report {
+        cached_hosts: Default::default(),
+        com_hosts: Default::default(),
         cached_classes: Default::default(),
         com_classes: Default::default(),
         cached: Rate::default(),
@@ -642,7 +663,8 @@ pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
     for path in files {
         let is_shipped = path.starts_with(root.join("ms-shipped"));
         let document = read_package(&path)?;
-        let mut evaluator = Evaluator::new(&document).map_err(|e| format!("{}: {e}", path.display()))?;
+        let themes = diagramcraft_theme::Themes::from_document(&document).map_err(|e| format!("{}: {e}", path.display()))?;
+        let mut evaluator = Evaluator::new(&document).map_err(|e| format!("{}: {e}", path.display()))?.with_theme_host(&themes);
         let scopes: Vec<_> = evaluator.scopes().collect();
         for scope in scopes {
             for named in evaluator.source_named_cells(scope).map_err(|e| e.to_string())? {
@@ -664,6 +686,7 @@ pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
                 let expected = evaluator.cached_cell(&original);
                 let actual = evaluator.evaluate_snapshot(scope, &named.name);
                 let matched = cached_equal(named.cell.value.as_deref(), &expected, &actual);
+                record_hosts(&mut report.cached_hosts, &calls, matched);
                 report.cached_classes[formula_class(effective)].record(matched);
                 report.cached.record(matched);
                 if is_shipped {
@@ -711,6 +734,7 @@ pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
                         (Some(a), Ok(b)) => (a - b).abs() <= TOLERANCE,
                         _ => false,
                     };
+                    record_hosts(&mut report.com_hosts, &calls, matched);
                     report.com_classes[formula_class(&row.formula)].record(matched);
                     report.com.record(matched);
                     if is_shipped {
@@ -745,8 +769,16 @@ mod tests {
     use super::*;
     #[test]
     fn strict_denominator_classes_and_empty_serialized_string() {
-        for formula in ["No Formula", "NOW()", "THEMEVAL()", "TEXTWIDTH(1)"] {
+        for formula in ["No Formula", "NOW()", "TEXTWIDTH(1)"] {
             assert!(cached_excluded("Inh", formula, Some("0"), &function_calls(formula).unwrap(), &exclusions()));
+        }
+        for formula in
+            ["THEMEVAL()", "THEMEGUARD(1)", "THEMERESTORE(1)", "THEME(1)", "THEMECBV(1,1)", "THEMEPROP(1)", "ISTHEMED()", "CELLISTHEMED(FALSE)"]
+        {
+            assert!(
+                !cached_excluded("Inh", formula, Some("0"), &function_calls(formula).unwrap(), &exclusions()),
+                "implemented theme cells must be measured: {formula}"
+            );
         }
         assert!(cached_excluded("No Formula", "1", Some("1"), &BTreeSet::new(), &exclusions()));
         assert!(!cached_excluded("Inh", "Width*2", Some("4"), &BTreeSet::new(), &exclusions()));
@@ -836,6 +868,8 @@ mod tests {
     #[test]
     fn shipped_floor_cannot_be_masked_by_overall_and_empty_oracles_fail() {
         let mut report = Report {
+            cached_hosts: Default::default(),
+            com_hosts: Default::default(),
             cached_classes: Default::default(),
             com_classes: Default::default(),
             cached: Rate { matched: 999, total: 1000, excluded: 0 },
