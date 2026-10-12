@@ -130,6 +130,14 @@ fn modulus(x: f64, y: f64) -> Value {
     let r = x % y;
     Value::number(if r != 0.0 && r.signum() != y.signum() { r + y } else { r })
 }
+/// Legacy internal remainder uses the magnitude, unlike MODULUS's divisor-signed result.
+/// Witness: ADS_M.vssx master7 shape6 Scratch.A1, angle -pi/4, divisor 2pi, result pi/4.
+/// Legacy MOD accepts the observed internal spelling as an explicit compatibility alias.
+/// Only _MOD is corpus-witnessed; the public reference names MOD without defining its sign rule.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/modulus-function
+fn internal_mod(x: f64, y: f64) -> Value {
+    if y == 0. { Value::Error(Error::Div0) } else { Value::number((x % y).abs()) }
+}
 /// CEILING rounds away from zero to a same-sign multiple.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/ceiling-function
 fn ceiling(x: f64, multiple: Option<f64>) -> Value {
@@ -151,13 +159,40 @@ fn multiple_round(x: f64, m: Option<f64>, away: bool) -> Value {
     let quotient = x / m;
     Value::number((if away { quotient.ceil() } else { quotient.floor() }) * m)
 }
+/// Keep a text block upright using a normalized, order-independent limit interval.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/gravity-function
+fn gravity(values: &[f64]) -> Value {
+    let tau = std::f64::consts::TAU;
+    let angle = values.first().copied().unwrap_or(0.).rem_euclid(tau);
+    let lo = values.get(1).copied().unwrap_or(std::f64::consts::FRAC_PI_2).rem_euclid(tau);
+    let hi = values.get(2).copied().unwrap_or(3. * std::f64::consts::FRAC_PI_2).rem_euclid(tau);
+    Value::Number(if angle > lo.min(hi) && angle < lo.max(hi) { std::f64::consts::PI } else { 0. })
+}
+/// Pattern selection is a read-time numeric sentinel; painting the named master is Phase 2.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/use-function
+fn use_pattern(value: &Value) -> Value {
+    value.error().map(Value::Error).unwrap_or(Value::Number(254.))
+}
+/// Add all supplied internal-unit numbers in argument order.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/sum-function
+fn sum(values: &[f64]) -> Value {
+    Value::number(values.iter().sum())
+}
 pub(super) fn call(name: &str, values: &[Value]) -> Value {
     let arity = values.len();
+    if name == "USE" {
+        return match values {
+            [value] => use_pattern(value),
+            _ => Value::Error(Error::Value),
+        };
+    }
     let valid = match name {
         "PI" => arity == 0,
+        "GRAVITY" => (1..=3).contains(&arity),
         "MIN" | "MAX" => arity > 0,
+        "SUM" => arity >= 2,
         "CEILING" | "FLOOR" => (1..=2).contains(&arity),
-        "ATAN2" | "POW" | "ROUND" | "TRUNC" | "MODULUS" => arity == 2,
+        "ATAN2" | "POW" | "ROUND" | "TRUNC" | "MODULUS" | "MOD" | "_MOD" => arity == 2,
         "ABS" | "ACOS" | "ASIN" | "ATAN" | "COS" | "COSH" | "SIN" | "SINH" | "TAN" | "TANH" | "SQRT" | "INT" | "NOT" => arity == 1,
         _ => return Value::Error(Error::Unsupported(name.into())),
     };
@@ -184,16 +219,48 @@ pub(super) fn call(name: &str, values: &[Value]) -> Value {
         "SQRT" => Value::number(sqrt(x)),
         "INT" => Value::number(int(x)),
         "PI" => Value::number(pi()),
+        "GRAVITY" => gravity(&values),
         "ATAN2" => Value::number(atan2(x, y)),
         "POW" => Value::number(pow(x, y)),
         "NOT" => not(x),
+        "SUM" => sum(&values),
         "MIN" => Value::number(min(&values)),
         "MAX" => Value::number(max(&values)),
         "ROUND" => Value::number(round(x, y)),
         "TRUNC" => Value::number(trunc(x, y)),
         "MODULUS" => modulus(x, y),
+        "MOD" | "_MOD" => internal_mod(x, y),
         "CEILING" => ceiling(x, values.get(1).copied()),
         "FLOOR" => floor(x, values.get(1).copied()),
         _ => Value::Error(Error::Unsupported(name.into())),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn microsoft_sum_and_use_examples() {
+        assert_eq!(call("SUM", &[Value::Number(5.), Value::Number(7.), Value::Number(12.)]), Value::Number(24.));
+        assert_eq!(call("USE", &[Value::Text("Railroad Tracks".into())]), Value::Number(254.));
+        assert_eq!(call("USE", &[]), Value::Error(Error::Value));
+        assert_eq!(call("USE", &[Value::Error(Error::Ref)]), Value::Error(Error::Ref));
+        assert_eq!(call("SUM", &[Value::Number(f64::MAX), Value::Number(f64::MAX)]), Value::Error(Error::Num));
+    }
+    #[test]
+    fn observed_internal_mod_has_magnitude_sign() {
+        assert_eq!(internal_mod(-std::f64::consts::FRAC_PI_4, std::f64::consts::TAU), Value::Number(std::f64::consts::FRAC_PI_4));
+        assert_eq!(internal_mod(5., 2.), Value::Number(1.));
+        assert_eq!(call("MOD", &[Value::Number(-5.), Value::Number(2.)]), Value::Number(1.));
+        assert_eq!(internal_mod(5., 0.), Value::Error(Error::Div0));
+    }
+    #[test]
+    fn microsoft_gravity_examples() {
+        assert_eq!(gravity(&[2.]), Value::Number(std::f64::consts::PI));
+        let r = f64::to_radians;
+        assert_eq!(gravity(&[r(100.), r(110.), r(290.)]), Value::Number(0.));
+        assert_eq!(gravity(&[r(100.), r(290.), r(110.)]), Value::Number(0.));
+        assert_eq!(call("GRAVITY", &[]), Value::Error(Error::Value));
+        assert_eq!(call("GRAVITY", &[Value::Number(f64::INFINITY)]), Value::Error(Error::Num));
     }
 }

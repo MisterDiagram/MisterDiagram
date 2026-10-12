@@ -49,6 +49,81 @@ pub fn factor(unit: &str) -> Result<f64, Error> {
         _ => return Err(Error::Unsupported(format!("unit {unit}"))),
     })
 }
+/// Converts a numeric string's literal magnitude and universal unit to internal units.
+/// Fractions are part of the magnitude, so `1/2 cm` means half a centimetre.
+/// No function, reference or general formula is evaluated during string coercion.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/about-operators
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/about-units-of-measure-visio-shapesheet-reference
+pub fn numeric_text(input: &str) -> Result<f64, Error> {
+    if input.len() > 65_536 {
+        return Err(Error::Limit);
+    }
+    let input = input.trim();
+    // Retain the previous treatment of NaN and infinity as numeric errors.
+    if let Ok(value) = input.parse::<f64>() {
+        return if value.is_finite() { Ok(value) } else { Err(Error::Num) };
+    }
+    fn unsigned(input: &str) -> Result<(f64, &str), Error> {
+        let bytes = input.as_bytes();
+        let mut end = 0;
+        let mut digits = 0;
+        while bytes.get(end).is_some_and(u8::is_ascii_digit) {
+            end += 1;
+            digits += 1;
+        }
+        if bytes.get(end) == Some(&b'.') {
+            end += 1;
+            while bytes.get(end).is_some_and(u8::is_ascii_digit) {
+                end += 1;
+                digits += 1;
+            }
+        }
+        if digits == 0 {
+            return Err(Error::Value);
+        }
+        if matches!(bytes.get(end), Some(b'e' | b'E')) {
+            let exponent = end;
+            end += 1;
+            if matches!(bytes.get(end), Some(b'+' | b'-')) {
+                end += 1;
+            }
+            let start = end;
+            while bytes.get(end).is_some_and(u8::is_ascii_digit) {
+                end += 1;
+            }
+            if end == start {
+                end = exponent;
+            }
+        }
+        let value = input.get(..end).ok_or(Error::Value)?.parse::<f64>().map_err(|_| Error::Value)?;
+        if !value.is_finite() {
+            return Err(Error::Num);
+        }
+        Ok((value, input.get(end..).ok_or(Error::Value)?))
+    }
+    fn fraction(numerator: f64, tail: &str) -> Result<(f64, &str), Error> {
+        let (denominator, tail) = unsigned(tail.trim_start())?;
+        if denominator == 0. {
+            return Err(Error::Div0);
+        }
+        Ok((numerator / denominator, tail))
+    }
+    let (sign, input) =
+        if let Some(tail) = input.strip_prefix('-') { (-1., tail.trim_start()) } else { (1., input.strip_prefix('+').unwrap_or(input).trim_start()) };
+    let (mut value, mut tail) = unsigned(input)?;
+    let trimmed = tail.trim_start();
+    if let Some(rest) = trimmed.strip_prefix('/') {
+        (value, tail) = fraction(value, rest)?;
+    } else if trimmed.len() != tail.len() && trimmed.as_bytes().first().is_some_and(u8::is_ascii_digit) {
+        let (numerator, after) = unsigned(trimmed)?;
+        let rest = after.trim_start().strip_prefix('/').ok_or(Error::Value)?;
+        let (part, after) = fraction(numerator, rest)?;
+        value += part;
+        tail = after;
+    }
+    let result = sign * value * factor(tail.trim())?;
+    if result.is_finite() { Ok(result) } else { Err(Error::Num) }
+}
 pub fn number(value: f64, unit: Option<&str>) -> Value {
     match factor(unit.unwrap_or("")) {
         Ok(f) => Value::number(value * f),
@@ -62,6 +137,8 @@ pub fn cached(value: Option<&str>, unit: Option<&str>, error: Option<&str>) -> V
         return Value::Error(match e {
             "#DIV/0!" => Error::Div0,
             "#REF!" => Error::Ref,
+            "#NUM!" => Error::Num,
+            "#N/A!" | "#NA!" => Error::Na,
             _ => Error::Value,
         });
     }
@@ -119,6 +196,31 @@ fn cached_point(s: &str) -> Result<Value, Error> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn string_fraction_units_use_internal_units_without_formula_execution() {
+        // CRIME_SCENE_INVESTIGATION_M master2 shape12: User.InchPrec is
+        // 1IN/Prop.LInchPrec, where Prop.LInchPrec is the string "1/16 in.".
+        assert_eq!(numeric_text("1/16 in."), Ok(0.0625));
+        assert_eq!(numeric_text("-5 1/2 in"), Ok(-5.5));
+        assert_eq!(numeric_text("+1.7E-4 IN"), Ok(0.00017));
+        assert_eq!(numeric_text("5 1/2 [in,D]"), Ok(5.5));
+        assert!((numeric_text("1/2 cm").unwrap() - 0.5 / 2.54).abs() < 1e-12);
+        assert!((numeric_text("180 deg").unwrap() - std::f64::consts::PI).abs() < 1e-12);
+        assert_eq!(numeric_text("50%"), Ok(0.5));
+        for input in ["1+2", "1/2/3", "SETF(GETREF(Width),9)", "Sheet.1!Width", "1 in garbage", "文1", "--2"] {
+            assert!(numeric_text(input).is_err(), "{input}");
+        }
+        assert_eq!(numeric_text("1/0 in"), Err(Error::Div0));
+        assert_eq!(numeric_text("1e999 in"), Err(Error::Num));
+        assert_eq!(numeric_text(&"9".repeat(65_537)), Err(Error::Limit));
+    }
+    #[test]
+    fn cached_errors_retain_their_kinds() {
+        assert_eq!(cached(None, None, Some("#N/A!")), Value::Error(Error::Na));
+        assert_eq!(cached(None, None, Some("#NA!")), Value::Error(Error::Na));
+        assert_eq!(cached(None, None, Some("#NUM!")), Value::Error(Error::Num));
+    }
+
     #[test]
     fn stored_points_are_bounded_literals() {
         assert_eq!(cached(Some("PNT(-0.375IN,-0.16IN)"), Some("PNT"), None), Value::Point(-0.375, -0.16));

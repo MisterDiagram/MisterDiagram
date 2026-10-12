@@ -6,12 +6,14 @@ Status: pre-alpha, M0 met; Phase 1 in progress.
 
 The Phase 1 reader loads all 1387 corpus files; 5548 deterministic mutations produce no panics.
 Formula syntax and local/cross-scope evaluation are implemented with bounded errors.
-70 functions, master/style/default inheritance and dirty recalc are implemented.
-CLI dumps and both numeric corpus oracles are implemented; acceptance measurements remain in progress. Unknown functions,
+104 function names, master/style/default inheritance and dirty recalc are implemented.
+CLI dumps and both numeric corpus oracles are implemented. Full shipped cached accuracy is
+97.978884%; resolved accuracy is 98.763183%, with shipped dump coverage 104/1181. Unknown functions,
 complete host font IDs and implicit master-child materialization remain open.
 Dormant CAD geometry algorithms resume in Phase 2.
 
-Phase 1 planned effort remains 70 to 100 hours until evaluator measurements are available.
+Remaining Phase 1 closure work is final acceptance and two clean independent verification
+passes. Further numerical fidelity, complete theme/text hosts and geometry remain later work.
 
 ## Phase 0 open work
 

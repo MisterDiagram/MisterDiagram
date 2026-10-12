@@ -1,13 +1,18 @@
 # File format parity
 
-Status: pre-alpha, Phase 1 reader and ShapeSheet work in progress.
+Status: pre-alpha, Phase 1 numeric requirements met; final acceptance and review pending.
 
 ## Measured
 
-Initial Phase 1 full comparison: 1387 packages and317 TSVs, including104/1181 shipped dumps.
-Oracle1 shipped:4895301/5355260 (91.411080%), below97% floor.
-Oracle2:7093231/7271082 (97.553995%), above90% floor.
-These are the first measurements, before language-ID/style-selector corrections, not closure.
+Phase 1 full comparison after accuracy fixes: 1387 packages and 317 TSVs,
+including 104/1181 shipped dumps. Oracle 1 shipped: 5247024/5355260 (97.978884%).
+Oracle 2: 7181152/7271082 (98.763183%). The original requirements were 97% and 90%.
+Quick CI uses all 204 generated drawings, both blank packages and 50 shipped packages:
+Oracle 1 shipped 141932/142654 (99.493880%); Oracle 2 2460640/2494966 (98.624190%).
+Shared floors now ratchet to 97.9788% and 98.6241%, the lower quick/full measurements
+rounded down. Exact achieved counts are recorded in crates/sheet/tests/floors.toml.
+The first full measurements were 91.411080% and 97.553995%; no oracle values,
+exclusion lists or denominator rules were changed to reach the current rates.
 The probe CLI dump matches all5344 eligible values and units (1049 frozen exclusions),
 with6393 total rows and no missing/extra identities. Formula spelling is reported as source
 expression or inherited expression; value comparison does not require identical whitespace.
@@ -16,7 +21,7 @@ Phase 1 grammar syntax sweep: 355806 distinct formulas across 1387 files, zero p
 (excluding only the `Inh` and `No Formula` storage sentinels). This is syntax coverage, not
 numeric oracle accuracy. Local and cross-scope cell evaluation, explicit units, document
 palette/font lookup and bounded error/cycle values have unit tests. Master/style inheritance,
-function implementation and oracle rates remain in progress.
+104 implemented function names and numeric oracle rates are measured below.
 
 The 104 shipped dumps were produced by the non-resumable staged corpus/_vm/dump-shipped.ps1,
 not the current committed script; the interrupted TSV was renamed to .partial manually.
@@ -34,6 +39,72 @@ ENTITY_M/U.vssx and OBJREL_M/U.vssx use the published 2011/1/core XML namespace;
 the other measured files use 2012/main. Container inspection accepts both exact URIs.
 
 ## Observed, undocumented
+
+The [MSOTINT reference](https://learn.microsoft.com/en-us/office/client-developer/visio/msotint-function)
+parameter text reverses the observed sign. In HIERARCHICALORGCHART_U.vstx page1
+shape1001, Char.Color evaluates `MSOTINT(RGB(0,0,0),35)` to #595959;
+LineColor evaluates `MSOTINT(RGB(255,255,255),-25)` to #bfbfbf.
+Positive percentages therefore move toward white, negative toward black, matching
+the page's description. MSOSHADE reverses that direction. The implementation
+follows these witnesses and never substitutes the cached result for the calculation.
+
+Integral HSL arguments use the observed 240-step integer interpolation.
+AZUREDRAWING_M.vssx master87 shape5 ShdwForegnd stores `HSL(144,116,125)` as
+palette28, #4979C0. Continuous interpolation previously produced #4A79C0.
+The integer conversion also matches DTLNET_M.vssx master15's `HSL(21,165,128)`
+value #DA8C36. An independent serialization survey matches all 190 literal HSL
+cached colours; no fractional inputs occur in that set. Fractional HSL remains
+on the continuous path, with no claim that its quantization has been observed.
+
+Cached error projections and a stale language result are observed, not treated as
+computed answers. In `ANNOT_M.vssx`, master 12 shape 6 (part `master10.xml`),
+Scratch.X2 and Scratch.Y2 contain string formulas with E=`#VALUE!`, while V and COM
+ResultIU are zero. In generated `image/emf.vsdx`, ClippingPath has formula `""`,
+empty V and E=`#N/A`; COM reports ResultIU zero with units 224. These zeros do not
+justify replacing computed error values with cached numeric values. The Scratch
+reference classifies X/Y as drawing-unit cells and A-D as variants; ClippingPath
+is a geometry reference, with an empty or invalid value selecting a rectangular clip.
+
+In `APPL_M.vssx`, master 2 shape 6 LangID (part `master1.xml`) stores F=`Inh`,
+V=`en-IN`. Its completed COM dump reports FormulaU=`1033` but ResultIU=`16393`.
+The assigned style chain resolves the formula to en-US (1033). The implementation
+keeps formula evaluation at 1033; it does not replace that result with the stale
+cached language value. The mismatch remains counted by the oracle.
+
+Host-hook fallback uses the cached final cell value, not that value as an inner function
+result. ALARM_M.vssx master2 User.HasText is `LEN(SHAPETEXT(TheText))>0`, cached 0;
+using 0 as the SHAPETEXT string incorrectly makes LEN nonzero and changes dependent
+Controls.Row_1.YCon from Visio's 7 to 2. Frozen hook-containing formulas now retain the
+whole cached result and register syntactic reference dependencies. Parsing still runs;
+quoted strings/reference names and ordinary unsupported functions cannot select fallback.
+This is declared cached host behavior, not proof that theme/text functions are implemented.
+
+Internal ellipse helpers use an independently derived affine covariance transform and a
+deterministic axis representative. Their exact historical branch behavior remains partial.
+Identical stored inputs can have different cached outputs: EXCOBJ_M.vssx master12 shape8,
+Geometry rows 3 and 6 have identical theta inputs but cache approximately -pi and 0.
+BPMN_ADDRESS_CHANGE_PROCESS_M.vstx master2 shape19 and BPMN_M.vstx master6 shape19
+have identical ECC inputs but cache reciprocal ratios 1.004656577415021 and
+0.9953650057943116. The implementation does not read these caches or special-case files;
+remaining numeric mismatches count as failures. This is an unexplained stored-input
+ambiguity, not a claimed contradiction of a published internal-function specification.
+
+Cached values can remain numeric after an error: ARROWS_M.vssx, master2.xml shape5,
+Scratch.A1 has `(Controls.Row_4.Y-Height/2)/(Controls.Row_4-Width)`, `E="#DIV/0!"`
+and stale `V=1.3336`. Controls.Row_4 equals Width. The evaluator returns division by zero.
+This remains an Oracle1 failure on the required denominator; neither E cells nor inherited
+volatile cells are silently excluded.
+
+The internal `_MOD` spelling returns a nonnegative magnitude for negative dividends:
+ADS_M.vssx master7.xml shape6 Scratch.A1 evaluates `_MOD(Angle,360DEG)` with Angle=-pi/4
+and caches +pi/4. ADS_U and CONNEC_M/U provide six matching negative-angle witnesses.
+The implementation uses absolute truncating remainder. Negative divisors lack a local
+witness. Legacy MOD is accepted as a compatibility alias of the observed internal spelling.
+Only `_MOD` is corpus-witnessed; the alias relationship remains an explicit compatibility
+assumption. MODULUS retains its separately documented divisor-sign semantics.
+
+GRAVITY implements the reference's order-independent normalized angular interval.
+Exact boundary angles use an open interval pending an explicit boundary witness.
 
 COM style enumeration differs from the XML: `corpus/generated/basic/0001-probe.vsdx`
 contains style gradient sections and No Style's LayerMember, but its completed
@@ -68,9 +139,8 @@ not the exact input pair in the reference example.
 
 The TANH reference specifies radians but prints a degree-based result for TANH(-45).
 The implementation follows the stated radians rule; no TANH corpus witness exists.
-Legacy MOD is mentioned on the MODULUS page but has no definition in the Microsoft
-reference tree and no local corpus occurrence. It remains explicitly unsupported pending
-an authoritative definition or observed witness; MODULUS is implemented separately.
+Legacy MOD is mentioned on the MODULUS page but has no separate current definition or local
+occurrence. Its compatibility alias to observed `_MOD` is described above; MODULUS is separate.
 
 `corpus/ms-shipped/1033/PBASLN_U.vstx`, `visio/pages/page1.xml`, contains
 `USE({GUID})` with a bare GUID literal. The Microsoft USE function page describes
@@ -155,8 +225,8 @@ Initial release timing: read184ms, index378ms, evaluate360581 effective cells665
 Font IDs are host-specific: the blank profile and Microsoft FONT example agree on Calibri4.
 Other FaceNames currently use collision-free document-local IDs, not a complete Windows font
 profile. BOUND endpoint/tie behavior remains an explicit assumption awaiting edge witnesses.
-Undocumented _ELLIPSE_THETA/_ELLIPSE_ECC remain unsupported: independently derived candidate
-math does not explain every observed cache and is not silently substituted.
+Undocumented _ELLIPSE_THETA/_ELLIPSE_ECC are partial: independently derived covariance
+math does not explain every observed cache. Unmatched branches remain measured failures.
 
 After inheritance and documented dependency functions, the original-source path diagnostic
 matches275/387;54 fail on FORMULAEXISTS,56 on PATHLENGTH and2 are numeric mismatches.
@@ -165,10 +235,10 @@ and is invalid as an oracle. The formal cached oracle must use original source c
 
 ## Implemented function groups
 
-ABS, ACOS, AND, ANG360, ANGLEALONGPATH, ARG, ASIN, ATAN, ATAN2, BLUE, BOUND, CEILING, COS, COSH, DEPENDSON, EVALCELL, EVALTEXT, FLOOR, FONT, FONTTOID, FORMAT, FORMATEX, GETREF, GREEN, GUARD, HSL, HUE, IF, INDEX, INT, LANGUAGE, LEFT, LEN, LISTSEP, LOC, LOCTOLOC, LOCTOPAR, LOOKUP, LUM, MAX, MID, MIN, MODULUS, NEARESTPOINTONPATH, NOT, OR, PAR, PI, PNT, PNTX, PNTY, POINTALONGPATH, POW, RECTSECT, RED, RGB, RIGHT, ROUND, SAT, SETATREF, SETATREFEVAL, SETATREFEXPR, SETF, SIN, SINH, SQRT, STRSAME, TAN, TANH, TRUNC.
+ABS, ACOS, AND, ANG360, ANGLEALONGPATH, ANGLETOLOC, ANGLETOPAR, ARG, ASIN, ATAN, ATAN2, BITAND, BITNOT, BITOR, BITXOR, BLUE, BOUND, CEILING, COS, COSH, DEG, DEPENDSON, EVALCELL, EVALTEXT, FIELDPICTURE, FLOOR, FONT, FONTTOID, FORMAT, FORMATEX, FORMULAEXISTS, GETREF, GRAVITY, GREEN, GUARD, HSL, HUE, IF, IFERROR, INDEX, INT, ISERR, ISERRNA, ISERROR, ISERRVALUE, LANGUAGE, LEFT, LEN, LISTSEP, LISTSHEETREF, LOC, LOCTOLOC, LOCTOPAR, LOOKUP, LUM, LUMDIFF, MAGNITUDE, MAX, MID, MIN, MOD, MODULUS, MSOSHADE, MSOTINT, NA, NEARESTPOINTONPATH, NOT, NURBS, OR, PAR, PATHLENGTH, PI, PNT, PNTX, PNTY, POINTALONGPATH, POLYLINE, POW, RAD, RECTSECT, RED, RGB, RIGHT, ROUND, SAT, SETATREF, SETATREFEVAL, SETATREFEXPR, SETF, SHADE, SIGN, SIN, SINH, SQRT, STRSAME, SUM, TAN, TANH, TINT, TRUNC, USE, _ELLIPSE_ECC, _ELLIPSE_THETA, _MOD.
 
 Microsoft example and hostile-input tests are in `crates/sheet/src/functions/`.
-Legacy MOD remains open, as recorded above. Implementation coverage is not an oracle rate.
+Legacy MOD is an explicit compatibility alias to the witnessed internal _MOD operation, as recorded above. Implementation coverage is not an oracle rate.
 
 Text formatting covers common numeric, fractional, scientific, unit and English Gregorian
 pictures. Explicit non-English locales, non-Gregorian calendars, predefined Office picture IDs
@@ -192,86 +262,55 @@ unsupported function is reclassified to improve an oracle score.
 |---|---:|---|
 | `THEMEVAL` | 516850 | Host hook |
 | `THEMEGUARD` | 130975 | Host hook |
-| `_ELLIPSE_THETA` | 60151 | Missing |
-| `_ELLIPSE_ECC` | 60129 | Missing |
 | `TEXTHEIGHT` | 37991 | Host hook |
 | `TEXTWIDTH` | 37189 | Host hook |
-| `NURBS` | 33883 | Missing |
 | `OPENTEXTWIN` | 33330 | Missing |
 | `ISTHEMED` | 18060 | Host hook |
 | `SHAPETEXT` | 10721 | Host hook |
 | `RUNADDONWARGS` | 8464 | Missing |
-| `BITXOR` | 8263 | Missing |
-| `POLYLINE` | 7675 | Missing |
-| `ISERROR` | 7633 | Missing |
 | `SHEETREF` | 7281 | Missing |
-| `BITAND` | 7178 | Missing |
 | `MASTERNAME` | 7071 | Host hook |
-| `SHADE` | 7017 | Missing |
-| `LUMDIFF` | 6718 | Missing |
 | `DOCMD` | 6675 | Missing |
-| `MSOTINT` | 5792 | Missing |
-| `TINT` | 5721 | Missing |
-| `LISTSHEETREF` | 5053 | Missing |
 | `THEMEPROP` | 5021 | Host hook |
-| `IFERROR` | 4485 | Missing |
 | `_XFTRIGGER` | 4348 | Host hook |
 | `THEMECBV` | 4180 | Host hook |
-| `FIELDPICTURE` | 4132 | Missing |
-| `SUM` | 3372 | Missing |
-| `GRAVITY` | 3304 | Missing |
 | `_WALKGLUE` | 3068 | Host hook |
 | `THEME` | 2680 | Host hook |
 | `CONTAINERSHEETREF` | 1667 | Missing |
 | `CHAR` | 1490 | Missing |
-| `ISERRVALUE` | 1364 | Missing |
 | `DEFAULTEVENT` | 1329 | Missing |
-| `ISERR` | 1218 | Missing |
 | `FIND` | 1168 | Missing |
-| `USE` | 823 | Missing |
 | `ID` | 707 | Missing |
 | `RUNADDON` | 667 | Missing |
-| `_MOD` | 620 | Missing |
 | `REF` | 535 | Missing |
 | `NOW` | 508 | Host hook |
-| `BITOR` | 500 | Missing |
 | `TONE` | 440 | Missing |
-| `NA` | 426 | Missing |
-| `SIGN` | 384 | Missing |
-| `FORMULAEXISTS` | 345 | Missing |
 | `LOCALFORMULAEXISTS` | 344 | Missing |
 | `DAY` | 336 | Host hook |
-| `MSOSHADE` | 251 | Missing |
-| `MAGNITUDE` | 204 | Missing |
 | `MONTH` | 133 | Host hook |
 | `LISTMEMBERCOUNT` | 124 | Missing |
 | `DATEVALUE` | 110 | Host hook |
-| `ANGLETOPAR` | 106 | Missing |
 | `DATETIME` | 100 | Host hook |
 | `LISTORDER` | 89 | Missing |
 | `HOUR` | 88 | Host hook |
 | `WEEKDAY` | 70 | Host hook |
 | `SATDIFF` | 70 | Missing |
 | `DATE` | 66 | Host hook |
-| `ISERRNA` | 64 | Missing |
 | `OPENGROUPWIN` | 58 | Missing |
 | `BLEND` | 58 | Missing |
 | `USERUI` | 48 | Missing |
 | `PAGENUMBER` | 45 | Host hook |
 | `_MARKER` | 43 | Missing |
-| `DEG` | 42 | Missing |
 | `DOCLASTEDIT` | 42 | Host hook |
 | `CELLISTHEMED` | 42 | Host hook |
 | `MINUTE` | 40 | Host hook |
 | `SECOND` | 40 | Host hook |
-| `RAD` | 36 | Missing |
 | `DOCLASTSAVE` | 30 | Host hook |
 | `YEAR` | 30 | Host hook |
 | `MASTERMAP` | 20 | Missing |
 | `PAGECOUNT` | 18 | Host hook |
 | `QUEUEMARKEREVENT` | 18 | Missing |
 | `DOCCREATION` | 16 | Host hook |
-| `ANGLETOLOC` | 14 | Missing |
 | `SHAPEBINDING` | 10 | Missing |
 | `CONNECTORBINDING` | 10 | Missing |
 | `THEMERESTORE` | 8 | Host hook |
@@ -294,7 +333,6 @@ unsupported function is reclassified to improve an oracle score.
 | `RAND` | 8 | Missing |
 | `LAYOUT` | 8 | Missing |
 | `CREATOR` | 6 | Host hook |
-| `PATHLENGTH` | 4 | Missing |
 | `FILENAME` | 4 | Host hook |
 | `GOTOPAGE` | 4 | Missing |
 | `MEMBEROFGRID` | 2 | Missing |

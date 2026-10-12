@@ -125,8 +125,9 @@ It must pass before every commit touching Rust. Commit with `M<phase>.<n>: what`
 - `cargo xtask ci`
 - `cargo xtask parity`
 
-Phase 0 implements only `info` in the CLI. Other subcommands return exit 2. MCP is a library
-scaffold with list_commands and run_command; authoring commands arrive in Phase 4.
+Phase 1 implements `info`, `sheet` and `corpus check` in the CLI. Other subcommands return
+exit 2. MCP is a library scaffold with list_commands and run_command; authoring commands
+arrive in Phase 4.
 Fonts are read from CRAFT_FONTS_DIR set in `.cargo/config.toml`. Never write to sibling repos.
 
 ## 7. Operating rules for the agents

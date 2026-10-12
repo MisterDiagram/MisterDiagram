@@ -56,8 +56,41 @@ def function_calls(formula):
     # Quoted text can contain function-looking words; it never excludes a cell.
     if len(formula) > MAX_LINE:
         raise ValueError('formula limit exceeded')
-    text = re.sub(r'"(?:[^"\\]|\\.|"")*"', ' ', formula)
-    return set(re.findall(r'(?i)([_A-Z][_A-Z0-9.]*)\s*\(', text.upper()))
+    out = []
+    i = 0
+    while i < len(formula):
+        ch = formula[i]
+        if ch == '[':
+            depth = 1
+            i += 1
+            while i < len(formula) and depth:
+                depth += (formula[i] == '[') - (formula[i] == ']')
+                i += 1
+                if depth > 128:
+                    raise ValueError('reference nesting limit')
+            out.append(' ')
+        elif ch in ('"', "'"):
+            # A prime immediately following a number can be an angular unit.
+            prior = formula[:i].rstrip()
+            if prior and prior[-1].isdigit():
+                i += 1
+                out.append(' ')
+                continue
+            quote = ch
+            i += 1
+            while i < len(formula):
+                if formula[i] == quote:
+                    i += 1
+                    if i < len(formula) and formula[i] == quote:
+                        i += 1
+                        continue
+                    break
+                i += 1
+            out.append(' ')
+        else:
+            out.append(ch)
+            i += 1
+    return set(re.findall(r'(?i)([_A-Z][_A-Z0-9.]*)\s*\(', ''.join(out).upper()))
 
 
 def read_filters(paths):

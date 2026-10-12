@@ -16,6 +16,9 @@ pub enum Value {
 pub enum Error {
     Ref,
     Div0,
+    /// Explicit unavailable value from NA().
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-error-values
+    Na,
     Cycle,
     Num,
     Value,
@@ -28,6 +31,7 @@ impl fmt::Display for Error {
         match self {
             Self::Ref => f.write_str("#REF!"),
             Self::Div0 => f.write_str("#DIV/0!"),
+            Self::Na => f.write_str("#N/A!"),
             Self::Cycle => f.write_str("#CYCLE!"),
             Self::Num => f.write_str("#NUM!"),
             Self::Value => f.write_str("#VALUE!"),
@@ -52,7 +56,11 @@ impl Value {
                     0.0
                 }
             }
-            Self::Text(s) => s.trim().parse().unwrap_or(0.0),
+            Self::Text(s) => match crate::units::numeric_text(s) {
+                Ok(n) => n,
+                Err(Error::Value | Error::Unsupported(_)) => 0.,
+                Err(error) => return Err(error),
+            },
             Self::Point(..) => return Err(Error::Value),
             Self::Error(e) => return Err(e.clone()),
         };
@@ -81,5 +89,18 @@ impl From<Result<f64, Error>> for Value {
             Ok(n) => Self::number(n),
             Err(e) => Self::Error(e),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn unit_fraction_text_numeric_coercion_is_literal_and_bounded() {
+        assert_eq!(Value::Text("1/16 in.".into()).numeric(), Ok(0.0625));
+        assert_eq!(Value::Text("not numeric".into()).numeric(), Ok(0.));
+        assert_eq!(Value::Text("SETF(GETREF(Width),9)".into()).numeric(), Ok(0.));
+        assert_eq!(Value::Text("NaN".into()).numeric(), Err(Error::Num));
+        assert_eq!(Value::Text("9".repeat(65_537)).numeric(), Err(Error::Limit));
     }
 }

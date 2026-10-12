@@ -147,13 +147,18 @@ struct Slot<'a> {
 fn dump_sheet(evaluator: &mut Evaluator<'_>, scope: Scope, id: u32, identity: &str, out: &mut impl Write) -> Result<(), String> {
     let mut slots = BTreeMap::new();
     for named in evaluator.resolved_named_cells(scope) {
-        if let Some((s, r, c, u)) = metadata(scope, &named) {
+        if let Some((s, r, c, u)) = metadata(evaluator, scope, &named) {
             // Probe and blank COM Style.Section traversal omits XML gradient sections and LayerMember.
             // https://learn.microsoft.com/en-us/office/vba/api/visio.style.section
             if matches!(scope, Scope::Style(_)) && (matches!(s, 248 | 249) || (s == 1 && r == 6)) {
                 continue;
             }
-            slots.insert((s, r, c), Slot { name: named.name.clone(), cell: Some(named.cell), src: (s, r, c), units: u, synthetic: None });
+            if let Some(previous) =
+                slots.insert((s, r, c), Slot { name: named.name.clone(), cell: Some(named.cell), src: (s, r, c), units: u, synthetic: None })
+                && !previous.name.eq_ignore_ascii_case(&named.name)
+            {
+                return Err(format!("conflicting cells at SRC {s},{r},{c}: {} and {}", previous.name, named.name));
+            }
         }
     }
     supplement(&mut slots)?;
@@ -250,6 +255,9 @@ fn rebind_formula(evaluator: &Evaluator<'_>, scope: Scope, name: &str, formula: 
 }
 fn constant_formula(cell: &Cell, units: u16) -> String {
     let value = cell.value.as_deref().unwrap_or("");
+    if cell.attributes.contains_key("VirtualPath") {
+        return String::new();
+    }
     if cell.attributes.contains_key("ComSection") {
         return cell.formula.clone().unwrap_or_default();
     }
@@ -282,7 +290,7 @@ fn constant_formula(cell: &Cell, units: u16) -> String {
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.visrowindices
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.viscellindices
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.visunitcodes
-fn metadata(scope: Scope, n: &NamedCell<'_>) -> Option<(u16, u16, u16, u16)> {
+fn metadata(evaluator: &Evaluator<'_>, scope: Scope, n: &NamedCell<'_>) -> Option<(u16, u16, u16, u16)> {
     let (base, index) = if let Some((base, tail)) = n.name.rsplit_once('[') {
         (base, tail.strip_suffix(']').and_then(|s| s.parse::<u16>().ok()).and_then(|n| n.checked_sub(1)))
     } else {
@@ -292,6 +300,15 @@ fn metadata(scope: Scope, n: &NamedCell<'_>) -> Option<(u16, u16, u16, u16)> {
         return Some((s, index.unwrap_or(r), c, unit_code(n.cell, u)));
     }
     if n.section.is_none() {
+        if let Some(index) = n
+            .name
+            .strip_prefix("Geometry")
+            .and_then(|s| s.strip_suffix(".Path"))
+            .and_then(|s| s.parse::<u16>().ok())
+            .filter(|i| (1..=230).contains(i))
+        {
+            return Some((index + 9, 0, 4, 32));
+        }
         let (row, col, u) = match n.name.as_str() {
             "PinX" => (1, 0, 73),
             "PinY" => (1, 1, 73),
@@ -339,7 +356,10 @@ fn metadata(scope: Scope, n: &NamedCell<'_>) -> Option<(u16, u16, u16, u16)> {
     };
     let r = match n.row {
         Some(row) => u16::try_from(
-            row.index.unwrap_or_else(|| section.rows.iter().position(|r| std::ptr::eq(r, row)).and_then(|n| u32::try_from(n).ok()).unwrap_or(0)),
+            evaluator
+                .effective_row_index(scope, section, row)
+                .or(row.index)
+                .unwrap_or_else(|| section.rows.iter().position(|r| std::ptr::eq(r, row)).and_then(|n| u32::try_from(n).ok()).unwrap_or(0)),
         )
         .ok()?,
         None => 0,
@@ -399,7 +419,7 @@ fn column(section: u16, name: &str, section_cell: bool) -> Option<u16> {
     let names: &[&str] = match section {
         6 => &["X", "Y", "A", "B", "C", "D"],
         7 => &["X", "Y", "DirX", "DirY", "Type", "AutoGen"],
-        8 => &["Value", "_Unused1", "Format", "Type", "UICategory", "UICode", "UIFormat", "Calendar"],
+        8 => &["Value", "_Unused1", "Format", "Type", "UICat", "UICod", "UIFmt", "Calendar", "G", "H", "ObjectKind"],
         9 => &["X", "Y", "XDyn", "YDyn", "XCon", "YCon", "CanGlue", "Type", "Prompt"],
         10..=239 => {
             if section_cell {
@@ -625,6 +645,78 @@ mod tests {
         assert!(!text.lines().any(|line| line.contains("style/No Style") && (line.contains("GradientStop") || line.contains("LayerMember"))));
         assert!(text.lines().any(|line| line.contains("page:0:Page-1/Sheet.1") && line.contains("GradientStopColor")));
         assert!(text.lines().any(|line| line.contains("page:0:Page-1/Sheet.1") && line.contains("LayerMember")));
+    }
+    #[test]
+    fn sparse_named_row_overrides_keep_master_slots_and_deleted_rows_compact() {
+        use diagramcraft_model::{Master, Row, Section};
+        let row = |name: &str, value: &str| Row {
+            name: Some(name.into()),
+            cells: vec![Cell { name: "Value".into(), value: Some(value.into()), ..Default::default() }],
+            ..Default::default()
+        };
+        let section = |rows| Section { name: "User".into(), rows, ..Default::default() };
+        let mut explicit = row("D", "5");
+        explicit.index = Some(7);
+        let doc = Document {
+            masters: vec![Master {
+                id: 2,
+                shapes: vec![Shape {
+                    id: 5,
+                    sheet: Sheet { sections: vec![section(vec![row("A", "1"), row("B", "2")])], ..Default::default() },
+                    ..Default::default()
+                }],
+                ..Default::default()
+            }],
+            pages: vec![Page {
+                id: 0,
+                name_u: "Page-1".into(),
+                shapes: vec![
+                    Shape {
+                        id: 20,
+                        master: Some(2),
+                        sheet: Sheet { sections: vec![section(vec![row("B", "3"), row("C", "4")])], ..Default::default() },
+                        ..Default::default()
+                    },
+                    Shape {
+                        id: 21,
+                        master: Some(2),
+                        sheet: Sheet {
+                            sections: vec![section(vec![
+                                Row { name: Some("A".into()), deleted: true, ..Default::default() },
+                                row("B", "3"),
+                                row("C", "4"),
+                                explicit,
+                            ])],
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    },
+                ],
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let mut out = Vec::new();
+        dump(&doc, Selection::Page(1), &mut out).unwrap();
+        let out = String::from_utf8(out).unwrap();
+        let mut rows = BTreeMap::new();
+        for line in out.lines().skip(1) {
+            let fields: Vec<_> = line.split('\t').collect();
+            if fields.get(2) == Some(&"242") && fields.get(4) == Some(&"0") {
+                rows.insert((fields[0], fields[5]), (fields[3], fields[7]));
+            }
+        }
+        for (id, name, row, value) in [
+            ("20", "User.A", "0", "1"),
+            ("20", "User.B", "1", "3"),
+            ("20", "User.C", "2", "4"),
+            ("21", "User.B", "0", "3"),
+            ("21", "User.C", "1", "4"),
+            ("21", "User.D", "7", "5"),
+        ] {
+            assert_eq!(rows.get(&(id, name)), Some(&(row, value)));
+        }
+        assert!(!rows.contains_key(&("21", "User.A")));
     }
     #[test]
     fn enum_geometry_units_and_unicode_strings() {

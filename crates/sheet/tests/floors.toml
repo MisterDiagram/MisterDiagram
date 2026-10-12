@@ -1,7 +1,21 @@
 # Brief P1 acceptance floors. These may only rise.
-# At closure, record achieved rates here without weakening either initial minimum.
+# Ratcheted to the lesser achieved quick/full rate, rounded down to six decimals.
+# Both CI and full runs use these same floors; exact achieved counts remain below.
 [oracle1]
-shipped = 0.97
+shipped = 0.979788
 
 [oracle2]
-all = 0.90
+all = 0.986241
+
+[closure]
+packages = 1387
+shipped_packages = 1181
+completed_shipped_dumps = 104
+full_cached_matches = 5247024
+full_cached_denominator = 5355260
+full_resolved_matches = 7181152
+full_resolved_denominator = 7271082
+quick_cached_matches = 141932
+quick_cached_denominator = 142654
+quick_resolved_matches = 2460640
+quick_resolved_denominator = 2494966

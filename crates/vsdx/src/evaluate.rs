@@ -5,6 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 mod defaults;
 mod inherit;
 mod path;
+mod relationships;
 mod transform;
 const MAX_CELLS: usize = 1_000_000;
 const MAX_SCOPES: usize = 100_000;
@@ -184,7 +185,7 @@ impl<'a> Evaluator<'a> {
                     let name = cell_name(section, row, position, c)?;
                     self.add_cell(scope, name.clone(), c, Some(section), Some(row), &mut names)?;
                     // First indexed formatting rows also accept the explicit [1] syntax.
-                    if matches!(section.name.as_str(), "Character" | "Paragraph" | "Layer" | "FillGradient" | "LineGradient")
+                    if matches!(section.name.as_str(), "Character" | "Paragraph" | "Field" | "Layer" | "FillGradient" | "LineGradient")
                         && row.index.unwrap_or(position as u32) == 0
                     {
                         self.alias(scope, format!("{name}[1]"), c, &name)?;
@@ -268,10 +269,47 @@ impl<'a> Evaluator<'a> {
         if !self.sheets.contains_key(&scope) || !self.defaults_allowed(scope, name) {
             return None;
         }
-        let baseline = defaults::cell(scope, name)?;
+        let baseline = defaults::cell(scope, name).or_else(|| self.reserved_default(scope, name)).or_else(|| self.virtual_path(scope, name))?;
         self.baseline_provider(scope, name)
             .and_then(|p| self.cells.get(&Key { scope: p, name: name.to_ascii_lowercase() }).copied())
             .or(Some(baseline))
+    }
+    /// Geometry.Path is a reference-valued virtual slot; COM ResultIU is numeric zero.
+    /// Presence follows effective geometry, including master inheritance and tombstones.
+    /// https://learn.microsoft.com/en-us/office/vba/api/visio.viscellindices
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/pointalongpath-function
+    fn virtual_path(&self, scope: Scope, name: &str) -> Option<&'static Cell> {
+        let index = path_index(name)?;
+        self.geometry_indices(scope).any(|i| i == index).then_some(&*PATH_CELL)
+    }
+    /// Reserved formatting columns exist in every actual row. Values and COM metadata
+    /// are taken from the authorized blank baseline, not from the document's oracle dump.
+    /// Witness: ADS_M.vssx master part2 shape10, Character IX1, Char.Q2 through Char.BE2.
+    /// https://learn.microsoft.com/en-us/office/vba/api/visio.shape.rowscellcount
+    fn reserved_default(&self, scope: Scope, name: &str) -> Option<&'static Cell> {
+        let (prototype, row) = reserved_prototype(name)?;
+        let cell = defaults::cell(scope, &prototype)?;
+        if !reserved_cell(cell) {
+            return None;
+        }
+        let section = cell.attributes.get("ComSection")?.parse::<u16>().ok()?;
+        self.formatting_rows(scope).contains_key(&(section, row)).then_some(cell)
+    }
+    fn formatting_rows(&self, scope: Scope) -> BTreeMap<(u16, u32), (&'a Section, &'a Row)> {
+        let mut rows = BTreeMap::new();
+        for named in self.named_cells(scope) {
+            let (Some(section), Some(row)) = (named.section, named.row) else { continue };
+            let section_id = match section.name.as_str() {
+                "Character" => 3,
+                "Paragraph" => 4,
+                _ => continue,
+            };
+            let index = row.index.or_else(|| section.rows.iter().position(|r| std::ptr::eq(r, row)).and_then(|i| u32::try_from(i).ok()));
+            if let Some(index) = index {
+                rows.entry((section_id, index)).or_insert((section, row));
+            }
+        }
+        rows
     }
     fn baseline_provider(&self, scope: Scope, name: &str) -> Option<Scope> {
         defaults::cell(scope, name)?;
@@ -297,14 +335,52 @@ impl<'a> Evaluator<'a> {
                 }
             }
         }
+        'reserved: for ((section_id, row_index), (section, row)) in self.formatting_rows(scope) {
+            if row_index == 0 {
+                continue;
+            }
+            let Some(one) = row_index.checked_add(1) else { continue };
+            for default in defaults::CELLS.iter().filter(|c| c.kind == defaults::kind(scope) && reserved_cell(&c.cell)) {
+                if default.cell.attributes.get("ComSection").and_then(|n| n.parse::<u16>().ok()) != Some(section_id) {
+                    continue;
+                }
+                let base = &default.cell.name;
+                let name = if base.to_ascii_lowercase().contains("._unused") {
+                    format!("{base}[{one}]")
+                } else {
+                    format!("{}{one}", base.strip_suffix('1').unwrap_or(base))
+                };
+                if cells.len() >= MAX_CELLS {
+                    break 'reserved;
+                }
+                if self.defaults_allowed(scope, &name) {
+                    cells.entry(name.to_ascii_lowercase()).or_insert_with(|| NamedCell {
+                        name,
+                        cell: &default.cell,
+                        section: Some(section),
+                        row: Some(row),
+                    });
+                }
+            }
+        }
+        for index in self.geometry_indices(scope) {
+            if cells.len() >= MAX_CELLS {
+                break;
+            }
+            let Some(one) = index.checked_add(1) else { continue };
+            let name = format!("Geometry{one}.Path");
+            cells.entry(name.to_ascii_lowercase()).or_insert_with(|| NamedCell { name, cell: &PATH_CELL, section: None, row: None });
+        }
         cells.into_values().collect()
     }
     /// Recorded baseline SRC indices and numeric COM units, independent of cell values.
     /// https://learn.microsoft.com/en-us/office/vba/api/visio.shape.cellssrc
     pub fn baseline_metadata(scope: Scope, name: &str) -> Option<(u16, u16, u16, u16)> {
-        let c = defaults::cell(scope, name)?;
+        let reserved = reserved_prototype(name);
+        let c = defaults::cell(scope, name)
+            .or_else(|| reserved.as_ref().and_then(|(prototype, _)| defaults::cell(scope, prototype)).filter(|c| reserved_cell(c)))?;
         let n = |key| c.attributes.get(key)?.parse().ok();
-        Some((n("ComSection")?, n("ComRow")?, n("ComCell")?, n("ComUnits")?))
+        Some((n("ComSection")?, reserved.and_then(|(_, row)| u16::try_from(row).ok()).unwrap_or(n("ComRow")?), n("ComCell")?, n("ComUnits")?))
     }
     pub fn dump_defaults(scope: Scope) -> Vec<NamedCell<'static>> {
         defaults::CELLS
@@ -327,6 +403,27 @@ impl<'a> Evaluator<'a> {
     pub fn display_reference(&self, scope: Scope, name: &str, reference: &str) -> Result<String, Error> {
         let origin = self.formula_origin(scope, name).unwrap_or(scope);
         self.remap_master_reference(scope, origin, reference)
+    }
+    /// Presence is independent of evaluation success. XML constants omit F but still
+    /// have a COM formula; the explicit No Formula sentinel does not.
+    /// Witnesses: BPMN_U master8 User.msvSDTargetIntersection and SOCIAL_DISTANCING_M
+    /// page1 shape1835 Prop._VisDM_Whole_Name.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/formulaexists-function
+    pub fn formula_exists(&mut self, scope: Scope, reference: &str) -> Result<bool, Error> {
+        self.add_dependency(scope, reference);
+        let (scope, name) = match self.reference_target(scope, reference) {
+            Ok(target) => target,
+            Err(Error::Ref) => return Ok(false),
+            Err(e) => return Err(e),
+        };
+        let Some(cell) = self.cell(scope, &name) else { return Ok(false) };
+        if let Some(formula) = self.effective_formula(scope, &name) {
+            return Ok(!formula.is_empty() && formula != "No Formula" && formula != "Inh");
+        }
+        if cell.attributes.contains_key("ComSection") || cell.attributes.contains_key("VirtualPath") {
+            return Ok(false);
+        }
+        Ok(cell.value.is_some())
     }
     pub fn clear_cache(&mut self) {
         self.values.clear();
@@ -411,15 +508,13 @@ impl<'a> Evaluator<'a> {
             match formula.as_deref() {
                 None | Some("No Formula") => self.cached_cell(cell),
                 Some("Inh") => Value::Error(Error::Ref),
-                Some(formula) => {
-                    let mut context = BoundContext { evaluator: self, scope, origin, cached };
-                    diagramcraft_sheet::formula(formula, &mut context)
-                }
+                Some(formula) => self.compute_formula(scope, origin, cached, formula),
             }
         } else {
             Value::Error(Error::Ref)
         };
         let value = self.cell(scope, &key.name).map_or(value.clone(), |cell| project_cell_point(cell, value));
+        let value = self.coerce_numeric_cell(scope, &key.name, value);
         self.stack.pop();
         self.active.remove(&key);
         let value = if self.graph_limited { Value::Error(Error::Limit) } else { value };
@@ -507,7 +602,7 @@ impl<'a> Evaluator<'a> {
         self.canonical
             .get(&Key { scope, name: name.to_ascii_lowercase() })
             .cloned()
-            .or_else(|| self.baseline_cell(scope, name).map(|c| Key { scope, name: c.name.to_ascii_lowercase() }))
+            .or_else(|| self.baseline_cell(scope, name).map(|_| Key { scope, name: name.to_ascii_lowercase() }))
     }
     /// Custom function arguments live only during the invocation, and bypass ordinary memoization.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/evalcell-function
@@ -556,14 +651,60 @@ impl<'a> Evaluator<'a> {
         self.arguments.push(args.iter().map(|(n, v)| (n.to_ascii_lowercase(), v.clone())).collect());
         let result = match formula.as_deref() {
             None | Some("No Formula") => self.cached_cell(cell),
-            Some(f) => {
-                let mut context = BoundContext { evaluator: self, scope: target, origin, cached };
-                diagramcraft_sheet::formula(f, &mut context)
-            }
+            Some(f) => self.compute_formula(target, origin, cached, f),
         };
         self.arguments.pop();
         self.argument_bytes -= bytes;
-        result
+        self.coerce_numeric_cell(target, &key.name, result)
+    }
+    /// Numeric cell types coerce numeric text returned by INDEX and other string functions.
+    /// The scoped baseline's COM type supplies classification; User/Property variant cells remain variants.
+    /// Scratch X/Y cells are drawing-unit numbers; Scratch A-D remain untyped variants.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/quickstylefillcolor-cell-quick-style-section
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-operators
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/scratch-section
+    fn coerce_numeric_cell(&self, scope: Scope, name: &str, value: Value) -> Value {
+        let scratch_number = name.get(..9).is_some_and(|prefix| prefix.eq_ignore_ascii_case("Scratch.X") || prefix.eq_ignore_ascii_case("Scratch.Y"))
+            && name
+                .get(9..)
+                .is_some_and(|row| row.len() <= 10 && row.bytes().all(|b| b.is_ascii_digit()) && row.parse::<u32>().is_ok_and(|row| row > 0));
+        let baseline_number = defaults::cell(scope, name)
+            .is_some_and(|default| default.units.as_deref() != Some("STR") && default.attributes.get("ComUnits").is_some_and(|u| u != "231"));
+        if let Value::Text(text) = &value
+            && (scratch_number || baseline_number)
+        {
+            return match diagramcraft_sheet::units::numeric_text(text) {
+                Ok(number) => Value::number(number),
+                Err(Error::Unsupported(_)) => Value::Error(Error::Value),
+                Err(error) => Value::Error(error),
+            };
+        }
+        value
+    }
+    /// A cached V belongs to the entire cell, not an inner host-function invocation.
+    /// Frozen host formulas therefore retain that final value until their host is implemented.
+    /// Ordinary unsupported functions never take this path. References still register dependencies.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+    fn compute_formula(&mut self, scope: Scope, origin: Scope, cached: Value, formula: &str) -> Value {
+        let expr = match diagramcraft_sheet::parse(formula) {
+            Ok(expr) => expr,
+            Err(e) => return Value::Error(Error::Parse(e.to_string())),
+        };
+        match hook_references(&expr) {
+            Ok(Some(references)) => {
+                for reference in references {
+                    if let Ok(reference) = self.remap_master_reference(scope, origin, reference) {
+                        self.add_dependency(scope, &reference);
+                    }
+                }
+                cached
+            }
+            Ok(None) => {
+                let mut context = BoundContext { evaluator: self, scope, origin, cached };
+                diagramcraft_sheet::evaluate(&expr, &mut context)
+            }
+            Err(e) => Value::Error(e),
+        }
     }
     fn add_dependency(&mut self, scope: Scope, reference: &str) {
         if let Ok((scope, name)) = self.reference_target(scope, reference)
@@ -701,6 +842,51 @@ impl<'a> Evaluator<'a> {
         }
     }
 }
+static PATH_CELL: std::sync::LazyLock<Cell> = std::sync::LazyLock::new(|| Cell {
+    name: "Path".into(),
+    value: Some("0".into()),
+    units: Some("NUM".into()),
+    attributes: BTreeMap::from([("VirtualPath".into(), "1".into())]),
+    ..Default::default()
+});
+fn path_index(name: &str) -> Option<u32> {
+    if name.len() > 64 {
+        return None;
+    }
+    let lower = name.to_ascii_lowercase();
+    lower.strip_prefix("geometry")?.strip_suffix(".path")?.parse::<u32>().ok()?.checked_sub(1).filter(|i| *i < 230)
+}
+fn reserved_cell(cell: &Cell) -> bool {
+    let lower = cell.name.to_ascii_lowercase();
+    if !(lower.starts_with("char.") || lower.starts_with("para.")) {
+        return false;
+    }
+    lower.contains("._unused") || (cell.formula.is_none() && lower.ends_with('1'))
+}
+fn reserved_prototype(name: &str) -> Option<(String, u32)> {
+    if name.len() > 65536 {
+        return None;
+    }
+    let lower = name.to_ascii_lowercase();
+    let (prefix, tail) = lower.split_once('.')?;
+    if !matches!(prefix, "char" | "para") {
+        return None;
+    }
+    if let Some((base, index)) = tail.split_once('[') {
+        if !base.starts_with("_unused") {
+            return None;
+        }
+        let index = index.strip_suffix(']')?.parse::<u32>().ok()?.checked_sub(1)?;
+        return Some((format!("{prefix}.{base}"), index));
+    }
+    let start = tail.find(|c: char| c.is_ascii_digit())?;
+    let letters = tail.get(..start)?;
+    if letters.is_empty() || !letters.chars().all(|c| c.is_ascii_alphabetic()) {
+        return None;
+    }
+    let index = tail.get(start..)?.parse::<u32>().ok()?.checked_sub(1)?;
+    Some((format!("{prefix}.{letters}1"), index))
+}
 fn page_scope(scope: Scope) -> Option<Scope> {
     match scope {
         Scope::Page(p) | Scope::PageShape { page: p, .. } => Some(Scope::Page(p)),
@@ -713,6 +899,7 @@ fn section_prefix(section: &Section) -> Result<String, Error> {
         "Geometry" => format!("Geometry{}", section.index.unwrap_or(0).checked_add(1).ok_or(Error::Limit)?),
         "Character" => "Char".into(),
         "Paragraph" => "Para".into(),
+        "Field" => "Fields".into(),
         "Property" => "Prop".into(),
         "Control" => "Controls".into(),
         "Connection" => "Connections".into(),
@@ -725,6 +912,8 @@ fn section_prefix(section: &Section) -> Result<String, Error> {
 /// Convert XML zero-based formatting row indices and named rows to universal formula names.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/size-cell-character-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/value-cell-text-fields-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-text-fields-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/value-cell-user-defined-cells-section
 pub fn cell_name(section: &Section, row: &Row, position: usize, cell: &Cell) -> Result<String, Error> {
     let prefix = section_prefix(section)?;
@@ -733,7 +922,7 @@ pub fn cell_name(section: &Section, row: &Row, position: usize, cell: &Cell) -> 
     Ok(match section.name.as_str() {
         "Geometry" => format!("{prefix}.{}{index}", cell.name),
         "Scratch" | "Connection" | "Tabs" if row.name.is_none() => format!("{prefix}.{}{one}", cell.name),
-        "Character" | "Paragraph" | "Layer" | "FillGradient" | "LineGradient" => {
+        "Character" | "Paragraph" | "Field" | "Layer" | "FillGradient" | "LineGradient" => {
             if index == 0 {
                 format!("{prefix}.{}", cell.name)
             } else {
@@ -800,6 +989,42 @@ fn split_reference(s: &str) -> Result<Vec<&str>, Error> {
     }
     Ok(out)
 }
+// Only parsed call nodes select the frozen host fallback. Quoted strings and reference names do not.
+fn hook_references(expr: &diagramcraft_sheet::Expr) -> Result<Option<Vec<&str>>, Error> {
+    use diagramcraft_sheet::Expr;
+    let mut pending = vec![(expr, 0usize)];
+    let mut references = Vec::new();
+    let mut nodes = 0usize;
+    let mut has_hook = false;
+    let mut unsupported = None;
+    while let Some((node, depth)) = pending.pop() {
+        nodes += 1;
+        if nodes > 8192 || depth > 128 {
+            return Err(Error::Limit);
+        }
+        match node {
+            Expr::Reference(r) => references.push(r.as_str()),
+            Expr::Unary(_, e) | Expr::Qualified(e, _) => pending.push((e, depth + 1)),
+            Expr::Binary(_, a, b) => {
+                pending.push((a, depth + 1));
+                pending.push((b, depth + 1));
+            }
+            Expr::Call { name, args } => {
+                let hook = diagramcraft_sheet::is_hook(name);
+                has_hook |= hook;
+                if !hook && !diagramcraft_sheet::functions::IMPLEMENTED.contains(&name.as_str()) {
+                    unsupported.get_or_insert_with(|| name.clone());
+                }
+                pending.extend(args.iter().map(|arg| (arg, depth + 1)));
+            }
+            _ => {}
+        }
+    }
+    if has_hook && let Some(name) = unsupported {
+        return Err(Error::Unsupported(name));
+    }
+    Ok(has_hook.then_some(references))
+}
 struct BoundContext<'a, 'd> {
     origin: Scope,
     evaluator: &'a mut Evaluator<'d>,
@@ -828,6 +1053,29 @@ impl Context for BoundContext<'_, '_> {
             Ok(r) => self.evaluator.resolve(self.scope, &r),
             Err(e) => Value::Error(e),
         }
+    }
+    fn list_sheet_reference(&mut self) -> Value {
+        match self.evaluator.list_sheet_reference(self.scope) {
+            Ok(reference) => Value::Text(reference),
+            Err(error) => Value::Error(error),
+        }
+    }
+    fn formula_exists(&mut self, reference: &str) -> Value {
+        let reference = match self.reference(reference) {
+            Ok(r) => r,
+            Err(e) => return Value::Error(e),
+        };
+        match self.evaluator.formula_exists(self.scope, &reference) {
+            Ok(exists) => Value::Number(if exists { 1. } else { 0. }),
+            Err(e) => Value::Error(e),
+        }
+    }
+    fn path_length(&mut self, reference: &str, segment: Option<usize>) -> Value {
+        let reference = match self.reference(reference) {
+            Ok(r) => r,
+            Err(e) => return Value::Error(e),
+        };
+        Value::from(self.evaluator.path_length(self.scope, &reference, segment))
     }
     fn nearest_point_on_path(&mut self, reference: &str, x: f64, y: f64) -> Value {
         let reference = match self.reference(reference) {
@@ -859,6 +1107,17 @@ impl Context for BoundContext<'_, '_> {
             Ok((_, (dx, dy))) => Value::number(dy.atan2(dx)),
             Err(e) => Value::Error(e),
         }
+    }
+    fn transform_angle(&mut self, angle: f64, source: &str, destination: &str, parent: bool) -> Value {
+        let source = match self.reference(source) {
+            Ok(r) => r,
+            Err(e) => return Value::Error(e),
+        };
+        let destination = match self.reference(destination) {
+            Ok(r) => r,
+            Err(e) => return Value::Error(e),
+        };
+        self.evaluator.transform_angle(self.scope, angle, &source, &destination, parent).into()
     }
     fn transform_point(
         &mut self,
@@ -1077,6 +1336,88 @@ mod tests {
         }
     }
     #[test]
+    fn numeric_cell_coerces_index_text_but_user_variant_keeps_string() {
+        // BELTORGCHART_M: QuickStyleLineColor references QuickStyleFillColor's INDEX result.
+        let doc = Document {
+            document_sheet: sheet(vec![
+                cell("QuickStyleFillColor", "103", Some("INDEX(1,\"100;103;102\")")),
+                cell("QuickStyleLineColor", "103", Some("GUARD(QuickStyleFillColor)")),
+                cell("User.Variant", "103", Some("INDEX(1,\"100;103;102\")")),
+            ]),
+            ..Default::default()
+        };
+        let mut e = Evaluator::new(&doc).unwrap();
+        assert_eq!(e.evaluate(Scope::Document, "QuickStyleFillColor"), Value::Number(103.));
+        assert_eq!(e.evaluate(Scope::Document, "QuickStyleLineColor"), Value::Number(103.));
+        assert_eq!(e.evaluate(Scope::Document, "User.Variant"), Value::Text("103".into()));
+    }
+    #[test]
+    fn scratch_coordinates_coerce_text_without_reusing_error_cache() {
+        // ANNOT_M master12 shape6 has Scratch.X2 F='"Geo. Line Spacing"',
+        // E=#VALUE!, V=0. Its numeric cache must not conceal the typed error.
+        let doc = Document {
+            document_sheet: sheet(vec![
+                cell("Scratch.X2", "0", Some("\"Geo. Line Spacing\"")),
+                cell("Scratch.Y2", "0", Some("\"SpLine\"")),
+                cell("Scratch.X3", "999", Some("\"2.5\"")),
+                cell("Scratch.Y3", "999", Some("\"-3\"")),
+                cell("Scratch.A2", "0", Some("\"Geo. Line Spacing\"")),
+                cell("Scratch.D2", "0", Some("\"3\"")),
+            ]),
+            ..Default::default()
+        };
+        let mut e = Evaluator::new(&doc).unwrap();
+        assert_eq!(e.evaluate(Scope::Document, "Scratch.X2"), Value::Error(Error::Value));
+        assert_eq!(e.evaluate(Scope::Document, "Scratch.Y2"), Value::Error(Error::Value));
+        assert_eq!(e.evaluate(Scope::Document, "Scratch.X3"), Value::Number(2.5));
+        assert_eq!(e.evaluate(Scope::Document, "Scratch.Y3"), Value::Number(-3.));
+        assert_eq!(e.evaluate(Scope::Document, "Scratch.A2"), Value::Text("Geo. Line Spacing".into()));
+        assert_eq!(e.evaluate(Scope::Document, "Scratch.D2"), Value::Text("3".into()));
+        for name in ["Scratch.X0", "Scratch.X-1", "Scratch.X+1", "Scratch.X4294967296", "Scratch.X1tail", "Scratch.Y", "Scratch.文1"] {
+            assert_eq!(e.coerce_numeric_cell(Scope::Document, name, Value::Text("2".into())), Value::Text("2".into()), "{name}");
+        }
+        assert_eq!(e.coerce_numeric_cell(Scope::Document, "sCrAtCh.y4294967295", Value::Text("2".into())), Value::Number(2.));
+        let oversized = format!("Scratch.X{}", "9".repeat(65_536));
+        assert_eq!(e.coerce_numeric_cell(Scope::Document, &oversized, Value::Text("2".into())), Value::Text("2".into()));
+    }
+    #[test]
+    fn unit_fraction_property_string_divides_in_internal_units() {
+        // CRIME_SCENE_INVESTIGATION_M master2 shape12, User.InchPrec.
+        let mut precision = cell("Prop.LInchPrec", "1/16 in.", None);
+        precision.units = Some("STR".into());
+        let doc = Document { document_sheet: sheet(vec![precision, cell("User.InchPrec", "999", Some("1IN/Prop.LInchPrec"))]), ..Default::default() };
+        let mut e = Evaluator::new(&doc).unwrap();
+        assert_eq!(e.evaluate(Scope::Document, "User.InchPrec"), Value::Number(16.));
+    }
+    #[test]
+    fn cached_host_result_belongs_to_whole_cell_not_inner_call() {
+        // ALARM_M master2 User.HasText and its dependent Controls.Row_1.YCon.
+        let doc = Document {
+            document_sheet: sheet(vec![
+                cell("User.HasText", "0", Some("LEN(SHAPETEXT(TheText))>0")),
+                cell("Result", "7", Some("2+5*NOT(User.HasText)")),
+                cell("Bad", "42", Some("UNIMPLEMENTEDFUNCTION(1)")),
+                cell("MixedBad", "42", Some("UNIMPLEMENTEDFUNCTION(1)+THEMEVAL()")),
+                cell("Quoted", "42", Some("LEN(\"SHAPETEXT()\")")),
+                cell("Width", "2", None),
+                cell("HostDependent", "3", Some("THEMEVAL(Width)+1")),
+            ]),
+            ..Default::default()
+        };
+        let mut e = Evaluator::new(&doc).unwrap();
+        assert_eq!(e.evaluate(Scope::Document, "User.HasText"), Value::Number(0.));
+        assert_eq!(e.evaluate(Scope::Document, "Result"), Value::Number(7.));
+        assert!(matches!(e.evaluate(Scope::Document, "Bad"), Value::Error(Error::Unsupported(_))));
+        assert!(matches!(e.evaluate(Scope::Document, "MixedBad"), Value::Error(Error::Unsupported(_))));
+        assert_eq!(e.evaluate(Scope::Document, "Quoted"), Value::Number(11.));
+        assert_eq!(e.evaluate(Scope::Document, "HostDependent"), Value::Number(3.));
+        e.set_formula(Scope::Document, "Width", "4").unwrap();
+        assert!(e.dirty.iter().any(|k| k.name == "hostdependent"));
+        for formula in ["Pages[NOW()]!Width", "'THEMEVAL()'!Width", "UNIMPLEMENTEDFUNCTION(1)"] {
+            assert!(hook_references(&diagramcraft_sheet::parse(formula).unwrap()).unwrap().is_none());
+        }
+    }
+    #[test]
     fn language_cells_use_lcid_not_text_zero() {
         let doc = Document::default();
         let evaluator = Evaluator::new(&doc).unwrap();
@@ -1210,6 +1551,147 @@ mod tests {
             assert_eq!(e.resolve(scope, reference), Value::Number(value), "{reference}");
         }
         assert_eq!(e.resolve(scope, "Pages[missing]!Width"), Value::Error(Error::Ref));
+    }
+    #[test]
+    fn formula_exists_inspects_formulas_without_evaluating_errors() {
+        let doc = Document {
+            document_sheet: Sheet {
+                cells: vec![
+                    Cell { name: "Constant".into(), value: Some("sample".into()), units: Some("STR".into()), ..Default::default() },
+                    Cell { name: "Disabled".into(), value: Some("0".into()), formula: Some("No Formula".into()), ..Default::default() },
+                    Cell { name: "Invalid".into(), value: Some("0".into()), formula: Some("1/0".into()), ..Default::default() },
+                    Cell { name: "Query".into(), value: Some("0".into()), formula: Some("FORMULAEXISTS(Disabled)".into()), ..Default::default() },
+                ],
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let mut e = Evaluator::new(&doc).unwrap();
+        assert_eq!(e.formula_exists(Scope::Document, "Constant"), Ok(true));
+        assert_eq!(e.formula_exists(Scope::Document, "Disabled"), Ok(false));
+        assert_eq!(e.formula_exists(Scope::Document, "Missing"), Ok(false));
+        assert_eq!(e.formula_exists(Scope::Document, "Invalid"), Ok(true));
+        assert_eq!(e.evaluate(Scope::Document, "Query"), Value::Number(0.));
+        e.set_formula(Scope::Document, "Disabled", "1/0").unwrap();
+        assert_eq!(e.evaluate(Scope::Document, "Query"), Value::Number(1.));
+    }
+    #[test]
+    fn geometry_path_virtual_values_follow_inheritance_and_deletions() {
+        let geometry = Section {
+            name: "Geometry".into(),
+            index: Some(0),
+            rows: vec![Row {
+                index: Some(1),
+                row_type: Some("MoveTo".into()),
+                cells: vec![
+                    Cell { name: "X".into(), value: Some("0".into()), ..Default::default() },
+                    Cell { name: "Y".into(), value: Some("0".into()), ..Default::default() },
+                ],
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let doc = Document {
+            masters: vec![diagramcraft_model::Master {
+                id: 2,
+                shapes: vec![Shape { id: 5, sheet: Sheet { sections: vec![geometry], ..Default::default() }, ..Default::default() }],
+                ..Default::default()
+            }],
+            pages: vec![diagramcraft_model::Page {
+                id: 0,
+                shapes: vec![
+                    Shape { id: 1, master: Some(2), ..Default::default() },
+                    Shape {
+                        id: 2,
+                        master: Some(2),
+                        sheet: Sheet {
+                            sections: vec![Section { name: "Geometry".into(), index: Some(0), deleted: true, ..Default::default() }],
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    },
+                ],
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let mut e = Evaluator::new(&doc).unwrap();
+        let scope = Scope::PageShape { page: 0, shape: 1 };
+        assert_eq!(e.evaluate(scope, "Geometry1.Path"), Value::Number(0.));
+        assert_eq!(e.evaluate(scope, "Geometry2.Path"), Value::Error(Error::Ref));
+        assert_eq!(e.evaluate(Scope::PageShape { page: 0, shape: 2 }, "Geometry1.Path"), Value::Error(Error::Ref));
+        assert!(e.resolved_named_cells(scope).iter().any(|n| n.name == "Geometry1.Path"));
+        assert_eq!(e.evaluate(scope, "Geometry4294967296.Path"), Value::Error(Error::Ref));
+    }
+    #[test]
+    fn text_fields_use_documented_indexed_universal_names() {
+        let section = Section {
+            name: "Field".into(),
+            rows: vec![
+                Row {
+                    index: Some(0),
+                    cells: vec![Cell { name: "Value".into(), value: Some("2".into()), ..Default::default() }],
+                    ..Default::default()
+                },
+                Row {
+                    index: Some(1),
+                    cells: vec![Cell { name: "Format".into(), value: Some("date".into()), units: Some("STR".into()), ..Default::default() }],
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        };
+        let doc = Document {
+            pages: vec![diagramcraft_model::Page {
+                id: 0,
+                shapes: vec![Shape { id: 1, sheet: Sheet { sections: vec![section], ..Default::default() }, ..Default::default() }],
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let mut e = Evaluator::new(&doc).unwrap();
+        let scope = Scope::PageShape { page: 0, shape: 1 };
+        assert_eq!(e.resolve(scope, "Fields.Value"), Value::Number(2.));
+        assert_eq!(e.resolve(scope, "Fields.Value[1]"), Value::Number(2.));
+        assert_eq!(e.resolve(scope, "Fields.Format[2]"), Value::Text("date".into()));
+        assert!(e.named_cells(scope).iter().any(|c| c.name == "Fields.Format[2]"));
+    }
+    #[test]
+    fn actual_formatting_rows_expose_only_baseline_reserved_slots() {
+        let section = Section {
+            name: "Character".into(),
+            rows: vec![
+                Row {
+                    index: Some(1),
+                    cells: vec![Cell { name: "Size".into(), value: Some("0.1".into()), ..Default::default() }],
+                    ..Default::default()
+                },
+                Row { index: Some(2), deleted: true, ..Default::default() },
+            ],
+            ..Default::default()
+        };
+        let doc = Document {
+            pages: vec![diagramcraft_model::Page {
+                id: 0,
+                shapes: vec![Shape { id: 1, sheet: Sheet { sections: vec![section], ..Default::default() }, ..Default::default() }],
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let mut e = Evaluator::new(&doc).unwrap();
+        let scope = Scope::PageShape { page: 0, shape: 1 };
+        for name in ["Char.Q2", "Char.BE2", "Char._Unused6[2]"] {
+            assert_eq!(e.evaluate(scope, name), Value::Number(0.));
+        }
+        assert_eq!(Evaluator::baseline_metadata(scope, "Char.BE2"), Some((3, 1, 56, 141)));
+        assert!(e.cell(scope, "Char.Q3").is_none());
+        assert!(e.cell(scope, "Char.Q999").is_none());
+        assert!(e.cell(scope, "Char.Q4294967296").is_none());
+        assert!(e.cell(scope, "Char.Size[2]").is_some());
+        assert!(e.cell(scope, "Char.Case[2]").is_none());
+        let names = e.resolved_named_cells(scope);
+        assert!(names.iter().any(|c| c.name == "Char.Q2"));
+        assert!(!names.iter().any(|c| c.name == "Char.Q3"));
     }
     #[test]
     fn named_and_indexed_sections_bind_to_universal_names() {

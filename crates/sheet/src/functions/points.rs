@@ -1,7 +1,8 @@
 //! Point values, coordinate transforms and path queries delegated to the document host.
 use crate::{Context, Error, Value, eval::eval, parser::Expr};
 
-pub const NAMES: &[&str] = &["PNT", "PNTX", "PNTY", "PAR", "LOC", "LOCTOLOC", "LOCTOPAR", "ANG360", "POINTALONGPATH", "ANGLEALONGPATH"];
+pub const NAMES: &[&str] =
+    &["ANGLETOPAR", "ANGLETOLOC", "PNT", "PNTX", "PNTY", "PAR", "LOC", "LOCTOLOC", "LOCTOPAR", "ANG360", "POINTALONGPATH", "ANGLEALONGPATH"];
 const LIMIT: usize = 65536;
 #[derive(Clone, Debug, Default)]
 struct Frame {
@@ -31,6 +32,7 @@ fn dispatch(name: &str, args: &[Expr], context: &mut dyn Context, budget: &mut u
     match name {
         "PNTX" | "PNTY" => projection(name, args, context, budget, depth),
         "ANG360" => angle(args, context, budget, depth),
+        "ANGLETOPAR" | "ANGLETOLOC" => angle_transform(name, args, context, budget, depth),
         "ANGLEALONGPATH" => path_angle(args, context, budget, depth),
         _ => point_call(name, args, context, budget, depth).map(Point::value),
     }
@@ -178,6 +180,17 @@ fn transform(name: &str, args: &[Expr], context: &mut dyn Context, budget: &mut 
     let value = context.transform_point(point.xy, source.reference.as_deref(), source.parent, destination.reference.as_deref(), destination.parent);
     Ok(Point { xy: xy(value)?, frame: destination })
 }
+/// Convert a direction from source-local axes into destination-local or parent axes.
+/// These reference pages have no worked examples; rotation, flip and hostile cases are tested.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/angletopar-function
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/angletoloc-function
+fn angle_transform(name: &str, args: &[Expr], context: &mut dyn Context, budget: &mut usize, depth: usize) -> Result<Value, Error> {
+    arity(args, 3, 3)?;
+    let angle = eval(item(args, 0)?, context, budget, depth + 1).numeric()?;
+    let source = reference(item(args, 1)?, context, budget, depth + 1)?;
+    let destination = reference(item(args, 2)?, context, budget, depth + 1)?;
+    Ok(context.transform_angle(angle, &source, &destination, name == "ANGLETOPAR"))
+}
 /// ANG360 uses radians when no unit was supplied, and rejects nonnumeric text.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/ang360-function
 fn angle(args: &[Expr], context: &mut dyn Context, budget: &mut usize, depth: usize) -> Result<Value, Error> {
@@ -200,7 +213,7 @@ fn angle(args: &[Expr], context: &mut dyn Context, budget: &mut usize, depth: us
 }
 // Path cells are references, not ordinary scalar values. IF chooses a reference
 // lazily, preserving the same work/depth budget and avoiding nonexistent branches.
-fn reference(expr: &Expr, context: &mut dyn Context, budget: &mut usize, depth: usize) -> Result<String, Error> {
+pub(super) fn reference(expr: &Expr, context: &mut dyn Context, budget: &mut usize, depth: usize) -> Result<String, Error> {
     bound(budget, depth)?;
     if !context.enter_eval() {
         return Err(Error::Limit);
@@ -387,6 +400,8 @@ mod tests {
         let mut c = Example::default();
         for formula in [
             "PNT()",
+            "ANGLETOPAR(0,Width)",
+            "ANGLETOLOC(1/0,Width,Width)",
             "PNTY(4)",
             "LOCTOLOC(PNT(1,2))",
             "POINTALONGPATH(Geometry1.Path,2)",

@@ -72,9 +72,17 @@ impl XmlElement {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/rel-element-page_type-complextypevisio-xml
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Relationship {
+    /// Relationship identifier used by r:id.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/rel-element-page_type-complextypevisio-xml
     pub id: String,
+    /// OPC relationship type URI.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/rel-element-page_type-complextypevisio-xml
     pub type_uri: String,
+    /// OPC relationship target.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/rel-element-page_type-complextypevisio-xml
     pub target: String,
+    /// Whether TargetMode is External.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/rel-element-page_type-complextypevisio-xml
     pub external: bool,
 }
 /// Original bytes preserve unknown parts and unknown XML exactly; `xml` is a read-only structured view.
@@ -91,34 +99,72 @@ pub struct Part {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Cell {
+    /// N attribute: universal cell name.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
     pub name: String,
+    /// V attribute: optional cached value, preserving an empty value.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
     pub value: Option<String>,
+    /// F attribute: formula or inheritance sentinel.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
     pub formula: Option<String>,
+    /// U attribute: optional unit code.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
     pub units: Option<String>,
+    /// E attribute: optional saved error.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
     pub error: Option<String>,
+    /// All remaining XML attributes, preserved by name.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
     pub attributes: BTreeMap<String, String>,
+    /// RefBy child elements.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
     pub ref_by: Vec<XmlElement>,
 }
 /// Section N, IX and Del; all named sections use the same lossless row model.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/section-element-sheet_type-complextypevisio-xml
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Section {
+    /// N attribute: section name.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/section-element-sheet_type-complextypevisio-xml
     pub name: String,
+    /// IX attribute: optional repeated-section index.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/section-element-sheet_type-complextypevisio-xml
     pub index: Option<u32>,
+    /// Del attribute: inherited-section deletion marker.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/section-element-sheet_type-complextypevisio-xml
     pub deleted: bool,
+    /// Section-level Cell child elements.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/section-element-sheet_type-complextypevisio-xml
     pub cells: Vec<Cell>,
+    /// Row child elements.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/section-element-sheet_type-complextypevisio-xml
     pub rows: Vec<Row>,
+    /// All remaining XML attributes, preserved by name.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/section-element-sheet_type-complextypevisio-xml
     pub attributes: BTreeMap<String, String>,
 }
 /// Row N, IX, T, Del and LocalName are retained, including local deletion markers.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Row {
+    /// N attribute: optional named-row identifier.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml
     pub name: Option<String>,
+    /// IX attribute: optional logical row index.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml
     pub index: Option<u32>,
+    /// T attribute: optional row type.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml
     pub row_type: Option<String>,
+    /// Del attribute: inherited-row deletion marker.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml
     pub deleted: bool,
+    /// Cell child elements.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml
     pub cells: Vec<Cell>,
+    /// All remaining XML attributes, preserved by name.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml
     pub attributes: BTreeMap<String, String>,
 }
 /// Generic sheet used by document, page, style, master and shape records.
@@ -127,9 +173,17 @@ pub struct Row {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/refby-element-cell_type-complextypevisio-xml
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Sheet {
+    /// Cell child elements.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/documentsheet-element-visiodocument_type-complextypevisio-xml
     pub cells: Vec<Cell>,
+    /// Section child elements.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/documentsheet-element-visiodocument_type-complextypevisio-xml
     pub sections: Vec<Section>,
+    /// Trigger child elements.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/documentsheet-element-visiodocument_type-complextypevisio-xml
     pub triggers: Vec<XmlElement>,
+    /// All remaining XML attributes, preserved by name.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/documentsheet-element-visiodocument_type-complextypevisio-xml
     pub attributes: BTreeMap<String, String>,
 }
 impl Sheet {
@@ -141,42 +195,96 @@ impl Sheet {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Shape {
+    /// ID attribute, scoped to the page or master.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
     pub id: u32,
+    /// Name attribute: localized shape name.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
     pub name: String,
+    /// NameU attribute: universal shape name.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
     pub name_u: String,
+    /// Type attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
     pub shape_type: Option<String>,
+    /// Master attribute: referenced master identifier.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
     pub master: Option<u32>,
+    /// MasterShape attribute: referenced shape inside a master.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
     pub master_shape: Option<u32>,
+    /// LineStyle attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
     pub line_style: Option<u32>,
+    /// FillStyle attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
     pub fill_style: Option<u32>,
+    /// TextStyle attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
     pub text_style: Option<u32>,
+    /// ShapeSheet cells and sections.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
     pub sheet: Sheet,
+    /// Nested Shapes child element.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
     pub shapes: Vec<Shape>,
+    /// Text child element, including run markers.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
     pub text: Option<XmlElement>,
+    /// ForeignData child element.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
     pub foreign_data: Option<XmlElement>,
 }
 /// StyleSheet ID and formatting inheritance attributes are preserved in `sheet.attributes`.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/stylesheet-element-stylesheets_type-complextypevisio-xml
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Style {
+    /// ID attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/stylesheet-element-stylesheets_type-complextypevisio-xml
     pub id: u32,
+    /// Name attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/stylesheet-element-stylesheets_type-complextypevisio-xml
     pub name: String,
+    /// NameU attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/stylesheet-element-stylesheets_type-complextypevisio-xml
     pub name_u: String,
+    /// LineStyle attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/stylesheet-element-stylesheets_type-complextypevisio-xml
     pub line_style: Option<u32>,
+    /// FillStyle attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/stylesheet-element-stylesheets_type-complextypevisio-xml
     pub fill_style: Option<u32>,
+    /// TextStyle attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/stylesheet-element-stylesheets_type-complextypevisio-xml
     pub text_style: Option<u32>,
+    /// StyleSheet cells and sections.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/stylesheet-element-stylesheets_type-complextypevisio-xml
     pub sheet: Sheet,
 }
 /// Connect FromSheet, FromCell, FromPart, ToSheet, ToCell and ToPart.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/connect-element-connects_type-complextypevisio-xml
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Connect {
+    /// FromSheet attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/connect-element-connects_type-complextypevisio-xml
     pub from_sheet: u32,
+    /// FromCell attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/connect-element-connects_type-complextypevisio-xml
     pub from_cell: Option<String>,
+    /// FromPart attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/connect-element-connects_type-complextypevisio-xml
     pub from_part: Option<i32>,
+    /// ToSheet attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/connect-element-connects_type-complextypevisio-xml
     pub to_sheet: u32,
+    /// ToCell attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/connect-element-connects_type-complextypevisio-xml
     pub to_cell: Option<String>,
+    /// ToPart attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/connect-element-connects_type-complextypevisio-xml
     pub to_part: Option<i32>,
+    /// All remaining XML attributes, preserved by name.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/connect-element-connects_type-complextypevisio-xml
     pub attributes: BTreeMap<String, String>,
 }
 /// Page ID, Name, NameU, background and view attributes, plus the related contents.
@@ -184,13 +292,29 @@ pub struct Connect {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/pagesheet-element-page_type-complextypevisio-xml
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Page {
+    /// ID attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
     pub id: u32,
+    /// Name attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
     pub name: String,
+    /// NameU attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
     pub name_u: String,
+    /// PageSheet child element.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
     pub sheet: Sheet,
+    /// Shapes in the related PageContents part.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
     pub shapes: Vec<Shape>,
+    /// Connect records in the related PageContents part.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
     pub connects: Vec<Connect>,
+    /// Resolved PageContents part name.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
     pub part: String,
+    /// All remaining XML attributes, preserved by name.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
     pub attributes: BTreeMap<String, String>,
 }
 /// Master ID, UniqueID, BaseID, Icon and master contents; all metadata attributes retained.
@@ -198,16 +322,38 @@ pub struct Page {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/icon-element-master_type-complextypevisio-xml
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Master {
+    /// ID attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
     pub id: u32,
+    /// Name attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
     pub name: String,
+    /// NameU attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
     pub name_u: String,
+    /// UniqueID attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
     pub unique_id: Option<String>,
+    /// BaseID attribute.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
     pub base_id: Option<String>,
+    /// Icon child element retained for local observation.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
     pub icon: Option<XmlElement>,
+    /// Related master PageSheet.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
     pub sheet: Sheet,
+    /// Shapes in the related MasterContents part.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
     pub shapes: Vec<Shape>,
+    /// Connect records in the related MasterContents part.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
     pub connects: Vec<Connect>,
+    /// Resolved MasterContents part name.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
     pub part: String,
+    /// All remaining XML attributes, preserved by name.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
     pub attributes: BTreeMap<String, String>,
 }
 /// Visio document, stencil or template; package metadata and unknown content remain in `parts`.
@@ -222,17 +368,43 @@ pub struct Master {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/mastershortcut-element-masters_type-complextypevisio-xml
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Document {
+    /// OPC part containing VisioDocument.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml
     pub main_part: String,
+    /// DocumentSheet child element.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml
     pub document_sheet: Sheet,
+    /// DocumentSettings child element.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml
     pub document_settings: Option<XmlElement>,
+    /// EventList child element.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml
     pub event_list: Option<XmlElement>,
+    /// StyleSheet records in StyleSheets.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml
     pub styles: Vec<Style>,
+    /// Pages reached through the package relationships.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml
     pub pages: Vec<Page>,
+    /// Masters reached through the package relationships.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml
     pub masters: Vec<Master>,
+    /// MasterShortcut child elements.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml
     pub master_shortcuts: Vec<XmlElement>,
+    /// ColorEntry values from the Colors table.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml
     pub colors: BTreeMap<u32, String>,
+    /// Font names from FaceName records.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml
     pub face_names: BTreeMap<u32, String>,
+    /// Original package parts and structured views.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml
     pub parts: BTreeMap<String, Part>,
+    /// Package-root relationships.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml
     pub root_relationships: Vec<Relationship>,
+    /// Whether VBA package content was removed during import.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml
     pub macros_removed: bool,
 }

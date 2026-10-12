@@ -26,6 +26,12 @@ pub trait Context {
         true
     }
     fn leave_eval(&mut self) {}
+    /// Transform a local direction without introducing translation dependencies.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/angletopar-function
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/angletoloc-function
+    fn transform_angle(&mut self, _angle: f64, _source: &str, _destination: &str, _parent: bool) -> Value {
+        Value::Error(Error::Unsupported("angle transform".into()))
+    }
     fn transform_point(
         &mut self,
         _point: (f64, f64),
@@ -35,6 +41,17 @@ pub trait Context {
         _destination_parent: bool,
     ) -> Value {
         Value::Error(Error::Unsupported("point transform".into()))
+    }
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/formulaexists-function
+    fn list_sheet_reference(&mut self) -> Value {
+        Value::Error(Error::Unsupported("list membership".into()))
+    }
+    fn formula_exists(&mut self, _reference: &str) -> Value {
+        Value::Error(Error::Unsupported("formula presence".into()))
+    }
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/pathlength-function
+    fn path_length(&mut self, _reference: &str, _segment: Option<usize>) -> Value {
+        Value::Error(Error::Unsupported("path length".into()))
     }
     fn nearest_point_on_path(&mut self, _reference: &str, _x: f64, _y: f64) -> Value {
         Value::Error(Error::Unsupported("nearest path point".into()))

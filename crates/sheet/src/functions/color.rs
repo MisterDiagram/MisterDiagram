@@ -48,7 +48,7 @@ fn rgb(values: &[Value], context: &mut dyn Context) -> Value {
     }
     intern(rgb, None, context)
 }
-fn intern(rgb: [u8; 3], hsl: Option<[f64; 3]>, context: &mut dyn Context) -> Value {
+pub(super) fn intern(rgb: [u8; 3], hsl: Option<[f64; 3]>, context: &mut dyn Context) -> Value {
     match context.color_index(rgb) {
         Some(index) => Value::Color { index, rgb, hsl },
         None => Value::Error(Error::Limit),
@@ -67,6 +67,9 @@ fn hsl(values: &[Value], context: &mut dyn Context) -> Value {
     let [h, s, l] = hsl;
     if !(0.0..240.0).contains(&h) || !(0.0..=240.0).contains(&s) || !(0.0..=240.0).contains(&l) {
         return Value::Error(Error::Num);
+    }
+    if hsl.iter().all(|n| n.fract() == 0.0) {
+        return intern(integer_hsl(h as u32, s as u32, l as u32), Some(hsl), context);
     }
     let h = h / 40.;
     let s = s / 240.;
@@ -89,7 +92,30 @@ fn hsl(values: &[Value], context: &mut dyn Context) -> Value {
     };
     intern(rgb.map(|v| ((v + m) * 255.).round().clamp(0., 255.) as u8), Some(hsl), context)
 }
-fn rgb_components(value: &Value, context: &dyn Context) -> Option<[u8; 3]> {
+// Integer HLS interpolation matches Visio's legacy 240-step colour grid.
+// AZUREDRAWING_M.vssx master87 shape5 witnesses HSL(144,116,125) = #4979C0.
+fn integer_hsl(h: u32, s: u32, l: u32) -> [u8; 3] {
+    if s == 0 {
+        return [((l * 255 + 120) / 240) as u8; 3];
+    }
+    let upper = if l <= 120 { (l * (240 + s) + 120) / 240 } else { l + s - (l * s + 120) / 240 };
+    let lower = 2 * l - upper;
+    let channel = |h: u32| {
+        let h = h % 240;
+        let c = if h < 40 {
+            lower + ((upper - lower) * h + 20) / 40
+        } else if h < 120 {
+            upper
+        } else if h < 160 {
+            lower + ((upper - lower) * (160 - h) + 20) / 40
+        } else {
+            lower
+        };
+        ((c * 255 + 120) / 240) as u8
+    };
+    [channel(h + 80), channel(h), channel(h + 160)]
+}
+pub(super) fn rgb_components(value: &Value, context: &dyn Context) -> Option<[u8; 3]> {
     if let Value::Color { rgb, .. } = value {
         return Some(*rgb);
     }
@@ -114,7 +140,7 @@ fn green(v: &Value, c: &dyn Context) -> Value {
 fn blue(v: &Value, c: &dyn Context) -> Value {
     Value::Number(f64::from(rgb_components(v, c).map_or(0, |v| v[2])))
 }
-fn components(value: &Value, context: &dyn Context) -> Option<[f64; 3]> {
+pub(super) fn components(value: &Value, context: &dyn Context) -> Option<[f64; 3]> {
     let rgb = match value {
         Value::Color { hsl: Some(hsl), .. } => return Some(*hsl),
         Value::Color { rgb, .. } => *rgb,
@@ -249,6 +275,14 @@ mod tests {
         }
         assert_eq!(default_color(23), Some([26, 26, 26]));
         assert_eq!(default_color(24), None);
+    }
+    #[test]
+    fn observed_integer_hsl_rounding() {
+        let mut c = Palette::default();
+        for (formula, expected) in [("HSL(144,116,125)", [73, 121, 192]), ("HSL(21,165,128)", [218, 140, 54]), ("HSL(0,0,200)", [213, 213, 213])] {
+            let value = crate::formula(formula, &mut c);
+            assert_eq!(rgb_components(&value, &c), Some(expected));
+        }
     }
     #[test]
     fn color_invalid_inputs_and_palette_reuse() {

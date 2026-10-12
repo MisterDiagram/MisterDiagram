@@ -334,6 +334,38 @@ impl Evaluator<'_> {
         self.eval_work = self.eval_work.saturating_add(available - budget);
         result
     }
+    /// Length in internal units, either of the whole path or one one-based segment.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/pathlength-function
+    pub fn path_length(&mut self, scope: Scope, reference: &str, segment: Option<usize>) -> Result<f64, Error> {
+        if self.eval_depth == 0 {
+            self.work = 0;
+            self.eval_work = 0;
+        }
+        if segment == Some(0) {
+            return Err(Error::Ref);
+        }
+        let segments = self.path_segments(scope, reference)?;
+        let available = MAX_SAMPLES.saturating_sub(self.eval_work);
+        let mut budget = available;
+        let result = (|| {
+            let chosen = if let Some(index) = segment {
+                std::slice::from_ref(segments.get(index.checked_sub(1).ok_or(Error::Ref)?).ok_or(Error::Ref)?)
+            } else {
+                segments.as_slice()
+            };
+            let mut total = 0.;
+            for item in chosen {
+                budget = budget.checked_sub(1).ok_or(Error::Limit)?;
+                total += item.length(1., &mut budget)?;
+                if !total.is_finite() {
+                    return Err(Error::Num);
+                }
+            }
+            Ok(total)
+        })();
+        self.eval_work = self.eval_work.saturating_add(available - budget);
+        result
+    }
     /// Return the fraction of total path length at the globally nearest point.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/nearestpointonpath-function
     pub fn path_nearest(&mut self, scope: Scope, reference: &str, x: f64, y: f64) -> Result<f64, Error> {
@@ -466,6 +498,26 @@ mod tests {
     }
     fn near(a: Point, b: Point) {
         assert!(norm(sub(a, b)) < 1e-8, "{a:?} != {b:?}");
+    }
+    #[test]
+    fn path_length_counts_segments_not_move_gaps_and_obeys_budget() {
+        let d = document(vec![
+            row(1, "MoveTo", &[("X", 0.), ("Y", 0.)]),
+            row(2, "LineTo", &[("X", 3.), ("Y", 0.)]),
+            row(3, "MoveTo", &[("X", 10.), ("Y", 10.)]),
+            row(4, "LineTo", &[("X", 10.), ("Y", 14.)]),
+        ]);
+        let mut e = Evaluator::new(&d).unwrap();
+        assert_eq!(e.path_length(Scope::Document, "Geometry1.Path", None), Ok(7.));
+        assert_eq!(e.path_length(Scope::Document, "Geometry1.Path", Some(2)), Ok(4.));
+        assert_eq!(e.path_length(Scope::Document, "Geometry1.Path", Some(3)), Err(Error::Ref));
+        assert_eq!(e.path_length(Scope::Document, "Geometry2.Path", None), Err(Error::Ref));
+        e.eval_depth = 1;
+        e.eval_work = MAX_SAMPLES;
+        assert_eq!(e.path_length(Scope::Document, "Geometry1.Path", None), Err(Error::Limit));
+        let circle = document(vec![row(1, "Ellipse", &[("X", 0.), ("Y", 0.), ("A", 2.), ("B", 0.), ("C", 0.), ("D", 2.)])]);
+        let mut e = Evaluator::new(&circle).unwrap();
+        assert!((e.path_length(Scope::Document, "Geometry1.Path", None).unwrap() - 2. * TAU).abs() < 1e-9);
     }
     #[test]
     fn lines_use_length_segment_numbers_and_skip_move_gaps() {

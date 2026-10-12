@@ -177,7 +177,7 @@ fn read_package(path: &Path) -> Result<diagramcraft_model::Document, String> {
     }
     diagramcraft_vsdx::import(&bytes).map_err(|e| format!("{}: {e}", path.display()))
 }
-/// Scan function call tokens outside doubled-quote string literals; no formula parsing success is required.
+/// Scan calls independently of parser success, respecting strings, references, and numeric prime units.
 pub fn function_calls(formula: &str) -> Result<BTreeSet<String>, String> {
     if formula.len() > MAX_LINE {
         return Err("formula length limit".into());
@@ -186,17 +186,94 @@ pub fn function_calls(formula: &str) -> Result<BTreeSet<String>, String> {
     let mut i = 0;
     let mut names = BTreeSet::new();
     let mut quoted = false;
+    let mut reference_quoted = false;
+    let mut brackets = 0usize;
+    let mut number_unit_pending = false;
     while let Some(&b) = bytes.get(i) {
-        if b == b'"' {
-            if quoted && bytes.get(i + 1) == Some(&b'"') {
-                i += 2;
-                continue;
+        if quoted || reference_quoted {
+            let delimiter = if quoted { b'"' } else { b'\'' };
+            if b == delimiter {
+                if bytes.get(i + 1) == Some(&delimiter) {
+                    i += 2;
+                    continue;
+                }
+                quoted = false;
+                reference_quoted = false;
             }
-            quoted = !quoted;
             i += 1;
             continue;
         }
-        if !quoted && (b.is_ascii_alphabetic() || b == b'_') {
+        if brackets > 0 {
+            if b == b'[' {
+                brackets += 1;
+            }
+            if b == b']' {
+                brackets -= 1;
+            }
+            i += 1;
+            continue;
+        }
+        if let Some(ch) = formula.get(i..).and_then(|tail| tail.chars().next()).filter(|ch| ch.is_whitespace()) {
+            i += ch.len_utf8();
+            continue;
+        }
+        if matches!(b, b'\'' | b'"') && brackets == 0 && number_unit_pending {
+            number_unit_pending = false;
+            i += 1;
+            continue;
+        }
+        if b == b'"' {
+            number_unit_pending = false;
+            quoted = true;
+            i += 1;
+            continue;
+        }
+        if b == b'\'' {
+            number_unit_pending = false;
+            reference_quoted = true;
+            i += 1;
+            continue;
+        }
+        if b == b'[' {
+            number_unit_pending = false;
+            brackets += 1;
+            i += 1;
+            continue;
+        }
+        let number_start = b.is_ascii_digit() || b == b'.' && bytes.get(i + 1).is_some_and(u8::is_ascii_digit);
+        let boundary = formula
+            .get(..i)
+            .and_then(|head| head.chars().next_back())
+            .is_none_or(|c| c.is_whitespace() || matches!(c, '+' | '-' | '*' | '/' | '^' | '&' | '<' | '>' | '=' | '(' | ',' | ';'));
+        if number_start && boundary {
+            while bytes.get(i).is_some_and(u8::is_ascii_digit) {
+                i += 1;
+            }
+            if bytes.get(i) == Some(&b'.') {
+                i += 1;
+                while bytes.get(i).is_some_and(u8::is_ascii_digit) {
+                    i += 1;
+                }
+            }
+            if matches!(bytes.get(i), Some(b'e' | b'E')) {
+                let exponent = i;
+                i += 1;
+                if matches!(bytes.get(i), Some(b'+' | b'-')) {
+                    i += 1;
+                }
+                let digits = i;
+                while bytes.get(i).is_some_and(u8::is_ascii_digit) {
+                    i += 1;
+                }
+                if digits == i {
+                    i = exponent;
+                }
+            }
+            number_unit_pending = true;
+            continue;
+        }
+        number_unit_pending = false;
+        if b.is_ascii_alphabetic() || b == b'_' {
             let start = i;
             i += 1;
             while bytes.get(i).is_some_and(|b| b.is_ascii_alphanumeric() || *b == b'_') {
@@ -249,6 +326,7 @@ fn floor(text: &str, key: &str) -> Result<f64, String> {
 }
 fn equal(expected: &Value, actual: &Value) -> bool {
     match (expected, actual) {
+        (Value::Point(ax, ay), Value::Point(bx, by)) => (ax - bx).abs() <= TOLERANCE && (ay - by).abs() <= TOLERANCE,
         (Value::Text(a), Value::Text(b)) => a == b,
         (Value::Text(_), _) | (_, Value::Text(_)) => false,
         _ => match (expected.numeric(), actual.numeric()) {
@@ -286,6 +364,16 @@ impl Histogram {
         counts
     }
 }
+// Geometry section and row indices do not define different cell kinds. Named User/Prop
+// rows remain distinct; witnesses retain the complete original universal cell name.
+fn normalized_cell(name: &str) -> String {
+    let Some((section, cell)) = name.split_once('.') else { return name.into() };
+    if section.strip_prefix("Geometry").is_some_and(|suffix| !suffix.is_empty() && suffix.bytes().all(|b| b.is_ascii_digit())) {
+        let base = cell.trim_end_matches(|c: char| c.is_ascii_digit());
+        return format!("Geometry#.{}{}", base, if base.len() < cell.len() { "#" } else { "" });
+    }
+    name.into()
+}
 #[derive(Default)]
 struct Diagnostics {
     cells: Histogram,
@@ -296,7 +384,7 @@ struct Diagnostics {
 }
 impl Diagnostics {
     fn failure(&mut self, calls: &BTreeSet<String>, source_cell: &str, w: Witness) {
-        self.cells.add(&w.cell, &w);
+        self.cells.add(&normalized_cell(&w.cell), &w);
         let formula_kind = if w.formula == "Inh" {
             "Inh"
         } else if calls.is_empty() {
@@ -624,6 +712,10 @@ mod tests {
         assert!(excluded(&names, &exclusions()));
         assert!(!excluded(&function_calls("_OTHER(1)+RAND").unwrap(), &exclusions()));
         assert!(function_calls(&"A".repeat(MAX_LINE + 1)).is_err());
+        for formula in ["Pages[NOW()]!PageWidth", "'THEMEVAL()'!Width", "'a''NOW()'!Width", "Pages[Page[NOW()]]!Width"] {
+            assert!(function_calls(formula).unwrap().is_empty(), "{formula}");
+        }
+        assert_eq!(function_calls("NOW()+Pages[RAND()]!Width+'THEMEVAL()'!Height").unwrap(), BTreeSet::from(["NOW".into()]));
     }
     #[test]
     fn escaped_rows_and_hostile_inputs() {
@@ -643,6 +735,10 @@ mod tests {
         assert!(!equal(&Value::Text("0".into()), &Value::Number(0.)));
         assert!(equal(&Value::Number(2.), &Value::Number(2.0000001)));
         assert!(!equal(&Value::Number(2.), &Value::Number(2.00001)));
+        assert!(equal(&Value::Point(2., 3.), &Value::Point(2.0000001, 3.0000001)));
+        assert!(!equal(&Value::Point(2., 3.), &Value::Point(2., 3.00001)));
+        assert!(!equal(&Value::Point(f64::NAN, 3.), &Value::Point(f64::NAN, 3.)));
+        assert!(!equal(&Value::Point(2., 3.), &Value::Number(2.)));
         assert!(floor("shipped=NaN", "shipped").is_err());
         assert!(floor("shipped=1\nshipped=1", "shipped").is_err());
     }
@@ -714,5 +810,50 @@ mod tests {
         report.shipped_cached = Rate { matched: 97, total: 100, excluded: 0 };
         report.com = Rate::default();
         assert!(!report.passed());
+    }
+    #[test]
+    fn diagnostics_normalize_geometry_but_retain_named_user_rows_and_late_witnesses() {
+        assert_eq!(normalized_cell("Geometry57.X234"), "Geometry#.X#");
+        assert_eq!(normalized_cell("Geometry3.NoFill"), "Geometry#.NoFill");
+        assert_eq!(normalized_cell("User.Named123"), "User.Named123");
+        let mut histogram = Histogram::default();
+        let mut witness = Witness {
+            oracle: "cached",
+            category: String::new(),
+            file: "early".into(),
+            scope: "Document".into(),
+            cell: "Width".into(),
+            formula: "Inh".into(),
+            expected: "Number(1)".into(),
+            actual: "Error(Ref)".into(),
+        };
+        for n in 0..100 {
+            histogram.add(&format!("early{n}"), &witness);
+        }
+        witness.file = "late".into();
+        for _ in 0..10 {
+            histogram.add("dominant late", &witness);
+        }
+        let mut examples = vec![];
+        let counts = histogram.finish("cell", &mut examples);
+        assert_eq!(counts.first(), Some(&("dominant late".into(), 10)));
+        assert_eq!(examples.first().unwrap().file, "late");
+    }
+    #[test]
+    fn angular_prime_units_do_not_hide_following_function_calls() {
+        for literal in ["5'", "5\"", "5 '", "5 \"", ".5'", "5. \"", "1e-3'", "1E+2 \"", "5 1/2 '", "5\t'", "5\u{a0}\""] {
+            for name in ["NOW", "RAND"] {
+                let formula = format!("{literal}+{name}()");
+                assert!(diagramcraft_sheet::parse(&formula).is_ok(), "parser rejected {formula}");
+                assert_eq!(function_calls(&formula).unwrap(), BTreeSet::from([name.to_string()]), "{formula}");
+            }
+        }
+        for formula in ["'Page5 NOW()'!Width", "Pages[5\"NOW()]!Width", "\"5' NOW()\"", "Sheet.5!Prop.Row_5"] {
+            assert!(function_calls(formula).unwrap().is_empty(), "{formula}");
+        }
+        let formula = "Pages[5\"]!Width+NOW()";
+        assert!(diagramcraft_sheet::parse(formula).is_ok());
+        assert_eq!(function_calls(formula).unwrap(), BTreeSet::from(["NOW".into()]));
+        assert!(function_calls("5'+NOW(").unwrap().contains("NOW")); // Malformed formulas retain lexical call evidence.
     }
 }

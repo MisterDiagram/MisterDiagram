@@ -1,6 +1,9 @@
 //! Effective ShapeSheets retain borrowed source cells and explicit formula provenance.
 use super::{Cell, Error, Evaluator, Key, MAX_CELLS, MAX_SCOPES, NamedCell, Row, Scope, Section};
-use std::collections::{BTreeMap, BTreeSet};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    rc::Rc,
+};
 
 #[derive(Default)]
 pub(super) struct Inheritance<'a> {
@@ -11,6 +14,7 @@ pub(super) struct Inheritance<'a> {
     instances: BTreeMap<Scope, (Scope, u32)>,
     remapping: BTreeMap<(Scope, u32), Scope>,
     geometry: BTreeMap<(Scope, u32), Vec<GeometryRow<'a>>>,
+    named_rows: BTreeMap<(Scope, Rc<str>, u32, Rc<str>), u32>,
     pub(super) omitted_master_children: usize,
 }
 /// A merged geometry row contains borrowed cells and the inherited row type.
@@ -23,13 +27,40 @@ pub(super) struct GeometryRow<'a> {
 }
 #[derive(Clone)]
 struct Entry<'a> {
-    named: NamedCell<'a>,
+    named: Rc<NamedCell<'a>>,
     origin: Scope,
 }
 #[derive(Clone, Default)]
 struct Effective<'a> {
-    cells: BTreeMap<String, Entry<'a>>,
+    cells: BTreeMap<Rc<str>, Entry<'a>>,
     geometry: BTreeMap<u32, BTreeMap<u32, GeometryRow<'a>>>,
+    named_rows: BTreeMap<(Rc<str>, u32), Vec<NamedRow>>,
+}
+#[derive(Clone)]
+struct NamedRow {
+    name: Rc<str>,
+    index: Option<u32>,
+}
+const MAX_EFFECTIVE_NAME_BYTES: usize = 64 * 1024 * 1024;
+#[derive(Default)]
+struct ConstructionBudget {
+    cells: usize,
+    name_bytes: usize,
+}
+impl ConstructionBudget {
+    fn charge(&mut self, sheet: &Effective<'_>) -> Result<(), Error> {
+        let row_count = sheet.named_rows.values().try_fold(0usize, |n, rows| n.checked_add(rows.len()).ok_or(Error::Limit))?;
+        let cells = self.cells.checked_add(sheet.cells.len()).and_then(|n| n.checked_add(row_count)).ok_or(Error::Limit)?;
+        let bytes = sheet.cells.values().try_fold(self.name_bytes, |total, entry| total.checked_add(entry.named.name.len()).ok_or(Error::Limit))?;
+        let bytes = sheet.named_rows.values().flatten().try_fold(bytes, |total, row| total.checked_add(row.name.len()).ok_or(Error::Limit))?;
+        let bytes = sheet.named_rows.keys().try_fold(bytes, |total, (section, _)| total.checked_add(section.len()).ok_or(Error::Limit))?;
+        if cells > MAX_CELLS || bytes > MAX_EFFECTIVE_NAME_BYTES {
+            return Err(Error::Limit);
+        }
+        self.cells = cells;
+        self.name_bytes = bytes;
+        Ok(())
+    }
 }
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Category {
@@ -109,11 +140,11 @@ impl<'a> Evaluator<'a> {
     pub(super) fn install_inheritance(&mut self) -> Result<(), Error> {
         self.inheritance.local_cells = self.cells.clone();
         self.master_links()?;
-        let local_names = self.names.clone();
+        let local_names = std::mem::take(&mut self.names);
         let mut resolved = BTreeMap::new();
         let mut visiting = BTreeSet::new();
         let scopes: Vec<_> = self.sheets.keys().copied().collect();
-        let mut count = 0usize;
+        let mut count = ConstructionBudget::default();
         for scope in &scopes {
             self.effective(*scope, &local_names, &mut resolved, &mut visiting, &mut count, 0)?;
         }
@@ -131,7 +162,7 @@ impl<'a> Evaluator<'a> {
                 if let Some(section) = n.section
                     && n.row.is_some()
                 {
-                    if matches!(section.name.as_str(), "Character" | "Paragraph" | "Layer" | "FillGradient" | "LineGradient")
+                    if matches!(section.name.as_str(), "Character" | "Paragraph" | "Field" | "Layer" | "FillGradient" | "LineGradient")
                         && !n.name.ends_with(']')
                     {
                         self.alias(scope, format!("{}[1]", n.name), n.cell, &n.name)?;
@@ -145,6 +176,23 @@ impl<'a> Evaluator<'a> {
                 }
             }
             self.names.insert(scope, names);
+            for ((section, index), rows) in effective.named_rows {
+                let used: BTreeSet<u32> = rows.iter().filter_map(|row| row.index).collect();
+                let mut next = 0u32;
+                for row in rows {
+                    let slot = if let Some(index) = row.index {
+                        index
+                    } else {
+                        while used.contains(&next) {
+                            next = next.checked_add(1).ok_or(Error::Limit)?;
+                        }
+                        let index = next;
+                        next = next.checked_add(1).ok_or(Error::Limit)?;
+                        index
+                    };
+                    self.inheritance.named_rows.insert((scope, section.clone(), index, row.name), slot);
+                }
+            }
             for (index, rows) in effective.geometry {
                 self.inheritance.geometry.insert((scope, index), rows.into_values().collect());
             }
@@ -222,13 +270,13 @@ impl<'a> Evaluator<'a> {
         locals: &BTreeMap<Scope, Vec<NamedCell<'a>>>,
         memo: &mut BTreeMap<Scope, Effective<'a>>,
         visiting: &mut BTreeSet<Scope>,
-        count: &mut usize,
+        count: &mut ConstructionBudget,
         depth: usize,
     ) -> Result<Effective<'a>, Error> {
         if let Some(sheet) = memo.get(&scope) {
             return Ok(sheet.clone());
         }
-        if depth > 128 || *count > MAX_CELLS {
+        if depth > 128 || count.cells > MAX_CELLS {
             return Err(Error::Limit);
         }
         if !visiting.insert(scope) {
@@ -265,9 +313,23 @@ impl<'a> Evaluator<'a> {
             }
         }
         if let Some(sheet) = self.sheets.get(&scope).copied() {
+            let mut row_name_bytes =
+                effective.named_rows.values().flatten().try_fold(0usize, |total, row| total.checked_add(row.name.len()).ok_or(Error::Limit))?;
+            row_name_bytes =
+                effective.named_rows.keys().try_fold(row_name_bytes, |total, (section, _)| total.checked_add(section.len()).ok_or(Error::Limit))?;
             for section in &sheet.sections {
+                if section.name.len() > 65536 {
+                    return Err(Error::Limit);
+                }
                 let section_index = section.index.unwrap_or(0);
+                let section_key: (Rc<str>, u32) = (section.name.to_ascii_lowercase().into(), section_index);
                 if section.deleted {
+                    if let Some(rows) = effective.named_rows.remove(&section_key) {
+                        row_name_bytes = row_name_bytes.saturating_sub(section_key.0.len());
+                        for row in rows {
+                            row_name_bytes = row_name_bytes.saturating_sub(row.name.len());
+                        }
+                    }
                     effective.cells.retain(|_, entry| !same_section(entry.named.section, section));
                     if section.name == "Geometry" {
                         effective.geometry.remove(&section_index);
@@ -275,6 +337,42 @@ impl<'a> Evaluator<'a> {
                     continue;
                 }
                 for (position, row) in section.rows.iter().enumerate() {
+                    if let Some(name) = row.name.as_ref() {
+                        if name.len() > 65536 {
+                            return Err(Error::Limit);
+                        }
+                        let name = name.to_ascii_lowercase();
+                        if !effective.named_rows.contains_key(&section_key) {
+                            row_name_bytes = row_name_bytes.checked_add(section_key.0.len()).ok_or(Error::Limit)?;
+                            if row_name_bytes > MAX_EFFECTIVE_NAME_BYTES {
+                                return Err(Error::Limit);
+                            }
+                        }
+                        let order = effective.named_rows.entry(section_key.clone()).or_default();
+                        if row.deleted {
+                            order.retain(|r| {
+                                if r.name.as_ref() == name {
+                                    row_name_bytes = row_name_bytes.saturating_sub(r.name.len());
+                                    false
+                                } else {
+                                    true
+                                }
+                            });
+                        } else if let Some(existing) = order.iter_mut().find(|r| r.name.as_ref() == name) {
+                            if row.index.is_some() {
+                                existing.index = row.index;
+                            }
+                        } else {
+                            if order.len() >= MAX_CELLS {
+                                return Err(Error::Limit);
+                            }
+                            row_name_bytes = row_name_bytes.checked_add(name.len()).ok_or(Error::Limit)?;
+                            if row_name_bytes > MAX_EFFECTIVE_NAME_BYTES {
+                                return Err(Error::Limit);
+                            }
+                            order.push(NamedRow { name: name.into(), index: row.index });
+                        }
+                    }
                     if row.deleted {
                         effective.cells.retain(|_, entry| {
                             !(same_section(entry.named.section, section)
@@ -296,7 +394,7 @@ impl<'a> Evaluator<'a> {
         }
         if let Some(names) = locals.get(&scope) {
             for named in names {
-                let key = named.name.to_ascii_lowercase();
+                let key: Rc<str> = named.name.to_ascii_lowercase().into();
                 if named.cell.formula.as_deref() == Some("Inh") {
                     if let std::collections::btree_map::Entry::Vacant(slot) = effective.cells.entry(key) {
                         if let Some(cell) = super::defaults::cell(scope, &named.name)
@@ -305,20 +403,20 @@ impl<'a> Evaluator<'a> {
                         {
                             let mut inherited = named.clone();
                             inherited.cell = cell;
-                            slot.insert(Entry { named: inherited, origin: Scope::Document });
+                            slot.insert(Entry { named: Rc::new(inherited), origin: Scope::Document });
                         } else {
-                            slot.insert(Entry { named: named.clone(), origin: scope });
+                            slot.insert(Entry { named: Rc::new(named.clone()), origin: scope });
                         }
                     }
                 } else {
-                    effective.cells.insert(key, Entry { named: named.clone(), origin: scope });
+                    effective.cells.insert(key, Entry { named: Rc::new(named.clone()), origin: scope });
                 }
             }
         }
-        *count = count.checked_add(effective.cells.len()).ok_or(Error::Limit)?;
-        if *count > MAX_CELLS {
-            return Err(Error::Limit);
-        }
+        // Names are shared before any memo/ancestor clone, so fan-out cannot allocate
+        // copies proportional to name length. Charge each persisted effective sheet
+        // against the same aggregate logical-name bound used by the final index.
+        count.charge(&effective)?;
         visiting.remove(&scope);
         memo.insert(scope, effective.clone());
         Ok(effective)
@@ -410,6 +508,19 @@ impl<'a> Evaluator<'a> {
             .cloned()
             .or_else(|| self.cell(scope, name).filter(|c| c.formula.as_deref() == Some("Inh")).map(|_| Error::Ref))
     }
+    /// Named row indexes follow the merged sheet, not the position within a sparse
+    /// local provider section. Explicit IX stays explicit; new named rows append.
+    /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/7ae7c325-097c-4225-adf5-e7b8b6695639
+    pub(crate) fn effective_row_index(&self, scope: Scope, section: &Section, row: &Row) -> Option<u32> {
+        let name = row.name.as_ref()?;
+        self.inheritance
+            .named_rows
+            .get(&(scope, section.name.to_ascii_lowercase().into(), section.index.unwrap_or(0), name.to_ascii_lowercase().into()))
+            .copied()
+    }
+    pub(super) fn geometry_indices(&self, scope: Scope) -> impl Iterator<Item = u32> + '_ {
+        self.inheritance.geometry.range((scope, 0)..=(scope, u32::MAX)).map(|((_, index), _)| *index)
+    }
     pub(super) fn effective_geometry(&self, scope: Scope, index: u32) -> Result<Vec<GeometryRow<'a>>, Error> {
         self.inheritance.geometry.get(&(scope, index)).cloned().ok_or(Error::Ref)
     }
@@ -491,9 +602,11 @@ fn row_matches(section: &str, row: &Row, position: usize, tail: &str) -> bool {
     let Some(one) = index.checked_add(1) else {
         return false;
     };
-    if matches!(section, "Character" | "Paragraph" | "Layer" | "FillGradient" | "LineGradient") {
+    if matches!(section, "Character" | "Paragraph" | "Field" | "Layer" | "FillGradient" | "LineGradient") {
         return if let Some((_, suffix)) = tail.rsplit_once('[') {
             suffix.strip_suffix(']').and_then(|s| s.parse::<u32>().ok()) == Some(one)
+        } else if matches!(section, "Character" | "Paragraph") && tail.chars().any(|c| c.is_ascii_digit()) && !tail.starts_with("_unused") {
+            tail.trim_start_matches(|c: char| c.is_ascii_alphabetic()).parse::<u32>().ok() == Some(one)
         } else {
             index == 0
         };
@@ -510,6 +623,35 @@ mod tests {
     }
     fn sheet(cells: Vec<Cell>) -> Sheet {
         Sheet { cells, ..Default::default() }
+    }
+    #[test]
+    fn hostile_style_fanout_is_bounded_before_memo_name_clones() {
+        let cell = c(&format!("Line{}", "x".repeat(60000)), "1", None);
+        let doc = Document {
+            styles: vec![Style { id: 1, sheet: sheet(vec![cell]), ..Default::default() }],
+            pages: vec![Page {
+                id: 0,
+                shapes: (1..=1500).map(|id| Shape { id, line_style: Some(1), ..Default::default() }).collect(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        assert!(matches!(Evaluator::new(&doc), Err(Error::Limit)));
+        // A memo clone shares both the normalized map key and canonical name, including
+        // while a child is still under construction and has not charged its quota yet.
+        let source = &doc.styles.first().unwrap().sheet.cells[0];
+        let name = source.name.clone();
+        let key: Rc<str> = name.to_ascii_lowercase().into();
+        let entry = Entry { named: Rc::new(NamedCell { name, cell: source, section: None, row: None }), origin: Scope::Style(1) };
+        let effective = Effective { cells: BTreeMap::from([(key.clone(), entry.clone())]), ..Default::default() };
+        let clone = effective.clone();
+        let (cloned_key, cloned_entry) = clone.cells.first_key_value().unwrap();
+        assert!(Rc::ptr_eq(&key, cloned_key));
+        assert!(Rc::ptr_eq(&entry.named, &cloned_entry.named));
+        let mut budget = ConstructionBudget { cells: 0, name_bytes: MAX_EFFECTIVE_NAME_BYTES - source.name.len() };
+        assert!(budget.charge(&effective).is_ok());
+        assert_eq!(budget.charge(&effective), Err(Error::Limit));
+        assert_eq!(budget.name_bytes, MAX_EFFECTIVE_NAME_BYTES);
     }
     #[test]
     fn instance_formula_origin_and_master_child_rebinding() {

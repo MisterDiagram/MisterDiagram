@@ -17,3 +17,5 @@ M0 closed at 1473b0d. M1 requires the frozen corpus floors and independent revie
 - 2026-10-12: M0.9 normal-process launch and COM attachment pass two-file Visio acceptance; M0 met.
 - 2026-10-12: M1.1 to M1.4 reader, grammar,70 functions, inheritance and dirty recalc. All1387 packages parse;5548 deterministic mutations produce no panics.
 - 2026-10-12: M1.5 CLI sheet/corpus tooling. Probe5344 eligible cells match; first full measurement shipped cached91.411080%, COM97.553995%. M1 remains incomplete while the97%cached floor is unmet. Shipped dumps104/1181.
+
+- 2026-10-12: M1.6 numeric requirements pass: shipped cached 97.978884% over 5355260 cells; resolved 98.763183% over 7271082 cells. CI quick corpus gate and 104 functions implemented. Final acceptance and frozen review remain before milestone closure. Shipped dumps 104/1181.

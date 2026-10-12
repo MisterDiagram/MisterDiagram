@@ -66,6 +66,46 @@ impl Evaluator<'_> {
         }
         dst.inverse()?.point(src.point(point)?)
     }
+    /// Angle transforms omit pin translations, which cannot change a direction.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/angletopar-function
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/angletoloc-function
+    pub(super) fn transform_angle(&mut self, current: Scope, angle: f64, source: &str, destination: &str, parent: bool) -> Result<f64, Error> {
+        if !angle.is_finite() {
+            return Err(Error::Num);
+        }
+        let source = self.reference_target(current, source)?.0;
+        let destination = self.reference_target(current, destination)?.0;
+        let destination = if parent { self.parents.get(&destination).copied().unwrap_or(destination) } else { destination };
+        if matches!(source, Scope::Document | Scope::Style(_)) || matches!(destination, Scope::Document | Scope::Style(_)) {
+            return Err(Error::Ref);
+        }
+        if source == destination {
+            return Ok(angle.sin().atan2(angle.cos()));
+        }
+        let (src, src_root) = self.direction_transform(source)?;
+        let (dst, dst_root) = self.direction_transform(destination)?;
+        if src_root != dst_root {
+            return Err(Error::Ref);
+        }
+        let (sin, cos) = angle.sin_cos();
+        let (x, y) = dst.inverse()?.point(src.point((cos, sin))?)?;
+        Ok(y.atan2(x))
+    }
+    fn direction_transform(&mut self, mut scope: Scope) -> Result<(Matrix, Scope), Error> {
+        let mut matrix = Matrix::ID;
+        for _ in 0..128 {
+            let Some(parent) = self.parents.get(&scope).copied() else {
+                return if matches!(scope, Scope::Page(_) | Scope::Master(_)) { Ok((matrix, scope)) } else { Err(Error::Ref) };
+            };
+            let angle = self.resolve(scope, "Angle").numeric()?;
+            let fx = if self.resolve(scope, "FlipX").truth()? { -1. } else { 1. };
+            let fy = if self.resolve(scope, "FlipY").truth()? { -1. } else { 1. };
+            let (sin, cos) = angle.sin_cos();
+            matrix = matrix.then(Matrix { a: cos * fx, b: sin * fx, c: -sin * fy, d: cos * fy, x: 0., y: 0. })?;
+            scope = parent;
+        }
+        Err(Error::Limit)
+    }
     fn page_transform(&mut self, mut scope: Scope) -> Result<(Matrix, Scope), Error> {
         let mut matrix = Matrix::ID;
         for _ in 0..128 {
@@ -123,6 +163,26 @@ mod tests {
             },
             ..Default::default()
         }
+    }
+    #[test]
+    fn angle_transforms_rotate_flip_and_ignore_translation_cells() {
+        let mut group = shape(1, 10., 20., std::f64::consts::FRAC_PI_2, false);
+        let mut child = shape(2, 4., 5., 0., true);
+        child.sheet.cells.push(Cell { name: "Test".into(), formula: Some("ANGLETOPAR(0deg,Width,ThePage!PageWidth)".into()), ..Default::default() });
+        child.sheet.cells.retain(|c| !matches!(c.name.as_str(), "PinX" | "PinY" | "LocPinX" | "LocPinY"));
+        group.shapes.push(child);
+        let doc = Document {
+            pages: vec![Page { id: 0, shapes: vec![group], ..Default::default() }, Page { id: 1, name: "Other".into(), ..Default::default() }],
+            ..Default::default()
+        };
+        let mut e = Evaluator::new(&doc).unwrap();
+        let scope = Scope::PageShape { page: 0, shape: 2 };
+        let actual = e.evaluate(scope, "Test").numeric().unwrap();
+        assert!((actual + std::f64::consts::FRAC_PI_2).abs() < 1e-12);
+        let reverse = e.transform_angle(scope, actual, "ThePage!PageWidth", "Width", false).unwrap();
+        assert!(reverse.abs() < 1e-12);
+        assert_eq!(e.transform_angle(scope, 0., "Width", "Pages[Other]!PageWidth", false), Err(Error::Ref));
+        assert_eq!(e.transform_angle(scope, f64::INFINITY, "Width", "Width", false), Err(Error::Num));
     }
     #[test]
     fn nested_rotations_flips_and_page_destination() {

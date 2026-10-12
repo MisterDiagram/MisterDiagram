@@ -39,6 +39,10 @@ class DumpTests(unittest.TestCase):
         self.assertTrue(m.excluded('GUARD(NOW())', {'NOW'}))
         self.assertTrue(m.excluded('_UCON_x(1)', {'_UCON_...'}))
         self.assertFalse(m.excluded('_ELLIPSE_ECC(1)', {'_UCON_...'}))
+        self.assertFalse(m.excluded('Pages[NOW()]!PageWidth', {'NOW'}))
+        self.assertFalse(m.excluded("'THEMEVAL()'!Width", {'THEMEVAL'}))
+        self.assertTrue(m.excluded("5' + NOW()", {'NOW'}))
+        self.assertTrue(m.excluded("5 ' + NOW()", {'NOW'}))
 
 
 if __name__ == '__main__':

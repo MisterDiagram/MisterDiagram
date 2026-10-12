@@ -1,13 +1,53 @@
 //! ShapeSheet functions with explicit arity, bounded evaluation and reference examples.
 use crate::{Context, Error, Value, eval::eval, parser::Expr};
 mod color;
+mod color_adjust;
+mod constructors;
+mod ellipse;
+mod extras;
 mod numeric;
+mod path_queries;
 mod points;
 mod references;
+mod relationships;
 mod spatial;
 mod text;
 pub use color::default_color;
 pub const IMPLEMENTED: &[&str] = &[
+    "LISTSHEETREF",
+    "TINT",
+    "SHADE",
+    "MSOTINT",
+    "MSOSHADE",
+    "LUMDIFF",
+    "ANGLETOPAR",
+    "ANGLETOLOC",
+    "SUM",
+    "USE",
+    "_ELLIPSE_THETA",
+    "_ELLIPSE_ECC",
+    "FORMULAEXISTS",
+    "PATHLENGTH",
+    "NURBS",
+    "POLYLINE",
+    "FIELDPICTURE",
+    "GRAVITY",
+    "_MOD",
+    "MOD",
+    "ISERROR",
+    "ISERRVALUE",
+    "ISERR",
+    "ISERRNA",
+    "IFERROR",
+    "NA",
+    "MAGNITUDE",
+    "BITXOR",
+    "BITAND",
+    "BITOR",
+    "BITNOT",
+    "DEG",
+    "RAD",
+    "SIGN",
     "LANGUAGE",
     "BOUND",
     "RECTSECT",
@@ -80,6 +120,24 @@ pub const IMPLEMENTED: &[&str] = &[
     "FLOOR",
 ];
 pub(crate) fn call(name: &str, args: &[Expr], context: &mut dyn Context, budget: &mut usize, depth: usize) -> Value {
+    if let Some(value) = relationships::call(name, args, context, budget, depth) {
+        return value;
+    }
+    if let Some(value) = color_adjust::call(name, args, context, budget, depth) {
+        return value;
+    }
+    if let Some(value) = path_queries::call(name, args, context, budget, depth) {
+        return value;
+    }
+    if let Some(value) = ellipse::call(name, args, context, budget, depth) {
+        return value;
+    }
+    if let Some(value) = constructors::call(name, args, context, budget, depth) {
+        return value;
+    }
+    if let Some(value) = extras::call(name, args, context, budget, depth) {
+        return value;
+    }
     if let Some(value) = spatial::call(name, args, context, budget, depth) {
         return value;
     }
