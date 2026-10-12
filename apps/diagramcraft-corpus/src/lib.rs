@@ -80,7 +80,7 @@ impl Report {
     pub fn passed(&self) -> bool {
         self.render.as_ref().is_none_or(render::Report::passed) && self.cells_passed()
     }
-    /// Cell floors remain mandatory while the P2 render comparison is advisory in CI.
+    /// Cell accuracy is reported separately; the complete gate also requires rendering.
     pub fn cells_passed(&self) -> bool {
         self.shipped_cached.total > 0
             && self.com.total > 0

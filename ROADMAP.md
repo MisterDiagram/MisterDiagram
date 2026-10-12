@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: pre-alpha, M0 and M1 met; Phase 2 is in progress. Target: Visio Standard 2021.
+Status: pre-alpha, M0 and M1 met; M2 human gate accepted, independent review pending. Target: Visio Standard 2021.
 
 Phase 0 establishes the workspace, conventions, oracle scripts and private corpus. Phases 1
 through 5 add reading and ShapeSheet evaluation, rendering, writing, authoring, and exports.
@@ -42,3 +42,5 @@ clean independent frozen verification passes.
 - 2026-10-12: P2-followup-3 commits M2.6/M2.7 under Charles's advisory-render CI rule, then SVG text advances, marker profiles, transformed strokes, transparent image sampling, the final master cycle, FIND and fixed-point text metrics. CI 8 gates pass; strict corpus remains partial: 8/10 render groups pass, 10 size mismatches; text 84.481614%/83.415329% stays deferred. Contacts 1108/1108, 24 paired sheets; 204 render commands and SVG/PDF checks pass. No ceilings, floors or oracle files changed.
 
 - 2026-10-12: P2-followup-4 fixes composed width, field formatting, inherited display units and six text export dimensions. Text passes promotion at 91.021727% cached and 90.713982% COM; oracle1 is 97.491192% on its promoted denominator, rebased floor 97.4911% by Charles. CI passes all eight gates. Strict corpus remains partial: nine groups pass, four one-pixel text dimensions fail. All 204 renders and SVG/PDF checks pass; 24 paired sheets cover 1108 masters. Human gate pending, no M2 closure.
+
+- 2026-10-12 16:45: Charles accepts the M2 human gate with one-pixel export tolerance over the common area. Original pixel ceilings are frozen, render CI is mandatory again, and promoted cell floors stand. All ten render groups pass the rule test. Remaining text, 17 EMF+ comments and four non-default compound-line witnesses are Phase 3 gaps. Independent M2 review runs before Phase 3.

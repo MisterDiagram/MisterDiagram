@@ -11,7 +11,5 @@ fn quick_corpus_meets_frozen_floors() {
     println!("{report}");
     assert_eq!(report.shipped_packages, 50, "the CI sample must include exactly 50 shipped packages");
     assert!(report.cells_passed(), "{report}");
-    if std::env::var_os("DIAGRAMCRAFT_P2_RENDER_ADVISORY").is_none() {
-        assert!(report.passed(), "{report}");
-    }
+    assert!(report.passed(), "{report}");
 }

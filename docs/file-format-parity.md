@@ -1,26 +1,28 @@
 # File format parity
 
-Status: pre-alpha, M1 met. Phase 2 is partial: text promotion passes, four export-size failures remain.
+Status: pre-alpha, M1 met. M2 human gate accepted on 2026-10-12 at 16:45; independent review remains pending.
 
 ## Measured
 
-P2-followup-4: all 204 generated drawings render without command failures.
-Nine of ten render groups pass. Four text size mismatches remain; mismatched files
-receive no pixel score and always fail. MAD uses RGB units 0..255. The ceilings
-and oracle images are unchanged.
+M2.8: Charles accepted the human gate on 2026-10-12 at 16:45. The original
+pixel ceilings are frozen: non-text group MAD at most 4/255 and at most 2% of
+pixels over 16/255; text MAD at most 8/255 and at most 5%. All ten groups pass.
+Four raw dimension differences remain within the authorized one-pixel allowance;
+zero hard size failures. All 204 files receive a pixel score over their common
+area. MAD below uses RGB units 0..255. Oracle images are unchanged.
 
-| Group | Files | Size mismatches | Mean RGB MAD | Pixels over16 | Gate |
-|---|---:|---:|---:|---:|---|
-| arrow | 92 | 0 | 0.543633 | 1.071225% | PASS |
-| basic | 1 | 0 | 0.443949 | 0.745332% | PASS |
-| connector | 6 | 0 | 2.142340 | 1.225363% | PASS |
-| fill | 44 | 0 | 1.112028 | 1.373298% | PASS |
-| group | 1 | 0 | 0.690956 | 1.251292% | PASS |
-| image | 3 | 0 | 1.602828 | 1.731289% | PASS |
-| line | 37 | 0 | 1.076040 | 1.030076% | PASS |
-| master | 1 | 0 | 1.608085 | 1.791412% | PASS |
-| page | 3 | 0 | 3.649380 | 1.344992% | PASS |
-| text | 16 | 4 | 3.988622 | 3.257092% | FAIL |
+| Group | Files | Raw size differences | Tolerated | Hard failures | Mean RGB MAD | Pixels over 16 | Gate |
+|---|---:|---:|---:|---:|---:|---:|---|
+| arrow | 92 | 0 | 0 | 0 | 0.543633 | 1.071225% | PASS |
+| basic | 1 | 0 | 0 | 0 | 0.443949 | 0.745332% | PASS |
+| connector | 6 | 0 | 0 | 0 | 2.142340 | 1.225363% | PASS |
+| fill | 44 | 0 | 0 | 0 | 1.112028 | 1.373298% | PASS |
+| group | 1 | 0 | 0 | 0 | 0.690956 | 1.251292% | PASS |
+| image | 3 | 0 | 0 | 0 | 1.602828 | 1.731289% | PASS |
+| line | 37 | 0 | 0 | 0 | 1.076040 | 1.030076% | PASS |
+| master | 1 | 0 | 0 | 0 | 1.608085 | 1.791412% | PASS |
+| page | 3 | 0 | 0 | 0 | 3.649380 | 1.344992% | PASS |
+| text | 16 | 4 | 4 | 0 | 3.547545 | 3.193997% | PASS |
 
 All 204 SVG/resvg and PDF checks pass, including extractable text in all 16 text
 PDFs. Ligature extraction and complete reading order remain separate gaps.
@@ -28,28 +30,30 @@ The paired contact sheets cover1108 masters; private observations are not
 redistributable assets. Previous performance observations:25891ms for the largest
 43-master stencil,479ms for500shapes. Budgets remain unfrozen.
 
-CI passes with only render comparison advisory until the M2 human gate. Strict
-corpus check still fails the four dimensions. No milestone closure is claimed.
+Render comparison is mandatory in CI again. The one-pixel rule is tested in
+`one_pixel_common_area_preserves_rows_and_rejects_two_pixels`; frozen limits are
+checked by `ceilings_match_charles_frozen_record`. Independent M2 review remains
+pending before Phase 3; human acceptance is not review completion.
 
 Measured completed coverage:1387packages,1181shipped,301completed shared dumps,
 514TSVs. The shared directory has302dump artifacts including one partial.
 COM text population increased from 7724 to 14118 as coverage grew.
 Oracle1 pre-promotion:4627375/4716091 (98.118866%). Promoted:
-4663847/4783865 (97.491192%), new floor97.4911%. Charles authorized rebasing the
-floor to its new denominator on2026-10-12, preserving the97% M1 contract; it may
+4663847/4783865 (97.491192%), new floor 97.4911%. Charles authorized rebasing the
+floor to its new denominator on 2026-10-12, preserving the97% M1 contract; it may
 only rise from here. Oracle2:20806040/21055732 (98.814138%), unchanged floor98.6241%;
 non-literal COM3165694/3199229 (98.951779%). Theme remains included.
 Text cached:61710/67797 (91.021727%); COM:12807/14118 (90.713982%). Both exceed90%,
 so text-metric cells now join both main denominators under the existing rule.
 
-Remaining text failures:6087cached and1311COM. Cached buckets:1742User.Width,
+Remaining text failures:6087 cached and1311COM. Cached buckets:1742User.Width,
 1124TxtWidth,1054TxtHeight,746Width,262User.MenuItemTextSize,198Height,
 26User.DirArrowOffset; other cached cells935. COM User.Width658, Width231,
 other cells422. These are cell buckets, not uniform root causes. Overlapping
 error buckets include309cached TxtHeight #VALUE!,207TxtWidth #VALUE!,108
-User.TextHeight #VALUE!, and96TxtHeight unsupported FORMAT locale2057.
+User.TextHeight #VALUE!, and96TxtHeight unsupported FORMAT locale 2057.
 Font identity, compatible Segoe metrics, other date pictures and master-specific
-scale handling remain open. No comparison tolerance changed.
+scale handling remain open. Cell comparison tolerance is unchanged.
 
 M2.5 writes PNG, SVG and vector PDF for all 204 generated drawings. This is output coverage, not visual acceptance. PDF embeds the OFL faces and uses native variable coordinates for Arimo. Page/layer/background tests pass; pixel dimensions and appearance remain the M2.6 gate.
 
@@ -726,7 +730,7 @@ The TEXTWIDTH reference describes composed width but does not specify its termin
 advance or numeric grid. Twenty cached TxtWidth witnesses across ADO_M, ADO_U,
 ADS_M, ADS_U and ANNOT_M resolve this. ADO master2 shape45 measures 0.366826785261
 inches for six-point text with three-point left and right margins; the previous
-result was 0.347937043135. ADS master2 shape5 measures 0.194218091820 inches at
+result was 0.347937043135. ADS master 2 shape 5 measures 0.194218091820 inches at
 eight points with zero margins, previously 0.169053174555.
 
 Candidates were tested in the requested order. Margins already occur once: ADO's
@@ -791,7 +795,7 @@ The WWFCONCTRL_M User.Width and MWFCONCTRL_M User.MenuItemTextSize residuals
 include formula-produced font ID 201, not mapped by the current portable font
 profile. Their documents contain Segoe UI variants; current layout falls back to
 Carlito. There is no embedded metric-compatible Segoe face, and no system scan or
-additional font download was introduced. MWFCONCTRL_M master125 shape221 remains
+additional font download was introduced. MWFCONCTRL_M master 125 shape 221 remains
 1.034667529975 versus 1.112060956811 inches. Font identity and compatible metrics
 remain explicit limitations; numerical width multipliers would conceal them.
 
@@ -822,13 +826,13 @@ Regression: `png_composition_and_logical_bounds_have_private_witnesses` checks
 six independently exported PNG dimensions and the nine-line composition. The SVG
 placement test continues to check the distinct eight-line SVG witness.
 
-Remaining empty-block TxtHeight errors include APPL_M master7 shape5: Visio
+Remaining empty-block TxtHeight errors include APPL_M master 7 shape 5: Visio
 0.166666666667 inches versus our16.666666666667. The same formula on master2
 shape5 has COM16.666666666667 and already agrees. Thus removing drawing-scale
 conversion globally would break a measured witness. The unresolved cause is
 master-specific scale/context handling, not evidence that the oracle is wrong.
 
-CALNDR_M master9 shape7 supplies a remaining concrete #VALUE! chain:
+CALNDR_M master 9 shape 7 supplies a remaining concrete #VALUE! chain:
 TxtHeight calls TEXTHEIGHT(TheText,TxtWidth); two text fields call
 `FORMATEX(Sheet.5!Prop.visStartTime,User.visTimePMFormat,,,User.LCID)` (and
 visFinishTime). The inherited picture is `{{h:mm am/pm}}`, locale1033; source
@@ -838,7 +842,7 @@ returns #VALUE!; the calendar formatter also lacks the am/pm token in this
 picture. Visio displays8:00AM and9:00AM; our field evaluation errors, so height
 cannot be measured. This witness explains a
 remaining formatting error, not all1054TxtHeight failures:309are#VALUE!,96are
-unsupported locale2057, and the rest are numerical/other failures.
+unsupported locale 2057, and the rest are numerical/other failures.
 
 M2.4.5 changed cached failure buckets as follows: User.Width1879 to1742,
 Width1620 to746, TxtHeight1057 to1054, User.DirArrowOffset314 to26,
@@ -846,3 +850,28 @@ User.MenuItemTextSize265 to262, Height219 to198. Combined with M2.4.4,
 TxtWidth falls4078 to1124. The half-inch Width and0.4-inch Height witnesses
 were Gantt serialization indentation; the remaining buckets include different
 causes and are not claimed solved wholesale.
+
+
+### Human gate: frozen ceilings and one-pixel export tolerance (M2.8)
+
+Charles accepted M2's human gate on 2026-10-12 at 16:45 America/New_York. The
+non-text ceilings remain MAD 4/255 and 2% of pixels over 16/255; text remains
+MAD 8/255 and 5%. These are recorded in floors.toml and mandatory in CI.
+
+The size rule permits an absolute difference of at most one pixel on each axis.
+Compare pixels at the same coordinates in the top-left common rectangle:
+min(widths) by min(heights). Do not rescale, search for an alignment or edit the
+input. Group differing fractions weight that actual common pixel area. Empty
+images and a difference of two or more pixels on either axis fail. Reports retain
+all raw dimension differences and distinguish tolerated from hard failures.
+
+Reason supplied by Charles: Visio's own exports of generated/text/multiline-wrap
+have eight lines in SVG and nine in PNG, so one-pixel boundary rounding cannot
+be defined as right or wrong from Visio's output. This is a gate decision based
+on an observed inconsistency, not a claim that Microsoft's reference promises
+this tolerance. The four previously failing boundaries are align-0-0, align-0-1,
+align-0-2 and sizes. All now receive common-area pixel measurements.
+
+Regression tests cover both size directions, both axes, unequal row strides,
+alpha compositing, common-area weighting, empty images and two-pixel rejection.
+The render advisory bypass has been removed from both CI and corpus tests.

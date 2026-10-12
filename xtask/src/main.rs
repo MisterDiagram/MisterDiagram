@@ -165,17 +165,14 @@ fn cmd_ci() -> Result<(), String> {
             "test",
             Box::new(|| {
                 let mut c = cargo();
-                // Charles, 2026-10-12: remove this advisory mode when M2 ceilings are frozen.
-                c.env("DIAGRAMCRAFT_P2_RENDER_ADVISORY", "1");
                 c.args(["test", "--workspace"]);
                 run(c, "cargo test --workspace")
             }),
         ),
         (
-            "render (advisory until M2 human gate)",
+            "render",
             Box::new(|| {
                 let mut c = cargo();
-                c.env("DIAGRAMCRAFT_P2_RENDER_ADVISORY", "1");
                 c.args(["test", "-p", "diagramcraft-corpus", "--test", "render", "--", "--nocapture"]);
                 run(c, "P2 render report")
             }),

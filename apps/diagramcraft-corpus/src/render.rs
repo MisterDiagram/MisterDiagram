@@ -1,9 +1,18 @@
-//! Frozen P2 pixel oracle. A dimension mismatch is always a file failure.
+//! P2 pixel oracle frozen by Charles on 2026-10-12 at 16:45.
+//! At most one pixel per dimension is compared over the top-left common area.
 use std::{
     collections::BTreeMap,
     fmt,
     path::{Path, PathBuf},
 };
+const MAX_SIZE_DELTA: u32 = 1;
+const NON_TEXT_MAD: f64 = 4.;
+const NON_TEXT_FRACTION: f64 = 0.02;
+const TEXT_MAD: f64 = 8.;
+const TEXT_FRACTION: f64 = 0.05;
+fn compatible_size(a: (u32, u32), b: (u32, u32)) -> bool {
+    a.0 > 0 && a.1 > 0 && b.0 > 0 && b.1 > 0 && a.0.abs_diff(b.0) <= MAX_SIZE_DELTA && a.1.abs_diff(b.1) <= MAX_SIZE_DELTA
+}
 #[derive(Debug)]
 pub struct FileResult {
     pub file: String,
@@ -31,7 +40,8 @@ impl Group {
         let mut different = 0.;
         for file in &self.files {
             if let Some(fraction) = file.differing {
-                let n = f64::from(file.expected.0) * f64::from(file.expected.1);
+                let Some(actual) = file.actual else { continue };
+                let n = f64::from(file.expected.0.min(actual.0)) * f64::from(file.expected.1.min(actual.1));
                 pixels += n;
                 different += n * fraction;
             }
@@ -39,9 +49,12 @@ impl Group {
         (pixels > 0.).then(|| different / pixels)
     }
     pub fn passed(&self, text: bool) -> bool {
-        let (mad, fraction) = if text { (8., 0.05) } else { (4., 0.02) };
+        let (mad, fraction) = if text { (TEXT_MAD, TEXT_FRACTION) } else { (NON_TEXT_MAD, NON_TEXT_FRACTION) };
         !self.files.is_empty()
-            && self.files.iter().all(|f| f.error.is_none() && f.actual == Some(f.expected) && f.mad.is_some() && f.differing.is_some())
+            && self
+                .files
+                .iter()
+                .all(|f| f.error.is_none() && f.actual.is_some_and(|a| compatible_size(f.expected, a)) && f.mad.is_some() && f.differing.is_some())
             && self.mean_mad().is_some_and(|v| v <= mad)
             && self.fraction().is_some_and(|v| v <= fraction)
     }
@@ -55,10 +68,12 @@ impl fmt::Display for Report {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(
             f,
-            "render oracle: RGB MAD in 0..255; differing means any RGB channel exceeds 16; frozen non-text ceilings=4/255,2%; text=8/255,5%"
+            "render oracle: RGB MAD in 0..255; differing means any RGB channel exceeds 16; frozen 2026-10-12 16:45: non-text ceilings=4/255,2%; text=8/255,5%; size tolerance=1px per axis; common-area comparison"
         )?;
         for (name, g) in &self.groups {
             let mismatches = g.files.iter().filter(|r| r.actual.is_some_and(|a| a != r.expected)).count();
+            let tolerated = g.files.iter().filter(|r| r.actual.is_some_and(|a| a != r.expected && compatible_size(r.expected, a))).count();
+            let hard = mismatches - tolerated;
             let errors = g.files.iter().filter(|r| r.error.is_some()).count();
             let compared = g.files.iter().filter(|r| r.mad.is_some()).count();
             let mean = g.mean_mad();
@@ -67,7 +82,7 @@ impl fmt::Display for Report {
             worst.sort_by(|a, b| b.mad.unwrap_or(f64::INFINITY).total_cmp(&a.mad.unwrap_or(f64::INFINITY)).then(a.file.cmp(&b.file)));
             writeln!(
                 f,
-                "render {name}: files={} size_mismatches={mismatches} errors={errors} compared={compared} mean_MAD={} fraction_over_16={} within_ceiling={}",
+                "render {name}: files={} size_mismatches={mismatches} tolerated_sizes={tolerated} hard_size_failures={hard} errors={errors} compared={compared} mean_MAD={} fraction_over_16={} within_ceiling={}",
                 g.files.len(),
                 mean.map_or("n/a".into(), |v| format!("{v:.6}")),
                 fraction.map_or("n/a".into(), |v| format!("{:.6}%", v * 100.)),
@@ -82,7 +97,14 @@ impl fmt::Display for Report {
             }
             for r in &g.files {
                 if r.actual.is_some_and(|a| a != r.expected) {
-                    writeln!(f, "render size mismatch {} Visio={:?} ours={:?}", r.file, r.expected, r.actual)?;
+                    writeln!(
+                        f,
+                        "render size mismatch {} Visio={:?} ours={:?} tolerated={}",
+                        r.file,
+                        r.expected,
+                        r.actual,
+                        r.actual.is_some_and(|a| compatible_size(r.expected, a))
+                    )?;
                 }
             }
         }
@@ -90,12 +112,20 @@ impl fmt::Display for Report {
     }
 }
 pub fn compare(a: &image::RgbaImage, b: &image::RgbaImage) -> Result<(f64, f64), String> {
-    if a.dimensions() != b.dimensions() || a.width() == 0 || a.height() == 0 {
-        return Err("pixel dimensions differ or empty image".into());
+    if !compatible_size(a.dimensions(), b.dimensions()) {
+        return Err("pixel dimensions differ by more than one pixel or empty image".into());
+    }
+    let width = a.width().min(b.width());
+    let height = a.height().min(b.height());
+    let pixels = u64::from(width) * u64::from(height);
+    if pixels > diagramcraft_render::scene::MAX_PIXELS as u64 {
+        return Err("pixel comparison limit".into());
     }
     let mut sum = 0u64;
     let mut different = 0u64;
-    for (a, b) in a.pixels().zip(b.pixels()) {
+    // Zip rows, then crop each row: flat pixel zipping would shift later rows
+    // when the widths differ. No resampling, alignment search or input mutation.
+    for (a, b) in a.rows().zip(b.rows()).take(height as usize).flat_map(|(a, b)| a.zip(b).take(width as usize)) {
         let [ar, ag, ab, aa] = a.0;
         let [br, bg, bb, ba] = b.0;
         let white = |c: u8, alpha: u8| ((u32::from(c) * u32::from(alpha) + 255 * (255 - u32::from(alpha)) + 127) / 255) as u8;
@@ -103,7 +133,7 @@ pub fn compare(a: &image::RgbaImage, b: &image::RgbaImage) -> Result<(f64, f64),
         sum += d.iter().map(|d| u64::from(*d)).sum::<u64>();
         different += u64::from(d.iter().any(|d| *d > 16));
     }
-    let n = f64::from(a.width()) * f64::from(a.height());
+    let n = pixels as f64;
     Ok((sum as f64 / (n * 3.), different as f64 / n))
 }
 pub fn run(root: &Path) -> Result<Report, String> {
@@ -130,7 +160,7 @@ pub fn run(root: &Path) -> Result<Report, String> {
             std::fs::create_dir_all(&directory).map_err(|e| e.to_string())?;
             actual.save(directory.join(file.file_name().ok_or("missing render name")?).with_extension("png")).map_err(|e| e.to_string())?;
             r.actual = Some(actual.dimensions());
-            if actual.dimensions() == expected.dimensions() {
+            if compatible_size(expected.dimensions(), actual.dimensions()) {
                 let (mad, fraction) = compare(&expected, &actual)?;
                 r.mad = Some(mad);
                 r.differing = Some(fraction);
@@ -148,11 +178,11 @@ pub fn run(root: &Path) -> Result<Report, String> {
 mod tests {
     use super::*;
     #[test]
-    fn strict_dimensions_rgb_distance_and_frozen_ceilings() {
+    fn rgb_distance_and_frozen_ceilings() {
         let a = image::RgbaImage::from_pixel(2, 1, image::Rgba([0, 0, 0, 255]));
         let b = image::RgbaImage::from_pixel(2, 1, image::Rgba([17, 0, 0, 255]));
         assert_eq!(compare(&a, &b).unwrap(), (17. / 3., 1.));
-        assert!(compare(&a, &image::RgbaImage::new(1, 2)).is_err());
+        assert!(compare(&a, &image::RgbaImage::new(4, 1)).is_err());
         let group = Group {
             files: vec![FileResult {
                 file: "fixture".into(),
@@ -165,5 +195,55 @@ mod tests {
         };
         assert!(!group.passed(false));
         assert!(group.passed(true));
+    }
+    #[test]
+    fn one_pixel_common_area_preserves_rows_and_rejects_two_pixels() {
+        let a = image::RgbaImage::from_fn(2, 2, |x, y| image::Rgba([(x + y * 2) as u8 * 40, 0, 0, 255]));
+        for dimensions in [(3, 2), (2, 3), (3, 3)] {
+            let b = image::RgbaImage::from_fn(dimensions.0, dimensions.1, |x, y| {
+                if x < 2 && y < 2 { *a.get_pixel(x, y) } else { image::Rgba([255, 255, 255, 255]) }
+            });
+            assert_eq!(compare(&a, &b).unwrap(), (0., 0.));
+            assert_eq!(compare(&b, &a).unwrap(), (0., 0.));
+        }
+        for dimensions in [(4, 2), (2, 4), (0, 2), (2, 0)] {
+            assert!(compare(&a, &image::RgbaImage::new(dimensions.0, dimensions.1)).is_err());
+        }
+        let mut b = a.clone();
+        b.put_pixel(0, 0, image::Rgba([255, 255, 255, 0]));
+        assert_eq!(compare(&a, &b).unwrap(), (255. / 4., 0.25));
+    }
+    #[test]
+    fn group_weights_common_pixels_and_keeps_size_failures_mandatory() {
+        let mut group = Group {
+            files: vec![
+                FileResult { file: "cropped".into(), expected: (2, 3), actual: Some((3, 2)), mad: Some(0.), differing: Some(0.01), error: None },
+                FileResult { file: "equal".into(), expected: (2, 2), actual: Some((2, 2)), mad: Some(0.), differing: Some(0.), error: None },
+            ],
+        };
+        assert_eq!(group.fraction(), Some(0.005));
+        assert!(group.passed(false));
+        group.files[0].actual = Some((4, 2));
+        assert!(!group.passed(false));
+    }
+    #[test]
+    fn ceilings_match_charles_frozen_record() {
+        let record = include_str!("../../../crates/sheet/tests/floors.toml");
+        for (key, expected) in [
+            ("non_text_mad_rgb", NON_TEXT_MAD),
+            ("non_text_fraction", NON_TEXT_FRACTION),
+            ("text_mad_rgb", TEXT_MAD),
+            ("text_fraction", TEXT_FRACTION),
+            ("max_size_delta_px", f64::from(MAX_SIZE_DELTA)),
+        ] {
+            let values: Vec<f64> = record
+                .lines()
+                .filter_map(|line| {
+                    let (name, value) = line.split_once('=')?;
+                    (name.trim() == key).then(|| value.trim().parse().unwrap())
+                })
+                .collect();
+            assert_eq!(values, vec![expected], "{key}");
+        }
     }
 }

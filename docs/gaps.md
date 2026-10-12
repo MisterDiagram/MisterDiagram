@@ -1,6 +1,6 @@
 # Gaps
 
-Status: pre-alpha, M0 and M1 met; Phase 2 remains partial after pixel and text-metric measurement.
+Status: pre-alpha, M0 and M1 met; M2 human gate accepted; independent review remains before Phase 3.
 
 ## G1: Remaining ShapeSheet fidelity
 
@@ -85,32 +85,39 @@ saved display while their separate hooks remain deferred.
 
 M2.5 provides PNG/JPEG and EMF foreign objects, page/background/layer rendering and PNG, SVG and vector PDF backends. The generated 204-file output sweep passes. This does not measure pixel agreement. EMF+ and unknown metafile records are skipped with diagnostics; unsupported raster operations and clip subtraction remain visible warnings. Compound line offsets, explicit gradient-stop painting, shadow/effect rendering and inherited child materialization still require renderer work.
 
-## G7: P2-followup-4 human gate
+## G7: Phase 3 text fidelity after the accepted M2 human gate
 
-Nine of ten groups pass; four one-pixel text export residuals remain:
-align-0-0 and align-0-1 are388x289 versus387x289, align-0-2 is388x291 versus387x291,
-and sizes is481x531 versus481x532. Multiline-wrap, metric-scale and right/bottom
-alignment now have matching dimensions. Logical overhang and ascent rounding
-remain an incomplete approximation. Tests: `text_blocks_and_unkerned_lines_match_visio_svg`
-and `png_composition_and_logical_bounds_have_private_witnesses`.
+Charles accepted the human gate on 2026-10-12 at 16:45. Four one-pixel boundaries
+are accepted under the common-area rule; they remain visible measurements.
+Text promotion and the 97.4911% oracle1 floor stand. Render CI is mandatory again.
+Independent M2 review must finish before Phase 3 begins.
 
-Text promotion passes91.021727% cached and90.713982% COM. Charles authorized the
-oracle1 floor rebase on the promoted denominator to97.4911%; oracle2 remains98.6241%.
-Remaining6087cached/1311COM text failures include font-ID/Segoe metrics, date
-picture and locale formatting, fine advance rounding and master scale/context.
-The measured bucket table and witnesses are in file-format-parity.md and the
-private session report. No oracle values or render ceilings changed.
+The last full text snapshot has 6087 cached and 1311 COM failures. Counts below are
+measured buckets or confirmed witnesses, not a disjoint root-cause census. A
+bucket can contain additional causes; do not treat a representative witness as
+proof that every row has that cause. Phase 3 must complete that attribution.
 
-All 1108 contact masters render. CI render comparison alone remains advisory;
-strict corpus check still fails, and M2 remains unaccepted. Performance budgets
-and independent closure review remain pending the human gate. PDF ligature
-extraction and full reading order need stronger tests beyond nonempty text.
+| Phase 3 item | Count and witness | Remaining work |
+|---|---|---|
+| Segoe font identity and compatible metrics | Dominant User.Width delta bucket: 360 cached, 180 COM; User.MenuItemTextSize: 262 cached, 90 COM. MWFNAVCTRL_M master 17 shape 464 and MWFCONCTRL_M master 125 shape 221 | Resolve portable font identity and compatible metrics; no system font scan |
+| Date formatting | #VALUE! buckets: 309 cached TxtHeight, 108 User.TextHeight, 80 Height (497 cells); CALNDR_M master 9 shape 7 is a confirmed DATE/FORMATEX witness | Convert ISO-date hook values for formatting and implement missing date-picture tokens; classify the rest of the error bucket |
+| Locale2057 | 96 cached TxtHeight failures explicitly report unsupported FORMAT locale 2057 | Implement witnessed locale handling |
+| Fine rounding | 87 cached TxtWidth failures in the -0.000916-inch bucket; AZURECLOUD_M master 422 shape 5 | Resolve remaining metric quantization; broader TxtWidth bucket 1124 is not all rounding |
+| Master-scale context | 1 confirmed failing witness: APPL_M master 7 shape 5, within 1054 cached TxtHeight failures; master 2 shape 5 is a matching counterexample | Attribute remaining scale failures and model the master-specific context without breaking correct scaled text |
 
-## G8: Deferred rendering fidelity (Phase 3 or later)
+Other cached buckets include 1742 User.Width, 746 Width, 198 Height and 26 DirArrowOffset;
+these overlap the categories above. Complete failure and witness lists remain in
+the private corpus report. PDF ligature extraction and reading order still need
+stronger fidelity coverage beyond nonempty text. Performance budgets are not yet
+frozen; the gate decision froze pixel ceilings only.
 
-Charles explicitly defers these from the M2 gate. Compound-line fidelity remains
-open; the line group passes its existing ceiling. EMF+ payload interpretation is
-also deferred. The legacy fallback remains rendered, with unknown records skipped.
+## G8: Phase 3 EMF+ and compound-line fidelity
+
+Charles explicitly defers these from the M2 gate. Compound-line fidelity has
+4 non-default generated witnesses (line/compound-1 through compound-4),
+plus the compound-0 control; the line group passes
+its frozen ceiling. EMF+ payload interpretation has 17 comment records in 1 generated
+foreign-object drawing and is deferred to Phase 3. The legacy fallback remains rendered, with unknown records skipped.
 The seventeen EMR_COMMENT records in generated/image/emf.vsdx, media/image1.emf,
 contain the following EMF+ record IDs. Offsets and sizes identify the private
 witness without copying its artwork or payloads.

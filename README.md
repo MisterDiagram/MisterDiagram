@@ -24,8 +24,9 @@ cargo run -p diagramcraft-cli -- render /path/to/your-drawing.vsdx --page 1 outp
 Use your own `.vsdx` file. Corpus-dependent tests print a one-line skip message when
 `corpus/` is absent (use `cargo test --workspace -- --nocapture` to see test output).
 When the local corpus exists, cell floors and structural tests remain mandatory.
-Until the M2 human gate, `cargo xtask ci` prints render comparisons as advisory;
-`corpus check` and direct render comparison tests still fail on the frozen ceilings.
+The M2 human gate was accepted on 2026-10-12. Render comparisons are mandatory
+in `cargo xtask ci`, using the frozen pixel ceilings and a one-pixel size allowance
+with comparison over the common area. Independent M2 review precedes Phase 3.
 
 `cargo run --release -p diagramcraft-cli -- corpus check` needs the generated drawings,
 blank-document dumps, shipped packages and completed COM dumps under `corpus/`.

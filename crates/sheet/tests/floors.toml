@@ -42,11 +42,14 @@ full_resolved_denominator = 7271082
 text-metric = 0.90
 
 # P2-followup achieved render observations only. These are not ceilings.
-# RGB MAD uses 0..255. Fractions exclude size mismatches, which always fail.
+# RGB MAD uses 0..255. Fractions weight the compared common area.
+# Size differences above one pixel per axis remain hard failures.
 
 [render_achieved.arrow]
 files = 92
 size_mismatches = 0
+tolerated_sizes = 0
+hard_size_failures = 0
 errors = 0
 compared = 92
 mean_mad_rgb = 0.543633
@@ -56,6 +59,8 @@ within_frozen_ceiling = true
 [render_achieved.basic]
 files = 1
 size_mismatches = 0
+tolerated_sizes = 0
+hard_size_failures = 0
 errors = 0
 compared = 1
 mean_mad_rgb = 0.443949
@@ -65,6 +70,8 @@ within_frozen_ceiling = true
 [render_achieved.connector]
 files = 6
 size_mismatches = 0
+tolerated_sizes = 0
+hard_size_failures = 0
 errors = 0
 compared = 6
 mean_mad_rgb = 2.142340
@@ -74,6 +81,8 @@ within_frozen_ceiling = true
 [render_achieved.fill]
 files = 44
 size_mismatches = 0
+tolerated_sizes = 0
+hard_size_failures = 0
 errors = 0
 compared = 44
 mean_mad_rgb = 1.112028
@@ -83,6 +92,8 @@ within_frozen_ceiling = true
 [render_achieved.group]
 files = 1
 size_mismatches = 0
+tolerated_sizes = 0
+hard_size_failures = 0
 errors = 0
 compared = 1
 mean_mad_rgb = 0.690956
@@ -92,6 +103,8 @@ within_frozen_ceiling = true
 [render_achieved.image]
 files = 3
 size_mismatches = 0
+tolerated_sizes = 0
+hard_size_failures = 0
 errors = 0
 compared = 3
 mean_mad_rgb = 1.602828
@@ -101,6 +114,8 @@ within_frozen_ceiling = true
 [render_achieved.line]
 files = 37
 size_mismatches = 0
+tolerated_sizes = 0
+hard_size_failures = 0
 errors = 0
 compared = 37
 mean_mad_rgb = 1.076040
@@ -110,6 +125,8 @@ within_frozen_ceiling = true
 [render_achieved.master]
 files = 1
 size_mismatches = 0
+tolerated_sizes = 0
+hard_size_failures = 0
 errors = 0
 compared = 1
 mean_mad_rgb = 1.608085
@@ -119,6 +136,8 @@ within_frozen_ceiling = true
 [render_achieved.page]
 files = 3
 size_mismatches = 0
+tolerated_sizes = 0
+hard_size_failures = 0
 errors = 0
 compared = 3
 mean_mad_rgb = 3.649380
@@ -128,11 +147,13 @@ within_frozen_ceiling = true
 [render_achieved.text]
 files = 16
 size_mismatches = 4
+tolerated_sizes = 4
+hard_size_failures = 0
 errors = 0
-compared = 12
-mean_mad_rgb = 3.988622
-fraction_over_16 = 0.03257092
-within_frozen_ceiling = false
+compared = 16
+mean_mad_rgb = 3.547545
+fraction_over_16 = 0.03193997
+within_frozen_ceiling = true
 
 [text-metric.cached]
 passed = 61710
@@ -152,3 +173,15 @@ pre_promotion_rate = 0.98118866
 promoted_passed = 4663847
 promoted_eligible = 4783865
 promoted_rate = 0.97491192
+
+
+[render_frozen]
+# Charles's human gate decision. Only Charles can change these limits.
+frozen_at = "2026-10-12T16:45:00-04:00"
+non_text_mad_rgb = 4.0
+non_text_fraction = 0.02
+text_mad_rgb = 8.0
+text_fraction = 0.05
+max_size_delta_px = 1
+comparison_area = "top-left common rectangle, no resampling"
+ci_mandatory = true
