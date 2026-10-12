@@ -117,3 +117,34 @@ formatting dominate. All 1108 contact masters render, 24 paired sheets regenerat
 CI passes with only render comparison advisory; strict corpus remains exit 1.
 
 M2.4.4 resolves the constant TxtWidth term with a terminal space, fixed-point advances and composed-text slack. Regression: `composed_width_terminal_space_and_advance_grid`. Other field, font-identity and export-bound issues remain measured separately.
+
+## G8: Deferred rendering fidelity (Phase 3 or later)
+
+Charles explicitly defers these from the M2 gate. Compound-line fidelity remains
+open; the line group passes its existing ceiling. EMF+ payload interpretation is
+also deferred. The legacy fallback remains rendered, with unknown records skipped.
+The seventeen EMR_COMMENT records in generated/image/emf.vsdx, media/image1.emf,
+contain the following EMF+ record IDs. Offsets and sizes identify the private
+witness without copying its artwork or payloads.
+
+| Comment | EMF byte offset | Payload bytes | Inner record IDs (record bytes) |
+|---|---:|---:|---|
+| 1 | 108 | 32 | 0x4001(28B) |
+| 2 | 152 | 144 | 0x4030(16B), 0x4022(12B), 0x402a(36B), 0x4032(28B), 0x402a(36B), 0x4004(12B) |
+| 3 | 392 | 128 | 0x4025(16B), 0x401f(12B), 0x401e(12B), 0x4021(12B), 0x402a(36B), 0x400a(36B) |
+| 4 | 744 | 328 | 0x402a(36B), 0x402a(36B), 0x4026(16B), 0x4025(16B), 0x401f(12B), 0x401e(12B), 0x4021(12B), 0x402a(36B), 0x4008(60B), 0x4008(72B), 0x4015(16B) |
+| 5 | 1332 | 192 | 0x402a(36B), 0x402a(36B), 0x4026(16B), 0x4025(16B), 0x401f(12B), 0x401e(12B), 0x4021(12B), 0x402a(36B), 0x4004(12B) |
+| 6 | 2260 | 288 | 0x402a(36B), 0x402a(36B), 0x402a(36B), 0x402a(36B), 0x4026(16B), 0x4025(16B), 0x401f(12B), 0x401e(12B), 0x4021(12B), 0x402a(36B), 0x400a(36B) |
+| 7 | 2784 | 328 | 0x402a(36B), 0x402a(36B), 0x4026(16B), 0x4025(16B), 0x401f(12B), 0x401e(12B), 0x4021(12B), 0x402a(36B), 0x4008(60B), 0x4008(72B), 0x4015(16B) |
+| 8 | 3372 | 192 | 0x402a(36B), 0x402a(36B), 0x4026(16B), 0x4025(16B), 0x401f(12B), 0x401e(12B), 0x4021(12B), 0x402a(36B), 0x4004(12B) |
+| 9 | 4300 | 412 | 0x402a(36B), 0x402a(36B), 0x402a(36B), 0x402a(36B), 0x4026(16B), 0x4025(16B), 0x401f(12B), 0x401e(12B), 0x4021(12B), 0x402a(36B), 0x4008(144B), 0x4014(16B) |
+| 10 | 5020 | 256 | 0x402a(36B), 0x402a(36B), 0x4026(16B), 0x4025(16B), 0x401f(12B), 0x401e(12B), 0x4021(12B), 0x402a(36B), 0x4008(60B), 0x4015(16B) |
+| 11 | 5568 | 192 | 0x402a(36B), 0x402a(36B), 0x4026(16B), 0x4025(16B), 0x401f(12B), 0x401e(12B), 0x4021(12B), 0x402a(36B), 0x4004(12B) |
+| 12 | 6492 | 372 | 0x402a(36B), 0x402a(36B), 0x402a(36B), 0x402a(36B), 0x4026(16B), 0x4025(16B), 0x401f(12B), 0x401e(12B), 0x4021(12B), 0x402a(36B), 0x4008(60B), 0x4008(44B), 0x4015(16B) |
+| 13 | 7120 | 308 | 0x402a(36B), 0x402a(36B), 0x4026(16B), 0x4025(16B), 0x401f(12B), 0x401e(12B), 0x4021(12B), 0x402a(36B), 0x4008(60B), 0x4008(52B), 0x4015(16B) |
+| 14 | 7668 | 216 | 0x402a(36B), 0x402a(36B), 0x4026(16B), 0x4025(16B), 0x401f(12B), 0x401e(12B), 0x4021(12B), 0x402a(36B), 0x400a(36B) |
+| 15 | 8076 | 192 | 0x402a(36B), 0x402a(36B), 0x4026(16B), 0x4025(16B), 0x401f(12B), 0x401e(12B), 0x4021(12B), 0x402a(36B), 0x4004(12B) |
+| 16 | 8976 | 200 | 0x402a(36B), 0x402a(36B), 0x402a(36B), 0x402a(36B), 0x4026(16B), 0x4008(24B), 0x4034(12B) |
+| 17 | 9320 | 16 | 0x4002(12B) |
+
+M2.4.5 text regressions fix final-run advances, indented empty fields, numbered decimal pictures, local inherited display units and integral fractions. Segoe-related font IDs and matching metrics remain unresolved. `text_metric_terminal_fields_and_unit_override_witnesses` covers the concrete fixes.

@@ -336,3 +336,27 @@ fn text_metric_grid_and_empty_fields_match_private_com_witnesses() {
         assert!((actual - expected).abs() < 1e-12, "{file} master{master} shape{shape}: {actual} != {expected}");
     }
 }
+
+#[test]
+fn text_metric_terminal_fields_and_unit_override_witnesses() {
+    use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    for (file, scope, cell, expected) in [
+        ("BA_DEC_BAN_M.vssx", Scope::MasterShape { master: 25, shape: 6 }, "User.Width", 1.66889274052908),
+        ("ACTUAL_FINISHDATES_GANTTCHART_M.vstx", Scope::MasterShape { master: 43, shape: 11 }, "Width", 0.1111111111111111),
+        ("ACTUAL_FINISHDATES_GANTTCHART_M.vstx", Scope::MasterShape { master: 43, shape: 11 }, "Height", 0.1333828247070313),
+        ("ANNOT_U.vssx", Scope::MasterShape { master: 26, shape: 8 }, "TxtHeight", 0.1333828247070313),
+        ("CRIME_SCENE_INVESTIGATION_M.vstx", Scope::PageShape { page: 0, shape: 8 }, "User.DirArrowOffset", 27.68264941461251),
+        ("CRIME_SCENE_INVESTIGATION_M.vstx", Scope::MasterShape { master: 2, shape: 12 }, "User.DirArrowOffset", 17.6518082818),
+    ] {
+        let doc = diagramcraft_vsdx::read(root.join("ms-shipped/1033").join(file)).unwrap();
+        let themes = diagramcraft_theme::Themes::from_document(&doc).unwrap();
+        let mut e = Evaluator::new(&doc).unwrap().with_theme_host(&themes).with_text_host(&diagramcraft_text::Host);
+        let actual = e.evaluate_snapshot(scope, cell).numeric().unwrap();
+        assert!((actual - expected).abs() < 1e-6, "{file} {scope:?} {cell}: {actual} != {expected}");
+    }
+}

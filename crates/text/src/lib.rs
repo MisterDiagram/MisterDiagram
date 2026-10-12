@@ -1080,8 +1080,10 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
             } else {
                 None
             };
-            let terminal_space = if metric && !p.cells.is_empty() {
-                let style = p.cells.last().and_then(|c| p.styles.get(c.style));
+            let terminal_space = if metric {
+                // The terminal run can have a different size from the last visible glyph.
+                // BA_DEC_BAN_M master25 shape6: 28pt time followed by a 14pt field.
+                let style = p.styles.last();
                 style.map_or(0., |st| (measure_str(&st.face, st.size, " ").0 / 72. * 262144.).round() / 262144. * 72.)
             } else {
                 0.

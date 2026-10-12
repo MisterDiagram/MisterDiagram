@@ -279,6 +279,21 @@ fn format_value(name: &str, args: &[Expr], values: &[Value], context: &dyn Conte
         return Err(e);
     }
     let picture = string(values, 1)?;
+    // Numbered field formats are pictures too. ANNOT_U master26 shape8 uses
+    // FIELDPICTURE(8), three decimal places without a unit suffix.
+    // https://learn.microsoft.com/en-us/office/vba/api/visio.visfieldformats
+    let picture = if let Some(code) = picture.strip_prefix("esc(").and_then(|s| s.strip_suffix(')')) {
+        match code.parse::<u32>() {
+            Ok(code @ 2..=9) => {
+                let places = (code - 2) / 2;
+                let decimals = if places == 0 { String::new() } else { format!(".{}", "0".repeat(places as usize)) };
+                format!("0{decimals}{}", if code % 2 == 1 { " u" } else { "" })
+            }
+            _ => return Err(Error::Value),
+        }
+    } else {
+        picture
+    };
     if picture.len() > 4096 {
         return Err(Error::Limit);
     }
@@ -581,7 +596,11 @@ fn fraction_picture(value: f64, picture: &str) -> Result<String, Error> {
         }
     }
     if numerator > 0 || (!mixed && left.contains('0')) {
-        out.push_str(&format!("{numerator}/{denominator}"));
+        if denominator == 1 {
+            out.push_str(&numerator.to_string());
+        } else {
+            out.push_str(&format!("{numerator}/{denominator}"));
+        }
     }
     Ok(out)
 }
@@ -787,6 +806,14 @@ mod tests {
         ] {
             assert_eq!(run(s), Value::Text(v.into()), "{s}")
         }
+    }
+    #[test]
+    fn numbered_field_pictures_and_integral_fractions() {
+        assert_eq!(run("FORMAT(2in,FIELDPICTURE(8))"), Value::Text("2.000".into()));
+        assert_eq!(run("FORMAT(2mm,FIELDPICTURE(7))"), Value::Text("2.00 mm.".into()));
+        assert_eq!(run(r#"FORMAT(0,"0/#")"#), Value::Text("0".into()));
+        assert_eq!(run(r#"FORMAT(2,"0/#")"#), Value::Text("2".into()));
+        assert!(matches!(run(r#"FORMAT(2,"esc(99999999999999999999999)")"#), Value::Error(_)));
     }
     #[test]
     fn formatting_edges_and_date_serials() {

@@ -16,6 +16,12 @@ pub struct TextBlock {
 fn indexed(prefix: &str, cell: &str, row: u32) -> String {
     if row == 0 { format!("{prefix}.{cell}") } else { format!("{prefix}.{cell}[{}]", row.saturating_add(1)) }
 }
+// Gantt master43 shape11 stores indented XML around an empty field. Visio ignores
+// this serialization whitespace despite the enclosing xml:space="preserve".
+// Keep single paragraph breaks, spaces, and all non-whitespace text verbatim.
+fn serialization_indent(text: &str) -> bool {
+    text.contains('\n') && text.contains(' ') && text.chars().all(char::is_whitespace)
+}
 impl<'a> Evaluator<'a> {
     fn text_source(&self, mut scope: Scope) -> Result<Option<&'a XmlElement>, Error> {
         for _ in 0..128 {
@@ -48,7 +54,9 @@ impl<'a> Evaluator<'a> {
                     if out.len().saturating_add(s.len()) > 65536 {
                         return Err(Error::Limit);
                     }
-                    out.push_str(s);
+                    if !serialization_indent(s) {
+                        out.push_str(s);
+                    }
                 }
                 Some(XmlNode::Element(e)) => {
                     nodes += 1;
@@ -310,6 +318,9 @@ impl<'a> Evaluator<'a> {
                     if s.len() > 65536 {
                         return Err(Error::Limit);
                     }
+                    if serialization_indent(s) {
+                        continue;
+                    }
                     (s.clone(), RunKind::Text)
                 }
                 XmlNode::Element(e) => {
@@ -455,6 +466,19 @@ mod tests {
         assert_eq!(e.text_string(scope, 0).unwrap(), "Total: 2.0");
         e.set_formula(scope, "Fields.Value", "3.5").unwrap();
         assert_eq!(e.text_body(scope).unwrap().paragraphs[0].text(), "Total: 3.5");
+    }
+    #[test]
+    fn indented_empty_field_keeps_composition_without_layout_whitespace() {
+        let doc = document("<Text><cp IX='0'/>\n    \n    <fld IX='0'/>\n  </Text>");
+        let mut e = Evaluator::new(&doc).unwrap();
+        let scope = Scope::PageShape { page: 1, shape: 1 };
+        assert_eq!(e.text_string(scope, 0).unwrap(), "");
+        let body = e.text_body(scope).unwrap();
+        assert_eq!(body.paragraphs.len(), 1);
+        assert!(matches!(body.paragraphs[0].runs[0].kind, RunKind::Field { .. }));
+        assert!(!serialization_indent(" "));
+        assert!(!serialization_indent("\n"));
+        assert!(!serialization_indent("line one\n line two"));
     }
     #[test]
     fn generated_text_group_resolves_runs_and_transforms() {

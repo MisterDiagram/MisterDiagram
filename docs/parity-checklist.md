@@ -174,3 +174,5 @@ Core=N rows (excluded from milestone scoring):
 - P2-followup-3 M2.4.3, text fidelity remains P until both text oracles promote. Tests: `microsoft_find_example_and_hostile_arguments`, `metric_font_size_grid_matches_com_height_witnesses`, `text_metric_grid_and_empty_fields_match_private_com_witnesses`. Fine metric size rounding and empty fields now match independent COM witnesses; FIND has its reference example and bounded-input tests.
 
 - M2.4.4 composed width evidence: `diagramcraft-text::tests::composed_width_terminal_space_and_advance_grid` reproduces twenty private cached witnesses. Text remains P until the independent pixel and metric gates pass.
+
+- M2.4.5 text formatting evidence: `diagramcraft-render::text_metric_terminal_fields_and_unit_override_witnesses` and `diagramcraft-sheet::numbered_field_pictures_and_integral_fractions`. Both text rows remain P; no blanket claim for unresolved fonts or export bounds.

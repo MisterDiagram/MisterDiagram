@@ -752,3 +752,47 @@ text-only cached accuracy is 60525/67797 (89.273862%), COM is 6578/7724
 (85.163128%). Both remain outside the main denominators under the unchanged
 90% promotion rule. Main rates remain 98.118866% cached and 99.226552% COM.
 The renderer remains at ten size mismatches, with eight passing groups.
+
+### Terminal runs, fields and display units (M2.4.5)
+
+BA_DEC_BAN_M master25 shape6 has a 28pt time followed by an empty 14pt field.
+The final run supplies the terminal advance even though it paints no glyph.
+User.Width now measures 1.668892739529 inches, versus Visio 1.668892740529;
+the pre-M2.4.4 value was 1.624893142945. The difference was the 14pt space.
+
+ACTUAL_FINISHDATES_GANTTCHART_M master43 shape11 uses
+`GUARD(MAX(1*Char.Size,TEXTWIDTH(TheText)))`. Its XML contains indentation before
+and after an empty field, despite inherited `xml:space='preserve'`. Visio excludes
+those whitespace-only indentation nodes from text composition. Ignore only nodes
+containing both a newline and spaces and no non-whitespace character; preserve
+single paragraph breaks, plain spaces and all non-whitespace content. Width now
+matches 0.111111111111 inch and Height matches 0.133382824707 inch. The old width
+was 0.602862283587 and height 0.533381298828. Lossless source XML stays unchanged.
+This is an observed whitespace exception, not a reason to strip arbitrary text.
+
+ANNOT_U master26 shape8's TxtHeight `#VALUE!` came from `FORMAT` receiving the
+`esc(8)` picture returned by FIELDPICTURE(8), via Fields.Format[6]. Microsoft defines
+that format as three decimal places without units. Interpret numbered decimal
+pictures 2 through 9; unsupported pictures retain errors. Its width is now 2 inches
+and height 0.13338282470703125, matching Visio. No cached field display fallback
+was added for unsupported formats.
+
+CRIME_SCENE_INVESTIGATION_M page0 shape8's User.DirArrowOffset is
+`TEXTWIDTH(TheText)*0.55`. Local Fields.Value has `U="MM"` with `F="Inh"`.
+Inheriting the expression must preserve the local display unit. Its field now
+prints 22500.00 instead of 885.83 and the offset is 27.682649414063 inches,
+versus Visio 27.682649414613. Master2 shape12 also exposed an integral reduced
+fraction printing `0/1` instead of `0`; after correction its offset is
+17.651808281250 versus Visio 17.651808281800.
+
+Regression: `text_metric_terminal_fields_and_unit_override_witnesses`, with
+host-independent cases in `numbered_field_pictures_and_integral_fractions` and
+`indented_empty_field_keeps_composition_without_layout_whitespace`.
+
+The WWFCONCTRL_M User.Width and MWFCONCTRL_M User.MenuItemTextSize residuals
+include formula-produced font ID 201, not mapped by the current portable font
+profile. Their documents contain Segoe UI variants; current layout falls back to
+Carlito. There is no embedded metric-compatible Segoe face, and no system scan or
+additional font download was introduced. MWFCONCTRL_M master125 shape221 remains
+1.034667529975 versus 1.112060956811 inches. Font identity and compatible metrics
+remain explicit limitations; numerical width multipliers would conceal them.
