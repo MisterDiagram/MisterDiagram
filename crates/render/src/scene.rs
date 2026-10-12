@@ -347,6 +347,8 @@ fn visible(e: &mut Evaluator<'_>, scope: Scope, parent: Scope, print: bool) -> b
     }
     !print || number(e, scope, "NonPrinting", 0.) == 0.
 }
+/// Group DisplayMode controls whether group geometry/text is hidden, behind, or in front of members.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/displaymode-cell-group-properties-section
 fn shapes(
     e: &mut Evaluator<'_>,
     items: &[Shape],
@@ -372,6 +374,16 @@ fn shapes(
         if !visible(e, scope, parent, options.print) {
             continue;
         }
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/displaymode-cell-group-properties-section
+        // Group mode0 hides only the group, mode1 paints it behind members,
+        // and mode2 paints it in front. Leaf shapes ignore this group property.
+        let mode = if shape.shapes.is_empty() { 1. } else { number(e, scope, "DisplayMode", 1.) };
+        if mode == 0. || mode == 2. {
+            shapes(e, &shape.shapes, parent, part, scale, options, scene, depth + 1)?;
+        }
+        if mode == 0. {
+            continue;
+        }
         let transform = scale * e.shape_to_page(scope).map_err(|e| format!("shape {} transform: {e}", shape.id))?;
         let width = number(e, scope, "Width", 1.);
         let height = number(e, scope, "Height", 1.);
@@ -394,7 +406,25 @@ fn shapes(
             begin_size: number(e, scope, "BeginArrowSize", 2.).max(0.) as u32,
             end_size: number(e, scope, "EndArrowSize", 2.).max(0.) as u32,
         };
-        for geometry in e.geometry_paths(scope, Rect::new(-1e4, -1e4, 1e4, 1e4)).map_err(|e| format!("shape {} geometry: {e}", shape.id))? {
+        let geometries = e.geometry_paths(scope, Rect::new(-1e4, -1e4, 1e4, 1e4)).map_err(|e| format!("shape {} geometry: {e}", shape.id))?;
+        // Visible Geometry sections form one fill, including oppositely wound holes.
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section
+        let mut combined_fill = BezPath::new();
+        for geometry in &geometries {
+            if geometry.filled() {
+                combined_fill.extend(style::round_rectangle(&geometry.path, line.rounding).elements().iter().copied());
+            }
+        }
+        if fill.pattern != 0 && !combined_fill.elements().is_empty() {
+            let gradient = gradient(e, scope);
+            let paint = if fill.pattern == 1 && gradient.is_none() {
+                Paint::Solid(fill.foreground)
+            } else {
+                Paint::Pattern { fill: fill.clone(), gradient, bounds: Rect::new(0., 0., width, height), transform }
+            };
+            scene.ops.push(Op::Path { path: transform * combined_fill, paint });
+        }
+        for geometry in geometries {
             let path = style::round_rectangle(&geometry.path, line.rounding);
             if !path.elements().is_empty() && (geometry.filled() && fill.pattern != 0 || geometry.stroked() && line.pattern != 0) {
                 let bounds = if geometry.stroked() && line.pattern != 0 {
@@ -420,15 +450,6 @@ fn shapes(
                     (transform * &path).bounding_box()
                 };
                 scene.ops.push(Op::Bounds(bounds));
-            }
-            if geometry.filled() && fill.pattern != 0 {
-                let gradient = gradient(e, scope);
-                let paint = if fill.pattern == 1 && gradient.is_none() {
-                    Paint::Solid(fill.foreground)
-                } else {
-                    Paint::Pattern { fill: fill.clone(), gradient, bounds: Rect::new(0., 0., width, height), transform }
-                };
-                scene.ops.push(Op::Path { path: transform * &path, paint });
             }
             if geometry.stroked() && line.pattern != 0 && line.weight > 0. {
                 let mut stroke = line.stroke();
@@ -489,35 +510,36 @@ fn shapes(
         if let Some(foreign) = &shape.foreign_data {
             foreign_image(e, scope, part, foreign, transform, width, height, scene)?;
         }
-        shapes(e, &shape.shapes, parent, part, scale, options, scene, depth + 1)?;
         if number(e, scope, "HideText", 0.) == 0. {
             let body = e.text_body(scope).map_err(|e| format!("shape {} text: {e}", shape.id))?;
-            if body.paragraphs.iter().flat_map(|p| &p.runs).all(|r| r.text.is_empty()) {
-                continue;
-            }
-            let block = e.text_block(scope).map_err(|e| format!("shape {} text block: {e}", shape.id))?;
-            let drawing_scale = scale.determinant().abs().sqrt().max(1e-12);
-            let original_height = block.height * drawing_scale;
-            let measured = diagramcraft_model::text::TextHost::measure(&diagramcraft_text::Host, &block.body, Some(block.width * drawing_scale))?;
-            let height = original_height.max(measured.1);
-            let shift = match block.body.body.anchor.unwrap_or(diagramcraft_model::text::Anchor::Middle) {
-                diagramcraft_model::text::Anchor::Top => 0.,
-                diagramcraft_model::text::Anchor::Bottom => height - original_height,
-                _ => (height - original_height) * 0.5,
-            };
-            let text_transform = scale * block.to_page * Affine::scale(1. / drawing_scale) * Affine::translate((0., -shift));
-            let layout = diagramcraft_text::layout_for_export(
-                &block.body,
-                &Opts { rect: Rect::new(0., 0., block.width * drawing_scale, height), fields: &NoFields, prompt_color: None, no_shrink: false },
-            )
-            .map_err(|e| e.to_string())?;
-            if !layout.runs.is_empty() {
-                if height > original_height {
-                    let x = block.width * drawing_scale * 0.5;
-                    scene.ops.push(Op::Bounds(text_transform.transform_rect_bbox(Rect::new(x, 0., x, height))));
+            if body.paragraphs.iter().flat_map(|p| &p.runs).any(|r| !r.text.is_empty()) {
+                let block = e.text_block(scope).map_err(|e| format!("shape {} text block: {e}", shape.id))?;
+                let drawing_scale = scale.determinant().abs().sqrt().max(1e-12);
+                let original_height = block.height * drawing_scale;
+                let measured = diagramcraft_model::text::TextHost::measure(&diagramcraft_text::Host, &block.body, Some(block.width * drawing_scale))?;
+                let height = original_height.max(measured.1);
+                let shift = match block.body.body.anchor.unwrap_or(diagramcraft_model::text::Anchor::Middle) {
+                    diagramcraft_model::text::Anchor::Top => 0.,
+                    diagramcraft_model::text::Anchor::Bottom => height - original_height,
+                    _ => (height - original_height) * 0.5,
+                };
+                let text_transform = scale * block.to_page * Affine::scale(1. / drawing_scale) * Affine::translate((0., -shift));
+                let layout = diagramcraft_text::layout_for_export(
+                    &block.body,
+                    &Opts { rect: Rect::new(0., 0., block.width * drawing_scale, height), fields: &NoFields, prompt_color: None, no_shrink: false },
+                )
+                .map_err(|e| e.to_string())?;
+                if !layout.runs.is_empty() {
+                    if height > original_height {
+                        let x = block.width * drawing_scale * 0.5;
+                        scene.ops.push(Op::Bounds(text_transform.transform_rect_bbox(Rect::new(x, 0., x, height))));
+                    }
+                    scene.ops.push(Op::Text { layout, transform: text_transform });
                 }
-                scene.ops.push(Op::Text { layout, transform: text_transform });
             }
+        }
+        if mode == 1. {
+            shapes(e, &shape.shapes, parent, part, scale, options, scene, depth + 1)?;
         }
     }
     Ok(())
@@ -549,8 +571,12 @@ fn foreign_image(
         let imported = crate::metafile::import(bytes)?;
         let m = transform
             * Affine::translate((0., height))
-            * Affine::scale_non_uniform(width / imported.frame.width().max(1e-12), -height / imported.frame.height().max(1e-12));
+            * Affine::scale_non_uniform(width / imported.frame.width().max(1e-12), -height / imported.frame.height().max(1e-12))
+            * Affine::translate((-imported.frame.x0, -imported.frame.y0));
         scene.ops.push(Op::Bounds(transform.transform_rect_bbox(Rect::new(0., 0., width, height))));
+        if !imported.ops.iter().any(|op| matches!(op, Op::Path { .. } | Op::Stroke { .. } | Op::Image { .. } | Op::Text { .. })) {
+            scene.warnings.push(format!("foreign object {scope:?} {} produced no drawing", target.target));
+        }
         scene.warnings.extend(imported.warnings);
         for op in imported.ops {
             scene.ops.push(match op {

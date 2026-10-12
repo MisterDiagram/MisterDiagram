@@ -401,3 +401,71 @@ fn png_composition_and_logical_bounds_have_private_witnesses() {
         }
     }
 }
+
+#[test]
+fn shipped_cisco_kubernetes_and_aws_have_drawing_ink() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    for (file, id) in [("CISCONETWORKSHAPES_U", None), ("KUBERNETESVISIOSTENCIL_U", Some(45)), ("AWSANALYTICS_U", Some(33))] {
+        let doc = diagramcraft_vsdx::read(root.join(format!("ms-shipped/1033/{file}.vssx"))).unwrap();
+        let index = id.map_or(0, |id| doc.masters.iter().position(|m| m.id == id).unwrap());
+        let drawing = scene::master(&doc, index, scene::Options::default()).unwrap();
+        let scale = (216. / (drawing.bounds.width() * 96.)).min(160. / (drawing.bounds.height() * 96.)).min(2.);
+        let image = raster::render(&drawing, scene::Options { scale, ..Default::default() }).unwrap();
+        let ink = image.pixels().filter(|p| p.0[3] > 0 && p.0[..3].iter().any(|c| *c < 250)).count();
+        println!("{file} {} ink={ink} bounds={:?}", doc.masters[index].id, drawing.bounds);
+        assert!(ink > 100, "{file}: blank or clipped icon, ink={ink}");
+        if file == "CISCONETWORKSHAPES_U" {
+            let mut empty = doc.clone();
+            for part in empty.parts.values_mut() {
+                if part.bytes.get(40..44) == Some(&b" EMF"[..]) {
+                    let header = u32::from_le_bytes(part.bytes[4..8].try_into().unwrap()) as usize;
+                    part.bytes.truncate(header);
+                    part.bytes.extend_from_slice(&14u32.to_le_bytes());
+                    part.bytes.extend_from_slice(&8u32.to_le_bytes());
+                }
+            }
+            let empty = scene::master(&empty, index, scene::Options::default()).unwrap();
+            assert!(empty.warnings.iter().any(|w| w.contains("produced no drawing")));
+        }
+        if id == Some(45) {
+            let mut e = diagramcraft_vsdx::evaluate::Evaluator::new(&doc).unwrap();
+            let hidden = diagramcraft_vsdx::evaluate::Scope::MasterShape { master: 45, shape: 16 };
+            assert!(e.evaluate_snapshot(hidden, "Geometry1.NoShow").truth().unwrap());
+            assert!(e.geometry_paths(hidden, kurbo::Rect::new(-100., -100., 100., 100.)).unwrap().is_empty());
+        }
+    }
+}
+
+#[test]
+fn group_display_mode_hides_or_orders_group_paint() {
+    use diagramcraft_model::{Document, Master, Shape};
+    fn shape(id: u32, color: &str, mode: u8) -> Shape {
+        let xml = format!(
+            r#"<Shape xmlns="http://schemas.microsoft.com/office/visio/2012/main"><Cell N="Width" V="1"/><Cell N="Height" V="1"/><Cell N="DisplayMode" V="{mode}"/><Cell N="FillForegnd" F="{color}"/><Cell N="LinePattern" V="0"/><Section N="Geometry"><Row IX="0" T="MoveTo"><Cell N="X" V="0"/><Cell N="Y" V="0"/></Row><Row IX="1" T="LineTo"><Cell N="X" V="1"/><Cell N="Y" V="0"/></Row><Row IX="2" T="LineTo"><Cell N="X" V="1"/><Cell N="Y" V="1"/></Row><Row IX="3" T="LineTo"><Cell N="X" V="0"/><Cell N="Y" V="1"/></Row></Section></Shape>"#
+        );
+        let mut sheet = diagramcraft_vsdx::parse_sheet(&diagramcraft_vsdx::parse_xml(xml.as_bytes()).unwrap()).unwrap();
+        for name in ["PinX", "PinY", "LocPinX", "LocPinY", "Angle", "FlipX", "FlipY"] {
+            sheet.cells.push(diagramcraft_model::Cell { name: name.into(), value: Some("0".into()), ..Default::default() });
+        }
+        Shape { id, sheet, ..Default::default() }
+    }
+    for (mode, colors) in [(0, vec![(0, 0, 255)]), (1, vec![(255, 0, 0), (0, 0, 255)]), (2, vec![(0, 0, 255), (255, 0, 0)])] {
+        let mut parent = shape(1, "RGB(255,0,0)", mode);
+        parent.shapes.push(shape(2, "RGB(0,0,255)", 1));
+        let doc = Document { masters: vec![Master { id: 1, shapes: vec![parent], ..Default::default() }], ..Default::default() };
+        let scene = scene::master(&doc, 0, scene::Options::default()).unwrap();
+        let actual: Vec<_> = scene
+            .ops
+            .iter()
+            .filter_map(|op| match op {
+                scene::Op::Path { paint: scene::Paint::Solid(c), .. } => Some((c.r, c.g, c.b)),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(actual, colors, "DisplayMode={mode}");
+    }
+}

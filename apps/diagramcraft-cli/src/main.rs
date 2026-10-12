@@ -67,10 +67,23 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
         if extension != "png" || page.is_some() {
             return Err("master contact sheets require PNG and no page selector".into());
         }
-        let (image, warnings) = contact::render(&doc)?;
+        let (image, report) = contact::render(&doc)?;
         image.save(path).map_err(|e| e.to_string())?;
-        if !warnings.is_empty() {
-            return Err(warnings.join("; "));
+        let mut stderr = std::io::stderr().lock();
+        for warning in &report.warnings {
+            let _ = writeln!(stderr, "warning: {warning}");
+        }
+        let _ = writeln!(
+            stderr,
+            "contact {}: masters={} rendered={} blank={} failed={}",
+            Path::new(input).display(),
+            doc.masters.len(),
+            report.rendered,
+            report.blank,
+            report.failed
+        );
+        if report.failed > 0 || report.blank > 0 {
+            return Err("contact sheet contains blank or failed masters".into());
         }
         return Ok(());
     }
@@ -84,6 +97,11 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
     } else {
         vec![scene::page(&doc, page.map(Ok).unwrap_or_else(|| scene::default_page_index(&doc))?, options)?]
     };
+    for scene in &scenes {
+        for warning in &scene.warnings {
+            let _ = writeln!(std::io::stderr().lock(), "warning: {warning}");
+        }
+    }
     let first = scenes.first().ok_or("no foreground pages")?;
     match extension.as_str() {
         "png" => raster::render(first, options)?.save(path).map_err(|e| e.to_string()),

@@ -143,3 +143,9 @@ witness without copying its artwork or payloads.
 | 17 | 9320 | 16 | 0x4002(12B) |
 
 M2.4.5 text regressions fix final-run advances, indented empty fields, numbered decimal pictures, local inherited display units and integral fractions. Segoe-related font IDs and matching metrics remain unresolved. `text_metric_terminal_fields_and_unit_override_witnesses` covers the concrete fixes.
+
+
+M2.9.1 closes the shipped blank-cell blocker:1108/1108 contact drawing areas now
+have ink, compared with465before. This is a coverage claim, not pixel parity
+for every shipped master. Scene warnings remain visible, including unsupported
+foreign records and foreign objects without painting operations.

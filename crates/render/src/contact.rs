@@ -6,7 +6,18 @@ use diagramcraft_model::{Document, text::*};
 use diagramcraft_text::{NoFields, Opts};
 use kurbo::Shape as _;
 /// One labelled cell per master, in document order. Errors remain visible and are returned.
-pub fn render(doc: &Document) -> Result<(image::RgbaImage, Vec<String>), String> {
+#[derive(Debug, Default)]
+pub struct Report {
+    pub rendered: usize,
+    pub blank: usize,
+    pub failed: usize,
+    pub warnings: Vec<String>,
+}
+/// Test only drawing pixels, before names and failure markers are overlaid.
+pub fn has_ink(image: &image::RgbaImage) -> bool {
+    image.pixels().any(|p| p.0[3] > 0 && p.0.iter().take(3).any(|c| *c < 255))
+}
+pub fn render(doc: &Document) -> Result<(image::RgbaImage, Report), String> {
     if doc.masters.is_empty() || doc.masters.len() > 4096 {
         return Err("stencil master count limit".into());
     }
@@ -20,20 +31,32 @@ pub fn render(doc: &Document) -> Result<(image::RgbaImage, Vec<String>), String>
         return Err("contact sheet pixel limit".into());
     }
     let mut pixels = image::RgbaImage::from_pixel(width as u32, height as u32, image::Rgba([255, 255, 255, 255]));
-    let mut warnings = vec![];
+    let mut report = Report::default();
     for (index, master) in doc.masters.iter().enumerate() {
         let x = (index % columns) * cell_width;
         let y = (index / columns) * cell_height;
+        let mut failed = false;
         match scene::master(doc, index, Options::default()).and_then(|scene| {
+            report.warnings.extend(scene.warnings.iter().map(|w| format!("master {} {}: {w}", master.id, master.name_u)));
             let scale = ((cell_width - 24) as f64 / (scene.bounds.width() * 96.).max(1.))
                 .min((cell_height - 40) as f64 / (scene.bounds.height() * 96.).max(1.))
                 .min(2.);
             crate::raster::render(&scene, Options { scale, ..Default::default() })
         }) {
             Ok(img) => {
+                if has_ink(&img) {
+                    report.rendered += 1;
+                } else {
+                    report.blank += 1;
+                    report.warnings.push(format!("master {} {}: blank drawing area", master.id, master.name_u));
+                }
                 image::imageops::overlay(&mut pixels, &img, (x + (cell_width.saturating_sub(img.width() as usize)) / 2) as i64, (y + 8) as i64)
             }
-            Err(e) => warnings.push(format!("master {} {}: {e}", master.id, master.name_u)),
+            Err(e) => {
+                failed = true;
+                report.failed += 1;
+                report.warnings.push(format!("master {} {}: {e}", master.id, master.name_u));
+            }
         }
         let body = TextBody {
             paragraphs: vec![Paragraph {
@@ -59,7 +82,7 @@ pub fn render(doc: &Document) -> Result<(image::RgbaImage, Vec<String>), String>
         };
         let img = crate::raster::render(&label, Options::default())?;
         image::imageops::overlay(&mut pixels, &img, (x + 6) as i64, (y + cell_height - 28) as i64);
-        if warnings.last().is_some_and(|w| w.starts_with(&format!("master {} ", master.id))) {
+        if failed {
             let error = Scene {
                 ops: vec![Op::Path { path: Rect::new(0., 0., 1., 0.05).to_path(0.001), paint: Paint::Solid(Rgba::rgb(200, 0, 0)) }],
                 bounds: Rect::new(0., 0., 1., 0.05),
@@ -69,5 +92,21 @@ pub fn render(doc: &Document) -> Result<(image::RgbaImage, Vec<String>), String>
             image::imageops::overlay(&mut pixels, &crate::raster::render(&error, Options::default())?, (x + 12) as i64, (y + 12) as i64);
         }
     }
-    Ok((pixels, warnings))
+    Ok((pixels, report))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn labels_do_not_turn_blank_masters_into_rendered_masters() {
+        let doc = Document {
+            masters: vec![diagramcraft_model::Master { id: 1, name_u: "Empty master".into(), ..Default::default() }],
+            ..Default::default()
+        };
+        let (image, report) = render(&doc).unwrap();
+        assert!(has_ink(&image), "the label is visible");
+        assert_eq!((report.rendered, report.blank, report.failed), (0, 1, 0));
+        assert!(report.warnings.iter().any(|s| s.contains("blank drawing area")));
+    }
 }

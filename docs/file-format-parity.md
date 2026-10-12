@@ -26,8 +26,12 @@ area. MAD below uses RGB units 0..255. Oracle images are unchanged.
 
 All 204 SVG/resvg and PDF checks pass, including extractable text in all 16 text
 PDFs. Ligature extraction and complete reading order remain separate gaps.
-The paired contact sheets cover1108 masters; private observations are not
-redistributable assets. Previous performance observations:25891ms for the largest
+M2.9.1 corrects the old successful-call count: only465/1108 contact cells
+had drawing ink before the fix (643 blank). After the fix,1108/1108 have
+drawing ink, zero blank and zero errors across24stencils. Names and failure
+markers are excluded from this count. Scene warnings reach stderr. Paired
+Cisco and Kubernetes sheets were regenerated and visually checked. Private
+observations are not redistributable assets. Previous performance observations:25891ms for the largest
 43-master stencil,479ms for500shapes. Budgets remain unfrozen.
 
 Render comparison is mandatory in CI again. The one-pixel rule is tested in
@@ -175,6 +179,31 @@ ENTITY_M/U.vssx and OBJREL_M/U.vssx use the published 2011/1/core XML namespace;
 the other measured files use 2012/main. Container inspection accepts both exact URIs.
 
 ## Observed, undocumented
+
+M2.9.1 shipped contact witnesses: CISCONETWORKSHAPES_M/U each had289blank
+cells out of292, KUBERNETESVISIOSTENCIL_M/U each31out of40,
+AWSANALYTICS_U one of28, and AWSNETCONTENTDELIVERY_M/U each one of36.
+The other17stencils had zero blanks; all24 now have zero blanks.
+Cisco master0 image1.emf has a116-byte EMR_HEADER with a description at88.
+Treating its UTF-16 description as extension2 micrometre fields incorrectly
+moved MM_ANISOTROPIC content outside the frame. Follow the Microsoft
+[header-type algorithm](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/de081cd7-351f-4cc2-830b-d03fb55e89ab)
+and normalize the imported frame origin before placement. This is an
+implementation correction, not a contradiction of the reference.
+
+Kubernetes master45 shape16's NoShow switch correctly evaluates true; the
+regression preserves that hidden variant. Visible white Geometry sections
+must form a compound fill with holes, rather than separately painting each
+contour over the icon. The same cause explains the three AWS blanks:
+master33 Analytics and master59 Networking and Content Delivery in both
+metric and US stencils. Group DisplayMode now follows the documented
+hidden/behind/in-front order. Tests:
+`shipped_cisco_kubernetes_and_aws_have_drawing_ink`,
+`base_header_description_is_not_optional_micrometre_dimensions`,
+`anisotropic_window_and_viewport_origins_map_once`,
+`group_display_mode_hides_or_orders_group_paint`, and
+`labels_do_not_turn_blank_masters_into_rendered_masters`.
+
 
 ### Followup master failures
 

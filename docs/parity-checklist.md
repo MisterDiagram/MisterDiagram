@@ -180,3 +180,5 @@ Core=N rows (excluded from milestone scoring):
 - M2.6.9 text block formatting remains P: `png_composition_and_logical_bounds_have_private_witnesses` resolves six dimensions; four one-pixel export residuals remain. SVG block placements retain their separate regression.
 
 - M2.8 human gate accepted on 2026-10-12 at 16:45. Render export evidence: `one_pixel_common_area_preserves_rows_and_rejects_two_pixels`, `group_weights_common_pixels_and_keeps_size_failures_mandatory`, and `ceilings_match_charles_frozen_record`. All ten generated groups pass the frozen ceilings; four one-pixel boundaries are compared over the common area. Feature rows remain P where editing, broader fidelity or independent review is incomplete.
+
+- M2.9.1: vendor stencil rendering remains P. `shipped_cisco_kubernetes_and_aws_have_drawing_ink` and `labels_do_not_turn_blank_masters_into_rendered_masters` replace successful-call counting with drawing-ink evidence.24stencils1108ink/0blank/0errors, corrected from465ink/643blank; visual fidelity remains bounded by the documented scope.

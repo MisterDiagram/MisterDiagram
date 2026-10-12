@@ -103,20 +103,36 @@ fn source(x: i32, y: i32, w: i32, h: i32, img: &Result<dib::Rgba, String>, from_
 }
 
 /// The size and placement of the picture: (device → document, millimetres a pixel, the artboard).
-fn frame(bytes: &[u8]) -> Option<(Affine, f64, Rect)> {
+pub(super) fn frame(bytes: &[u8]) -> Option<(Affine, f64, Rect)> {
     let mut r = Reader::new(bytes);
     r.skip(4)?;
     let header_size = r.u32()?;
     let bounds = rect(&mut r)?;
     let frame = rect(&mut r)?;
     // Signature, version, bytes, records, handles, description and palette size.
-    r.skip(32)?;
+    r.skip(20)?;
+    let description_count = r.u32()?;
+    let description_offset = r.u32()?;
+    r.skip(4)?;
     let device = (f64::from(r.i32()?), f64::from(r.i32()?));
     let mm = (f64::from(r.i32()?), f64::from(r.i32()?));
-    // The device in micrometres (more precise), when the header has it.
-    let micro = if header_size >= 108 {
-        r.skip(12)?;
-        Some((f64::from(r.u32()?), f64::from(r.u32()?)))
+    // Header type uses the start of valid variable data, not nSize alone.
+    // https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/de081cd7-351f-4cc2-830b-d03fb55e89ab
+    // Cisco image1.emf has a base header whose description starts at byte 88.
+    let mut fixed_size = header_size;
+    if description_offset >= 88
+        && description_count.checked_mul(2).and_then(|n| description_offset.checked_add(n)).is_some_and(|end| end <= header_size)
+    {
+        fixed_size = description_offset;
+    }
+    let micro = if fixed_size >= 100 {
+        let pixel_bytes = r.u32()?;
+        let pixel_offset = r.u32()?;
+        r.skip(4)?;
+        if pixel_offset >= 100 && pixel_offset.checked_add(pixel_bytes).is_some_and(|end| end <= header_size) {
+            fixed_size = fixed_size.min(pixel_offset);
+        }
+        if fixed_size >= 108 { Some((f64::from(r.u32()?), f64::from(r.u32()?))) } else { None }
     } else {
         None
     };

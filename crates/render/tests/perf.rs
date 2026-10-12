@@ -10,7 +10,7 @@ fn largest_stencil_and_500_shape_page() {
     }
     let start = std::time::Instant::now();
     let doc = diagramcraft_vsdx::read(root.join("ms-shipped/1033/WFDEP_M.vssx")).unwrap();
-    let (image, errors) = contact::render(&doc).unwrap();
+    let (image, report) = contact::render(&doc).unwrap();
     let largest_ms = start.elapsed().as_millis();
     image.save(root.join("_state/contact-sheets/WFDEP_M-ours.png")).unwrap();
     println!(
@@ -18,9 +18,9 @@ fn largest_stencil_and_500_shape_page() {
         doc.masters.len(),
         image.width(),
         image.height(),
-        errors.len()
+        report.failed
     );
-    for e in &errors {
+    for e in &report.warnings {
         eprintln!("{e}");
     }
     let mut doc = diagramcraft_vsdx::read(root.join("generated/fill/pattern-01.vsdx")).unwrap();
@@ -57,6 +57,9 @@ fn largest_stencil_and_500_shape_page() {
     let page_ms = start.elapsed().as_millis();
     image.save(root.join("_state/render/500-shapes.png")).unwrap();
     println!("500-shape page: dimensions={}x{} elapsed_ms={page_ms}", image.width(), image.height());
-    std::fs::write(root.join("_state/render-perf.txt"), format!("largest_ms={largest_ms}\nlargest_errors={}\npage_500_ms={page_ms}\n", errors.len()))
-        .unwrap();
+    std::fs::write(
+        root.join("_state/render-perf.txt"),
+        format!("largest_ms={largest_ms}\nlargest_errors={}\npage_500_ms={page_ms}\n", report.failed),
+    )
+    .unwrap();
 }

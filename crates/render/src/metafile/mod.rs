@@ -889,6 +889,47 @@ pub fn import(bytes: &[u8]) -> Result<Imported, String> {
 mod tests {
     use super::*;
     #[test]
+    fn anisotropic_window_and_viewport_origins_map_once() {
+        let mut p = Player::new(Kind::Emf, Affine::scale(0.75), 25.4 / 96., Rect::new(0., 0., 10., 10.));
+        p.set_map_mode(8);
+        p.set_window_org(100., -200.);
+        p.set_window_ext(600., 300.);
+        p.set_viewport_org(20., 30.);
+        p.set_viewport_ext(200., 100.);
+        assert!((p.xf() * Point::new(100., -200.) - Point::new(15., 22.5)).hypot() < 1e-10);
+        assert!((p.xf() * Point::new(700., 100.) - Point::new(165., 97.5)).hypot() < 1e-10);
+    }
+    #[test]
+    fn base_header_description_is_not_optional_micrometre_dimensions() {
+        let mut b = vec![0u8; 116];
+        for (offset, value) in [
+            (0, 1u32),
+            (4, 116),
+            (24, 0),
+            (28, 0),
+            (32, 2540),
+            (36, 2540),
+            (40, 0x464d4520),
+            (60, 13),
+            (64, 88),
+            (72, 1024),
+            (76, 768),
+            (80, 320),
+            (84, 240),
+            (100, 7_929_939),
+            (104, 7_602_291),
+        ] {
+            b[offset..offset + 4].copy_from_slice(&value.to_le_bytes());
+        }
+        let imported = import(&b).unwrap();
+        assert!((imported.frame.width() - 72.).abs() < 1e-9);
+        // Header description does not alter physical device mapping.
+        let (_, millimetres_per_pixel, _) = emf::frame(&b).unwrap();
+        assert!((millimetres_per_pixel - 320. / 1024.).abs() < 1e-12);
+        b.extend_from_slice(&[0; 8]);
+        assert!(import(&b).is_ok());
+    }
+    #[test]
     fn destination_only_raster_operation_is_a_noop() {
         let mut p = Player::new(Kind::Emf, Affine::IDENTITY, 25.4 / 96., Rect::new(0., 0., 1., 1.));
         p.pattern_blit(Rect::new(0., 0., 1., 1.), 0x00AA_0029);
