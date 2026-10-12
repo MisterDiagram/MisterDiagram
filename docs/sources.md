@@ -61,6 +61,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/ellipse-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/vsdx/src/evaluate/path.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/ellipticalarcto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/vsdx/src/evaluate/path.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/embellishmentindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/endarrow-cell-line-format-section> | `crates/render/src/style.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/evalcell-function> | `crates/sheet/src/functions/references.rs`, `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/evaltext-function> | `crates/sheet/src/functions/references.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/eventlist-element-visiodocument_type-complextypevisio-xml> | `crates/model/src/lib.rs` |

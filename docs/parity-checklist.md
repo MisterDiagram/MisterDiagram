@@ -161,3 +161,6 @@ Core=N rows (excluded from milestone scoring):
 - P2-followup-2 item6, Character and paragraph formatting, tabs, bullets, fields (date, page, shape data): P: correct baseline and nonempty height slack; exact wrapping and font-width metrics remain incomplete. Tests: `percentage_line_baseline_matches_generated_alignment_svg; composed_text_height_slack_matches_visio_and_preserves_empty_blocks`.
 
 - P2-followup-2 text and master follow-on evidence: P remains. `text_metrics_return_scaled_drawing_units`, `empty_flowchart_text_does_not_recurse_through_wrapping_width`, and `repeated_knots_accept_serialization_noise_but_reject_descending_values` recover unit conversion and additional master errors. Contacts1107/1108; frozen render gate still fails.
+
+- P2-followup-3 text placement remains P: `text_blocks_and_unkerned_lines_match_visio_svg` checks16block rectangles and8wrapped line starts/baselines. Logical PNG text bounds remain open.
+- P2-followup-3 arrows remain P: `svg_marker_scales_aliases_and_shaft_setbacks` and `arrow_and_cap_export_dimensions_match_all_generated_witnesses` check SVG geometry and129PNG dimensions. Pixel acceptance remains separate.

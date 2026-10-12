@@ -1,7 +1,7 @@
 //! Procedural ShapeSheet paints and line decorations, in inches.
 use diagramcraft_color::Rgba;
 use diagramcraft_geom::{Affine, BezPath, Point, Rect};
-use kurbo::{Cap, Circle, Join, PathEl, RoundedRect, Shape, Stroke};
+use kurbo::{Cap, Circle, Join, ParamCurve, ParamCurveArclen, PathEl, RoundedRect, Shape, Stroke};
 
 #[derive(Clone, Debug)]
 pub struct Fill {
@@ -341,6 +341,53 @@ pub fn round_rectangle(path: &BezPath, radius: f64) -> BezPath {
     append(&mut out, &mut points, false, radius);
     out
 }
+fn marker_scale(size: u32, weight: f64) -> f64 {
+    // SVG arrow group, 2pt pens: sizes1/2/4 use1.90/2.26/2.98 stroke units.
+    weight * (1.54 + 0.36 * f64::from(size))
+}
+/// Shaft endpoints stop at the filled marker's rear intersection.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/endarrow-cell-line-format-section
+pub fn marker_setback(kind: u32, size: u32, weight: f64) -> f64 {
+    marker_scale(size, weight)
+        * match kind {
+            5 | 8 => 1.75,
+            39 => 4.,
+            _ => 0.,
+        }
+}
+/// Trim a single open contour by physical arc length, leaving closed contours intact.
+pub fn marker_shaft(path: &BezPath, begin: f64, end: f64) -> BezPath {
+    if begin <= 0. && end <= 0.
+        || path.elements().iter().filter(|e| matches!(e, PathEl::MoveTo(_))).count() != 1
+        || path.elements().iter().any(|e| matches!(e, PathEl::ClosePath))
+    {
+        return path.clone();
+    }
+    let segments: Vec<_> = path
+        .segments()
+        .map(|s| {
+            let length = s.arclen(1e-8);
+            (s, length)
+        })
+        .collect();
+    let total: f64 = segments.iter().map(|(_, n)| n).sum();
+    let limit = total - end;
+    let mut out = BezPath::new();
+    let mut offset = 0.;
+    for (segment, length) in segments {
+        let a = (begin - offset).max(0.);
+        let b = (limit - offset).min(length);
+        if b > a && length > 0. {
+            let part = segment.subsegment(segment.inv_arclen(a, 1e-8)..segment.inv_arclen(b, 1e-8));
+            if out.elements().is_empty() {
+                out.move_to(part.start());
+            }
+            out.push(part.as_path_el());
+        }
+        offset += length;
+    }
+    out
+}
 #[derive(Clone, Debug)]
 pub struct ArrowPart {
     pub path: BezPath,
@@ -356,7 +403,7 @@ pub fn arrow(kind: u32, size: u32, weight: f64, tip: Point, direction: f64) -> V
     {
         return vec![];
     }
-    let scale = weight * (1.5 + 0.375 * f64::from(size));
+    let scale = marker_scale(size, weight);
     let matrix = Affine::translate(tip.to_vec2()) * Affine::rotate(direction) * Affine::scale_non_uniform(-scale, scale);
     let mut parts = Vec::new();
     let mut add = |path: BezPath, filled: bool, stroke: bool| parts.push(ArrowPart { path: matrix * path, filled, stroke });
@@ -384,7 +431,14 @@ pub fn arrow(kind: u32, size: u32, weight: f64, tip: Point, direction: f64) -> V
             let filled = matches!(kind, 2 | 4 | 13);
             add(triangle(0., len, filled || kind >= 14), filled, !filled);
         }
-        5 | 6 | 8 | 17 | 18 => {
+        5 | 8 => {
+            // The SVG exports alias type8 to type5. Its rear edge is concave.
+            let mut p = line(&[(2., 1.), (0., 0.), (1.98117, -0.993387)], false);
+            p.curve_to((1.67173, -0.364515), (1.67301, 0.372641), (1.98465, 1.00043));
+            p.close_path();
+            add(p, true, false);
+        }
+        6 | 17 | 18 => {
             let mut p = triangle(0., 2., false);
             let bend = if matches!(kind, 6 | 18) { 2.45 } else { 1.55 };
             p.curve_to((bend, 0.33), (bend, -0.33), (2., -1.));
@@ -461,6 +515,26 @@ pub fn arrow(kind: u32, size: u32, weight: f64, tip: Point, direction: f64) -> V
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn svg_marker_scales_aliases_and_shaft_setbacks() {
+        // generated/arrow/end-08.svg, begin-08.svg and end-39.svg, 2pt pen.
+        for (size, scale) in [(1, 1.9), (2, 2.26), (4, 2.98)] {
+            assert!((marker_scale(size, 2. / 72.) * 72. - 2. * scale).abs() < 1e-10);
+            assert!((marker_setback(8, size, 2. / 72.) * 72. - 3.5 * scale).abs() < 1e-10);
+            assert!((marker_setback(39, size, 2. / 72.) * 72. - 8. * scale).abs() < 1e-10);
+            let a = arrow(8, size, 2. / 72., Point::ZERO, 0.);
+            let b = arrow(5, size, 2. / 72., Point::ZERO, 0.);
+            assert_eq!(a[0].path, b[0].path);
+        }
+        let mut path = BezPath::new();
+        path.move_to((0., 0.));
+        path.line_to((5., 0.));
+        let trimmed = marker_shaft(&path, 0., marker_setback(39, 1, 2. / 72.));
+        assert!((trimmed.bounding_box().x1 * 72. - 344.8).abs() < 1e-8);
+        assert!(marker_shaft(&path, 6., 0.).elements().is_empty());
+        path.close_path();
+        assert_eq!(marker_shaft(&path, 1., 1.), path);
+    }
     #[test]
     fn observed_diagonal_coverage_and_legacy_gradient_ramp() {
         let fill = Fill { pattern: 2, foreground: Rgba::rgb(0, 32, 96), background: Rgba::rgb(255, 255, 192) };

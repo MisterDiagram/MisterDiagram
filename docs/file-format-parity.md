@@ -609,3 +609,24 @@ experiment failed across these witnesses and was discarded, not calibrated. The
 renderer still uses glyph ink and the minimum text-block height. Bullet placement
 also differs (first text start132.960938pt versus the SVG bullet origin111.97pt);
 these origins include different bullet handling. No oracle was changed.
+
+### P2-followup-3: arrow marker profiles
+
+The generated arrow SVGs give scales1.90,2.26,2.98 stroke units for sizes1,2,4.
+`svg_marker_scales_aliases_and_shaft_setbacks` checks these values. Type8 aliases
+type5, with a concave cubic rear edge; type39 comprises adjacent filled triangles.
+The shaft stops at1.75 marker units for type5/8 and4 units for type39: end-39
+size1 ends at344.8pt,15.2pt before the original endpoint. Shaft trimming uses arc
+length on a single open contour, preserving closed contours.
+
+SVG marker scales imply a397.013333px logical height for end-39, while its PNG is
+397px. Rounding export extents to the same eighth-pixel device lattice used for
+coverage, before taking the enclosing integer size, preserves every generated
+arrow and line dimension. This is an observed raster-export quantization rule;
+SVG geometry remains floating point. Pixel ceilings and oracle images are unchanged.
+
+Vertical marker-edge samples (grey,0black/255white), y0..11:
+
+- `end-08`, x=470: Visio `[255, 255, 255, 255, 127, 0, 0, 255, 255, 255, 255, 255]`; before `[255, 255, 255, 255, 191, 0, 0, 159, 255, 255, 255, 255]`; after `[255, 255, 255, 255, 191, 0, 0, 127, 255, 255, 255, 255]`.
+- `end-39`, x=470: Visio `[255, 255, 255, 255, 255, 143, 239, 255, 255, 255, 255, 255]`; before `[255, 255, 255, 255, 184, 0, 0, 153, 255, 255, 255, 255]`; after `[255, 255, 255, 255, 255, 61, 15, 237, 255, 255, 255, 255]`.
+- `begin-08`, x=10: Visio `[255, 120, 120, 183, 107, 0, 0, 199, 159, 88, 207, 255]`; before `[255, 120, 169, 251, 191, 0, 0, 159, 252, 173, 121, 255]`; after `[255, 96, 91, 173, 179, 0, 0, 151, 189, 105, 85, 255]`.

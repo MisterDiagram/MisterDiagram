@@ -116,8 +116,11 @@ impl Scene {
             return Err("render bounds limit".into());
         }
         let dpi = 96. * options.scale;
-        let w = (b.width() * dpi - 1e-7).ceil().max(1.);
-        let h = (b.height() * dpi - 1e-7).ceil().max(1.);
+        // Export extents share the rasterizer eighth-pixel device grid.
+        // end-39.svg gives397.0133px; its PNG is397px, not398.
+        let extent = |v: f64| ((v * dpi * 8.).round() / 8. - 1e-7).ceil().max(1.);
+        let w = extent(b.width());
+        let h = extent(b.height());
         if w > f64::from(u16::MAX) || h > f64::from(u16::MAX) || w * h > MAX_PIXELS as f64 {
             return Err("render pixel limit".into());
         }
@@ -378,7 +381,12 @@ fn shapes(
                 if filled_marker(line.end_arrow) {
                     stroke.end_cap = kurbo::Cap::Butt;
                 }
-                let outline = kurbo::stroke(path.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-5);
+                let shaft = style::marker_shaft(
+                    &path,
+                    style::marker_setback(line.begin_arrow, line.begin_size, line.weight),
+                    style::marker_setback(line.end_arrow, line.end_size, line.weight),
+                );
+                let outline = kurbo::stroke(shaft.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-5);
                 scene.ops.push(Op::Path { path: transform * outline, paint: Paint::Solid(line.color) });
                 let endpoints: Vec<Point> = path
                     .elements()
