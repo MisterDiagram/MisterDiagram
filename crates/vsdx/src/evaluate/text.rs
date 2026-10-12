@@ -55,8 +55,20 @@ impl<'a> Evaluator<'a> {
                     if nodes > 65536 || depth >= 128 {
                         return Err(Error::Limit);
                     }
-                    if e.name == "fld" && flags & 2 != 0 {
-                        out.push('\u{fffc}');
+                    if e.name == "fld" {
+                        if flags & 2 != 0 {
+                            out.push('\u{fffc}');
+                        } else {
+                            let index = e.attr("IX").unwrap_or("0").parse::<u32>().map_err(|_| Error::Value)?;
+                            if index > 65535 {
+                                return Err(Error::Limit);
+                            }
+                            let text = self.field_text(scope, index, &super::limited_text(e)?)?;
+                            if out.len().saturating_add(text.len()) > 65536 {
+                                return Err(Error::Limit);
+                            }
+                            out.push_str(&text);
+                        }
                     } else {
                         stack.push((e.children.iter(), depth + 1));
                     }
@@ -71,6 +83,52 @@ impl<'a> Evaluator<'a> {
         }
         Ok(out)
     }
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/value-cell-text-fields-section
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-text-fields-section
+    fn field_text(&mut self, scope: Scope, row: u32, saved: &str) -> Result<String, Error> {
+        if saved.len() > 65536 {
+            return Err(Error::Limit);
+        }
+        let reference = indexed("Fields", "Value", row);
+        let Some(cell) = self.cell(scope, &reference) else {
+            return Ok(saved.into());
+        };
+        if cell.units.as_deref() == Some("DATE")
+            || self
+                .effective_formula(scope, &reference)
+                .as_deref()
+                .is_some_and(|f| diagramcraft_sheet::parse(f).is_ok_and(|e| super::hook_references(&e, false).is_ok_and(|h| h.is_some())))
+        {
+            return Ok(saved.into());
+        }
+        let value = self.evaluate(scope, &reference);
+        if let Some(e) = value.error() {
+            return Err(e);
+        }
+        let format = self.evaluate(scope, &indexed("Fields", "Format", row)).text();
+        let text = if matches!(value, Value::Text(_)) || format.is_empty() || format == "esc(0)" {
+            value.text()
+        } else {
+            let expression = diagramcraft_sheet::Expr::Call {
+                name: "FORMAT".into(),
+                args: vec![diagramcraft_sheet::Expr::Reference(reference), diagramcraft_sheet::Expr::Text(format)],
+            };
+            let mut context = super::BoundContext { evaluator: self, scope, origin: scope, cached: Value::Text(saved.into()) };
+            let formatted = diagramcraft_sheet::evaluate(&expression, &mut context);
+            if matches!(formatted, Value::Error(Error::Unsupported(_))) {
+                saved.into()
+            } else {
+                if let Some(e) = formatted.error() {
+                    return Err(e);
+                }
+                formatted.text()
+            }
+        };
+        if text.len() > 65536 {
+            return Err(Error::Limit);
+        }
+        Ok(text)
+    }
     fn text_number(&mut self, scope: Scope, name: &str, default: f64) -> f64 {
         self.evaluate(scope, name).numeric().ok().filter(|v| v.is_finite() && v.abs() <= 1e6).unwrap_or(default)
     }
@@ -83,6 +141,7 @@ impl<'a> Evaluator<'a> {
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/style-cell-character-section
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/pos-cell-character-section
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/color-cell-character-section
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/spacing-cell-character-section
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/case-cell-character-section
     fn run_props(&mut self, scope: Scope, row: u32) -> RunProps {
         let font = self.text_font(scope, &indexed("Char", "Font", row));
@@ -101,6 +160,7 @@ impl<'a> Evaluator<'a> {
         RunProps {
             font: Some(font),
             size: Some(n("Size", 12. / 72.) * 72.),
+            spacing: Some(n("Letterspace", 0.) * 72.),
             bold: Some(style & 1 != 0),
             italic: Some(style & 2 != 0),
             underline: (style & 4 != 0).then(|| "sng".into()),
@@ -161,7 +221,7 @@ impl<'a> Evaluator<'a> {
             margin_left: Some(n("IndLeft", 0.) * 72.),
             margin_right: Some(n("IndRight", 0.) * 72.),
             indent: Some(n("IndFirst", 0.) * 72.),
-            line_spacing: Some(if line > 0. { Spacing::Pts(line * 72.) } else { Spacing::Pct(if line == 0. { 1. } else { -line }) }),
+            line_spacing: Some(if line > 0. { Spacing::Pts(line * 72.) } else { Spacing::FontPct(if line == 0. { 1. } else { -line }) }),
             space_before: Some(Spacing::Pts(n("SpBefore", 0.) * 72.)),
             space_after: Some(Spacing::Pts(n("SpAfter", 0.) * 72.)),
             rtl: Some(n("TextDirection", 0.) != 0.),
@@ -175,29 +235,34 @@ impl<'a> Evaluator<'a> {
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/position-cell-tabs-section
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/alignment-cell-tabs-section
     fn tab_stops(&mut self, scope: Scope, row: u32) -> Vec<TabStop> {
-        let Some(shape) = self.shape(scope) else {
-            return vec![];
-        };
-        let Some(r) = shape.sheet.sections.iter().find(|s| s.name == "Tabs").and_then(|s| s.rows.iter().find(|r| r.index.unwrap_or(0) == row)) else {
-            return vec![];
-        };
+        let names: Vec<_> = self
+            .resolved_named_cells(scope)
+            .into_iter()
+            .filter(|n| {
+                n.section.is_some_and(|s| s.name == "Tabs")
+                    && n.row.is_some_and(|r| r.index.unwrap_or(0) == row)
+                    && n.cell.name.starts_with("Position")
+            })
+            .take(4096)
+            .map(|n| (n.name.clone(), n.cell.name.clone()))
+            .collect();
         let mut out = Vec::new();
-        for c in r.cells.iter().filter(|c| c.name.starts_with("Position")).take(4096) {
-            if let Some(pos) = c.value.as_deref().and_then(|v| v.parse::<f64>().ok()).filter(|v| v.is_finite() && v.abs() < 1e6) {
-                let suffix = c.name.trim_start_matches("Position");
-                let align = r.cells.iter().find(|c| c.name == format!("Alignment{suffix}")).and_then(|c| c.value.as_deref()).unwrap_or("0");
-                out.push(TabStop {
-                    pos: pos * 72.,
-                    align: match align {
-                        "1" => "ctr",
-                        "2" => "r",
-                        "3" => "dec",
-                        _ => "l",
-                    }
-                    .into(),
-                });
-            }
+        for (name, column) in names {
+            let pos = self.text_number(scope, &name, 0.);
+            let align_name = name.replacen(&column, &column.replacen("Position", "Alignment", 1), 1);
+            let align = self.text_number(scope, &align_name, 0.);
+            out.push(TabStop {
+                pos: pos * 72.,
+                align: match align as i32 {
+                    1 => "ctr",
+                    2 => "r",
+                    3 => "dec",
+                    _ => "l",
+                }
+                .into(),
+            });
         }
+        out.sort_by(|a, b| a.pos.total_cmp(&b.pos));
         out
     }
     /// Parse cp/pp/tp run markers and field display text, preserving the formatting of every run.
@@ -224,6 +289,7 @@ impl<'a> Evaluator<'a> {
             ..Default::default()
         };
         let Some(source) = source else {
+            body.paragraphs.push(Paragraph { props: self.para_props(scope, 0, 0), end_props: self.run_props(scope, 0), ..Default::default() });
             return Ok(body);
         };
         let mut cr = 0;
@@ -262,7 +328,7 @@ impl<'a> Evaluator<'a> {
                             para.props = self.para_props(scope, pr, tr);
                             continue;
                         }
-                        "fld" => (super::limited_text(e)?, RunKind::Field { field: index.to_string() }),
+                        "fld" => (self.field_text(scope, index, &super::limited_text(e)?)?, RunKind::Field { field: index.to_string() }),
                         _ => return Err(Error::Unsupported(format!("text marker {}", e.name))),
                     }
                 }
@@ -354,6 +420,28 @@ mod tests {
             let doc = document(&xml);
             assert!(Evaluator::new(&doc).unwrap().text_body(scope).is_err());
         }
+    }
+    #[test]
+    fn fields_expand_current_values_and_format_pictures() {
+        use diagramcraft_model::{Cell, Row, Section};
+        let mut doc = document("<Text>Total: <fld IX='0'>saved</fld>\n</Text>");
+        doc.pages[0].shapes[0].sheet.sections.push(Section {
+            name: "Field".into(),
+            rows: vec![Row {
+                index: Some(0),
+                cells: vec![
+                    Cell { name: "Value".into(), value: Some("2".into()), formula: Some("1+1".into()), ..Default::default() },
+                    Cell { name: "Format".into(), value: Some("0.0".into()), units: Some("STR".into()), ..Default::default() },
+                ],
+                ..Default::default()
+            }],
+            ..Default::default()
+        });
+        let mut e = Evaluator::new(&doc).unwrap();
+        let scope = Scope::PageShape { page: 1, shape: 1 };
+        assert_eq!(e.text_string(scope, 0).unwrap(), "Total: 2.0");
+        e.set_formula(scope, "Fields.Value", "3.5").unwrap();
+        assert_eq!(e.text_body(scope).unwrap().paragraphs[0].text(), "Total: 3.5");
     }
     #[test]
     fn generated_text_group_resolves_runs_and_transforms() {

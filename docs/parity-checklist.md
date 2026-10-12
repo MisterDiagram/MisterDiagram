@@ -128,7 +128,7 @@ Core=N rows (excluded from milestone scoring):
 
 - Themes and variants: P, `diagramcraft-theme::resolve::tests::microsoft_themeval_examples_and_variant_selectors`. Package color/font/format tables, variant selectors and eight theme functions are evaluated. Corpus rates include theme cells; final rendered fidelity and full effect coverage remain open.
 
-## M2.4 worktree evidence (not committed)
+## M2.4 text evidence
 
-- Character and paragraph formatting remains partial: `diagramcraft-vsdx::evaluate::text::tests::markers_fields_and_hostile_text` and `diagramcraft-text::tests::finite_wrapping_bidi_and_autofit`. Field display text is retained; full field expansion and aligned tab placement remain open.
-- Text block control remains partial: `diagramcraft-vsdx::evaluate::text::tests::generated_text_group_resolves_runs_and_transforms` and `diagramcraft-text::tests::finite_wrapping_bidi_and_autofit`. Pixel fidelity and exact Visio metrics have not passed.
+- Character and paragraph formatting remains partial: `diagramcraft-vsdx::evaluate::text::tests::markers_fields_and_hostile_text` and `diagramcraft-text::tests::finite_wrapping_bidi_and_autofit`. Nonvolatile string/numeric field expansion is tested by `fields_expand_current_values_and_format_pictures`; aligned tabs and font-size spacing by `visio_font_percentage_empty_line_and_aligned_tabs`. Date-host fields retain their saved display.
+- Text block control remains partial: `diagramcraft-vsdx::evaluate::text::tests::generated_text_group_resolves_runs_and_transforms` and `diagramcraft-text::tests::finite_wrapping_bidi_and_autofit`. `probe_connector_empty_text_retains_minimum_line_height` fixes the original empty-label discrepancy. Pixel fidelity and full text metrics have not passed.

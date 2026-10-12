@@ -173,6 +173,8 @@ impl Align {
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", tag = "kind", content = "v")]
 pub enum Spacing {
+    /// Percentage of font size, as Visio SpLine defines it.
+    FontPct(f64),
     Pct(f64),
     Pts(f64),
 }

@@ -296,6 +296,7 @@ fn face_chain(st: &Style, slot: FontSlot, _script: Option<ScriptTag>) -> Vec<Arc
 
 fn spacing_pts(s: Option<Spacing>, size: f64, reduce: f64) -> f64 {
     match s {
+        Some(Spacing::FontPct(p)) => p * size * (1.0 - reduce),
         Some(Spacing::Pct(p)) => p * size * 1.2 * (1.0 - reduce),
         Some(Spacing::Pts(v)) => v * (1.0 - reduce),
         None => 0.0,
@@ -710,7 +711,7 @@ fn break_lines(
     first_w: f64,
     rest_w: f64,
     wrap: bool,
-    tab_stops: &[f64],
+    tab_stops: &[diagramcraft_model::text::TabStop],
     default_tab: f64,
     x0_first: f64,
     x0_rest: f64,
@@ -738,7 +739,11 @@ fn break_lines(
                 next = i + 1;
                 break;
             }
-            let adv = if c == '\t' { tab_advance(x0 + x, tab_stops, default_tab) } else { p.cells.get(i).map(|c| c.adv).unwrap_or(0.0) };
+            let adv = if c == '\t' {
+                tab_advance(x0 + x, tab_stops, default_tab, p.cells.get(i + 1..).unwrap_or(&[]))
+            } else {
+                p.cells.get(i).map(|c| c.adv).unwrap_or(0.0)
+            };
             let breakable = |j: usize| p.cells.get(j).is_none_or(|c| c.breakable(j));
             if i > start && allowed.get(i).copied().unwrap_or(false) && breakable(i) {
                 last_break = Some(i);
@@ -784,15 +789,29 @@ fn break_lines(
     lines
 }
 
-fn tab_advance(x: f64, stops: &[f64], default_tab: f64) -> f64 {
-    for s in stops {
-        if *s > x + 0.5 {
-            return s - x;
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/alignment-cell-tabs-section
+fn tab_advance(x: f64, stops: &[diagramcraft_model::text::TabStop], default_tab: f64, following: &[Cell]) -> f64 {
+    let mut width = 0.;
+    let mut decimal = None;
+    for cell in following.iter().take_while(|c| !matches!(c.ch, '\t' | '\n' | '\u{b}')) {
+        if cell.ch == '.' && decimal.is_none() {
+            decimal = Some(width);
+        }
+        width += cell.adv;
+    }
+    for stop in stops {
+        if stop.pos > x + 0.5 {
+            let shift = match stop.align.as_str() {
+                "ctr" => width / 2.,
+                "r" => width,
+                "dec" => decimal.unwrap_or(width),
+                _ => 0.,
+            };
+            return (stop.pos - x - shift).max(0.);
         }
     }
-    let d = if default_tab > 1.0 { default_tab } else { 72.0 };
-    let next = ((x / d).floor() + 1.0) * d;
-    (next - x).max(1.0)
+    let d = if default_tab > 0. && default_tab.is_finite() { default_tab } else { 36. };
+    ((((x / d).floor() + 1.) * d) - x).max(0.)
 }
 
 /// Lay out a shape's text body.
@@ -888,7 +907,7 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
             (margin + indent).max(0.0)
         };
         let rest_x = margin;
-        let tabs: Vec<f64> = props.tabs.as_ref().map(|t| t.iter().map(|s| s.pos).collect()).unwrap_or_default();
+        let tabs = props.tabs.clone().unwrap_or_default();
         let first_w = (col_w - first_x - mr).max(1.0);
         let rest_w = (col_w - rest_x - mr).max(1.0);
         let raw = break_lines(p, first_w, rest_w, wrap, &tabs, props.default_tab.unwrap_or(72.0), first_x, rest_x);
@@ -915,6 +934,7 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
             }
             let natural = (asc + desc).max(size * 1.0);
             let lh = match props.line_spacing {
+                Some(Spacing::FontPct(f)) => size * f.max(0.0) * (1.0 - reduce),
                 Some(Spacing::Pct(f)) => natural * f.max(0.0) * (1.0 - reduce),
                 Some(Spacing::Pts(v)) => v * (1.0 - reduce),
                 None => natural * (1.0 - reduce),
@@ -930,8 +950,12 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
             // Logical advances; tabs measure from the start edge.
             let mut adv = Vec::with_capacity(n);
             let mut x = 0.0;
-            for c in line_cells {
-                let a = if c.ch == '\t' { tab_advance(x0 + x, &tabs, props.default_tab.unwrap_or(72.0)) } else { c.adv };
+            for (k, c) in line_cells.iter().enumerate() {
+                let a = if c.ch == '\t' {
+                    tab_advance(x0 + x, &tabs, props.default_tab.unwrap_or(72.0), line_cells.get(k + 1..).unwrap_or(&[]))
+                } else {
+                    c.adv
+                };
                 adv.push(a);
                 x += a;
             }
@@ -1058,7 +1082,7 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
         out.para_lines.push((first_line_idx, raw.len()));
         prev_after = spacing_pts(props.space_after, p.lead_size, reduce).max(0.0);
     }
-    let total = y;
+    let total = y + prev_after;
     out.content_height = total;
     // Columns: distribute lines by height.
     let col_h = if ncols > 1 { inner.height() } else { f64::INFINITY };
@@ -1638,6 +1662,9 @@ fn validate(body: &TextBody, rect: Rect) -> Result<(), String> {
     }
     let mut count = 0usize;
     let mut metadata = body.body.warp.as_ref().map_or(0, String::len);
+    if metadata > 65536 {
+        return Err("text metadata limit".into());
+    }
     let charge = |total: &mut usize, text: Option<&String>| -> Result<(), String> {
         *total = total.checked_add(text.map_or(0, String::len)).ok_or("text metadata limit")?;
         if *total > 65536 {
@@ -1673,7 +1700,7 @@ fn validate(body: &TextBody, rect: Rect) -> Result<(), String> {
         }
         for s in [pp.space_before, pp.space_after, pp.line_spacing].into_iter().flatten() {
             if !finite(match s {
-                Spacing::Pts(v) | Spacing::Pct(v) => v,
+                Spacing::Pts(v) | Spacing::Pct(v) | Spacing::FontPct(v) => v,
             }) {
                 return Err("invalid paragraph spacing".into());
             }

@@ -39,3 +39,41 @@ fn report_default_font_substitutes() {
         println!("{family} -> {} ({} font bytes)", face.family, face.data().len());
     }
 }
+
+#[test]
+fn visio_font_percentage_empty_line_and_aligned_tabs() {
+    use diagramcraft_model::text::TabStop;
+    let mut body = TextBody {
+        body: BodyProps {
+            inset_l: Some(0.),
+            inset_r: Some(0.),
+            inset_t: Some(4.),
+            inset_b: Some(4.),
+            anchor: Some(Anchor::Top),
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    body.paragraphs.push(Paragraph {
+        props: ParaProps { line_spacing: Some(Spacing::FontPct(1.2)), ..Default::default() },
+        end_props: RunProps { font: Some("Calibri".into()), size: Some(8.), ..Default::default() },
+        ..Default::default()
+    });
+    let (_, height) = Host.measure(&body, Some(100.)).unwrap();
+    assert!((height - 17.6).abs() < 1e-9);
+    body.paragraphs[0].runs = vec![Run::with("x\t123.45", RunProps { font: Some("Calibri".into()), size: Some(12.), ..Default::default() })];
+    for alignment in ["l", "ctr", "r", "dec"] {
+        body.paragraphs[0].props.tabs = Some(vec![TabStop { pos: 80., align: alignment.into() }]);
+        let l = layout(&body, &Opts { rect: Rect::new(0., 0., 200., 100.), fields: &NoFields, prompt_color: None, no_shrink: true }).unwrap();
+        let line = &l.lines[0];
+        let begin = line.edges[2].0;
+        let end = line.edges[7].1;
+        let at = match alignment {
+            "ctr" => (begin + end) / 2.,
+            "r" => end,
+            "dec" => line.edges[5].0,
+            _ => begin,
+        };
+        assert!((at - 80.).abs() < 1e-8, "{alignment}: {at}");
+    }
+}

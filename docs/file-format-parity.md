@@ -4,6 +4,12 @@ Status: pre-alpha, M1 met. All acceptance commands and two independent frozen ve
 
 ## Measured
 
+M2.4.0 full main counts match M2.3: oracle 1 4627833/4716091 (98.128577%),
+oracle 2 7633655/7695822 (99.192198%), with non-literal 578894/579660 (99.867854%).
+Text-only cached is 25010/67797 (36.889538%); text-only COM is 683/3625
+(18.841379%), deferred. The M2.4 empty-line regression now matches the connector
+master's 0.2444444444444444-inch height; full text fidelity remains unaccepted.
+
 P2-followup embeds 18 Latin face files from google/fonts commit `bd8f81ddb5`.
 System scanning stays disabled. The public checkout no longer needs craft-fonts for
 Latin shaping. Arimo variable Regular, Bold, Italic and Bold Italic are shaped and

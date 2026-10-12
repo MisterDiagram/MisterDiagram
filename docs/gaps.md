@@ -76,3 +76,9 @@ sets and aligned tab placement remain open. Rendering, export, contact sheets, r
 fuzzing, performance gates and independent M2 review have not been reached.
 
 M2.4.0 adds all 18 requested pinned font files, attribution and notices, and the authorized 90% text promotion gate. Arimo variables shape directly. Main floors stay fixed and theme stays included; a deferred text bucket is not milestone acceptance.
+
+M2.4 now supplies font-size percentage spacing, a minimum empty line, trailing paragraph
+spacing, aligned tab placement and formatted nonvolatile fields. The original empty-label
+height matches its corpus witness. Full text metrics and all rendered text remain measured
+gaps until the later render and promotion gates; date/document fields still use their
+saved display while their separate hooks remain deferred.
