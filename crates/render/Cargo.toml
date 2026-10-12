@@ -8,6 +8,9 @@ license.workspace = true
 workspace = true
 
 [dependencies]
+diagramcraft-geom.workspace = true
+diagramcraft-color.workspace = true
+kurbo.workspace = true
 diagramcraft-model.workspace = true
 diagramcraft-text.workspace = true
 diagramcraft-theme.workspace = true

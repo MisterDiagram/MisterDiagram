@@ -204,9 +204,12 @@ dependencies = [
 name = "diagramcraft-render"
 version = "0.0.1"
 dependencies = [
+ "diagramcraft-color",
+ "diagramcraft-geom",
  "diagramcraft-model",
  "diagramcraft-text",
  "diagramcraft-theme",
+ "kurbo",
 ]
 
 [[package]]

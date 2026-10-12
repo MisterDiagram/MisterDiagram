@@ -24,3 +24,5 @@ clean independent frozen verification passes.
 - 2026-10-12: M2.0 discovery fixes: strict cached 4302905/4408935 (97.595111%), resolved 7209425/7271082 (99.152024%), non-literal resolved 99.836044%. Basic-rectangle dump zero differences; CI seven gates pass; parity remains 10%.
 
 - 2026-10-12: M2.1 all fifteen geometry row kinds to kurbo paths, bounded NURBS/splines, section flags and y-up group transforms. Private corpus witness and numerical tests added; renderer work remains next.
+
+- 2026-10-12: M2.2 procedural paints, strokes and arrow primitives. Corpus-derived fill densities and dash lengths tested; rendered fidelity is not yet measured.

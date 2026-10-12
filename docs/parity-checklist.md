@@ -119,3 +119,7 @@ Core=N rows (excluded from milestone scoring):
 
 - Geometry sections with formulas remain P: `diagramcraft-vsdx::evaluated_master_and_group_paths_use_inherited_rows` binds evaluated inherited rows to the L0 converter; `every_geometry_row_has_a_real_corpus_witness` covers all fifteen kinds, including RelEllipticalArcTo. Authoring remains Phase 4.
 - Group transforms remain an implemented rendering prerequisite, without scoring move/resize/edit commands: `diagramcraft-geom::rows::tests::infinite_line_clips_and_group_composition_stays_y_up`.
+
+## M2.2 paint evidence
+
+- Format and connector-arrow rows remain M until an output backend and render comparisons exist. `diagramcraft-render::style::tests::measured_line_families_and_fill_density` checks the observed dash families and procedural fill coverage; `all_patterns_and_arrow_sizes_are_finite_and_bounded` checks all identifiers and sizes.

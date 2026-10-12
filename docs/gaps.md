@@ -51,3 +51,9 @@ transforms. Fifteen kinds have private corpus witnesses; relative Beziers, splin
 equivalence, clipping and hostile inputs have numerical regressions. The original CAD
 editing algorithms remain dormant after their two earlier retarget failures; the active
 row converter is new. Fills, lines, themes, text, images and all output formats remain next.
+
+M2.2 paint primitives now cover procedural fill patterns 0..40, gradient stops with alpha,
+line patterns 0..23, cap/join/compound bands, straight-corner rounding and arrow kinds 0..45.
+Mixed curve/line corner rounding and precise curved-arrow profiles still need render-oracle work;
+no visual score is claimed before Step 6. Marker size extrapolation outside corpus sizes
+1,2,4 remains unmeasured.
