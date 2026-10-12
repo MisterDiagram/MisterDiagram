@@ -1760,11 +1760,30 @@ impl diagramcraft_model::text::TextHost for Host {
         if width <= 0. {
             return Err("text width must be positive".into());
         }
+        let composed = body.paragraphs.iter().flat_map(|p| &p.runs).any(|r| !r.text.is_empty() || matches!(r.kind, RunKind::Field { .. }));
+        // ADO_M master2 shape45 (6pt), ANNOT_U master14 shape5 (8pt), and
+        // ASSOCIATIONS_UML_CLASS_M master9 shape5 (10pt): metric font sizes round
+        // in inches to 18 fractional bits. SVG painting retains the source size.
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/textheight-function
+        let mut metric_body;
+        let body = if composed {
+            metric_body = body.clone();
+            for p in &mut metric_body.paragraphs {
+                for props in p.runs.iter_mut().map(|r| &mut r.props).chain(std::iter::once(&mut p.end_props)) {
+                    if let Some(size) = props.size {
+                        props.size = Some((size / 72. * 262144.).round() / 262144. * 72.);
+                    }
+                }
+            }
+            &metric_body
+        } else {
+            body
+        };
         let l = layout(body, &Opts { rect: Rect::new(0., 0., width, 100_000.), fields: &NoFields, prompt_color: None, no_shrink: true })?;
         // Visio adds 0.00005 in to composed, nonempty text, but not to an empty block.
         // Witnesses: generated/basic/0001-probe page0 shape5 and AWSANALYTICS_U master2 shape5.
         // https://learn.microsoft.com/en-us/office/client-developer/visio/textheight-function
-        let composed_slack = if body.paragraphs.iter().flat_map(|p| &p.runs).any(|r| !r.text.is_empty()) { 0.00005 * 72. } else { 0. };
+        let composed_slack = if composed { 0.00005 * 72. } else { 0. };
         Ok((
             l.content_width + body.body.inset_l.unwrap_or(0.) + body.body.inset_r.unwrap_or(0.),
             l.content_height + body.body.inset_t.unwrap_or(0.) + body.body.inset_b.unwrap_or(0.) + composed_slack,

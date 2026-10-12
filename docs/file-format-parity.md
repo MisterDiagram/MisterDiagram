@@ -4,53 +4,54 @@ Status: pre-alpha, M1 met. Phase 2 is partial and fails its render and text-prom
 
 ## Measured
 
-P2-followup-2 partial worktree: all 204 generated drawings render without command
-failures. Size mismatches fall from 35 to 10; fill and line pass their frozen group
-ceilings. MAD below is in RGB units from 0 to 255. Mismatched files have no pixel
-score and always fail. No oracle image is resized for these comparisons.
+P2-followup-3: all 204 generated drawings render without command failures.
+Eight of ten render groups pass their frozen ceilings. Ten size mismatches remain
+(9 text, 1 page); mismatched files receive no pixel score and always fail. MAD is
+in RGB units from 0 to 255. Oracle images are never resized for this comparison.
 
 | Group | Files | Size mismatches | Mean RGB MAD | Pixels over 16 | Gate |
 |---|---:|---:|---:|---:|---|
-| arrow | 92 | 0 | 2.928643 | 2.217007% | FAIL |
-| basic | 1 | 0 | 2.481191 | 2.008629% | FAIL |
-| connector | 6 | 0 | 4.906090 | 2.086032% | FAIL |
-| fill | 44 | 0 | 1.881272 | 1.883832% | PASS |
-| group | 1 | 0 | 2.874225 | 2.541990% | FAIL |
-| image | 3 | 0 | 3.494772 | 3.956284% | FAIL |
-| line | 37 | 0 | 2.233283 | 1.518873% | PASS |
-| master | 1 | 0 | 3.472529 | 2.609142% | FAIL |
-| page | 3 | 1 | 2.551506 | 1.534294% | FAIL |
-| text | 16 | 9 | 3.362636 | 2.989645% | FAIL |
+| arrow | 92 | 0 | 0.543633 | 1.071225% | PASS |
+| basic | 1 | 0 | 0.443949 | 0.745332% | PASS |
+| connector | 6 | 0 | 2.142340 | 1.225363% | PASS |
+| fill | 44 | 0 | 1.112028 | 1.373298% | PASS |
+| group | 1 | 0 | 0.690956 | 1.251292% | PASS |
+| image | 3 | 0 | 1.602828 | 1.731289% | PASS |
+| line | 37 | 0 | 1.076040 | 1.030076% | PASS |
+| master | 1 | 0 | 1.608085 | 1.791412% | PASS |
+| page | 3 | 1 | 0.642698 | 1.283689% | FAIL |
+| text | 16 | 9 | 2.187714 | 2.393385% | FAIL |
 
-The resvg and pypdf tests pass all 204 outputs, with extractable text in all 16 text
-drawings. This does not prove complete character preservation: ligature extraction
-and field reading order remain gaps. All 24 paired contact sheets were regenerated.
-They cover 1108 masters, with one local failure: BASFLO_U Custom1, master 11,
-shape 4, has a direct Height/Scratch.Y1 cycle. All 1108 Visio reference exports exist.
-These are private observations, not distributable assets. Performance is 24552 ms
-for the largest stencil (43 masters, zero errors) and 436 ms for 500 shapes.
-No render performance budget is frozen. No new Rust commits landed because the
-mandatory render gate still fails CI. The human reviewed the previous sheets and
-kept all ceilings unchanged; M2 remains unaccepted.
+All 204 resvg comparisons pass (worst MAD1.451692); all 204 PDFs have one page,
+and all 16 text drawings have extractable text. Complete character preservation,
+ligature extraction and field reading order remain separate gaps. All 24 paired
+contact sheets now cover 1108/1108 rendered masters with 1108 Visio references.
+Custom1's clamped cycle is resolved by proven bounds, documented below. These
+private observations are not distributable assets. Performance: 25891 ms for the
+largest 43-master stencil, 479 ms for 500 shapes. Performance budgets remain unfrozen.
 
+CI passes all 8 gates with Charles's 2026-10-12 advisory render rule. Every other
+gate remains mandatory. Strict corpus check exits 1. Render CI becomes mandatory
+again when the human gate freezes the ceilings; M2 remains unaccepted.
 
-P2-followup-2 full coverage: 1387 packages, all 1181 shipped packages, 162 completed
-shipped dumps and 375 TSVs. Oracle 1 is 4627375/4716091 (98.118866%), above its
-97.5951% floor. Oracle 2 is 14252130/14363222 (99.226552%), with non-literal COM
-1570871/1586871 (98.991726%). Text cached rises from 34267/67797 (50.543534%) to
-54294/67797 (80.083190%); text COM rises from 3583/7724 (46.387882%) to 6192/7724
-(80.165717%). Both remain below 90%, so text is deferred. Theme COM is
-1053468/1059698 (99.412097%); cached theme is 281901/307601 (91.645021%).
-Shared inputs are read without rewriting files.
+Full coverage: 1387 packages, 1181 shipped packages, 162 completed shared shipped
+dumps, 375 TSVs. Oracle 1: 4627375/4716091 (98.118866%), floor 97.5951%.
+Oracle 2: 14252130/14363222 (99.226552%), floor 98.6241%; non-literal COM
+1570871/1586871 (98.991726%). Theme cells remain included. Text cached improves
+from 54294/67797 (80.083190%) at the start of this brief to 57276/67797 (84.481614%);
+text COM improves from 6192/7724 (80.165717%) to 6443/7724 (83.415329%). Neither
+reaches 90%, so both remain separate from the main denominators under Charles's
+rule. The fresh selected BASFLO dump remains in private _vm output, never written
+to the read-only shared dump directory.
 
-Remaining cached text failures include 4078 TxtWidth, 2978 TxtHeight, 1879
-User.Width and 890 Height cells. Examples: ADO_M master 2 shape 45 TxtWidth is
-0.3479410807291667 versus Visio 0.3668267852610678. Fine height rounding remains:
-521 TxtHeight and 382 Height cases have approximately -0.000002in error, and 215
-TxtHeight cases approximately +0.000002in. Another 212 TxtHeight cases require
-unsupported FIND. These are overlapping diagnostic subsets, not new exclusions.
-The full local report lists the ten most frequent failing cells before and after,
-with signed deltas and corpus witnesses.
+Remaining text failures: 10521 cached and 1281 COM. Cached width/width-derived
+buckets contain 4078 TxtWidth, 1879 User.Width, 1620 Width, 314 User.DirArrowOffset,
+265 User.MenuItemTextSize and186 User.TextWidth; height buckets contain 1057
+TxtHeight and 219 Height. Other cached cells total 903. COM User.Width has 658
+failures, Width 203, and other cells 420. Value errors overlap these buckets:
+324 cached TxtHeight, 219 TxtWidth and 108 User.TextHeight. Width measurement,
+field evaluation and inherited formatting still need work; no tolerance changed.
+The private session report retains the ten leading buckets, deltas and witnesses.
 
 M2.5 writes PNG, SVG and vector PDF for all 204 generated drawings. This is output coverage, not visual acceptance. PDF embeds the OFL faces and uses native variable coordinates for Arimo. Page/layer/background tests pass; pixel dimensions and appearance remain the M2.6 gate.
 
@@ -248,7 +249,7 @@ failures. Nine text files and metric-scale still require logical text-bound work
 no constant padding or per-file size override is used.
 
 
-Current M2.4 text witnesses: generated/basic/0001-probe.vsdx master 2 shape 5
+Historical M2.4 text witnesses (superseded by M2.4.3 below): generated/basic/0001-probe.vsdx master 2 shape 5
 TxtHeight now matches Visio 0.2444444444444444 inches. Page 0 shape 5 is now
 0.24449444444444446 versus Visio 0.2444939358181424. ADO_M.vssx master 2
 shape 45 TxtWidth remains 0.3479410807291667 versus Visio 0.3668267852610678.
@@ -263,8 +264,8 @@ focus with physical aspect ratio. These black-box observations do not establish 
 contradiction of a documented reference example.
 
 Remaining render bounds: page/metric-scale.vsdx is 77x32 versus
-77x30; text/align-0-2.vsdx is 387x291 versus 385x289. Arrow stroke extents, square
-cap semantics, text logical extents and font metrics require implementation fixes.
+77x30; text/align-0-2.vsdx is 387x291 versus 385x289. Text logical export extents remain unresolved; marker, cap and physical stroke
+corrections below recover the other generated dimensions.
 
 
 Historical P2-followup font-only check (implementation discrepancies, not established reference
@@ -697,3 +698,26 @@ on a detected cycle and accepts only a finite singleton. No formula's cached V
 is used as a seed. Ambiguous, divergent and missing-reference cycles still error.
 Tests: `clamped_cycles_are_proven_without_cached_formula_values` and
 `empty_flowchart_text_does_not_recurse_through_wrapping_width`.
+
+### Text metric fixed-point size and empty fields
+
+The COM observations in ADO_M master2 shape45 (6pt), ANNOT_U master14 shape5
+(8pt), ASSOCIATIONS_UML_CLASS_M master9 shape5 (10pt) and master8 shape5 (12pt)
+fit one rule: round font size in inches to 18 fractional bits before computing
+composed text metrics. At 120% line spacing the height corrections are respectively
+-0.000001525879, -0.000000508626, +0.000000508626 and +0.000001525879 inches.
+ANNOT_U master16 shape11 at 140% gives +0.000001780192 inches, independently
+confirming size rounding before multiplication. SVG painting retains the original
+point size. `metric_font_size_grid_matches_com_height_witnesses` tests the numeric
+rule; `text_metric_grid_and_empty_fields_match_private_com_witnesses` checks actual
+stencil cells to 1e-12 inches.
+
+An empty displayed field is still composed text. BASICCIRCUIT_DIAGRAM_M master8
+shape5 and HVACCE_M master12 shape11 contain an empty fld followed by the terminal
+paragraph marker. Keeping that field run activates the composed-text size rounding
+and 0.00005-inch slack. Their TxtHeight values now match 0.1944949530707465 and
+0.2333851135253906 inches. A truly empty block retains its separate empty-line path.
+
+FIND now implements the public four-argument contract, including literal search,
+optional one-based start and case-insensitive matching. Microsoft's January 1, 2003
+example returns 12. Oversized strings and invalid start positions return errors.

@@ -92,3 +92,33 @@ fn percentage_line_baseline_matches_generated_alignment_svg() {
     let l = layout(&body, &Opts { rect: Rect::new(0., 0., 288., 216.), fields: &NoFields, prompt_color: None, no_shrink: true }).unwrap();
     assert!((l.lines[0].baseline - 14.8).abs() < 1e-9);
 }
+
+#[test]
+fn metric_font_size_grid_matches_com_height_witnesses() {
+    // COM: ADO_M Domain (6pt), ANNOT_U Info. line (8pt), UML Member (10pt), Class (12pt).
+    for (size, expected) in [(6., 0.10004847412109375), (8., 0.1333828247070313), (10., 0.16671717529296873), (12., 0.20005152587890625)] {
+        let body = TextBody {
+            paragraphs: vec![Paragraph {
+                props: ParaProps { line_spacing: Some(Spacing::FontPct(1.2)), ..Default::default() },
+                runs: vec![Run::with("X", RunProps { size: Some(size), font: Some("Calibri".into()), ..Default::default() })],
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        assert!((Host.measure(&body, Some(100.)).unwrap().1 / 72. - expected).abs() < 1e-12, "{size}pt");
+    }
+    let body = TextBody {
+        paragraphs: vec![Paragraph {
+            props: ParaProps { line_spacing: Some(Spacing::FontPct(1.2)), ..Default::default() },
+            end_props: RunProps { size: Some(10.), font: Some("Calibri".into()), ..Default::default() },
+            runs: vec![Run {
+                text: String::new(),
+                props: RunProps { size: Some(10.), font: Some("Calibri".into()), ..Default::default() },
+                kind: RunKind::Field { field: "0".into() },
+            }],
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    assert!((Host.measure(&body, Some(100.)).unwrap().1 / 72. - 0.16671717529296873).abs() < 1e-12);
+}

@@ -314,3 +314,25 @@ fn transformed_strokes_preserve_physical_pen_and_fit_export_viewport() {
     assert_eq!(pens.len(), 2);
     assert!(pens.iter().all(|w| (*w - 0.75 / 72.).abs() < 1e-10));
 }
+
+#[test]
+fn text_metric_grid_and_empty_fields_match_private_com_witnesses() {
+    use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    for (file, master, shape, expected) in [
+        ("ADO_M.vssx", 2, 45, 0.1417151407877604),
+        ("ANNOT_U.vssx", 16, 11, 0.3444962246365018),
+        ("BASICCIRCUIT_DIAGRAM_M.vstx", 8, 5, 0.1944949530707465),
+        ("HVACCE_M.vssx", 12, 11, 0.2333851135253906),
+    ] {
+        let doc = diagramcraft_vsdx::read(root.join("ms-shipped/1033").join(file)).unwrap();
+        let themes = diagramcraft_theme::Themes::from_document(&doc).unwrap();
+        let mut e = Evaluator::new(&doc).unwrap().with_theme_host(&themes).with_text_host(&diagramcraft_text::Host);
+        let actual = e.evaluate(Scope::MasterShape { master, shape }, "TxtHeight").numeric().unwrap();
+        assert!((actual - expected).abs() < 1e-12, "{file} master{master} shape{shape}: {actual} != {expected}");
+    }
+}

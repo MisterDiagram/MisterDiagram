@@ -343,7 +343,7 @@ impl<'a> Evaluator<'a> {
             }
             let mut chunks = text.split('\n').peekable();
             while let Some(chunk) = chunks.next() {
-                if !chunk.is_empty() {
+                if !chunk.is_empty() || matches!(kind, RunKind::Field { .. }) {
                     para.runs.push(Run { text: chunk.trim_end_matches('\r').into(), props: self.run_props(scope, cr), kind: kind.clone() });
                 }
                 para.end_props = self.run_props(scope, cr);

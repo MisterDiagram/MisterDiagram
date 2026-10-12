@@ -70,6 +70,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fieldpicture-function> | `crates/sheet/src/functions/constructors.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fillgradient-section> | `crates/render/src/scene.rs`, `crates/render/src/style.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fillpattern-cell-fill-format-section> | `crates/render/src/style.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/find-function> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fld-element-text_type-complextypevisio-xml> | `crates/vsdx/src/evaluate/text.rs`, `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/flipx-cell-shape-transform-section> | `crates/vsdx/src/evaluate/transform.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/flipy-cell-shape-transform-section> | `crates/vsdx/src/evaluate/transform.rs` |

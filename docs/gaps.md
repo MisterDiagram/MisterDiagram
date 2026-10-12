@@ -104,8 +104,14 @@ Implemented gradient-stop painting supersedes the earlier M2.5 gap; shadows, adv
 compound offsets and implicit child materialization remain open. No floor, ceiling, input image
 or comparison denominator was changed to improve a score.
 
-- M2.6.5: all16 SVG text rectangles checked, multiline-wrap now8lines with matching SVG starts/baselines. Logical text export padding remains unresolved, including metric-scale; PNG size mismatches remain hard failures.
+- M2.6.5: all 16 SVG text rectangles checked, multiline-wrap now8lines with matching SVG starts/baselines. Logical text export padding remains unresolved, including metric-scale; PNG size mismatches remain hard failures.
 
 P2-followup-3 M2.7.2 resolves the final BASFLO_U Custom1 cycle through interval
 bounds. Four COM cells match a fresh private observation, and the master renders.
 Full paired-contact regeneration remains part of the final P2 acceptance pass.
+
+P2-followup-3 final: 8/10 render groups pass; page metric-scale and 9 text files still
+have wrong logical export dimensions. Text remains below 90% at 84.481614% cached
+and 83.415329% COM. Width measurement/overhang, field errors and inherited text
+formatting dominate. All 1108 contact masters render, 24 paired sheets regenerated.
+CI passes with only render comparison advisory; strict corpus remains exit 1.

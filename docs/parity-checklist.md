@@ -170,3 +170,5 @@ Core=N rows (excluded from milestone scoring):
 - M2.6.8 image rendering remains P: `image_filter_uses_premultiplied_alpha_and_transparent_border`, `destination_only_raster_operation_is_a_noop`, and `generated_svg_resvg_and_pdf_text`. Image group passes; EMF+ remains missing.
 
 - P2-followup-3 M2.7.2, vendor master rendering remains P pending pixel parity. `clamped_cycles_are_proven_without_cached_formula_values` and `empty_flowchart_text_does_not_recurse_through_wrapping_width` resolve BASFLO_U Custom1 from interval bounds, matching four freshly observed COM values without cached formula fallback.
+
+- P2-followup-3 M2.4.3, text fidelity remains P until both text oracles promote. Tests: `microsoft_find_example_and_hostile_arguments`, `metric_font_size_grid_matches_com_height_witnesses`, `text_metric_grid_and_empty_fields_match_private_com_witnesses`. Fine metric size rounding and empty fields now match independent COM witnesses; FIND has its reference example and bounded-input tests.

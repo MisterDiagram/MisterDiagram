@@ -5,7 +5,7 @@ use crate::{
     parser::{BinaryOp, Expr},
     units,
 };
-pub const NAMES: &[&str] = &["FORMAT", "FORMATEX", "STRSAME", "LEN", "LEFT", "RIGHT", "MID", "INDEX", "LOOKUP", "LISTSEP"];
+pub const NAMES: &[&str] = &["FORMAT", "FORMATEX", "STRSAME", "LEN", "FIND", "LEFT", "RIGHT", "MID", "INDEX", "LOOKUP", "LISTSEP"];
 const LIMIT: usize = 65536;
 fn text(value: &Value) -> Result<String, Error> {
     if matches!(value, Value::Text(s) if s.len() > LIMIT) {
@@ -56,6 +56,7 @@ pub(super) fn call(name: &str, args: &[Expr], context: &mut dyn Context, budget:
         }
         "LEFT" | "RIGHT" => result(edge(name, args, &values)),
         "MID" => result(mid(args, &values)),
+        "FIND" => Value::from(find(args, &values)),
         "STRSAME" => same(args, &values),
         "INDEX" => index(args, &values),
         "LOOKUP" => lookup(args, &values),
@@ -114,6 +115,50 @@ fn mid(args: &[Expr], values: &[Value]) -> Result<String, Error> {
     let skip = bounded_count(start - 1., count);
     let take = if length < 0. { count } else { bounded_count(length, count) };
     Ok(s.chars().skip(skip).take(take).collect())
+}
+/// One-based literal substring search, with optional start and case folding.
+/// Unicode positions follow LEN; allocations are capped by the 65536-byte inputs.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/find-function
+fn find(args: &[Expr], values: &[Value]) -> Result<f64, Error> {
+    if !(2..=4).contains(&args.len()) {
+        return Err(Error::Value);
+    }
+    let needle = string(values, 0)?;
+    let haystack = string(values, 1)?;
+    let count = haystack.chars().count();
+    let start = optional(args, values, 2).map(|v| v.numeric()).transpose()?.unwrap_or(1.);
+    if start < 1. || start > count as f64 {
+        return Err(Error::Value);
+    }
+    let start = bounded_count(start - 1., count);
+    let ignore = optional(args, values, 3).map(|v| v.truth()).transpose()?.unwrap_or(false);
+    if needle.is_empty() {
+        return Ok(start as f64 + 1.);
+    }
+    let offset = haystack.char_indices().nth(start).map(|(i, _)| i).ok_or(Error::Value)?;
+    let rest = haystack.get(offset..).ok_or(Error::Value)?;
+    if !ignore {
+        let at = rest.find(&needle).ok_or(Error::Value)?;
+        return Ok(start as f64 + rest.get(..at).ok_or(Error::Value)?.chars().count() as f64 + 1.);
+    }
+    // A lowercase expansion can change byte and character counts. Retain the original
+    // scalar index so a later match still reports a position in the original string.
+    let mut folded = String::new();
+    let mut positions = Vec::new();
+    for (index, ch) in rest.chars().enumerate() {
+        positions.push((folded.len(), index));
+        folded.extend(ch.to_lowercase());
+        if folded.len() > LIMIT * 3 {
+            return Err(Error::Limit);
+        }
+    }
+    let needle = needle.to_lowercase();
+    if needle.len() > LIMIT * 3 {
+        return Err(Error::Limit);
+    }
+    let at = folded.find(&needle).ok_or(Error::Value)?;
+    let index = positions.partition_point(|(byte, _)| *byte <= at).checked_sub(1).ok_or(Error::Value)?;
+    Ok(start as f64 + positions.get(index).ok_or(Error::Value)?.1 as f64 + 1.)
 }
 /// Optional ignoreCase is false; Unicode case conversion handles the page's cät/CÄT example.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/strsame-function
@@ -712,6 +757,20 @@ mod tests {
             assert_eq!(run(s), Value::Bool(b));
         }
         assert_eq!(run("LISTSEP()"), Value::Text(",".into()));
+    }
+    #[test]
+    fn microsoft_find_example_and_hostile_arguments() {
+        assert_eq!(run(r#"FIND("2003","January 1, 2003")"#), Value::Number(12.));
+        assert_eq!(run(r#"FIND("A","aA",2)"#), Value::Number(2.));
+        assert_eq!(run(r#"FIND("ä","éÄ",,TRUE)"#), Value::Number(2.));
+        assert_eq!(run(r#"FIND("x","İx",,TRUE)"#), Value::Number(2.));
+        assert_eq!(run(r#"FIND("","abc",2)"#), Value::Number(2.));
+        assert_eq!(run(r#"FIND("*","a*b")"#), Value::Number(2.));
+        for s in [r#"FIND("a","ABC")"#, r#"FIND("x","abc")"#, r#"FIND("","",1)"#, r#"FIND("a","abc",0)"#, r#"FIND("a","abc",1e99)"#, "FIND()"] {
+            assert_eq!(run(s), Value::Error(Error::Value), "{s}");
+        }
+        let args = [Expr::Text("x".into()), Expr::Text("x".repeat(LIMIT + 1))];
+        assert_eq!(call("FIND", &args, &mut Host, &mut 100, 0), Some(Value::Error(Error::Limit)));
     }
     #[test]
     fn microsoft_numeric_and_text_picture_examples() {

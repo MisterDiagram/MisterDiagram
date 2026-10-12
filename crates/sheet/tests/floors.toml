@@ -46,35 +46,35 @@ files = 92
 size_mismatches = 0
 errors = 0
 compared = 92
-mean_mad_rgb = 2.928643
-fraction_over_16 = 0.02217007
-within_frozen_ceiling = false
+mean_mad_rgb = 0.543633
+fraction_over_16 = 0.01071225
+within_frozen_ceiling = true
 
 [render_achieved.basic]
 files = 1
 size_mismatches = 0
 errors = 0
 compared = 1
-mean_mad_rgb = 2.481191
-fraction_over_16 = 0.02008629
-within_frozen_ceiling = false
+mean_mad_rgb = 0.443949
+fraction_over_16 = 0.00745332
+within_frozen_ceiling = true
 
 [render_achieved.connector]
 files = 6
 size_mismatches = 0
 errors = 0
 compared = 6
-mean_mad_rgb = 4.906090
-fraction_over_16 = 0.02086032
-within_frozen_ceiling = false
+mean_mad_rgb = 2.142340
+fraction_over_16 = 0.01225363
+within_frozen_ceiling = true
 
 [render_achieved.fill]
 files = 44
 size_mismatches = 0
 errors = 0
 compared = 44
-mean_mad_rgb = 1.881272
-fraction_over_16 = 0.01883832
+mean_mad_rgb = 1.112028
+fraction_over_16 = 0.01373298
 within_frozen_ceiling = true
 
 [render_achieved.group]
@@ -82,26 +82,26 @@ files = 1
 size_mismatches = 0
 errors = 0
 compared = 1
-mean_mad_rgb = 2.874225
-fraction_over_16 = 0.02541990
-within_frozen_ceiling = false
+mean_mad_rgb = 0.690956
+fraction_over_16 = 0.01251292
+within_frozen_ceiling = true
 
 [render_achieved.image]
 files = 3
 size_mismatches = 0
 errors = 0
 compared = 3
-mean_mad_rgb = 3.494772
-fraction_over_16 = 0.03956284
-within_frozen_ceiling = false
+mean_mad_rgb = 1.602828
+fraction_over_16 = 0.01731289
+within_frozen_ceiling = true
 
 [render_achieved.line]
 files = 37
 size_mismatches = 0
 errors = 0
 compared = 37
-mean_mad_rgb = 2.233283
-fraction_over_16 = 0.01518873
+mean_mad_rgb = 1.076040
+fraction_over_16 = 0.01030076
 within_frozen_ceiling = true
 
 [render_achieved.master]
@@ -109,17 +109,17 @@ files = 1
 size_mismatches = 0
 errors = 0
 compared = 1
-mean_mad_rgb = 3.472529
-fraction_over_16 = 0.02609142
-within_frozen_ceiling = false
+mean_mad_rgb = 1.608085
+fraction_over_16 = 0.01791412
+within_frozen_ceiling = true
 
 [render_achieved.page]
 files = 3
 size_mismatches = 1
 errors = 0
 compared = 2
-mean_mad_rgb = 2.551506
-fraction_over_16 = 0.01534294
+mean_mad_rgb = 0.642698
+fraction_over_16 = 0.01283689
 within_frozen_ceiling = false
 
 [render_achieved.text]
@@ -127,18 +127,18 @@ files = 16
 size_mismatches = 9
 errors = 0
 compared = 7
-mean_mad_rgb = 3.362636
-fraction_over_16 = 0.02989645
+mean_mad_rgb = 2.187714
+fraction_over_16 = 0.02393385
 within_frozen_ceiling = false
 
 # Achieved text-only observations from the final full P2-followup sweep.
 # These records do not replace or lower the promotion threshold above.
 [text-metric.cached]
-passed = 54294
+passed = 57276
 eligible = 67797
-rate = 0.80083190
+rate = 0.84481614
 
 [text-metric.com]
-passed = 6192
+passed = 6443
 eligible = 7724
-rate = 0.80165717
+rate = 0.83415329

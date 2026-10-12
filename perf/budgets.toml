@@ -21,7 +21,7 @@ recalculate_ms = 1
 
 # P2 render measurements. No render acceptance budgets have been frozen yet.
 [render_observed]
-largest_stencil_ms = 24552
+largest_stencil_ms = 25891
 largest_stencil_masters = 43
 largest_stencil_failed_masters = 0
-page_500_shapes_ms = 436
+page_500_shapes_ms = 479
