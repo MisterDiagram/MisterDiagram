@@ -119,9 +119,32 @@ The preliminary POINTALONGPATH sweep evaluates 0/387 end to end before inheritan
 68 fail on BOUND, 273 on NEARESTPOINTONPATH, 12 on RECTSECT and 34 on missing references.
 The isolated path tests pass; these are not corpus passes or an oracle denominator change.
 
+Inheritance construction now succeeds on all 1387 local packages, with zero omitted
+non-deleted master children in those files. Seven focused tests exercise master references,
+style categories, tombstones and inherited geometry. Wholly omitted master-child instances
+remain unsupported outside this measured corpus. Scoped baseline constants come from the
+brief-authorized blank dumps through `tools/generate-defaults.py`; authored rectangle
+size, position and geometry are excluded. Baselines are distinct from oracle expected values.
+
+The largest local stencil by uncompressed package bytes is WFDEP_M.vssx (7889047 bytes).
+Initial release timing: read184ms, index378ms, evaluate360581 effective cells665ms,
+115457 evaluation errors. A500-shape synthetic page indexes/evaluates in2ms and recalculates
+1001 dirty cells in1ms. These are measurements, not performance or accuracy gates.
+
+Font IDs are host-specific: the blank profile and Microsoft FONT example agree on Calibri4.
+Other FaceNames currently use collision-free document-local IDs, not a complete Windows font
+profile. BOUND endpoint/tie behavior remains an explicit assumption awaiting edge witnesses.
+Undocumented _ELLIPSE_THETA/_ELLIPSE_ECC remain unsupported: independently derived candidate
+math does not explain every observed cache and is not silently substituted.
+
+After inheritance and documented dependency functions, the original-source path diagnostic
+matches275/387;54 fail on FORMULAEXISTS,56 on PATHLENGTH and2 are numeric mismatches.
+An intermediate527-row effective-cell diagnostic compared instance results to master caches
+and is invalid as an oracle. The formal cached oracle must use original source cells only.
+
 ## Implemented function groups
 
-ABS, ACOS, AND, ANG360, ANGLEALONGPATH, ARG, ASIN, ATAN, ATAN2, BLUE, CEILING, COS, COSH, DEPENDSON, EVALCELL, EVALTEXT, FLOOR, FONT, FONTTOID, FORMAT, FORMATEX, GETREF, GREEN, GUARD, HSL, HUE, IF, INDEX, INT, LEFT, LEN, LISTSEP, LOC, LOCTOLOC, LOCTOPAR, LOOKUP, LUM, MAX, MID, MIN, MODULUS, NOT, OR, PAR, PI, PNT, PNTX, PNTY, POINTALONGPATH, POW, RED, RGB, RIGHT, ROUND, SAT, SETATREF, SETATREFEVAL, SETATREFEXPR, SETF, SIN, SINH, SQRT, STRSAME, TAN, TANH, TRUNC.
+ABS, ACOS, AND, ANG360, ANGLEALONGPATH, ARG, ASIN, ATAN, ATAN2, BLUE, BOUND, CEILING, COS, COSH, DEPENDSON, EVALCELL, EVALTEXT, FLOOR, FONT, FONTTOID, FORMAT, FORMATEX, GETREF, GREEN, GUARD, HSL, HUE, IF, INDEX, INT, LEFT, LEN, LISTSEP, LOC, LOCTOLOC, LOCTOPAR, LOOKUP, LUM, MAX, MID, MIN, MODULUS, NEARESTPOINTONPATH, NOT, OR, PAR, PI, PNT, PNTX, PNTY, POINTALONGPATH, POW, RECTSECT, RED, RGB, RIGHT, ROUND, SAT, SETATREF, SETATREFEVAL, SETATREFEXPR, SETF, SIN, SINH, SQRT, STRSAME, TAN, TANH, TRUNC.
 
 Microsoft example and hostile-input tests are in `crates/sheet/src/functions/`.
 Legacy MOD remains open, as recorded above. Implementation coverage is not an oracle rate.
@@ -172,7 +195,6 @@ unsupported function is reclassified to improve an oracle score.
 | `THEMEPROP` | 5021 | Host hook |
 | `IFERROR` | 4485 | Missing |
 | `_XFTRIGGER` | 4348 | Host hook |
-| `BOUND` | 4264 | Missing |
 | `THEMECBV` | 4180 | Host hook |
 | `FIELDPICTURE` | 4132 | Missing |
 | `SUM` | 3372 | Missing |
@@ -199,7 +221,6 @@ unsupported function is reclassified to improve an oracle score.
 | `LOCALFORMULAEXISTS` | 344 | Missing |
 | `DAY` | 336 | Host hook |
 | `MSOSHADE` | 251 | Missing |
-| `NEARESTPOINTONPATH` | 249 | Missing |
 | `MAGNITUDE` | 204 | Missing |
 | `MONTH` | 133 | Host hook |
 | `LISTMEMBERCOUNT` | 124 | Missing |
@@ -214,7 +235,6 @@ unsupported function is reclassified to improve an oracle score.
 | `ISERRNA` | 64 | Missing |
 | `OPENGROUPWIN` | 58 | Missing |
 | `BLEND` | 58 | Missing |
-| `RECTSECT` | 55 | Missing |
 | `USERUI` | 48 | Missing |
 | `PAGENUMBER` | 45 | Host hook |
 | `_MARKER` | 43 | Missing |

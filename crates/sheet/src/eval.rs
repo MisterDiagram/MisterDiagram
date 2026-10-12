@@ -36,6 +36,9 @@ pub trait Context {
     ) -> Value {
         Value::Error(Error::Unsupported("point transform".into()))
     }
+    fn nearest_point_on_path(&mut self, _reference: &str, _x: f64, _y: f64) -> Value {
+        Value::Error(Error::Unsupported("nearest path point".into()))
+    }
     fn path_point(&mut self, _reference: &str, _travel: f64, _offset: f64, _segment: Option<usize>) -> Value {
         Value::Error(Error::Unsupported("path point".into()))
     }

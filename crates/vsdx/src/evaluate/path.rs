@@ -27,7 +27,7 @@ impl Segment {
         if !length.is_finite() || length == 0.0 {
             return Err(Error::Num);
         }
-        Ok((point_checked(point)?, mul(derivative, 1.0 / length)))
+        Ok((point_checked(point)?, (derivative.0 / length, derivative.1 / length)))
     }
     fn speed(self, t: f64, budget: &mut usize) -> Result<f64, Error> {
         if *budget == 0 {
@@ -169,6 +169,118 @@ fn elliptical_arc(start: Point, middle: Point, end: Point, angle: f64, ratio: f6
     Ok(Segment::Arc { center: center_world, u, v, start: first, sweep })
 }
 
+// Stationary distance on an ellipse is a degree-four polynomial after tan(theta/2).
+// Two half-circle charts keep the root variable in [-1,1], avoiding huge Cauchy bounds.
+fn polynomial_value(coefficients: &[f64], x: f64, budget: &mut usize) -> Result<f64, Error> {
+    if *budget == 0 {
+        return Err(Error::Limit);
+    }
+    *budget -= 1;
+    Ok(coefficients.iter().rev().fold(0.0, |value, c| value * x + c))
+}
+fn polynomial_roots(coefficients: &[f64], budget: &mut usize) -> Result<Vec<f64>, Error> {
+    let mut coefficients = coefficients.to_vec();
+    while coefficients.last() == Some(&0.0) {
+        coefficients.pop();
+    }
+    if coefficients.len() <= 1 {
+        return Ok(vec![]);
+    }
+    if coefficients.len() > 5 {
+        return Err(Error::Limit);
+    }
+    let scale = coefficients.iter().fold(0.0_f64, |a, b| a.max(b.abs()));
+    if !scale.is_finite() {
+        return Err(Error::Num);
+    }
+    for c in &mut coefficients {
+        *c /= scale;
+    }
+    let derivative: Vec<_> = coefficients.iter().enumerate().skip(1).map(|(i, c)| *c * f64::from(u32::try_from(i).unwrap_or(0))).collect();
+    let mut knots = vec![-1.0];
+    knots.extend(polynomial_roots(&derivative, budget)?);
+    knots.push(1.0);
+    knots.sort_by(f64::total_cmp);
+    knots.dedup_by(|a, b| (*a - *b).abs() < 1e-14);
+    let mut roots = Vec::new();
+    for &knot in &knots {
+        if polynomial_value(&coefficients, knot, budget)?.abs() < 1e-13 {
+            roots.push(knot);
+        }
+    }
+    for interval in knots.windows(2) {
+        let (mut lo, mut hi) = (*interval.first().ok_or(Error::Value)?, *interval.last().ok_or(Error::Value)?);
+        let mut left = polynomial_value(&coefficients, lo, budget)?;
+        let right = polynomial_value(&coefficients, hi, budget)?;
+        if left == 0.0 || right == 0.0 || left.is_sign_positive() == right.is_sign_positive() {
+            continue;
+        }
+        for _ in 0..52 {
+            let middle = (lo + hi) * 0.5;
+            let value = polynomial_value(&coefficients, middle, budget)?;
+            if value == 0.0 {
+                lo = middle;
+                hi = middle;
+                break;
+            }
+            if value.is_sign_positive() == left.is_sign_positive() {
+                lo = middle;
+                left = value;
+            } else {
+                hi = middle;
+            }
+        }
+        roots.push((lo + hi) * 0.5);
+    }
+    roots.sort_by(f64::total_cmp);
+    roots.dedup_by(|a, b| (*a - *b).abs() < 1e-12);
+    Ok(roots)
+}
+impl Segment {
+    fn nearest_parameter(self, query: Point, budget: &mut usize) -> Result<(f64, f64), Error> {
+        if *budget == 0 {
+            return Err(Error::Limit);
+        }
+        *budget -= 1;
+        if let Self::Line { start, end } = self {
+            let delta = sub(end, start);
+            let length = norm(delta);
+            let t = if length == 0.0 {
+                0.0
+            } else {
+                let d = (delta.0 / length, delta.1 / length);
+                let q = sub(query, start);
+                ((q.0 * d.0 + q.1 * d.1) / length).clamp(0.0, 1.0)
+            };
+            return Ok((t, norm(sub(add(start, mul(delta, t)), query))));
+        }
+        let Self::Arc { center, u, v, start, sweep } = self else { return Err(Error::Value) };
+        let q = sub(center, query);
+        let a = v.0 * v.0 + v.1 * v.1 - u.0 * u.0 - u.1 * u.1;
+        let b = q.0 * v.0 + q.1 * v.1;
+        let c = -(q.0 * u.0 + q.1 * u.1);
+        let mut candidates = vec![0.0, 1.0];
+        for (b, c, shift) in [(b, c, 0.0), (-b, -c, std::f64::consts::PI)] {
+            for root in polynomial_roots(&[b, 2.0 * (a + c), 0.0, 2.0 * (c - a), -b], budget)? {
+                let angle = 2.0 * root.atan() + shift;
+                let distance = if sweep > 0.0 { (angle - start).rem_euclid(TAU) } else { (start - angle).rem_euclid(TAU) };
+                if distance <= sweep.abs() + 1e-12 {
+                    candidates.push((distance / sweep.abs()).clamp(0.0, 1.0));
+                }
+            }
+        }
+        candidates.sort_by(f64::total_cmp);
+        let mut best = None;
+        for t in candidates {
+            let distance = norm(sub(self.sample(t)?.0, query));
+            if best.is_none_or(|(_, old)| distance < old) {
+                best = Some((t, distance));
+            }
+        }
+        best.ok_or(Error::Num)
+    }
+}
+
 impl Evaluator<'_> {
     /// Arc-length travel in a GeometryN.Path, optionally restricted to a 1-based stroked segment.
     /// Returns shape-local point and unit tangent; transforms and offsets belong to the caller.
@@ -190,6 +302,71 @@ impl Evaluator<'_> {
         if segment == Some(0) {
             return Err(Error::Ref);
         }
+        let segments = self.path_segments(scope, reference)?;
+        let available = MAX_SAMPLES.saturating_sub(self.eval_work);
+        let mut budget = available;
+        let result = (|| {
+            if let Some(index) = segment {
+                let chosen = *segments.get(index.checked_sub(1).ok_or(Error::Ref)?).ok_or(Error::Ref)?;
+                let length = chosen.length(1.0, &mut budget)?;
+                return chosen.at_distance(length * travel, length, &mut budget);
+            }
+            let mut lengths = Vec::with_capacity(segments.len());
+            let mut total = 0.0;
+            for item in &segments {
+                let length = item.length(1.0, &mut budget)?;
+                total += length;
+                lengths.push(length);
+            }
+            if !total.is_finite() || total <= 0.0 {
+                return Err(Error::Num);
+            }
+            let mut distance = total * travel;
+            for (item, length) in segments.iter().zip(&lengths) {
+                if *length > 0.0 && distance <= *length {
+                    return item.at_distance(distance, *length, &mut budget);
+                }
+                distance -= length;
+            }
+            let (item, _) = segments.iter().zip(&lengths).rev().find(|(_, length)| **length > 0.0).ok_or(Error::Num)?;
+            item.sample(1.0)
+        })();
+        self.eval_work = self.eval_work.saturating_add(available - budget);
+        result
+    }
+    /// Return the fraction of total path length at the globally nearest point.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/nearestpointonpath-function
+    pub fn path_nearest(&mut self, scope: Scope, reference: &str, x: f64, y: f64) -> Result<f64, Error> {
+        if self.eval_depth == 0 {
+            self.work = 0;
+            self.eval_work = 0;
+        }
+        let query = point_checked((x, y))?;
+        let segments = self.path_segments(scope, reference)?;
+        let available = MAX_SAMPLES.saturating_sub(self.eval_work);
+        let mut budget = available;
+        let result = (|| {
+            let mut total = 0.0;
+            let mut best = None;
+            for segment in segments {
+                let length = segment.length(1.0, &mut budget)?;
+                let (t, distance) = segment.nearest_parameter(query, &mut budget)?;
+                if best.is_none_or(|(_, _, _, _, old)| distance < old) {
+                    best = Some((segment, t, total, length, distance));
+                }
+                total += length;
+            }
+            if !total.is_finite() || total <= 0.0 {
+                return Err(Error::Num);
+            }
+            let (segment, t, previous, length, _) = best.ok_or(Error::Ref)?;
+            let partial = if t == 1.0 { length } else { segment.length(t, &mut budget)? };
+            Ok(((previous + partial) / total).clamp(0.0, 1.0))
+        })();
+        self.eval_work = self.eval_work.saturating_add(available - budget);
+        result
+    }
+    fn path_segments(&mut self, scope: Scope, reference: &str) -> Result<Vec<Segment>, Error> {
         let (scope, name) = self.reference_target(scope, reference)?;
         let lower = name.to_ascii_lowercase();
         let index = lower
@@ -198,22 +375,14 @@ impl Evaluator<'_> {
             .and_then(|s| s.parse::<u32>().ok())
             .and_then(|n| n.checked_sub(1))
             .ok_or(Error::Ref)?;
-        let sheet = self.sheet(scope).ok_or(Error::Ref)?;
-        let section = sheet.sections.iter().find(|s| s.name == "Geometry" && s.index.unwrap_or(0) == index && !s.deleted).ok_or(Error::Ref)?;
-        if section.rows.len() > MAX_ROWS {
+        let rows = self.effective_geometry(scope, index)?;
+        if rows.len() > MAX_ROWS {
             return Err(Error::Limit);
         }
-        let mut rows: Vec<_> = section.rows.iter().enumerate().filter(|(_, r)| !r.deleted).collect();
-        rows.sort_by_key(|(position, row)| row.index.unwrap_or(u32::try_from(*position).unwrap_or(u32::MAX)));
         let mut segments = Vec::new();
         let mut current = None;
-        let mut previous_index = None;
-        for (position, row) in &rows {
-            let row_index = row.index.unwrap_or(u32::try_from(*position).map_err(|_| Error::Limit)?);
-            if previous_index == Some(row_index) {
-                return Err(Error::Value);
-            }
-            previous_index = Some(row_index);
+        for row in &rows {
+            let row_index = row.index;
             let prefix = format!("Geometry{}.{{}}{row_index}", index.checked_add(1).ok_or(Error::Limit)?);
             let cell = |this: &mut Self, column: &str| -> Result<f64, Error> {
                 if !row.cells.iter().any(|c| c.name == column) {
@@ -222,7 +391,7 @@ impl Evaluator<'_> {
                 let name = prefix.replace("{}", column);
                 this.resolve(scope, &name).numeric()
             };
-            let row_type = row.row_type.as_deref().ok_or(Error::Ref)?;
+            let row_type = row.row_type.ok_or(Error::Ref)?;
             if !matches!(row_type, "MoveTo" | "RelMoveTo" | "LineTo" | "RelLineTo" | "Ellipse" | "EllipticalArcTo") {
                 return Err(Error::Unsupported(format!("geometry row {row_type}")));
             }
@@ -266,36 +435,7 @@ impl Evaluator<'_> {
         if segments.is_empty() {
             return Err(Error::Ref);
         }
-        let available = MAX_SAMPLES.saturating_sub(self.eval_work);
-        let mut budget = available;
-        let result = (|| {
-            if let Some(index) = segment {
-                let chosen = *segments.get(index.checked_sub(1).ok_or(Error::Ref)?).ok_or(Error::Ref)?;
-                let length = chosen.length(1.0, &mut budget)?;
-                return chosen.at_distance(length * travel, length, &mut budget);
-            }
-            let mut lengths = Vec::with_capacity(segments.len());
-            let mut total = 0.0;
-            for item in &segments {
-                let length = item.length(1.0, &mut budget)?;
-                total += length;
-                lengths.push(length);
-            }
-            if !total.is_finite() || total <= 0.0 {
-                return Err(Error::Num);
-            }
-            let mut distance = total * travel;
-            for (item, length) in segments.iter().zip(&lengths) {
-                if *length > 0.0 && distance <= *length {
-                    return item.at_distance(distance, *length, &mut budget);
-                }
-                distance -= length;
-            }
-            let (item, _) = segments.iter().zip(&lengths).rev().find(|(_, length)| **length > 0.0).ok_or(Error::Num)?;
-            item.sample(1.0)
-        })();
-        self.eval_work = self.eval_work.saturating_add(available - budget);
-        result
+        Ok(segments)
     }
 }
 
@@ -413,7 +553,7 @@ mod tests {
         let d = document(vec![row(1, "NURBSTo", &[])]);
         let mut e = Evaluator::new(&d).unwrap();
         assert!(matches!(e.path_sample(Scope::Document, "Geometry1.Path", 0.5, None), Err(Error::Unsupported(_))));
-        let d = document(vec![row(1, "MoveTo", &[("X", 0.), ("Y", 0.)]); MAX_ROWS + 1]);
+        let d = document((0..=MAX_ROWS).map(|i| row(u32::try_from(i).unwrap(), "MoveTo", &[("X", 0.), ("Y", 0.)])).collect());
         let mut e = Evaluator::new(&d).unwrap();
         assert_eq!(e.path_sample(Scope::Document, "Geometry1.Path", 0.5, None), Err(Error::Limit));
         assert_eq!(point_checked((f64::INFINITY, 0.)), Err(Error::Num));
@@ -429,5 +569,67 @@ mod tests {
         assert_eq!(e.eval_work, MAX_SAMPLES);
         e.eval_depth = 0;
         assert!(e.path_sample(Scope::Document, "Geometry1.Path", 0.125, None).is_ok());
+    }
+    #[test]
+    fn nearest_projects_lines_and_returns_total_length_fraction() {
+        let d = document(vec![
+            row(1, "MoveTo", &[("X", 0.), ("Y", 0.)]),
+            row(2, "LineTo", &[("X", 3.), ("Y", 0.)]),
+            row(3, "MoveTo", &[("X", 10.), ("Y", 10.)]),
+            row(4, "LineTo", &[("X", 10.), ("Y", 14.)]),
+        ]);
+        let mut e = Evaluator::new(&d).unwrap();
+        for (x, y, want) in [(1.5, -1., 1.5 / 7.), (11., 12., 5. / 7.), (-1., 0., 0.), (10., 20., 1.)] {
+            assert!((e.path_nearest(Scope::Document, "Geometry1.Path", x, y).unwrap() - want).abs() < 1e-10);
+        }
+        assert_eq!(e.path_nearest(Scope::Document, "Geometry1.Path", f64::NAN, 0.), Err(Error::Num));
+        assert_eq!(e.path_nearest(Scope::Document, "Geometry1.Path", MAX_COORD * 2., 0.), Err(Error::Limit));
+    }
+    #[test]
+    fn nearest_ellipse_global_minimum_matches_independent_grid() {
+        for sweep in [TAU, -TAU, 2., -2.] {
+            let arc = Segment::Arc { center: (3., 4.), u: (2., 0.), v: (0., 1.), start: 0.7, sweep };
+            for query in [(0., 0.), (3., 4.), (3.5, 4.1), (6., 8.), (1., 4.), (3., 5.)] {
+                let mut budget = MAX_SAMPLES;
+                let (t, distance) = arc.nearest_parameter(query, &mut budget).unwrap();
+                assert!((0.0..=1.0).contains(&t));
+                let grid = (0..=10000).map(|i| norm(sub(arc.sample(f64::from(i) / 10000.).unwrap().0, query))).fold(f64::INFINITY, f64::min);
+                assert!(distance <= grid + 1e-10, "{sweep} {query:?}: {distance} > {grid}");
+            }
+        }
+        let d = document(vec![row(1, "Ellipse", &[("X", 0.), ("Y", 0.), ("A", 2.), ("B", 0.), ("C", 0.), ("D", 1.)])]);
+        let mut e = Evaluator::new(&d).unwrap();
+        for (x, y, want) in [(3., 0., 0.), (0., 2., 0.25), (-3., 0., 0.5), (0., -2., 0.75)] {
+            assert!((e.path_nearest(Scope::Document, "Geometry1.Path", x, y).unwrap() - want).abs() < 1e-9);
+        }
+        e.eval_depth = 1;
+        e.eval_work = MAX_SAMPLES - 20;
+        assert_eq!(e.path_nearest(Scope::Document, "Geometry1.Path", 0.5, 0.5), Err(Error::Limit));
+        assert_eq!(e.eval_work, MAX_SAMPLES);
+    }
+    #[test]
+    fn path_sampling_and_nearest_use_inherited_rows_and_partial_overrides() {
+        use diagramcraft_model::{Master, Page, Shape};
+        let source = document(vec![row(1, "MoveTo", &[("X", 0.), ("Y", 0.)]), row(2, "LineTo", &[("X", 2.), ("Y", 4.)])]);
+        let mut local = document(vec![Row {
+            index: Some(2),
+            cells: vec![Cell { name: "X".into(), value: Some("6".into()), ..Default::default() }],
+            ..Default::default()
+        }]);
+        let d = Document {
+            masters: vec![Master { id: 2, shapes: vec![Shape { id: 5, sheet: source.document_sheet, ..Default::default() }], ..Default::default() }],
+            pages: vec![Page {
+                id: 0,
+                shapes: vec![Shape { id: 1, master: Some(2), sheet: std::mem::take(&mut local.document_sheet), ..Default::default() }],
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let mut e = Evaluator::new(&d).unwrap();
+        let scope = Scope::PageShape { page: 0, shape: 1 };
+        near(e.path_sample(scope, "Geometry1.Path", 0.5, None).unwrap().0, (3., 2.));
+        assert!((e.path_nearest(scope, "Geometry1.Path", 3., 2.).unwrap() - 0.5).abs() < 1e-10);
+        e.set_formula(scope, "Geometry1.X2", "10").unwrap();
+        near(e.path_sample(scope, "Geometry1.Path", 0.5, None).unwrap().0, (5., 2.));
     }
 }

@@ -4,9 +4,13 @@ mod color;
 mod numeric;
 mod points;
 mod references;
+mod spatial;
 mod text;
 pub use color::default_color;
 pub const IMPLEMENTED: &[&str] = &[
+    "BOUND",
+    "RECTSECT",
+    "NEARESTPOINTONPATH",
     "PNT",
     "PNTX",
     "PNTY",
@@ -75,6 +79,9 @@ pub const IMPLEMENTED: &[&str] = &[
     "FLOOR",
 ];
 pub(crate) fn call(name: &str, args: &[Expr], context: &mut dyn Context, budget: &mut usize, depth: usize) -> Value {
+    if let Some(value) = spatial::call(name, args, context, budget, depth) {
+        return value;
+    }
     if let Some(value) = points::call(name, args, context, budget, depth) {
         return value;
     }

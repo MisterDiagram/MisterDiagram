@@ -2,6 +2,8 @@
 use diagramcraft_model::{Cell, Document, Row, Section, Shape, Sheet};
 use diagramcraft_sheet::{Context, Error, Value};
 use std::collections::{BTreeMap, BTreeSet};
+mod defaults;
+mod inherit;
 mod path;
 mod transform;
 const MAX_CELLS: usize = 1_000_000;
@@ -36,6 +38,7 @@ struct Key {
 /// Master/style/default inheritance is layered on these scopes separately.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references
 pub struct Evaluator<'a> {
+    inheritance: inherit::Inheritance<'a>,
     pub document: &'a Document,
     sheets: BTreeMap<Scope, &'a Sheet>,
     shapes: BTreeMap<Scope, &'a Shape>,
@@ -50,6 +53,7 @@ pub struct Evaluator<'a> {
     eval_work: usize,
     indexed_name_bytes: usize,
     palette: BTreeMap<u32, [u8; 3]>,
+    fonts: BTreeMap<u32, String>,
     overrides: BTreeMap<Key, String>,
     override_bytes: usize,
     arguments: Vec<BTreeMap<String, Value>>,
@@ -57,6 +61,8 @@ pub struct Evaluator<'a> {
     assignments: usize,
     revision: usize,
     dependencies: BTreeMap<Key, BTreeSet<Key>>,
+    dependents: BTreeMap<Key, BTreeSet<Key>>,
+    dirty: BTreeSet<Key>,
     dependency_count: usize,
     dependency_bytes: usize,
     graph_limited: bool,
@@ -69,6 +75,7 @@ impl<'a> Evaluator<'a> {
         }
         let mut result = Self {
             document,
+            inheritance: Default::default(),
             sheets: BTreeMap::new(),
             shapes: BTreeMap::new(),
             parents: BTreeMap::new(),
@@ -88,10 +95,13 @@ impl<'a> Evaluator<'a> {
             assignments: 0,
             revision: 0,
             dependencies: BTreeMap::new(),
+            dependents: BTreeMap::new(),
+            dirty: BTreeSet::new(),
             dependency_count: 0,
             dependency_bytes: 0,
             graph_limited: false,
             stack: Vec::new(),
+            fonts: font_ids(document)?,
             palette: document.colors.iter().filter_map(|(i, c)| parse_color(c).map(|c| (*i, c))).collect(),
         };
         result.add_sheet(Scope::Document, &document.document_sheet)?;
@@ -106,6 +116,7 @@ impl<'a> Evaluator<'a> {
             result.add_sheet(Scope::Master(master.id), &master.sheet)?;
             result.add_shapes(&master.shapes, Scope::Master(master.id))?;
         }
+        result.install_inheritance()?;
         Ok(result)
     }
     fn add_shapes(&mut self, shapes: &'a [Shape], parent: Scope) -> Result<(), Error> {
@@ -221,8 +232,65 @@ impl<'a> Evaluator<'a> {
     pub fn named_cells(&self, scope: Scope) -> &[NamedCell<'a>] {
         self.names.get(&scope).map(Vec::as_slice).unwrap_or(&[])
     }
+    /// Original source cells, including masked rows, for the cached-value oracle.
+    /// Inherited entries are deliberately absent from this enumeration.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+    pub fn source_named_cells(&self, scope: Scope) -> Result<Vec<NamedCell<'a>>, Error> {
+        let Some(sheet) = self.sheet(scope) else { return Err(Error::Ref) };
+        let mut cells = Vec::new();
+        for cell in &sheet.cells {
+            cells.push(NamedCell { name: cell.name.clone(), cell, section: None, row: None });
+        }
+        for section in &sheet.sections {
+            let prefix = section_prefix(section)?;
+            for cell in &section.cells {
+                cells.push(NamedCell { name: format!("{prefix}.{}", cell.name), cell, section: Some(section), row: None });
+            }
+            for (position, row) in section.rows.iter().enumerate() {
+                for cell in &row.cells {
+                    cells.push(NamedCell { name: cell_name(section, row, position, cell)?, cell, section: Some(section), row: Some(row) });
+                }
+            }
+        }
+        Ok(cells)
+    }
     pub fn cell(&self, scope: Scope, name: &str) -> Option<&'a Cell> {
-        self.cells.get(&Key { scope, name: name.to_ascii_lowercase() }).copied()
+        self.cells.get(&Key { scope, name: name.to_ascii_lowercase() }).copied().or_else(|| self.baseline_cell(scope, name))
+    }
+    fn baseline_cell(&self, scope: Scope, name: &str) -> Option<&'a Cell> {
+        if !self.sheets.contains_key(&scope) || !self.defaults_allowed(scope, name) {
+            return None;
+        }
+        let baseline = defaults::cell(scope, name)?;
+        self.baseline_provider(scope, name)
+            .and_then(|p| self.cells.get(&Key { scope: p, name: name.to_ascii_lowercase() }).copied())
+            .or(Some(baseline))
+    }
+    fn baseline_provider(&self, scope: Scope, name: &str) -> Option<Scope> {
+        defaults::cell(scope, name)?;
+        let key = |scope| Key { scope, name: name.to_ascii_lowercase() };
+        if scope != Scope::Document && self.cells.contains_key(&key(Scope::Document)) {
+            return Some(Scope::Document);
+        }
+        if !matches!(scope, Scope::Document | Scope::Style(0)) && self.cells.contains_key(&key(Scope::Style(0))) {
+            return Some(Scope::Style(0));
+        }
+        None
+    }
+    /// Enumerate effective cells plus known scoped baseline slots, without storing the
+    /// baseline hundreds of times in the per-instance index.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references
+    pub fn resolved_named_cells(&self, scope: Scope) -> Vec<NamedCell<'a>> {
+        let mut cells: BTreeMap<String, NamedCell<'a>> = self.named_cells(scope).iter().map(|n| (n.name.to_ascii_lowercase(), n.clone())).collect();
+        if self.sheets.contains_key(&scope) {
+            for default in defaults::CELLS.iter().filter(|c| c.kind == defaults::kind(scope)) {
+                let name = &default.cell.name;
+                if let Some(cell) = self.baseline_cell(scope, name) {
+                    cells.entry(name.to_ascii_lowercase()).or_insert_with(|| NamedCell { name: name.clone(), cell, section: None, row: None });
+                }
+            }
+        }
+        cells.into_values().collect()
     }
     pub fn clear_cache(&mut self) {
         self.values.clear();
@@ -239,6 +307,9 @@ impl<'a> Evaluator<'a> {
             return Value::Error(Error::Limit);
         }
         self.work += 1;
+        if let Some(e) = self.inheritance_error(scope, name) {
+            return Value::Error(e);
+        }
         let Some(key) = self.canonical_key(scope, name) else { return Value::Error(Error::Ref) };
         if self.arguments.is_empty()
             && let Some(value) = self.values.get(&key)
@@ -250,27 +321,35 @@ impl<'a> Evaluator<'a> {
         }
         let revision = self.revision;
         self.stack.push(key.clone());
-        let value = if let Some(cell) = self.cells.get(&key).copied() {
-            let cached = self.cached_cell(cell);
-            let formula = self.overrides.get(&key).cloned().or_else(|| cell.formula.clone());
+        let value = if let Some(cell) = self.cell(scope, &key.name) {
+            let cached = self.cached_cell(self.local_inh_cell(scope, &key.name).unwrap_or(cell));
+            let origin = if self.overrides.contains_key(&key) {
+                scope
+            } else {
+                self.formula_origin(scope, &key.name).or_else(|| self.baseline_provider(scope, &key.name)).unwrap_or(scope)
+            };
+            let provider = Key { scope: origin, name: key.name.clone() };
+            if origin != scope {
+                self.add_dependency_key(provider.clone());
+            }
+            let formula = self.overrides.get(&key).or_else(|| self.overrides.get(&provider)).cloned().or_else(|| cell.formula.clone());
             match formula.as_deref() {
-                None | Some("No Formula") => cached,
-                // Step 4 must resolve inherited formulas before corpus Oracle 1 is
-                // enabled. This temporary Step 2 path is not formula-evaluation proof.
-                Some("Inh") => cached,
+                None | Some("No Formula") => self.cached_cell(cell),
+                Some("Inh") => Value::Error(Error::Ref),
                 Some(formula) => {
-                    let mut context = BoundContext { evaluator: self, scope, cached };
+                    let mut context = BoundContext { evaluator: self, scope, origin, cached };
                     diagramcraft_sheet::formula(formula, &mut context)
                 }
             }
         } else {
             Value::Error(Error::Ref)
         };
-        let value = self.cells.get(&key).map_or(value.clone(), |cell| project_cell_point(cell, value));
+        let value = self.cell(scope, &key.name).map_or(value.clone(), |cell| project_cell_point(cell, value));
         self.stack.pop();
         self.active.remove(&key);
         let value = if self.graph_limited { Value::Error(Error::Limit) } else { value };
         if self.arguments.is_empty() && revision == self.revision {
+            self.dirty.remove(&key);
             self.values.insert(key, value.clone());
         }
         value
@@ -290,17 +369,67 @@ impl<'a> Evaluator<'a> {
             return Err(Error::Limit);
         }
         self.override_bytes = bytes;
-        self.overrides.insert(key, formula.into());
+        self.overrides.insert(key.clone(), formula.into());
         self.assignments += 1;
         self.revision = self.revision.checked_add(1).ok_or(Error::Limit)?;
-        self.values.clear();
+        self.invalidate(&key);
         Ok(())
+    }
+    fn invalidate(&mut self, key: &Key) {
+        let mut pending = vec![key.clone()];
+        let mut visited = BTreeSet::new();
+        while let Some(key) = pending.pop() {
+            if !visited.insert(key.clone()) {
+                continue;
+            }
+            self.values.remove(&key);
+            self.dirty.insert(key.clone());
+            if let Some(users) = self.dependents.get(&key) {
+                pending.extend(users.iter().filter(|k| !visited.contains(*k)).cloned());
+            }
+        }
+    }
+    /// Recalculate the dirty dependency closure. DFS postorder visits dependencies first;
+    /// normal evaluation handles cycles as values and discovers changed formula edges.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/dependson-function
+    pub fn recalculate_dirty(&mut self) -> Vec<(Scope, String, Value)> {
+        let mut order = Vec::new();
+        let mut visited = BTreeSet::new();
+        for root in &self.dirty {
+            let mut stack = vec![(root.clone(), false)];
+            while let Some((key, finish)) = stack.pop() {
+                if finish {
+                    order.push(key);
+                    continue;
+                }
+                if !visited.insert(key.clone()) {
+                    continue;
+                }
+                stack.push((key.clone(), true));
+                if let Some(edges) = self.dependencies.get(&key) {
+                    stack.extend(edges.iter().filter(|k| self.dirty.contains(*k) && !visited.contains(*k)).map(|k| (k.clone(), false)));
+                }
+            }
+        }
+        order
+            .into_iter()
+            .map(|key| {
+                let value = self.evaluate(key.scope, &key.name);
+                (key.scope, key.name, value)
+            })
+            .collect()
+    }
+    pub fn dirty_count(&self) -> usize {
+        self.dirty.len()
     }
     fn canonical_key(&self, scope: Scope, name: &str) -> Option<Key> {
         if name.len() > 65536 {
             return None;
         }
-        self.canonical.get(&Key { scope, name: name.to_ascii_lowercase() }).cloned()
+        self.canonical
+            .get(&Key { scope, name: name.to_ascii_lowercase() })
+            .cloned()
+            .or_else(|| self.baseline_cell(scope, name).map(|c| Key { scope, name: c.name.to_ascii_lowercase() }))
     }
     /// Custom function arguments live only during the invocation, and bypass ordinary memoization.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/evalcell-function
@@ -321,8 +450,17 @@ impl<'a> Evaluator<'a> {
         };
         let Some(key) = self.canonical_key(target, &name) else { return Value::Error(Error::Ref) };
         let Some(cell) = self.cell(target, &name) else { return Value::Error(Error::Ref) };
-        let formula = self.overrides.get(&key).cloned().or_else(|| cell.formula.clone());
-        let cached = self.cached_cell(cell);
+        let origin = if self.overrides.contains_key(&key) {
+            target
+        } else {
+            self.formula_origin(target, &key.name).or_else(|| self.baseline_provider(target, &key.name)).unwrap_or(target)
+        };
+        let provider = Key { scope: origin, name: key.name.clone() };
+        if origin != target {
+            self.add_dependency_key(provider.clone());
+        }
+        let formula = self.overrides.get(&key).or_else(|| self.overrides.get(&provider)).cloned().or_else(|| cell.formula.clone());
+        let cached = self.cached_cell(self.local_inh_cell(target, &key.name).unwrap_or(cell));
         let mut bytes = 0usize;
         for (name, value) in args {
             if name.len() > 65536 {
@@ -339,9 +477,9 @@ impl<'a> Evaluator<'a> {
         self.argument_bytes += bytes;
         self.arguments.push(args.iter().map(|(n, v)| (n.to_ascii_lowercase(), v.clone())).collect());
         let result = match formula.as_deref() {
-            None | Some("No Formula") => cached,
+            None | Some("No Formula") => self.cached_cell(cell),
             Some(f) => {
-                let mut context = BoundContext { evaluator: self, scope: target, cached };
+                let mut context = BoundContext { evaluator: self, scope: target, origin, cached };
                 diagramcraft_sheet::formula(f, &mut context)
             }
         };
@@ -352,8 +490,12 @@ impl<'a> Evaluator<'a> {
     fn add_dependency(&mut self, scope: Scope, reference: &str) {
         if let Ok((scope, name)) = self.reference_target(scope, reference)
             && let Some(target) = self.canonical_key(scope, &name)
-            && let Some(caller) = self.stack.last().cloned()
         {
+            self.add_dependency_key(target);
+        }
+    }
+    fn add_dependency_key(&mut self, target: Key) {
+        if let Some(caller) = self.stack.last().cloned() {
             let edges = self.dependencies.entry(caller.clone()).or_default();
             if !edges.contains(&target) {
                 let bytes = caller.name.len().saturating_add(target.name.len());
@@ -361,7 +503,8 @@ impl<'a> Evaluator<'a> {
                     self.graph_limited = true;
                     return;
                 }
-                edges.insert(target);
+                edges.insert(target.clone());
+                self.dependents.entry(target).or_default().insert(caller);
                 self.dependency_count += 1;
                 self.dependency_bytes += bytes;
             }
@@ -385,7 +528,7 @@ impl<'a> Evaluator<'a> {
         if cell.name == "Font"
             && cell.error.is_none()
             && let Some(name) = cell.value.as_deref()
-            && let Some(index) = self.document.face_names.iter().find_map(|(i, n)| n.eq_ignore_ascii_case(name).then_some(*i))
+            && let Some(index) = self.fonts.iter().find_map(|(i, n)| n.eq_ignore_ascii_case(name).then_some(*i))
         {
             return Value::Number(f64::from(index));
         }
@@ -569,9 +712,15 @@ fn split_reference(s: &str) -> Result<Vec<&str>, Error> {
     Ok(out)
 }
 struct BoundContext<'a, 'd> {
+    origin: Scope,
     evaluator: &'a mut Evaluator<'d>,
     scope: Scope,
     cached: Value,
+}
+impl BoundContext<'_, '_> {
+    fn reference(&self, reference: &str) -> Result<String, Error> {
+        self.evaluator.remap_master_reference(self.scope, self.origin, reference)
+    }
 }
 impl Context for BoundContext<'_, '_> {
     fn enter_eval(&mut self) -> bool {
@@ -586,10 +735,24 @@ impl Context for BoundContext<'_, '_> {
         self.evaluator.eval_depth = self.evaluator.eval_depth.saturating_sub(1);
     }
     fn resolve(&mut self, reference: &str) -> Value {
-        self.evaluator.resolve(self.scope, reference)
+        match self.reference(reference) {
+            Ok(r) => self.evaluator.resolve(self.scope, &r),
+            Err(e) => Value::Error(e),
+        }
+    }
+    fn nearest_point_on_path(&mut self, reference: &str, x: f64, y: f64) -> Value {
+        let reference = match self.reference(reference) {
+            Ok(r) => r,
+            Err(e) => return Value::Error(e),
+        };
+        Value::from(self.evaluator.path_nearest(self.scope, &reference, x, y))
     }
     fn path_point(&mut self, reference: &str, travel: f64, offset: f64, segment: Option<usize>) -> Value {
-        match self.evaluator.path_sample(self.scope, reference, travel, segment) {
+        let reference = match self.reference(reference) {
+            Ok(r) => r,
+            Err(e) => return Value::Error(e),
+        };
+        match self.evaluator.path_sample(self.scope, &reference, travel, segment) {
             Ok(((x, y), (dx, dy))) if offset.is_finite() => {
                 let (x, y) = (x - dy * offset, y + dx * offset);
                 if x.is_finite() && y.is_finite() { Value::Point(x, y) } else { Value::Error(Error::Num) }
@@ -599,7 +762,11 @@ impl Context for BoundContext<'_, '_> {
         }
     }
     fn path_angle(&mut self, reference: &str, travel: f64, segment: Option<usize>) -> Value {
-        match self.evaluator.path_sample(self.scope, reference, travel, segment) {
+        let reference = match self.reference(reference) {
+            Ok(r) => r,
+            Err(e) => return Value::Error(e),
+        };
+        match self.evaluator.path_sample(self.scope, &reference, travel, segment) {
             Ok((_, (dx, dy))) => Value::number(dy.atan2(dx)),
             Err(e) => Value::Error(e),
         }
@@ -612,16 +779,27 @@ impl Context for BoundContext<'_, '_> {
         destination: Option<&str>,
         destination_parent: bool,
     ) -> Value {
-        match self.evaluator.transform_point(self.scope, point, source, source_parent, destination, destination_parent) {
+        let source = match source.map(|r| self.reference(r)).transpose() {
+            Ok(r) => r,
+            Err(e) => return Value::Error(e),
+        };
+        let destination = match destination.map(|r| self.reference(r)).transpose() {
+            Ok(r) => r,
+            Err(e) => return Value::Error(e),
+        };
+        match self.evaluator.transform_point(self.scope, point, source.as_deref(), source_parent, destination.as_deref(), destination_parent) {
             Ok((x, y)) => Value::Point(x, y),
             Err(e) => Value::Error(e),
         }
     }
     fn set_formula(&mut self, reference: &str, formula: &str) -> Result<(), Error> {
-        self.evaluator.set_formula(self.scope, reference, formula)
+        self.evaluator.set_formula(self.scope, &self.reference(reference)?, formula)
     }
     fn eval_cell(&mut self, reference: &str, args: &[(String, Value)]) -> Value {
-        self.evaluator.eval_cell(self.scope, reference, args)
+        match self.reference(reference) {
+            Ok(r) => self.evaluator.eval_cell(self.scope, &r, args),
+            Err(e) => Value::Error(e),
+        }
     }
     fn argument(&self, name: &str) -> Option<Value> {
         self.evaluator.arguments.last()?.get(&name.to_ascii_lowercase()).cloned()
@@ -630,10 +808,12 @@ impl Context for BoundContext<'_, '_> {
         if self.evaluator.stack.last().is_some_and(|k| k.name.starts_with("event") || k.name.starts_with("actions.") && k.name.ends_with(".action")) {
             return;
         }
-        self.evaluator.add_dependency(self.scope, reference)
+        if let Ok(r) = self.reference(reference) {
+            self.evaluator.add_dependency(self.scope, &r)
+        }
     }
     fn shape_text(&mut self, reference: &str) -> Value {
-        let (scope, name) = match self.evaluator.reference_target(self.scope, reference) {
+        let (scope, name) = match self.evaluator.reference_target(self.scope, &self.reference(reference).unwrap_or_default()) {
             Ok(v) => v,
             Err(e) => return Value::Error(e),
         };
@@ -650,7 +830,7 @@ impl Context for BoundContext<'_, '_> {
         self.cached.clone()
     }
     fn unit(&self, reference: &str) -> Option<String> {
-        let (scope, name) = self.evaluator.reference_target(self.scope, reference).ok()?;
+        let (scope, name) = self.evaluator.reference_target(self.scope, &self.reference(reference).unwrap_or_default()).ok()?;
         self.evaluator.cell(scope, &name)?.units.clone()
     }
     fn color(&self, index: u32) -> Option<[u8; 3]> {
@@ -668,10 +848,10 @@ impl Context for BoundContext<'_, '_> {
         Some(index)
     }
     fn font(&self, index: u32) -> Option<String> {
-        self.evaluator.document.face_names.get(&index).cloned()
+        self.evaluator.fonts.get(&index).cloned()
     }
     fn font_index(&self, name: &str) -> Option<u32> {
-        self.evaluator.document.face_names.iter().find_map(|(index, value)| value.eq_ignore_ascii_case(name).then_some(*index))
+        self.evaluator.fonts.iter().find_map(|(index, value)| value.eq_ignore_ascii_case(name).then_some(*index))
     }
 }
 /// Destination coordinate cells select a point component; point-typed cells retain both.
@@ -689,6 +869,30 @@ fn project_cell_point(cell: &Cell, value: Value) -> Value {
     } else {
         value
     }
+}
+/// Font IDs are host-specific. The observed blank document and Microsoft's example both
+/// identify Calibri as 4. Other FaceNames retain collision-free document-local IDs; those
+/// IDs are not yet a complete Windows font-profile observation.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/font-function
+fn font_ids(document: &Document) -> Result<BTreeMap<u32, String>, Error> {
+    if document.face_names.len() > 65536 {
+        return Err(Error::Limit);
+    }
+    let mut fonts = BTreeMap::new();
+    if let Some(name) = document.face_names.values().find(|n| n.eq_ignore_ascii_case("Calibri")) {
+        fonts.insert(4, name.clone());
+    }
+    for (preferred, name) in &document.face_names {
+        if name.eq_ignore_ascii_case("Calibri") {
+            continue;
+        }
+        let mut id = *preferred;
+        while fonts.contains_key(&id) {
+            id = id.checked_add(1).ok_or(Error::Limit)?;
+        }
+        fonts.insert(id, name.clone());
+    }
+    Ok(fonts)
 }
 fn parse_color(s: &str) -> Option<[u8; 3]> {
     let s = s.strip_prefix('#')?;
@@ -782,6 +986,47 @@ mod tests {
             face_names: BTreeMap::from([(0, "Example".into())]),
             ..Default::default()
         }
+    }
+    #[test]
+    fn blank_host_font_id_is_distinct_from_facename_position() {
+        let mut doc = fixture();
+        doc.face_names = BTreeMap::from([(0, "Calibri".into()), (4, "Other".into())]);
+        let e = Evaluator::new(&doc).unwrap();
+        assert_eq!(e.cached_cell(&cell("Font", "Calibri", None)), Value::Number(4.));
+        assert_eq!(e.fonts.get(&5), Some(&"Other".to_string()));
+    }
+    #[test]
+    fn inherited_constants_are_computed_from_provider_not_instance_cache() {
+        let mut doc = fixture();
+        doc.pages[0].shapes[0].master = Some(5);
+        doc.pages[0].shapes[0].sheet.cells[0] = cell("Width", "999", Some("Inh"));
+        let scope = Scope::PageShape { page: 7, shape: 1 };
+        let mut e = Evaluator::new(&doc).unwrap();
+        assert_eq!(e.evaluate(scope, "Width"), Value::Number(8.));
+        e.set_formula(Scope::MasterShape { master: 5, shape: 3 }, "Width", "9").unwrap();
+        assert_eq!(e.evaluate(scope, "Width"), Value::Number(9.));
+    }
+    #[test]
+    fn dirty_recalc_orders_dependencies_and_retains_unrelated_cache() {
+        let mut doc = fixture();
+        doc.pages[0].shapes[0].sheet.cells.extend([
+            cell("Dependent", "0", Some("Width*2")),
+            cell("Downstream", "0", Some("Dependent+1")),
+            cell("Other", "0", Some("10+1")),
+        ]);
+        let scope = Scope::PageShape { page: 7, shape: 1 };
+        let mut e = Evaluator::new(&doc).unwrap();
+        assert_eq!(e.evaluate(scope, "Downstream"), Value::Number(5.));
+        assert_eq!(e.evaluate(scope, "Other"), Value::Number(11.));
+        e.set_formula(scope, "Width", "7").unwrap();
+        assert_eq!(e.dirty_count(), 3);
+        assert_eq!(e.values.get(&Key { scope, name: "other".into() }), Some(&Value::Number(11.)));
+        let changed = e.recalculate_dirty();
+        assert_eq!(changed.iter().map(|r| r.1.as_str()).collect::<Vec<_>>(), vec!["width", "dependent", "downstream"]);
+        assert_eq!(changed.last().unwrap().2, Value::Number(15.));
+        assert_eq!(e.dirty_count(), 0);
+        e.set_formula(scope, "Width", "Downstream").unwrap();
+        assert!(e.recalculate_dirty().iter().all(|r| r.2 == Value::Error(Error::Cycle)));
     }
     #[test]
     fn deleted_master_child_markers_do_not_collide() {
@@ -895,7 +1140,8 @@ mod tests {
         assert_eq!(e.evaluate(scope, "CycleA"), Value::Error(Error::Cycle));
         assert_eq!(e.evaluate(scope, "missing"), Value::Error(Error::Ref));
         assert_eq!(e.evaluate(scope, "Hook"), Value::Number(42.));
-        assert_eq!(e.evaluate(scope, "Inherited"), Value::Number(7.));
+        // Step 4 removes the temporary Inh cached-value path: no provider is #REF.
+        assert_eq!(e.evaluate(scope, "Inherited"), Value::Error(Error::Ref));
         e.clear_cache();
         assert_eq!(e.evaluate(scope, "CycleB"), Value::Error(Error::Cycle));
     }
@@ -905,7 +1151,7 @@ mod tests {
         let mut e = Evaluator::new(&doc).unwrap();
         assert_eq!(e.cached_cell(&cell("FillForegnd", "#CC0000", None)), Value::Number(26.));
         assert_eq!(e.cached_cell(&cell("Font", "Example", None)), Value::Number(0.));
-        let mut ctx = BoundContext { evaluator: &mut e, scope: Scope::Document, cached: Value::Number(0.) };
+        let mut ctx = BoundContext { evaluator: &mut e, scope: Scope::Document, origin: Scope::Document, cached: Value::Number(0.) };
         assert_eq!(ctx.color(26), Some([204, 0, 0]));
         assert_eq!(ctx.color_index([204, 0, 0]), Some(26));
         assert_eq!(ctx.font(0), Some("Example".into()));

@@ -3,11 +3,11 @@
 > **Drafted:** 2026-10-11 from the observed app (visio-observed.md) and Microsoft's documentation · **Target:** Microsoft Visio Standard 2021 16.0.20430 (Professional rows marked Pro) · **Status:** Phase 1 reader implemented; authoring, evaluation and rendering remain in progress. Format follows the storytold apps' `docs/parity-checklist.md`: area, feature, priority, Core Y/N, status D/P/M.
 
 <!-- SUMMARY -->
-**Weighted breadth parity: 6%** over 45 Core=Y features.
+**Weighted breadth parity: 10%** over 45 Core=Y features.
 
 | Priority | Features | Done | Partial | Missing | Parity |
 |---|---|---|---|---|---|
-| P0 | 27 | 1 | 2 | 24 | 7% |
+| P0 | 27 | 1 | 5 | 21 | 13% |
 | P1 | 15 | 0 | 1 | 14 | 3% |
 | P2 | 3 | 0 | 0 | 3 | 0% |
 
@@ -15,8 +15,8 @@
 |---|---|
 | Files | 24% |
 | Pages | 0% |
-| Shapes | 0% |
-| Stencils | 21% |
+| Shapes | 11% |
+| Stencils | 32% |
 | Connectors | 0% |
 | Text | 0% |
 | Format | 0% |
@@ -57,17 +57,17 @@ Core=N rows (excluded from milestone scoring):
 | Pages | Rulers, grid, dynamic grid, guides, snap and glue settings | P0 | N | M |
 | Pages | Page tabs: add, rename, reorder, duplicate, delete | P0 | Y | M |
 | Shapes | Draw tools: rectangle, ellipse, line, freeform, arc, pencil | P0 | Y | M |
-| Shapes | Drop masters from a stencil; master instances inherit and can be overridden | P0 | Y | M |
+| Shapes | Drop masters from a stencil; master instances inherit and can be overridden | P0 | Y | P |
 | Shapes | Selection, move, resize, rotate, flip, duplicate, group and ungroup | P0 | Y | M |
 | Shapes | Shape text with text block control handle; double-click to edit | P0 | Y | M |
 | Shapes | Shape data (custom properties) and the Shape Data window | P0 | Y | M |
 | Shapes | Hyperlinks on shapes | P1 | Y | M |
 | Shapes | Control handles, connection points (add, move, type in/out/both) | P0 | Y | M |
-| Shapes | Geometry sections with formulas (Width*0.5 style), guarded cells | P0 | Y | M |
+| Shapes | Geometry sections with formulas (Width*0.5 style), guarded cells | P0 | Y | P |
 | Shapes | Boolean operations: union, combine, fragment, intersect, subtract | P1 | Y | M |
 | Shapes | Protection (lock position, size, aspect, text, delete) | P1 | Y | M |
 | Stencils | ShapeSheet model: Object, Geometry, Character, Paragraph, Tabs, Controls, Connection, User, Actions, Scratch, gradient stops | P0 | Y | D |
-| Stencils | Formula engine: cell references, cross-sheet references (Sheet.N!Cell), GUARD, Inh, THEMEVAL, SETATREF, dependency recalculation | P0 | Y | M |
+| Stencils | Formula engine: cell references, cross-sheet references (Sheet.N!Cell), GUARD, Inh, THEMEVAL, SETATREF, dependency recalculation | P0 | Y | P |
 | Stencils | New master from a shape; edit master; document stencil | P0 | Y | M |
 | Stencils | Read vendor stencil packs (.vssx) and render their masters correctly | P0 | Y | M |
 | Stencils | Master icons, master names and prompts, search index | P1 | Y | M |
@@ -103,3 +103,9 @@ Core=N rows (excluded from milestone scoring):
 - Open .vssx stencils and .vstx templates; save a stencil: P, `diagramcraft-vsdx::all_corpus_parses_and_seeded_mutations_never_panic`.
 - Open .vsdm/.vssm/.vstm (drop macros, keep the rest): P, `diagramcraft-vsdx::macro_payload_removed_and_flagged`.
 - ShapeSheet model: Object, Geometry, Character, Paragraph, Tabs, Controls, Connection, User, Actions, Scratch, gradient stops: D, `diagramcraft-vsdx::reads_shape_cells_sections_text_and_unknown_content`.
+
+- Drop masters from a stencil; master instances inherit and can be overridden: P, `diagramcraft-vsdx::evaluate::inherit::tests::corpus_basic_rect_and_probe_inheritance_witnesses`. Read/evaluation subset; editing, host implementations and full corpus accuracy remain open.
+
+- Geometry sections with formulas (Width*0.5 style), guarded cells: P, `diagramcraft-vsdx::evaluate::path::tests::path_sampling_and_nearest_use_inherited_rows_and_partial_overrides`. Read/evaluation subset; editing, host implementations and full corpus accuracy remain open.
+
+- Formula engine: cell references, cross-sheet references (Sheet.N!Cell), GUARD, Inh, THEMEVAL, SETATREF, dependency recalculation: P, `diagramcraft-vsdx::evaluate::tests::dirty_recalc_orders_dependencies_and_retains_unrelated_cache`. Read/evaluation subset; editing, host implementations and full corpus accuracy remain open.

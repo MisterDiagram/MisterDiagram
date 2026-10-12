@@ -1,0 +1,20 @@
+# Initial release measurements on Charles's Mac, 2026-10-12.
+# These record first observations, not acceptance or CI performance thresholds.
+gate = false
+
+[largest_stencil]
+file = "corpus/ms-shipped/1033/WFDEP_M.vssx"
+selection = "largest total uncompressed ZIP bytes among local VSSX files"
+uncompressed_bytes = 7889047
+cells = 360581
+evaluation_errors = 115457
+read_ms = 184
+index_ms = 378
+evaluate_ms = 665
+# Errors are counted honestly. This is a timing measurement, not an accuracy oracle.
+
+[synthetic_page]
+shapes = 500
+initial_index_and_evaluation_ms = 2
+dirty_cells = 1001
+recalculate_ms = 1
