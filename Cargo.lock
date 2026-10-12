@@ -113,7 +113,9 @@ dependencies = [
 name = "diagramcraft-cli"
 version = "0.0.1"
 dependencies = [
+ "diagramcraft-corpus",
  "diagramcraft-opc",
+ "diagramcraft-vsdx",
  "zip",
 ]
 
@@ -122,6 +124,15 @@ name = "diagramcraft-color"
 version = "0.0.1"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "diagramcraft-corpus"
+version = "0.0.1"
+dependencies = [
+ "diagramcraft-model",
+ "diagramcraft-sheet",
+ "diagramcraft-vsdx",
 ]
 
 [[package]]

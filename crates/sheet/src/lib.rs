@@ -2,6 +2,7 @@
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 mod eval;
 pub mod functions;
+pub mod language;
 pub mod parser;
 pub mod units;
 mod value;

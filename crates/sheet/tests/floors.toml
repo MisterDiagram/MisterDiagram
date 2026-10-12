@@ -1,0 +1,7 @@
+# Brief P1 acceptance floors. These may only rise.
+# At closure, record achieved rates here without weakening either initial minimum.
+[oracle1]
+shipped = 0.97
+
+[oracle2]
+all = 0.90

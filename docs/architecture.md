@@ -53,3 +53,7 @@ Page coordinates are inches, y-up, origin bottom-left. Dependencies go to strict
 Adapted `AGENTS.md` from deckcraft `src/AGENTS.md`, commit `be14248577b92059eb2b8c0c9460cceffbc1f01d`, MIT OR Apache-2.0.
 
 Adapted `CLAUDE.md` from deckcraft `src/CLAUDE.md`, commit `be14248577b92059eb2b8c0c9460cceffbc1f01d`, MIT OR Apache-2.0.
+
+The native `apps/diagramcraft-corpus` crate shares corpus-oracle logic between the CLI and
+integration tests. It is an application harness above the core layers, exempt like the CLI;
+no core crate depends on it. This avoids an upward dependency from sheet tests to the reader.

@@ -34,6 +34,11 @@ struct Key {
     scope: Scope,
     name: String,
 }
+#[derive(Default)]
+struct Snapshot {
+    formulas: BTreeMap<Key, Option<String>>,
+    edges: Vec<(Key, Key)>,
+}
 /// Local document evaluation with cached hooks, bounded dependencies and explicit error values.
 /// Master/style/default inheritance is layered on these scopes separately.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references
@@ -67,6 +72,7 @@ pub struct Evaluator<'a> {
     dependency_bytes: usize,
     graph_limited: bool,
     stack: Vec<Key>,
+    snapshot: Option<Snapshot>,
 }
 impl<'a> Evaluator<'a> {
     pub fn new(document: &'a Document) -> Result<Self, Error> {
@@ -101,6 +107,7 @@ impl<'a> Evaluator<'a> {
             dependency_bytes: 0,
             graph_limited: false,
             stack: Vec::new(),
+            snapshot: None,
             fonts: font_ids(document)?,
             palette: document.colors.iter().filter_map(|(i, c)| parse_color(c).map(|c| (*i, c))).collect(),
         };
@@ -292,6 +299,35 @@ impl<'a> Evaluator<'a> {
         }
         cells.into_values().collect()
     }
+    /// Recorded baseline SRC indices and numeric COM units, independent of cell values.
+    /// https://learn.microsoft.com/en-us/office/vba/api/visio.shape.cellssrc
+    pub fn baseline_metadata(scope: Scope, name: &str) -> Option<(u16, u16, u16, u16)> {
+        let c = defaults::cell(scope, name)?;
+        let n = |key| c.attributes.get(key)?.parse().ok();
+        Some((n("ComSection")?, n("ComRow")?, n("ComCell")?, n("ComUnits")?))
+    }
+    pub fn dump_defaults(scope: Scope) -> Vec<NamedCell<'static>> {
+        defaults::CELLS
+            .iter()
+            .filter(|c| c.kind == defaults::kind(scope))
+            .map(|c| NamedCell { name: c.cell.name.clone(), cell: &c.cell, section: None, row: None })
+            .collect()
+    }
+    /// Formula provider text, with source bytes left unchanged.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+    pub fn effective_formula(&self, scope: Scope, name: &str) -> Option<String> {
+        let key = self.canonical_key(scope, name)?;
+        let origin = self.formula_origin(scope, &key.name).or_else(|| self.baseline_provider(scope, &key.name)).unwrap_or(scope);
+        self.overrides
+            .get(&key)
+            .or_else(|| self.overrides.get(&Key { scope: origin, name: key.name.clone() }))
+            .cloned()
+            .or_else(|| self.cell(scope, name)?.formula.clone())
+    }
+    pub fn display_reference(&self, scope: Scope, name: &str, reference: &str) -> Result<String, Error> {
+        let origin = self.formula_origin(scope, name).unwrap_or(scope);
+        self.remap_master_reference(scope, origin, reference)
+    }
     pub fn clear_cache(&mut self) {
         self.values.clear();
     }
@@ -301,6 +337,45 @@ impl<'a> Evaluator<'a> {
             self.eval_work = 0;
         }
         self.evaluate_inner(scope, name)
+    }
+    /// Evaluate against the original overlay snapshot. SETF runs normally within the
+    /// query, then its changes are rolled back; caches touched by a write are discarded.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/setf-function
+    pub fn evaluate_snapshot(&mut self, scope: Scope, name: &str) -> Value {
+        if self.snapshot.is_some() || self.eval_depth != 0 {
+            return Value::Error(Error::Value);
+        }
+        let before = (self.override_bytes, self.assignments, self.revision, self.graph_limited);
+        let dirty = self.dirty.clone();
+        self.snapshot = Some(Snapshot::default());
+        let result = self.evaluate(scope, name);
+        if let Some(snapshot) = self.snapshot.take()
+            && !snapshot.formulas.is_empty()
+        {
+            for (key, old) in snapshot.formulas {
+                if let Some(formula) = old {
+                    self.overrides.insert(key, formula);
+                } else {
+                    self.overrides.remove(&key);
+                }
+            }
+            for (caller, target) in snapshot.edges {
+                if let Some(edges) = self.dependencies.get_mut(&caller) {
+                    edges.remove(&target);
+                }
+                if let Some(users) = self.dependents.get_mut(&target) {
+                    users.remove(&caller);
+                }
+                self.dependency_count = self.dependency_count.saturating_sub(1);
+                self.dependency_bytes = self.dependency_bytes.saturating_sub(caller.name.len().saturating_add(target.name.len()));
+            }
+            self.dependencies.retain(|_, edges| !edges.is_empty());
+            self.dependents.retain(|_, edges| !edges.is_empty());
+            self.values.clear();
+            self.dirty = dirty;
+            (self.override_bytes, self.assignments, self.revision, self.graph_limited) = before;
+        }
+        result
     }
     fn evaluate_inner(&mut self, scope: Scope, name: &str) -> Value {
         if self.graph_limited || name.len() > 65536 || self.active.len() >= 128 || self.work >= 100_000 {
@@ -367,6 +442,9 @@ impl<'a> Evaluator<'a> {
         let bytes = self.override_bytes.saturating_sub(old).saturating_add(formula.len());
         if bytes > 64 * 1024 * 1024 {
             return Err(Error::Limit);
+        }
+        if let Some(snapshot) = self.snapshot.as_mut() {
+            snapshot.formulas.entry(key.clone()).or_insert_with(|| self.overrides.get(&key).cloned());
         }
         self.override_bytes = bytes;
         self.overrides.insert(key.clone(), formula.into());
@@ -504,6 +582,9 @@ impl<'a> Evaluator<'a> {
                     return;
                 }
                 edges.insert(target.clone());
+                if let Some(snapshot) = self.snapshot.as_mut() {
+                    snapshot.edges.push((caller.clone(), target.clone()));
+                }
                 self.dependents.entry(target).or_default().insert(caller);
                 self.dependency_count += 1;
                 self.dependency_bytes += bytes;
@@ -514,7 +595,15 @@ impl<'a> Evaluator<'a> {
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/colors-element-visiodocument_type-complextypevisio-xml
+    /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/360407c5-34d8-417d-b08d-4044fd858a5e
+    /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/c5e4da4b-c1d0-4cdd-a418-04fccbc098ae
     pub fn cached_cell(&self, cell: &Cell) -> Value {
+        if matches!(cell.name.as_str(), "LangID" | "DocLangID") && cell.error.is_none() {
+            return match diagramcraft_sheet::language::lcid(cell.value.as_deref().unwrap_or("0")) {
+                Ok(id) => Value::Number(f64::from(id)),
+                Err(e) => Value::Error(e),
+            };
+        }
         if cell.value.as_ref().is_some_and(|s| s.len() > 65536) {
             return Value::Error(Error::Limit);
         }
@@ -986,6 +1075,28 @@ mod tests {
             face_names: BTreeMap::from([(0, "Example".into())]),
             ..Default::default()
         }
+    }
+    #[test]
+    fn language_cells_use_lcid_not_text_zero() {
+        let doc = Document::default();
+        let evaluator = Evaluator::new(&doc).unwrap();
+        assert_eq!(evaluator.cached_cell(&cell("LangID", "en-US", None)), Value::Number(1033.));
+        assert_eq!(evaluator.cached_cell(&cell("DocLangID", "de-DE", None)), Value::Number(1031.));
+        assert_eq!(evaluator.cached_cell(&cell("Text", "en-US", None)), Value::Text("en-US".into()));
+    }
+    #[test]
+    fn oracle_snapshot_executes_then_rolls_back_setf() {
+        let mut doc = fixture();
+        doc.pages[0].shapes[0].sheet.cells.extend([cell("Query", "0", Some("SETF(GETREF(Width),9)+Width")), cell("Read", "0", Some("Width*2"))]);
+        let scope = Scope::PageShape { page: 7, shape: 1 };
+        let mut e = Evaluator::new(&doc).unwrap();
+        assert_eq!(e.evaluate_snapshot(scope, "Query"), Value::Number(9.));
+        assert_eq!(e.evaluate_snapshot(scope, "Read"), Value::Number(4.));
+        assert!(e.overrides.is_empty());
+        assert_eq!(e.assignments, 0);
+        e.set_formula(scope, "Width", "3").unwrap();
+        assert_eq!(e.evaluate_snapshot(scope, "Query"), Value::Number(9.));
+        assert_eq!(e.evaluate(scope, "Width"), Value::Number(3.));
     }
     #[test]
     fn blank_host_font_id_is_distinct_from_facename_position() {

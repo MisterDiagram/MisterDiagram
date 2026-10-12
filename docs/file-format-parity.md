@@ -4,6 +4,14 @@ Status: pre-alpha, Phase 1 reader and ShapeSheet work in progress.
 
 ## Measured
 
+Initial Phase 1 full comparison: 1387 packages and317 TSVs, including104/1181 shipped dumps.
+Oracle1 shipped:4895301/5355260 (91.411080%), below97% floor.
+Oracle2:7093231/7271082 (97.553995%), above90% floor.
+These are the first measurements, before language-ID/style-selector corrections, not closure.
+The probe CLI dump matches all5344 eligible values and units (1049 frozen exclusions),
+with6393 total rows and no missing/extra identities. Formula spelling is reported as source
+expression or inherited expression; value comparison does not require identical whitespace.
+
 Phase 1 grammar syntax sweep: 355806 distinct formulas across 1387 files, zero parse failures
 (excluding only the `Inh` and `No Formula` storage sentinels). This is syntax coverage, not
 numeric oracle accuracy. Local and cross-scope cell evaluation, explicit units, document
@@ -26,6 +34,19 @@ ENTITY_M/U.vssx and OBJREL_M/U.vssx use the published 2011/1/core XML namespace;
 the other measured files use 2012/main. Container inspection accepts both exact URIs.
 
 ## Observed, undocumented
+
+COM style enumeration differs from the XML: `corpus/generated/basic/0001-probe.vsdx`
+contains style gradient sections and No Style's LayerMember, but its completed
+`.sheet.tsv` has no corresponding style SRC rows. The blank style dumps agree.
+The TSV adapter follows the observed Style.Section/CellsSRC surface while preserving
+these XML cells in the model and evaluator. Shape gradient sections remain exposed.
+
+Theme selector inheritance witness: the probe's Theme style 6 explicitly contains
+65534 for all eight selector cells while No Style 0 contains 0. Intermediate styles
+and shapes resolve to 65534. These cells must traverse their formatting style chains,
+rather than fall directly back to No Style. Routing among conflicting style chains
+is not established by this witness: font selectors use TextStyle, effect selectors
+use FillStyle, common/color/connector selectors use LineStyle pending such evidence.
 
 SETF's reference specifies assignment without a return value. The local inventory has
 24575 SETF-leading formulas with cached V=0 and no E, including expressions outside
@@ -144,7 +165,7 @@ and is invalid as an oracle. The formal cached oracle must use original source c
 
 ## Implemented function groups
 
-ABS, ACOS, AND, ANG360, ANGLEALONGPATH, ARG, ASIN, ATAN, ATAN2, BLUE, BOUND, CEILING, COS, COSH, DEPENDSON, EVALCELL, EVALTEXT, FLOOR, FONT, FONTTOID, FORMAT, FORMATEX, GETREF, GREEN, GUARD, HSL, HUE, IF, INDEX, INT, LEFT, LEN, LISTSEP, LOC, LOCTOLOC, LOCTOPAR, LOOKUP, LUM, MAX, MID, MIN, MODULUS, NEARESTPOINTONPATH, NOT, OR, PAR, PI, PNT, PNTX, PNTY, POINTALONGPATH, POW, RECTSECT, RED, RGB, RIGHT, ROUND, SAT, SETATREF, SETATREFEVAL, SETATREFEXPR, SETF, SIN, SINH, SQRT, STRSAME, TAN, TANH, TRUNC.
+ABS, ACOS, AND, ANG360, ANGLEALONGPATH, ARG, ASIN, ATAN, ATAN2, BLUE, BOUND, CEILING, COS, COSH, DEPENDSON, EVALCELL, EVALTEXT, FLOOR, FONT, FONTTOID, FORMAT, FORMATEX, GETREF, GREEN, GUARD, HSL, HUE, IF, INDEX, INT, LANGUAGE, LEFT, LEN, LISTSEP, LOC, LOCTOLOC, LOCTOPAR, LOOKUP, LUM, MAX, MID, MIN, MODULUS, NEARESTPOINTONPATH, NOT, OR, PAR, PI, PNT, PNTX, PNTY, POINTALONGPATH, POW, RECTSECT, RED, RGB, RIGHT, ROUND, SAT, SETATREF, SETATREFEVAL, SETATREFEXPR, SETF, SIN, SINH, SQRT, STRSAME, TAN, TANH, TRUNC.
 
 Microsoft example and hostile-input tests are in `crates/sheet/src/functions/`.
 Legacy MOD remains open, as recorded above. Implementation coverage is not an oracle rate.

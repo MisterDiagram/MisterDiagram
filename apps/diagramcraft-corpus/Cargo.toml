@@ -1,0 +1,11 @@
+[package]
+name = "diagramcraft-corpus"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+[lints]
+workspace = true
+[dependencies]
+diagramcraft-vsdx.workspace = true
+diagramcraft-sheet.workspace = true
+diagramcraft-model.workspace = true

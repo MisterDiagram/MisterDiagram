@@ -1,5 +1,6 @@
 //! Namespace-aware, bounded Visio reader. Original parts retain extension XML and unknown bytes.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
+pub mod dump;
 pub mod evaluate;
 use diagramcraft_model::*;
 use diagramcraft_opc::{Package, xml};

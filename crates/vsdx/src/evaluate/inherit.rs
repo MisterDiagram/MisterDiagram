@@ -37,6 +37,17 @@ enum Category {
     Fill,
     Text,
 }
+/// Theme selectors follow formatting style providers, not an unconditional No Style fallback.
+/// Corpus witness: basic/0001-probe, Theme style 6 has 65534 while No Style 0 has 0.
+/// Separate-chain routing follows each selector's purpose; conflicting chains remain unverified.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/themeindex-cell-theme-properties-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/colorschemeindex-cell-theme-properties-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/effectschemeindex-cell-theme-properties-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/fontschemeindex-cell-theme-properties-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/connectorschemeindex-cell-theme-properties-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/variationcolorindex-cell-theme-properties-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/variationstyleindex-cell-theme-properties-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/embellishmentindex-cell-theme-properties-section
 fn category(name: &str) -> Option<Category> {
     let name = name.to_ascii_lowercase();
     if name.starts_with("char.")
@@ -58,6 +69,7 @@ fn category(name: &str) -> Option<Category> {
                 | "textcontainer"
                 | "quickstylefontcolor"
                 | "quickstylefontmatrix"
+                | "fontschemeindex"
         )
     {
         Some(Category::Text)
@@ -66,7 +78,7 @@ fn category(name: &str) -> Option<Category> {
         || name.starts_with("beginarrow")
         || name.starts_with("endarrow")
         || name.starts_with("quickstyleline")
-        || matches!(name.as_str(), "rounding" | "compoundtype")
+        || matches!(name.as_str(), "rounding" | "compoundtype" | "themeindex" | "colorschemeindex" | "connectorschemeindex" | "variationcolorindex")
     {
         Some(Category::Line)
     } else if name.starts_with("fill")
@@ -79,7 +91,10 @@ fn category(name: &str) -> Option<Category> {
         || name.starts_with("glow")
         || name.starts_with("rotation")
         || name.starts_with("sketch")
-        || matches!(name.as_str(), "softedgessize" | "quickstyleeffectsmatrix" | "perspective")
+        || matches!(
+            name.as_str(),
+            "softedgessize" | "quickstyleeffectsmatrix" | "perspective" | "effectschemeindex" | "variationstyleindex" | "embellishmentindex"
+        )
     {
         Some(Category::Fill)
     } else {
@@ -592,6 +607,44 @@ mod tests {
         let scope = Scope::PageShape { page: 0, shape: 1 };
         for (name, expected) in [("LineWeight", "1"), ("FillPattern", "2"), ("VerticalAlign", "3")] {
             assert_eq!(e.cell(scope, name).unwrap().value.as_deref(), Some(expected));
+        }
+    }
+    #[test]
+    fn theme_selectors_follow_actual_style_ancestor() {
+        let selectors = [
+            "ThemeIndex",
+            "ColorSchemeIndex",
+            "FontSchemeIndex",
+            "EffectSchemeIndex",
+            "ConnectorSchemeIndex",
+            "VariationColorIndex",
+            "VariationStyleIndex",
+            "EmbellishmentIndex",
+        ];
+        let doc = Document {
+            styles: vec![
+                Style { id: 0, sheet: sheet(selectors.iter().map(|n| c(n, "0", None)).collect()), ..Default::default() },
+                Style {
+                    id: 6,
+                    line_style: Some(0),
+                    fill_style: Some(0),
+                    text_style: Some(0),
+                    sheet: sheet(selectors.iter().map(|n| c(n, "65534", None)).collect()),
+                    ..Default::default()
+                },
+                Style { id: 3, line_style: Some(6), fill_style: Some(6), text_style: Some(6), ..Default::default() },
+            ],
+            pages: vec![Page {
+                id: 0,
+                shapes: vec![Shape { id: 1, line_style: Some(3), fill_style: Some(3), text_style: Some(3), ..Default::default() }],
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let mut e = Evaluator::new(&doc).unwrap();
+        for selector in selectors {
+            assert_eq!(e.evaluate(Scope::PageShape { page: 0, shape: 1 }, selector), super::super::Value::Number(65534.));
+            assert_eq!(e.evaluate(Scope::Style(0), selector), super::super::Value::Number(0.));
         }
     }
     #[test]

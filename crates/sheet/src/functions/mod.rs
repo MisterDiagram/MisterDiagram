@@ -8,6 +8,7 @@ mod spatial;
 mod text;
 pub use color::default_color;
 pub const IMPLEMENTED: &[&str] = &[
+    "LANGUAGE",
     "BOUND",
     "RECTSECT",
     "NEARESTPOINTONPATH",
@@ -92,6 +93,7 @@ pub(crate) fn call(name: &str, args: &[Expr], context: &mut dyn Context, budget:
         return value;
     }
     match name {
+        "LANGUAGE" => language(args, context, budget, depth),
         "GUARD" => guard(args, context, budget, depth),
         "IF" => conditional(args, context, budget, depth),
         "AND" | "OR" => logical(name, args, context, budget, depth),
@@ -99,6 +101,19 @@ pub(crate) fn call(name: &str, args: &[Expr], context: &mut dyn Context, budget:
             let values: Vec<_> = args.iter().map(|arg| eval(arg, context, budget, depth + 1)).collect();
             color::call(name, &values, context).unwrap_or_else(|| numeric::call(name, &values))
         }
+    }
+}
+/// Convert BCP47 strings or numeric LCID representations to a language identifier.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/language-function
+fn language(args: &[Expr], context: &mut dyn Context, budget: &mut usize, depth: usize) -> Value {
+    let [arg] = args else { return Value::Error(Error::Value) };
+    let value = eval(arg, context, budget, depth + 1);
+    if let Some(e) = value.error() {
+        return Value::Error(e);
+    }
+    match crate::language::lcid(&value.text()) {
+        Ok(id) => Value::Number(f64::from(id)),
+        Err(e) => Value::Error(e),
     }
 }
 /// Protection affects editing; reading GUARD evaluates its expression unchanged.
@@ -166,6 +181,8 @@ mod tests {
     }
     #[test]
     fn microsoft_arithmetic_and_trig_examples() {
+        assert_eq!(result("LANGUAGE(\"en-us\")"), Value::Number(1033.));
+        assert_eq!(result("LANGUAGE(\"es-es\")"), Value::Number(3082.));
         for (f, n, t) in [
             ("ABS(-1.24)", 1.24, 1e-12),
             ("ACOS(0)", std::f64::consts::FRAC_PI_2, 1e-12),

@@ -7,5 +7,7 @@ license.workspace = true
 workspace = true
 [dependencies]
 diagramcraft-opc.workspace = true
+diagramcraft-vsdx.workspace = true
+diagramcraft-corpus = { path = "../diagramcraft-corpus" }
 [dev-dependencies]
 zip.workspace = true

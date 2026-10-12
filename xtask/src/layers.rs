@@ -42,6 +42,7 @@ pub const TABLE: &[(&str, Class)] = &[
     ("mcp", Class::Layer(6)),
     ("diagramcraft", Class::Exempt),
     ("cli", Class::Exempt),
+    ("corpus", Class::Exempt),
     ("web", Class::Exempt),
     ("xtask", Class::Exempt),
 ];

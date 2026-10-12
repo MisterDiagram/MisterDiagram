@@ -1,10 +1,10 @@
 # Roadmap
 
-Status: pre-alpha, Phase 0 in progress. Target: Visio Standard 2021.
+Status: pre-alpha, M0 met; Phase 1 in progress. Target: Visio Standard 2021.
 
 Phase 0 establishes the workspace, conventions, oracle scripts and private corpus. Phases 1
 through 5 add reading and ShapeSheet evaluation, rendering, writing, authoring, and exports.
-No feature-parity milestone is claimed yet.
+M0 closed at 1473b0d. M1 requires the frozen corpus floors and independent review.
 
 ## Progress
 
@@ -14,4 +14,6 @@ No feature-parity milestone is claimed yet.
 - 2026-10-11: M0.3 runner smoke test.
 - 2026-10-12: M0.4 oracle scripts. 204 generated drawings, 827857 sheet rows; blank dump 3385 cells.
 - 2026-10-12: M0.5 corpus pin and 1239-file checksum manifest. All 1181 shipped files local; 104/1181 dumps complete, remainder deferred to later nights.
-- Acceptance remains blocked: Documents.Open on the probe timed out twice at 1800 seconds. P0 is partial; no milestone closure claimed.
+- 2026-10-12: M0.9 normal-process launch and COM attachment pass two-file Visio acceptance; M0 met.
+- 2026-10-12: M1.1 to M1.4 reader, grammar,70 functions, inheritance and dirty recalc. All1387 packages parse;5548 deterministic mutations produce no panics.
+- 2026-10-12: M1.5 CLI sheet/corpus tooling. Probe5344 eligible cells match; first full measurement shipped cached91.411080%, COM97.553995%. M1 remains incomplete while the97%cached floor is unmet. Shipped dumps104/1181.

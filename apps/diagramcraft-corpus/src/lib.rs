@@ -1,0 +1,718 @@
+//! Read-only comparisons against original package caches and completed COM dumps.
+#![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
+use diagramcraft_sheet::Value;
+use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    fmt,
+    fs::{self, File},
+    io::{BufRead, BufReader, Read},
+    path::{Path, PathBuf},
+};
+const MAX_FILES: usize = 100_000;
+const MAX_DEPTH: usize = 32;
+const MAX_PACKAGE: u64 = 256 * 1024 * 1024;
+const MAX_TSV: u64 = 512 * 1024 * 1024;
+const MAX_LINE: usize = 1024 * 1024;
+const MAX_ROWS: u64 = 10_000_000;
+const TOLERANCE: f64 = 1e-6;
+const HEADER: &str = "shape_id\tshape_name\tsection\trow\tcell\tname\tformula\tresult_iu\tunits";
+#[derive(Debug, Default, Clone)]
+pub struct Rate {
+    pub matched: u64,
+    pub total: u64,
+    pub excluded: u64,
+}
+impl Rate {
+    pub fn percent(&self) -> f64 {
+        if self.total == 0 { 0. } else { 100. * self.matched as f64 / self.total as f64 }
+    }
+    fn record(&mut self, matched: bool) {
+        self.total += 1;
+        if matched {
+            self.matched += 1;
+        }
+    }
+}
+#[derive(Debug, Clone)]
+pub struct Witness {
+    pub oracle: &'static str,
+    pub category: String,
+    pub file: String,
+    pub scope: String,
+    pub cell: String,
+    pub formula: String,
+    pub expected: String,
+    pub actual: String,
+}
+#[derive(Debug)]
+pub struct Report {
+    pub cached: Rate,
+    pub com: Rate,
+    pub shipped_cached: Rate,
+    pub shipped_com: Rate,
+    pub packages: usize,
+    pub shipped_packages: usize,
+    pub shipped_available: usize,
+    pub dump_files: usize,
+    pub shipped_dump_files: usize,
+    pub cached_floor: f64,
+    pub com_floor: f64,
+    pub quick: bool,
+    pub top_failures: Vec<(String, u64)>,
+    pub function_failures: Vec<(String, u64)>,
+    pub cached_cell_failures: Vec<(String, u64)>,
+    pub cached_actual_failures: Vec<(String, u64)>,
+    pub cached_formula_failures: Vec<(String, u64)>,
+    pub witnesses: Vec<Witness>,
+}
+impl Report {
+    pub fn passed(&self) -> bool {
+        self.shipped_cached.total > 0
+            && self.com.total > 0
+            && self.shipped_cached.percent() >= self.cached_floor
+            && self.com.percent() >= self.com_floor
+    }
+}
+impl fmt::Display for Report {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(
+            f,
+            "corpus mode={} packages={} shipped={}/{} completed_shipped_dumps={} dump_files={}",
+            if self.quick { "quick" } else { "full" },
+            self.packages,
+            self.shipped_packages,
+            self.shipped_available,
+            self.shipped_dump_files,
+            self.dump_files
+        )?;
+        for (name, rate, floor) in [
+            ("cached overall informational", &self.cached, None),
+            ("COM", &self.com, Some(self.com_floor)),
+            ("shipped cached", &self.shipped_cached, Some(self.cached_floor)),
+            ("shipped COM", &self.shipped_com, None),
+        ] {
+            writeln!(
+                f,
+                "{name}: {}/{} ({:.6}%) excluded={} floor={}",
+                rate.matched,
+                rate.total,
+                rate.percent(),
+                rate.excluded,
+                floor.map(|n| format!("{n:.6}%")).unwrap_or_else(|| "reported separately".into())
+            )?;
+        }
+        writeln!(
+            f,
+            "result={}; tolerance={TOLERANCE}; snapshots isolate SETF writes; string COM values use numeric coercion",
+            if self.passed() { "PASS" } else { "FAIL" }
+        )?;
+        for (kind, entries) in [
+            ("cell", &self.top_failures),
+            ("function", &self.function_failures),
+            ("cached source cell", &self.cached_cell_failures),
+            ("cached actual", &self.cached_actual_failures),
+            ("cached formula kind", &self.cached_formula_failures),
+        ] {
+            for (name, count) in entries {
+                writeln!(f, "failure {kind} {name}: {count}")?;
+            }
+        }
+        for w in &self.witnesses {
+            writeln!(
+                f,
+                "witness {} category={:?} {} {} {} formula={:?} expected={:?} actual={:?}",
+                w.oracle, w.category, w.file, w.scope, w.cell, w.formula, w.expected, w.actual
+            )?;
+        }
+        Ok(())
+    }
+}
+fn walk(root: &Path) -> Result<Vec<PathBuf>, String> {
+    if !root.exists() {
+        return Err(format!("missing corpus directory {}", root.display()));
+    }
+    if fs::symlink_metadata(root).map_err(|e| e.to_string())?.file_type().is_symlink() {
+        return Err("corpus root symlink rejected".into());
+    }
+    let mut paths = vec![];
+    let mut pending = vec![(root.to_path_buf(), 0)];
+    let mut visited = 0;
+    while let Some((dir, depth)) = pending.pop() {
+        if depth > MAX_DEPTH {
+            return Err("corpus directory depth limit".into());
+        }
+        for entry in fs::read_dir(&dir).map_err(|e| format!("{}: {e}", dir.display()))? {
+            let entry = entry.map_err(|e| e.to_string())?;
+            visited += 1;
+            if visited > MAX_FILES {
+                return Err("corpus file count limit".into());
+            }
+            let kind = entry.file_type().map_err(|e| e.to_string())?;
+            if kind.is_symlink() {
+                return Err(format!("corpus symlink rejected: {}", entry.path().display()));
+            }
+            if kind.is_dir() {
+                pending.push((entry.path(), depth + 1));
+            } else if kind.is_file() {
+                paths.push(entry.path());
+            }
+        }
+    }
+    paths.sort();
+    Ok(paths)
+}
+fn package(p: &Path) -> bool {
+    p.extension().and_then(|s| s.to_str()).is_some_and(|s| matches!(s.to_ascii_lowercase().as_str(), "vsdx" | "vssx" | "vstx" | "vsdm"))
+}
+fn read_package(path: &Path) -> Result<diagramcraft_model::Document, String> {
+    let file = File::open(path).map_err(|e| e.to_string())?;
+    if file.metadata().map_err(|e| e.to_string())?.len() > MAX_PACKAGE {
+        return Err("package size limit".into());
+    }
+    let mut bytes = vec![];
+    file.take(MAX_PACKAGE + 1).read_to_end(&mut bytes).map_err(|e| e.to_string())?;
+    if bytes.len() as u64 > MAX_PACKAGE {
+        return Err("package size limit".into());
+    }
+    diagramcraft_vsdx::import(&bytes).map_err(|e| format!("{}: {e}", path.display()))
+}
+/// Scan function call tokens outside doubled-quote string literals; no formula parsing success is required.
+pub fn function_calls(formula: &str) -> Result<BTreeSet<String>, String> {
+    if formula.len() > MAX_LINE {
+        return Err("formula length limit".into());
+    }
+    let bytes = formula.as_bytes();
+    let mut i = 0;
+    let mut names = BTreeSet::new();
+    let mut quoted = false;
+    while let Some(&b) = bytes.get(i) {
+        if b == b'"' {
+            if quoted && bytes.get(i + 1) == Some(&b'"') {
+                i += 2;
+                continue;
+            }
+            quoted = !quoted;
+            i += 1;
+            continue;
+        }
+        if !quoted && (b.is_ascii_alphabetic() || b == b'_') {
+            let start = i;
+            i += 1;
+            while bytes.get(i).is_some_and(|b| b.is_ascii_alphanumeric() || *b == b'_') {
+                i += 1;
+            }
+            let end = i;
+            while bytes.get(i).is_some_and(u8::is_ascii_whitespace) {
+                i += 1;
+            }
+            if bytes.get(i) == Some(&b'(') {
+                names.insert(formula.get(start..end).ok_or("invalid function boundary")?.to_ascii_uppercase());
+            }
+        } else {
+            i += 1;
+        }
+    }
+    Ok(names)
+}
+fn exclusions() -> BTreeSet<String> {
+    [include_str!("../../../crates/sheet/tests/volatile.txt"), include_str!("../../../crates/sheet/tests/hooks.txt")]
+        .into_iter()
+        .flat_map(str::lines)
+        .filter_map(|line| line.split('#').next())
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(str::to_owned)
+        .collect()
+}
+fn excluded(calls: &BTreeSet<String>, exclusions: &BTreeSet<String>) -> bool {
+    calls.iter().any(|s| exclusions.contains(s) || exclusions.contains("_UCON_...") && s.starts_with("_UCON_"))
+}
+fn floor(text: &str, key: &str) -> Result<f64, String> {
+    let mut found = None;
+    for line in text.lines() {
+        let line = line.split('#').next().unwrap_or("").trim();
+        if let Some((k, v)) = line.split_once('=')
+            && k.trim() == key
+        {
+            if found.is_some() {
+                return Err(format!("duplicate floor {key}"));
+            }
+            let n = v.trim().parse::<f64>().map_err(|e| e.to_string())?;
+            if !n.is_finite() || !(0.0..=1.0).contains(&n) {
+                return Err(format!("invalid floor {key}"));
+            }
+            found = Some(n);
+        }
+    }
+    found.ok_or_else(|| format!("missing floor {key}"))
+}
+fn equal(expected: &Value, actual: &Value) -> bool {
+    match (expected, actual) {
+        (Value::Text(a), Value::Text(b)) => a == b,
+        (Value::Text(_), _) | (_, Value::Text(_)) => false,
+        _ => match (expected.numeric(), actual.numeric()) {
+            (Ok(a), Ok(b)) => (a - b).abs() <= TOLERANCE,
+            _ => false,
+        },
+    }
+}
+fn short(s: &str) -> String {
+    s.chars().take(512).collect()
+}
+#[derive(Default)]
+struct Histogram {
+    counts: BTreeMap<String, u64>,
+    examples: BTreeMap<String, Witness>,
+}
+impl Histogram {
+    fn add(&mut self, name: &str, witness: &Witness) {
+        let name = short(name);
+        let key = if self.counts.len() < 4096 || self.counts.contains_key(&name) { name } else { "<additional categories>".into() };
+        *self.counts.entry(key.clone()).or_default() += 1;
+        self.examples.entry(key).or_insert_with(|| witness.clone());
+    }
+    fn finish(self, kind: &str, witnesses: &mut Vec<Witness>) -> Vec<(String, u64)> {
+        let mut counts: Vec<_> = self.counts.into_iter().collect();
+        counts.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
+        counts.truncate(10);
+        for (name, _) in &counts {
+            if let Some(example) = self.examples.get(name) {
+                let mut example = example.clone();
+                example.category = format!("{kind}: {name}");
+                witnesses.push(example);
+            }
+        }
+        counts
+    }
+}
+#[derive(Default)]
+struct Diagnostics {
+    cells: Histogram,
+    functions: Histogram,
+    cached_cells: Histogram,
+    cached_actual: Histogram,
+    cached_formula: Histogram,
+}
+impl Diagnostics {
+    fn failure(&mut self, calls: &BTreeSet<String>, source_cell: &str, w: Witness) {
+        self.cells.add(&w.cell, &w);
+        let formula_kind = if w.formula == "Inh" {
+            "Inh"
+        } else if calls.is_empty() {
+            "no function (other)"
+        } else {
+            "function calls"
+        };
+        if calls.is_empty() {
+            self.functions.add(if formula_kind == "Inh" { "<Inh>" } else { "<no function other>" }, &w);
+        } else {
+            for name in calls {
+                self.functions.add(name, &w);
+            }
+        }
+        if w.oracle == "cached" {
+            self.cached_cells.add(source_cell, &w);
+            self.cached_actual.add(&w.actual, &w);
+            self.cached_formula.add(formula_kind, &w);
+        }
+    }
+    fn finish(self, report: &mut Report) {
+        report.top_failures = self.cells.finish("cell", &mut report.witnesses);
+        report.function_failures = self.functions.finish("function", &mut report.witnesses);
+        report.cached_cell_failures = self.cached_cells.finish("cached source cell", &mut report.witnesses);
+        report.cached_actual_failures = self.cached_actual.finish("cached actual", &mut report.witnesses);
+        report.cached_formula_failures = self.cached_formula.finish("cached formula kind", &mut report.witnesses);
+    }
+}
+fn decode(s: &str) -> Result<String, String> {
+    let mut out = String::with_capacity(s.len());
+    let mut chars = s.chars();
+    while let Some(c) = chars.next() {
+        if c == '\\' {
+            out.push(match chars.next() {
+                Some('\\') => '\\',
+                Some('t') => '\t',
+                Some('r') => '\r',
+                Some('n') => '\n',
+                _ => return Err("invalid TSV escape".into()),
+            });
+        } else {
+            out.push(c);
+        }
+    }
+    Ok(out)
+}
+#[derive(Debug)]
+struct DumpRow {
+    id: u32,
+    scope: String,
+    name: String,
+    formula: String,
+    result: Option<f64>,
+}
+fn parse_row(line: &str) -> Result<DumpRow, String> {
+    if line.len() > MAX_LINE {
+        return Err("TSV line length limit".into());
+    }
+    let columns: Vec<_> = line.split('\t').collect();
+    if columns.len() != 9 {
+        return Err(format!("TSV expected 9 columns, got {}", columns.len()));
+    }
+    let get = |i| columns.get(i).copied().ok_or_else(|| "missing TSV column".to_string());
+    let id = get(0)?.parse::<u32>().map_err(|e| e.to_string())?;
+    for i in [2, 3, 4] {
+        get(i)?.parse::<u32>().map_err(|e| e.to_string())?;
+    }
+    if !get(8)?.is_empty() {
+        get(8)?.parse::<i32>().map_err(|e| e.to_string())?;
+    }
+    let result = get(7)?.parse::<f64>().ok().filter(|n| n.is_finite());
+    Ok(DumpRow { id, scope: decode(get(1)?)?, name: decode(get(5)?)?, formula: decode(get(6)?)?, result })
+}
+fn map_scope(row: &DumpRow, doc: &diagramcraft_model::Document) -> Result<Scope, String> {
+    let head = row.scope.split('/').next().ok_or("empty dump scope")?;
+    if head == "document" {
+        return Ok(Scope::Document);
+    }
+    if head == "style" {
+        return doc.styles.iter().find(|s| s.id == row.id).map(|s| Scope::Style(s.id)).ok_or_else(|| "missing dump style".into());
+    }
+    if head == "page" {
+        return doc.pages.first().filter(|_| doc.pages.len() == 1).map(|p| Scope::Page(p.id)).ok_or_else(|| "ambiguous blank page".into());
+    }
+    let mut parts = head.splitn(3, ':');
+    let kind = parts.next().ok_or("scope kind")?;
+    let id = parts.next().ok_or("scope ID")?.parse::<u32>().map_err(|e| e.to_string())?;
+    let name = parts.next();
+    match kind {
+        "page" | "pagesheet" => {
+            let p = doc
+                .pages
+                .iter()
+                .find(|p| p.id == id)
+                .or_else(|| name.and_then(|n| doc.pages.iter().find(|p| p.name_u == n || p.name == n)))
+                // dump-blank.ps1 labels its sole rectangle page with collection index 1.
+                .or_else(|| (name.is_none() && id == 1 && doc.pages.len() == 1).then(|| doc.pages.first()).flatten())
+                .ok_or("missing dump page")?;
+            Ok(if kind == "pagesheet" { Scope::Page(p.id) } else { Scope::PageShape { page: p.id, shape: row.id } })
+        }
+        "master" => {
+            let m = doc
+                .masters
+                .iter()
+                .find(|m| m.id == id)
+                .or_else(|| name.and_then(|n| doc.masters.iter().find(|m| m.name_u == n || m.name == n)))
+                .ok_or("missing dump master")?;
+            Ok(Scope::MasterShape { master: m.id, shape: row.id })
+        }
+        _ => Err(format!("unknown dump scope {head}")),
+    }
+}
+fn dump_rows(path: &Path, mut visit: impl FnMut(DumpRow) -> Result<(), String>) -> Result<(), String> {
+    let file = File::open(path).map_err(|e| e.to_string())?;
+    if file.metadata().map_err(|e| e.to_string())?.len() > MAX_TSV {
+        return Err("TSV file size limit".into());
+    }
+    read_dump(BufReader::new(file.take(MAX_TSV + 1)), &path.display().to_string(), &mut visit)
+}
+fn read_dump(mut reader: impl BufRead, label: &str, mut visit: impl FnMut(DumpRow) -> Result<(), String>) -> Result<(), String> {
+    let mut line = Vec::new();
+    let mut rows = 0;
+    let mut bytes = 0u64;
+    loop {
+        line.clear();
+        let n = reader.by_ref().take((MAX_LINE + 1) as u64).read_until(b'\n', &mut line).map_err(|e| e.to_string())?;
+        if n == 0 {
+            break;
+        }
+        bytes += n as u64;
+        if n > MAX_LINE || bytes > MAX_TSV {
+            return Err("TSV stream limit".into());
+        }
+        let text = std::str::from_utf8(&line).map_err(|e| e.to_string())?.trim_end_matches(['\r', '\n']);
+        if rows == 0 {
+            if text.trim_start_matches('\u{feff}') != HEADER {
+                return Err("invalid TSV header".into());
+            }
+        } else {
+            visit(parse_row(text).map_err(|e| format!("{label}:{}: {e}", rows + 1))?)?;
+        }
+        rows += 1;
+        if rows > MAX_ROWS {
+            return Err("TSV row count limit".into());
+        }
+    }
+    if rows == 0 {
+        return Err("empty TSV".into());
+    }
+    Ok(())
+}
+/// Root is the corpus directory. Quick mode includes all generated and blank packages,
+/// then the first 50 sorted shipped packages and only their available completed dumps.
+pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
+    let frozen = include_str!("../../../crates/sheet/tests/floors.toml");
+    let cached_floor = floor(frozen, "shipped")? * 100.;
+    let com_floor = floor(frozen, "all")? * 100.;
+    let generated = walk(&root.join("generated"))?;
+    let blank = walk(&root.join("blank"))?;
+    let shipped = walk(&root.join("ms-shipped"))?;
+    let dumps = walk(&root.join("ms-shipped-dumps"))?;
+    let shipped_all: Vec<_> = shipped.into_iter().filter(|p| package(p)).collect();
+    let selected: Vec<_> = shipped_all.iter().take(if quick { 50 } else { usize::MAX }).cloned().collect();
+    let mut files: Vec<_> = generated.iter().chain(&blank).filter(|p| package(p)).cloned().collect();
+    files.extend(selected.iter().cloned());
+    files.sort();
+    let mut report = Report {
+        cached: Rate::default(),
+        com: Rate::default(),
+        shipped_cached: Rate::default(),
+        shipped_com: Rate::default(),
+        packages: files.len(),
+        shipped_packages: selected.len(),
+        shipped_available: shipped_all.len(),
+        dump_files: 0,
+        shipped_dump_files: 0,
+        cached_floor,
+        com_floor,
+        quick,
+        top_failures: vec![],
+        function_failures: vec![],
+        cached_cell_failures: vec![],
+        cached_actual_failures: vec![],
+        cached_formula_failures: vec![],
+        witnesses: vec![],
+    };
+    let mut associations: BTreeMap<PathBuf, Vec<PathBuf>> = BTreeMap::new();
+    let mut by_lower = BTreeMap::new();
+    for p in &files {
+        let key = p.to_string_lossy().to_lowercase();
+        if by_lower.insert(key, p.clone()).is_some() {
+            return Err("case-ambiguous corpus package paths".into());
+        }
+    }
+    for tsv in generated.iter().filter(|p| p.to_string_lossy().ends_with(".sheet.tsv")) {
+        let stem = tsv.to_string_lossy().trim_end_matches(".sheet.tsv").to_owned();
+        let key = format!("{stem}.vsdx").to_lowercase();
+        let source = by_lower.get(&key).ok_or_else(|| format!("missing package for {}", tsv.display()))?;
+        associations.entry(source.clone()).or_default().push(tsv.clone());
+    }
+    for tsv in blank.iter().filter(|p| p.extension().is_some_and(|e| e == "tsv")) {
+        let file = if tsv.file_name().is_some_and(|n| n == "rectangle.tsv") { "blank-rect.vsdx" } else { "blank.vsdx" };
+        let source = root.join("blank").join(file);
+        if !source.is_file() {
+            return Err(format!("missing blank package {}", source.display()));
+        }
+        associations.entry(source).or_default().push(tsv.clone());
+    }
+    for tsv in dumps.iter().filter(|p| p.extension().is_some_and(|e| e == "tsv")) {
+        let relative = tsv.strip_prefix(root.join("ms-shipped-dumps")).map_err(|e| e.to_string())?;
+        let package_path = root.join("ms-shipped").join(relative).with_extension("");
+        let key = package_path.to_string_lossy().to_lowercase();
+        if let Some(source) = by_lower.get(&key) {
+            associations.entry(source.clone()).or_default().push(tsv.clone());
+        } else if !quick {
+            return Err(format!("unmatched shipped dump {}", tsv.display()));
+        }
+    }
+    let exclude = exclusions();
+    let mut diagnostics = Diagnostics::default();
+    for path in files {
+        let is_shipped = path.starts_with(root.join("ms-shipped"));
+        let document = read_package(&path)?;
+        let mut evaluator = Evaluator::new(&document).map_err(|e| format!("{}: {e}", path.display()))?;
+        let scopes: Vec<_> = evaluator.scopes().collect();
+        for scope in scopes {
+            for named in evaluator.source_named_cells(scope).map_err(|e| e.to_string())? {
+                let Some(formula) = named.cell.formula.as_deref() else {
+                    continue;
+                };
+                let calls = function_calls(formula)?;
+                if named.cell.value.as_deref() == Some("Themed") || excluded(&calls, &exclude) {
+                    report.cached.excluded += 1;
+                    if is_shipped {
+                        report.shipped_cached.excluded += 1;
+                    }
+                    continue;
+                }
+                let mut original = named.cell.clone();
+                original.error = None;
+                let expected = evaluator.cached_cell(&original);
+                let actual = evaluator.evaluate_snapshot(scope, &named.name);
+                let matched = equal(&expected, &actual);
+                report.cached.record(matched);
+                if is_shipped {
+                    report.shipped_cached.record(matched);
+                }
+                if !matched {
+                    diagnostics.failure(
+                        &calls,
+                        &named.cell.name,
+                        Witness {
+                            oracle: "cached",
+                            category: String::new(),
+                            file: path.display().to_string(),
+                            scope: format!("{scope:?}"),
+                            cell: named.name,
+                            formula: short(formula),
+                            expected: short(&format!("{expected:?}")),
+                            actual: short(&format!("{actual:?}")),
+                        },
+                    );
+                }
+            }
+        }
+        if let Some(tsvs) = associations.get(&path) {
+            for tsv in tsvs {
+                report.dump_files += 1;
+                if is_shipped {
+                    report.shipped_dump_files += 1;
+                }
+                dump_rows(tsv, |row| {
+                    let calls = function_calls(&row.formula)?;
+                    if excluded(&calls, &exclude) {
+                        report.com.excluded += 1;
+                        if is_shipped {
+                            report.shipped_com.excluded += 1;
+                        }
+                        return Ok(());
+                    }
+                    let actual = match map_scope(&row, &document) {
+                        Ok(scope) => evaluator.evaluate_snapshot(scope, &row.name),
+                        Err(_) => Value::Error(diagramcraft_sheet::Error::Ref),
+                    };
+                    // COM ResultIU is numeric even for strings; ShapeSheet numeric coercion maps nonnumeric text to zero.
+                    let matched = match (row.result, actual.numeric()) {
+                        (Some(a), Ok(b)) => (a - b).abs() <= TOLERANCE,
+                        _ => false,
+                    };
+                    report.com.record(matched);
+                    if is_shipped {
+                        report.shipped_com.record(matched);
+                    }
+                    if !matched {
+                        diagnostics.failure(
+                            &calls,
+                            &row.name.clone(),
+                            Witness {
+                                oracle: "COM",
+                                category: String::new(),
+                                file: tsv.display().to_string(),
+                                scope: row.scope,
+                                cell: row.name,
+                                formula: short(&row.formula),
+                                expected: format!("{:?}", row.result),
+                                actual: short(&format!("{actual:?}")),
+                            },
+                        );
+                    }
+                    Ok(())
+                })?;
+            }
+        }
+    }
+    diagnostics.finish(&mut report);
+    Ok(report)
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn functions_ignore_strings_and_match_only_calls() {
+        let names = function_calls(r#"IF(1,"NOW() "" RAND()",_UCON_X (2))+Sheet.1!NOW+SUM(2)"#).unwrap();
+        assert_eq!(names, BTreeSet::from(["IF".into(), "SUM".into(), "_UCON_X".into()]));
+        assert!(excluded(&names, &exclusions()));
+        assert!(!excluded(&function_calls("_OTHER(1)+RAND").unwrap(), &exclusions()));
+        assert!(function_calls(&"A".repeat(MAX_LINE + 1)).is_err());
+    }
+    #[test]
+    fn escaped_rows_and_hostile_inputs() {
+        let row = parse_row("1\tpage:1:x/Sheet.1\t1\t2\t3\tUser.X\t\"a\\tb\\\\c\"\t0\t32").unwrap();
+        assert_eq!(row.formula, "\"a\tb\\c\"");
+        assert_eq!(row.result, Some(0.));
+        for bad in ["", HEADER, "1\tx\t1\t2\t3\tx\tbad\\q\t0\t32", "-1\tx\t1\t2\t3\tx\t0\t0\t32", "1\tx\t4294967296\t2\t3\tx\t0\t0\t32"] {
+            assert!(parse_row(bad).is_err(), "{bad}");
+        }
+        assert!(parse_row(&"x".repeat(MAX_LINE + 1)).is_err());
+        assert_eq!(parse_row("1\tx\t1\t2\t3\tx\t0\tNaN\t32").unwrap().result, None);
+        assert_eq!(decode("x\\"), Err("invalid TSV escape".into()));
+    }
+    #[test]
+    fn comparisons_never_pass_errors_and_require_exact_strings() {
+        assert!(!equal(&Value::Error(diagramcraft_sheet::Error::Ref), &Value::Error(diagramcraft_sheet::Error::Ref)));
+        assert!(!equal(&Value::Text("0".into()), &Value::Number(0.)));
+        assert!(equal(&Value::Number(2.), &Value::Number(2.0000001)));
+        assert!(!equal(&Value::Number(2.), &Value::Number(2.00001)));
+        assert!(floor("shipped=NaN", "shipped").is_err());
+        assert!(floor("shipped=1\nshipped=1", "shipped").is_err());
+    }
+    #[test]
+    fn scopes_are_scoped_not_global_shape_ids() {
+        let doc = diagramcraft_model::Document {
+            pages: vec![diagramcraft_model::Page { id: 7, name_u: "Named".into(), ..Default::default() }],
+            masters: vec![diagramcraft_model::Master { id: 2, ..Default::default() }],
+            ..Default::default()
+        };
+        let mut row = DumpRow { id: 5, scope: "page:7:Named/Group/Sheet.5".into(), name: "Width".into(), formula: "1".into(), result: Some(1.) };
+        assert_eq!(map_scope(&row, &doc), Ok(Scope::PageShape { page: 7, shape: 5 }));
+        row.scope = "master:2:Master/Sheet.5".into();
+        assert_eq!(map_scope(&row, &doc), Ok(Scope::MasterShape { master: 2, shape: 5 }));
+        row.scope = "page:1:Named/Sheet.5".into();
+        assert_eq!(map_scope(&row, &doc), Ok(Scope::PageShape { page: 7, shape: 5 }));
+        row.scope = "page:1/Sheet.5".into();
+        assert_eq!(map_scope(&row, &doc), Ok(Scope::PageShape { page: 7, shape: 5 }));
+    }
+    #[test]
+    fn stream_rejects_unbounded_or_incomplete_records() {
+        use std::io::Cursor;
+        let text = format!("{HEADER}\r\n1\tpage:1/Sheet.1\t1\t2\t3\tWidth\t1\t1\t32\r\n");
+        let mut count = 0;
+        read_dump(Cursor::new(text.as_bytes()), "fixture", |_| {
+            count += 1;
+            Ok(())
+        })
+        .unwrap();
+        assert_eq!(count, 1);
+        assert!(read_dump(Cursor::new(b""), "fixture", |_| Ok(())).is_err());
+        assert!(read_dump(Cursor::new(b"wrong\n"), "fixture", |_| Ok(())).is_err());
+        let huge = format!("{HEADER}\n{}", "x".repeat(MAX_LINE + 1));
+        assert!(read_dump(Cursor::new(huge.as_bytes()), "fixture", |_| Ok(())).is_err());
+        let bad = format!("{HEADER}\n1\tx");
+        assert!(read_dump(Cursor::new(bad.as_bytes()), "fixture", |_| Ok(())).is_err());
+    }
+    #[test]
+    fn shipped_floor_cannot_be_masked_by_overall_and_empty_oracles_fail() {
+        let mut report = Report {
+            cached: Rate { matched: 999, total: 1000, excluded: 0 },
+            shipped_cached: Rate { matched: 90, total: 100, excluded: 0 },
+            com: Rate { matched: 90, total: 100, excluded: 0 },
+            shipped_com: Rate::default(),
+            packages: 0,
+            shipped_packages: 0,
+            shipped_available: 0,
+            dump_files: 0,
+            shipped_dump_files: 0,
+            cached_floor: 97.,
+            com_floor: 90.,
+            quick: false,
+            top_failures: vec![],
+            function_failures: vec![],
+            cached_cell_failures: vec![],
+            cached_actual_failures: vec![],
+            cached_formula_failures: vec![],
+            witnesses: vec![],
+        };
+        assert!(!report.passed());
+        let display = report.to_string();
+        assert!(display.lines().any(|line| line.starts_with("cached overall informational:") && line.ends_with("floor=reported separately")));
+        assert!(display.lines().any(|line| line.starts_with("shipped cached:") && line.ends_with("floor=97.000000%")));
+        report.shipped_cached.matched = 97;
+        report.cached.matched = 800;
+        assert!(report.passed());
+        report.shipped_cached = Rate::default();
+        assert!(!report.passed());
+        report.shipped_cached = Rate { matched: 97, total: 100, excluded: 0 };
+        report.com = Rate::default();
+        assert!(!report.passed());
+    }
+}

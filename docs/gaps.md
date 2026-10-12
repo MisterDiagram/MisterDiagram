@@ -6,8 +6,8 @@ Status: pre-alpha, M0 met; Phase 1 in progress.
 
 The Phase 1 reader loads all 1387 corpus files; 5548 deterministic mutations produce no panics.
 Formula syntax and local/cross-scope evaluation are implemented with bounded errors.
-69 functions, master/style/default inheritance and dirty recalc are implemented.
-CLI dumps and both numeric corpus oracles remain in progress. Unknown functions,
+70 functions, master/style/default inheritance and dirty recalc are implemented.
+CLI dumps and both numeric corpus oracles are implemented; acceptance measurements remain in progress. Unknown functions,
 complete host font IDs and implicit master-child materialization remain open.
 Dormant CAD geometry algorithms resume in Phase 2.
 
@@ -25,5 +25,4 @@ deckcraft caps. Review finding N-3 is recorded; no Phase 0 change.
 
 ## G3: Closed stderr handling
 
-Phase 1: review finding N-4 measured eprintln on closed stderr as exit 1, with no panic.
-Consider explicit error-channel handling; no Phase 0 change.
+Resolved in Phase 1 CLI: stderr writes are fallible and their errors are ignored while preserving the failure exit status. Review finding N-4 originally measured exit 1 without panic.
