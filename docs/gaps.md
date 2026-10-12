@@ -184,3 +184,12 @@ The ten current files, relative to `corpus/generated/`, are:
 
 The 6,087 cached and 1,311 COM text failures, 17 EMF+ payloads, compound-line
 fidelity and two extreme-stroke cases above carry into Phase 3 as counted gaps.
+
+## G9: Phase 3 writing and from-scratch acceptance
+
+M3.1 provides the typed skeleton, observed style/cell sets and an authored
+connector master with fresh UUIDs. Tests: `skeleton_parts_styles_and_fresh_connector_identity`,
+`skeleton_cell_set_matches_blank_and_probe_observations`,
+`rectangle_rejects_hostile_coordinates_and_text`. Writer serialization,
+stencil/template output, full round-trip measurement and the 230-file Visio
+acceptance set remain pending; these tests do not claim save fidelity.

@@ -26,9 +26,42 @@ copied descriptive wording. Shipped files are observed only in ignored local cor
 
 ## 5. From-scratch connector master
 
-The Phase 3 Dynamic connector master is the one grey area: it will reproduce cell names and
-formulas observed in a file Visio wrote from our script. It will contain no copied icon and
-no Microsoft copyright cell. It has not been implemented in Phase 0.
+M3.1 reconstructs functional ShapeSheet defaults as typed Rust model records in
+`crates/model/src/skeleton_defaults.rs`; it does not embed a Visio XML part or asset.
+The blank witness is `corpus/blank/blank.vsdx`, SHA256
+`4dc5072775cdd3e2b5ff253e9d38569a685aa94d353facd68d5ab4f3ac006dea`.
+Its `document.tsv`, `page.tsv`, six `style-*.tsv` files and `rectangle.tsv` are the
+resolved observations; serialization cell sets are checked against the matching
+blank packages by `skeleton_cell_set_matches_blank_and_probe_observations`.
+
+The six blank styles are exactly 0, 1, 2, 3, 4 and 6, with respectively 294, 60,
+48, 13, 103 and 160 serialized cells. Styles 5 and 7 are absent from the blank.
+DocumentSheet has ten local cells and PageSheet seventeen; inherited COM cells
+remain inherited. The skeleton also reproduces the blank's functional document
+settings, palette entry 24 (neutral grey), and Calibri family name. No font bytes,
+Panose table, theme artwork or UI customization is copied. Rectangle geometry
+is authored with the observed five-row path contract.
+
+The connector witness is `corpus/generated/basic/0001-probe.vsdx`, SHA256
+`edfdc75c58b86ffe7f8b99ed0b18f5ebee44152985de8648474d467232af7ae7`:
+master 2, shape 5, its page sheet, and connector style 7 (72 local cells).
+Cell names, formulas, units and serialization defaults are reproduced. The
+copyright and HelpTopic cells, icon, vendor prompt, and fixed UniqueID/BaseID
+are omitted. Both identities are fresh UUID v4 values from the `uuid` crate;
+the short prompt is contributor-authored. There is no copied graphic.
+
+Windows metadata uses contributor-chosen portable dimensions. Core/app/custom
+property trees are authored, with application name Diagramcraft, no copied
+personal metadata or timestamps, and the observed BuildNumberCreated /
+BuildNumberEdited value 1074417614 plus the requested IsMetric flag. The
+numeric build records the format-compatibility witness, not a claim that
+Diagramcraft is Microsoft Visio. No thumbnail is included at this step;
+acceptance of missing versus authored PNG thumbnails remains an M3.5 test.
+
+Sources are Microsoft's VisioDocument, DocumentSettings, StyleSheet, Cell,
+Master and Windows element references, cited in the constructor doc comments.
+Writing and Visio acceptance remain separate steps; model construction alone
+is not a claim of an accepted output package.
 
 ## 6. Private corpus
 

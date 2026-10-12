@@ -410,3 +410,5 @@ pub struct Document {
 }
 
 pub mod text;
+
+pub mod skeleton;
