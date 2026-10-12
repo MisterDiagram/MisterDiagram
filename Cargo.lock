@@ -341,6 +341,7 @@ dependencies = [
  "diagramcraft-model",
  "diagramcraft-opc",
  "diagramcraft-sheet",
+ "quick-xml",
  "thiserror",
  "zip",
 ]

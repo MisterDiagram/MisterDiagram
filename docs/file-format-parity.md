@@ -4,6 +4,18 @@ Status: pre-alpha, M1 met. M2 human gate accepted on 2026-10-12 at 16:45; indepe
 
 ## Measured
 
+M2.9.3 memory guards: image header dimensions are checked before pixel decoding;
+32Mi pixels and16384pixels per axis remain the existing bounds. Streaming XML
+preflight caps each section at16384cells and16384rows, each sheet at65536own
+cells and16MiB including nested XML. Caller-built sheet trees receive the same
+cell/row bounds and a16MiB decoded-content budget before cloning. The largest
+observed shipped section has4243cells; largest XML part is5281894bytes.
+`geometry_section_peak_memory_is_bounded` rejects100000rows at11075584bytes
+peak RSS; `oversized_image_peak_memory_is_bounded` rejects a10000x10000PNG
+header at3162112bytes. Measurements use macOS `/usr/bin/time -l` child processes;
+these are hostile-fixture measurements, not maximum memory for every document.
+
+
 M2.8: Charles accepted the human gate on 2026-10-12 at 16:45. The original
 pixel ceilings are frozen: non-text group MAD at most 4/255 and at most 2% of
 pixels over 16/255; text MAD at most 8/255 and at most 5%. All ten groups pass.

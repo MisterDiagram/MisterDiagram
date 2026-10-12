@@ -12,6 +12,8 @@ use std::{
 const REL_NS: &str = "http://schemas.openxmlformats.org/package/2006/relationships";
 const ATTR_REL_NS: &str = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 const VIS_REL: &str = "http://schemas.microsoft.com/visio/2010/relationships/";
+mod limits;
+
 const MAX_FILE: u64 = 512 * 1024 * 1024;
 #[derive(Debug, thiserror::Error)]
 pub enum ReadError {
@@ -188,6 +190,7 @@ fn normalize_xml(e: xml::El, parent: &BTreeMap<String, String>) -> Result<XmlEle
 /// Parse one XML part with bounded nesting, strict namespaces and preserved text order.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml
 pub fn parse_xml(bytes: &[u8]) -> Result<XmlElement, ReadError> {
+    limits::preflight(bytes)?;
     normalize_xml(xml::parse(bytes)?.root, &BTreeMap::new())
 }
 fn part_xml(p: &Package, d: &mut Document, name: &str) -> Result<XmlElement, ReadError> {
@@ -260,8 +263,25 @@ pub fn parse_sheet(e: &XmlElement) -> Result<Sheet, ReadError> {
                 XmlNode::Text(s) => bytes = bytes.saturating_add(s.len()),
             }
         }
-        if bytes > diagramcraft_opc::MAX_XML_PART {
+        if bytes > limits::MAX_SHEET_BYTES {
             return Err(bad("sheet byte limit"));
+        }
+    }
+    if e.elements().filter(|c| c.is_visio("Cell")).count() > limits::MAX_SHEET_CELLS {
+        return Err(bad("sheet cell limit"));
+    }
+    for section in e.elements().filter(|s| s.is_visio("Section")) {
+        let mut cells = 0usize;
+        let mut rows = 0usize;
+        for child in section.elements() {
+            cells = cells.saturating_add(usize::from(child.is_visio("Cell")));
+            if child.is_visio("Row") {
+                rows += 1;
+                cells = cells.saturating_add(child.elements().filter(|c| c.is_visio("Cell")).count());
+            }
+            if cells > limits::MAX_SECTION_CELLS || rows > limits::MAX_SECTION_ROWS {
+                return Err(bad("section cell or row limit"));
+            }
         }
     }
     let mut sheet = Sheet { attributes: e.attributes.clone(), ..Default::default() };

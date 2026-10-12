@@ -11,6 +11,11 @@ pub fn decode(bytes: &[u8]) -> Result<image::RgbaImage, String> {
     if bytes.len() > 128 * 1024 * 1024 {
         return Err("image byte limit".into());
     }
+    let header = image::ImageReader::new(std::io::Cursor::new(bytes)).with_guessed_format().map_err(|e| e.to_string())?;
+    let (width, height) = header.into_dimensions().map_err(|e| e.to_string())?;
+    if width == 0 || height == 0 || width > 16384 || height > 16384 || u64::from(width) * u64::from(height) > MAX_PIXELS as u64 {
+        return Err("image pixel limit (header)".into());
+    }
     let mut reader = image::ImageReader::new(std::io::Cursor::new(bytes)).with_guessed_format().map_err(|e| e.to_string())?;
     let mut limits = image::Limits::default();
     limits.max_image_width = Some(16384);
