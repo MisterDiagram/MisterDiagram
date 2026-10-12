@@ -3,15 +3,51 @@
 set -euo pipefail
 VM='Win11 Enterprise (ARM)'
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
-SCRIPT=${1:?usage: run-in-vm.sh script.ps1 [timeout-seconds]}
-LIMIT=${2:-1800}
+if [ "${1:-}" = --stop ]; then exec prlctl stop "$VM"; fi
+if [ "${1:-}" = --check-task ]; then
+    exec prlctl exec "$VM" powershell -NoProfile -Command 'Get-ScheduledTask -TaskName visioprobe -ErrorAction SilentlyContinue | Measure-Object | Select-Object -ExpandProperty Count'
+fi
+SCRIPT=${1:?usage: run-in-vm.sh script.ps1 [timeout-seconds] [accept-files...]}
+shift
+LIMIT=1800
+if [ "$#" -gt 0 ]; then
+    case "$1" in *[!0-9]*|'') ;; *) LIMIT=$1; shift;; esac
+fi
+if [ ! -f "$SCRIPT" ] && [ -f "$ROOT/tools/oracle/$SCRIPT" ]; then SCRIPT="$ROOT/tools/oracle/$SCRIPT"; fi
 NAME=$(basename "$SCRIPT" .ps1)
 case "$NAME" in ''|*[!a-zA-Z0-9_-]*) echo 'invalid script name' >&2; exit 2;; esac
 case "$LIMIT" in ''|*[!0-9]*) echo 'timeout must be positive seconds' >&2; exit 2;; esac
 [ "$LIMIT" -gt 0 ] || exit 2
 [ -f "$SCRIPT" ] || { echo "script missing: $SCRIPT" >&2; exit 2; }
+SCRIPT=$(cd "$(dirname "$SCRIPT")" && pwd)/$(basename "$SCRIPT")
 STAGE="$ROOT/corpus/_vm"
 OUT="$STAGE/out/$NAME"
+mkdir -p "$STAGE"
+case "$NAME" in
+accept|accept-visible)
+    python3 - "$ROOT" "$@" <<'LIST'
+from pathlib import Path
+import sys
+root = Path(sys.argv[1]).resolve()
+files = sys.argv[2:]
+if not files or len(files) > 512:
+    raise SystemExit('accept requires 1 to 512 Mac file paths under corpus/')
+paths = []
+names = set()
+for value in files:
+    path = Path(value).resolve(strict=True)
+    if not path.is_file() or not path.is_relative_to(root / 'corpus') or any(c in str(path) for c in '\r\n'):
+        raise SystemExit('accept file must be a regular file under corpus/: ' + value)
+    if path.stem.casefold() in names:
+        raise SystemExit('duplicate acceptance basename: ' + path.stem)
+    names.add(path.stem.casefold())
+    relative = path.relative_to(root)
+    paths.append('\\\\Mac\\Home\\Projects\\diagramcraft\\' + str(relative).replace('/', '\\'))
+(root / 'corpus/_vm/accept-list.txt').write_text('\n'.join(paths) + '\n', encoding='utf-8')
+LIST
+    ;;
+*) [ "$#" -eq 0 ] || { echo 'extra file arguments are only valid for accept' >&2; exit 2; };;
+esac
 mkdir -p "$OUT"
 # Shipped TSVs are checkpoints across nights. Only completion/watchdog markers are stale.
 if [ "$NAME" = dump-shipped ]; then
