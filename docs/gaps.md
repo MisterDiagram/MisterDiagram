@@ -1,5 +1,13 @@
 # Gaps
 
+## M2.8.3: TRIM reference coverage
+
+TRIM now recalculates unary text expressions with the explicit MS-VSDX whitespace
+set, including U+180E. Public formula tests cover all 23 listed scalars and the
+65536-byte boundary; an imported-cell regression ignores stale saved text.
+This is reference-based coverage, not a new private-oracle fidelity measurement.
+Upstream issue #7; spec: docs/specs/004-shapesheet-trim/.
+
 Status: pre-alpha, M0 and M1 met; Phase 2 remains partial after pixel and text-metric measurement.
 
 ## G1: Remaining ShapeSheet fidelity

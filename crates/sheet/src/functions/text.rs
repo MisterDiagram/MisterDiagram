@@ -5,7 +5,7 @@ use crate::{
     parser::{BinaryOp, Expr},
     units,
 };
-pub const NAMES: &[&str] = &["FORMAT", "FORMATEX", "STRSAME", "LEN", "FIND", "LEFT", "RIGHT", "MID", "INDEX", "LOOKUP", "LISTSEP"];
+pub const NAMES: &[&str] = &["FORMAT", "FORMATEX", "STRSAME", "TRIM", "LEN", "FIND", "LEFT", "RIGHT", "MID", "INDEX", "LOOKUP", "LISTSEP"];
 const LIMIT: usize = 65536;
 fn text(value: &Value) -> Result<String, Error> {
     if matches!(value, Value::Text(s) if s.len() > LIMIT) {
@@ -58,6 +58,7 @@ pub(super) fn call(name: &str, args: &[Expr], context: &mut dyn Context, budget:
         "MID" => result(mid(args, &values)),
         "FIND" => Value::from(find(args, &values)),
         "STRSAME" => same(args, &values),
+        "TRIM" => result(trim(args, &values)),
         "INDEX" => index(args, &values),
         "LOOKUP" => lookup(args, &values),
         "LISTSEP" => {
@@ -71,6 +72,30 @@ pub(super) fn call(name: &str, args: &[Expr], context: &mut dyn Context, budget:
         _ => Value::Error(Error::Value),
     })
 }
+/// Normalize the explicit MS-VSDX v20150316 section 2.5.3.166 whitespace set.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/trim-function
+fn trim(args: &[Expr], values: &[Value]) -> Result<String, Error> {
+    if args.len() != 1 {
+        return Err(Error::Value);
+    }
+    let input = string(values, 0)?;
+    let mut output = String::with_capacity(input.len());
+    let mut gap = false;
+    for ch in input.chars() {
+        if matches!(ch, '\u{0009}'..='\u{000d}' | ' ' | '\u{00a0}' | '\u{1680}' | '\u{180e}' | '\u{2000}'..='\u{200a}' | '\u{202f}' | '\u{205f}' | '\u{3000}')
+        {
+            gap = !output.is_empty();
+        } else {
+            if gap {
+                output.push(' ');
+                gap = false;
+            }
+            output.push(ch);
+        }
+    }
+    Ok(output)
+}
+
 /// Character counts use Unicode scalar values, avoiding invalid UTF-8 slices.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/len-function-visioshapesheet
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/left-function-visioshapesheet
