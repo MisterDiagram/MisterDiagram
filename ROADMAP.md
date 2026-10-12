@@ -22,3 +22,5 @@ clean independent frozen verification passes.
 - 2026-10-12: M1.6 numeric requirements pass: shipped cached 97.978884% over 5355260 cells; resolved 98.763183% over 7271082 cells. CI quick corpus gate and 104 functions implemented. All acceptance commands and both frozen verification passes are clean; M1 met. Shipped dumps 104/1181.
 
 - 2026-10-12: M2.0 discovery fixes: strict cached 4302905/4408935 (97.595111%), resolved 7209425/7271082 (99.152024%), non-literal resolved 99.836044%. Basic-rectangle dump zero differences; CI seven gates pass; parity remains 10%.
+
+- 2026-10-12: M2.1 all fifteen geometry row kinds to kurbo paths, bounded NURBS/splines, section flags and y-up group transforms. Private corpus witness and numerical tests added; renderer work remains next.

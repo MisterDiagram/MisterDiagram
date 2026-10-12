@@ -249,6 +249,7 @@ dependencies = [
 name = "diagramcraft-vsdx"
 version = "0.0.1"
 dependencies = [
+ "diagramcraft-geom",
  "diagramcraft-model",
  "diagramcraft-opc",
  "diagramcraft-sheet",

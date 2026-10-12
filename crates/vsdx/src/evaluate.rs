@@ -3,6 +3,7 @@ use diagramcraft_model::{Cell, Document, Row, Section, Shape, Sheet};
 use diagramcraft_sheet::{Context, Error, Value};
 use std::collections::{BTreeMap, BTreeSet};
 mod defaults;
+mod geometry;
 mod inherit;
 mod path;
 mod relationships;

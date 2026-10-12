@@ -37,6 +37,12 @@ impl Matrix {
     }
 }
 impl Evaluator<'_> {
+    /// Complete group-child transform in y-up page inches. The renderer flips Y once.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-transform-section
+    pub fn shape_to_page(&mut self, scope: Scope) -> Result<diagramcraft_geom::Affine, Error> {
+        let (m, _) = self.page_transform(scope)?;
+        Ok(diagramcraft_geom::Affine::new([m.a, m.b, m.c, m.d, m.x, m.y]))
+    }
     /// Local to page conversion uses each enclosing shape's pin, angle and flips.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/loctoloc-function
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/loctopar-function

@@ -43,3 +43,11 @@ have a computed identity and matching units. N-1 compares an empty V with empty 
 
 All five M2.0 closure checks pass. Final strict cached rate 97.595111%; resolved
 99.152024%, with non-literal resolved 99.836044%. Read-only shipped coverage 104/1181.
+
+## G5: Rendering (Phase 2)
+
+M2.1 implements all geometry row types in y-up inches, section flags and local/page
+transforms. Fifteen kinds have private corpus witnesses; relative Beziers, spline/NURBS
+equivalence, clipping and hostile inputs have numerical regressions. The original CAD
+editing algorithms remain dormant after their two earlier retarget failures; the active
+row converter is new. Fills, lines, themes, text, images and all output formats remain next.

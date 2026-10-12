@@ -4,3 +4,7 @@ pub use kurbo::{Affine, Vec2};
 /// Length in page-space inches.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Inches(pub f64);
+
+mod rows;
+pub use kurbo::{BezPath, Point, Rect};
+pub use rows::*;

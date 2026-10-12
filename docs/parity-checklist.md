@@ -114,3 +114,8 @@ Core=N rows (excluded from milestone scoring):
 
 - ShapeSheet model remains D: `diagramcraft-vsdx::dump::tests::basic_rectangle_corpus_has_every_com_identity_and_unit` checks all basic-rectangle COM identities and units, including Connection and Actions rows.
 - Formula engine remains P: `diagramcraft-corpus::tests::strict_denominator_classes_and_empty_serialized_string` protects the corrected cached-oracle denominator, formula classification and empty-string cache comparison. Theme and text hosts remain open.
+
+## M2.1 geometry evidence
+
+- Geometry sections with formulas remain P: `diagramcraft-vsdx::evaluated_master_and_group_paths_use_inherited_rows` binds evaluated inherited rows to the L0 converter; `every_geometry_row_has_a_real_corpus_witness` covers all fifteen kinds, including RelEllipticalArcTo. Authoring remains Phase 4.
+- Group transforms remain an implemented rendering prerequisite, without scoring move/resize/edit commands: `diagramcraft-geom::rows::tests::infinite_line_clips_and_group_composition_stays_y_up`.

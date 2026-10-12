@@ -4,7 +4,7 @@ Page coordinates are inches, y-up, origin bottom-left. Dependencies go to strict
 
 | Layer | Crates | Responsibility |
 |---|---|---|
-| L0 | geom, color, opc | Geometry, colour and package primitives. |
+| L0 | geom, color, opc | Geometry rows to kurbo paths in y-up inches, colour and package primitives. |
 | L1 | sheet, model, fonts | sheet: formula syntax, values, units, functions and host traits; model: document structures; fonts: shaping database. |
 | L2 | text, theme, vsdx | vsdx: package reading, document evaluator, inheritance, dependency tracking and dirty recalc; text/theme: model-based host implementations. |
 | L3 | route, render | Routing and rendered outputs. |
