@@ -131,3 +131,10 @@ If the health probe fails twice, a human administrator can run the silent Office
 
 Quick repair did not fix plain COM launch on this guest. Keep the normal launch-and-attach
 fallback after repair; a successful Add alone does not establish that OpenEx is healthy.
+
+`run-in-vm.sh dump-shipped.ps1 600 corpus/ms-shipped/1033/BASFLO_U.vssx`
+selects a shipped file for a missing COM observation. With no file arguments the
+full background sweep is unchanged. Both paths run the health probe first, copy
+all shipped files before traversal, preserve completed TSVs and write DONE last.
+Selected output stays in `corpus/_vm/out/dump-shipped/`; do not publish it into the
+shared read-only `corpus/ms-shipped-dumps` input directory.

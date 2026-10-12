@@ -5,6 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 mod defaults;
 mod geometry;
 mod inherit;
+mod interval;
 mod path;
 mod relationships;
 mod text;
@@ -60,6 +61,7 @@ pub struct Evaluator<'a> {
     names: BTreeMap<Scope, Vec<NamedCell<'a>>>,
     values: BTreeMap<Key, Value>,
     active: BTreeSet<Key>,
+    resolving_cycle: bool,
     work: usize,
     eval_depth: usize,
     eval_work: usize,
@@ -100,6 +102,7 @@ impl<'a> Evaluator<'a> {
             names: BTreeMap::new(),
             values: BTreeMap::new(),
             active: BTreeSet::new(),
+            resolving_cycle: false,
             work: 0,
             eval_depth: 0,
             eval_work: 0,
@@ -518,7 +521,7 @@ impl<'a> Evaluator<'a> {
             return value.clone();
         }
         if !self.active.insert(key.clone()) {
-            return Value::Error(Error::Cycle);
+            return self.prove_clamped_cycle(&key);
         }
         let revision = self.revision;
         self.stack.push(key.clone());
@@ -1877,6 +1880,28 @@ mod tests {
             assert_eq!(e.evaluate(scope, name), Value::Number(12.0), "{name}");
         }
         assert_eq!(e.named_cells(scope).len(), 9);
+    }
+    #[test]
+    fn clamped_cycles_are_proven_without_cached_formula_values() {
+        let doc = Document {
+            document_sheet: sheet(vec![
+                cell("Height", "999", Some("Resize")),
+                cell("Resize", "999", Some("MAX(.75,CEILING(.24+Offset,.25))")),
+                cell("Offset", "999", Some("MIN(Height/2,.25)")),
+                cell("Ambiguous", "999", Some("MAX(1,Ambiguous)")),
+                cell("Divergent", "999", Some("MAX(1,Divergent+1)")),
+                cell("Missing", "999", Some("MAX(.75,MIN(Missing+NoSuchCell,.25))")),
+            ]),
+            ..Default::default()
+        };
+        let mut e = Evaluator::new(&doc).unwrap();
+        assert_eq!(e.evaluate(Scope::Document, "Height"), Value::Number(0.75));
+        assert_eq!(e.evaluate(Scope::Document, "Offset"), Value::Number(0.25));
+        for name in ["Ambiguous", "Divergent", "Missing"] {
+            assert!(matches!(e.evaluate(Scope::Document, name), Value::Error(_)), "{name}");
+        }
+        e.set_formula(Scope::Document, "Resize", "MAX(1,CEILING(.24+Offset,.25))").unwrap();
+        assert_eq!(e.evaluate(Scope::Document, "Height"), Value::Number(1.));
     }
     #[test]
     fn cycles_missing_references_and_cached_hooks() {

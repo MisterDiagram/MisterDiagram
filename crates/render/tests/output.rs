@@ -203,17 +203,24 @@ fn text_metrics_return_scaled_drawing_units() {
 
 #[test]
 fn empty_flowchart_text_does_not_recurse_through_wrapping_width() {
+    use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
     if !root.exists() {
         eprintln!("skip: private corpus/ is absent");
         return;
     }
     let doc = diagramcraft_vsdx::read(root.join("ms-shipped/1033/BASFLO_U.vssx")).unwrap();
-    for id in [9, 10, 13] {
+    for id in [9, 10, 11, 13] {
         let index = doc.masters.iter().position(|m| m.id == id).unwrap();
         assert!(scene::master(&doc, index, scene::Options::default()).is_ok(), "master{id}");
     }
-    // Custom1 has a separate direct Height -> Scratch.Y1 -> Height cycle, still reported by contacts.
+    let themes = diagramcraft_theme::Themes::from_document(&doc).unwrap();
+    let mut e = Evaluator::new(&doc).unwrap().with_theme_host(&themes).with_text_host(&diagramcraft_text::Host);
+    let scope = Scope::MasterShape { master: 11, shape: 4 };
+    // Fresh COM observation: _vm/out/dump-shipped/1033/BASFLO_U.VSSX.tsv.
+    for (cell, expected) in [("Height", 0.75), ("User.ResizeTxtHeight", 0.75), ("Scratch.Y1", 0.25), ("Scratch.X1", 0.25)] {
+        assert_eq!(e.evaluate(scope, cell).numeric().unwrap(), expected, "{cell}");
+    }
 }
 
 #[test]

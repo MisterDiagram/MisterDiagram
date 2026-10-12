@@ -21,6 +21,13 @@ try {
         Copy-Item -LiteralPath $file.FullName -Destination $copy -Force
     }
     Log "COPIED files=$($files.Count)"
+    $selection = Join-Path $PSScriptRoot 'dump-shipped-select.txt'
+    if (Test-Path -LiteralPath $selection) {
+        $names = @(Get-Content -LiteralPath $selection -Encoding UTF8)
+        $files = @($files | Where-Object { $names -contains $_.Name.ToLowerInvariant() })
+        if ($files.Count -ne $names.Count) { throw 'selected shipped file not found or ambiguous' }
+        Log "SELECTED files=$($files.Count)"
+    }
     $ok = 0; $failed = 0; $skipped = 0; $totalMasters = 0
     foreach ($file in $files) {
         $doc = $null; $w = $null; $masters = 0

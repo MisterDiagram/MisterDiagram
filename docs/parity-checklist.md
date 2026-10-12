@@ -168,3 +168,5 @@ Core=N rows (excluded from milestone scoring):
 - M2.6.7 group/stroke rendering prerequisite: `transformed_strokes_preserve_physical_pen_and_fit_export_viewport` checks physical pen widths and both export edge profiles. Authoring scores remain unchanged.
 
 - M2.6.8 image rendering remains P: `image_filter_uses_premultiplied_alpha_and_transparent_border`, `destination_only_raster_operation_is_a_noop`, and `generated_svg_resvg_and_pdf_text`. Image group passes; EMF+ remains missing.
+
+- P2-followup-3 M2.7.2, vendor master rendering remains P pending pixel parity. `clamped_cycles_are_proven_without_cached_formula_values` and `empty_flowchart_text_does_not_recurse_through_wrapping_width` resolve BASFLO_U Custom1 from interval bounds, matching four freshly observed COM values without cached formula fallback.

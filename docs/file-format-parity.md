@@ -672,3 +672,28 @@ a no-op instead of being counted as unsupported.
 `1:1,14:1,76:1`; the actual image media are96x64PNG/JPEG. The EMF drawing's
 thumbnail uses`1,13,14,18,19,20,21,22,24,25,27,28,30,33,34,35,36,37,39,40,58,70,75,76,82,84,86,87,95,98,115`.
 Every thumbnail is retained as opaque package data and is never rendered.
+
+### Clamped circular height in BASFLO_U Custom 1
+
+A fresh scheduled-task `dump-shipped.ps1` observation on 2026-10-12 produced
+`corpus/_vm/out/dump-shipped/1033/BASFLO_U.VSSX.tsv` (15 masters, 11143 cells,
+zero cell errors). The shared dump directory had no completed BASFLO_U TSV and
+was left untouched. Master 11, shape 4 reports:
+
+| Cell | Formula | COM inches |
+|---|---|---:|
+| Height | User.ResizeTxtHeight | 0.75 |
+| User.ResizeTxtHeight | MAX(User.DefaultHeight,CEILING(TEXTHEIGHT(TheText,TxtWidth)+Scratch.Y1,0.25)) | 0.75 |
+| Scratch.Y1 | MIN(Height/2,Scratch.X1) | 0.25 |
+| Scratch.X1 | 0.25 in*User.AntiScale | 0.25 |
+
+Visio resolves this apparent cycle. A sufficient evaluation order is to establish
+Scratch.X1=0.25 and User.DefaultHeight=0.75, bound Scratch.Y1 above by 0.25,
+and bound the empty text height plus offset below 0.5. CEILING therefore cannot
+raise the resize height above its 0.75 minimum. Height is uniquely 0.75; evaluating
+Scratch.Y1 then gives 0.25. This is a proven evaluation order, not a claim about
+Visio's internal algorithm. The evaluator now uses bounded interval propagation
+on a detected cycle and accepts only a finite singleton. No formula's cached V
+is used as a seed. Ambiguous, divergent and missing-reference cycles still error.
+Tests: `clamped_cycles_are_proven_without_cached_formula_values` and
+`empty_flowchart_text_does_not_recurse_through_wrapping_width`.

@@ -38,7 +38,7 @@ elif 'Register-ScheduledTask ' in args:
 
 
 class RunnerTests(unittest.TestCase):
-    def run_case(self, case, name='accept'):
+    def run_case(self, case, name='accept', selected=False):
         parent = ROOT / 'target/runner-tests'
         parent.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(dir=parent) as directory:
@@ -61,8 +61,15 @@ class RunnerTests(unittest.TestCase):
             command = ['bash', str(scripts / 'run-in-vm.sh'), name + '.ps1', '1']
             if name == 'accept':
                 command.append(str(probe))
+            if selected:
+                shipped = root / 'corpus/ms-shipped/1033/probe.vssx'
+                shipped.parent.mkdir(parents=True)
+                shipped.write_bytes(b'fixture, not an oracle')
+                command.append(str(shipped))
             result = subprocess.run(command, cwd=root, env=env, capture_output=True,
                                     text=True, timeout=40)
+            if selected:
+                self.assertEqual((root / 'corpus/_vm/dump-shipped-select.txt').read_text(), 'probe.vssx\n')
             calls = [json.loads(line) for line in (root / 'calls.jsonl').read_text().splitlines()]
             launches = [remainder.split('.ps1')[0].rsplit('\\', 1)[-1]
                         for call in calls if 'Register-ScheduledTask ' in call
@@ -74,6 +81,11 @@ class RunnerTests(unittest.TestCase):
             result, _, launches = self.run_case('ok', name)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(launches, ['visio-health', name])
+
+    def test_selected_shipped_dump_keeps_health_contract(self):
+        result, _, launches = self.run_case('ok', 'dump-shipped', selected=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(launches, ['visio-health', 'dump-shipped'])
 
     def test_failed_health_aborts_before_accept(self):
         result, _, launches = self.run_case('health-fails')

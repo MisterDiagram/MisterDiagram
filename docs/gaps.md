@@ -105,3 +105,7 @@ compound offsets and implicit child materialization remain open. No floor, ceili
 or comparison denominator was changed to improve a score.
 
 - M2.6.5: all16 SVG text rectangles checked, multiline-wrap now8lines with matching SVG starts/baselines. Logical text export padding remains unresolved, including metric-scale; PNG size mismatches remain hard failures.
+
+P2-followup-3 M2.7.2 resolves the final BASFLO_U Custom1 cycle through interval
+bounds. Four COM cells match a fresh private observation, and the master renders.
+Full paired-contact regeneration remains part of the final P2 acceptance pass.

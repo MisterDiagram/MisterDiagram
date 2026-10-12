@@ -46,7 +46,28 @@ for value in files:
 (root / 'corpus/_vm/accept-list.txt').write_text('\n'.join(paths) + '\n', encoding='utf-8')
 LIST
     ;;
-*) [ "$#" -eq 0 ] || { echo 'extra file arguments are only valid for accept' >&2; exit 2; };;
+dump-shipped)
+    python3 - "$ROOT" "$@" <<'LIST'
+from pathlib import Path
+import sys
+root = Path(sys.argv[1]).resolve()
+files = sys.argv[2:]
+manifest = root / 'corpus/_vm/dump-shipped-select.txt'
+if not files:
+    manifest.unlink(missing_ok=True)
+else:
+    if len(files) > 512:
+        raise SystemExit('at most 512 shipped files may be selected')
+    names = set()
+    for value in files:
+        path = Path(value).resolve(strict=True)
+        if not path.is_file() or not path.is_relative_to(root / 'corpus/ms-shipped') or path.suffix.lower() not in {'.vssx', '.vstx'} or any(c in path.name for c in '\r\n'):
+            raise SystemExit('selection must be a shipped stencil or template: ' + value)
+        names.add(path.name.lower())
+    manifest.write_text('\n'.join(sorted(names)) + '\n', encoding='utf-8')
+LIST
+    ;;
+*) [ "$#" -eq 0 ] || { echo 'extra file arguments are only valid for accept or dump-shipped'  >&2; exit 2; };;
 esac
 if [ "$SCRIPT" != "$STAGE/$NAME.ps1" ]; then /bin/cp -f "$SCRIPT" "$STAGE/$NAME.ps1"; fi
 /bin/cp -f "$ROOT/tools/oracle/common.ps1" "$STAGE/common.ps1"
