@@ -71,3 +71,21 @@ The Craft name belongs to the upstream project and is theirs to keep or drop if 
 The Phase 1 reader library loads all 1,387 local corpus packages; deterministic mutation tests cover each package. Evaluation accuracy is being measured against the Phase 1 floors.
 
 Carlito, Caladea, Arimo, Tinos and Cousine are embedded under the SIL Open Font License 1.1; a separate craft-fonts checkout is optional.
+
+## Private master comparisons
+
+Render a labelled contact sheet with
+`cargo run --release -p diagramcraft-cli -- render --masters STENCIL.vssx OUT.png`.
+Each master is scaled into its cell before rasterization. The pixel cap applies to the
+whole sheet; a failed master is marked and the command returns an error.
+
+For the local human gate, `corpus/_state/m2-contact-inputs.txt` lists the stencil paths.
+Generate their `corpus/_state/contact-sheets/<stem>-ours.png` files, then run
+`cargo run --release -p diagramcraft-corpus --example contact_pairs`.
+This pairs each master with its existing private Visio export from the oracle runner:
+ours on the left, Visio on the right. Neither reference images nor paired sheets ship
+with the public repository. See the oracle runbook for `export-masters.ps1`.
+
+Run the explicit release performance measurement with
+`cargo test --release -p diagramcraft-render --test perf -- --ignored --nocapture`.
+The observations in `perf/budgets.toml` are measurements, not acceptance limits.
