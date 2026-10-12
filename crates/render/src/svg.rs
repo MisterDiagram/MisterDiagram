@@ -11,18 +11,41 @@ fn path(out: &mut String, p: &kurbo::BezPath, c: diagramcraft_color::Rgba) {
     let _ = write!(out, "<path d=\"{}\" fill=\"#{:02x}{:02x}{:02x}\" fill-opacity=\"{}\"/>", p.to_svg(), c.r, c.g, c.b, f64::from(c.a) / 255.);
 }
 fn image(out: &mut String, pixels: &image::RgbaImage, m: Affine, nearest: bool) -> Result<(), String> {
+    let bordered;
+    let source = if nearest {
+        pixels
+    } else {
+        bordered = crate::raster::transparent_border(pixels)?;
+        &bordered
+    };
     let mut bytes = std::io::Cursor::new(Vec::new());
-    pixels.write_to(&mut bytes, image::ImageFormat::Png).map_err(|e| e.to_string())?;
+    source.write_to(&mut bytes, image::ImageFormat::Png).map_err(|e| e.to_string())?;
+    if !nearest {
+        write!(
+            out,
+            "<g transform=\"{}\"><svg width=\"{}\" height=\"{}\" viewBox=\"2 2 {} {}\" overflow=\"hidden\">",
+            matrix(m),
+            pixels.width(),
+            pixels.height(),
+            pixels.width(),
+            pixels.height()
+        )
+        .map_err(|e| e.to_string())?;
+    }
     let data = base64::engine::general_purpose::STANDARD.encode(bytes.get_ref());
     write!(
         out,
         "<image image-rendering=\"{}\" width=\"{}\" height=\"{}\" transform=\"{}\" href=\"data:image/png;base64,{data}\"/>",
         if nearest { "optimizeSpeed" } else { "optimizeQuality" },
-        pixels.width(),
-        pixels.height(),
-        matrix(m)
+        source.width(),
+        source.height(),
+        matrix(if nearest { m } else { Affine::IDENTITY })
     )
-    .map_err(|e| e.to_string())
+    .map_err(|e| e.to_string())?;
+    if !nearest {
+        out.push_str("</svg></g>");
+    }
+    Ok(())
 }
 pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
     let (w, h, view) = scene.canvas(options)?;

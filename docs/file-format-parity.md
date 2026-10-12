@@ -646,3 +646,29 @@ its coverage with the fitted viewport or group transform.
 profiles and both rotated group pens. `group/two-rects-rotated.vsdx` changes from
 MAD2.874225/differing2.541990% to0.690956/1.251292%, with430x360 unchanged.
 SVG and PDF use the same transformed centerlines and physical pen expansion.
+
+### P2-followup-3: image sampling and EMF records
+
+PNG/JPEG sources use premultiplied bicubic reconstruction with two transparent
+source pixels beyond each edge, clipped to the original image frame. Clamping
+the edge texel suppresses Visio's soft fringe. Bilinear with the same border
+measured image-group differing2.163508%; bicubic measured1.731289%, down from
+2.830826%. PNG MAD1.088698->0.507656, differing2.284071%->0.632957%;
+JPEG1.588222->1.008614,2.287688%->0.640191%. EMF remains3.292215/3.920718%.
+`image_filter_uses_premultiplied_alpha_and_transparent_border` prevents transparent
+blue from contaminating an opaque red edge. The SVG writer keeps the same border
+and clips it with a nested viewport; all204SVG/PDF checks pass.
+
+Only `image/emf.vsdx` has an embedded rendering EMF. Its record ID:count inventory is
+`1:1,10:4,12:4,14:1,18:4,19:2,22:4,24:4,28:4,33:10,34:10,36:22,37:42,39:3,40:11,59:1,60:1,62:1,70:17,75:5,76:1,82:4,84:4,85:2,86:5,87:2,95:5,98:5`.
+Classic geometry, object, transform, clipping, font and text records are recognized.
+The13state records18(background mode),28(meta-region reset),98(color management)
+are ignored. All17type70comments carry EMF+ payloads; these remain unrendered and
+now produce an explicit warning even when classic fallback geometry exists. The
+one type76BITBLT uses0x00AA0029 (destination unchanged); it is now recognized as
+a no-op instead of being counted as unsupported.
+
+`image/png.vsdx` and `image/jpg.vsdx` each contain a thumbnail EMF with
+`1:1,14:1,76:1`; the actual image media are96x64PNG/JPEG. The EMF drawing's
+thumbnail uses`1,13,14,18,19,20,21,22,24,25,27,28,30,33,34,35,36,37,39,40,58,70,75,76,82,84,86,87,95,98,115`.
+Every thumbnail is retained as opaque package data and is never rendered.

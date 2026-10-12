@@ -166,3 +166,5 @@ Core=N rows (excluded from milestone scoring):
 - P2-followup-3 arrows remain P: `svg_marker_scales_aliases_and_shaft_setbacks` and `arrow_and_cap_export_dimensions_match_all_generated_witnesses` check SVG geometry and129PNG dimensions. Pixel acceptance remains separate.
 
 - M2.6.7 group/stroke rendering prerequisite: `transformed_strokes_preserve_physical_pen_and_fit_export_viewport` checks physical pen widths and both export edge profiles. Authoring scores remain unchanged.
+
+- M2.6.8 image rendering remains P: `image_filter_uses_premultiplied_alpha_and_transparent_border`, `destination_only_raster_operation_is_a_noop`, and `generated_svg_resvg_and_pdf_text`. Image group passes; EMF+ remains missing.

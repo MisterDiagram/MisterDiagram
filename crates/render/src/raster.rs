@@ -37,15 +37,33 @@ fn pixmap(img: &image::RgbaImage) -> Result<Arc<Pixmap>, String> {
         .collect();
     Ok(Arc::new(Pixmap::from_parts(data, w, h)))
 }
+/// Transparent samples outside the source image participate in the reconstruction filter.
+pub(crate) fn transparent_border(pixels: &image::RgbaImage) -> Result<image::RgbaImage, String> {
+    let w = pixels.width().checked_add(4).ok_or("image border width overflow")?;
+    let h = pixels.height().checked_add(4).ok_or("image border height overflow")?;
+    if pixels.width() == 0 || pixels.height() == 0 || u64::from(w) * u64::from(h) > MAX_PIXELS as u64 {
+        return Err("image border pixel limit".into());
+    }
+    let mut output = image::RgbaImage::new(w, h);
+    image::imageops::overlay(&mut output, pixels, 2, 2);
+    Ok(output)
+}
 fn draw_image(ctx: &mut RenderContext, pixels: &image::RgbaImage, m: Affine, nearest: bool) -> Result<(), String> {
-    let pm = pixmap(pixels)?;
+    let bordered;
+    let (source, matrix, bounds) = if nearest {
+        (pixels, m, Rect::new(0., 0., f64::from(pixels.width()), f64::from(pixels.height())))
+    } else {
+        bordered = transparent_border(pixels)?;
+        (&bordered, m * Affine::translate((-2., -2.)), Rect::new(2., 2., f64::from(pixels.width()) + 2., f64::from(pixels.height()) + 2.))
+    };
+    let pm = pixmap(source)?;
     let image = Image {
         image: vello_cpu::ImageSource::Pixmap(pm),
         sampler: peniko::ImageSampler { quality: if nearest { peniko::ImageQuality::Low } else { peniko::ImageQuality::High }, ..Default::default() },
     };
-    ctx.set_transform(m);
+    ctx.set_transform(matrix);
     ctx.set_paint(image);
-    ctx.fill_rect(&Rect::new(0., 0., f64::from(pixels.width()), f64::from(pixels.height())));
+    ctx.fill_rect(&bounds);
     Ok(())
 }
 /// Sample the procedural paint in its shape coordinate system into a bounded image.
@@ -158,6 +176,22 @@ fn device_path(path: &BezPath, view: Affine) -> BezPath {
 mod tests {
     use super::*;
     use kurbo::Shape as _;
+    #[test]
+    fn image_filter_uses_premultiplied_alpha_and_transparent_border() {
+        let mut source = image::RgbaImage::new(2, 1);
+        source.put_pixel(0, 0, image::Rgba([255, 0, 0, 255]));
+        source.put_pixel(1, 0, image::Rgba([0, 0, 255, 0]));
+        let scene = Scene {
+            warnings: vec![],
+            ops: vec![Op::Image { pixels: Arc::new(source), transform: Affine::scale(0.1) }],
+            bounds: Rect::new(0., 0., 0.2, 0.1),
+            page_size: (0.2, 0.1),
+        };
+        let rendered = render(&scene, Options::default()).unwrap();
+        assert!(rendered.pixels().all(|p| p.0[0] == 255 && p.0[1] == p.0[2]), "transparent blue must not bleed into opaque red");
+        assert!(rendered.pixels().any(|p| p.0[1] > 0 && p.0[1] < 255), "filter must retain the alpha fringe");
+        assert!(transparent_border(&image::RgbaImage::new(0, 0)).is_err());
+    }
     #[test]
     fn hostile_images_and_canvas_limits() {
         for bytes in [&[][..], b"\x89PNG\r\n\x1a\n", b"\xff\xd8\xff"] {

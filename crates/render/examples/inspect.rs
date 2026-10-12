@@ -36,6 +36,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             s.bounds.height() * 96.
         );
         if !args.is_empty() {
+            println!("  warnings {:?}", s.warnings);
             for op in &s.ops {
                 match op {
                     scene::Op::Bounds(b) => println!("  logical {b:?}"),

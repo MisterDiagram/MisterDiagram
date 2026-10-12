@@ -734,7 +734,11 @@ impl Player {
     // ---------- blits, images and text ----------
 
     /// A raster operation without a source over `dest` (logical): the brush, white or black.
+    /// https://learn.microsoft.com/en-us/windows/win32/gdi/ternary-raster-operations
     pub fn pattern_blit(&mut self, dest: Rect, rop: u32) {
+        if rop == 0x00AA_0029 {
+            return;
+        } // D: retain the destination, no source required.
         let brush = match rop {
             PATCOPY => self.dc.brush.clone(),
             WHITENESS => BrushObj::Solid([255; 3]),
@@ -837,12 +841,15 @@ impl Player {
         if self.skipped > 0 {
             let n = self.skipped;
             self.warnings.push(format!(
-                "{n} record{} of kinds VectorCraft doesn't read {} skipped",
+                "{n} record{} of kinds Diagramcraft doesn't read {} skipped",
                 if n == 1 { "" } else { "s" },
                 if n == 1 { "was" } else { "were" }
             ));
         }
         let out = std::mem::take(&mut self.out);
+        if self.emf_plus && !out.is_empty() {
+            self.warnings.push("EMF+ comment payloads are not rendered; classic EMF fallback retained".into());
+        }
         if out.is_empty() && self.emf_plus {
             self.warnings.push("the picture is drawn with EMF+ records, which aren't read yet: nothing was imported".into());
         }
@@ -881,6 +888,14 @@ pub fn import(bytes: &[u8]) -> Result<Imported, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn destination_only_raster_operation_is_a_noop() {
+        let mut p = Player::new(Kind::Emf, Affine::IDENTITY, 25.4 / 96., Rect::new(0., 0., 1., 1.));
+        p.pattern_blit(Rect::new(0., 0., 1., 1.), 0x00AA_0029);
+        let result = p.finish();
+        assert!(result.ops.is_empty());
+        assert!(result.warnings.is_empty());
+    }
     #[test]
     fn hostile_records_dib_and_unknown_record_skip() {
         for len in 0..128 {
