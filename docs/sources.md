@@ -7,17 +7,23 @@ that the page was consulted during this session.
 | URL | Citing files |
 |---|---|
 | <https://github.com/storytold/craft-fonts> | `crates/fonts/build.rs`, `crates/fonts/src/lib.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml> | `crates/model/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references> | `crates/vsdx/src/evaluate.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/about-date-time-and-duration-values> | `crates/sheet/src/units.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/about-formulas> | `crates/sheet/src/eval.rs`, `crates/sheet/src/parser.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/about-operators> | `crates/sheet/src/eval.rs`, `crates/sheet/src/parser.rs`, `crates/sheet/src/value.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/about-units-of-measure-visio-shapesheet-reference> | `crates/sheet/src/parser.rs`, `crates/sheet/src/units.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml> | `crates/model/src/lib.rs`, `crates/sheet/src/units.rs`, `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/colorentry-element-colors_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/colors-element-visiodocument_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/colors-element-visiodocument_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/sheet/src/eval.rs`, `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/connect-element-connects_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/cp-element-text_type-complextypevisio-xml> | `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/documentsettings-element-visiodocument_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/documentsheet-element-visiodocument_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/eventlist-element-visiodocument_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/facename-element-facenames_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/facenames-element-visiodocument_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/facenames-element-visiodocument_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/sheet/src/eval.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fld-element-text_type-complextypevisio-xml> | `crates/vsdx/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section> | `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml> | `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/icon-element-master_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx> | `crates/model/src/lib.rs`, `crates/opc/src/opc.rs`, `crates/vsdx/src/lib.rs` |
@@ -31,10 +37,13 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/section-element-sheet_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/vsdx/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/size-cell-character-section> | `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/stylesheet-element-stylesheets_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/text-element-shapesheet_type-complextypevisio-xml> | `crates/vsdx/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function> | `crates/sheet/src/eval.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/tp-element-text_type-complextypevisio-xml> | `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/trigger-elementvisio-xml> | `crates/model/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/value-cell-user-defined-cells-section> | `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml> | `crates/model/src/lib.rs`, `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/windows-elementvisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.applicationsettings.setrasterexportresolution> | `tools/oracle/common.ps1` |
@@ -47,3 +56,4 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.style.cellssrcexists> | `tools/oracle/common.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.style.section> | `tools/oracle/common.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.visrowindices> | `tools/oracle/common.ps1` |
+| <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/6f23bcc4-af93-4023-a380-3e78a228e166> | `crates/sheet/src/units.rs` |

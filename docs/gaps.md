@@ -5,7 +5,8 @@ Status: pre-alpha, M0 met; Phase 1 in progress.
 ## G1: ShapeSheet evaluation in progress
 
 The Phase 1 reader loads all 1387 corpus files; 5548 deterministic mutations produce no panics.
-ShapeSheet evaluation, inheritance, recalc and the two numeric oracles remain in progress.
+Formula syntax and local/cross-scope evaluation are implemented with bounded errors.
+Functions, inheritance, recalc and the two numeric oracles remain in progress.
 Dormant CAD geometry algorithms resume in Phase 2.
 
 Phase 1 planned effort remains 70 to 100 hours until evaluator measurements are available.

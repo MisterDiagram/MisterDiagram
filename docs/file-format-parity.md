@@ -4,6 +4,12 @@ Status: pre-alpha, Phase 1 reader and ShapeSheet work in progress.
 
 ## Measured
 
+Phase 1 grammar syntax sweep: 355806 distinct formulas across 1387 files, zero parse failures
+(excluding only the `Inh` and `No Formula` storage sentinels). This is syntax coverage, not
+numeric oracle accuracy. Local and cross-scope cell evaluation, explicit units, document
+palette/font lookup and bounded error/cycle values have unit tests. Master/style inheritance,
+function implementation and oracle rates remain in progress.
+
 The 104 shipped dumps were produced by the non-resumable staged corpus/_vm/dump-shipped.ps1,
 not the current committed script; the interrupted TSV was renamed to .partial manually.
 The committed resume path is verified only by tools/tests/shipped-resume.ps1 until its first VM run.
@@ -20,6 +26,11 @@ ENTITY_M/U.vssx and OBJREL_M/U.vssx use the published 2011/1/core XML namespace;
 the other measured files use 2012/main. Container inspection accepts both exact URIs.
 
 ## Observed, undocumented
+
+`corpus/ms-shipped/1033/PBASLN_U.vstx`, `visio/pages/page1.xml`, contains
+`USE({GUID})` with a bare GUID literal. The Microsoft USE function page describes
+a quoted string argument; the reader also accepts this observed GUID spelling as text.
+
 
 Visio output contradicts the Cell_Type U table
 (https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/6f23bcc4-af93-4023-a380-3e78a228e166):
