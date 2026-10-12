@@ -22,6 +22,13 @@ pub struct FileResult {
     pub differing: Option<f64>,
     pub error: Option<String>,
 }
+impl FileResult {
+    /// Informational only: the frozen gate aggregates by group.
+    pub fn over_ceiling(&self, text: bool) -> bool {
+        let (mad, fraction) = if text { (TEXT_MAD, TEXT_FRACTION) } else { (NON_TEXT_MAD, NON_TEXT_FRACTION) };
+        self.mad.is_some_and(|v| v > mad) || self.differing.is_some_and(|v| v > fraction)
+    }
+}
 #[derive(Debug, Default)]
 pub struct Group {
     pub files: Vec<FileResult>,
@@ -68,7 +75,7 @@ impl fmt::Display for Report {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(
             f,
-            "render oracle: RGB MAD in 0..255; differing means any RGB channel exceeds 16; frozen 2026-10-12 16:45: non-text ceilings=4/255,2%; text=8/255,5%; size tolerance=1px per axis; common-area comparison"
+            "render oracle: RGB MAD in 0..255; differing means any RGB channel exceeds 16; frozen 2026-10-12 16:45: non-text ceilings=4/255,2%; text=8/255,5%; size tolerance=1px per axis; common-area comparison; group MAD=unweighted per-file mean, fraction=pixel-weighted common area; individual exceedances are informational"
         )?;
         for (name, g) in &self.groups {
             let mismatches = g.files.iter().filter(|r| r.actual.is_some_and(|a| a != r.expected)).count();
@@ -76,18 +83,35 @@ impl fmt::Display for Report {
             let hard = mismatches - tolerated;
             let errors = g.files.iter().filter(|r| r.error.is_some()).count();
             let compared = g.files.iter().filter(|r| r.mad.is_some()).count();
+            let individually_over = g.files.iter().filter(|r| r.over_ceiling(name == "text")).count();
             let mean = g.mean_mad();
             let fraction = g.fraction();
             let mut worst: Vec<_> = g.files.iter().collect();
             worst.sort_by(|a, b| b.mad.unwrap_or(f64::INFINITY).total_cmp(&a.mad.unwrap_or(f64::INFINITY)).then(a.file.cmp(&b.file)));
             writeln!(
                 f,
-                "render {name}: files={} size_mismatches={mismatches} tolerated_sizes={tolerated} hard_size_failures={hard} errors={errors} compared={compared} mean_MAD={} fraction_over_16={} within_ceiling={}",
+                "render {name}: files={} size_mismatches={mismatches} tolerated_sizes={tolerated} hard_size_failures={hard} errors={errors} compared={compared} individually_over_ceiling={individually_over} mean_MAD={} fraction_over_16={} within_ceiling={}",
                 g.files.len(),
                 mean.map_or("n/a".into(), |v| format!("{v:.6}")),
                 fraction.map_or("n/a".into(), |v| format!("{:.6}%", v * 100.)),
                 g.passed(name == "text")
             )?;
+            writeln!(f, "render per-file {name}: file | Visio | ours | RGB MAD | pixels over16 | over pixel ceiling | size accepted | error")?;
+            for r in &g.files {
+                writeln!(
+                    f,
+                    "render file: {} | {}x{} | {} | {} | {} | {} | {} | {}",
+                    r.file,
+                    r.expected.0,
+                    r.expected.1,
+                    r.actual.map_or("n/a".into(), |(w, h)| format!("{w}x{h}")),
+                    r.mad.map_or("n/a".into(), |v| format!("{v:.6}")),
+                    r.differing.map_or("n/a".into(), |v| format!("{:.6}%", v * 100.)),
+                    r.over_ceiling(name == "text"),
+                    r.actual.is_some_and(|a| compatible_size(r.expected, a)),
+                    r.error.as_deref().unwrap_or("none")
+                )?;
+            }
             for r in worst.iter().take(3) {
                 writeln!(
                     f,
@@ -177,6 +201,37 @@ pub fn run(root: &Path) -> Result<Report, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn per_file_disclosure_does_not_change_group_aggregation() {
+        let group = Group {
+            files: vec![
+                FileResult {
+                    file: "small outlier".into(),
+                    expected: (1, 1),
+                    actual: Some((1, 1)),
+                    mad: Some(5.),
+                    differing: Some(0.03),
+                    error: None,
+                },
+                FileResult {
+                    file: "large match".into(),
+                    expected: (100, 100),
+                    actual: Some((100, 100)),
+                    mad: Some(0.),
+                    differing: Some(0.),
+                    error: None,
+                },
+            ],
+        };
+        assert_eq!(group.mean_mad(), Some(2.5));
+        assert_eq!(group.fraction(), Some(0.03 / 10001.));
+        assert!(group.passed(false), "the frozen group gate remains unchanged");
+        assert_eq!(group.files.iter().filter(|f| f.over_ceiling(false)).count(), 1);
+        let report = Report { groups: BTreeMap::from([("fixture".into(), group)]) }.to_string();
+        assert!(report.contains("individually_over_ceiling=1"));
+        assert_eq!(report.lines().filter(|line| line.starts_with("render file:")).count(), 2);
+        assert!(report.contains("small outlier | 1x1 | 1x1 | 5.000000 | 3.000000% | true"));
+    }
     #[test]
     fn rgb_distance_and_frozen_ceilings() {
         let a = image::RgbaImage::from_pixel(2, 1, image::Rgba([0, 0, 0, 255]));

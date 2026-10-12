@@ -4,6 +4,18 @@ Status: pre-alpha, M1 met. M2 human gate accepted on 2026-10-12 at 16:45; indepe
 
 ## Measured
 
+M2.9.4 aggregation disclosure: group MAD is the unweighted arithmetic mean
+of scored per-file RGB MAD. The differing-pixel fraction is weighted by the
+number of compared pixels in each file's top-left common area. Every hard size
+mismatch or render error still fails its group. `corpus check` prints all204
+per-file rows and the number individually above either of the group's pixel
+ceilings. These individual exceedances are informational; the frozen group
+gate is unchanged.10of204files individually exceed a pixel ceiling: connector
+`dynamic-glue`, `move-before`, `static-glue`; image `emf`; line `compound-1`
+through `compound-4`; page `metric-scale`; text `multiline-wrap`. Their group
+counts are3,1,4,1,1respectively, zero in the other five groups. Regression: `per_file_disclosure_does_not_change_group_aggregation`.
+
+
 M2.9.3 memory guards: image header dimensions are checked before pixel decoding;
 32Mi pixels and16384pixels per axis remain the existing bounds. Streaming XML
 preflight caps each section at16384cells and16384rows, each sheet at65536own

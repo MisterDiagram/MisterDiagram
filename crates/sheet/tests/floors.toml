@@ -15,7 +15,8 @@ all = 0.986241
 [closure]
 packages = 1387
 shipped_packages = 1181
-completed_shipped_dumps = 104
+# Shared completed-dump coverage refreshed at M2.9; other closure counts are historical M1.
+completed_shipped_dumps = 301
 full_cached_matches = 5247024
 full_cached_denominator = 5355260
 full_resolved_matches = 7181152
@@ -55,6 +56,7 @@ quick_text_com_eligible = 1633
 # Size differences above one pixel per axis remain hard failures.
 
 [render_achieved.arrow]
+individually_over_ceiling = 0
 files = 92
 size_mismatches = 0
 tolerated_sizes = 0
@@ -66,6 +68,7 @@ fraction_over_16 = 0.01071225
 within_frozen_ceiling = true
 
 [render_achieved.basic]
+individually_over_ceiling = 0
 files = 1
 size_mismatches = 0
 tolerated_sizes = 0
@@ -77,6 +80,7 @@ fraction_over_16 = 0.00745332
 within_frozen_ceiling = true
 
 [render_achieved.connector]
+individually_over_ceiling = 3
 files = 6
 size_mismatches = 0
 tolerated_sizes = 0
@@ -88,6 +92,7 @@ fraction_over_16 = 0.01225363
 within_frozen_ceiling = true
 
 [render_achieved.fill]
+individually_over_ceiling = 0
 files = 44
 size_mismatches = 0
 tolerated_sizes = 0
@@ -99,6 +104,7 @@ fraction_over_16 = 0.01373298
 within_frozen_ceiling = true
 
 [render_achieved.group]
+individually_over_ceiling = 0
 files = 1
 size_mismatches = 0
 tolerated_sizes = 0
@@ -110,6 +116,7 @@ fraction_over_16 = 0.01251292
 within_frozen_ceiling = true
 
 [render_achieved.image]
+individually_over_ceiling = 1
 files = 3
 size_mismatches = 0
 tolerated_sizes = 0
@@ -121,6 +128,7 @@ fraction_over_16 = 0.01731289
 within_frozen_ceiling = true
 
 [render_achieved.line]
+individually_over_ceiling = 4
 files = 37
 size_mismatches = 0
 tolerated_sizes = 0
@@ -132,6 +140,7 @@ fraction_over_16 = 0.01030076
 within_frozen_ceiling = true
 
 [render_achieved.master]
+individually_over_ceiling = 0
 files = 1
 size_mismatches = 0
 tolerated_sizes = 0
@@ -143,6 +152,7 @@ fraction_over_16 = 0.01791412
 within_frozen_ceiling = true
 
 [render_achieved.page]
+individually_over_ceiling = 1
 files = 3
 size_mismatches = 0
 tolerated_sizes = 0
@@ -154,6 +164,7 @@ fraction_over_16 = 0.01344992
 within_frozen_ceiling = true
 
 [render_achieved.text]
+individually_over_ceiling = 1
 files = 16
 size_mismatches = 4
 tolerated_sizes = 4
@@ -194,3 +205,10 @@ text_fraction = 0.05
 max_size_delta_px = 1
 comparison_area = "top-left common rectangle, no resampling"
 ci_mandatory = true
+
+[render_aggregation]
+# Disclosure only. Frozen group gates and ceilings above are unchanged.
+mad = "unweighted arithmetic mean of scored per-file RGB MAD"
+fraction = "pixel-weighted fraction over each file's top-left common area"
+individual_exceedances = "informational count of scored files above either group pixel ceiling"
+size_and_render_errors = "every hard size mismatch or render error fails its group"

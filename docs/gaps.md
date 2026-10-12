@@ -149,3 +149,14 @@ M2.9.1 closes the shipped blank-cell blocker:1108/1108 contact drawing areas now
 have ink, compared with465before. This is a coverage claim, not pixel parity
 for every shipped master. Scene warnings remain visible, including unsupported
 foreign records and foreign objects without painting operations.
+
+## Phase 3: extreme stroke inputs (M2 review N-4)
+
+Two synthetic review cases remain explicit stress-test work: a50-inch line
+weight, and a custom dash array whose entries sum to zero. Audit the first for
+bounded stroke expansion and raster memory across PNG/SVG/PDF. Scene validation
+already rejects non-positive dash cycles; retain end-to-end malformed-metafile
+coverage as follow-on work so no earlier expansion bypasses that check. These
+are2review cases, not2measured corpus failures; no generated oracle input or
+ceiling was changed. They do not establish compound-line fidelity, which remains
+the separately deferred Phase3 formatting gap.
