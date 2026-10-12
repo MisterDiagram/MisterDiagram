@@ -164,3 +164,5 @@ Core=N rows (excluded from milestone scoring):
 
 - P2-followup-3 text placement remains P: `text_blocks_and_unkerned_lines_match_visio_svg` checks16block rectangles and8wrapped line starts/baselines. Logical PNG text bounds remain open.
 - P2-followup-3 arrows remain P: `svg_marker_scales_aliases_and_shaft_setbacks` and `arrow_and_cap_export_dimensions_match_all_generated_witnesses` check SVG geometry and129PNG dimensions. Pixel acceptance remains separate.
+
+- M2.6.7 group/stroke rendering prerequisite: `transformed_strokes_preserve_physical_pen_and_fit_export_viewport` checks physical pen widths and both export edge profiles. Authoring scores remain unchanged.

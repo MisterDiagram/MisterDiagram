@@ -278,3 +278,32 @@ fn text_blocks_and_unkerned_lines_match_visio_svg() {
     }
     assert_eq!(count, 16);
 }
+
+#[test]
+fn transformed_strokes_preserve_physical_pen_and_fit_export_viewport() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    let doc = diagramcraft_vsdx::read(root.join("generated/text/align-1-0.vsdx")).unwrap();
+    let drawing = scene::page(&doc, 0, scene::Options::default()).unwrap();
+    let actual = raster::render(&drawing, scene::Options::default()).unwrap();
+    let expected = raster::decode(&std::fs::read(root.join("generated/text/align-1-0.png")).unwrap()).unwrap();
+    for x in (0..4).chain(actual.width() - 5..actual.width()) {
+        println!("edge x={x} Visio={:?} ours={:?}", expected.get_pixel(x, 30), actual.get_pixel(x, 30));
+        assert_eq!(actual.get_pixel(x, 30), expected.get_pixel(x, 30));
+    }
+    let doc = diagramcraft_vsdx::read(root.join("generated/group/two-rects-rotated.vsdx")).unwrap();
+    let drawing = scene::page(&doc, 0, scene::Options::default()).unwrap();
+    let pens: Vec<_> = drawing
+        .ops
+        .iter()
+        .filter_map(|op| match op {
+            scene::Op::Stroke { stroke, .. } => Some(stroke.width),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(pens.len(), 2);
+    assert!(pens.iter().all(|w| (*w - 0.75 / 72.).abs() < 1e-10));
+}

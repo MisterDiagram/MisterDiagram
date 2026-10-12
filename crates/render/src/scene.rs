@@ -21,6 +21,7 @@ pub enum Op {
     Clip { path: BezPath, even_odd: bool },
     Pop,
     Path { path: BezPath, paint: Paint },
+    Stroke { path: BezPath, stroke: kurbo::Stroke, color: Rgba },
     Image { pixels: Arc<image::RgbaImage>, transform: Affine },
     Text { layout: TextLayout, transform: Affine },
 }
@@ -54,7 +55,7 @@ impl Scene {
         }
         for op in &self.ops {
             match op {
-                Op::Path { path, .. } | Op::Clip { path, .. } => {
+                Op::Path { path, .. } | Op::Stroke { path, .. } | Op::Clip { path, .. } => {
                     elements = elements.saturating_add(path.elements().len());
                     if elements > 4_000_000 {
                         return Err("scene path limit".into());
@@ -95,6 +96,21 @@ impl Scene {
                 }
                 Op::Pop | Op::Bounds(_) => {}
             }
+            if let Op::Stroke { stroke, .. } = op
+                && (!stroke.width.is_finite()
+                    || stroke.width < 0.
+                    || stroke.width > 1e6
+                    || !stroke.miter_limit.is_finite()
+                    || stroke.miter_limit < 0.
+                    || stroke.miter_limit > 1e6
+                    || !stroke.dash_offset.is_finite()
+                    || stroke.dash_offset.abs() > 1e6
+                    || stroke.dash_pattern.len() > 4096
+                    || stroke.dash_pattern.iter().any(|n| !n.is_finite() || *n < 0. || *n > 1e6)
+                    || (!stroke.dash_pattern.is_empty() && stroke.dash_pattern.iter().sum::<f64>() <= 0.))
+            {
+                return Err("scene stroke limit".into());
+            }
             match op {
                 Op::Clip { .. } => {
                     depth += 1;
@@ -124,7 +140,9 @@ impl Scene {
         if w > f64::from(u16::MAX) || h > f64::from(u16::MAX) || w * h > MAX_PIXELS as f64 {
             return Err("render pixel limit".into());
         }
-        Ok((w as u16, h as u16, Affine::translate((1., 1.)) * Affine::scale_non_uniform(dpi, -dpi) * Affine::translate((-b.x0, -b.y1))))
+        let sx = if w > 2. && b.width() > 0. { (w - 2.) / b.width() } else { dpi };
+        let sy = if h > 2. && b.height() > 0. { (h - 2.) / b.height() } else { dpi };
+        Ok((w as u16, h as u16, Affine::translate((1., 1.)) * Affine::scale_non_uniform(sx, -sy) * Affine::translate((-b.x0, -b.y1))))
     }
 }
 fn number(e: &mut Evaluator<'_>, scope: Scope, name: &str, default: f64) -> f64 {
@@ -230,7 +248,7 @@ fn finish_bounds(scene: &mut Scene, crop: bool) {
             Op::Bounds(b) => *b,
             Op::Clip { .. } | Op::Pop => continue,
             // Geometry and foreign objects carry logical bounds separately from their device strokes.
-            Op::Path { .. } => continue,
+            Op::Path { .. } | Op::Stroke { .. } => continue,
             Op::Image { pixels, transform } => {
                 transform.transform_rect_bbox(Rect::new(0., 0., f64::from(pixels.width()), f64::from(pixels.height())))
             }
@@ -251,6 +269,18 @@ fn finish_bounds(scene: &mut Scene, crop: bool) {
     } else {
         Rect::new(0., 0., scene.page_size.0, scene.page_size.1)
     };
+}
+/// Expand the pen after transforming the centerline, keeping line weight physical.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section
+pub(crate) fn stroke_path(path: &BezPath, stroke: &kurbo::Stroke, view: Affine, dpi: f64) -> BezPath {
+    let mut stroke = stroke.clone();
+    stroke.width *= dpi;
+    stroke.dash_offset *= dpi;
+    for dash in &mut stroke.dash_pattern {
+        *dash *= dpi;
+    }
+    let path = view * path;
+    kurbo::stroke(path.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-4)
 }
 pub fn text_paths(layout: &TextLayout, transform: Affine) -> Vec<(BezPath, Rgba)> {
     let db = diagramcraft_fonts::FontDb::global();
@@ -386,8 +416,13 @@ fn shapes(
                     style::marker_setback(line.begin_arrow, line.begin_size, line.weight),
                     style::marker_setback(line.end_arrow, line.end_size, line.weight),
                 );
-                let outline = kurbo::stroke(shaft.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-5);
-                scene.ops.push(Op::Path { path: transform * outline, paint: Paint::Solid(line.color) });
+                let physical_scale = scale.determinant().abs().sqrt();
+                stroke.width *= physical_scale;
+                stroke.dash_offset *= physical_scale;
+                for dash in &mut stroke.dash_pattern {
+                    *dash *= physical_scale;
+                }
+                scene.ops.push(Op::Stroke { path: transform * shaft, stroke, color: line.color });
                 let endpoints: Vec<Point> = path
                     .elements()
                     .iter()
@@ -495,6 +530,14 @@ fn foreign_image(
                 Op::Path { path, paint } => Op::Path { path: m * path, paint },
                 Op::Clip { path, even_odd } => Op::Clip { path: m * path, even_odd },
                 Op::Pop => Op::Pop,
+                Op::Stroke { path, mut stroke, color } => {
+                    let scale = m.determinant().abs().sqrt();
+                    stroke.width *= scale;
+                    for dash in &mut stroke.dash_pattern {
+                        *dash *= scale;
+                    }
+                    Op::Stroke { path: m * path, stroke, color }
+                }
                 Op::Bounds(b) => Op::Bounds(m.transform_rect_bbox(b)),
                 Op::Image { pixels, transform } => Op::Image { pixels, transform: m * transform },
                 Op::Text { layout, transform } => Op::Text { layout, transform: m * transform },

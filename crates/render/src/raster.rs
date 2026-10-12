@@ -113,6 +113,12 @@ pub fn render(scene: &Scene, options: Options) -> Result<image::RgbaImage, Strin
                     ctx.pop_layer();
                 }
             },
+            Op::Stroke { path, stroke, color } => {
+                let outline = crate::scene::stroke_path(path, stroke, view, 96. * options.scale);
+                ctx.set_transform(Affine::IDENTITY);
+                ctx.set_paint(peniko::Color::from_rgba8(color.r, color.g, color.b, color.a));
+                ctx.fill_path(&device_path(&outline, Affine::IDENTITY));
+            }
             Op::Image { pixels, transform } => draw_image(&mut ctx, pixels, view * *transform, false)?,
             Op::Text { layout, transform } => {
                 for (path, c) in text_paths(layout, *transform) {
@@ -151,6 +157,7 @@ fn device_path(path: &BezPath, view: Affine) -> BezPath {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use kurbo::Shape as _;
     #[test]
     fn hostile_images_and_canvas_limits() {
         for bytes in [&[][..], b"\x89PNG\r\n\x1a\n", b"\xff\xd8\xff"] {
@@ -159,5 +166,14 @@ mod tests {
         let scene = Scene { warnings: vec![], ops: vec![], bounds: Rect::new(0., 0., 1e6, 1e6), page_size: (1e6, 1e6) };
         assert!(render(&scene, Options::default()).is_err());
         assert!(scene.canvas(Options { scale: f64::NAN, ..Default::default() }).is_err());
+        for stroke in [kurbo::Stroke::new(f64::NAN), kurbo::Stroke::new(1.).with_dashes(0., [0., 0.])] {
+            let scene = Scene {
+                warnings: vec![],
+                ops: vec![Op::Stroke { path: Rect::new(0., 0., 1., 1.).to_path(0.01), stroke, color: diagramcraft_color::Rgba::BLACK }],
+                bounds: Rect::new(0., 0., 1., 1.),
+                page_size: (1., 1.),
+            };
+            assert!(render(&scene, Options::default()).is_err());
+        }
     }
 }

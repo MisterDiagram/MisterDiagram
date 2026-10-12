@@ -78,6 +78,12 @@ pub fn render(scenes: &[Scene], options: Options) -> Result<Vec<u8>, String> {
                         }
                     }
                 }
+                Op::Stroke { path: p, stroke, color } => {
+                    if let Some(p) = path(&crate::scene::stroke_path(p, stroke, view, 72.)) {
+                        surface.set_fill(Some(fill(*color)));
+                        surface.draw_path(&p);
+                    }
+                }
                 Op::Image { pixels, transform } => image(&mut surface, pixels, view * *transform)?,
                 Op::Text { layout, transform } => {
                     for deco in &layout.decos {

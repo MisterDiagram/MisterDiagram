@@ -52,6 +52,7 @@ pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
                     out.push_str("</g>");
                 }
             },
+            Op::Stroke { path: p, stroke, color } => path(&mut out, &crate::scene::stroke_path(p, stroke, view, 96. * options.scale), *color),
             Op::Image { pixels, transform } => image(&mut out, pixels, view * *transform, false)?,
             Op::Text { layout, transform } => {
                 for (p, c) in text_paths(layout, view * *transform) {

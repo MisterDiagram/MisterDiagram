@@ -630,3 +630,19 @@ Vertical marker-edge samples (grey,0black/255white), y0..11:
 - `end-08`, x=470: Visio `[255, 255, 255, 255, 127, 0, 0, 255, 255, 255, 255, 255]`; before `[255, 255, 255, 255, 191, 0, 0, 159, 255, 255, 255, 255]`; after `[255, 255, 255, 255, 191, 0, 0, 127, 255, 255, 255, 255]`.
 - `end-39`, x=470: Visio `[255, 255, 255, 255, 255, 143, 239, 255, 255, 255, 255, 255]`; before `[255, 255, 255, 255, 184, 0, 0, 153, 255, 255, 255, 255]`; after `[255, 255, 255, 255, 255, 61, 15, 237, 255, 255, 255, 255]`.
 - `begin-08`, x=10: Visio `[255, 120, 120, 183, 107, 0, 0, 199, 159, 88, 207, 255]`; before `[255, 120, 169, 251, 191, 0, 0, 159, 252, 173, 121, 255]`; after `[255, 96, 91, 173, 179, 0, 0, 151, 189, 105, 85, 255]`.
+
+### P2-followup-3: transformed strokes and export viewport
+
+Geometry is fitted into the integer PNG canvas with a one-pixel border: x scale
+`(width-2)/logical_width`, y scale `(height-2)/logical_height`. Stroke centerlines
+are transformed first; the physical pen is then expanded at96dpi, retaining the
+one-device-pixel minimum. Expanding a pen before the transform incorrectly scales
+its coverage with the fitted viewport or group transform.
+
+`text/align-1-0.png`, row30, is a distinguishing witness: the left edge is
+`[255,0,255,255]` at x0..3, and the right edge is
+`[255,255,255,32,223]` at x380..384. Both now match exactly.
+`transformed_strokes_preserve_physical_pen_and_fit_export_viewport` checks these
+profiles and both rotated group pens. `group/two-rects-rotated.vsdx` changes from
+MAD2.874225/differing2.541990% to0.690956/1.251292%, with430x360 unchanged.
+SVG and PDF use the same transformed centerlines and physical pen expansion.
