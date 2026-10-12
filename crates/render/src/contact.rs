@@ -1,0 +1,73 @@
+//! Stencil contact sheets use the same master renderer and embedded font outlines.
+use crate::scene::{self, Op, Options, Paint, Scene};
+use diagramcraft_color::Rgba;
+use diagramcraft_geom::{Affine, Rect};
+use diagramcraft_model::{Document, text::*};
+use diagramcraft_text::{NoFields, Opts};
+use kurbo::Shape as _;
+/// One labelled cell per master, in document order. Errors remain visible and are returned.
+pub fn render(doc: &Document) -> Result<(image::RgbaImage, Vec<String>), String> {
+    if doc.masters.is_empty() || doc.masters.len() > 4096 {
+        return Err("stencil master count limit".into());
+    }
+    let columns = 6usize;
+    let cell_width = 240usize;
+    let cell_height = 200usize;
+    let rows = doc.masters.len().div_ceil(columns);
+    let width = columns * cell_width;
+    let height = rows.checked_mul(cell_height).ok_or("contact height overflow")?;
+    if width.checked_mul(height).is_none_or(|n| n > scene::MAX_PIXELS) {
+        return Err("contact sheet pixel limit".into());
+    }
+    let mut pixels = image::RgbaImage::from_pixel(width as u32, height as u32, image::Rgba([255, 255, 255, 255]));
+    let mut warnings = vec![];
+    for (index, master) in doc.masters.iter().enumerate() {
+        let x = (index % columns) * cell_width;
+        let y = (index / columns) * cell_height;
+        match scene::master(doc, index, Options::default()).and_then(|scene| {
+            let scale = ((cell_width - 24) as f64 / (scene.bounds.width() * 96.).max(1.))
+                .min((cell_height - 40) as f64 / (scene.bounds.height() * 96.).max(1.))
+                .min(2.);
+            crate::raster::render(&scene, Options { scale, ..Default::default() })
+        }) {
+            Ok(img) => {
+                image::imageops::overlay(&mut pixels, &img, (x + (cell_width.saturating_sub(img.width() as usize)) / 2) as i64, (y + 8) as i64)
+            }
+            Err(e) => warnings.push(format!("master {} {}: {e}", master.id, master.name_u)),
+        }
+        let body = TextBody {
+            paragraphs: vec![Paragraph {
+                runs: vec![Run {
+                    text: master.name_u.clone(),
+                    kind: RunKind::Text,
+                    props: RunProps { font: Some("Carlito".into()), size: Some(8.), ..Default::default() },
+                }],
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let layout = diagramcraft_text::layout(
+            &body,
+            &Opts { rect: Rect::new(0., 0., (cell_width - 12) as f64 * 0.75, 22.), fields: &NoFields, prompt_color: None, no_shrink: false },
+        )
+        .map_err(|e| e.to_string())?;
+        let label = Scene {
+            ops: vec![Op::Text { layout, transform: Affine::translate((0., 24. / 96.)) * Affine::scale_non_uniform(1. / 72., -1. / 72.) }],
+            bounds: Rect::new(0., 0., (cell_width - 12) as f64 / 96., 24. / 96.),
+            page_size: (1., 1.),
+            warnings: vec![],
+        };
+        let img = crate::raster::render(&label, Options::default())?;
+        image::imageops::overlay(&mut pixels, &img, (x + 6) as i64, (y + cell_height - 28) as i64);
+        if warnings.last().is_some_and(|w| w.starts_with(&format!("master {} ", master.id))) {
+            let error = Scene {
+                ops: vec![Op::Path { path: Rect::new(0., 0., 1., 0.05).to_path(0.001), paint: Paint::Solid(Rgba::rgb(200, 0, 0)) }],
+                bounds: Rect::new(0., 0., 1., 0.05),
+                page_size: (1., 1.),
+                warnings: vec![],
+            };
+            image::imageops::overlay(&mut pixels, &crate::raster::render(&error, Options::default())?, (x + 12) as i64, (y + 12) as i64);
+        }
+    }
+    Ok((pixels, warnings))
+}

@@ -30,6 +30,68 @@ fn info(path: &Path, out: &mut impl Write) -> Result<(), String> {
     }
     Ok(())
 }
+fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
+    use diagramcraft_render::{contact, pdf, raster, scene, svg};
+    let mut positional = Vec::new();
+    let mut page = None;
+    let mut options = scene::Options::default();
+    let mut masters = false;
+    let mut i = 1;
+    while let Some(arg) = args.get(i) {
+        match arg.to_str() {
+            Some("--page" | "--scale") => {
+                let value = args.get(i + 1).and_then(|s| s.to_str()).ok_or("missing render option value")?;
+                if arg == "--page" {
+                    page = Some(value.parse::<usize>().map_err(|_| "invalid page")?.checked_sub(1).ok_or("page is one-based")?);
+                } else {
+                    options.scale = value.parse().map_err(|_| "invalid scale")?;
+                }
+                i += 1;
+            }
+            Some("--masters") => masters = true,
+            Some(s) if s.starts_with("--") => return Err("unknown render option".into()),
+            _ => positional.push(arg),
+        }
+        i += 1;
+    }
+    let [input, output] = positional.as_slice() else {
+        return Err("usage: render FILE [--page N] [--scale S] OUT.{png,svg,pdf}; render --masters STENCIL OUT.png".into());
+    };
+    let doc = diagramcraft_vsdx::read(Path::new(input)).map_err(|e| e.to_string())?;
+    let path = Path::new(output);
+    let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("").to_ascii_lowercase();
+    if let Some(parent) = path.parent().filter(|p| !p.as_os_str().is_empty()) {
+        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    if masters {
+        if extension != "png" || page.is_some() {
+            return Err("master contact sheets require PNG and no page selector".into());
+        }
+        let (image, warnings) = contact::render(&doc)?;
+        image.save(path).map_err(|e| e.to_string())?;
+        if !warnings.is_empty() {
+            return Err(warnings.join("; "));
+        }
+        return Ok(());
+    }
+    let scenes = if extension == "pdf" && page.is_none() {
+        doc.pages
+            .iter()
+            .enumerate()
+            .filter(|(_, p)| !p.attributes.get("Background").is_some_and(|s| s == "1" || s == "true"))
+            .map(|(i, _)| scene::page(&doc, i, options))
+            .collect::<Result<Vec<_>, _>>()?
+    } else {
+        vec![scene::page(&doc, page.map(Ok).unwrap_or_else(|| scene::default_page_index(&doc))?, options)?]
+    };
+    let first = scenes.first().ok_or("no foreground pages")?;
+    match extension.as_str() {
+        "png" => raster::render(first, options)?.save(path).map_err(|e| e.to_string()),
+        "svg" => std::fs::write(path, svg::render(first, options)?).map_err(|e| e.to_string()),
+        "pdf" => std::fs::write(path, pdf::render(&scenes, options)?).map_err(|e| e.to_string()),
+        _ => Err("render output extension must be png, svg or pdf".into()),
+    }
+}
 fn execute(args: &[std::ffi::OsString], out: &mut impl Write) -> Result<(), String> {
     match args.first().and_then(|a| a.to_str()) {
         Some("info") if args.len() == 2 => info(Path::new(args.get(1).ok_or("missing file")?), out),
@@ -60,9 +122,10 @@ fn execute(args: &[std::ffi::OsString], out: &mut impl Write) -> Result<(), Stri
         Some("corpus") if args.get(1).and_then(|a| a.to_str()) == Some("check") && args.len() == 2 => {
             let report = diagramcraft_corpus::run(Path::new("corpus"), false)?;
             writeln!(out, "{report}").map_err(|e| e.to_string())?;
-            if report.passed() { Ok(()) } else { Err("corpus rates are below the frozen floors".into()) }
+            if report.passed() { Ok(()) } else { Err("corpus oracle gates failed".into()) }
         }
-        Some("render" | "convert" | "run" | "commands" | "describe" | "mcp") => Err("not implemented in Phase 1".into()),
+        Some("render") => render(args),
+        Some("convert" | "run" | "commands" | "describe" | "mcp") => Err("not implemented in Phase 1".into()),
         _ => Err("usage: diagramcraft-cli <info FILE|sheet FILE|corpus check|render|convert|run|commands|describe|mcp>".into()),
     }
 }

@@ -37,3 +37,108 @@ full_resolved_denominator = 7271082
 [promotion]
 # Charles, P2-followup: report text separately until both text oracles reach this rate.
 text-metric = 0.90
+
+# P2-followup achieved render observations only. These are not ceilings.
+# RGB MAD uses 0..255. Fractions exclude size mismatches, which always fail.
+
+[render_achieved.arrow]
+files = 92
+size_mismatches = 0
+errors = 0
+compared = 92
+mean_mad_rgb = 2.928643
+fraction_over_16 = 0.02217007
+within_frozen_ceiling = false
+
+[render_achieved.basic]
+files = 1
+size_mismatches = 0
+errors = 0
+compared = 1
+mean_mad_rgb = 2.481191
+fraction_over_16 = 0.02008629
+within_frozen_ceiling = false
+
+[render_achieved.connector]
+files = 6
+size_mismatches = 0
+errors = 0
+compared = 6
+mean_mad_rgb = 4.906090
+fraction_over_16 = 0.02086032
+within_frozen_ceiling = false
+
+[render_achieved.fill]
+files = 44
+size_mismatches = 0
+errors = 0
+compared = 44
+mean_mad_rgb = 1.881272
+fraction_over_16 = 0.01883832
+within_frozen_ceiling = true
+
+[render_achieved.group]
+files = 1
+size_mismatches = 0
+errors = 0
+compared = 1
+mean_mad_rgb = 2.874225
+fraction_over_16 = 0.02541990
+within_frozen_ceiling = false
+
+[render_achieved.image]
+files = 3
+size_mismatches = 0
+errors = 0
+compared = 3
+mean_mad_rgb = 3.494772
+fraction_over_16 = 0.03956284
+within_frozen_ceiling = false
+
+[render_achieved.line]
+files = 37
+size_mismatches = 0
+errors = 0
+compared = 37
+mean_mad_rgb = 2.233283
+fraction_over_16 = 0.01518873
+within_frozen_ceiling = true
+
+[render_achieved.master]
+files = 1
+size_mismatches = 0
+errors = 0
+compared = 1
+mean_mad_rgb = 3.472529
+fraction_over_16 = 0.02609142
+within_frozen_ceiling = false
+
+[render_achieved.page]
+files = 3
+size_mismatches = 1
+errors = 0
+compared = 2
+mean_mad_rgb = 2.551506
+fraction_over_16 = 0.01534294
+within_frozen_ceiling = false
+
+[render_achieved.text]
+files = 16
+size_mismatches = 9
+errors = 0
+compared = 7
+mean_mad_rgb = 3.362636
+fraction_over_16 = 0.02989645
+within_frozen_ceiling = false
+
+# Achieved text-only observations from the final full P2-followup sweep.
+# These records do not replace or lower the promotion threshold above.
+[text-metric.cached]
+passed = 54294
+eligible = 67797
+rate = 0.80083190
+
+[text-metric.com]
+passed = 6192
+eligible = 7724
+rate = 0.80165717

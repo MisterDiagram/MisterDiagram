@@ -6,6 +6,7 @@ license.workspace = true
 [lints]
 workspace = true
 [dependencies]
+diagramcraft-render.workspace = true
 diagramcraft-text.workspace = true
 diagramcraft-opc.workspace = true
 diagramcraft-vsdx.workspace = true

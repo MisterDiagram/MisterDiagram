@@ -1277,8 +1277,25 @@ impl Context for BoundContext<'_, '_> {
             }
             let host = self.evaluator.text_host.ok_or_else(|| Error::Unsupported("text host".into()))?;
             let body = self.evaluator.text_body(scope)?;
-            let (w, h) = host.measure(&body, width.map(|v| v * 72.)).map_err(|_| Error::Value)?;
-            Ok(Value::Number(if height { h / 72. } else { w / 72. }))
+            // TEXTWIDTH/TEXTHEIGHT return drawing inches; fonts and margins are physical points.
+            // https://learn.microsoft.com/en-us/office/client-developer/visio/drawingscale-cell-page-properties-section
+            // APPL_M master2 shape6 uses 1:100, APPL_U master25 shape5 uses 1:96.
+            let page = match scope {
+                Scope::PageShape { page, .. } => Scope::Page(page),
+                Scope::MasterShape { master, .. } => Scope::Master(master),
+                other => other,
+            };
+            let page_scale = self.evaluator.evaluate(page, "PageScale").numeric()?;
+            let drawing_scale = self.evaluator.evaluate(page, "DrawingScale").numeric()?;
+            if page_scale <= 0. || drawing_scale <= 0. {
+                return Err(Error::Value);
+            }
+            let ratio = drawing_scale / page_scale;
+            if !ratio.is_finite() || !(1e-9..=1e9).contains(&ratio) {
+                return Err(Error::Limit);
+            }
+            let (w, h) = host.measure(&body, width.map(|v| v * 72. / ratio)).map_err(|_| Error::Value)?;
+            Ok(Value::number((if height { h } else { w }) * ratio / 72.))
         })();
         result.unwrap_or_else(Value::Error)
     }

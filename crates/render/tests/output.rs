@@ -26,7 +26,7 @@ fn generated_pages_and_foreign_objects_produce_outputs() {
     for path in paths {
         let result = (|| -> Result<(), String> {
             let doc = diagramcraft_vsdx::read(&path).map_err(|e| e.to_string())?;
-            let scene = scene::page(&doc, 0, scene::Options::default())?;
+            let scene = scene::page(&doc, scene::default_page_index(&doc)?, scene::Options::default())?;
             let stem = path.file_stem().unwrap().to_string_lossy();
             let output = output.join(path.parent().unwrap().file_name().unwrap());
             std::fs::create_dir_all(&output).map_err(|e| e.to_string())?;
@@ -55,6 +55,7 @@ fn layers_visibility_print_and_background_pages() {
     assert!(printed.ops.len() > screen.ops.len());
     let mut doc = diagramcraft_vsdx::read(root.join("generated/page/background.vsdx")).unwrap();
     let index = doc.pages.iter().position(|p| p.attributes.contains_key("BackPage")).unwrap();
+    assert_eq!(scene::default_page_index(&doc).unwrap(), index);
     let full = scene::page(&doc, index, scene::Options::default()).unwrap();
     doc.pages.get_mut(index).unwrap().attributes.remove("BackPage");
     let foreground = scene::page(&doc, index, scene::Options::default()).unwrap();
@@ -62,4 +63,155 @@ fn layers_visibility_print_and_background_pages() {
     let id = doc.pages.get(index).unwrap().id.to_string();
     doc.pages.get_mut(index).unwrap().attributes.insert("BackPage".into(), id);
     assert!(scene::page(&doc, index, scene::Options::default()).is_err());
+}
+
+#[test]
+fn empty_glyph_outlines_do_not_expand_export_to_page_origin() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    let doc = diagramcraft_vsdx::read(root.join("generated/basic/0001-probe.vsdx")).unwrap();
+    let drawing = scene::page(&doc, 0, scene::Options::default()).unwrap();
+    assert!(drawing.bounds.x0 > 0.9 && drawing.bounds.y0 > 3.9);
+    assert_eq!(drawing.canvas(scene::Options::default()).unwrap().0, 577);
+}
+
+#[test]
+fn arrow_and_cap_export_dimensions_match_all_generated_witnesses() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    for group in ["arrow", "line"] {
+        for entry in std::fs::read_dir(root.join("generated").join(group)).unwrap() {
+            let file = entry.unwrap().path();
+            if !file.extension().is_some_and(|e| e == "vsdx") {
+                continue;
+            }
+            let doc = diagramcraft_vsdx::read(&file).unwrap();
+            let scene = scene::page(&doc, 0, scene::Options::default()).unwrap();
+            let (w, h, _) = scene.canvas(scene::Options::default()).unwrap();
+            let oracle = raster::decode(&std::fs::read(file.with_extension("png")).unwrap()).unwrap();
+            assert_eq!((u32::from(w), u32::from(h)), oracle.dimensions(), "{}", file.display());
+        }
+    }
+}
+
+#[test]
+fn observed_probe_and_hairline_edge_profiles() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    for file in ["basic/0001-probe", "master/basic-rect"] {
+        let doc = diagramcraft_vsdx::read(root.join(format!("generated/{file}.vsdx"))).unwrap();
+        let drawing = scene::page(&doc, 0, scene::Options::default()).unwrap();
+        let ours = raster::render(&drawing, scene::Options::default()).unwrap();
+        let visio = raster::decode(&std::fs::read(root.join(format!("generated/{file}.png"))).unwrap()).unwrap();
+        let own: Vec<_> = (0..8).map(|x| ours.get_pixel(x, 30).0).collect();
+        let expected: Vec<_> = (0..8).map(|x| visio.get_pixel(x, 30).0).collect();
+        println!("{file} row30 Visio={expected:?} ours={own:?}");
+        assert_eq!(own, expected);
+    }
+}
+
+#[test]
+fn basic_drop_theme_extension_uses_its_zero_style_slot() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    let doc = diagramcraft_vsdx::read(root.join("ms-shipped/1033/BASIC_U.vssx")).unwrap();
+    let themes = diagramcraft_theme::Themes::from_document(&doc).unwrap();
+    let mut e = diagramcraft_vsdx::evaluate::Evaluator::new(&doc).unwrap().with_theme_host(&themes);
+    assert_eq!(e.evaluate(diagramcraft_vsdx::evaluate::Scope::MasterShape { master: 56, shape: 7 }, "LinePattern").numeric().unwrap(), 1.);
+}
+
+#[test]
+fn contact_cells_fit_large_masters_and_skip_empty_text_blocks() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    for name in ["CISCONETWORKSHAPES_U", "AZURECOMPUTE_U", "NETLOC_U", "NETSME_M", "NETSME_U"] {
+        let doc = diagramcraft_vsdx::read(root.join(format!("ms-shipped/1033/{name}.vssx"))).unwrap();
+        for index in 0..if name.starts_with("CISCO") { 1 } else { doc.masters.len() } {
+            let drawing = scene::master(&doc, index, scene::Options::default()).unwrap();
+            let scale = (216. / (drawing.bounds.width() * 96.).max(1.)).min(160. / (drawing.bounds.height() * 96.).max(1.)).min(2.);
+            let (w, h, _) = drawing.canvas(scene::Options { scale, ..Default::default() }).unwrap();
+            assert!(w <= 216 && h <= 160, "{name} master {index}: {w}x{h}");
+        }
+    }
+}
+
+#[test]
+fn scaled_page_dimensions_are_physical_inches() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    let doc = diagramcraft_vsdx::read(root.join("generated/page/metric-scale.vsdx")).unwrap();
+    let drawing = scene::page(&doc, 0, scene::Options { crop: false, ..Default::default() }).unwrap();
+    assert!((drawing.page_size.0 - 0.085).abs() < 1e-9);
+    assert!((drawing.page_size.1 - 0.11).abs() < 1e-9);
+}
+
+#[test]
+fn composed_text_height_slack_matches_visio_and_preserves_empty_blocks() {
+    use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    for (file, scope, expected) in [
+        ("generated/basic/0001-probe.vsdx", Scope::PageShape { page: 0, shape: 5 }, 0.2444939358181424),
+        ("generated/basic/0001-probe.vsdx", Scope::MasterShape { master: 2, shape: 5 }, 0.2444444444444444),
+        ("ms-shipped/1033/AWSANALYTICS_U.vssx", Scope::MasterShape { master: 2, shape: 5 }, 0.15005),
+    ] {
+        let doc = diagramcraft_vsdx::read(root.join(file)).unwrap();
+        let themes = diagramcraft_theme::Themes::from_document(&doc).unwrap();
+        let mut e = Evaluator::new(&doc).unwrap().with_theme_host(&themes).with_text_host(&diagramcraft_text::Host);
+        let actual = e.evaluate(scope, "TxtHeight").numeric().unwrap();
+        assert!((actual - expected).abs() < 1e-6, "{file} {scope:?}: {actual} != {expected}");
+    }
+}
+
+#[test]
+fn text_metrics_return_scaled_drawing_units() {
+    use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    for (name, master, shape, expected) in [("APPL_M", 2, 6, 11.11111111111111), ("APPL_U", 25, 5, 10.66666666666667)] {
+        let doc = diagramcraft_vsdx::read(root.join(format!("ms-shipped/1033/{name}.vssx"))).unwrap();
+        let themes = diagramcraft_theme::Themes::from_document(&doc).unwrap();
+        let mut e = Evaluator::new(&doc).unwrap().with_theme_host(&themes).with_text_host(&diagramcraft_text::Host);
+        let actual = e.evaluate(Scope::MasterShape { master, shape }, "TxtWidth").numeric().unwrap();
+        assert!((actual - expected).abs() < 1e-6, "{name}: {actual} != {expected}");
+    }
+}
+
+#[test]
+fn empty_flowchart_text_does_not_recurse_through_wrapping_width() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    let doc = diagramcraft_vsdx::read(root.join("ms-shipped/1033/BASFLO_U.vssx")).unwrap();
+    for id in [9, 10, 13] {
+        let index = doc.masters.iter().position(|m| m.id == id).unwrap();
+        assert!(scene::master(&doc, index, scene::Options::default()).is_ok(), "master{id}");
+    }
+    // Custom1 has a separate direct Height -> Scratch.Y1 -> Height cycle, still reported by contacts.
 }

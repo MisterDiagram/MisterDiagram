@@ -15,6 +15,7 @@ Visio, close documents without further saves, and call Quit in finally.
   Incomplete dumps use .partial and are never counted as completed.
 - `accept.ps1`: reads corpus/_vm/accept-list.txt, opens files without saving, dumps and exports.
 - `visio-health.ps1`: launch/attach, local shipped-template OpenEx, blank Add, both closes and Quit.
+- `export-masters.ps1`: reads the staged `corpus/_vm/export-masters-list.txt`, exports each master at 96 dpi under `corpus/_vm/out/export-masters`, and records IDs in `masters.tsv`. Health runs first and DONE is written last; SUMMARY is the success record.
 - `common.ps1`: shared helpers loaded by the named scripts, not run independently.
 
 CURRENT records the active file for a 30-minute per-file watchdog. The default overall timeout

@@ -77,3 +77,18 @@ fn visio_font_percentage_empty_line_and_aligned_tabs() {
         assert!((at - 80.).abs() < 1e-8, "{alignment}: {at}");
     }
 }
+
+#[test]
+fn percentage_line_baseline_matches_generated_alignment_svg() {
+    let body = TextBody {
+        body: BodyProps { inset_t: Some(4.), anchor: Some(Anchor::Top), ..Default::default() },
+        paragraphs: vec![Paragraph {
+            props: ParaProps { line_spacing: Some(Spacing::FontPct(1.2)), ..Default::default() },
+            runs: vec![Run::with("Alignment", RunProps { font: Some("Calibri".into()), size: Some(12.), ..Default::default() })],
+            ..Default::default()
+        }],
+        ..Default::default()
+    };
+    let l = layout(&body, &Opts { rect: Rect::new(0., 0., 288., 216.), fields: &NoFields, prompt_color: None, no_shrink: true }).unwrap();
+    assert!((l.lines[0].baseline - 14.8).abs() < 1e-9);
+}

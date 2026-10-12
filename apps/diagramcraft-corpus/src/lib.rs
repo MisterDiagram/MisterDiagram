@@ -1,5 +1,6 @@
 //! Read-only comparisons against original package caches and completed COM dumps.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
+pub mod render;
 use diagramcraft_sheet::Value;
 use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
 use std::{
@@ -47,6 +48,7 @@ pub struct Witness {
 }
 #[derive(Debug)]
 pub struct Report {
+    pub render: Option<render::Report>,
     pub text_metric_floor: f64,
     pub text_metrics_included: bool,
     pub cached_hosts: [Rate; 2],
@@ -66,6 +68,8 @@ pub struct Report {
     pub com_floor: f64,
     pub quick: bool,
     pub top_failures: Vec<(String, u64)>,
+    pub text_cell_failures: Vec<(String, u64)>,
+    pub text_delta_failures: Vec<(String, u64)>,
     pub function_failures: Vec<(String, u64)>,
     pub cached_cell_failures: Vec<(String, u64)>,
     pub cached_actual_failures: Vec<(String, u64)>,
@@ -74,6 +78,10 @@ pub struct Report {
 }
 impl Report {
     pub fn passed(&self) -> bool {
+        self.render.as_ref().is_none_or(render::Report::passed) && self.cells_passed()
+    }
+    /// Cell floors remain mandatory while the P2 render comparison is advisory in CI.
+    pub fn cells_passed(&self) -> bool {
         self.shipped_cached.total > 0
             && self.com.total > 0
             && self.shipped_cached.percent() >= self.cached_floor
@@ -82,6 +90,9 @@ impl Report {
 }
 impl fmt::Display for Report {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(render) = &self.render {
+            writeln!(f, "{render}")?;
+        }
         writeln!(
             f,
             "corpus mode={} packages={} shipped={}/{} completed_shipped_dumps={} dump_files={}",
@@ -132,6 +143,8 @@ impl fmt::Display for Report {
         )?;
         for (kind, entries) in [
             ("cell", &self.top_failures),
+            ("text-metric cell", &self.text_cell_failures),
+            ("text-metric delta (ours minus Visio, IU)", &self.text_delta_failures),
             ("function", &self.function_failures),
             ("cached source cell", &self.cached_cell_failures),
             ("cached actual", &self.cached_actual_failures),
@@ -436,6 +449,8 @@ fn normalized_cell(name: &str) -> String {
 }
 #[derive(Default)]
 struct Diagnostics {
+    text_cells: Histogram,
+    text_deltas: Histogram,
     cells: Histogram,
     functions: Histogram,
     cached_cells: Histogram,
@@ -445,6 +460,17 @@ struct Diagnostics {
 impl Diagnostics {
     fn failure(&mut self, calls: &BTreeSet<String>, source_cell: &str, w: Witness) {
         self.cells.add(&normalized_cell(&w.cell), &w);
+        if calls.iter().any(|n| diagramcraft_sheet::is_text_metric(n)) {
+            self.text_cells.add(&format!("{} {}", w.oracle, normalized_cell(&w.cell)), &w);
+            let number = |s: &str| {
+                s.strip_prefix("Number(").or_else(|| s.strip_prefix("Some(")).and_then(|s| s.strip_suffix(')')).and_then(|s| s.parse::<f64>().ok())
+            };
+            let delta = match (number(&w.actual), number(&w.expected)) {
+                (Some(a), Some(e)) => format!("{:.6}", a - e),
+                _ => w.actual.clone(),
+            };
+            self.text_deltas.add(&format!("{} {} {}", w.oracle, normalized_cell(&w.cell), delta), &w);
+        }
         let formula_kind = if w.formula == "Inh" {
             "Inh"
         } else if calls.is_empty() {
@@ -466,6 +492,8 @@ impl Diagnostics {
         }
     }
     fn finish(self, report: &mut Report) {
+        report.text_cell_failures = self.text_cells.finish("text-metric cell", &mut report.witnesses);
+        report.text_delta_failures = self.text_deltas.finish("text-metric delta", &mut report.witnesses);
         report.top_failures = self.cells.finish("cell", &mut report.witnesses);
         report.function_failures = self.functions.finish("function", &mut report.witnesses);
         report.cached_cell_failures = self.cached_cells.finish("cached source cell", &mut report.witnesses);
@@ -655,6 +683,7 @@ pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
         report.cached_classes = deferred.cached_classes;
         report.com_classes = deferred.com_classes;
     }
+    report.render = Some(render::run(root)?);
     Ok(report)
 }
 fn text_promoted(cached: &Rate, com: &Rate, floor: f64) -> bool {
@@ -674,6 +703,7 @@ fn run_pass(root: &Path, quick: bool, deferred: bool) -> Result<Report, String> 
     files.extend(selected.iter().cloned());
     files.sort();
     let mut report = Report {
+        render: None,
         text_metric_floor: floor(include_str!("../../../crates/sheet/tests/floors.toml"), "text-metric")? * 100.,
         text_metrics_included: false,
         cached_hosts: Default::default(),
@@ -693,6 +723,8 @@ fn run_pass(root: &Path, quick: bool, deferred: bool) -> Result<Report, String> 
         com_floor,
         quick,
         top_failures: vec![],
+        text_cell_failures: vec![],
+        text_delta_failures: vec![],
         function_failures: vec![],
         cached_cell_failures: vec![],
         cached_actual_failures: vec![],
@@ -985,6 +1017,7 @@ mod tests {
     #[test]
     fn shipped_floor_cannot_be_masked_by_overall_and_empty_oracles_fail() {
         let mut report = Report {
+            render: None,
             text_metric_floor: 90.,
             text_metrics_included: false,
             cached_hosts: Default::default(),
@@ -1004,6 +1037,8 @@ mod tests {
             com_floor: 90.,
             quick: false,
             top_failures: vec![],
+            text_cell_failures: vec![],
+            text_delta_failures: vec![],
             function_failures: vec![],
             cached_cell_failures: vec![],
             cached_actual_failures: vec![],
@@ -1011,12 +1046,17 @@ mod tests {
             witnesses: vec![],
         };
         assert!(!report.passed());
+        assert!(!report.cells_passed());
         let display = report.to_string();
         assert!(display.lines().any(|line| line.starts_with("cached overall informational:") && line.ends_with("floor=reported separately")));
         assert!(display.lines().any(|line| line.starts_with("shipped cached:") && line.ends_with("floor=97.000000%")));
         report.shipped_cached.matched = 97;
         report.cached.matched = 800;
         assert!(report.passed());
+        report.render = Some(render::Report::default());
+        assert!(report.cells_passed(), "cell-only CI gate must still measure cell floors");
+        assert!(!report.passed(), "CLI gate must reject failed render comparisons");
+        report.render = None;
         report.shipped_cached = Rate::default();
         assert!(!report.passed());
         report.shipped_cached = Rate { matched: 97, total: 100, excluded: 0 };

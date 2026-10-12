@@ -917,10 +917,14 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
         for (li, rl) in raw.iter().enumerate() {
             // Line metrics: max ascent/descent over the line's styles (or the lead style if empty).
             let (mut asc, mut desc, mut size) = (0.0f64, 0.0f64, 0.0f64);
+            let (mut typo_asc, mut typo_desc) = (0.0f64, 0.0f64);
             for c in p.cells.get(rl.start..rl.end.max(rl.start)).unwrap_or(&[]) {
                 if let (Some(st), Some(face)) = (p.styles.get(c.style), p.faces.get(c.face)) {
                     let sz = st.size;
                     let (a, d) = line_metrics(face, sz);
+                    let (ta, td) = face.typographic_metrics();
+                    typo_asc = typo_asc.max(ta * sz / face.upem.max(1.));
+                    typo_desc = typo_desc.max(td * sz / face.upem.max(1.));
                     asc = asc.max(a);
                     desc = desc.max(d);
                     size = size.max(sz);
@@ -931,6 +935,9 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
                 asc = a;
                 desc = d;
                 size = p.lead_size;
+                let (ta, td) = p.lead_face.typographic_metrics();
+                typo_asc = ta * size / p.lead_face.upem.max(1.);
+                typo_desc = td * size / p.lead_face.upem.max(1.);
             }
             let natural = (asc + desc).max(size * 1.0);
             let lh = match props.line_spacing {
@@ -941,7 +948,15 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
             };
             let ratio = if natural > 0.0 { lh / natural } else { 1.0 };
             let top = y;
-            let baseline = top + asc * ratio;
+            // Visio's percentage line baseline follows typographic ascender/descent,
+            // not the clipping (Win) metrics. align-0-0.svg: 12pt text baseline14.8 after4pt margin.
+            // https://learn.microsoft.com/en-us/office/client-developer/visio/spline-cell-paragraph-section
+            let baseline = top
+                + if matches!(props.line_spacing, Some(Spacing::FontPct(_))) {
+                    lh * typo_asc / (typo_asc + typo_desc).max(1e-12)
+                } else {
+                    asc * ratio
+                };
             y += lh;
             let x0 = if li == 0 { first_x } else { rest_x };
             let avail = (col_w - x0 - mr).max(0.0);
@@ -1744,9 +1759,13 @@ impl diagramcraft_model::text::TextHost for Host {
             return Err("text width must be positive".into());
         }
         let l = layout(body, &Opts { rect: Rect::new(0., 0., width, 100_000.), fields: &NoFields, prompt_color: None, no_shrink: true })?;
+        // Visio adds 0.00005 in to composed, nonempty text, but not to an empty block.
+        // Witnesses: generated/basic/0001-probe page0 shape5 and AWSANALYTICS_U master2 shape5.
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/textheight-function
+        let composed_slack = if body.paragraphs.iter().flat_map(|p| &p.runs).any(|r| !r.text.is_empty()) { 0.00005 * 72. } else { 0. };
         Ok((
             l.content_width + body.body.inset_l.unwrap_or(0.) + body.body.inset_r.unwrap_or(0.),
-            l.content_height + body.body.inset_t.unwrap_or(0.) + body.body.inset_b.unwrap_or(0.),
+            l.content_height + body.body.inset_t.unwrap_or(0.) + body.body.inset_b.unwrap_or(0.) + composed_slack,
         ))
     }
 }

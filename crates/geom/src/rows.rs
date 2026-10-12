@@ -384,9 +384,24 @@ fn spline(path: &mut BezPath, control: &[Point], weights: &[f64], knots: &[f64],
     if control.len() <= degree || weights.len() != control.len() || knots.len() != control.len() + degree + 1 {
         return Err(GeometryError::Invalid);
     }
-    if weights.iter().any(|w| !w.is_finite() || *w <= 0.) || knots.iter().any(|k| !k.is_finite()) || knots.windows(2).any(|w| w.first() > w.get(1)) {
+    if weights.iter().any(|w| !w.is_finite() || *w <= 0.) || knots.iter().any(|k| !k.is_finite()) {
         return Err(GeometryError::Invalid);
     }
+    // A/E cells serialize repeated NURBS knots with different decimal precision.
+    // NETSME_U Lock: 0.7138452034029296 in A3, 0.71384520340293 in E3.
+    // Absorb floating representation noise only; genuinely descending knots remain invalid.
+    let mut adjusted = knots.to_vec();
+    let mut previous = *adjusted.first().ok_or(GeometryError::Invalid)?;
+    for knot in &mut adjusted {
+        if *knot < previous {
+            if previous - *knot > 16. * f64::EPSILON * previous.abs().max(knot.abs()).max(1.) {
+                return Err(GeometryError::Invalid);
+            }
+            *knot = previous;
+        }
+        previous = *knot;
+    }
+    let knots = adjusted.as_slice();
     let lo = at(knots, degree)?;
     let hi = at(knots, control.len())?;
     if hi <= lo {
@@ -555,6 +570,16 @@ mod tests {
         let last = row(RowKind::SplineKnot, 1., 0.);
         let q = build(&[row(RowKind::MoveTo, 0., 0.), s, k, last]).unwrap();
         assert_eq!(p.path, q.path);
+    }
+    #[test]
+    fn repeated_knots_accept_serialization_noise_but_reject_descending_values() {
+        let points = [Point::new(0., 0.), Point::new(1., 1.), Point::new(2., 0.), Point::new(3., 1.)];
+        let mut path = BezPath::new();
+        path.move_to(points[0]);
+        let knots = [0., 0., 0.71384520340293, 0.7138452034029296, 1., 1., 1.];
+        assert!(spline(&mut path, &points, &[1.; 4], &knots, 2).is_ok());
+        let knots = [0., 0., 0.71384520340293, 0.71384, 1., 1., 1.];
+        assert!(spline(&mut path, &points, &[1.; 4], &knots, 2).is_err());
     }
     #[test]
     fn infinite_line_clips_and_group_composition_stays_y_up() {

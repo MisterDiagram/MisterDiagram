@@ -1,10 +1,56 @@
 # File format parity
 
-Status: pre-alpha, M1 met. All acceptance commands and two independent frozen verification passes are clean.
+Status: pre-alpha, M1 met. Phase 2 is partial and fails its render and text-promotion gates.
 
 ## Measured
 
-M2.4 shared-coverage refresh: 162/1181 completed shipped dumps, 375 TSVs. Oracle 1 is 4627825/4716091 (98.128408%); oracle 2 is 14252123/14363222 (99.226504%), with non-literal COM 1570864/1586871 (98.991285%). Text-only cached is 34267/67797 (50.543534%) and COM is 3583/7724 (46.387882%), still deferred under the 90% promotion rule. Theme COM is 1053461/1059698 (99.411436%). Shared UTF-16 inputs are decoded in memory without rewriting files.
+P2-followup-2 partial worktree: all 204 generated drawings render without command
+failures. Size mismatches fall from 35 to 10; fill and line pass their frozen group
+ceilings. MAD below is in RGB units from 0 to 255. Mismatched files have no pixel
+score and always fail. No oracle image is resized for these comparisons.
+
+| Group | Files | Size mismatches | Mean RGB MAD | Pixels over 16 | Gate |
+|---|---:|---:|---:|---:|---|
+| arrow | 92 | 0 | 2.928643 | 2.217007% | FAIL |
+| basic | 1 | 0 | 2.481191 | 2.008629% | FAIL |
+| connector | 6 | 0 | 4.906090 | 2.086032% | FAIL |
+| fill | 44 | 0 | 1.881272 | 1.883832% | PASS |
+| group | 1 | 0 | 2.874225 | 2.541990% | FAIL |
+| image | 3 | 0 | 3.494772 | 3.956284% | FAIL |
+| line | 37 | 0 | 2.233283 | 1.518873% | PASS |
+| master | 1 | 0 | 3.472529 | 2.609142% | FAIL |
+| page | 3 | 1 | 2.551506 | 1.534294% | FAIL |
+| text | 16 | 9 | 3.362636 | 2.989645% | FAIL |
+
+The resvg and pypdf tests pass all 204 outputs, with extractable text in all 16 text
+drawings. This does not prove complete character preservation: ligature extraction
+and field reading order remain gaps. All 24 paired contact sheets were regenerated.
+They cover 1108 masters, with one local failure: BASFLO_U Custom1, master 11,
+shape 4, has a direct Height/Scratch.Y1 cycle. All 1108 Visio reference exports exist.
+These are private observations, not distributable assets. Performance is 24552 ms
+for the largest stencil (43 masters, zero errors) and 436 ms for 500 shapes.
+No render performance budget is frozen. No new Rust commits landed because the
+mandatory render gate still fails CI. The human reviewed the previous sheets and
+kept all ceilings unchanged; M2 remains unaccepted.
+
+
+P2-followup-2 full coverage: 1387 packages, all 1181 shipped packages, 162 completed
+shipped dumps and 375 TSVs. Oracle 1 is 4627375/4716091 (98.118866%), above its
+97.5951% floor. Oracle 2 is 14252130/14363222 (99.226552%), with non-literal COM
+1570871/1586871 (98.991726%). Text cached rises from 34267/67797 (50.543534%) to
+54294/67797 (80.083190%); text COM rises from 3583/7724 (46.387882%) to 6192/7724
+(80.165717%). Both remain below 90%, so text is deferred. Theme COM is
+1053468/1059698 (99.412097%); cached theme is 281901/307601 (91.645021%).
+Shared inputs are read without rewriting files.
+
+Remaining cached text failures include 4078 TxtWidth, 2978 TxtHeight, 1879
+User.Width and 890 Height cells. Examples: ADO_M master 2 shape 45 TxtWidth is
+0.3479410807291667 versus Visio 0.3668267852610678. Fine height rounding remains:
+521 TxtHeight and 382 Height cases have approximately -0.000002in error, and 215
+TxtHeight cases approximately +0.000002in. Another 212 TxtHeight cases require
+unsupported FIND. These are overlapping diagnostic subsets, not new exclusions.
+The full local report lists the ten most frequent failing cells before and after,
+with signed deltas and corpus witnesses.
 
 M2.5 writes PNG, SVG and vector PDF for all 204 generated drawings. This is output coverage, not visual acceptance. PDF embeds the OFL faces and uses native variable coordinates for Arimo. Page/layer/background tests pass; pixel dimensions and appearance remain the M2.6 gate.
 
@@ -40,7 +86,7 @@ M2.4 uncommitted partial run: oracle 1 is 4552375/4783865 (95.161026%), below
 97.5951%; oracle 2 is 7630170/7699447 (99.100234%), with its non-literal subset
 575409/583285 (98.649717%). Text-only COM is 734/3625 (20.248276%); text-only
 cached is 28225/67797 (41.631636%). The three text functions are included.
-These results fail the milestone. The last passing committed implementation is M2.3.
+Those results failed the earlier attempt; the followup commits above supersede that state.
 
 ### Font substitutions observed in M2.4
 
@@ -61,7 +107,7 @@ The missing Latin pack is a resource blocker under the read-only sibling rule. E
 text, exact line metrics, dynamic field formatting and aligned tabs also need evaluator
 work. Font availability alone is not asserted to fix the measured discrepancies.
 
-### Last committed measurements
+### Historical M2.3 measurements
 
 M2.3 full run with all eight theme functions included: oracle1 shipped4627833/4716091
 (98.128577%); oracle2 7633655/7695822 (99.192198%), with non-literal578894/579660
@@ -127,7 +173,101 @@ the other measured files use 2012/main. Container inspection accepts both exact 
 
 ## Observed, undocumented
 
-P2-followup font-only check (implementation discrepancies, not established reference
+### Followup master failures
+
+Contact scenes are fitted before allocating a raster: all 578 Cisco masters now fit. Empty text blocks need no layout, resolving the three Azure Compute empty zero-width blocks and NETLOC Cloud in both unit variants. NURBS precision and empty-text fixes recover another seven masters. BASFLO_U Custom1 (master 11, shape 4) remains: Height depends on User.ResizeTxtHeight, which adds Scratch.Y1 = MIN(Height/2, Scratch.X1). This direct cycle needs a principled cyclic-evaluation rule. No cached geometry replaces the error.
+
+### Foreground export selection and drawing scale
+
+`generated/page/background.vsdx` stores background page4 before foreground page0. The default PNG/SVG export now selects the first foreground page and composites its BackPage chain, as the generator does. The earlier export showed only page4. `generated/page/metric-scale.vsdx` has PageScale/DrawingScale 0.01; its uncropped physical page is 0.085 by 0.11in, matching its Visio SVG. Layer Visibility already excludes the Hidden rectangle in `generated/page/layers.vsdx`; the locked visible rectangle remains. The metric-scale cropped text height remains two pixels short.
+
+### Repeated NURBS knots
+
+NETSME_U Lock, master 6 shape 6, stores Geometry1.A3 as
+0.7138452034029296 and the matching repeated knot in Geometry1.E3 as
+0.71384520340293. Both represent the same knot at different serialized precisions.
+The spline parser now coalesces descending representation noise within 16 machine
+epsilons, while a genuinely descending knot still fails. Lock and Lock and Key in
+both NETSME unit variants render. This changes geometry arithmetic, not an oracle
+comparison tolerance.
+
+### Composed text metrics
+
+An empty TEXTHEIGHT block has one formatted line independent of wrapping width.
+ADS_M Site link 3D has zero text width but a valid empty-line height. BASFLO_U
+Database, External Data and Custom3 have width expressions that depend on height;
+avoiding an unnecessary width evaluation resolves those three cycles. Custom1 has
+a direct geometry cycle outside the function and remains an error.
+
+
+Nonempty composed text has an additional 0.00005 inch of height. Empty blocks do not.
+Witness: AWSANALYTICS_U master 2 shape 5 TxtHeight is 0.15005 inch in Visio,
+previously 0.15 here. The basic probe page 0 shape 5 is 0.2444939358181424 in
+Visio and now 0.24449444444444446 here, within the unchanged 1e-6 comparison
+tolerance. Its empty master remains 0.2444444444444444. This slack is an observed
+addition not mentioned by the TEXTHEIGHT reference, which includes line spacing and
+margins. Width and wrapping discrepancies remain. SHAPETEXT now removes one complete terminal
+CRLF marker rather than leaving a stray CR, witnessed by ASSOCIATIONS_UML_CLASS_M
+page 7 shape 229 User.MemberName. Text metrics convert physical points back to drawing
+inches: APPL_M master 2 shape 6 TxtWidth is 11.11111111111111 at 1:100, and APPL_U
+master 25 shape 5 is 10.66666666666667 at 1:96. The previous implementation returned
+0.1111111111111111 for both. Master rendering also applies its page scale before
+contact-cell fitting.
+
+For percentage line spacing, baseline placement uses OS/2 typographic ascender and
+descender proportions. In text/align-0-0.svg, Visio puts the first 12pt baseline at
+14.8pt after the block origin, including the 4pt top margin. The previous clipping
+metrics placed it at 15.232pt. The regression now matches 14.8pt.
+
+
+P2-followup-2 stroke profiles, row30 x0..2: basic/0001-probe is [255,0,255]
+in Visio, previously [127,127,255] here. The master/basic-rect0.24pt edge is
+[191,64,255] in Visio, previously [41,214,255]. A one-device-pixel origin and
+an eighth-pixel edge lattice reproduce both exactly. A0.24pt line is0.32pixels
+nominally at96dpi but paints with a one-pixel minimum. This is not a global blur:
+the0.75pt probe edge is one full black pixel. Group results retain regressions.
+
+BASIC_U.vssx Drop master56 shape7 LinePattern evaluated23 instead of solid1.
+The theme contains six DrawingML line styles but seven Visio extension entries:
+slot zero is the no-style entry. Indexing both tables at matrix-1 selected the
+wrong lineEx. Use matrix for the extension and matrix-1 for DrawingML. The
+paired Drop/Semi Circle/Gear exports witness solid outlines; no corpus data changes.
+
+
+P2-followup-2 export bounds: use the union of logical geometry, foreign-object frames,
+marker outlines and text extents, then ceil(width * dpi) and ceil(height * dpi), with
+only a 1e-7 floating-point cancellation allowance. Page size is used for an empty drawing
+or uncropped export. Logical stroke bounds use the resolved physical LineWeight;
+minimum device stroke width is a painting concern. A filled marker suppresses the
+line cap at that endpoint. The observed arrow scale is weight * (1.5 + 0.375 * size).
+The filled endpoint circle (42) lies inside its tip. Square open-line caps have logical
+radius weight / sqrt(2); closed contours retain weight / 2. Witnesses: all 92 arrow
+files and all 37 line files now match dimensions, including begin-02 (482x397),
+begin-42 (482x394), and cap-2 (492x394). These corrections resolve 25 of 35 size
+failures. Nine text files and metric-scale still require logical text-bound work;
+no constant padding or per-file size override is used.
+
+
+Current M2.4 text witnesses: generated/basic/0001-probe.vsdx master 2 shape 5
+TxtHeight now matches Visio 0.2444444444444444 inches. Page 0 shape 5 is now
+0.24449444444444446 versus Visio 0.2444939358181424. ADO_M.vssx master 2
+shape 45 TxtWidth remains 0.3479410807291667 versus Visio 0.3668267852610678.
+These are implementation discrepancies, not reference exceptions or tolerance changes.
+
+Generated fill/pattern-25.vsdx shows a legacy gradient with gamma-like midpoint
+near 186 for a black/white ramp, rather than linear 128. The procedural implementation
+uses a Gaussian blend and gamma 2.2 based on the observed samples; exact parity remains
+measured by the group gate. Pattern-02 diagonal coverage has a dark center and two
+partially covered neighboring pixels. fill/gradient-radial.vsdx uses a bottom-right
+focus with physical aspect ratio. These black-box observations do not establish a
+contradiction of a documented reference example.
+
+Remaining render bounds: page/metric-scale.vsdx is 77x32 versus
+77x30; text/align-0-2.vsdx is 387x291 versus 385x289. Arrow stroke extents, square
+cap semantics, text logical extents and font metrics require implementation fixes.
+
+
+Historical P2-followup font-only check (implementation discrepancies, not established reference
 exceptions): in `corpus/generated/basic/0001-probe.vsdx`, master 2 shape 5 TxtHeight
 remains 0.1111111111111111 versus Visio 0.2444444444444444 inches; page 0 shape 5
 TxtHeight becomes 0.2738715277777778 versus Visio 0.2444939358181424. The former

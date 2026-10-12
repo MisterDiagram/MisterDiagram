@@ -1,6 +1,6 @@
 # Gaps
 
-Status: pre-alpha, M0 and M1 met; Phase 2 theme evaluation implemented; text and output work remain.
+Status: pre-alpha, M0 and M1 met; Phase 2 remains partial after pixel and text-metric measurement.
 
 ## G1: Remaining ShapeSheet fidelity
 
@@ -84,3 +84,22 @@ gaps until the later render and promotion gates; date/document fields still use 
 saved display while their separate hooks remain deferred.
 
 M2.5 provides PNG/JPEG and EMF foreign objects, page/background/layer rendering and PNG, SVG and vector PDF backends. The generated 204-file output sweep passes. This does not measure pixel agreement. EMF+ and unknown metafile records are skipped with diagnostics; unsupported raster operations and clip subtraction remain visible warnings. Compound line offsets, explicit gradient-stop painting, shadow/effect rendering and inherited child materialization still require renderer work.
+
+## G7: P2-followup gate failures
+
+The current worktree implements render CLI, frozen generated render comparisons,
+resvg/pypdf checks, renderer mutation coverage and paired stencil contacts. It remains
+uncommitted because the mandatory render gate fails CI. There are 10 size mismatches;
+eight of ten groups fail. See the current measured table in file-format-parity.md.
+
+- Arrow and cap-2 dimensions now match all generated witnesses. Arrow profiles and compound stroke bands still differ.
+- Fill and line groups pass their group ceilings. Edge coverage and image resampling remain inaccurate elsewhere.
+- Default foreground/background selection is fixed. Connector text/geometry and inherited master children remain incomplete.
+- Text export bounds and exact metrics remain inaccurate; text promotion stays below 90%.
+- Ligature extraction and reading order in PDF need stronger fidelity coverage beyond nonempty text.
+- Contact rendering now succeeds for 1107/1108 masters. BASFLO_U Custom1 retains a direct Height/Scratch.Y1 cycle.
+- Performance observations have no frozen render budget. The human reviewed the first sheets and kept the ceilings unchanged. M2 acceptance and independent closure have not passed.
+
+Implemented gradient-stop painting supersedes the earlier M2.5 gap; shadows, advanced effects,
+compound offsets and implicit child materialization remain open. No floor, ceiling, input image
+or comparison denominator was changed to improve a score.

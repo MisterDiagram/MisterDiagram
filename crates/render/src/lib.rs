@@ -3,6 +3,7 @@
 
 pub mod style;
 
+pub mod contact;
 mod metafile;
 pub mod pdf;
 pub mod raster;

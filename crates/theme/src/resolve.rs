@@ -284,7 +284,9 @@ impl Themes {
             }
             let extra = root
                 .find(if connector { "fmtConnectorSchemeLineStyles" } else { "fmtSchemeLineStyles" })
-                .and_then(|e| e.elements().nth(index))
+                // The Visio extension includes slot zero for the no-style entry.
+                // DrawingML lnStyleLst starts with slot one instead.
+                .and_then(|e| e.elements().nth(index + 1))
                 .and_then(|e| e.child("lineEx"));
             let attr = match cell.as_str() {
                 "beginarrow" => "start",

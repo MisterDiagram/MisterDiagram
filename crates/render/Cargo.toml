@@ -24,4 +24,4 @@ krilla.workspace = true
 base64 = "0.22"
 
 [dev-dependencies]
-resvg = { version = "0.47", default-features = false }
+resvg = { version = "0.47", default-features = false, features = ["raster-images"] }

@@ -48,7 +48,7 @@ fn craft_fonts(dir: &std::path::Path) -> Result<String, String> {
     let mut out = String::new();
     // The Latin presentation fonts are optional within craft-fonts (older checkouts lack them).
     let latin = dir.join("fonts/latin-manifest.txt");
-    println!("cargo::rerun-if-changed={}", latin.display());
+    watch_optional(&latin);
     if latin.exists() {
         out.push_str(&manifest(dir, &latin)?);
     }
@@ -57,7 +57,7 @@ fn craft_fonts(dir: &std::path::Path) -> Result<String, String> {
 }
 
 fn manifest(dir: &std::path::Path, manifest: &std::path::Path) -> Result<String, String> {
-    println!("cargo::rerun-if-changed={}", manifest.display());
+    watch_optional(manifest);
     let text = std::fs::read_to_string(manifest).map_err(|e| format!("{}: {e}", manifest.display()))?;
     let wasm = std::env::var("CARGO_CFG_TARGET_ARCH").is_ok_and(|a| a == "wasm32");
     let mut out = String::new();
@@ -89,4 +89,12 @@ fn manifest(dir: &std::path::Path, manifest: &std::path::Path) -> Result<String,
 fn embedded(out: &mut String, path: &std::path::Path, family: &str, style: &str) {
     println!("cargo::rerun-if-changed={}", path.display());
     let _ = writeln!(out, "    CraftFont {{ family: {family:?}, style: {style:?}, scripts: &[\"Latn\"], bytes: include_bytes!({:?}) }},", path);
+}
+
+// Cargo treats a missing watched file as perpetually changed. Watch its nearest
+// existing directory instead so adding an optional manifest still triggers a build.
+fn watch_optional(path: &std::path::Path) {
+    if let Some(existing) = path.ancestors().find(|p| p.exists()) {
+        println!("cargo::rerun-if-changed={}", existing.display());
+    }
 }

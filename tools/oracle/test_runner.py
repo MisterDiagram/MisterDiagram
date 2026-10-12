@@ -69,8 +69,8 @@ class RunnerTests(unittest.TestCase):
                         for remainder in [call.split('-File "', 1)[1]]]
             return result, calls, launches
 
-    def test_health_precedes_accept_and_shipped(self):
-        for name in ['accept', 'dump-shipped']:
+    def test_health_precedes_accept_shipped_and_master_exports(self):
+        for name in ['accept', 'dump-shipped', 'export-masters']:
             result, _, launches = self.run_case('ok', name)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(launches, ['visio-health', name])
@@ -80,6 +80,11 @@ class RunnerTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(launches, ['visio-health'])
         self.assertIn('Visio health probe failed, see tools/oracle/README.md', result.stderr)
+
+    def test_failed_health_aborts_before_master_exports(self):
+        result, _, launches = self.run_case('health-fails', 'export-masters')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(launches, ['visio-health'])
 
     def test_watchdog_quits_then_checks_liveness_then_probes(self):
         result, calls, launches = self.run_case('timeout')

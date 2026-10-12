@@ -156,6 +156,15 @@ impl FontFace {
     pub fn skrifa(&self) -> Option<skrifa::FontRef<'_>> {
         skrifa::FontRef::from_index(self.data(), self.index).ok()
     }
+    /// OS/2 typographic metrics for baseline placement in a font-size percentage line.
+    pub fn typographic_metrics(&self) -> (f64, f64) {
+        use skrifa::raw::TableProvider;
+        self.skrifa()
+            .and_then(|f| f.os2().ok())
+            .map(|t| (f64::from(t.s_typo_ascender()), -f64::from(t.s_typo_descender())))
+            .filter(|(a, d)| *a > 0. && *d >= 0.)
+            .unwrap_or((self.ascent, self.descent))
+    }
     pub fn hb(&self) -> Option<harfrust::FontRef<'_>> {
         harfrust::FontRef::from_index(self.data(), self.index).ok()
     }

@@ -56,6 +56,7 @@ pub fn render(scenes: &[Scene], options: Options) -> Result<Vec<u8>, String> {
         let mut surface = page.surface();
         for op in &scene.ops {
             match op {
+                Op::Bounds(_) => {}
                 Op::Clip { path: p, even_odd } => {
                     let p = path(&(view * p)).ok_or("empty PDF clip")?;
                     surface.push_clip_path(&p, &if *even_odd { FillRule::EvenOdd } else { FillRule::NonZero });

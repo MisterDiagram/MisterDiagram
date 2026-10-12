@@ -21,6 +21,22 @@ impl Fill {
         let b = py.rem_euclid(8);
         let x = x.clamp(0., 1.);
         let y = y.clamp(0., 1.);
+        // Exact pixel coverage of a unit-width 45-degree hatch line.
+        if matches!(self.pattern, 2 | 5) {
+            let d = if self.pattern == 2 { (a + b - 7).rem_euclid(8) } else { (a - b).rem_euclid(8) };
+            let coverage = match d {
+                0 => std::f64::consts::SQRT_2 - 0.5,
+                1 | 7 => 0.25,
+                _ => 0.,
+            };
+            let mix = |a: u8, b: u8| (f64::from(a) * coverage + f64::from(b) * (1. - coverage)).round() as u8;
+            return Rgba::rgba(
+                mix(self.foreground.r, self.background.r),
+                mix(self.foreground.g, self.background.g),
+                mix(self.foreground.b, self.background.b),
+                mix(self.foreground.a, self.background.a),
+            );
+        }
         let fg = match self.pattern {
             1 => true,
             2 => (a + b) % 8 == 7,
@@ -69,15 +85,35 @@ impl Fill {
             33 => x.max(1. - y),
             34 => (1. - x).max(1. - y),
             35 => (2. * x - 1.).abs().max((2. * y - 1.).abs()),
-            36 => x.hypot(y) / std::f64::consts::SQRT_2,
-            37 => (1. - x).hypot(y) / std::f64::consts::SQRT_2,
-            38 => x.hypot(1. - y) / std::f64::consts::SQRT_2,
-            39 => (1. - x).hypot(1. - y) / std::f64::consts::SQRT_2,
-            40 => (x - 0.5).hypot(y - 0.5) / 0.73,
+            36 => x.hypot(y),
+            37 => (1. - x).hypot(y),
+            38 => x.hypot(1. - y),
+            39 => (1. - x).hypot(1. - y),
+            40 => (x - 0.5).hypot(y - 0.5) * 2.,
             _ => 0.,
         }
         .clamp(0., 1.);
-        let mix = |a: u8, b: u8| (f64::from(a) * (1. - distance) + f64::from(b) * distance).round() as u8;
+        // The one-way legacy gradients use a normalized Gaussian blend and
+        // gamma-2.2 colour interpolation, observed in fill/pattern-25 and -35.
+        let gamma = matches!(self.pattern, 25 | 27 | 28 | 30..=35);
+        let distance = if gamma {
+            let cdf = |x: f64| {
+                let z = x / std::f64::consts::SQRT_2;
+                let t = 1. / (1. + 0.3275911 * z.abs());
+                let erf = 1. - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * (-z * z).exp();
+                (1. + erf.copysign(z)) * 0.5
+            };
+            ((cdf(4. * distance - 2.) - cdf(-2.)) / (cdf(2.) - cdf(-2.))).clamp(0., 1.)
+        } else {
+            distance
+        };
+        let mix = |a: u8, b: u8| {
+            if gamma {
+                (((f64::from(a) / 255.).powf(2.2) * (1. - distance) + (f64::from(b) / 255.).powf(2.2) * distance).powf(1. / 2.2) * 255.).round() as u8
+            } else {
+                (f64::from(a) * (1. - distance) + f64::from(b) * distance).round() as u8
+            }
+        };
         Rgba::rgba(
             mix(self.foreground.r, self.background.r),
             mix(self.foreground.g, self.background.g),
@@ -112,6 +148,13 @@ impl Gradient {
             0.5 + ((x - 0.5) * cos + (0.5 - y) * sin) / (cos.abs() + sin.abs()).max(1e-12)
         }
         .clamp(0., 1.);
+        self.at(t)
+    }
+    pub fn at(&self, t: f64) -> Rgba {
+        if !t.is_finite() {
+            return Rgba::TRANSPARENT;
+        }
+        let t = t.clamp(0., 1.);
         let Some(&(first, color)) = self.stops.first() else {
             return Rgba::TRANSPARENT;
         };
@@ -181,7 +224,7 @@ impl Line {
         Stroke::new(self.weight)
             .with_caps(match self.cap {
                 0 => Cap::Round,
-                1 => Cap::Square,
+                2 => Cap::Square,
                 _ => Cap::Butt,
             })
             .with_join(match self.join {
@@ -313,7 +356,7 @@ pub fn arrow(kind: u32, size: u32, weight: f64, tip: Point, direction: f64) -> V
     {
         return vec![];
     }
-    let scale = weight * (1.54 + 0.36 * f64::from(size));
+    let scale = weight * (1.5 + 0.375 * f64::from(size));
     let matrix = Affine::translate(tip.to_vec2()) * Affine::rotate(direction) * Affine::scale_non_uniform(-scale, scale);
     let mut parts = Vec::new();
     let mut add = |path: BezPath, filled: bool, stroke: bool| parts.push(ArrowPart { path: matrix * path, filled, stroke });
@@ -361,7 +404,7 @@ pub fn arrow(kind: u32, size: u32, weight: f64, tip: Point, direction: f64) -> V
             add(p, false, true);
         }
         9 => add(line(&[(1., -1.), (-1., 1.)], false), false, true),
-        10 | 20 | 42 => add(circle(0.), kind != 20, kind == 20),
+        10 | 20 => add(circle(0.), kind != 20, kind == 20),
         11 | 21 => add(Rect::new(-0.75, -0.75, 0.75, 0.75).to_path(1e-4), kind == 11, kind == 21),
         22 => add(diamond(0.), false, true),
         23 => add(line(&[(2.5, 1.), (1.5, -1.)], false), false, true),
@@ -400,6 +443,7 @@ pub fn arrow(kind: u32, size: u32, weight: f64, tip: Point, direction: f64) -> V
             add(triangle(2., 2., true), kind == 39, kind == 40);
         }
         41 => add(circle(0.75), false, true),
+        42 => add(circle(0.75), true, false),
         43..=45 => {
             add(triangle(0., 2., false), false, true);
             if kind != 44 {
@@ -417,6 +461,15 @@ pub fn arrow(kind: u32, size: u32, weight: f64, tip: Point, direction: f64) -> V
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn observed_diagonal_coverage_and_legacy_gradient_ramp() {
+        let fill = Fill { pattern: 2, foreground: Rgba::rgb(0, 32, 96), background: Rgba::rgb(255, 255, 192) };
+        let center = fill.sample(0., 0., 0, 7);
+        assert!((i16::from(center.r) - 21).abs() <= 1);
+        assert_eq!(fill.sample(0., 0., 0, 0).r, 191);
+        let ramp = Fill { pattern: 25, ..fill };
+        assert!((i16::from(ramp.sample(0.5, 0.5, 0, 0).r) - 186).abs() <= 1);
+    }
     #[test]
     fn all_patterns_and_arrow_sizes_are_finite_and_bounded() {
         for pattern in 0..=40 {
@@ -446,7 +499,7 @@ mod tests {
     fn measured_line_families_and_fill_density() {
         assert_eq!(dash_pattern(2, 0.75), vec![5.25, 3.75]);
         assert_eq!(dash_pattern(23, 0.75), vec![0.75, 1.5]);
-        for (pattern, density) in [(2, 8), (3, 15), (9, 32), (10, 16), (11, 8), (12, 4), (13, 32), (23, 28)] {
+        for (pattern, density) in [(3, 15), (9, 32), (10, 16), (11, 8), (12, 4), (13, 32), (23, 28)] {
             let f = Fill { pattern, foreground: Rgba::BLACK, background: Rgba::WHITE };
             let count = (0..8).flat_map(|y| (0..8).map(move |x| (x, y))).filter(|(x, y)| f.sample(0., 0., *x, *y) == Rgba::BLACK).count();
             assert_eq!(count, density, "pattern {pattern}");

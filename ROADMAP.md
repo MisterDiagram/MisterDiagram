@@ -32,3 +32,9 @@ clean independent frozen verification passes.
 - 2026-10-12: M2.4 partial worktree stopped for the missing Latin font pack. Full cached95.161026% fails the frozen floor; resolved99.100234%, text-only20.248276%. CI fails its mandatory corpus gate. Text rows remainP, parity14%; no M2.4 commit or M2 closure.
 
 - 2026-10-12: M2.4.0 embeds the requested 18 OFL Latin faces and adds Charles's 90% text promotion gate. CI and public no-craft-fonts tests pass (230 tests); quick main oracles98.879415%/99.037858%, text39.341608%/41.824862%, still deferred. Text completion and rendering remain open.
+
+- 2026-10-12: M2.4 and M2.5 committed with passing CI: text layout/fields/tabs and PNG/SVG/vector PDF backends. Shared UTF-16 dump coverage is read without mutation. M2.6/M2.7 remain uncommitted at the partial gate: 204 renders, 35 size mismatches, nine failing pixel groups; SVG/PDF checks pass. Twenty-four paired sheets cover 1108 masters, with 591 failed local renders. Parity 23%; no M2 acceptance.
+
+- 2026-10-12: P2-followup-2 worktree: arrow/cap dimensions fixed (35 size failures reduced to10), two edge profiles match exactly, BASIC theme extension indexing corrected, contacts1107/1108, foreground/background selection corrected. Text height slack, percentage baselines, drawing-unit conversion and empty-height handling have corpus regressions. Gates remain partial; no new Rust commit while CI is red.
+
+- 2026-10-12: P2-followup-2 partial gate: main cached98.118866%, COM99.226552%; text80.083190%/80.165717%, still deferred. Ten wrong sizes, eight failing render groups; fill/line pass. Contacts1107/1108, one BASFLO direct cycle. CI fails render, so no commits or M2 closure.

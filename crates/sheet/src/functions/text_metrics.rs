@@ -16,6 +16,11 @@ pub(super) fn call(name: &str, args: &[Expr], context: &mut dyn Context, budget:
                 return Err(Error::Ref);
             };
             context.dependency(reference);
+            // An empty block has one formatted line and cannot wrap. Its width is not needed.
+            // ADS_M Site link 3D has width zero; BASFLO_U Database's width depends on this height.
+            if name == "TEXTHEIGHT" && matches!(context.shape_text(reference), Value::Text(s) if s.is_empty()) {
+                return Ok(context.text_metric(reference, None, true));
+            }
             let arg = args.get(1).map(|e| eval(e, context, budget, depth + 1).numeric()).transpose()?;
             if name == "SHAPETEXT" {
                 let flag = arg.unwrap_or(0.);
@@ -81,6 +86,24 @@ mod tests {
         fn text_metric(&mut self, _: &str, width: Option<f64>, height: bool) -> Value {
             Value::Number(if height { width.unwrap_or(1.) } else { 3. })
         }
+    }
+    #[test]
+    fn empty_height_does_not_require_a_wrapping_width() {
+        struct Empty;
+        impl Context for Empty {
+            fn resolve(&mut self, _: &str) -> Value {
+                Value::Error(Error::Cycle)
+            }
+            fn shape_text(&mut self, _: &str) -> Value {
+                Value::Text(String::new())
+            }
+            fn text_metric(&mut self, _: &str, width: Option<f64>, height: bool) -> Value {
+                assert!(height && width.is_none());
+                Value::Number(0.1333333333333333)
+            }
+        }
+        assert_eq!(crate::formula("TEXTHEIGHT(TheText,Width)", &mut Empty), Value::Number(0.1333333333333333));
+        assert_eq!(crate::formula("TEXTHEIGHT(TheText,0)", &mut Empty), Value::Number(0.1333333333333333));
     }
     #[test]
     fn reference_examples_and_hostile_text_queries() {

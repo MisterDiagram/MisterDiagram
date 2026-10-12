@@ -78,7 +78,11 @@ impl<'a> Evaluator<'a> {
                 }
             }
         }
-        if out.ends_with('\n') {
+        // The stored terminal paragraph marker is not part of SHAPETEXT.
+        // ASSOCIATIONS_UML_CLASS_M page7 shape229 stores CRLF after its member name.
+        if out.ends_with("\r\n") {
+            out.truncate(out.len().saturating_sub(2));
+        } else if out.ends_with(['\r', '\n']) {
             out.pop();
         }
         Ok(out)
@@ -419,6 +423,15 @@ mod tests {
         {
             let doc = document(&xml);
             assert!(Evaluator::new(&doc).unwrap().text_body(scope).is_err());
+        }
+    }
+    #[test]
+    fn shape_text_removes_one_terminal_paragraph_marker() {
+        let scope = Scope::PageShape { page: 1, shape: 1 };
+        for ending in ["&#13;\n", "&#13;", "\n"] {
+            let doc = document(&format!("<Text>First&#13;\nSecond{ending}</Text>"));
+            let mut e = Evaluator::new(&doc).unwrap();
+            assert_eq!(e.text_string(scope, 0).unwrap(), "First\r\nSecond");
         }
     }
     #[test]

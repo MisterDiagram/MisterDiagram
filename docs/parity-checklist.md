@@ -3,11 +3,11 @@
 > **Drafted:** 2026-10-11 from the observed app (visio-observed.md) and Microsoft's documentation · **Target:** Microsoft Visio Standard 2021 16.0.20430 (Professional rows marked Pro) · **Status:** Phase 1 reader implemented; authoring, evaluation and rendering remain in progress. Format follows the storytold apps' `docs/parity-checklist.md`: area, feature, priority, Core Y/N, status D/P/M.
 
 <!-- SUMMARY -->
-**Weighted breadth parity: 18%** over 45 Core=Y features.
+**Weighted breadth parity: 23%** over 45 Core=Y features.
 
 | Priority | Features | Done | Partial | Missing | Parity |
 |---|---|---|---|---|---|
-| P0 | 27 | 1 | 11 | 15 | 24% |
+| P0 | 27 | 1 | 15 | 11 | 31% |
 | P1 | 15 | 0 | 1 | 14 | 3% |
 | P2 | 3 | 0 | 0 | 3 | 0% |
 
@@ -15,11 +15,11 @@
 |---|---|
 | Files | 32% |
 | Pages | 25% |
-| Shapes | 11% |
-| Stencils | 32% |
-| Connectors | 0% |
+| Shapes | 17% |
+| Stencils | 43% |
+| Connectors | 10% |
 | Text | 43% |
-| Format | 19% |
+| Format | 38% |
 | Arrange | 0% |
 | Layers | 50% |
 | Containers | 0% |
@@ -59,7 +59,7 @@ Core=N rows (excluded from milestone scoring):
 | Shapes | Draw tools: rectangle, ellipse, line, freeform, arc, pencil | P0 | Y | M |
 | Shapes | Drop masters from a stencil; master instances inherit and can be overridden | P0 | Y | P |
 | Shapes | Selection, move, resize, rotate, flip, duplicate, group and ungroup | P0 | Y | M |
-| Shapes | Shape text with text block control handle; double-click to edit | P0 | Y | M |
+| Shapes | Shape text with text block control handle; double-click to edit | P0 | Y | P |
 | Shapes | Shape data (custom properties) and the Shape Data window | P0 | Y | M |
 | Shapes | Hyperlinks on shapes | P1 | Y | M |
 | Shapes | Control handles, connection points (add, move, type in/out/both) | P0 | Y | M |
@@ -69,18 +69,18 @@ Core=N rows (excluded from milestone scoring):
 | Stencils | ShapeSheet model: Object, Geometry, Character, Paragraph, Tabs, Controls, Connection, User, Actions, Scratch, gradient stops | P0 | Y | D |
 | Stencils | Formula engine: cell references, cross-sheet references (Sheet.N!Cell), GUARD, Inh, THEMEVAL, SETATREF, dependency recalculation | P0 | Y | P |
 | Stencils | New master from a shape; edit master; document stencil | P0 | Y | M |
-| Stencils | Read vendor stencil packs (.vssx) and render their masters correctly | P0 | Y | M |
+| Stencils | Read vendor stencil packs (.vssx) and render their masters correctly | P0 | Y | P |
 | Stencils | Master icons, master names and prompts, search index | P1 | Y | M |
 | Connectors | Dynamic connector: glue to connection points and to shapes (dynamic glue), _WALKGLUE behaviour | P0 | Y | M |
 | Connectors | Orthogonal routing with reroute on move; straight and curved styles | P0 | Y | M |
 | Connectors | Line jumps (style, code, size) and routing preferences per page | P1 | Y | M |
-| Connectors | Connector text that stays with the line; begin and end arrows; line ends per theme | P0 | Y | M |
+| Connectors | Connector text that stays with the line; begin and end arrows; line ends per theme | P0 | Y | P |
 | Connectors | AutoConnect arrows and quick shapes | P1 | Y | M |
 | Connectors | Connect Shapes command, Re-Layout Page (flowchart, hierarchy, radial, circular) | P1 | Y | M |
 | Text | Character and paragraph formatting, tabs, bullets, fields (date, page, shape data) | P0 | Y | P |
 | Text | Text block rotation, margins, vertical alignment, text resize behaviour | P0 | Y | P |
 | Text | Spelling, find and replace across pages | P2 | Y | M |
-| Format | Fill, line, shadow, effects (glow, soft edge, bevel, 3-D) with the Format Shape pane | P0 | Y | M |
+| Format | Fill, line, shadow, effects (glow, soft edge, bevel, 3-D) with the Format Shape pane | P0 | Y | P |
 | Format | Themes, variants, theme colours and effects; THEMEVAL cells follow them | P0 | Y | P |
 | Format | Format Painter, Quick Styles | P1 | Y | M |
 | Arrange | Align, distribute, same size, bring to front/back, position pane | P0 | Y | M |
@@ -120,7 +120,7 @@ Core=N rows (excluded from milestone scoring):
 - Geometry sections with formulas remain P: `diagramcraft-vsdx::evaluated_master_and_group_paths_use_inherited_rows` binds evaluated inherited rows to the L0 converter; `every_geometry_row_has_a_real_corpus_witness` covers all fifteen kinds, including RelEllipticalArcTo. Authoring remains Phase 4.
 - Group transforms remain an implemented rendering prerequisite, without scoring move/resize/edit commands: `diagramcraft-geom::rows::tests::infinite_line_clips_and_group_composition_stays_y_up`.
 
-## M2.2 paint evidence
+## M2.2 paint evidence (historical)
 
 - Format and connector-arrow rows remain M until an output backend and render comparisons exist. `diagramcraft-render::style::tests::measured_line_families_and_fill_density` checks the observed dash families and procedural fill coverage; `all_patterns_and_arrow_sizes_are_finite_and_bounded` checks all identifiers and sizes.
 
@@ -139,3 +139,25 @@ Core=N rows (excluded from milestone scoring):
 - Pages and backgrounds: P, `diagramcraft-render::layers_visibility_print_and_background_pages` checks background inclusion and rejects a background cycle. Page size and drawing scale feed the scene; pixel fidelity is not yet accepted.
 - Layers: P, `diagramcraft-render::layers_visibility_print_and_background_pages` distinguishes hidden screen layers from printable layers. Editing, layer colours, locking, snapping and glue remain open.
 - Geometry and master inheritance remain P, with the generated output test exercising the evaluated path adapter. Shape authoring rows remain M.
+
+- M2.6 partial evidence, Shape text with text block control handle; double-click to edit: P, `generated_text_group_resolves_runs_and_transforms`. Rendering existing text only; control-handle editing remains absent.
+
+- M2.6 partial evidence, Read vendor stencil packs (.vssx) and render their masters correctly: P, `largest_stencil_and_500_shape_page`. Contact sheets render a subset of masters and mark failures; full master correctness fails.
+
+- M2.6 partial evidence, Connector text that stays with the line; begin and end arrows; line ends per theme: P, `generated_pages_and_foreign_objects_produce_outputs`. Existing connector geometry and markers render; arrow bounds and pixel fidelity fail.
+
+- M2.6 partial evidence, Fill, line, shadow, effects (glow, soft edge, bevel, 3-D) with the Format Shape pane: P, `generated_svg_resvg_and_pdf_text`. Paint backends work with procedural fills and strokes; compound offsets, shadows and effects remain incomplete.
+
+- P2-followup-2 item1, Export SVG (with Visio extension namespace), PNG, JPEG, EMF/WMF, PDF (vector, text, links): P: 129 arrow/line dimensions match; ten text-dependent sizes remain wrong. Tests: `arrow_and_cap_export_dimensions_match_all_generated_witnesses`.
+
+- P2-followup-2 item2, Fill, line, shadow, effects (glow, soft edge, bevel, 3-D) with the Format Shape pane: P: both observed edge profiles match, but other pixel groups still fail. Tests: `observed_probe_and_hairline_edge_profiles`.
+
+- P2-followup-2 item3, Themes, variants, theme colours and effects; THEMEVAL cells follow them: P: correct the extension table index; incomplete cached theme fidelity remains. Tests: `basic_drop_theme_extension_uses_its_zero_style_slot`.
+
+- P2-followup-2 item4, Read vendor stencil packs (.vssx) and render their masters correctly: P: 1100 of1108 contact masters render, with eight documented errors. Tests: `contact_cells_fit_large_masters_and_skip_empty_text_blocks`.
+
+- P2-followup-2 item5, Multiple pages, background pages, page size and orientation, drawing scale and units: P: select foreground and composite background; apply physical scale. Metric text extent still fails. Tests: `layers_visibility_print_and_background_pages; scaled_page_dimensions_are_physical_inches`.
+
+- P2-followup-2 item6, Character and paragraph formatting, tabs, bullets, fields (date, page, shape data): P: correct baseline and nonempty height slack; exact wrapping and font-width metrics remain incomplete. Tests: `percentage_line_baseline_matches_generated_alignment_svg; composed_text_height_slack_matches_visio_and_preserves_empty_blocks`.
+
+- P2-followup-2 text and master follow-on evidence: P remains. `text_metrics_return_scaled_drawing_units`, `empty_flowchart_text_does_not_recurse_through_wrapping_width`, and `repeated_knots_accept_serialization_noise_but_reject_descending_values` recover unit conversion and additional master errors. Contacts1107/1108; frozen render gate still fails.

@@ -200,7 +200,7 @@ recover_timeout() {
         return 1
     fi
 }
-if [ "$NAME" = accept ] || [ "$NAME" = dump-shipped ] || [ "$NAME" = visio-health ]; then
+if [ "$NAME" = accept ] || [ "$NAME" = dump-shipped ] || [ "$NAME" = export-masters ] || [ "$NAME" = visio-health ]; then
     result=0
     health_once || result=$?
     if [ "$result" -ne 0 ]; then

@@ -37,11 +37,11 @@ fn pixmap(img: &image::RgbaImage) -> Result<Arc<Pixmap>, String> {
         .collect();
     Ok(Arc::new(Pixmap::from_parts(data, w, h)))
 }
-fn draw_image(ctx: &mut RenderContext, pixels: &image::RgbaImage, m: Affine) -> Result<(), String> {
+fn draw_image(ctx: &mut RenderContext, pixels: &image::RgbaImage, m: Affine, nearest: bool) -> Result<(), String> {
     let pm = pixmap(pixels)?;
     let image = Image {
         image: vello_cpu::ImageSource::Pixmap(pm),
-        sampler: peniko::ImageSampler { quality: peniko::ImageQuality::High, ..Default::default() },
+        sampler: peniko::ImageSampler { quality: if nearest { peniko::ImageQuality::Low } else { peniko::ImageQuality::High }, ..Default::default() },
     };
     ctx.set_transform(m);
     ctx.set_paint(image);
@@ -52,7 +52,7 @@ fn draw_image(ctx: &mut RenderContext, pixels: &image::RgbaImage, m: Affine) -> 
 /// The same image and clip are used in SVG and PDF output.
 pub(crate) fn pattern(paint: &Paint, view: Affine, path: &BezPath) -> Result<(image::RgbaImage, Affine), String> {
     use kurbo::Shape as _;
-    let Paint::Pattern { fill, bounds, transform } = paint else {
+    let Paint::Pattern { fill, gradient, bounds, transform } = paint else {
         return Err("expected pattern".into());
     };
     let b = (view * path).bounding_box();
@@ -69,7 +69,17 @@ pub(crate) fn pattern(paint: &Paint, view: Affine, path: &BezPath) -> Result<(im
     }
     let image = image::RgbaImage::from_fn(w as u32, h as u32, |px, py| {
         let p = local * kurbo::Point::new(x + f64::from(px) + 0.5, y + f64::from(py) + 0.5);
-        let c = fill.sample((p.x - bounds.x0) / bounds.width().max(1e-12), 1. - (p.y - bounds.y0) / bounds.height().max(1e-12), px as i32, py as i32);
+        let nx = (p.x - bounds.x0) / bounds.width().max(1e-12);
+        let ny = 1. - (p.y - bounds.y0) / bounds.height().max(1e-12);
+        let c = if let Some(gradient) = gradient {
+            if gradient.radial {
+                gradient.at(((1. - nx) * bounds.width()).hypot((1. - ny) * bounds.height()) / bounds.width().hypot(bounds.height()).max(1e-12))
+            } else {
+                gradient.sample(nx, ny)
+            }
+        } else {
+            fill.sample(nx, ny, (x + f64::from(px)) as i32, (y + f64::from(py)) as i32)
+        };
         image::Rgba([c.r, c.g, c.b, c.a])
     });
     Ok((image, Affine::translate((x, y))))
@@ -81,6 +91,7 @@ pub fn render(scene: &Scene, options: Options) -> Result<image::RgbaImage, Strin
     ctx.fill_rect(&Rect::new(0., 0., f64::from(w), f64::from(h)));
     for op in &scene.ops {
         match op {
+            Op::Bounds(_) => {}
             Op::Clip { path, even_odd } => {
                 ctx.set_transform(view);
                 ctx.set_fill_rule(if *even_odd { peniko::Fill::EvenOdd } else { peniko::Fill::NonZero });
@@ -90,19 +101,19 @@ pub fn render(scene: &Scene, options: Options) -> Result<image::RgbaImage, Strin
             Op::Pop => ctx.pop_layer(),
             Op::Path { path, paint } => match paint {
                 Paint::Solid(c) => {
-                    ctx.set_transform(view);
+                    ctx.set_transform(Affine::IDENTITY);
                     ctx.set_paint(peniko::Color::from_rgba8(c.r, c.g, c.b, c.a));
-                    ctx.fill_path(path);
+                    ctx.fill_path(&device_path(path, view));
                 }
                 _ => {
                     ctx.set_transform(view);
                     ctx.push_clip_layer(path);
                     let (pixels, m) = pattern(paint, view, path)?;
-                    draw_image(&mut ctx, &pixels, m)?;
+                    draw_image(&mut ctx, &pixels, m, true)?;
                     ctx.pop_layer();
                 }
             },
-            Op::Image { pixels, transform } => draw_image(&mut ctx, pixels, view * *transform)?,
+            Op::Image { pixels, transform } => draw_image(&mut ctx, pixels, view * *transform, false)?,
             Op::Text { layout, transform } => {
                 for (path, c) in text_paths(layout, *transform) {
                     ctx.set_transform(view);
@@ -119,6 +130,24 @@ pub fn render(scene: &Scene, options: Options) -> Result<image::RgbaImage, Strin
     ctx.render(pm, &mut vello_cpu::Resources::new());
     image::RgbaImage::from_raw(u32::from(w), u32::from(h), pixels).ok_or_else(|| "pixel dimensions disagree".into())
 }
+/// Eighth-pixel coverage lattice observed in the generated 96 dpi edge profiles.
+fn device_path(path: &BezPath, view: Affine) -> BezPath {
+    let q = |p: kurbo::Point| {
+        let p = view * p;
+        kurbo::Point::new((p.x * 8. - 1e-8).ceil() / 8., (p.y * 8. - 1e-8).ceil() / 8.)
+    };
+    path.elements()
+        .iter()
+        .map(|e| match *e {
+            kurbo::PathEl::MoveTo(p) => kurbo::PathEl::MoveTo(q(p)),
+            kurbo::PathEl::LineTo(p) => kurbo::PathEl::LineTo(q(p)),
+            kurbo::PathEl::QuadTo(a, b) => kurbo::PathEl::QuadTo(q(a), q(b)),
+            kurbo::PathEl::CurveTo(a, b, c) => kurbo::PathEl::CurveTo(q(a), q(b), q(c)),
+            kurbo::PathEl::ClosePath => kurbo::PathEl::ClosePath,
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

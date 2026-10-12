@@ -13,10 +13,11 @@ pub const MAX_PIXELS: usize = 32 * 1024 * 1024;
 #[derive(Clone, Debug)]
 pub enum Paint {
     Solid(Rgba),
-    Pattern { fill: Fill, bounds: Rect, transform: Affine },
+    Pattern { fill: Fill, gradient: Option<style::Gradient>, bounds: Rect, transform: Affine },
 }
 #[derive(Clone, Debug)]
 pub enum Op {
+    Bounds(Rect),
     Clip { path: BezPath, even_odd: bool },
     Pop,
     Path { path: BezPath, paint: Paint },
@@ -92,7 +93,7 @@ impl Scene {
                         return Err("scene text limit".into());
                     }
                 }
-                Op::Pop => {}
+                Op::Pop | Op::Bounds(_) => {}
             }
             match op {
                 Op::Clip { .. } => {
@@ -115,12 +116,12 @@ impl Scene {
             return Err("render bounds limit".into());
         }
         let dpi = 96. * options.scale;
-        let w = (b.width() * dpi).ceil().max(1.);
-        let h = (b.height() * dpi).ceil().max(1.);
+        let w = (b.width() * dpi - 1e-7).ceil().max(1.);
+        let h = (b.height() * dpi - 1e-7).ceil().max(1.);
         if w > f64::from(u16::MAX) || h > f64::from(u16::MAX) || w * h > MAX_PIXELS as f64 {
             return Err("render pixel limit".into());
         }
-        Ok((w as u16, h as u16, Affine::scale_non_uniform(dpi, -dpi) * Affine::translate((-b.x0, -b.y1))))
+        Ok((w as u16, h as u16, Affine::translate((1., 1.)) * Affine::scale_non_uniform(dpi, -dpi) * Affine::translate((-b.x0, -b.y1))))
     }
 }
 fn number(e: &mut Evaluator<'_>, scope: Scope, name: &str, default: f64) -> f64 {
@@ -140,19 +141,48 @@ fn color(e: &mut Evaluator<'_>, scope: Scope, name: &str, trans: &str) -> Rgba {
     c.a = ((1. - number(e, scope, trans, 0.).clamp(0., 1.)) * 255.).round() as u8;
     c
 }
+/// Resolve gradient stops through the same inherited cells as ShapeSheet evaluation.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/fillgradient-section
+fn gradient(e: &mut Evaluator<'_>, scope: Scope) -> Option<style::Gradient> {
+    if number(e, scope, "FillGradientEnabled", 0.) == 0. {
+        return None;
+    }
+    let mut stops = Vec::new();
+    for index in 0..10 {
+        let suffix = if index == 0 { String::new() } else { format!("[{}]", index + 1) };
+        let name = format!("FillGradientStops.GradientStopPosition{suffix}");
+        let position = number(e, scope, &name, if index == 0 { 0. } else { 1. });
+        let c =
+            color(e, scope, &format!("FillGradientStops.GradientStopColor{suffix}"), &format!("FillGradientStops.GradientStopColorTrans{suffix}"));
+        stops.push((position, c));
+    }
+    stops.sort_by(|a, b| a.0.total_cmp(&b.0));
+    Some(style::Gradient { stops, radial: number(e, scope, "FillGradientDir", 0.) != 0., angle: number(e, scope, "FillGradientAngle", 0.) })
+}
 /// Background pages paint before the foreground. PageScale/DrawingScale convert drawing units.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/pagescale-cell-page-properties-section
+/// The default export selects the first foreground page; background pages are composited by BackPage.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
+pub fn default_page_index(document: &Document) -> Result<usize, String> {
+    document
+        .pages
+        .iter()
+        .position(|p| !p.attributes.get("Background").is_some_and(|s| s == "1" || s == "true"))
+        .ok_or_else(|| "no foreground pages".into())
+}
 pub fn page(document: &Document, index: usize, options: Options) -> Result<Scene, String> {
     let themes = diagramcraft_theme::Themes::from_document(document).map_err(|e| e.to_string())?;
     let host = diagramcraft_text::Host;
     let mut evaluator = Evaluator::new(document).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&host);
     let p = document.pages.get(index).ok_or("page index out of range")?;
+    let scope = Scope::Page(p.id);
+    let ratio = number(&mut evaluator, scope, "PageScale", 1.) / number(&mut evaluator, scope, "DrawingScale", 1.).max(1e-12);
     let mut scene = Scene {
         warnings: vec![],
         ops: vec![],
         bounds: Rect::ZERO,
-        page_size: (number(&mut evaluator, Scope::Page(p.id), "PageWidth", 8.5), number(&mut evaluator, Scope::Page(p.id), "PageHeight", 11.)),
+        page_size: (number(&mut evaluator, scope, "PageWidth", 8.5) * ratio, number(&mut evaluator, scope, "PageHeight", 11.) * ratio),
     };
     let mut pages = vec![];
     let mut current = p;
@@ -182,17 +212,22 @@ pub fn master(document: &Document, index: usize, options: Options) -> Result<Sce
     let mut evaluator = Evaluator::new(document).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&host);
     let m = document.masters.get(index).ok_or("master index out of range")?;
     let mut scene = Scene { warnings: vec![], ops: vec![], bounds: Rect::ZERO, page_size: (1., 1.) };
-    shapes(&mut evaluator, &m.shapes, Scope::Master(m.id), &m.part, Affine::IDENTITY, options, &mut scene, 0)?;
+    let scope = Scope::Master(m.id);
+    let ratio = number(&mut evaluator, scope, "PageScale", 1.) / number(&mut evaluator, scope, "DrawingScale", 1.).max(1e-12);
+    shapes(&mut evaluator, &m.shapes, scope, &m.part, Affine::scale(ratio), options, &mut scene, 0)?;
     finish_bounds(&mut scene, true);
-    scene.canvas(options)?;
+    // A master has no raster allocation until its contact-cell scale is known.
+    // raster::render validates the fitted canvas before allocating pixels.
     Ok(scene)
 }
 fn finish_bounds(scene: &mut Scene, crop: bool) {
     let mut bounds: Option<Rect> = None;
     for op in &scene.ops {
         let b = match op {
+            Op::Bounds(b) => *b,
             Op::Clip { .. } | Op::Pop => continue,
-            Op::Path { path, .. } => path.bounding_box(),
+            // Geometry and foreign objects carry logical bounds separately from their device strokes.
+            Op::Path { .. } => continue,
             Op::Image { pixels, transform } => {
                 transform.transform_rect_bbox(Rect::new(0., 0., f64::from(pixels.width()), f64::from(pixels.height())))
             }
@@ -226,6 +261,9 @@ pub fn text_paths(layout: &TextLayout, transform: Affine) -> Vec<(BezPath, Rgba)
         color.a = (f64::from(color.a) * run.alpha.clamp(0., 1.)).round() as u8;
         for &(gid, x, y) in &run.glyphs {
             let outline = db.outline(&run.face, gid);
+            if outline.elements().is_empty() {
+                continue;
+            }
             let m = transform * Affine::translate((x, y)) * Affine::scale(scale);
             paths.push((m * outline.as_ref(), color));
         }
@@ -274,7 +312,7 @@ fn shapes(
         if !visible(e, scope, parent, options.print) {
             continue;
         }
-        let transform = scale * e.shape_to_page(scope).map_err(|e| e.to_string())?;
+        let transform = scale * e.shape_to_page(scope).map_err(|e| format!("shape {} transform: {e}", shape.id))?;
         let width = number(e, scope, "Width", 1.);
         let height = number(e, scope, "Height", 1.);
         let fill = Fill {
@@ -282,9 +320,10 @@ fn shapes(
             foreground: color(e, scope, "FillForegnd", "FillForegndTrans"),
             background: color(e, scope, "FillBkgnd", "FillBkgndTrans"),
         };
+        let nominal_weight = number(e, scope, "LineWeight", 0.01).max(0.) / scale.determinant().abs().sqrt().max(1e-12);
         let line = Line {
             color: color(e, scope, "LineColor", "LineColorTrans"),
-            weight: number(e, scope, "LineWeight", 0.01).max(0.) / scale.determinant().abs().sqrt().max(1e-12),
+            weight: number(e, scope, "LineWeight", 0.01).max(1. / (96. * options.scale)) / scale.determinant().abs().sqrt().max(1e-12),
             pattern: number(e, scope, "LinePattern", 1.).max(0.) as u32,
             cap: number(e, scope, "LineCap", 0.).max(0.) as u32,
             join: number(e, scope, "LineJoin", 0.).max(0.) as u32,
@@ -295,18 +334,51 @@ fn shapes(
             begin_size: number(e, scope, "BeginArrowSize", 2.).max(0.) as u32,
             end_size: number(e, scope, "EndArrowSize", 2.).max(0.) as u32,
         };
-        for geometry in e.geometry_paths(scope, Rect::new(-1e4, -1e4, 1e4, 1e4)).map_err(|e| e.to_string())? {
+        for geometry in e.geometry_paths(scope, Rect::new(-1e4, -1e4, 1e4, 1e4)).map_err(|e| format!("shape {} geometry: {e}", shape.id))? {
             let path = style::round_rectangle(&geometry.path, line.rounding);
+            if !path.elements().is_empty() && (geometry.filled() && fill.pattern != 0 || geometry.stroked() && line.pattern != 0) {
+                let bounds = if geometry.stroked() && line.pattern != 0 {
+                    let mut solid = line.stroke();
+                    solid.width = nominal_weight;
+                    solid.dash_pattern.clear();
+                    solid.start_cap = kurbo::Cap::Round;
+                    solid.end_cap = kurbo::Cap::Round;
+                    if filled_marker(line.begin_arrow) {
+                        solid.start_cap = kurbo::Cap::Butt;
+                    }
+                    if filled_marker(line.end_arrow) {
+                        solid.end_cap = kurbo::Cap::Butt;
+                    }
+                    let b = (transform * kurbo::stroke(path.elements().iter().copied(), &solid, &kurbo::StrokeOpts::default(), 1e-5)).bounding_box();
+                    if line.cap == 2 && !path.elements().iter().any(|e| matches!(e, kurbo::PathEl::ClosePath)) {
+                        let extra = nominal_weight * (std::f64::consts::FRAC_1_SQRT_2 - 0.5);
+                        b.inflate(extra, extra)
+                    } else {
+                        b
+                    }
+                } else {
+                    (transform * &path).bounding_box()
+                };
+                scene.ops.push(Op::Bounds(bounds));
+            }
             if geometry.filled() && fill.pattern != 0 {
-                let paint = if fill.pattern == 1 {
+                let gradient = gradient(e, scope);
+                let paint = if fill.pattern == 1 && gradient.is_none() {
                     Paint::Solid(fill.foreground)
                 } else {
-                    Paint::Pattern { fill: fill.clone(), bounds: Rect::new(0., 0., width, height), transform }
+                    Paint::Pattern { fill: fill.clone(), gradient, bounds: Rect::new(0., 0., width, height), transform }
                 };
                 scene.ops.push(Op::Path { path: transform * &path, paint });
             }
             if geometry.stroked() && line.pattern != 0 && line.weight > 0. {
-                let outline = kurbo::stroke(path.elements().iter().copied(), &line.stroke(), &kurbo::StrokeOpts::default(), 1e-5);
+                let mut stroke = line.stroke();
+                if filled_marker(line.begin_arrow) {
+                    stroke.start_cap = kurbo::Cap::Butt;
+                }
+                if filled_marker(line.end_arrow) {
+                    stroke.end_cap = kurbo::Cap::Butt;
+                }
+                let outline = kurbo::stroke(path.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-5);
                 scene.ops.push(Op::Path { path: transform * outline, paint: Paint::Solid(line.color) });
                 let endpoints: Vec<Point> = path
                     .elements()
@@ -326,6 +398,7 @@ fn shapes(
                         let (tip, dir) = if reverse { (*a, (*a - *b).atan2()) } else { (*b, (*b - *a).atan2()) };
                         for arrow in style::arrow(kind, size, line.weight, tip, dir) {
                             if arrow.filled {
+                                scene.ops.push(Op::Bounds((transform * &arrow.path).bounding_box()));
                                 scene.ops.push(Op::Path { path: transform * &arrow.path, paint: Paint::Solid(line.color) });
                             }
                             if arrow.stroke {
@@ -335,6 +408,7 @@ fn shapes(
                                     &kurbo::StrokeOpts::default(),
                                     1e-5,
                                 );
+                                scene.ops.push(Op::Bounds((transform * &p).bounding_box()));
                                 scene.ops.push(Op::Path { path: transform * p, paint: Paint::Solid(line.color) });
                             }
                         }
@@ -347,20 +421,32 @@ fn shapes(
         }
         shapes(e, &shape.shapes, parent, part, scale, options, scene, depth + 1)?;
         if number(e, scope, "HideText", 0.) == 0. {
-            let block = e.text_block(scope).map_err(|e| e.to_string())?;
+            let body = e.text_body(scope).map_err(|e| format!("shape {} text: {e}", shape.id))?;
+            if body.paragraphs.iter().flat_map(|p| &p.runs).all(|r| r.text.is_empty()) {
+                continue;
+            }
+            let block = e.text_block(scope).map_err(|e| format!("shape {} text block: {e}", shape.id))?;
             let drawing_scale = scale.determinant().abs().sqrt().max(1e-12);
+            let original_height = block.height * drawing_scale;
+            let measured = diagramcraft_model::text::TextHost::measure(&diagramcraft_text::Host, &block.body, Some(block.width * drawing_scale))?;
+            let height = original_height.max(measured.1);
+            let shift = match block.body.body.anchor.unwrap_or(diagramcraft_model::text::Anchor::Middle) {
+                diagramcraft_model::text::Anchor::Top => 0.,
+                diagramcraft_model::text::Anchor::Bottom => height - original_height,
+                _ => (height - original_height) * 0.5,
+            };
+            let text_transform = scale * block.to_page * Affine::scale(1. / drawing_scale) * Affine::translate((0., -shift));
             let layout = diagramcraft_text::layout(
                 &block.body,
-                &Opts {
-                    rect: Rect::new(0., 0., block.width * drawing_scale, block.height * drawing_scale),
-                    fields: &NoFields,
-                    prompt_color: None,
-                    no_shrink: false,
-                },
+                &Opts { rect: Rect::new(0., 0., block.width * drawing_scale, height), fields: &NoFields, prompt_color: None, no_shrink: false },
             )
             .map_err(|e| e.to_string())?;
             if !layout.runs.is_empty() {
-                scene.ops.push(Op::Text { layout, transform: scale * block.to_page * Affine::scale(1. / drawing_scale) });
+                if height > original_height {
+                    let x = block.width * drawing_scale * 0.5;
+                    scene.ops.push(Op::Bounds(text_transform.transform_rect_bbox(Rect::new(x, 0., x, height))));
+                }
+                scene.ops.push(Op::Text { layout, transform: text_transform });
             }
         }
     }
@@ -394,12 +480,14 @@ fn foreign_image(
         let m = transform
             * Affine::translate((0., height))
             * Affine::scale_non_uniform(width / imported.frame.width().max(1e-12), -height / imported.frame.height().max(1e-12));
+        scene.ops.push(Op::Bounds(transform.transform_rect_bbox(Rect::new(0., 0., width, height))));
         scene.warnings.extend(imported.warnings);
         for op in imported.ops {
             scene.ops.push(match op {
                 Op::Path { path, paint } => Op::Path { path: m * path, paint },
                 Op::Clip { path, even_odd } => Op::Clip { path: m * path, even_odd },
                 Op::Pop => Op::Pop,
+                Op::Bounds(b) => Op::Bounds(m.transform_rect_bbox(b)),
                 Op::Image { pixels, transform } => Op::Image { pixels, transform: m * transform },
                 Op::Text { layout, transform } => Op::Text { layout, transform: m * transform },
             });
@@ -414,4 +502,8 @@ fn foreign_image(
     let m = transform * Affine::translate((x, y + h)) * Affine::scale_non_uniform(w / f64::from(pixels.width()), -h / f64::from(pixels.height()));
     scene.ops.push(Op::Image { pixels: Arc::new(pixels), transform: m });
     Ok(())
+}
+
+fn filled_marker(kind: u32) -> bool {
+    matches!(kind, 2 | 4 | 5 | 6 | 8 | 10 | 11 | 13 | 35..=39 | 42)
 }

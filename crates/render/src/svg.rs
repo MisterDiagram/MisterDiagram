@@ -10,13 +10,14 @@ fn matrix(m: Affine) -> String {
 fn path(out: &mut String, p: &kurbo::BezPath, c: diagramcraft_color::Rgba) {
     let _ = write!(out, "<path d=\"{}\" fill=\"#{:02x}{:02x}{:02x}\" fill-opacity=\"{}\"/>", p.to_svg(), c.r, c.g, c.b, f64::from(c.a) / 255.);
 }
-fn image(out: &mut String, pixels: &image::RgbaImage, m: Affine) -> Result<(), String> {
+fn image(out: &mut String, pixels: &image::RgbaImage, m: Affine, nearest: bool) -> Result<(), String> {
     let mut bytes = std::io::Cursor::new(Vec::new());
     pixels.write_to(&mut bytes, image::ImageFormat::Png).map_err(|e| e.to_string())?;
     let data = base64::engine::general_purpose::STANDARD.encode(bytes.get_ref());
     write!(
         out,
-        "<image width=\"{}\" height=\"{}\" transform=\"{}\" href=\"data:image/png;base64,{data}\"/>",
+        "<image image-rendering=\"{}\" width=\"{}\" height=\"{}\" transform=\"{}\" href=\"data:image/png;base64,{data}\"/>",
+        if nearest { "optimizeSpeed" } else { "optimizeQuality" },
         pixels.width(),
         pixels.height(),
         matrix(m)
@@ -30,6 +31,7 @@ pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
     );
     for (i, op) in scene.ops.iter().enumerate() {
         match op {
+            Op::Bounds(_) => {}
             Op::Clip { path: p, even_odd } => {
                 write!(
                     out,
@@ -46,11 +48,11 @@ pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
                     let (pixels, m) = crate::raster::pattern(paint, view, p)?;
                     write!(out, "<defs><clipPath id=\"p{i}\"><path d=\"{}\"/></clipPath></defs><g clip-path=\"url(#p{i})\">", (view * p).to_svg())
                         .map_err(|e| e.to_string())?;
-                    image(&mut out, &pixels, m)?;
+                    image(&mut out, &pixels, m, true)?;
                     out.push_str("</g>");
                 }
             },
-            Op::Image { pixels, transform } => image(&mut out, pixels, view * *transform)?,
+            Op::Image { pixels, transform } => image(&mut out, pixels, view * *transform, false)?,
             Op::Text { layout, transform } => {
                 for (p, c) in text_paths(layout, view * *transform) {
                     path(&mut out, &p, c)
