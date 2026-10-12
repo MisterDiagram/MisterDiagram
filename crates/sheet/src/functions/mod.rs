@@ -2,10 +2,21 @@
 use crate::{Context, Error, Value, eval::eval, parser::Expr};
 mod color;
 mod numeric;
+mod points;
 mod references;
 mod text;
 pub use color::default_color;
 pub const IMPLEMENTED: &[&str] = &[
+    "PNT",
+    "PNTX",
+    "PNTY",
+    "PAR",
+    "LOC",
+    "LOCTOPAR",
+    "LOCTOLOC",
+    "ANG360",
+    "POINTALONGPATH",
+    "ANGLEALONGPATH",
     "SETATREF",
     "SETATREFEXPR",
     "SETATREFEVAL",
@@ -64,6 +75,9 @@ pub const IMPLEMENTED: &[&str] = &[
     "FLOOR",
 ];
 pub(crate) fn call(name: &str, args: &[Expr], context: &mut dyn Context, budget: &mut usize, depth: usize) -> Value {
+    if let Some(value) = points::call(name, args, context, budget, depth) {
+        return value;
+    }
     if let Some(value) = references::call(name, args, context, budget, depth) {
         return value;
     }

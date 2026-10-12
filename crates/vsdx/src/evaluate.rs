@@ -2,6 +2,8 @@
 use diagramcraft_model::{Cell, Document, Row, Section, Shape, Sheet};
 use diagramcraft_sheet::{Context, Error, Value};
 use std::collections::{BTreeMap, BTreeSet};
+mod path;
+mod transform;
 const MAX_CELLS: usize = 1_000_000;
 const MAX_SCOPES: usize = 100_000;
 
@@ -37,6 +39,7 @@ pub struct Evaluator<'a> {
     pub document: &'a Document,
     sheets: BTreeMap<Scope, &'a Sheet>,
     shapes: BTreeMap<Scope, &'a Shape>,
+    parents: BTreeMap<Scope, Scope>,
     cells: BTreeMap<Key, &'a Cell>,
     canonical: BTreeMap<Key, Key>,
     names: BTreeMap<Scope, Vec<NamedCell<'a>>>,
@@ -68,6 +71,7 @@ impl<'a> Evaluator<'a> {
             document,
             sheets: BTreeMap::new(),
             shapes: BTreeMap::new(),
+            parents: BTreeMap::new(),
             cells: BTreeMap::new(),
             canonical: BTreeMap::new(),
             names: BTreeMap::new(),
@@ -108,8 +112,13 @@ impl<'a> Evaluator<'a> {
         if shapes.len() > MAX_SCOPES {
             return Err(Error::Limit);
         }
-        let mut pending: Vec<_> = shapes.iter().map(|s| (s, 0usize)).collect();
-        while let Some((shape, depth)) = pending.pop() {
+        let mut pending: Vec<_> = shapes.iter().map(|s| (s, 0usize, parent)).collect();
+        while let Some((shape, depth, shape_parent)) = pending.pop() {
+            // Deleted master-child markers have no live sheet identity. Visio may repeat
+            // ID=4294967295 for several such markers in a single page.
+            if shape.sheet.attributes.get("Del").is_some_and(|v| v == "1" || v == "true") {
+                continue;
+            }
             if depth > 128 || self.shapes.len() >= MAX_SCOPES {
                 return Err(Error::Limit);
             }
@@ -119,12 +128,13 @@ impl<'a> Evaluator<'a> {
                 _ => return Err(Error::Ref),
             };
             self.shapes.insert(scope, shape);
+            self.parents.insert(scope, shape_parent);
             self.add_sheet(scope, &shape.sheet)?;
             for s in &shape.shapes {
                 if pending.len() >= MAX_SCOPES {
                     return Err(Error::Limit);
                 }
-                pending.push((s, depth + 1));
+                pending.push((s, depth + 1, scope));
             }
         }
         Ok(())
@@ -256,6 +266,7 @@ impl<'a> Evaluator<'a> {
         } else {
             Value::Error(Error::Ref)
         };
+        let value = self.cells.get(&key).map_or(value.clone(), |cell| project_cell_point(cell, value));
         self.stack.pop();
         self.active.remove(&key);
         let value = if self.graph_limited { Value::Error(Error::Limit) } else { value };
@@ -577,6 +588,35 @@ impl Context for BoundContext<'_, '_> {
     fn resolve(&mut self, reference: &str) -> Value {
         self.evaluator.resolve(self.scope, reference)
     }
+    fn path_point(&mut self, reference: &str, travel: f64, offset: f64, segment: Option<usize>) -> Value {
+        match self.evaluator.path_sample(self.scope, reference, travel, segment) {
+            Ok(((x, y), (dx, dy))) if offset.is_finite() => {
+                let (x, y) = (x - dy * offset, y + dx * offset);
+                if x.is_finite() && y.is_finite() { Value::Point(x, y) } else { Value::Error(Error::Num) }
+            }
+            Ok(_) => Value::Error(Error::Num),
+            Err(e) => Value::Error(e),
+        }
+    }
+    fn path_angle(&mut self, reference: &str, travel: f64, segment: Option<usize>) -> Value {
+        match self.evaluator.path_sample(self.scope, reference, travel, segment) {
+            Ok((_, (dx, dy))) => Value::number(dy.atan2(dx)),
+            Err(e) => Value::Error(e),
+        }
+    }
+    fn transform_point(
+        &mut self,
+        point: (f64, f64),
+        source: Option<&str>,
+        source_parent: bool,
+        destination: Option<&str>,
+        destination_parent: bool,
+    ) -> Value {
+        match self.evaluator.transform_point(self.scope, point, source, source_parent, destination, destination_parent) {
+            Ok((x, y)) => Value::Point(x, y),
+            Err(e) => Value::Error(e),
+        }
+    }
     fn set_formula(&mut self, reference: &str, formula: &str) -> Result<(), Error> {
         self.evaluator.set_formula(self.scope, reference, formula)
     }
@@ -632,6 +672,22 @@ impl Context for BoundContext<'_, '_> {
     }
     fn font_index(&self, name: &str) -> Option<u32> {
         self.evaluator.document.face_names.iter().find_map(|(index, value)| value.eq_ignore_ascii_case(name).then_some(*index))
+    }
+}
+/// Destination coordinate cells select a point component; point-typed cells retain both.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/pnt-function
+fn project_cell_point(cell: &Cell, value: Value) -> Value {
+    if cell.units.as_deref() == Some("PNT") {
+        return value;
+    }
+    if let Value::Point(x, y) = value {
+        match cell.name.as_str() {
+            "X" | "A" | "PinX" | "LocPinX" | "BeginX" | "EndX" | "TxtPinX" | "TxtLocPinX" => Value::number(x),
+            "Y" | "B" | "PinY" | "LocPinY" | "BeginY" | "EndY" | "TxtPinY" | "TxtLocPinY" => Value::number(y),
+            _ => Value::Point(x, y),
+        }
+    } else {
+        value
     }
 }
 fn parse_color(s: &str) -> Option<[u8; 3]> {
@@ -726,6 +782,28 @@ mod tests {
             face_names: BTreeMap::from([(0, "Example".into())]),
             ..Default::default()
         }
+    }
+    #[test]
+    fn deleted_master_child_markers_do_not_collide() {
+        let mut doc = fixture();
+        let deleted = Shape {
+            id: u32::MAX,
+            master_shape: Some(7),
+            sheet: Sheet { attributes: BTreeMap::from([("Del".into(), "1".into())]), ..Default::default() },
+            ..Default::default()
+        };
+        doc.pages[0].shapes.extend([deleted.clone(), deleted]);
+        let e = Evaluator::new(&doc).unwrap();
+        assert!(e.shape(Scope::PageShape { page: 7, shape: u32::MAX }).is_none());
+    }
+    #[test]
+    fn point_cell_projection_preserves_point_typed_values() {
+        for (name, n) in [("BeginX", 2.), ("BeginY", 3.), ("A", 2.), ("B", 3.)] {
+            assert_eq!(project_cell_point(&cell(name, "", None), Value::Point(2., 3.)), Value::Number(n));
+        }
+        let mut c = cell("Value", "", None);
+        c.units = Some("PNT".into());
+        assert_eq!(project_cell_point(&c, Value::Point(2., 3.)), Value::Point(2., 3.));
     }
     #[test]
     fn composed_formula_recursion_is_bounded_on_small_stack() {

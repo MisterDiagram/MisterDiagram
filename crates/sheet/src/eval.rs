@@ -26,6 +26,22 @@ pub trait Context {
         true
     }
     fn leave_eval(&mut self) {}
+    fn transform_point(
+        &mut self,
+        _point: (f64, f64),
+        _source: Option<&str>,
+        _source_parent: bool,
+        _destination: Option<&str>,
+        _destination_parent: bool,
+    ) -> Value {
+        Value::Error(Error::Unsupported("point transform".into()))
+    }
+    fn path_point(&mut self, _reference: &str, _travel: f64, _offset: f64, _segment: Option<usize>) -> Value {
+        Value::Error(Error::Unsupported("path point".into()))
+    }
+    fn path_angle(&mut self, _reference: &str, _travel: f64, _segment: Option<usize>) -> Value {
+        Value::Error(Error::Unsupported("path angle".into()))
+    }
     fn set_formula(&mut self, _reference: &str, _formula: &str) -> Result<(), Error> {
         Err(Error::Unsupported("formula assignment".into()))
     }

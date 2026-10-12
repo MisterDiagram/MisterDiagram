@@ -115,9 +115,13 @@ All 1387 packages parse, including 5548 seeded mutations with zero panics.
 | Line gradient stops | D | https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-line-gradient-sectionvisio-xml |
 | Opaque unknown parts/elements, macro removal | D | https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx |
 
+The preliminary POINTALONGPATH sweep evaluates 0/387 end to end before inheritance:
+68 fail on BOUND, 273 on NEARESTPOINTONPATH, 12 on RECTSECT and 34 on missing references.
+The isolated path tests pass; these are not corpus passes or an oracle denominator change.
+
 ## Implemented function groups
 
-ABS, ACOS, AND, ARG, ASIN, ATAN, ATAN2, BLUE, CEILING, COS, COSH, DEPENDSON, EVALCELL, EVALTEXT, FLOOR, FONT, FONTTOID, FORMAT, FORMATEX, GETREF, GREEN, GUARD, HSL, HUE, IF, INDEX, INT, LEFT, LEN, LISTSEP, LOOKUP, LUM, MAX, MID, MIN, MODULUS, NOT, OR, PI, POW, RED, RGB, RIGHT, ROUND, SAT, SETATREF, SETATREFEVAL, SETATREFEXPR, SETF, SIN, SINH, SQRT, STRSAME, TAN, TANH, TRUNC.
+ABS, ACOS, AND, ANG360, ANGLEALONGPATH, ARG, ASIN, ATAN, ATAN2, BLUE, CEILING, COS, COSH, DEPENDSON, EVALCELL, EVALTEXT, FLOOR, FONT, FONTTOID, FORMAT, FORMATEX, GETREF, GREEN, GUARD, HSL, HUE, IF, INDEX, INT, LEFT, LEN, LISTSEP, LOC, LOCTOLOC, LOCTOPAR, LOOKUP, LUM, MAX, MID, MIN, MODULUS, NOT, OR, PAR, PI, PNT, PNTX, PNTY, POINTALONGPATH, POW, RED, RGB, RIGHT, ROUND, SAT, SETATREF, SETATREFEVAL, SETATREFEXPR, SETF, SIN, SINH, SQRT, STRSAME, TAN, TANH, TRUNC.
 
 Microsoft example and hostile-input tests are in `crates/sheet/src/functions/`.
 Legacy MOD remains open, as recorded above. Implementation coverage is not an oracle rate.
@@ -127,6 +131,11 @@ pictures. Explicit non-English locales, non-Gregorian calendars, predefined Offi
 and specialized era formats return Unsupported. Unit provenance for complex expressions is
 conservative. Unicode scalar indexing and negative MID follow the current documented
 interpretation but lack COM edge-case witnesses.
+
+Point transforms support enclosing groups, rotations and flips. Path queries support lines,
+relative lines, ellipses with perpendicular axes and elliptical arcs, with bounded arc-length
+integration. Other row types and ambiguous skew ellipses return Unsupported. Stored point
+values do not yet preserve a transformed coordinate-frame tag across cell boundaries.
 
 ## Functions not implemented
 
@@ -151,7 +160,6 @@ unsupported function is reclassified to improve an oracle score.
 | `BITXOR` | 8263 | Missing |
 | `POLYLINE` | 7675 | Missing |
 | `ISERROR` | 7633 | Missing |
-| `PNT` | 7337 | Missing |
 | `SHEETREF` | 7281 | Missing |
 | `BITAND` | 7178 | Missing |
 | `MASTERNAME` | 7071 | Host hook |
@@ -167,23 +175,17 @@ unsupported function is reclassified to improve an oracle score.
 | `BOUND` | 4264 | Missing |
 | `THEMECBV` | 4180 | Host hook |
 | `FIELDPICTURE` | 4132 | Missing |
-| `PNTX` | 4032 | Missing |
-| `PAR` | 4006 | Missing |
 | `SUM` | 3372 | Missing |
 | `GRAVITY` | 3304 | Missing |
-| `PNTY` | 3292 | Missing |
 | `_WALKGLUE` | 3068 | Host hook |
 | `THEME` | 2680 | Host hook |
 | `CONTAINERSHEETREF` | 1667 | Missing |
 | `CHAR` | 1490 | Missing |
 | `ISERRVALUE` | 1364 | Missing |
 | `DEFAULTEVENT` | 1329 | Missing |
-| `ANG360` | 1232 | Missing |
 | `ISERR` | 1218 | Missing |
 | `FIND` | 1168 | Missing |
-| `LOC` | 1072 | Missing |
 | `USE` | 823 | Missing |
-| `LOCTOPAR` | 738 | Missing |
 | `ID` | 707 | Missing |
 | `RUNADDON` | 667 | Missing |
 | `_MOD` | 620 | Missing |
@@ -192,7 +194,6 @@ unsupported function is reclassified to improve an oracle score.
 | `BITOR` | 500 | Missing |
 | `TONE` | 440 | Missing |
 | `NA` | 426 | Missing |
-| `POINTALONGPATH` | 387 | Missing |
 | `SIGN` | 384 | Missing |
 | `FORMULAEXISTS` | 345 | Missing |
 | `LOCALFORMULAEXISTS` | 344 | Missing |
@@ -200,7 +201,6 @@ unsupported function is reclassified to improve an oracle score.
 | `MSOSHADE` | 251 | Missing |
 | `NEARESTPOINTONPATH` | 249 | Missing |
 | `MAGNITUDE` | 204 | Missing |
-| `LOCTOLOC` | 156 | Missing |
 | `MONTH` | 133 | Host hook |
 | `LISTMEMBERCOUNT` | 124 | Missing |
 | `DATEVALUE` | 110 | Host hook |

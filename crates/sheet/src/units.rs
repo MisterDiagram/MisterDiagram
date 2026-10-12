@@ -72,6 +72,9 @@ pub fn cached(value: Option<&str>, unit: Option<&str>, error: Option<&str>) -> V
     if matches!(unit, Some("STR" | "GUID" | "NURBS" | "POLYLINE")) {
         return Value::Text(s.into());
     }
+    if unit == Some("PNT") {
+        return cached_point(s).unwrap_or_else(Value::Error);
+    }
     if s == "Themed" {
         return Value::Error(Error::Unsupported("uncached theme value".into()));
     }
@@ -83,9 +86,46 @@ pub fn cached(value: Option<&str>, unit: Option<&str>, error: Option<&str>) -> V
         Err(_) => Value::Text(s.into()),
     }
 }
+/// A stored point is a PNT literal, never executable formula input.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/pnt-function
+fn cached_point(s: &str) -> Result<Value, Error> {
+    use crate::parser::{Expr, UnaryOp};
+    fn coordinate(mut e: &Expr) -> Result<f64, Error> {
+        let mut sign = 1.;
+        for _ in 0..128 {
+            match e {
+                Expr::Number(n, u) => return number(sign * n, u.as_deref()).numeric(),
+                Expr::Unary(UnaryOp::Minus, inner) => {
+                    sign = -sign;
+                    e = inner;
+                }
+                Expr::Unary(UnaryOp::Plus, inner) => {
+                    e = inner;
+                }
+                _ => return Err(Error::Value),
+            }
+        }
+        Err(Error::Limit)
+    }
+    let expr = crate::parse(s).map_err(|e| Error::Parse(e.to_string()))?;
+    if let Expr::Call { name, args } = expr
+        && name == "PNT"
+        && args.len() == 2
+    {
+        return Ok(Value::Point(coordinate(args.first().ok_or(Error::Value)?)?, coordinate(args.get(1).ok_or(Error::Value)?)?));
+    }
+    Err(Error::Value)
+}
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn stored_points_are_bounded_literals() {
+        assert_eq!(cached(Some("PNT(-0.375IN,-0.16IN)"), Some("PNT"), None), Value::Point(-0.375, -0.16));
+        for s in ["PNT(1)", "PNT(SETF(GETREF(Width),9),0)", "PNT(Width,0)", "PNT(1e999,0)"] {
+            assert!(matches!(cached(Some(s), Some("PNT"), None), Value::Error(_)));
+        }
+    }
     #[test]
     fn reference_implicit_units_and_duration() {
         assert_eq!(number(2.0, Some("DL")), Value::Number(2.0));

@@ -16,6 +16,9 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/abs-function-visioshapesheet> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/acos-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/and-function> | `crates/sheet/src/functions/mod.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/ang360-function> | `crates/sheet/src/functions/points.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/angle-cell-shape-transform-section> | `crates/vsdx/src/evaluate/transform.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/anglealongpath-function> | `crates/sheet/src/functions/points.rs`, `crates/vsdx/src/evaluate/path.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/arg-function> | `crates/sheet/src/functions/references.rs`, `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/asin-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/atan-function> | `crates/sheet/src/functions/numeric.rs` |
@@ -32,12 +35,16 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/dependson-function> | `crates/sheet/src/functions/references.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/documentsettings-element-visiodocument_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/documentsheet-element-visiodocument_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/ellipse-row-geometry-section> | `crates/vsdx/src/evaluate/path.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/ellipticalarcto-row-geometry-section> | `crates/vsdx/src/evaluate/path.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/evalcell-function> | `crates/sheet/src/functions/references.rs`, `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/evaltext-function> | `crates/sheet/src/functions/references.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/eventlist-element-visiodocument_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/facename-element-facenames_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/facenames-element-visiodocument_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/sheet/src/eval.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fld-element-text_type-complextypevisio-xml> | `crates/vsdx/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/flipx-cell-shape-transform-section> | `crates/vsdx/src/evaluate/transform.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/flipy-cell-shape-transform-section> | `crates/vsdx/src/evaluate/transform.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/floor-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section> | `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/font-function> | `crates/sheet/src/functions/color.rs` |
@@ -57,7 +64,13 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx> | `crates/model/src/lib.rs`, `crates/opc/src/opc.rs`, `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/left-function-visioshapesheet> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/len-function-visioshapesheet> | `crates/sheet/src/functions/text.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/lineto-row-geometry-section> | `crates/vsdx/src/evaluate/path.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/listsep-function> | `crates/sheet/src/functions/text.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/loc-function-visioshapesheet> | `crates/sheet/src/functions/points.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/locpinx-cell-shape-transform-section> | `crates/vsdx/src/evaluate/transform.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/locpiny-cell-shape-transform-section> | `crates/vsdx/src/evaluate/transform.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/loctoloc-function> | `crates/sheet/src/functions/points.rs`, `crates/vsdx/src/evaluate/transform.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/loctopar-function> | `crates/sheet/src/functions/points.rs`, `crates/vsdx/src/evaluate/transform.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/lookup-function> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/lum-function> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
@@ -66,20 +79,30 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/mid-function-visioshapesheet> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/min-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/modulus-function> | `crates/sheet/src/functions/numeric.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/moveto-row-geometry-section> | `crates/vsdx/src/evaluate/path.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/not-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/or-function> | `crates/sheet/src/functions/mod.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pagesheet-element-page_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/par-function> | `crates/sheet/src/functions/points.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pi-function> | `crates/sheet/src/functions/numeric.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/pinx-cell-shape-transform-section> | `crates/vsdx/src/evaluate/transform.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/piny-cell-shape-transform-section> | `crates/vsdx/src/evaluate/transform.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/pnt-function> | `crates/sheet/src/functions/points.rs`, `crates/sheet/src/units.rs`, `crates/vsdx/src/evaluate.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/pntx-function> | `crates/sheet/src/functions/points.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/pnty-function> | `crates/sheet/src/functions/points.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/pointalongpath-function> | `crates/sheet/src/functions/points.rs`, `crates/vsdx/src/evaluate/path.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pow-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pp-element-text_type-complextypevisio-xml> | `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/red-function> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/refby-element-cell_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rel-element-page_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/rellineto-row-geometry-section> | `crates/vsdx/src/evaluate/path.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/relmoveto-row-geometry-section> | `crates/vsdx/src/evaluate/path.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rgb-function-visioshapesheet> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/right-function-visioshapesheet> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/round-function-visioshapesheet> | `crates/sheet/src/functions/numeric.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml> | `crates/model/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml> | `crates/model/src/lib.rs`, `crates/vsdx/src/evaluate/path.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/sat-function> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/section-element-sheet_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/setatref-function> | `crates/sheet/src/functions/references.rs` |
