@@ -213,6 +213,8 @@ version = "0.0.1"
 dependencies = [
  "diagramcraft-color",
  "diagramcraft-geom",
+ "quick-xml",
+ "zip",
 ]
 
 [[package]]

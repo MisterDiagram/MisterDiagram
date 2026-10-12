@@ -10,3 +10,7 @@ workspace = true
 [dependencies]
 diagramcraft-geom.workspace = true
 diagramcraft-color.workspace = true
+
+[dev-dependencies]
+zip.workspace = true
+quick-xml.workspace = true

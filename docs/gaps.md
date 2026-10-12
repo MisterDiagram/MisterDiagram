@@ -13,3 +13,13 @@ Phase 0 estimate remains 20 to 30 hours; re-estimate when corpus measurements ar
 
 - Visio acceptance: accept.ps1 stalled in Documents.Open on basic/0001-probe.vsdx twice, including after a VM restart. No acceptance PNG, cell dump or part list was produced.
 - Shipped dump: 104/1181 files complete after four hours; all 1181 files copied (725 stencils, 456 templates). Resume in later background sessions. Charles explicitly excludes this remaining dump coverage from M0 blockers.
+
+## G2: Whole-file info input buffering
+
+Phase 1: info reads the whole compressed file before package checks, within the inherited
+deckcraft caps. Review finding N-3 is recorded; no Phase 0 change.
+
+## G3: Closed stderr handling
+
+Phase 1: review finding N-4 measured eprintln on closed stderr as exit 1, with no panic.
+Consider explicit error-channel handling; no Phase 0 change.

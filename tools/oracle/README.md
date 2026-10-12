@@ -30,7 +30,10 @@ Generated and acceptance dumps include document, page, style, master and page-sh
 The mandated traversal is retained. Since fixed-section RowCount counts local rows rather than
 logical indices, an additive pass reads missing documented Object rows through CellsSRCExists,
 deduplicated by SRC within each scoped sheet. Logs separate primary and supplemental cell counts.
-Cell-access failures are counted and logged, and their rows remain present with empty values.
+Cell-access failures are counted and logged. In dump-shipped, any cell error fails that file
+and retains its .partial; only a fully successful dump is renamed to .tsv. Other dump scripts
+retain failed cell rows with empty values for diagnosis. PNG pixel sizes are logged by the script;
+the actual density check is host-side in log/check-generated.py.
 
 Image inputs: generate an original small PNG/JPEG on the Mac in corpus/_vm/assets/sample.*,
 then copy the local probe oracle-basic.emf there as sample.emf. None of these assets is tracked.

@@ -124,7 +124,7 @@ function Export-Png($app, $page, [string]$path) {
         if ($f.Read($b, 0, 24) -ne 24) { throw 'truncated PNG' }
         $width = [uint32]$b[16]*16777216 + [uint32]$b[17]*65536 + [uint32]$b[18]*256 + [uint32]$b[19]
         $height = [uint32]$b[20]*16777216 + [uint32]$b[21]*65536 + [uint32]$b[22]*256 + [uint32]$b[23]
-        Log "PNG $path dpi=96 pixels=${width}x${height}"
+        Log "PNG $path pixels=${width}x${height} density_check=host-side:log/check-generated.py"
     } finally { $f.Dispose() }
 }
 function Dump-Connects($doc, [string]$path) {

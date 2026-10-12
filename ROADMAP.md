@@ -11,6 +11,7 @@ No feature-parity milestone is claimed yet.
 - 2026-10-11: M0.1 scaffold, bounded OPC and CLI info. CI: 44 tests, 14 wasm libraries, all six gates passed.
 - 2026-10-11: M0.2 conventions and Core-aware checklist. All feature rows remain missing.
 
-- 2026-10-12: M0.3 runner smoke test and M0.4 oracle scripts. 204 generated drawings, 827857 sheet rows; blank dump 3385 cells.
+- 2026-10-11: M0.3 runner smoke test.
+- 2026-10-12: M0.4 oracle scripts. 204 generated drawings, 827857 sheet rows; blank dump 3385 cells.
 - 2026-10-12: M0.5 corpus pin and 1239-file checksum manifest. All 1181 shipped files local; 104/1181 dumps complete, remainder deferred to later nights.
 - Acceptance remains blocked: Documents.Open on the probe timed out twice at 1800 seconds. P0 is partial; no milestone closure claimed.

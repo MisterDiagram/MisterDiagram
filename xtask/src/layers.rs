@@ -105,28 +105,30 @@ pub struct Crate {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Violation {
     Unregistered { krate: String },
+    Lockfile { detail: String },
     Upward { krate: String, dep: String, from: u8, to: u8, kind: DepKind },
-    UiBelowL6 { krate: String, dep: String, layer: u8 },
+    UiBelowApps { krate: String, dep: String, layer: u8 },
 }
 
 impl std::fmt::Display for Violation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Violation::Lockfile { detail } => write!(f, "Cargo.lock: {detail}"),
             Violation::Unregistered { krate } => {
                 write!(f, "{krate}: unknown workspace crate; register it in xtask/src/layers.rs TABLE (see plan/architecture.md §3)")
             }
             Violation::Upward { krate, dep, from, to, kind } => {
                 write!(f, "{krate} (L{from}) -> {dep} (L{to}) [{kind:?}]: may only depend on strictly lower layers")
             }
-            Violation::UiBelowL6 { krate, dep, layer } => {
-                write!(f, "{krate} (L{layer}) depends on UI crate `{dep}`; UI toolkits are only allowed in L6+")
+            Violation::UiBelowApps { krate, dep, layer } => {
+                write!(f, "{krate} (L{layer}) depends on UI crate `{dep}`; UI crate below apps; UI toolkits are only allowed in apps")
             }
         }
     }
 }
 
 /// Check all rules. Returns violations sorted for stable output.
-pub fn check(crates: &[Crate]) -> Vec<Violation> {
+fn check_graph(crates: &[Crate]) -> Vec<Violation> {
     let mut out = Vec::new();
     for c in crates {
         let Some(class) = classify(&c.name) else {
@@ -161,12 +163,85 @@ pub fn check(crates: &[Crate]) -> Vec<Violation> {
                     }
                 }
             } else if layer < UI_MIN_LAYER && is_ui_crate(&d.name) {
-                out.push(Violation::UiBelowL6 { krate: c.name.clone(), dep: d.name.clone(), layer });
+                out.push(Violation::UiBelowApps { krate: c.name.clone(), dep: d.name.clone(), layer });
             }
         }
     }
     out.sort_by_key(|v| v.to_string());
     out.dedup();
+    out
+}
+
+/// Scan Cargo's generated lockfile syntax, including transitive dependencies.
+/// Package names are ASCII registry identifiers; escaped or malformed names fail closed.
+pub fn check_lock(text: &str) -> Result<Vec<Violation>, String> {
+    if text.len() > 8 * 1024 * 1024 {
+        return Err("lockfile exceeds size cap".into());
+    }
+    let mut out = Vec::new();
+    let mut packages = 0usize;
+    let mut in_package = false;
+    let mut named = false;
+    for line in text.lines() {
+        if line.len() > 65536 {
+            return Err("lockfile line exceeds cap".into());
+        }
+        let line = line.trim();
+        if line == "[[package]]" {
+            if in_package && !named {
+                return Err("package without a name".into());
+            }
+            packages += 1;
+            if packages > 20_000 {
+                return Err("too many locked packages".into());
+            }
+            in_package = true;
+            named = false;
+        } else if in_package && let Some((key, value)) = line.split_once('=') {
+            if key.trim() != "name" {
+                continue;
+            }
+            if named {
+                return Err("duplicate package name field".into());
+            }
+            let value = value.split('#').next().unwrap_or_default().trim();
+            let name = value
+                .strip_prefix('"')
+                .and_then(|v| v.strip_suffix('"'))
+                .or_else(|| value.strip_prefix('\'').and_then(|v| v.strip_suffix('\'')))
+                .ok_or("invalid locked package name")?;
+            if name.is_empty() || !name.bytes().all(|b| b.is_ascii_alphanumeric() || b"_-".contains(&b)) {
+                return Err("invalid locked package identifier".into());
+            }
+            named = true;
+            if is_ui_crate(name) {
+                out.push(Violation::Lockfile { detail: format!("UI crate `{name}` is forbidden in the headless lockfile") });
+            }
+        }
+    }
+    if packages == 0 || !named {
+        return Err("lockfile has no named package".into());
+    }
+    Ok(out)
+}
+
+/// Enforce the graph rules and reject UI crates anywhere in Cargo.lock.
+pub fn check(crates: &[Crate]) -> Vec<Violation> {
+    use std::io::Read;
+    let mut out = check_graph(crates);
+    let lock = (|| -> Result<Vec<Violation>, String> {
+        let mut text = String::new();
+        std::fs::File::open(crate::root().join("Cargo.lock"))
+            .map_err(|e| e.to_string())?
+            .take(8 * 1024 * 1024 + 1)
+            .read_to_string(&mut text)
+            .map_err(|e| e.to_string())?;
+        check_lock(&text)
+    })();
+    match lock {
+        Ok(v) => out.extend(v),
+        Err(detail) => out.push(Violation::Lockfile { detail }),
+    }
     out
 }
 
@@ -185,7 +260,7 @@ pub fn from_metadata(meta: &Value) -> Result<Vec<Crate>, String> {
                 Some("build") => DepKind::Build,
                 _ => DepKind::Normal,
             };
-            let workspace = members.contains(&dname.as_str()) || d["path"].is_string();
+            let workspace = members.contains(&dname.as_str());
             deps.push(Dep { name: dname, kind, workspace });
         }
         out.push(Crate { name, deps });
@@ -220,51 +295,51 @@ mod tests {
             c("diagramcraft-mcp", &[("diagramcraft-engine", Normal, true)]),
             c("diagramcraft-cli", &[("diagramcraft-mcp", Normal, true)]),
         ];
-        assert!(check(&g).is_empty(), "{:?}", check(&g));
+        assert!(check_graph(&g).is_empty(), "{:?}", check_graph(&g));
     }
 
     #[test]
     fn upward_dependency_flagged() {
-        let v = check(&[c("diagramcraft-model", &[("diagramcraft-engine", Normal, true)])]);
+        let v = check_graph(&[c("diagramcraft-model", &[("diagramcraft-engine", Normal, true)])]);
         assert!(matches!(v[..], [Violation::Upward { from: 1, to: 5, .. }]));
     }
 
     #[test]
     fn sideways_dependency_flagged() {
-        let v = check(&[c("diagramcraft-text", &[("diagramcraft-theme", Normal, true)])]);
+        let v = check_graph(&[c("diagramcraft-text", &[("diagramcraft-theme", Normal, true)])]);
         assert!(matches!(v[..], [Violation::Upward { from: 2, to: 2, .. }]));
     }
 
     #[test]
     fn l0_foundations_are_independent() {
-        let v = check(&[c("diagramcraft-geom", &[("diagramcraft-color", Normal, true)])]);
+        let v = check_graph(&[c("diagramcraft-geom", &[("diagramcraft-color", Normal, true)])]);
         assert!(matches!(v[..], [Violation::Upward { from: 0, to: 0, .. }]));
     }
 
     #[test]
     fn self_dev_dependency_ignored() {
-        assert!(check(&[c("diagramcraft-model", &[("diagramcraft-model", Dev, true)])]).is_empty());
+        assert!(check_graph(&[c("diagramcraft-model", &[("diagramcraft-model", Dev, true)])]).is_empty());
     }
 
     #[test]
     fn upward_dev_dependency_flagged() {
-        let v = check(&[c("diagramcraft-geom", &[("diagramcraft-model", Dev, true)])]);
+        let v = check_graph(&[c("diagramcraft-geom", &[("diagramcraft-model", Dev, true)])]);
         assert!(matches!(v[..], [Violation::Upward { kind: Dev, .. }]));
     }
 
     #[test]
-    fn ui_crates_below_l6_flagged() {
+    fn ui_crates_below_apps_flagged() {
         for dep in ["egui", "eframe", "winit", "egui_kittest", "rfd", "bevy_ecs", "bevy"] {
-            let v = check(&[c("diagramcraft-engine", &[(dep, Normal, false)])]);
-            assert!(matches!(v[..], [Violation::UiBelowL6 { layer: 5, .. }]), "{dep}");
+            let v = check_graph(&[c("diagramcraft-engine", &[(dep, Normal, false)])]);
+            assert!(matches!(v[..], [Violation::UiBelowApps { layer: 5, .. }]), "{dep}");
         }
-        assert!(!check(&[c("diagramcraft-engine", &[("egui_extras", Normal, false)])]).is_empty());
-        assert!(!check(&[c("diagramcraft-mcp", &[("winit", Normal, false)])]).is_empty());
+        assert!(!check_graph(&[c("diagramcraft-engine", &[("egui_extras", Normal, false)])]).is_empty());
+        assert!(!check_graph(&[c("diagramcraft-mcp", &[("winit", Normal, false)])]).is_empty());
     }
 
     #[test]
     fn unregistered_crate_is_error() {
-        let v = check(&[c("diagramcraft-mystery", &[])]);
+        let v = check_graph(&[c("diagramcraft-mystery", &[])]);
         assert!(matches!(&v[..], [Violation::Unregistered { krate }] if krate == "diagramcraft-mystery"));
         assert!(v[0].to_string().contains("register"));
     }
@@ -272,7 +347,7 @@ mod tests {
     #[test]
     fn apps_and_xtask_exempt() {
         for app in ["diagramcraft", "diagramcraft-cli", "diagramcraft-web", "xtask"] {
-            assert!(check(&[c(app, &[("egui", Normal, false), ("diagramcraft-mcp", Normal, true)])]).is_empty());
+            assert!(check_graph(&[c(app, &[("egui", Normal, false), ("diagramcraft-mcp", Normal, true)])]).is_empty());
         }
     }
 
@@ -293,6 +368,26 @@ mod tests {
         let doc = g.iter().find(|c| c.name == "diagramcraft-model").unwrap();
         assert!(doc.deps[0].workspace && !doc.deps[1].workspace);
         assert_eq!(doc.deps[2].kind, Dev);
-        assert!(check(&g).is_empty());
+        assert!(check_graph(&g).is_empty());
+    }
+    #[test]
+    fn external_path_ui_and_transitive_lock_are_rejected() {
+        // Metadata for the seeded L5 manifest dependency: egui = { path = "../x" }.
+        let meta = serde_json::json!({"packages":[{"name":"diagramcraft-engine",
+            "dependencies":[{"name":"egui","path":"../x","kind":null}]}]});
+        let graph = from_metadata(&meta).unwrap();
+        assert!(!graph[0].deps[0].workspace);
+        assert!(matches!(&check_graph(&graph)[..], [Violation::UiBelowApps { layer: 5, .. }]));
+        let lock =
+            "version = 4\n[[package]]\nname = \"innocent-wrapper\"\nversion = \"1.0.0\"\n[[package]]\nname = \"epaint\"\nversion = \"1.0.0\"\n";
+        assert!(matches!(&check_lock(lock).unwrap()[..], [Violation::Lockfile { .. }]));
+    }
+    #[test]
+    fn hostile_lockfiles_fail_closed() {
+        for lock in ["", "[[package]]", "[[package]]\nname = egui", "[[package]]\nname = \"../egui\"", "[[package]]\nname=\"ok\"\nname=\"egui\""] {
+            assert!(check_lock(lock).is_err(), "{lock}");
+        }
+        assert!(check_lock(&"x".repeat(8 * 1024 * 1024 + 1)).is_err());
+        assert!(check_lock("[[package]]\nname='serde'\nversion='1'").unwrap().is_empty());
     }
 }

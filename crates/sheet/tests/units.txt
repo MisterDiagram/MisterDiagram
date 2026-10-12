@@ -41,3 +41,10 @@ DT
 P
 P_PT
 PT
+
+# observed in Visio output, not in the Cell_Type table
+NURBS # corpus/ms-shipped/1033/ARROWS_M.vssx#visio/masters/master10.xml
+POLYLINE # corpus/ms-shipped/1033/APPL_M.vssx#visio/masters/master17.xml
+GUID # corpus/ms-shipped/1033/BASIC_GANTTCHART_U.vstx#visio/pages/page1.xml
+MULTIDIM # corpus/ms-shipped/1033/ADS_M.vssx#visio/masters/master3.xml
+NUM # corpus/ms-shipped/1033/EVIDENCE_U.vssx#visio/document.xml
