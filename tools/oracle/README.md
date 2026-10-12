@@ -14,10 +14,13 @@ Visio, close documents without further saves, and call Quit in finally.
   Completed TSVs are skipped, logs are appended, and all source files are copied before dumping.
   Incomplete dumps use .partial and are never counted as completed.
 - `accept.ps1`: reads corpus/_vm/accept-list.txt, opens files without saving, dumps and exports.
+- `visio-health.ps1`: launch/attach, local shipped-template OpenEx, blank Add, both closes and Quit.
 - `common.ps1`: shared helpers loaded by the named scripts, not run independently.
 
 CURRENT records the active file for a 30-minute per-file watchdog. The default overall timeout
-is 1800 seconds. On timeout the runner kills VISIO and preserves partial outputs. DONE denotes
+is 1800 seconds. On timeout the runner requests Quit in a separate interactive task, bounded
+to 20 seconds, and uses Stop-Process only if VISIO is still alive. It preserves partial outputs
+and runs the health probe before returning. DONE denotes
 script completion, not success: always inspect probe-log.txt for failures and SUMMARY counts.
 
 ShapeSheet TSV columns are shape_id, shape_name, section, row, cell, name, formula, result_iu,
@@ -86,3 +89,44 @@ and removed in finally. Package parts are read from the same local copy. Outputs
 Use `tools/oracle/run-in-vm.sh --check-task` for the required leftover-task count and
 `tools/oracle/run-in-vm.sh --stop` to stop the VM. The count check passes when it prints 0,
 even if PowerShell returns 1 for its silenced missing-task lookup.
+
+## Known VM behaviour
+
+On 2026-10-12, since 02:28, an automation-launched Visio (`VISIO.EXE /Automation -Embedding`,
+created by `New-Object -ComObject`) hangs in Documents.Open and OpenEx, including on a shipped
+template it previously opened. Documents.Add still works. Local copies and share paths both
+hang. A normally launched VISIO.EXE opens those files promptly, and COM calls through
+GetActiveObject work against that instance. The cause of the mode difference is unknown;
+this is not evidence of a file, share or cache problem. Private evidence is in
+corpus/_vm/out/diag-* and corpus/_vm/out/accept-visible.
+
+Every oracle now uses common.ps1 New-Visio: stop leftover VISIO, launch Office16/VISIO.EXE
+normally, poll GetActiveObject once a second for up to 90 seconds, then set AlertResponse=7
+and retain the script's visibility setting. Do not reintroduce New-Object -ComObject.
+The local-copy path in accept.ps1 remains in use.
+
+The runner automatically runs `visio-health.ps1` before accept and dump-shipped, and after a
+watchdog cleanup. Run it directly with `tools/oracle/run-in-vm.sh visio-health.ps1 60`.
+It uses the same normal-process launch and attach as every oracle, opens the local shipped
+ACTDIR_U.VSTX read-only, adds a blank drawing, closes both and quits. Every step logs its
+duration. Healthy means all steps, including Quit, complete in less than 60 seconds; DONE
+alone does not pass. A failed probe aborts with
+`Visio health probe failed, see tools/oracle/README.md`. Prior probe outputs are preserved
+under corpus/_vm/history/visio-health.* before another probe runs.
+
+Timeout cleanup first stops the hung scheduled script, then schedules an interactive
+GetActiveObject/Quit call with its own 20-second limit. Only a still-running VISIO is forcibly
+stopped. One recovery health probe follows. If that probe also times out, cleanup ends the
+attempt and reports failure, without an unbounded cycle of probes and forced kills.
+Repeated forced kills are suspected of contributing to the damaged guest state; this has
+not been established as the cause.
+
+If the health probe fails twice, a human administrator can run the silent Office quick repair
+(about five minutes), then re-run the probe. Agents must not run repair or elevate privileges:
+
+```text
+"C:\Program Files\Common Files\Microsoft Shared\ClickToRun\OfficeClickToRun.exe" scenario=Repair platform=x64 culture=en-us RepairType=QuickRepair forceappshutdown=True DisplayLevel=False
+```
+
+Quick repair did not fix plain COM launch on this guest. Keep the normal launch-and-attach
+fallback after repair; a successful Add alone does not establish that OpenEx is healthy.

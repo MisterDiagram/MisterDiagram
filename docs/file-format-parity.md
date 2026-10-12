@@ -11,7 +11,11 @@ The committed resume path is verified only by tools/tests/shipped-resume.ps1 unt
 Visio 16.0 build 20430 (16.0.20430.20146). Generated corpus: 204 drawings,
 827857 ShapeSheet rows, all six requested exports; PNG densities 96 dpi. Blank: 3385 cells.
 Shipped source files: 1181, with 104 completed master dumps; remaining dumps deferred.
-Visio acceptance remains unverified after two Documents.Open timeouts.
+Visio acceptance verified on 2026-10-12 for basic/0001-probe.vsdx and blank/blank.vsdx:
+both OPEN OK and ACCEPT OK, 9257 cells, zero errors, with PNG, sheet TSV and part list each.
+Normal VISIO.EXE launch and GetActiveObject attachment resolve the earlier automation-launch
+open hang; its underlying cause remains unknown. The shared-route health probe completed
+in 7.822 seconds, including shipped-template OpenEx, blank Add, both closes and Quit.
 ENTITY_M/U.vssx and OBJREL_M/U.vssx use the published 2011/1/core XML namespace;
 the other measured files use 2012/main. Container inspection accepts both exact URIs.
 

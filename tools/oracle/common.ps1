@@ -101,11 +101,22 @@ function Office-Folder {
     Log "VISIO.EXE fileversion=$($exe.VersionInfo.FileVersion)"
     $exe.DirectoryName
 }
+# Automation-launched Visio hangs on open since 2026-10-12.
+# Launch normally and attach; see tools/oracle/README.md, Known VM behaviour.
 function New-Visio {
-    $v = New-Object -ComObject Visio.Application
+    Stop-Process -Name VISIO -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 2
+    $exe = Join-Path (Office-Folder) 'VISIO.EXE'
+    Start-Process -FilePath $exe | Out-Null
+    $v = $null
+    for ($i = 0; $i -lt 90 -and -not $v; $i++) {
+        Start-Sleep -Seconds 1
+        try { $v = [Runtime.InteropServices.Marshal]::GetActiveObject('Visio.Application') } catch { $v = $null }
+    }
+    if (-not $v) { throw 'Visio did not register in the running object table within 90 s' }
     $v.AlertResponse = 7
     $v.Visible = $false
-    Log "Visio version=$($v.Version) build=$($v.Build) product=$($v.ProductName) user=$env:USERNAME"
+    Log "Visio (normal launch, attached after $i s) version=$($v.Version) build=$($v.Build) product=$($v.ProductName) user=$env:USERNAME docs=$($v.Documents.Count)"
     $v
 }
 # https://learn.microsoft.com/en-us/office/vba/api/visio.applicationsettings.setrasterexportresolution

@@ -24,7 +24,7 @@ STAGE="$ROOT/corpus/_vm"
 OUT="$STAGE/out/$NAME"
 mkdir -p "$STAGE"
 case "$NAME" in
-accept|accept-visible)
+accept)
     python3 - "$ROOT" "$@" <<'LIST'
 from pathlib import Path
 import sys
@@ -48,16 +48,9 @@ LIST
     ;;
 *) [ "$#" -eq 0 ] || { echo 'extra file arguments are only valid for accept' >&2; exit 2; };;
 esac
-mkdir -p "$OUT"
-# Shipped TSVs are checkpoints across nights. Only completion/watchdog markers are stale.
-if [ "$NAME" = dump-shipped ]; then
-    rm -f "$OUT/DONE" "$OUT/CURRENT"
-else
-    find "$OUT" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
-fi
 if [ "$SCRIPT" != "$STAGE/$NAME.ps1" ]; then /bin/cp -f "$SCRIPT" "$STAGE/$NAME.ps1"; fi
-if [ -f "$ROOT/tools/oracle/common.ps1" ]; then /bin/cp -f "$ROOT/tools/oracle/common.ps1" "$STAGE/common.ps1"; fi
-WIN="\\\\Mac\\Home\\Projects\\diagramcraft\\corpus\\_vm\\$NAME.ps1"
+/bin/cp -f "$ROOT/tools/oracle/common.ps1" "$STAGE/common.ps1"
+/bin/cp -f "$ROOT/tools/oracle/visio-health.ps1" "$STAGE/visio-health.ps1"
 # Bound host-side prlctl calls too: a stalled guest command must not bypass the watchdog.
 bounded() {
     python3 - "${ORACLE_CALL_TIMEOUT:-25}" "$@" <<'PY'
@@ -87,7 +80,9 @@ for attempt in 1 2; do
     echo "VM readiness attempt $attempt failed" >&2
  done
 [ "$ready" -eq 1 ] || { echo 'VM did not answer after one retry' >&2; exit 124; }
-cleanup() { ps "Get-ScheduledTask -TaskName diagramcraft-oracle -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:\$false -ErrorAction Stop; exit 0" >/dev/null 2>&1 || true; }
+cleanup() {
+    ps "Get-ScheduledTask -TaskName diagramcraft-oracle -ErrorAction SilentlyContinue | Stop-ScheduledTask -ErrorAction SilentlyContinue; Get-ScheduledTask -TaskName diagramcraft-oracle -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:\$false -ErrorAction Stop; exit 0" >/dev/null 2>&1 || true
+}
 convert() {
     while IFS= read -r -d '' f; do
         if file "$f" | grep -q 'UTF-16'; then
@@ -100,53 +95,129 @@ trap cleanup EXIT
 trap 'exit 130' INT TERM
 ps "Get-ScheduledTask -TaskName visioprobe -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:\$false -ErrorAction Stop; exit 0" >/dev/null
 launch() {
+    local win=$1 duration=$2
     cleanup
-    ps "\$ErrorActionPreference='Stop'; \$a=New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File \"$WIN\"'; \$p=New-ScheduledTaskPrincipal -UserId charles -LogonType Interactive; \$s=New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Days 2); Register-ScheduledTask -TaskName diagramcraft-oracle -Action \$a -Principal \$p -Settings \$s -Force | Out-Null; Start-ScheduledTask -TaskName diagramcraft-oracle" >&2
+    ps "\$ErrorActionPreference='Stop'; \$a=New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File \"$win\"'; \$p=New-ScheduledTaskPrincipal -UserId charles -LogonType Interactive; \$s=New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Seconds $duration); Register-ScheduledTask -TaskName diagramcraft-oracle -Action \$a -Principal \$p -Settings \$s -Force | Out-Null; Start-ScheduledTask -TaskName diagramcraft-oracle" >&2
 }
-logged=0
-for attempt in 1 2; do
-    launch
-    start=$SECONDS
-    while [ $((SECONDS-start)) -lt 180 ]; do
-        if [ -s "$OUT/probe-log.txt" ] && [ "$OUT/probe-log.txt" -nt "$STAGE/$NAME.ps1" ]; then logged=1; break; fi
-        sleep 2
-    done
-    [ "$logged" -eq 1 ] && break
-    echo "No oracle log after launch attempt $attempt" >&2
- done
-if [ "$logged" -ne 1 ]; then
-    ps 'Stop-Process -Name VISIO -Force -ErrorAction SilentlyContinue' >/dev/null || true
-    echo 'Scheduled task produced no log after one retry' >&2
-    exit 124
-fi
-start=$SECONDS
-while [ ! -f "$OUT/DONE" ]; do
-    elapsed=$((SECONDS-start))
-    if [ -f "$OUT/CURRENT" ]; then
-        file_age=$(python3 - "$OUT/CURRENT" <<'AGE'
+# Run one staged script. A watchdog returns 124; the caller owns recovery.
+run_one() {
+    local name=$1 limit=$2
+    local OUT="$STAGE/out/$name" win="\\\\Mac\\Home\\Projects\\diagramcraft\\corpus\\_vm\\$name.ps1"
+    local started=$SECONDS launched=$SECONDS logged=0 attempt=1 file_age
+    mkdir -p "$OUT" || return 1
+    if [ "$name" = dump-shipped ]; then
+        rm -f "$OUT/DONE" "$OUT/CURRENT" || return 1
+    else
+        # Preserve each health observation before the next probe resets its output.
+        if [ "$name" = visio-health ] && [ -f "$OUT/probe-log.txt" ]; then
+            local archive
+            mkdir -p "$STAGE/history" || return 1
+            archive=$(mktemp -d "$STAGE/history/visio-health.XXXXXX") || return 1
+            /bin/cp -R "$OUT/." "$archive/" || return 1
+        fi
+        find "$OUT" -mindepth 1 -maxdepth 1 -exec rm -rf {} + || return 1
+    fi
+    launch "$win" 172800 || return 1
+    while [ ! -f "$OUT/DONE" ]; do
+        if [ -s "$OUT/probe-log.txt" ] && [ "$OUT/probe-log.txt" -nt "$STAGE/$name.ps1" ]; then logged=1; fi
+        if [ $((SECONDS-started)) -ge "$limit" ]; then
+            echo "Oracle timed out after $((SECONDS-started)) seconds: $OUT" >&2
+            return 124
+        fi
+        if [ "$logged" -eq 0 ] && [ $((SECONDS-launched)) -ge 180 ]; then
+            if [ "$attempt" -eq 2 ]; then
+                echo 'Scheduled task produced no log after one retry' >&2
+                return 124
+            fi
+            echo 'No oracle log after launch attempt 1' >&2
+            launch "$win" 172800 || return 1
+            launched=$SECONDS; attempt=2
+        fi
+        if [ -f "$OUT/CURRENT" ]; then
+            file_age=$(python3 - "$OUT/CURRENT" <<'AGE'
 import os, sys, time
 try:
     print(int(time.time() - os.stat(sys.argv[1]).st_mtime))
 except FileNotFoundError:
     print(0)
 AGE
-)
-        if [ "$file_age" -ge 1800 ]; then
-            ps 'Stop-Process -Name VISIO -Force -ErrorAction SilentlyContinue' >/dev/null || true
-            convert
-            echo "Per-file oracle timeout: $OUT/CURRENT" >&2
-            exit 124
+) || return 1
+            if [ "$file_age" -ge 1800 ]; then
+                echo "Per-file oracle timeout: $OUT/CURRENT" >&2
+                return 124
+            fi
         fi
+        sleep 1
+    done
+    convert || return 1
+    cleanup
+}
+# Quit must run in charles's interactive session, not in prlctl's SYSTEM session.
+gentle_stop() {
+    cleanup
+    rm -f "$STAGE/QUIT-DONE"
+    cat > "$STAGE/quit-visio.ps1" <<'QUIT'
+$ErrorActionPreference = 'Stop'
+try {
+    $v = [Runtime.InteropServices.Marshal]::GetActiveObject('Visio.Application')
+    $v.AlertResponse = 7
+    $v.Quit()
+} catch {
+    "QUIT $($_.Exception.Message)" | Out-File (Join-Path $PSScriptRoot 'quit-log.txt') -Append
+} finally {
+    'DONE' | Out-File (Join-Path $PSScriptRoot 'QUIT-DONE')
+}
+QUIT
+    local start=$SECONDS
+    if launch '\\Mac\Home\Projects\diagramcraft\corpus\_vm\quit-visio.ps1' 20; then
+        while [ ! -f "$STAGE/QUIT-DONE" ] && [ $((SECONDS-start)) -lt 20 ]; do sleep 1; done
     fi
-    if [ "$elapsed" -ge "$LIMIT" ]; then
-        ps 'Stop-Process -Name VISIO -Force -ErrorAction SilentlyContinue' >/dev/null || true
-        convert
-        echo "Oracle timed out after $elapsed seconds: $OUT" >&2
-        exit 124
+    cleanup
+    ps 'if (Get-Process -Name VISIO -ErrorAction SilentlyContinue) { Write-Output "VISIO still alive after Quit; forcing stop"; Stop-Process -Name VISIO -Force -ErrorAction SilentlyContinue } else { Write-Output "VISIO exited after Quit" }; exit 0' >&2 || true
+}
+health_error() { echo 'Visio health probe failed, see tools/oracle/README.md' >&2; }
+health_once() {
+    local result=0
+    run_one visio-health 60 || result=$?
+    [ "$result" -eq 0 ] || return "$result"
+    [ -f "$STAGE/out/visio-health/HEALTHY" ] && grep -q 'HEALTH OK seconds=' "$STAGE/out/visio-health/probe-log.txt"
+}
+# Exactly one recovery probe after a watchdog. A recovery-probe timeout ends recovery,
+# rather than recursing into repeated forced kills on an unhealthy guest.
+recover_timeout() {
+    local timed_out=$1 result=0
+    gentle_stop
+    local OUT="$STAGE/out/$timed_out"
+    convert || return 1
+    health_once || result=$?
+    if [ "$result" -ne 0 ]; then
+        if [ "$result" -eq 124 ]; then
+            gentle_stop
+            OUT="$STAGE/out/visio-health"
+            convert || true
+        fi
+        health_error
+        return 1
     fi
-    sleep 2
- done
-convert
-cleanup
-trap - EXIT
+}
+if [ "$NAME" = accept ] || [ "$NAME" = dump-shipped ] || [ "$NAME" = visio-health ]; then
+    result=0
+    health_once || result=$?
+    if [ "$result" -ne 0 ]; then
+        if [ "$result" -eq 124 ]; then recover_timeout visio-health || true; fi
+        health_error
+        exit 1
+    fi
+    if [ "$NAME" = visio-health ]; then
+        printf '%s\n' "$STAGE/out/visio-health"
+        exit 0
+    fi
+fi
+result=0
+run_one "$NAME" "$LIMIT" || result=$?
+if [ "$result" -eq 124 ]; then
+    recover_timeout "$NAME" || exit 1
+    exit 124
+fi
+[ "$result" -eq 0 ] || exit "$result"
 printf '%s\n' "$OUT"
