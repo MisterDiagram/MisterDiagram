@@ -258,5 +258,15 @@ class Acceptance(unittest.TestCase):
         self.assertLess(members['old_packages'],members['combined_packages'])
         self.assertLess(members['old_dumps'],members['combined_dumps'])
 
+
+    def test_shipped_render_disclosure_keeps_other_checks_mandatory(self):
+        for name in ['shipped-stencil','shipped-template']:
+            self.assertFalse(report.content_failed(name,0,[],[{'error':'renderer gap'}]))
+            self.assertTrue(report.content_failed(name,1,[],[]))
+            self.assertTrue(report.content_failed(name,0,['COM mismatch'],[]))
+        for name in ['generated','from-scratch','blank','shipped-unknown']:
+            self.assertTrue(report.content_failed(name,0,[],[{'error':'renderer gap'}]))
+            self.assertTrue(report.render_required(name))
+
 if __name__ == '__main__':
     unittest.main()

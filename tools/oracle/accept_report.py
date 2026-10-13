@@ -481,6 +481,19 @@ def allowed_rewrites(old_cells, new_cells, differences, part_diff):
     return remaining, part_diff, classes
 
 
+def render_required(set_or_group):
+    """M3.22 makes only the selected shipped stencil/template render rows informational."""
+    return set_or_group not in {
+        'shipped-stencil','shipped-template',
+        'shipped-stencil-pages','shipped-stencil-masters',
+        'shipped-template-pages','shipped-template-masters',
+    }
+
+
+def content_failed(set_name, repairs, com_failures, renders):
+    return bool(repairs or com_failures or (render_required(set_name) and any('error' in r for r in renders)))
+
+
 def report(out, manifest):
     m = load_json(manifest)
     if len(m['files']) != 230 or len({e['output'] for e in m['files']}) != 230:
@@ -581,7 +594,7 @@ def report(out, manifest):
                 row['renders'].append(result)
                 group = name.split('__')[1] if name.startswith('generated__') and stem.startswith('page-') else entry['set']+('-masters' if stem.startswith('master-') else '-pages')
                 groups[group].append(result)
-            if row['repair_count'] or failures or any('error' in r for r in row['renders']):
+            if content_failed(entry['set'],row['repair_count'],failures,row['renders']):
                 counter['failed'] += 1
         except (OSError, ValueError, KeyError, TypeError, AttributeError, zipfile.BadZipFile, ET.ParseError) as error:
             row['errors'].append(str(error))
@@ -598,10 +611,11 @@ def report(out, manifest):
         count = sum(i['pixels'] for i in scored)
         frac = sum(i['over'] for i in scored)/count if count else math.inf
         ok = len(valid) == len(items) and (not scored or (mad <= (8 if group == 'text' else 4) and frac <= (.05 if group == 'text' else .02)))
-        success &= ok
+        informational = not render_required(group)
+        if not informational: success &= ok
         worst = sorted((i for i in items if not i.get('empty')), key=lambda i:i.get('mad',math.inf),reverse=True)[:3]
-        summaries[group] = {'images':len(items),'empty':empty_count,'errors':len(items)-len(valid),'mad':mad if math.isfinite(mad) else None,'fraction':frac if math.isfinite(frac) else None,'passed':ok,'worst':worst}
-        print(f'accept render {group}: images={len(items)} empty={empty_count} errors={len(items)-len(valid)} MAD={mad:.6f} over16={frac:.6%} pass={ok}')
+        summaries[group] = {'images':len(items),'empty':empty_count,'errors':len(items)-len(valid),'mad':mad if math.isfinite(mad) else None,'fraction':frac if math.isfinite(frac) else None,'passed':ok,'informational':informational,'worst':worst}
+        print(f'accept render {group}: images={len(items)} empty={empty_count} errors={len(items)-len(valid)} MAD={mad:.6f} over16={frac:.6%} pass={ok} informational={informational}')
         for i in worst:
             print('  worst',i)
     for name,c in sorted(sets.items()):

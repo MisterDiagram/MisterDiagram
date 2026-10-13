@@ -360,3 +360,25 @@ and text cohorts are now committed under apps/diagramcraft-corpus/tests/cohorts/
 with exact dump paths, counts and SHA256 pins in floors.toml. Generated/blank213
 dumps stay in the old population; old total514, combined915. These fixed lists
 cannot silently move to a later snapshot. The shared source directory is read-only.
+
+### M3.22: Phase 4 shipped acceptance rendering gaps
+
+Charles's P3-closure-2 keeps the selected ten stencils and ten templates mandatory
+for open, part, attribute and COM checks. Their render rows are informational;
+generated, blank and authored scratch render rows remain mandatory. This is the
+explicit M3.22 scope ruling, not a change to the frozen pixel ceilings.
+
+Historical run, corrected M3.18 reporter (before the fixed writer's rerun):
+
+| Render error class | Views | Witness |
+|---|---:|---|
+| #CYCLE! | 4 | shipped-stencil__USTRME_U#master-10 |
+| #VALUE! | 8 | shipped-template__PTSKST_M#page-0 |
+| CHAR | 2 | shipped-stencil__ENTITY_U#master-2 |
+| LISTORDER | 2 | shipped-template__UMLSEQUENCE_INTERACTIONFRAME_M#page-0 |
+| our renderer: The image format could not be determined | 1 | shipped-template__SOCIAL_DISTANCING_M#page-0 |
+| our renderer: shape 5 geometry: #NAME? REF | 1 | shipped-stencil__EEPATH_U#master-27 |
+| our renderer: shape 5 transform: #NAME? REF | 1 | shipped-stencil__EEPATH_U#master-23 |
+| size | 38 | shipped-stencil__ENTITY_U#master-10 |
+
+Fresh PLANT and SOCIAL_DISTANCING COM counts and ENTITY_U/UCMNME_U size witnesses will be recorded after M3.23. Their historical values are not evidence for the fixed writer.
