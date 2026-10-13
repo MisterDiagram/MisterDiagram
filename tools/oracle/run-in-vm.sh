@@ -84,7 +84,17 @@ except subprocess.TimeoutExpired:
     sys.exit(124)
 PY
 }
-ps() { bounded prlctl exec "$VM" powershell -NoProfile -Command "$1"; }
+# prlctl reconstructs a Windows command line. Encode the script so embedded
+# diagnostic quotes and semicolons cannot become a second PowerShell command.
+ps() {
+    local encoded
+    encoded=$(python3 - "$1" <<'ENCODE'
+import base64, sys
+print(base64.b64encode(sys.argv[1].encode('utf-16le')).decode('ascii'))
+ENCODE
+) || return 1
+    bounded prlctl exec "$VM" powershell -NoProfile -EncodedCommand "$encoded"
+}
 ready=0
 for attempt in 1 2; do
     state=$(prlctl list -a)
@@ -124,7 +134,9 @@ launch() {
 run_one() {
     local name=$1 limit=$2
     local OUT="$STAGE/out/$name" win="\\\\Mac\\Home\\Projects\\diagramcraft\\corpus\\_vm\\$name.ps1"
-    local started=$SECONDS launched=$SECONDS logged=0 attempt=1 file_age
+    local started=$SECONDS launched=$SECONDS logged=0 attempt=1 file_age file_limit=1800
+    # Large acceptance dumps need over 40 minutes; the overall caller budget bounds them.
+    if [ "$name" = accept ]; then file_limit=$limit; fi
     mkdir -p "$OUT" || return 1
     if [ "$name" = dump-shipped ] || [ "$name" = accept ]; then
         rm -f "$OUT/DONE" "$OUT/CURRENT" || return 1
@@ -163,7 +175,7 @@ except FileNotFoundError:
     print(0)
 AGE
 ) || return 1
-            if [ "$file_age" -ge 1800 ]; then
+            if [ "$file_age" -ge "$file_limit" ]; then
                 echo "Per-file oracle timeout: $OUT/CURRENT" >&2
                 return 124
             fi

@@ -218,7 +218,7 @@ def report(out, manifest):
                 if Path(file).name != file or digest(actual/file) != want:
                     raise ValueError('VM artifact hash mismatch')
             saved = 'saved'+path.suffix
-            if not {'observed.sheet.tsv', 'parts.txt', saved} <= hashes.keys():
+            if not {'observed.sheet.tsv', 'connects.tsv', 'parts.txt', saved} <= hashes.keys():
                 raise ValueError('incomplete VM artifact inventory')
             old_parts, old_cells = package_cells(path)
             new_parts, new_cells = package_cells(actual/saved)

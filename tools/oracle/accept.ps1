@@ -34,7 +34,7 @@ try {
             try {
                 $previous = Get-Content -LiteralPath $complete -Raw -Encoding UTF8 | ConvertFrom-Json
                 $valid = $previous.opened -and $previous.saved -and (-not $previous.error) -and $previous.input_sha256 -eq $hash -and $previous.script_sha256 -eq $scriptHash -and $previous.common_sha256 -eq $commonHash
-                $required = @('observed.sheet.tsv','parts.txt',('saved' + [IO.Path]::GetExtension($path)))
+                $required = @('observed.sheet.tsv','connects.tsv','parts.txt',('saved' + [IO.Path]::GetExtension($path)))
                 foreach ($requiredName in $required) {
                     if ($requiredName -notin @($previous.artifacts | ForEach-Object { $_.file })) { $valid = $false }
                 }
@@ -61,23 +61,27 @@ try {
             $status.opened = $true
             Log "OPEN OK $path"
             Dump-Document $doc (Join-Path $directory 'observed.sheet.tsv')
+            Dump-Connects $doc (Join-Path $directory 'connects.tsv')
+            foreach ($page in $doc.Pages) { Export-Png $app $page (Join-Path $directory "page-$($page.ID).png") }
+            foreach ($master in $doc.Masters) { Export-Png $app $master (Join-Path $directory "master-$($master.ID).png") }
             # SaveAs is essential: inspecting the untouched input cannot reveal silent repair.
             $saved = Join-Path $directory ('saved' + [IO.Path]::GetExtension($path))
             $doc.SaveAs($saved) | Out-Null
             $status.saved = $true
+            Close-Document $doc
+            $doc = $null
             $zip = [IO.Compression.ZipFile]::OpenRead($saved)
             try { $zip.Entries | Sort-Object FullName | ForEach-Object { $_.FullName } | Out-File (Join-Path $directory 'parts.txt') }
             finally { $zip.Dispose() }
-            foreach ($page in $doc.Pages) { Export-Png $app $page (Join-Path $directory "page-$($page.ID).png") }
-            foreach ($master in $doc.Masters) { Export-Png $app $master (Join-Path $directory "master-$($master.ID).png") }
             $ok++
             Log "ACCEPT OBSERVED $path"
         } catch { $failed++; $status.error = "$($_.Exception.Message) $($_.ScriptStackTrace)"; Log "ACCEPT FAIL $path $($status.error)" }
         finally {
-            if ($doc) { try { Close-Document $doc } catch { $status.error = "close failed: $_"; Log "CLOSE FAIL $path $_" } }
+            if ($doc) { try { Close-Document $doc; $doc = $null } catch { $status.error = "close failed: $_"; Log "CLOSE FAIL $path $_" } }
             if (Test-Path -LiteralPath $local) { Remove-Item -LiteralPath $local -Force }
             # Write UTF8 here so the host conversion does not invalidate completion hashes.
-            foreach ($f in (Get-ChildItem -LiteralPath $directory -File)) {
+            # A failed close must not cause even a hash read of the locked save.
+            foreach ($f in $(if (-not $doc) { Get-ChildItem -LiteralPath $directory -File })) {
                 if ($f.Extension -in @('.tsv','.txt')) {
                     $text = [IO.File]::ReadAllText($f.FullName)
                     [IO.File]::WriteAllText($f.FullName,$text,[Text.UTF8Encoding]::new($false))
