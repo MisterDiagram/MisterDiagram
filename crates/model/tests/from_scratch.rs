@@ -188,3 +188,89 @@ fn dynamic_glue_rejects_nested_ids_and_writer_boundaries() {
     skeleton::glue_dynamic(&mut d.pages[0], 3, 2, [1, 2], [[1., 0.5], [2., 0.5]]).unwrap();
     assert_eq!(d.pages[0].connects.len(), 100_000);
 }
+
+#[test]
+fn authored_dynamic_route_is_straight_in_page_space() {
+    use diagramcraft_geom::{BezPath, Rect};
+    use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+    for endpoints in [[[3., 1.5], [4., 1.5]], [[4., 1.5], [3., 1.5]], [[3., 1.5], [3., 3.5]], [[3., 1.5], [4., 3.5]]] {
+        let mut d = skeleton::document(false);
+        d.pages[0].shapes.push(skeleton::rectangle(1, 1., 1., 2., 1., "").unwrap());
+        d.pages[0].shapes.push(skeleton::rectangle(2, 4., 1., 2., 1., "").unwrap());
+        skeleton::glue_dynamic(&mut d.pages[0], 3, 2, [1, 2], endpoints).unwrap();
+        let a = diagramcraft_vsdx::import(&diagramcraft_vsdx::write(&d).unwrap().bytes).unwrap();
+        let shape = &a.pages[0].shapes[2];
+        assert_eq!(shape.sheet.cell("Width").unwrap().formula.as_deref(), Some("GUARD(EndX-BeginX)"));
+        for name in ["PinX", "PinY", "LocPinX", "LocPinY", "TxtPinX", "TxtPinY"] {
+            assert_eq!(shape.sheet.cell(name).unwrap().formula.as_deref(), Some("Inh"));
+        }
+        let rows = &shape.sheet.sections.iter().find(|s| s.name == "Geometry").unwrap().rows;
+        assert!(rows.iter().any(|r| r.index == Some(3) && r.deleted));
+        assert_eq!(shape.sheet.cell("ConFixedCode").unwrap().value.as_deref(), Some("6"));
+        assert_eq!(shape.sheet.cell("LayerMember").unwrap().value.as_deref(), Some("0"));
+        let mut e = Evaluator::new(&a).unwrap();
+        let scope = Scope::PageShape { page: 0, shape: 3 };
+        let transform = e.shape_to_page(scope).unwrap();
+        let paths = e.geometry_paths(scope, Rect::new(-10., -10., 10., 10.)).unwrap();
+        let nonempty: Vec<_> = paths.iter().filter(|p| !p.path.elements().is_empty()).collect();
+        assert_eq!(nonempty.len(), 1);
+        let mut expected = BezPath::new();
+        expected.move_to((endpoints[0][0], endpoints[0][1]));
+        expected.line_to((endpoints[1][0], endpoints[1][1]));
+        assert_eq!((transform * &nonempty[0].path).elements(), expected.elements());
+        assert_eq!(a.pages[0].connects.len(), 2);
+    }
+}
+
+#[test]
+fn dynamic_glue_rejects_full_layer_and_sheet_before_mutation() {
+    let mut d = skeleton::document(false);
+    d.pages[0].shapes.push(skeleton::rectangle(1, 0., 0., 1., 1., "").unwrap());
+    d.pages[0].shapes.push(skeleton::rectangle(2, 2., 0., 1., 1., "").unwrap());
+    d.pages[0].sheet.sections.push(Section {
+        name: "Layer".into(),
+        rows: (0..16_384).map(|i| Row { index: Some(i), ..Default::default() }).collect(),
+        ..Default::default()
+    });
+    let before = d.pages[0].clone();
+    assert!(skeleton::glue_dynamic(&mut d.pages[0], 3, 2, [1, 2], [[1., 0.5], [2., 0.5]]).is_err());
+    assert_eq!(d.pages[0], before);
+    d.pages[0].sheet.sections.pop();
+    for index in 0..4 {
+        d.pages[0].shapes[0].sheet.sections.push(Section {
+            name: format!("User{index}"),
+            cells: (0..16_384).map(|_| Cell::default()).collect(),
+            ..Default::default()
+        });
+    }
+    let before = d.pages[0].clone();
+    assert!(skeleton::glue_dynamic(&mut d.pages[0], 3, 2, [1, 2], [[1., 0.5], [2., 0.5]]).is_err());
+    assert_eq!(d.pages[0], before);
+}
+
+#[test]
+fn glue_rejects_deleted_or_byte_full_targets_without_mutation() {
+    let mut d = skeleton::document(false);
+    d.pages[0].shapes.push(skeleton::rectangle(1, 0., 0., 1., 1., "").unwrap());
+    d.pages[0].shapes.push(skeleton::rectangle(2, 2., 0., 1., 1., "").unwrap());
+    d.pages[0].shapes[0].sheet.attributes.insert("Del".into(), "1".into());
+    let before = d.pages[0].clone();
+    assert!(skeleton::glue_dynamic(&mut d.pages[0], 3, 2, [1, 2], [[1., 0.5], [2., 0.5]]).is_err());
+    assert_eq!(d.pages[0], before);
+    d.pages[0].shapes[0].sheet.attributes.remove("Del");
+    d.pages[0].shapes[0].sheet.cells.push(Cell { name: "Comment".into(), value: Some("a".repeat(16 * 1024 * 1024)), ..Default::default() });
+    let before = d.pages[0].clone();
+    assert!(skeleton::glue_dynamic(&mut d.pages[0], 3, 2, [1, 2], [[1., 0.5], [2., 0.5]]).is_err());
+    assert_eq!(d.pages[0], before);
+}
+#[test]
+fn glue_replaces_case_insensitive_objtype_in_place() {
+    let mut d = skeleton::document(false);
+    d.pages[0].shapes.push(skeleton::rectangle(1, 0., 0., 1., 1., "").unwrap());
+    d.pages[0].shapes.push(skeleton::rectangle(2, 2., 0., 1., 1., "").unwrap());
+    d.pages[0].shapes[0].sheet.cells.push(Cell { name: "objtype".into(), value: Some("0".into()), ..Default::default() });
+    let count = d.pages[0].shapes[0].sheet.cells.len();
+    skeleton::glue_dynamic(&mut d.pages[0], 3, 2, [1, 2], [[1., 0.5], [2., 0.5]]).unwrap();
+    assert_eq!(d.pages[0].shapes[0].sheet.cells.len(), count);
+    assert_eq!(d.pages[0].shapes[0].sheet.cell("ObjType").unwrap().value.as_deref(), Some("1"));
+}

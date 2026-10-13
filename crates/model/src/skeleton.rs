@@ -33,9 +33,9 @@ fn row(attrs: &[(&str, &str)], cells: Vec<Cell>) -> Row {
         name: a.get("N").cloned(),
         index: a.get("IX").and_then(|s| s.parse().ok()),
         row_type: a.get("T").cloned(),
+        deleted: a.get("Del").is_some_and(|v| v == "1" || v == "true"),
         attributes: a,
         cells,
-        ..Default::default()
     }
 }
 fn section(attrs: &[(&str, &str)], cells: Vec<Cell>, rows: Vec<Row>) -> Section {
@@ -332,14 +332,16 @@ fn metadata(doc: &mut Document, metric: bool) {
 }
 
 /// Add dynamic glue between two top-level shapes using page-space cached endpoints.
-/// The caller supplies endpoints from its geometry; routing remains a host operation.
+/// The caller supplies endpoints from its geometry; the instance carries a straight route.
 /// Observed formulas and ObjType: corpus/generated/connector/dynamic-glue.vsdx.
 pub fn glue_dynamic(page: &mut Page, id: u32, master: u32, targets: [u32; 2], endpoints: [[f64; 2]; 2]) -> Result<(), String> {
     if page.shapes.len() >= 100_000
         || page.connects.len() > 99_998
         || endpoints.iter().flatten().any(|v| !v.is_finite() || v.abs() > 1e6)
         || page.shapes.iter().any(|s| s.id == id)
-        || targets.iter().any(|target| page.shapes.iter().filter(|s| s.id == *target).count() != 1)
+        || targets.iter().any(|target| {
+            page.shapes.iter().filter(|s| s.id == *target && !s.sheet.attributes.get("Del").is_some_and(|d| d == "1" || d == "true")).count() != 1
+        })
         || page.shapes.iter().any(|s| targets.contains(&s.id) && s.sheet.cells.len() >= 20_000)
     {
         return Err("dynamic glue target, coordinate or collection limit".into());
@@ -367,12 +369,58 @@ pub fn glue_dynamic(page: &mut Page, id: u32, master: u32, targets: [u32; 2], en
     let reverse = "_WALKGLUE(EndTrigger,BegTrigger,WalkPreference)";
     let [bx, by] = begin;
     let [ex, ey] = end;
+    let width = ex - bx;
+    let delta_y = ey - by;
+    let height = if delta_y == 0. { 0.25 } else { delta_y };
+    let height_formula = if delta_y == 0. { "GUARD(0.25DL)" } else { "GUARD(EndY-BeginY)" };
+    let layer_section = page.sheet.sections.iter().position(|s| s.name == "Layer" && !s.deleted);
+    let existing_layer = layer_section.and_then(|i| page.sheet.sections.get(i)).and_then(|s| {
+        s.rows.iter().enumerate().find_map(|(i, r)| {
+            (!r.deleted && r.cells.iter().any(|c| matches!(c.name.as_str(), "Name" | "NameUniv") && c.value.as_deref() == Some("Connector")))
+                .then(|| r.index.unwrap_or(u32::try_from(i).unwrap_or(u32::MAX)))
+        })
+    });
+    let layer_index = existing_layer.unwrap_or_else(|| {
+        layer_section.and_then(|i| page.sheet.sections.get(i)).map_or(0, |s| {
+            s.rows.iter().enumerate().map(|(i, r)| r.index.unwrap_or(u32::try_from(i).unwrap_or(u32::MAX))).max().map_or(0, |n| n.saturating_add(1))
+        })
+    });
+    if layer_index >= 16_384 || (existing_layer.is_none() && layer_section.is_none() && page.sheet.sections.len() >= 16_384) {
+        return Err("dynamic glue layer limit".into());
+    }
+    if width.abs() > 1e6 || height.abs() > 1e6 {
+        return Err("dynamic glue derived coordinate limit".into());
+    }
+    let extra = if existing_layer.is_some() { 0 } else { 11 };
+    glue_sheet_capacity(&page.sheet, extra)?;
+    if extra != 0
+        && layer_section.and_then(|i| page.sheet.sections.get(i)).is_some_and(|section| {
+            section.rows.len() >= 16_384
+                || section.cells.len().saturating_add(section.rows.iter().fold(0usize, |n, r| n.saturating_add(r.cells.len()))).saturating_add(extra)
+                    > 16_384
+        })
+    {
+        return Err("dynamic glue layer section limit".into());
+    }
+    for shape in page.shapes.iter().filter(|s| targets.contains(&s.id)) {
+        glue_sheet_capacity(&shape.sheet, usize::from(shape.sheet.cell("ObjType").is_none()))?;
+    }
     let connector = Shape {
         id,
         master: Some(master),
         shape_type: Some("Shape".into()),
         sheet: Sheet {
             cells: vec![
+                cell("PinX", Some(&((bx + ex) * 0.5).to_string()), Some("Inh"), None),
+                cell("PinY", Some(&((by + ey) * 0.5).to_string()), Some("Inh"), None),
+                cell("Width", Some(&width.to_string()), Some("GUARD(EndX-BeginX)"), None),
+                cell("Height", Some(&height.to_string()), Some(height_formula), None),
+                cell("LocPinX", Some(&(width * 0.5).to_string()), Some("Inh"), None),
+                cell("LocPinY", Some(&(height * 0.5).to_string()), Some("Inh"), None),
+                cell("TxtPinX", Some(&(width * 0.5).to_string()), Some("Inh"), None),
+                cell("TxtPinY", Some(&(height * 0.5).to_string()), Some("Inh"), None),
+                cell("ConFixedCode", Some("6"), None, None),
+                cell("LayerMember", Some(&layer_index.to_string()), None, None),
                 cell("BeginX", Some(&bx.to_string()), Some(forward), None),
                 cell("BeginY", Some(&by.to_string()), Some(forward), None),
                 cell("EndX", Some(&ex.to_string()), Some(reverse), None),
@@ -380,13 +428,69 @@ pub fn glue_dynamic(page: &mut Page, id: u32, master: u32, targets: [u32; 2], en
                 cell("BegTrigger", Some("2"), Some(&format!("_XFTRIGGER(Sheet.{from}!EventXFMod)")), None),
                 cell("EndTrigger", Some("2"), Some(&format!("_XFTRIGGER(Sheet.{to}!EventXFMod)")), None),
             ],
+            sections: vec![
+                section(
+                    &[("N", "Control")],
+                    vec![],
+                    vec![row(
+                        &[("N", "TextPosition")],
+                        vec![
+                            cell("X", Some(&(width * 0.5).to_string()), None, None),
+                            cell("Y", Some(&(height * 0.5).to_string()), None, None),
+                            cell("XDyn", Some(&(width * 0.5).to_string()), Some("Inh"), None),
+                            cell("YDyn", Some(&(height * 0.5).to_string()), Some("Inh"), None),
+                        ],
+                    )],
+                ),
+                section(
+                    &[("N", "Geometry"), ("IX", "0")],
+                    vec![],
+                    vec![
+                        row(&[("T", "MoveTo"), ("IX", "1")], vec![cell("Y", Some(&((height - delta_y) * 0.5).to_string()), None, None)]),
+                        row(
+                            &[("T", "LineTo"), ("IX", "2")],
+                            vec![
+                                cell("X", Some(&width.to_string()), None, None),
+                                cell("Y", Some(&((height + delta_y) * 0.5).to_string()), None, None),
+                            ],
+                        ),
+                        row(&[("T", "LineTo"), ("IX", "3"), ("Del", "1")], vec![]),
+                    ],
+                ),
+            ],
             ..Default::default()
         },
         ..Default::default()
     };
+    if existing_layer.is_none() {
+        let new_row = row(
+            &[("IX", &layer_index.to_string())],
+            [
+                ("Name", "Connector"),
+                ("Color", "255"),
+                ("Status", "0"),
+                ("Visible", "1"),
+                ("Print", "1"),
+                ("Active", "0"),
+                ("Lock", "0"),
+                ("Snap", "1"),
+                ("Glue", "1"),
+                ("NameUniv", "Connector"),
+                ("ColorTrans", "0"),
+            ]
+            .into_iter()
+            .map(|(n, v)| cell(n, Some(v), None, None))
+            .collect(),
+        );
+        if let Some(section) = layer_section.and_then(|i| page.sheet.sections.get_mut(i)) {
+            section.rows.push(new_row);
+        } else {
+            page.sheet.sections.push(section(&[("N", "Layer")], vec![], vec![new_row]));
+        }
+    }
     for shape in &mut page.shapes {
         if targets.contains(&shape.id) {
-            shape.sheet.cells.retain(|c| c.name != "ObjType");
+            shape.sheet.cells.retain(|c| !c.name.eq_ignore_ascii_case("ObjType"));
             shape.sheet.cells.push(cell("ObjType", Some("1"), None, None));
         }
     }
@@ -403,4 +507,117 @@ pub fn glue_dynamic(page: &mut Page, id: u32, master: u32, targets: [u32; 2], en
         });
     }
     Ok(())
+}
+
+/// Bound cells and rows before extending a glue target or the connector layer.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/section-element-sheet_type-complextypevisio-xml
+fn glue_sheet_capacity(sheet: &Sheet, extra: usize) -> Result<(), String> {
+    let mut total = sheet.cells.len().saturating_add(extra);
+    if sheet.sections.len() > 16_384 {
+        return Err("dynamic glue section limit".into());
+    }
+    for section in &sheet.sections {
+        if section.rows.len() > 16_384 {
+            return Err("dynamic glue row limit".into());
+        }
+        let mut cells = section.cells.len();
+        for row in &section.rows {
+            cells = cells.saturating_add(row.cells.len());
+        }
+        if cells > 16_384 {
+            return Err("dynamic glue section cell limit".into());
+        }
+        total = total.saturating_add(cells);
+    }
+    if total > 65_536 {
+        return Err("dynamic glue sheet cell limit".into());
+    }
+    // Reserve an upper bound for the fixed new cell/row names and literal values.
+    if glue_metadata_bytes(sheet)?.saturating_add(extra.saturating_mul(128)).saturating_add(128) > 16 * 1024 * 1024 {
+        return Err("dynamic glue sheet byte limit".into());
+    }
+    Ok(())
+}
+
+// Preflight metadata bytes before adding a small fixed set of glue cells.
+fn glue_metadata_bytes(sheet: &Sheet) -> Result<usize, String> {
+    fn attrs(a: &std::collections::BTreeMap<String, String>) -> usize {
+        a.iter().fold(0usize, |n, (k, v)| n.saturating_add(k.len()).saturating_add(v.len()))
+    }
+    fn xml(e: &XmlElement, depth: usize, nodes: &mut usize) -> Result<usize, String> {
+        *nodes = nodes.saturating_add(1);
+        if depth > 128 || *nodes > 4_000_000 {
+            return Err("dynamic glue XML limit".into());
+        }
+        let mut bytes =
+            e.name.len().saturating_add(e.namespace.len()).saturating_add(attrs(&e.attributes)).saturating_add(attrs(&e.attribute_namespaces));
+        for child in &e.children {
+            bytes = bytes.saturating_add(match child {
+                XmlNode::Text(s) => s.len(),
+                XmlNode::Element(c) => xml(c, depth + 1, nodes)?,
+            });
+            if bytes > 16 * 1024 * 1024 {
+                return Err("dynamic glue sheet byte limit".into());
+            }
+        }
+        Ok(bytes)
+    }
+    fn cells(cells: &[Cell], nodes: &mut usize) -> Result<usize, String> {
+        let mut bytes = 0usize;
+        for c in cells {
+            bytes = bytes.saturating_add(c.name.len()).saturating_add(attrs(&c.attributes));
+            for s in [&c.value, &c.formula, &c.units, &c.error].into_iter().flatten() {
+                bytes = bytes.saturating_add(s.len());
+            }
+            for e in &c.ref_by {
+                bytes = bytes.saturating_add(xml(e, 0, nodes)?);
+            }
+            if bytes > 16 * 1024 * 1024 {
+                return Err("dynamic glue sheet byte limit".into());
+            }
+        }
+        Ok(bytes)
+    }
+    let mut nodes = 0;
+    let mut bytes = attrs(&sheet.attributes).saturating_add(cells(&sheet.cells, &mut nodes)?);
+    for section in &sheet.sections {
+        bytes =
+            bytes.saturating_add(section.name.len()).saturating_add(attrs(&section.attributes)).saturating_add(cells(&section.cells, &mut nodes)?);
+        for row in &section.rows {
+            bytes = bytes.saturating_add(attrs(&row.attributes)).saturating_add(cells(&row.cells, &mut nodes)?);
+            for s in [&row.name, &row.row_type].into_iter().flatten() {
+                bytes = bytes.saturating_add(s.len());
+            }
+        }
+        if bytes > 16 * 1024 * 1024 {
+            return Err("dynamic glue sheet byte limit".into());
+        }
+    }
+    for e in &sheet.triggers {
+        bytes = bytes.saturating_add(xml(e, 0, &mut nodes)?);
+    }
+    Ok(bytes)
+}
+
+#[cfg(test)]
+mod glue_byte_regression {
+    use super::*;
+    #[test]
+    fn replacing_empty_objtype_reserves_value_growth() {
+        let mut page = page(0, "Page", false);
+        page.shapes = vec![
+            Shape {
+                id: 1,
+                sheet: Sheet { cells: vec![cell("ObjType", None, None, None), cell("Comment", Some(""), None, None)], ..Default::default() },
+                ..Default::default()
+            },
+            Shape { id: 2, ..Default::default() },
+        ];
+        let remaining = 16 * 1024 * 1024 - glue_metadata_bytes(&page.shapes[0].sheet).unwrap();
+        page.shapes[0].sheet.cells[1].value = Some("x".repeat(remaining));
+        assert_eq!(glue_metadata_bytes(&page.shapes[0].sheet).unwrap(), 16 * 1024 * 1024);
+        let before = page.clone();
+        assert!(glue_dynamic(&mut page, 3, 2, [1, 2], [[1., 0.5], [2., 0.5]]).is_err());
+        assert_eq!(page, before);
+    }
 }

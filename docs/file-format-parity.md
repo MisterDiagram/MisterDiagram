@@ -1215,3 +1215,9 @@ Metric document/style formatting defaults without explicit U resolve using drawi
 the scratch metric COM dump reports millimetres (70), while SOCIAL_DISTANCING_M uses
 DrawingScale U=M and reports metres (71). Explicit cell units remain authoritative.
 Live acceptance of the corrected scratch drawing is pending the M3.23 rerun.
+
+M3.16 dynamic connector instances now carry a straight route and its cached transform,
+text-position controls, deleted unused Geometry row, ConFixedCode and Connector layer.
+Witness: generated/connector/dynamic-glue.vsdx page1 shape3. Four page-space direction
+cases pass after write/read; endpoint hooks retain caller-supplied caches. The two
+Connect records remain. Live Visio ink, size and Connect verification is still pending.

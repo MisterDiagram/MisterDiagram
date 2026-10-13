@@ -330,3 +330,7 @@ Connects and metric default-unit metadata. Millimetre and metre contexts have se
 regressions. The scratch metric COM/part count above remains historical until rerun.
 The renderer's background-chain depth bound is128; the writer permits bounded acyclic
 chains beyond it. No corpus failure is attributed to that synthetic limit.
+M3.16 closes the host-side missing routed-state defect for the authored connector.
+Straight horizontal, reverse, vertical and diagonal route regressions pass. Live gap
+ink and two-Connect acceptance remains pending; the earlier COM result alone did not
+prove visible routed geometry.

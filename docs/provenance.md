@@ -86,3 +86,10 @@ corpus/generated/connector/dynamic-glue.vsdx, not copied graphics. The model hel
 writes WALKGLUE endpoints, XFTRIGGER target events, target ObjType1 and both Connects;
 cached endpoints come from the caller's page geometry. The scratch reread and hostile
 request tests cover this contract. Acceptance requires both live COM Connects rows.
+
+M3.16 authored dynamic connector routing reproduces the serialized state observed in
+corpus/generated/connector/dynamic-glue.vsdx, page1 shape3: inherited transform/text
+pins, guarded width/height, TextPosition controls, straight Geometry rows with the
+unused master row deleted, ConFixedCode6 and membership in a Connector layer. Endpoint
+caches come from the caller's geometry. This is observed functional formula/format
+behavior, with no copied icon, artwork or Microsoft copyright cell.

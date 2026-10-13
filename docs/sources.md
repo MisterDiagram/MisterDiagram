@@ -188,7 +188,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml> | `crates/model/src/lib.rs`, `crates/model/src/skeleton_defaults.rs`, `crates/vsdx/src/evaluate/path.rs`, `crates/vsdx/src/write/model.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/sat-function> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/scratch-section> | `crates/vsdx/src/evaluate.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/section-element-sheet_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/model/src/skeleton_defaults.rs`, `crates/vsdx/src/lib.rs`, `crates/vsdx/src/limits.rs`, `crates/vsdx/src/write/model.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/section-element-sheet_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs`, `crates/model/src/skeleton_defaults.rs`, `crates/vsdx/src/lib.rs`, `crates/vsdx/src/limits.rs`, `crates/vsdx/src/write/model.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/setatref-function> | `crates/sheet/src/functions/references.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/setatrefeval-function> | `crates/sheet/src/functions/references.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/setatrefexpr-function> | `crates/sheet/src/functions/references.rs` |
