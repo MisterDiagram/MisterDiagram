@@ -8,6 +8,7 @@ use std::{
 };
 mod format;
 pub use format::{SaveKind, write_as, write_as_with_hosts};
+mod instances;
 mod model;
 mod source;
 mod validate;
@@ -26,7 +27,7 @@ pub struct Written {
     pub warnings: Vec<String>,
     pub warning_count: usize,
 }
-/// Recalculate concrete local caches; unavailable formulas retain their saved values with warnings.
+/// Preserve unchanged source caches and recalculate authored or dependency-affected cells.
 /// Inject theme/text hosts at the application layer to preserve the L2 dependency contract.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
 pub fn write(doc: &Document) -> Result<Written, WriteError> {

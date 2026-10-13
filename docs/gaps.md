@@ -313,3 +313,9 @@ was also wrong. Our writer replaced those values. M3.12 preserves unchanged loca
 caches, with raw arrow/probe/SITACC regressions and typed dirty-cache tests. The
 historical acceptance results still need the M3.18 restatement; this fix alone does
 not close Visio acceptance.
+
+P3-closure-2 M3.13 supplies missing inherited instance caches and preserves existing
+local `Inh` records. The basic-rectangle exact-cell-set regression passes, including
+reconstruction of its Geometry and Connection caches. Visio export validation of the
+resized scratch master remains pending the new acceptance run. This does not yet
+close the dropped-master render gap.

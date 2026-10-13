@@ -313,3 +313,11 @@ impl Budget {
         Ok(())
     }
 }
+
+/// Revalidate bounded instance caches after inherited values have been materialized.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+pub(super) fn sheet(sheet: &Sheet) -> Result<usize, WriteError> {
+    let mut budget = Budget { bytes: 0, nodes: 0 };
+    budget.sheet(sheet)?;
+    Ok(budget.bytes)
+}

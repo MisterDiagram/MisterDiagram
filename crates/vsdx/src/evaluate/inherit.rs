@@ -490,7 +490,17 @@ impl<'a> Evaluator<'a> {
         }
         self.sheets.get(&scope)?.attributes.get(name)?.parse().ok()
     }
-    pub(super) fn formula_origin(&self, scope: Scope, name: &str) -> Option<Scope> {
+    /// The master content scope supplying an instance's inherited cells.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
+    pub(crate) fn master_source(&self, scope: Scope) -> Option<Scope> {
+        self.inheritance.masters.get(&scope).copied()
+    }
+    /// Local cache, including Inh, before resolving the formula provider.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+    pub(crate) fn local_source_cell(&self, scope: Scope, name: &str) -> Option<&'a Cell> {
+        self.inheritance.local_cells.get(&Key { scope, name: name.to_ascii_lowercase() }).copied()
+    }
+    pub(crate) fn formula_origin(&self, scope: Scope, name: &str) -> Option<Scope> {
         let key = self.canonical_key(scope, name)?;
         self.inheritance.origins.get(&key).copied()
     }

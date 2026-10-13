@@ -51,13 +51,20 @@ fn unknown_parts_and_extensions_survive_modelled_edits() {
     assert_eq!(b.pages[0].name, "Changed");
 }
 #[test]
-fn instances_keep_only_local_overrides_and_master_relationships() {
+fn instances_keep_overrides_and_changed_inherited_caches() {
     let mut d = skeleton::document(false);
     let mut s = diagramcraft_model::Shape { id: 1, master: Some(2), shape_type: Some("Shape".into()), ..Default::default() };
     s.sheet.cells.push(Cell { name: "BeginX".into(), value: Some("2".into()), ..Default::default() });
     d.pages[0].shapes.push(s);
     let a = import(&write(&d).unwrap().bytes).unwrap();
-    assert_eq!(a.pages[0].shapes[0].sheet.cells.len(), 1);
+    let cells = &a.pages[0].shapes[0].sheet.cells;
+    assert_eq!(cells.len(), 4);
+    for (name, value) in [("PinX", "2"), ("Width", "0"), ("LocPinX", "0")] {
+        let cell = cells.iter().find(|c| c.name == name).unwrap();
+        assert_eq!(cell.formula.as_deref(), Some("Inh"));
+        assert_eq!(cell.value.as_deref(), Some(value));
+    }
+    assert!(!cells.iter().any(|c| c.name == "EndX"));
     assert_eq!(a.parts["visio/pages/page1.xml"].relationships.iter().filter(|r| r.type_uri.ends_with("/master")).count(), 1);
 }
 #[test]
@@ -496,4 +503,210 @@ fn row_type_and_palette_edits_dirty_dependent_caches() {
     assert_ne!(sheet.cell("PathMeasure").unwrap().value, old);
     assert_eq!(sheet.cell("RedMeasure").unwrap().value.as_deref(), Some("17"));
     assert_eq!(sheet.cell("RedDependent").unwrap().value.as_deref(), Some("18"));
+}
+
+#[test]
+fn resized_basic_rectangle_reproduces_inherited_instance_cache_set() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    let source = diagramcraft_vsdx::read(root.join("generated/master/basic-rect.vsdx")).unwrap();
+    fn caches(d: &diagramcraft_model::Document) -> std::collections::BTreeMap<String, (Option<String>, Option<String>, Option<String>)> {
+        let e = diagramcraft_vsdx::evaluate::Evaluator::new(d).unwrap();
+        e.source_named_cells(diagramcraft_vsdx::evaluate::Scope::PageShape { page: 0, shape: 1 })
+            .unwrap()
+            .into_iter()
+            .map(|n| (n.name, (n.cell.value.clone(), n.cell.formula.clone(), n.cell.units.clone())))
+            .collect()
+    }
+    let expected = caches(&source);
+    for rebuild in [false, true] {
+        let mut d = source.clone();
+        if rebuild {
+            let s = &mut d.pages[0].shapes[0].sheet;
+            s.cells.retain(|c| c.formula.as_deref() != Some("Inh"));
+            for s in &mut s.sections {
+                for r in &mut s.rows {
+                    r.cells.retain(|c| c.formula.as_deref() != Some("Inh"));
+                }
+            }
+        }
+        let a = import(&write(&d).unwrap().bytes).unwrap();
+        let actual = caches(&a);
+        assert_eq!(actual.keys().collect::<Vec<_>>(), expected.keys().collect::<Vec<_>>(), "rebuild={rebuild}");
+        for (name, (v, f, u)) in &expected {
+            let (av, af, au) = &actual[name];
+            assert_eq!(af, f, "{name}");
+            assert_eq!(au, u, "{name}");
+            match (v.as_deref().and_then(|s| s.parse::<f64>().ok()), av.as_deref().and_then(|s| s.parse::<f64>().ok())) {
+                (Some(a), Some(b)) => assert!((a - b).abs() <= 1e-6, "{name}: {a} != {b}"),
+                _ => assert_eq!(av, v, "{name}"),
+            }
+        }
+    }
+}
+
+#[test]
+fn inherited_rows_keep_effective_indices_and_named_identity() {
+    let mut d = skeleton::document(false);
+    let master = &mut d.masters[0].shapes[0];
+    master.sheet.sections = vec![
+        Section {
+            name: "Connections".into(),
+            rows: (0..2)
+                .map(|i| Row {
+                    cells: vec![Cell {
+                        name: "X".into(),
+                        value: Some((i + 1).to_string()),
+                        formula: Some(format!("Width*{}", i + 1)),
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                })
+                .collect(),
+            ..Default::default()
+        },
+        Section {
+            name: "User".into(),
+            rows: vec![Row {
+                name: Some("Named".into()),
+                index: Some(7),
+                cells: vec![Cell { name: "Value".into(), value: Some("1".into()), formula: Some("Width".into()), ..Default::default() }],
+                ..Default::default()
+            }],
+            ..Default::default()
+        },
+    ];
+    let mut instance = diagramcraft_model::Shape { id: 1, master: Some(2), ..Default::default() };
+    instance.sheet.cells.push(Cell { name: "Width".into(), value: Some("2".into()), ..Default::default() });
+    instance.sheet.sections.push(Section {
+        name: "User".into(),
+        rows: vec![Row {
+            name: Some("Named".into()),
+            cells: vec![Cell { name: "Prompt".into(), value: Some("keep".into()), ..Default::default() }],
+            ..Default::default()
+        }],
+        ..Default::default()
+    });
+    d.pages[0].shapes.push(instance);
+    let a = import(&write(&d).unwrap().bytes).unwrap();
+    let sections = &a.pages[0].shapes[0].sheet.sections;
+    let connections = sections.iter().find(|s| s.name == "Connections").unwrap();
+    assert_eq!(connections.rows.len(), 2);
+    for (i, row) in connections.rows.iter().enumerate() {
+        assert_eq!(row.index, Some(i as u32));
+        assert_eq!(row.cells[0].value.as_deref(), Some(((i + 1) * 2).to_string().as_str()));
+    }
+    let user = sections.iter().find(|s| s.name == "User").unwrap();
+    assert_eq!(user.rows.len(), 1);
+    assert_eq!(user.rows[0].cells.len(), 2);
+}
+
+#[test]
+fn inherited_string_expansion_is_rejected_at_the_sheet_byte_bound() {
+    let mut d = skeleton::document(false);
+    d.masters[0].shapes[0].sheet.sections = vec![Section {
+        name: "User".into(),
+        rows: (0..300)
+            .map(|i| Row {
+                name: Some(format!("Large{i}")),
+                cells: vec![Cell {
+                    name: "Value".into(),
+                    value: Some(String::new()),
+                    formula: Some("IF(Width>1,User.Shared,\"\")".into()),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            })
+            .collect(),
+        ..Default::default()
+    }];
+    let mut s = diagramcraft_model::Shape { id: 1, master: Some(2), ..Default::default() };
+    s.sheet.cells.push(Cell { name: "Width".into(), value: Some("2".into()), ..Default::default() });
+    d.pages[0].shapes.push(s);
+    d.masters[0].shapes[0].sheet.sections[0].rows.push(Row {
+        name: Some("Shared".into()),
+        cells: vec![Cell { name: "Value".into(), value: Some("a".repeat(65536)), units: Some("STR".into()), ..Default::default() }],
+        ..Default::default()
+    });
+    let error = write(&d).expect_err("expanded instance must be rejected");
+    assert!(error.to_string().contains("instance sheet byte limit"), "{error}");
+}
+
+#[test]
+fn equivalent_inherited_colors_and_font_ordinals_are_not_materialized() {
+    let mut d = skeleton::document(false);
+    d.masters[0].shapes[0].sheet.cells.push(Cell {
+        name: "LineColor".into(),
+        value: Some("#cc0000".into()),
+        formula: Some("RGB(204,0,0)".into()),
+        ..Default::default()
+    });
+    d.masters[0].shapes[0].sheet.sections.push(Section {
+        name: "Character".into(),
+        rows: vec![Row {
+            index: Some(0),
+            cells: vec![Cell { name: "Font".into(), value: Some("0".into()), formula: Some("FONT(\"Calibri\")".into()), ..Default::default() }],
+            ..Default::default()
+        }],
+        ..Default::default()
+    });
+    d.pages[0].shapes.push(diagramcraft_model::Shape { id: 1, master: Some(2), ..Default::default() });
+    let a = import(&write(&d).unwrap().bytes).unwrap();
+    let sheet = &a.pages[0].shapes[0].sheet;
+    assert!(sheet.cell("LineColor").is_none());
+    assert!(!sheet.sections.iter().any(|s| s.name == "Character"));
+}
+
+#[test]
+fn inherited_text_caches_compare_as_text_and_named_fonts_as_faces() {
+    let mut d = skeleton::document(false);
+    d.masters[0].shapes[0].sheet.sections = vec![
+        Section {
+            name: "User".into(),
+            rows: [("NumericText", "01", "1"), ("HexText", "#abc", "#ABC")]
+                .into_iter()
+                .map(|(name, before, after)| Row {
+                    name: Some(name.into()),
+                    cells: vec![Cell {
+                        name: "Value".into(),
+                        value: Some(before.into()),
+                        units: Some("STR".into()),
+                        formula: Some(format!("IF(Width>1,\"{after}\",\"{before}\")")),
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                })
+                .collect(),
+            ..Default::default()
+        },
+        Section {
+            name: "Character".into(),
+            rows: vec![Row {
+                index: Some(0),
+                cells: vec![Cell {
+                    name: "Font".into(),
+                    value: Some("Calibri".into()),
+                    formula: Some("FONT(\"Calibri\")".into()),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            }],
+            ..Default::default()
+        },
+    ];
+    let mut s = diagramcraft_model::Shape { id: 1, master: Some(2), ..Default::default() };
+    s.sheet.cells.push(Cell { name: "Width".into(), value: Some("2".into()), ..Default::default() });
+    d.pages[0].shapes.push(s);
+    let a = import(&write(&d).unwrap().bytes).unwrap();
+    let sheet = &a.pages[0].shapes[0].sheet;
+    let user = sheet.sections.iter().find(|s| s.name == "User").unwrap();
+    for (name, value) in [("NumericText", "1"), ("HexText", "#ABC")] {
+        let row = user.rows.iter().find(|r| r.name.as_deref() == Some(name)).unwrap();
+        assert_eq!(row.cells[0].value.as_deref(), Some(value));
+        assert_eq!(row.cells[0].formula.as_deref(), Some("Inh"));
+    }
+    assert!(!sheet.sections.iter().any(|s| s.name == "Character"));
 }

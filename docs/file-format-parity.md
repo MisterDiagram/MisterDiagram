@@ -1178,3 +1178,11 @@ The original probe already has LangID `en-US`, empty BulletStr and TextBkgnd
 `#ffffff`. Earlier saves that replaced them with `1033`, `0` and `26` were
 writer defects, not normalization by Visio. Earlier acceptance COM counts require
 the M3.18 reporter correction before they can support a conclusion.
+
+M3.13 inherited instance caches: the writer preserves existing local `Inh` values
+and materializes missing master cells when their instance result differs from the
+master cache. The serialized cache uses the source unit. Witness:
+`corpus/generated/master/basic-rect.vsdx`, page 1 shape 1, resized to 3 by 2 inches.
+`resized_basic_rectangle_reproduces_inherited_instance_cache_set` verifies the exact
+cell and `Inh` sets, including reconstruction after removing those local caches.
+Expanded strings are charged against the sheet byte bound before insertion.

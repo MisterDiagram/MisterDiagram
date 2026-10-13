@@ -195,7 +195,8 @@ impl Writer<'_> {
                         && (s.id != u32::MAX || e.attr("MasterShape").and_then(|v| v.parse::<u32>().ok()) == s.master_shape)
                 })
             });
-            let mut e = self.sheet(&s.sheet, scope, "Shape", old)?;
+            let instance_sheet = self.instance_sheet(&s.sheet, scope)?;
+            let mut e = self.sheet(&instance_sheet, scope, "Shape", old)?;
             set(&mut e, "ID", Some(s.id.to_string()));
             set(&mut e, "Type", s.shape_type.clone());
             for (k, v) in [
