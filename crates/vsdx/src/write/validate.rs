@@ -222,7 +222,9 @@ pub(crate) fn document(d: &Document) -> Result<(), WriteError> {
         b.connects(&p.connects)?;
         b.sheet(&p.sheet)?;
         b.shapes(&p.shapes)?;
+        connect_targets(&p.connects, &p.shapes)?;
     }
+    background_chains(d)?;
     let mut ids = BTreeSet::new();
     for m in &d.masters {
         if !ids.insert(m.id) {
@@ -240,6 +242,7 @@ pub(crate) fn document(d: &Document) -> Result<(), WriteError> {
         b.connects(&m.connects)?;
         b.sheet(&m.sheet)?;
         b.shapes(&m.shapes)?;
+        connect_targets(&m.connects, &m.shapes)?;
         master_ids(d, m)?;
         if let Some(i) = &m.icon {
             b.xml(i)?;
@@ -353,6 +356,49 @@ fn master_ids(d: &Document, m: &Master) -> Result<(), WriteError> {
             return Err(error(format!("master {} content shape ID {} must start at 5", m.id, shape.id)));
         }
         pending.extend(&shape.shapes);
+    }
+    Ok(())
+}
+
+/// Connect endpoints must name existing shapes in their page or master contents.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/connect-element-connects_type-complextypevisio-xml
+fn connect_targets(connects: &[Connect], shapes: &[Shape]) -> Result<(), WriteError> {
+    // Sheet 0 is the enclosing PageSheet, not a missing drawing shape.
+    // Witness: BLOCKP_M.vssx master2.xml, Controls.Row_1 -> Sheet.0!User.VPX.
+    let mut ids = BTreeSet::from([0]);
+    let mut pending: Vec<_> = shapes.iter().collect();
+    while let Some(shape) = pending.pop() {
+        if shape.sheet.attributes.get("Del").is_some_and(|v| v == "1" || v == "true") {
+            continue;
+        }
+        ids.insert(shape.id);
+        pending.extend(&shape.shapes);
+    }
+    if connects.iter().any(|c| !ids.contains(&c.from_sheet) || !ids.contains(&c.to_sheet)) {
+        return Err(error("Connect references missing sheet"));
+    }
+    Ok(())
+}
+
+/// Validate the bounded BackPage graph before writing page relationships.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
+fn background_chains(d: &Document) -> Result<(), WriteError> {
+    let pages: BTreeMap<_, _> = d.pages.iter().map(|p| (p.id, p)).collect();
+    let mut complete = BTreeSet::new();
+    for page in &d.pages {
+        let mut path = BTreeSet::new();
+        let mut next = Some(page.id);
+        while let Some(id) = next {
+            if complete.contains(&id) {
+                break;
+            }
+            if !path.insert(id) {
+                return Err(error("background page cycle"));
+            }
+            let page = pages.get(&id).ok_or_else(|| error("missing background page"))?;
+            next = page.attributes.get("BackPage").map(|v| v.parse::<u32>().map_err(|_| error("invalid background page ID"))).transpose()?;
+        }
+        complete.extend(path);
     }
     Ok(())
 }

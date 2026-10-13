@@ -63,6 +63,9 @@ fn five_documents_build_and_reread() {
     let mut d = skeleton::document(true);
     let mut back = skeleton::page(1, "Background", true);
     back.attributes.insert("Background".into(), "1".into());
+    back.attributes.insert("ViewScale".into(), "0".into());
+    back.part = "visio/pages/page1.xml".into();
+    d.pages[0].part = "visio/pages/page2.xml".into();
     back.shapes.push(skeleton::rectangle(1, 0.5, 0.5, 5., 3., "Background").unwrap());
     d.pages[0].attributes.insert("BackPage".into(), "1".into());
     d.pages[0].sheet.sections.push(Section {
@@ -87,16 +90,18 @@ fn five_documents_build_and_reread() {
         shape.sheet.cells.push(cell("LayerMember", &i.to_string(), None));
         d.pages[0].shapes.push(shape);
     }
-    d.pages.push(back);
+    let foreground = d.pages.remove(0);
+    d.pages = vec![back, foreground];
     let a = save(&root, "scratch__metric-background-layers.vsdx", &d, SaveKind::Drawing);
     assert_eq!(a.pages.len(), 2);
-    assert_eq!(a.pages[0].attributes.get("BackPage").unwrap(), "1");
-    assert_eq!(a.pages[0].sheet.sections.iter().find(|s| s.name == "Layer").unwrap().rows.len(), 2);
-    for (i, shape) in a.pages[0].shapes.iter().enumerate() {
+    let foreground = a.pages.iter().find(|p| p.id == 0).unwrap();
+    assert_eq!(foreground.attributes.get("BackPage").unwrap(), "1");
+    assert_eq!(foreground.sheet.sections.iter().find(|s| s.name == "Layer").unwrap().rows.len(), 2);
+    for (i, shape) in foreground.shapes.iter().enumerate() {
         assert_eq!(shape.sheet.cell("LayerMember").unwrap().value.as_deref(), Some(i.to_string().as_str()));
     }
     assert_eq!(
-        a.pages[0].sheet.sections.iter().find(|s| s.name == "Layer").unwrap().rows[1]
+        foreground.sheet.sections.iter().find(|s| s.name == "Layer").unwrap().rows[1]
             .cells
             .iter()
             .find(|c| c.name == "Visible")

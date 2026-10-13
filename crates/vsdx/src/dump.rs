@@ -235,6 +235,44 @@ fn dump_sheet(evaluator: &mut Evaluator<'_>, scope: Scope, id: u32, identity: &s
     let mut slots = BTreeMap::new();
     for named in evaluator.resolved_named_cells(scope) {
         if let Some((s, r, c, mut u)) = metadata(evaluator, scope, &named) {
+            // Metric formatting defaults use the drawing unit when XML omits U.
+            // Witnesses: metric scratch (MM), SOCIAL_DISTANCING_M (M).
+            // https://learn.microsoft.com/en-us/office/client-developer/visio/rounding-cell-line-format-section
+            if u == 73
+                && named.cell.units.is_none()
+                && matches!(scope, Scope::Document | Scope::Style(_))
+                && matches!(
+                    named.name.as_str(),
+                    "Rounding"
+                        | "ShapeShdwOffsetX"
+                        | "ShapeShdwOffsetY"
+                        | "ShdwOffsetX"
+                        | "ShdwOffsetY"
+                        | "LeftMargin"
+                        | "RightMargin"
+                        | "TopMargin"
+                        | "BottomMargin"
+                        | "DefaultTabStop"
+                        | "LineToNodeX"
+                        | "LineToNodeY"
+                        | "LineToLineX"
+                        | "LineToLineY"
+                )
+                && evaluator
+                    .document
+                    .parts
+                    .get("docProps/custom.xml")
+                    .and_then(|p| p.xml.as_ref())
+                    .is_some_and(|root| root.elements().any(|p| p.attr("name") == Some("IsMetric") && matches!(p.text().as_str(), "true" | "1")))
+            {
+                u = evaluator
+                    .document
+                    .pages
+                    .first()
+                    .and_then(|p| p.sheet.cells.iter().find(|c| c.name == "DrawingScale"))
+                    .map_or(70, |c| unit_code(c, 70));
+            }
+
             if u == 73
                 && !(s == 1 && r == 10 && matches!(c, 4 | 5))
                 && let Scope::MasterShape { master, .. } = scope
@@ -939,5 +977,51 @@ mod tests {
         assert_eq!(column(240, "Action", false), Some(3));
         assert_eq!(constant_formula(&Cell { value: Some("#cc0000".into()), ..Default::default() }, 251), "RGB(204,0,0)");
         assert_eq!(escape("é\t\n\\"), "é\\t\\n\\\\");
+    }
+}
+
+#[cfg(test)]
+mod metric_defaults_regression {
+    #[test]
+    fn metric_document_format_defaults_use_observed_millimetre_codes() {
+        let document = diagramcraft_model::skeleton::document(true);
+        let mut output = Vec::new();
+        super::dump(&document, super::Selection::Document, &mut output).unwrap();
+        let output = String::from_utf8(output).unwrap();
+        for name in [
+            "Rounding",
+            "ShapeShdwOffsetX",
+            "ShapeShdwOffsetY",
+            "ShdwOffsetX",
+            "ShdwOffsetY",
+            "LeftMargin",
+            "RightMargin",
+            "TopMargin",
+            "BottomMargin",
+            "DefaultTabStop",
+            "LineToNodeX",
+            "LineToNodeY",
+            "LineToLineX",
+            "LineToLineY",
+        ] {
+            let row = output.lines().skip(1).find(|l| l.split('\t').nth(5) == Some(name)).unwrap();
+            assert_eq!(row.split('\t').nth(8), Some("70"), "{name}");
+        }
+    }
+}
+
+#[cfg(test)]
+mod metric_metres_regression {
+    #[test]
+    fn metric_document_defaults_follow_metre_drawing_scale() {
+        let mut document = diagramcraft_model::skeleton::document(true);
+        document.pages[0].sheet.cells.iter_mut().find(|c| c.name == "DrawingScale").unwrap().units = Some("M".into());
+        let mut output = Vec::new();
+        super::dump(&document, super::Selection::Document, &mut output).unwrap();
+        let output = String::from_utf8(output).unwrap();
+        for name in ["Rounding", "ShapeShdwOffsetX", "ShdwOffsetX", "LeftMargin"] {
+            let row = output.lines().skip(1).find(|l| l.split('\t').nth(5) == Some(name)).unwrap();
+            assert_eq!(row.split('\t').nth(8), Some("71"), "{name}");
+        }
     }
 }

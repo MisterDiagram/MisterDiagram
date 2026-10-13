@@ -324,3 +324,9 @@ M3.14: authored master content IDs now start at 5 and invalid lower IDs are reje
 Original Visio ID 4 is retained with a source-byte witness (PHONE_CONN_U.vstx).
 Host regressions pass; the three live master counts and PNG sizes await the fresh
 M3.23 acceptance run. No live acceptance claim is made from host tests.
+
+M3.15 host fixes cover the missing background relationship, stale page links, dangling
+Connects and metric default-unit metadata. Millimetre and metre contexts have separate
+regressions. The scratch metric COM/part count above remains historical until rerun.
+The renderer's background-chain depth bound is128; the writer permits bounded acyclic
+chains beyond it. No corpus failure is attributed to that synthetic limit.

@@ -158,7 +158,15 @@ pub fn page(id: u32, name: &str, metric: bool) -> Page {
             }
         }
     }
-    Page { id, name: name.into(), name_u: name.into(), sheet, part: format!("visio/pages/page{}.xml", u64::from(id) + 1), ..Default::default() }
+    Page {
+        id,
+        name: name.into(),
+        name_u: name.into(),
+        sheet,
+        attributes: attributes(&[("ViewScale", "1"), ("ViewCenterX", "0"), ("ViewCenterY", "0")]),
+        part: format!("visio/pages/page{}.xml", u64::from(id) + 1),
+        ..Default::default()
+    }
 }
 /// Independently authored master using the probe's functional cell names and formulas.
 /// Fresh identities replace both vendor GUIDs; no icon, help reference or copyright cell.

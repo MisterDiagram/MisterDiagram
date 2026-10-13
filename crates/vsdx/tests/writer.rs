@@ -816,3 +816,79 @@ fn edited_source_tree_cannot_authorize_reserved_master_id() {
     d.masters[0].shapes[0].id = 4;
     assert!(write(&d).is_err());
 }
+
+#[test]
+fn background_page_link_and_last_page_removal_are_complete() {
+    let mut d = skeleton::document(true);
+    let mut back = skeleton::page(1, "Background", true);
+    back.attributes.insert("Background".into(), "1".into());
+    d.pages[0].attributes.insert("BackPage".into(), "1".into());
+    d.pages.push(back);
+    let a = import(&write(&d).unwrap().bytes).unwrap();
+    assert!(
+        a.parts["visio/pages/page1.xml"]
+            .relationships
+            .iter()
+            .any(|r| r.type_uri == "http://schemas.microsoft.com/visio/2010/relationships/page" && r.target == "visio/pages/page2.xml")
+    );
+    let mut d = import(&write(&skeleton::document(false)).unwrap().bytes).unwrap();
+    assert!(d.parts.contains_key("visio/pages/page1.xml"));
+    d.pages.clear();
+    let a = import(&write(&d).unwrap().bytes).unwrap();
+    assert!(a.pages.is_empty());
+    assert!(!a.parts.contains_key("visio/pages/page1.xml"));
+    assert!(!a.parts.contains_key("visio/pages/_rels/pages.xml.rels"));
+    assert!(!a.parts["visio/pages/pages.xml"].relationships.iter().any(|r| r.type_uri.ends_with("/page")));
+}
+#[test]
+fn connect_to_missing_page_or_master_shape_is_rejected() {
+    let mut d = skeleton::document(false);
+    d.pages[0].shapes.push(skeleton::rectangle(1, 0., 0., 1., 1., "").unwrap());
+    d.pages[0].connects.push(diagramcraft_model::Connect { from_sheet: 1, to_sheet: 99, ..Default::default() });
+    assert!(write(&d).expect_err("missing page target").to_string().contains("Connect references missing sheet"));
+    d.pages[0].connects.clear();
+    d.masters[0].connects.push(diagramcraft_model::Connect { from_sheet: 5, to_sheet: 99, ..Default::default() });
+    assert!(write(&d).expect_err("missing master target").to_string().contains("Connect references missing sheet"));
+}
+
+#[test]
+fn connect_to_enclosing_page_sheet_is_valid_but_deleted_shape_is_not() {
+    let mut d = skeleton::document(false);
+    d.pages[0].shapes.push(skeleton::rectangle(1, 0., 0., 1., 1., "").unwrap());
+    d.pages[0].connects.push(diagramcraft_model::Connect {
+        from_sheet: 1,
+        to_sheet: 0,
+        from_cell: Some("Controls.Row_1".into()),
+        to_cell: Some("User.VPX".into()),
+        ..Default::default()
+    });
+    let a = import(&write(&d).unwrap().bytes).unwrap();
+    assert_eq!(a.pages[0].connects[0].to_sheet, 0);
+    d.pages[0].shapes[0].sheet.attributes.insert("Del".into(), "1".into());
+    assert!(write(&d).is_err());
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    let d = diagramcraft_vsdx::read(root.join("ms-shipped/1033/BLOCKP_M.vssx")).unwrap();
+    let a = import(&write(&d).unwrap().bytes).unwrap();
+    let count = |d: &diagramcraft_model::Document| d.masters.iter().flat_map(|m| &m.connects).filter(|c| c.to_sheet == 0).count();
+    assert_eq!(count(&d), 18);
+    assert_eq!(count(&a), 18);
+}
+
+#[test]
+fn background_cycles_reject_and_removed_link_prunes_relationship_part() {
+    let mut d = skeleton::document(false);
+    d.pages.push(skeleton::page(1, "Back", false));
+    d.pages[0].attributes.insert("BackPage".into(), "1".into());
+    d.pages[1].attributes.insert("BackPage".into(), "0".into());
+    assert!(write(&d).unwrap_err().to_string().contains("background page cycle"));
+    d.pages[1].attributes.remove("BackPage");
+    let mut d = import(&write(&d).unwrap().bytes).unwrap();
+    assert!(d.parts.contains_key("visio/pages/_rels/page1.xml.rels"));
+    d.pages[0].attributes.remove("BackPage");
+    let a = import(&write(&d).unwrap().bytes).unwrap();
+    assert!(!a.parts.contains_key("visio/pages/_rels/page1.xml.rels"));
+}

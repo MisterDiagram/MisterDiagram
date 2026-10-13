@@ -85,6 +85,23 @@ pub fn write_with_hosts(
         link(&mut main_rels, "pages", &pages_path)?;
         let mut root = source(doc, &pages_path).cloned().unwrap_or_else(|| node("Pages"));
         let mut relations = parts.get(&pages_path).map(|p| p.relationships.clone()).unwrap_or_default();
+        let desired: BTreeSet<_> = doc
+            .pages
+            .iter()
+            .enumerate()
+            .filter(|(_, p)| !sheet_only(doc, p))
+            .map(|(i, p)| if p.part.is_empty() { format!("visio/pages/page{}.xml", i + 1) } else { p.part.clone() })
+            .collect();
+        let removed: Vec<_> = relations
+            .iter()
+            .filter(|r| !r.external && r.type_uri == format!("{}page", crate::VIS_REL) && !desired.contains(&r.target))
+            .map(|r| r.target.clone())
+            .collect();
+        relations.retain(|r| r.external || r.type_uri != format!("{}page", crate::VIS_REL) || desired.contains(&r.target));
+        for path in removed {
+            parts.remove(&path);
+            parts.remove(&diagramcraft_opc::rels_path(&path));
+        }
         let mut children = vec![];
         for (i, p) in doc.pages.iter().enumerate() {
             let path = if p.part.is_empty() { format!("visio/pages/page{}.xml", i + 1) } else { p.part.clone() };
@@ -103,11 +120,15 @@ pub fn write_with_hosts(
                 let contents = w.contents(&p.shapes, &p.connects, Scope::Page(p.id), "PageContents", source(doc, &path))?;
                 put(&mut parts, &path, contents, "application/vnd.ms-visio.page+xml");
                 page_master_links(&mut parts, &path, &p.shapes, doc)?;
+                page_background_link(&mut parts, &path, p, doc)?;
             }
             children.push(e);
         }
         replace(&mut root, "Page", children);
         put(&mut parts, &pages_path, root, "application/vnd.ms-visio.pages+xml");
+        if relations.is_empty() {
+            parts.remove(&diagramcraft_opc::rels_path(&pages_path));
+        }
         if let Some(p) = parts.get_mut(&pages_path) {
             p.relationships = relations;
         }
@@ -410,5 +431,31 @@ fn add_file(files: &mut BTreeMap<String, Vec<u8>>, total: &mut usize, name: Stri
     }
     *total = next;
     files.insert(name, bytes);
+    Ok(())
+}
+
+/// Background pages require a page relationship from the foreground content part.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
+fn page_background_link(parts: &mut BTreeMap<String, Part>, path: &str, page: &Page, doc: &Document) -> Result<(), WriteError> {
+    let target = page
+        .attributes
+        .get("BackPage")
+        .map(|id| -> Result<String, WriteError> {
+            let id = id.parse::<u32>().map_err(|_| error("invalid background page ID"))?;
+            let (i, background) = doc.pages.iter().enumerate().find(|(_, p)| p.id == id).ok_or_else(|| error("missing background page"))?;
+            if id == page.id || sheet_only(doc, background) {
+                return Err(error("invalid background page"));
+            }
+            Ok(if background.part.is_empty() { format!("visio/pages/page{}.xml", i + 1) } else { background.part.clone() })
+        })
+        .transpose()?;
+    let p = parts.get_mut(path).ok_or_else(|| error("missing foreground part"))?;
+    p.relationships.retain(|r| r.external || r.type_uri != format!("{}page", crate::VIS_REL) || target.as_ref() == Some(&r.target));
+    if let Some(target) = target {
+        link(&mut p.relationships, "page", &target)?;
+    }
+    if p.relationships.is_empty() {
+        parts.remove(&diagramcraft_opc::rels_path(path));
+    }
     Ok(())
 }

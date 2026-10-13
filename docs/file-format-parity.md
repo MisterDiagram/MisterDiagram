@@ -1204,3 +1204,14 @@ An editable XML tree or unrelated extension cannot authorize the exception.
 Authored and edited literal caches also use the typed serializer: numeric language
 IDs become language tags, color indices become RGB strings, Font literals retain their numeric value or supplied name, and empty strings remain empty. Imported unchanged literals
 retain their source text. These cases extend the M3.12 formula-cache regressions.
+
+M3.15 background and unit witnesses: a foreground BackPage carries a relationship to
+its background content part. Visio's saved scratch metric drawing adds page2.xml.rels
+with target page1.xml. The skeleton now creates background-first page order and the
+observed page view defaults. Removing pages or their background links removes obsolete
+relationships; cycles and Connects to missing live sheets fail before serialization.
+Sheet 0 remains a valid enclosing PageSheet target (BLOCKP_M master 2, User.VPX).
+Metric document/style formatting defaults without explicit U resolve using drawing units:
+the scratch metric COM dump reports millimetres (70), while SOCIAL_DISTANCING_M uses
+DrawingScale U=M and reports metres (71). Explicit cell units remain authoritative.
+Live acceptance of the corrected scratch drawing is pending the M3.23 rerun.
