@@ -254,12 +254,12 @@ remain invalid. `AWSANALYTICS_M.vssx` has a root thumbnail relationship to
 optional relationship, reports it, and fabricates no preview. Host tests cover
 both cases. `BASIC_U.vssx` also carries a PageSheet-only page entry without
 a Rel or PageContents part; the writer preserves that absence until the page
-contains drawing content. Missing and authored PNG thumbnails have structural round-trip
-tests. In the M3.5 run, scratch__rectangle-text.vsdx without a thumbnail
+contains drawing content. Historical M3.5 observation, superseded by the M3.7 diagnostic above: missing
+and authored PNG thumbnails had structural round-trip tests. In the M3.5 run, scratch__rectangle-text.vsdx without a thumbnail
 opened and saved. The authored PNG case, scratch__dynamic-glue.vsdx, was rejected
 as corrupt. Because that file also exercises a new connector, the cause is not
 isolated. Harness failures prevented repair and render checks for either case;
-missing/PNG thumbnail acceptance is still unresolved.
+missing/PNG thumbnail acceptance was then unresolved.
 
 
 M2.9.1 shipped contact witnesses: CISCONETWORKSHAPES_M/U each had289blank
@@ -1029,3 +1029,8 @@ corpus/generated/connector/dynamic-glue.vsdx, not copied graphics. The model hel
 writes WALKGLUE endpoints, XFTRIGGER target events, target ObjType1 and both Connects;
 cached endpoints come from the caller's page geometry. The scratch reread and hostile
 request tests cover this contract. Acceptance requires both live COM Connects rows.
+
+M3.9 round-trip rule (Charles, P3-closure): equal error strings at the same scene,
+canvas or raster stage count as equal-error pairs. Both sides run independently;
+one-sided or different errors fail. Equal errors have no invented pixel measurements
+and are printed per group. The generated Visio render oracle and ceilings are unchanged.

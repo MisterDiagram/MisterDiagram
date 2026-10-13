@@ -259,3 +259,27 @@ M3.7 thumbnail item CLOSED by Charles's P3-closure decision and diagnostic varia
 all five scratch documents now omit thumbnail parts and relationships. The existing
 EMF round-trip remains byte-preserving. PNG rejection is isolated by v1-nothumb;
 the separate dynamic-glue issue and post-save repair comparisons remain open.
+
+### M3.9 carried renderer gaps
+
+The previous full original-side sweep had568master and74page failures (642total).
+These remain renderer work for a later pass. Identical failures on both sides of a
+read-write-read pair are equal for the writer gate under Charles's P3-closure rule;
+one-sided or different errors still fail. Equal errors are reported separately and
+are not assigned pixel scores. Generated Visio comparisons retain their frozen gates.
+
+| Original error class | Count | Witness |
+|---|---:|---|
+| transform #VALUE! | 272 | ms-shipped/1033/BPMN_ADDRESS_CHANGE_PROCESS_M.vstx#master5 |
+| #VALUE! | 74 | ms-shipped/1033/BCKGRN_M.vssx#master7 |
+| #CYCLE! | 70 | ms-shipped/1033/BASFLO_M.vssx#master9 |
+| REF | 64 | ms-shipped/1033/BLDCOR_M.vssx#master8 |
+| CONTAINERSHEETREF | 62 | ms-shipped/1033/BPMN_ADDRESS_CHANGE_PROCESS_M.vstx#master4 |
+| LISTORDER | 33 | ms-shipped/1033/CROWHRMANAGEMENTSYSTEM_U.vstx#master2 |
+| image format undetermined | 21 | ms-shipped/1033/BPRES_M.vssx#master7 |
+| #NUM! | 16 | ms-shipped/1033/BLDCOR_M.vssx#master1 |
+| CHAR | 16 | ms-shipped/1033/ENTITY_M.vssx#master1 |
+| #NAME? _UCON_GEOTYP | 6 | ms-shipped/1033/COMOLE_M.vssx#master10 |
+| #NAME? LISTMEMBERCOUNT | 4 | ms-shipped/1033/WFCTRL_M.vssx#master11 |
+| #DIV/0! | 2 | ms-shipped/1033/PROCESS_M.vssx#master20 |
+| #NAME? _UCON_ENDTYP | 2 | ms-shipped/1033/IDEF0_M.vssx#master8 |

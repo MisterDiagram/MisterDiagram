@@ -8,6 +8,8 @@ pub struct Report {
     pub packages: usize,
     pub cells: diagramcraft_vsdx::roundtrip::Report,
     pub groups: BTreeMap<String, Group>,
+    pub equal_errors: BTreeMap<String, usize>,
+    pub equal_error_witnesses: BTreeMap<String, Vec<String>>,
     pub errors: Vec<String>,
     pub error_count: usize,
     pub writer_warnings: usize,
@@ -19,7 +21,10 @@ impl Report {
             && self.error_count == 0
             && self.cells.passed()
             && !self.groups.is_empty()
-            && self.groups.iter().all(|(n, g)| g.passed(n == "text"))
+            && self.groups.iter().all(|(n, g)| self.group_passed(n, g))
+    }
+    fn group_passed(&self, name: &str, group: &Group) -> bool {
+        if group.files.is_empty() { self.equal_errors.get(name).is_some_and(|n| *n > 0) } else { group.passed(name == "text") }
     }
     fn error(&mut self, message: String) {
         self.error_count += 1;
@@ -52,13 +57,14 @@ impl fmt::Display for Report {
             worst.sort_by(|a, b| b.mad.unwrap_or(f64::INFINITY).total_cmp(&a.mad.unwrap_or(f64::INFINITY)).then(a.file.cmp(&b.file)));
             writeln!(
                 f,
-                "roundtrip render {name}: images={} errors={} size_mismatches={} mean_MAD={:?} fraction_over16={:?} within_ceiling={}",
-                g.files.len(),
+                "roundtrip render {name}: images={} equal_errors={} errors={} size_mismatches={} mean_MAD={:?} fraction_over16={:?} within_ceiling={}",
+                g.files.len().saturating_add(self.equal_errors.get(name).copied().unwrap_or(0)),
+                self.equal_errors.get(name).copied().unwrap_or(0),
                 g.files.iter().filter(|f| f.error.is_some()).count(),
                 g.files.iter().filter(|f| f.actual.is_some_and(|a| a != f.expected)).count(),
                 g.mean_mad(),
                 g.fraction(),
-                g.passed(name == "text")
+                self.group_passed(name, g)
             )?;
             for file in worst.into_iter().take(3) {
                 writeln!(
@@ -66,6 +72,11 @@ impl fmt::Display for Report {
                     "roundtrip worst {name}: {} original={:?} rewritten={:?} MAD={:?} fraction={:?} error={:?}",
                     file.file, file.expected, file.actual, file.mad, file.differing, file.error
                 )?;
+            }
+        }
+        for (group, witnesses) in &self.equal_error_witnesses {
+            for witness in witnesses {
+                writeln!(f, "roundtrip equal-error witness {group}: {witness}")?;
             }
         }
         for group in self.groups.values() {
@@ -81,6 +92,19 @@ impl fmt::Display for Report {
         writeln!(f, "roundtrip result={}", if self.passed() { "PASS" } else { "FAIL" })
     }
 }
+enum Pair<T> {
+    Values(T, T),
+    EqualError(String),
+}
+fn pair_results<T>(a: Result<T, String>, b: Result<T, String>, stage: &str) -> Result<Pair<T>, String> {
+    match (a, b) {
+        (Ok(a), Ok(b)) => Ok(Pair::Values(a, b)),
+        (Err(a), Err(b)) if a == b => Ok(Pair::EqualError(format!("{stage}: {a}"))),
+        (Err(a), Err(b)) => Err(format!("different {stage} errors: original={a}; rewritten={b}")),
+        (Err(a), Ok(_)) => Err(format!("original-only {stage} error: {a}")),
+        (Ok(_), Err(b)) => Err(format!("rewritten-only {stage} error: {b}")),
+    }
+}
 fn image_pair(report: &mut Report, before: &mut Evaluator<'_>, after: &mut Evaluator<'_>, name: &str, group: &str, index: usize, master: bool) {
     let mut result = FileResult {
         file: format!("{name}#{}{}", if master { "master" } else { "page" }, index + 1),
@@ -90,39 +114,60 @@ fn image_pair(report: &mut Report, before: &mut Evaluator<'_>, after: &mut Evalu
         differing: None,
         error: None,
     };
+    let mut equal_error = None;
     let compare = (|| -> Result<(), String> {
+        // Both sides are evaluated before classification, even if the original fails.
+        macro_rules! pair {
+            ($a:expr, $b:expr, $stage:literal) => {
+                match pair_results($a, $b, $stage)? {
+                    Pair::Values(a, b) => (a, b),
+                    Pair::EqualError(e) => {
+                        equal_error = Some(e);
+                        return Ok(());
+                    }
+                }
+            };
+        }
         let options = Options::default();
-        let a = if master { scene::master_prepared(before, index, options) } else { scene::page_prepared(before, index, options) }?;
-        let mut b = if master { scene::master_prepared(after, index, options) } else { scene::page_prepared(after, index, options) }?;
+        let (a, mut b) = pair!(
+            if master { scene::master_prepared(before, index, options) } else { scene::page_prepared(before, index, options) },
+            if master { scene::master_prepared(after, index, options) } else { scene::page_prepared(after, index, options) },
+            "scene"
+        );
         report.scene_warnings[0] += a.warnings.len();
         report.scene_warnings[1] += b.warnings.len();
-        // Master comparisons fit the original drawing into a fixed bounded cell. The same
-        // scale is used for its rewrite, so bounds changes cannot be hidden by independent fits.
+        // Fit masters to the original viewport and retain its scale for the rewrite.
         let options = if master {
             Options { scale: (216. / (a.bounds.width() * 96.).max(1.)).min(160. / (a.bounds.height() * 96.).max(1.)).min(2.), ..options }
         } else {
             options
         };
-        let (aw, ah, _) = a.canvas(options)?;
-        let (bw, bh, _) = b.canvas(options)?;
+        let ((aw, ah, _), (bw, bh, _)) = pair!(a.canvas(options), b.canvas(options), "canvas");
         if aw.abs_diff(bw) > 1 || ah.abs_diff(bh) > 1 {
             return Err(format!("native size mismatch: {aw}x{ah} versus {bw}x{bh}"));
         }
-        // Keep the original pixel denominator. A distant rewrite must not dilute
-        // changed ink with a large white union viewport.
         if (a.bounds.x0 - b.bounds.x0).abs() * 96. * options.scale > 1. || (a.bounds.y1 - b.bounds.y1).abs() * 96. * options.scale > 1. {
             return Err(format!("viewport origin changed: {:?} versus {:?}", a.bounds, b.bounds));
         }
         b.bounds = a.bounds;
-        let a = diagramcraft_render::raster::render(&a, options)?;
+        let (a, b) = pair!(diagramcraft_render::raster::render(&a, options), diagramcraft_render::raster::render(&b, options), "raster");
         result.expected = a.dimensions();
-        let b = diagramcraft_render::raster::render(&b, options)?;
         result.actual = Some(b.dimensions());
         let (mad, fraction) = crate::render::compare(&a, &b)?;
         result.mad = Some(mad);
         result.differing = Some(fraction);
         Ok(())
     })();
+    if let Some(error) = equal_error {
+        let count = report.equal_errors.entry(group.into()).or_default();
+        *count = count.saturating_add(1);
+        let witnesses = report.equal_error_witnesses.entry(group.into()).or_default();
+        if witnesses.len() < 3 {
+            witnesses.push(format!("{}: {error}", result.file));
+        }
+        report.groups.entry(group.into()).or_default();
+        return;
+    }
     if let Err(e) = compare {
         result.error = Some(e);
     }
@@ -227,5 +272,27 @@ mod tests {
         let mut r = Report::default();
         image_pair(&mut r, &before, &translated, "distant", "basic", 0, false);
         assert!(!r.groups["basic"].passed(false));
+    }
+    #[test]
+    fn identical_errors_are_equal_but_one_sided_or_changed_errors_fail() {
+        let mut good = diagramcraft_model::skeleton::document(false);
+        good.pages[0].shapes.push(diagramcraft_model::skeleton::rectangle(1, 1., 1., 2., 1., "").unwrap());
+        let mut bad = good.clone();
+        bad.pages[0].shapes[0].sheet.cells.iter_mut().find(|c| c.name == "PinX").unwrap().formula = Some("SQRT(-1)".into());
+        let mut different = good.clone();
+        different.pages[0].shapes[0].sheet.cells.iter_mut().find(|c| c.name == "PinX").unwrap().formula = Some("1/0".into());
+        let mut r = Report::default();
+        image_pair(&mut r, &bad, &bad, "same error", "basic", 0, false);
+        assert_eq!(r.equal_errors["basic"], 1);
+        assert!(r.groups["basic"].files.is_empty());
+        assert!(r.group_passed("basic", &r.groups["basic"]));
+        assert!(r.to_string().contains("images=1 equal_errors=1 errors=0"));
+        for (a, b) in [(&good, &bad), (&bad, &good), (&bad, &different)] {
+            let mut r = Report::default();
+            image_pair(&mut r, a, b, "not equal", "basic", 0, false);
+            assert!(r.equal_errors.is_empty());
+            assert!(!r.group_passed("basic", &r.groups["basic"]));
+            assert!(r.groups["basic"].files[0].error.is_some());
+        }
     }
 }
