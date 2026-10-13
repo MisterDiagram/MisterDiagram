@@ -50,3 +50,26 @@ clean independent frozen verification passes.
 - 2026-10-12 M2.9 closure: corrected shipped coverage is 1,108 drawing cells with ink, zero blank and zero failed, from 465 ink and 643 blank. Permanent text promotion, pre-decode image/XML bounds and per-file pixel disclosure pass regressions. Independent pass 1 found an aggregate sheet-cell gap, fixed in M2.9.5; passes 2 and 3 are clean. Final full P2 acceptance passes all six commands: CI eight mandatory gates, ten render groups, both main/text floors, 204 render commands and SVG/PDF checks, 49 contact PNGs including 24 regenerated pairs. Parity remains 23%; ten individual pixel outliers and Phase 3 gaps remain disclosed. M2 closed; stop before the next brief.
 
 - 2026-10-12: M3.4 adds complete source-cell round-trip comparison and original-viewport image pairs. CI passes all eight gates, including all1,387packages at the99%cell floor and the256-package quick corpus gate. Passive Action/Event reads, last-valid error references and deleted-shape painting have regressions. Full final-tree render measurement and the230-file Visio acceptance remain pending; stopping before M3.5 at Charles's budget handoff.
+
+## M3.10 COM coverage ruling, 2026-10-13
+
+The historical population at 9eb358d has 301 completed shipped dumps plus one partial,
+not 302 completed. Membership was reconstructed from 104 FILE OK entries in probe-log.txt
+and 197 additional entries before the 2026-10-13T00:32:39Z host-pull marker in winvm-log.txt.
+The partial AZUREAPPSERVICES_M dump is not eligible. Generated/blank 213 dumps remain old.
+The independently reviewed normalized membership SHA256 is
+05375146b6ef812251baa5f22a41266dd2d261a43469fc927bf85b71cdf9bc81.
+
+| Population | Completed dumps | Passed / eligible | COM rate |
+|---|---:|---:|---:|
+| Old, including generated/blank | 514 | 20805945 / 21055732 | 98.813686458% |
+| New shipped | 401 | 23240476 / 23671431 | 98.179429879% |
+| Combined | 915 | 44046421 / 44727163 | 98.478012120% |
+
+The old rate meets the 98.6241% contract. This is coverage growth, not regression.
+Charles's P3-closure M3.10 explicitly authorizes rebasing the expanded denominator.
+The COM floor is now 98.478012100% (achieved fraction rounded down at nine decimals),
+and may only rise from this population. Text ratchets, cached floor, exclusions and
+render ceilings are unchanged. The shared directory remains read-only.
+Measurement: cargo run -q --release -p diagramcraft-corpus --example com_coverage --
+corpus/_state/m3/old-coverage-paths.txt; log/m3-10-coverage.log.

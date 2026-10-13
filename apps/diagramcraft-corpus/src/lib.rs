@@ -1,5 +1,6 @@
 //! Read-only comparisons against original package caches and completed COM dumps.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
+pub mod coverage;
 pub mod render;
 pub mod roundtrip;
 use diagramcraft_sheet::Value;
@@ -739,6 +740,9 @@ fn text_promoted(cached: &Rate, com: &Rate, floor: f64) -> bool {
     cached.total > 0 && com.total > 0 && cached.percent() >= floor && com.percent() >= floor
 }
 fn run_pass(root: &Path, quick: bool, deferred: bool) -> Result<Report, String> {
+    run_pass_with_coverage(root, quick, deferred, None)
+}
+fn run_pass_with_coverage(root: &Path, quick: bool, deferred: bool, mut coverage: Option<&mut coverage::Coverage>) -> Result<Report, String> {
     let frozen = include_str!("../../../crates/sheet/tests/floors.toml");
     let cached_floor = floor(frozen, "shipped")? * 100.;
     let com_floor = floor(frozen, "all")? * 100.;
@@ -879,6 +883,7 @@ fn run_pass(root: &Path, quick: bool, deferred: bool) -> Result<Report, String> 
         }
         if let Some(tsvs) = associations.get(&path) {
             for tsv in tsvs {
+                let population = if let Some(c) = coverage.as_deref_mut() { c.dump(root, &path, is_shipped)? } else { 0 };
                 report.dump_files += 1;
                 if is_shipped {
                     report.shipped_dump_files += 1;
@@ -886,6 +891,9 @@ fn run_pass(root: &Path, quick: bool, deferred: bool) -> Result<Report, String> 
                 dump_rows(tsv, |row| {
                     let calls = function_calls(&row.formula)?;
                     if excluded(&calls, &exclude) {
+                        if let Some(c) = coverage.as_deref_mut() {
+                            c.excluded(population);
+                        }
                         report.com.excluded += 1;
                         if is_shipped {
                             report.shipped_com.excluded += 1;
@@ -907,21 +915,25 @@ fn run_pass(root: &Path, quick: bool, deferred: bool) -> Result<Report, String> 
                     if is_shipped {
                         report.shipped_com.record(matched);
                     }
-                    if !matched {
-                        diagnostics.failure(
-                            &calls,
-                            &row.name.clone(),
-                            Witness {
-                                oracle: "COM",
-                                category: String::new(),
-                                file: tsv.display().to_string(),
-                                scope: row.scope,
-                                cell: row.name,
-                                formula: short(&row.formula),
-                                expected: format!("{:?}", row.result),
-                                actual: short(&format!("{actual:?}")),
-                            },
-                        );
+                    if matched {
+                        if let Some(c) = coverage.as_deref_mut() {
+                            c.record(population, true, &calls, None);
+                        }
+                    } else {
+                        let witness = Witness {
+                            oracle: "COM",
+                            category: String::new(),
+                            file: tsv.display().to_string(),
+                            scope: row.scope,
+                            cell: row.name.clone(),
+                            formula: short(&row.formula),
+                            expected: format!("{:?}", row.result),
+                            actual: short(&format!("{actual:?}")),
+                        };
+                        if let Some(c) = coverage.as_deref_mut() {
+                            c.record(population, false, &calls, Some(&witness));
+                        }
+                        diagnostics.failure(&calls, &row.name, witness);
                     }
                     Ok(())
                 })?;

@@ -1034,3 +1034,43 @@ M3.9 round-trip rule (Charles, P3-closure): equal error strings at the same scen
 canvas or raster stage count as equal-error pairs. Both sides run independently;
 one-sided or different errors fail. Equal errors have no invented pixel measurements
 and are printed per group. The generated Visio render oracle and ceilings are unchanged.
+
+## M3.10 COM coverage ruling, 2026-10-13
+
+The historical population at 9eb358d has 301 completed shipped dumps plus one partial,
+not 302 completed. Membership was reconstructed from 104 FILE OK entries in probe-log.txt
+and 197 additional entries before the 2026-10-13T00:32:39Z host-pull marker in winvm-log.txt.
+The partial AZUREAPPSERVICES_M dump is not eligible. Generated/blank 213 dumps remain old.
+The independently reviewed normalized membership SHA256 is
+05375146b6ef812251baa5f22a41266dd2d261a43469fc927bf85b71cdf9bc81.
+
+| Population | Completed dumps | Passed / eligible | COM rate |
+|---|---:|---:|---:|
+| Old, including generated/blank | 514 | 20805945 / 21055732 | 98.813686458% |
+| New shipped | 401 | 23240476 / 23671431 | 98.179429879% |
+| Combined | 915 | 44046421 / 44727163 | 98.478012120% |
+
+The old rate meets the 98.6241% contract. This is coverage growth, not regression.
+Charles's P3-closure M3.10 explicitly authorizes rebasing the expanded denominator.
+The COM floor is now 98.478012100% (achieved fraction rounded down at nine decimals),
+and may only rise from this population. Text ratchets, cached floor, exclusions and
+render ceilings are unchanged. The shared directory remains read-only.
+Measurement: cargo run -q --release -p diagramcraft-corpus --example com_coverage --
+corpus/_state/m3/old-coverage-paths.txt; log/m3-10-coverage.log.
+
+New-population failures by called function (overlapping, one row can name several):
+
+| Function | Failed rows | Witness |
+|---|---:|---|
+| `<no function>` | 397145 | `corpus/ms-shipped-dumps/1033/KUBERNETESVISIOSTENCIL_U.VSSX.tsv` |
+| THEMEVAL | 20497 | `corpus/ms-shipped-dumps/1033/LANDSCAPE_M.VSSX.tsv` |
+| IF | 7509 | `corpus/ms-shipped-dumps/1033/MATRIXDOT_M.VSSX.tsv` |
+| LUM | 4162 | `corpus/ms-shipped-dumps/1033/MEDIUMENTERPRISECORPNET_M.VSTX.tsv` |
+| GUARD | 3672 | `corpus/ms-shipped-dumps/1033/LDAPOB_M.VSSX.tsv` |
+| SAT | 2748 | `corpus/ms-shipped-dumps/1033/MEDIUMENTERPRISECORPNET_M.VSTX.tsv` |
+| HUE | 2706 | `corpus/ms-shipped-dumps/1033/MEDIUMENTERPRISECORPNET_M.VSTX.tsv` |
+| HSL | 2698 | `corpus/ms-shipped-dumps/1033/MEDIUMENTERPRISECORPNET_M.VSTX.tsv` |
+| THEMEGUARD | 2395 | `corpus/ms-shipped-dumps/1033/LEGEND_M.VSSX.tsv` |
+| LUMDIFF | 1969 | `corpus/ms-shipped-dumps/1033/LEGEND_M.VSSX.tsv` |
+| MODULUS | 1890 | `corpus/ms-shipped-dumps/1033/OBJREL_M.VSSX.tsv` |
+| SHADE | 1824 | `corpus/ms-shipped-dumps/1033/MATRIXDOT_M.VSSX.tsv` |
