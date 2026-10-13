@@ -210,3 +210,47 @@ every original/rewrite pair, with no render errors (769 master images plus
 and exact full cell rates must be recorded from a current-tree corpus check;
 an older diagnostic run was stopped at the requested session handoff. No
 230-file Visio acceptance or thumbnail acceptance is claimed.
+
+M3.5 pre-VM acceptance preparation covers230packages and540page/master images.
+Nineteen selected shipped images cannot yet render: ENTITY_U(2, CHAR), USTRME_U(1,
+cycle), EEPATH_U(2, REF), UMLSEQUENCE_INTERACTIONFRAME_M(2, LISTORDER), PTSKST_M(6,
+transform/value errors and a text cycle), SOCIAL_DISTANCING_M(6, unsupported foreign
+image, cycles and text/transform value errors). These are explicit failed images,
+not omitted comparisons. The full corpus sweep will provide broader counts.
+The five scratch model constructions build and re-read, but Visio open/repair and
+thumbnail acceptance remain unmeasured until the VM report completes.
+
+### M3.5 acceptance remains blocked (2026-10-13)
+
+The run has 225 completed status files: 224 opened and saved, one rejected on
+open. SOCIAL_DISTANCING_M also logged OPEN OK but timed out during its dump and
+has no completed status. Four subsequent templates were not reached. The reporter's
+repaired=0 counters are unmeasured because it exits each failed-file comparison;
+they are not evidence of zero repairs.
+
+The harness calls ZipFile.OpenRead(saved) while Visio still holds the SaveAs file
+open. That sharing violation affected all 224 completed saves, before part listing
+and PNG export. A follow-up must export while open, close the document, then inspect
+and hash the saved ZIP. The failure is in our harness, not evidence that the writer
+passed or failed repair checks. Preserve this attempt and its hashes before rerun.
+The timeout recovery also exposed an existing PowerShell quoting error in the
+runner's `Write-Output ...; forcing stop` diagnostic. Its log is retained.
+
+scratch__dynamic-glue.vsdx was rejected as corrupt. It is also the authored PNG
+thumbnail case, so the cause is not isolated between thumbnail and connector/package
+construction. scratch__rectangle-text.vsdx (no thumbnail) opened and saved, but its
+repair and render checks remain unmeasured. No thumbnail acceptance conclusion is
+claimed beyond this observed open/save behavior.
+
+Full host round-trip cells: 15,080,738/15,080,738 (100.000000%). All successfully
+compared original/rewrite images have MAD=0, fraction=0 and no size mismatch.
+There are 568 master and 74 shipped-page render errors, 642 total. The full render
+gate fails. Generated Visio comparisons pass all ten groups, with ten disclosed
+outliers, four tolerated one-pixel differences and zero hard size failures.
+
+Fresh coverage: 1,387 packages, 1,181 shipped, 413 completed shipped dumps,
+626 dump files. Shipped cached oracle: 4,675,663/4,783,865 (97.738189%), above
+97.491100%. COM: 27,416,668/27,803,388 (98.609090%), below 98.624100%.
+Text remains promoted: cached 61,748/67,797 (91.077776%); COM 16,631/18,113
+(91.818031%). Coverage grew; no floor, ceiling, denominator or corpus observation
+was changed. Parity remains partial at 25%.

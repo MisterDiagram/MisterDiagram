@@ -196,14 +196,23 @@ pub fn page(document: &Document, index: usize, options: Options) -> Result<Scene
     let themes = diagramcraft_theme::Themes::from_document(document).map_err(|e| e.to_string())?;
     let host = diagramcraft_text::Host;
     let mut evaluator = Evaluator::new(document).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&host);
+    page_prepared(&mut evaluator, index, options)
+}
+/// Render a page using a reusable index; evaluation effects are reset at the boundary.
+pub fn page_prepared(evaluator: &mut Evaluator<'_>, index: usize, options: Options) -> Result<Scene, String> {
+    if evaluator.text_metrics_deferred() {
+        return Err("deferred text metrics cannot render".into());
+    }
+    evaluator.reset_evaluation();
+    let document = evaluator.document;
     let p = document.pages.get(index).ok_or("page index out of range")?;
     let scope = Scope::Page(p.id);
-    let ratio = number(&mut evaluator, scope, "PageScale", 1.) / number(&mut evaluator, scope, "DrawingScale", 1.).max(1e-12);
+    let ratio = number(evaluator, scope, "PageScale", 1.) / number(evaluator, scope, "DrawingScale", 1.).max(1e-12);
     let mut scene = Scene {
         warnings: vec![],
         ops: vec![],
         bounds: Rect::ZERO,
-        page_size: (number(&mut evaluator, scope, "PageWidth", 8.5) * ratio, number(&mut evaluator, scope, "PageHeight", 11.) * ratio),
+        page_size: (number(evaluator, scope, "PageWidth", 8.5) * ratio, number(evaluator, scope, "PageHeight", 11.) * ratio),
     };
     let mut pages = vec![];
     let mut current = p;
@@ -220,8 +229,8 @@ pub fn page(document: &Document, index: usize, options: Options) -> Result<Scene
     for id in pages.into_iter().rev() {
         let p = document.pages.iter().find(|p| p.id == id).ok_or("missing page")?;
         let scope = Scope::Page(id);
-        let ratio = number(&mut evaluator, scope, "PageScale", 1.) / number(&mut evaluator, scope, "DrawingScale", 1.).max(1e-12);
-        shapes(&mut evaluator, &p.shapes, scope, &p.part, Affine::scale(ratio), options, &mut scene, 0)?;
+        let ratio = number(evaluator, scope, "PageScale", 1.) / number(evaluator, scope, "DrawingScale", 1.).max(1e-12);
+        shapes(evaluator, &p.shapes, scope, &p.part, Affine::scale(ratio), options, &mut scene, 0)?;
     }
     finish_bounds(&mut scene, options.crop);
     scene.canvas(options)?;
@@ -231,11 +240,20 @@ pub fn master(document: &Document, index: usize, options: Options) -> Result<Sce
     let themes = diagramcraft_theme::Themes::from_document(document).map_err(|e| e.to_string())?;
     let host = diagramcraft_text::Host;
     let mut evaluator = Evaluator::new(document).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&host);
+    master_prepared(&mut evaluator, index, options)
+}
+/// Render a master using a reusable index; no state leaks from earlier masters.
+pub fn master_prepared(evaluator: &mut Evaluator<'_>, index: usize, options: Options) -> Result<Scene, String> {
+    if evaluator.text_metrics_deferred() {
+        return Err("deferred text metrics cannot render".into());
+    }
+    evaluator.reset_evaluation();
+    let document = evaluator.document;
     let m = document.masters.get(index).ok_or("master index out of range")?;
     let mut scene = Scene { warnings: vec![], ops: vec![], bounds: Rect::ZERO, page_size: (1., 1.) };
     let scope = Scope::Master(m.id);
-    let ratio = number(&mut evaluator, scope, "PageScale", 1.) / number(&mut evaluator, scope, "DrawingScale", 1.).max(1e-12);
-    shapes(&mut evaluator, &m.shapes, scope, &m.part, Affine::scale(ratio), options, &mut scene, 0)?;
+    let ratio = number(evaluator, scope, "PageScale", 1.) / number(evaluator, scope, "DrawingScale", 1.).max(1e-12);
+    shapes(evaluator, &m.shapes, scope, &m.part, Affine::scale(ratio), options, &mut scene, 0)?;
     finish_bounds(&mut scene, true);
     // A master has no raster allocation until its contact-cell scale is known.
     // raster::render validates the fitted canvas before allocating pixels.

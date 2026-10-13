@@ -40,6 +40,23 @@ pub fn dump_with_hosts(
     text: Option<&dyn diagramcraft_model::text::TextHost>,
     out: &mut impl Write,
 ) -> Result<(), String> {
+    dump_internal(document, selection, host, text, false, out)
+}
+/// Emit only active local cells with a concrete serialized V, for writer acceptance.
+/// Inherited and Themed values are not claimed as serialized instance caches.
+/// The literal XML comparison separately covers unmapped, deleted and Themed cells.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+pub fn dump_serialized(document: &Document, out: &mut impl Write) -> Result<(), String> {
+    dump_internal(document, Selection::All, None, None, true, out)
+}
+fn dump_internal(
+    document: &Document,
+    selection: Selection,
+    host: Option<&dyn diagramcraft_sheet::host::ThemeHost>,
+    text: Option<&dyn diagramcraft_model::text::TextHost>,
+    serialized: bool,
+    out: &mut impl Write,
+) -> Result<(), String> {
     let mut evaluator = Evaluator::new(document).map_err(|e| e.to_string())?;
     if let Some(host) = host {
         evaluator = evaluator.with_theme_host(host);
@@ -50,7 +67,7 @@ pub fn dump_with_hosts(
     let sheets = selected(document, selection)?;
     writeln!(out, "shape_id\tshape_name\tsection\trow\tcell\tname\tformula\tresult_iu\tunits").map_err(io_error)?;
     for (scope, id, identity) in sheets {
-        dump_sheet(&mut evaluator, scope, id, &identity, out)?;
+        dump_sheet(&mut evaluator, scope, id, &identity, serialized, out)?;
     }
     Ok(())
 }
@@ -212,7 +229,9 @@ struct Slot<'a> {
     units: u16,
     synthetic: Option<Value>,
 }
-fn dump_sheet(evaluator: &mut Evaluator<'_>, scope: Scope, id: u32, identity: &str, out: &mut impl Write) -> Result<(), String> {
+fn dump_sheet(evaluator: &mut Evaluator<'_>, scope: Scope, id: u32, identity: &str, serialized: bool, out: &mut impl Write) -> Result<(), String> {
+    let local: BTreeMap<_, _> =
+        if serialized { evaluator.named_cells(scope).iter().map(|n| (n.name.to_ascii_lowercase(), n.cell)).collect() } else { BTreeMap::new() };
     let mut slots = BTreeMap::new();
     for named in evaluator.resolved_named_cells(scope) {
         if let Some((s, r, c, mut u)) = metadata(evaluator, scope, &named) {
@@ -246,7 +265,24 @@ fn dump_sheet(evaluator: &mut Evaluator<'_>, scope: Scope, id: u32, identity: &s
         if slot.cell.is_some_and(|c| c.value.as_ref().is_some_and(|v| v.len() > 65536) || c.formula.as_ref().is_some_and(|f| f.len() > 65536)) {
             return Err("dump cell text exceeds limit".into());
         }
-        let value = slot.synthetic.clone().unwrap_or_else(|| evaluator.evaluate_snapshot(scope, &slot.name));
+        let value = if serialized {
+            let Some(cell) = local.get(&slot.name.to_ascii_lowercase()) else { continue };
+            if cell.value.as_deref().is_none_or(|v| v == "Themed") {
+                continue;
+            }
+            let literal = cell.value.as_deref().unwrap_or_default();
+            // Hex RGB and named font values do not serialize COM's transient table
+            // index. Their literal value is covered by the complete XML comparison.
+            if literal.starts_with('#') || (cell.name == "Font" && literal.parse::<u32>().is_err()) {
+                continue;
+            }
+            // COM ResultIU exposes last-valid V even when E records a current formula error.
+            let mut cache = (*cell).clone();
+            cache.error = None;
+            evaluator.cached_cell(&cache)
+        } else {
+            slot.synthetic.clone().unwrap_or_else(|| evaluator.evaluate_snapshot(scope, &slot.name))
+        };
         let formula = match slot.cell {
             Some(cell) => match evaluator.effective_formula(scope, &slot.name).filter(|f| f != "No Formula" && f != "Inh") {
                 Some(f) => rebind_formula(evaluator, scope, &slot.name, &f),
@@ -687,6 +723,25 @@ fn supplement(slots: &mut BTreeMap<(u16, u16, u16), Slot<'_>>) -> Result<(), Str
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn serialized_dump_uses_written_cache_without_claiming_inherited_predictions() {
+        let mut d = diagramcraft_model::skeleton::document(false);
+        let mut shape = diagramcraft_model::skeleton::rectangle(1, 0., 0., 2., 1., "").unwrap();
+        let width = shape.sheet.cells.iter_mut().find(|c| c.name == "Width").unwrap();
+        width.formula = Some("UNSUPPORTED_ACCEPTANCE_WITNESS()".into());
+        width.value = Some("23".into());
+        width.error = Some("#VALUE!".into());
+        shape.sheet.cells.push(Cell { name: "FillForegnd".into(), value: Some("#123456".into()), ..Default::default() });
+        d.pages[0].shapes.push(shape);
+        let mut output = Vec::new();
+        super::dump_serialized(&d, &mut output).unwrap();
+        let output = String::from_utf8(output).unwrap();
+        let row = output.lines().find(|l| l.contains("UNSUPPORTED_ACCEPTANCE_WITNESS()")).unwrap();
+        assert_eq!(row.split('\t').nth(7), Some("23"));
+        assert!(!output.lines().any(|l| l.contains("page:0:") && l.contains("\tFillForegnd\t")));
+        assert!(!output.lines().any(|l| l.contains("page:0:") && l.contains("\tLineWeight\t")));
+    }
+
     #[test]
     fn hostile_group_name_fanout_is_bounded_before_dump_output() {
         let mut doc = diagramcraft_model::skeleton::document(false);

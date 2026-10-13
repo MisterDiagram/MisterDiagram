@@ -126,7 +126,7 @@ run_one() {
     local OUT="$STAGE/out/$name" win="\\\\Mac\\Home\\Projects\\diagramcraft\\corpus\\_vm\\$name.ps1"
     local started=$SECONDS launched=$SECONDS logged=0 attempt=1 file_age
     mkdir -p "$OUT" || return 1
-    if [ "$name" = dump-shipped ]; then
+    if [ "$name" = dump-shipped ] || [ "$name" = accept ]; then
         rm -f "$OUT/DONE" "$OUT/CURRENT" || return 1
     else
         # Preserve each health observation before the next probe resets its output.

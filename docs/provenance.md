@@ -73,3 +73,10 @@ the generated files live in the permanently private diagramcraft-corpus reposito
 
 Sibling code is copied under MIT OR Apache-2.0. Each copied or derived file has its source
 path, commit and licence recorded in [ATTRIBUTION.md](../ATTRIBUTION.md).
+
+M3.5's five acceptance constructions use the typed skeleton and authored rectangles,
+labels, connector instance, layers and master identities. The explicit BASIC_U drop
+case reads only the private local stencil and writes only gitignored acceptance
+outputs. No stencil, icon or copied drawing enters the public repository. A two-pixel
+solid-colour PNG thumbnail is authored in test code; the alternate case has no
+thumbnail. The Visio acceptance run, rather than host parsing, determines support.

@@ -138,3 +138,44 @@ full background sweep is unchanged. Both paths run the health probe first, copy
 all shipped files before traversal, preserve completed TSVs and write DONE last.
 Selected output stays in `corpus/_vm/out/dump-shipped/`; do not publish it into the
 shared read-only `corpus/ms-shipped-dumps` input directory.
+
+### P3 acceptance
+
+Run `cargo test -q -p diagramcraft-model --test from_scratch` to build the five
+private acceptance drawings under `corpus/_state/m3/scratch/`. The test also runs
+without the private corpus, except its explicitly skipped BASIC_U case. The
+selection manifest `corpus/_state/m3/accept-plan.json` lists 204 generated drawings,
+one blank, five scratch documents and twenty shipped files chosen by size spread.
+
+`cargo run -q --release -p diagramcraft-corpus --example prepare_accept` writes
+recalculated packages to `corpus/_state/m3/accept-inputs/`, computed and source-backed dumps and page/
+master PNGs to `corpus/_state/m3/accept-expected/`. Run
+`python3 tools/oracle/accept_report.py --prepare` to hash the complete selection
+and snapshot literal serialized cells in `corpus/_state/m3/accept-manifest.json`.
+
+From the repository root:
+
+```sh
+tools/oracle/run-in-vm.sh accept.ps1 7200 corpus/_state/m3/accept-inputs/*.vsdx corpus/_state/m3/accept-inputs/*.vssx corpus/_state/m3/accept-inputs/*.vstx
+python3 tools/oracle/accept_report.py corpus/_vm/out/accept
+```
+
+The runner health-checks Visio before the interactive scheduled task. Each file
+gets its own directory containing the actual post-open `saved.*`, a COM dump,
+part inventory and every page/master PNG. A hashed `status.json` is the per-file
+completion record. A rerun reuses only successful, unchanged input/script/output
+hashes and archives stale or failed observations. DONE means the script finished,
+not that the acceptance gate passed. Only the host report determines acceptance.
+
+The report rejects any changed part list or changed serialized sheet cell outside
+the existing hook/volatile exclusions. It also checks COM against concrete local serialized caches, including missing
+rows and units. Inherited and Themed cells have no local numeric cache: their
+evaluator-derived comparisons are diagnostics, not claims about written values.
+Stored formula and cache comparisons are separate from re-evaluation. Connects
+records are compared too, so lost glue cannot pass merely because pixels match. PNG groups use the
+frozen MAD/fraction limits, unweighted file MAD and pixel-weighted differing
+fraction; one pixel per axis is tolerated over the common area. No alignment,
+resampling or expectation updates occur. Full diffs and worst files are written
+to `corpus/_state/m3/accept-report.json`. Missing or stale outputs fail closed.
+
+Host parser regressions: `PYTHONDONTWRITEBYTECODE=1 python3 tools/oracle/test_accept_report.py`.

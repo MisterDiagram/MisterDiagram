@@ -16,3 +16,4 @@ diagramcraft-theme.workspace = true
 
 [dev-dependencies]
 zip.workspace = true
+serde_json.workspace = true

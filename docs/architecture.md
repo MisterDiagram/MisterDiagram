@@ -93,3 +93,7 @@ are compiled into the resolver.
 | `crates/text/src/bidi.rs` | deckcraft | `crates/text/src/bidi.rs` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
 
 P2-followup embeds the pinned OFL Latin faces in the fonts crate for both native and wasm builds. Optional craft-fonts adds script coverage; system scanning remains off. Text-metric promotion is permanent. Both text lines remain in the main oracle denominators and must pass 90% plus their recorded ratchets; a regression cannot de-promote them. Rendering uses real text evaluation.
+
+The named P3 `model/tests/from_scratch.rs` integration test has a dev-only
+model -> vsdx dependency to assert serialization and re-reading of its five typed
+constructions. Production model dependencies remain at L0/L1.

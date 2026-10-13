@@ -3,11 +3,11 @@
 > **Drafted:** 2026-10-11 from the observed app (visio-observed.md) and Microsoft's documentation · **Target:** Microsoft Visio Standard 2021 16.0.20430 (Professional rows marked Pro) · **Status:** Phase 1 reader implemented; authoring, evaluation and rendering remain in progress. Format follows the storytold apps' `docs/parity-checklist.md`: area, feature, priority, Core Y/N, status D/P/M.
 
 <!-- SUMMARY -->
-**Weighted breadth parity: 23%** over 45 Core=Y features.
+**Weighted breadth parity: 25%** over 45 Core=Y features.
 
 | Priority | Features | Done | Partial | Missing | Parity |
 |---|---|---|---|---|---|
-| P0 | 27 | 1 | 15 | 11 | 31% |
+| P0 | 27 | 1 | 16 | 10 | 33% |
 | P1 | 15 | 0 | 1 | 14 | 3% |
 | P2 | 3 | 0 | 0 | 3 | 0% |
 
@@ -16,7 +16,7 @@
 | Files | 32% |
 | Pages | 25% |
 | Shapes | 17% |
-| Stencils | 43% |
+| Stencils | 54% |
 | Connectors | 10% |
 | Text | 43% |
 | Format | 38% |
@@ -68,7 +68,7 @@ Core=N rows (excluded from milestone scoring):
 | Shapes | Protection (lock position, size, aspect, text, delete) | P1 | Y | M |
 | Stencils | ShapeSheet model: Object, Geometry, Character, Paragraph, Tabs, Controls, Connection, User, Actions, Scratch, gradient stops | P0 | Y | D |
 | Stencils | Formula engine: cell references, cross-sheet references (Sheet.N!Cell), GUARD, Inh, THEMEVAL, SETATREF, dependency recalculation | P0 | Y | P |
-| Stencils | New master from a shape; edit master; document stencil | P0 | Y | M |
+| Stencils | New master from a shape; edit master; document stencil | P0 | Y | P |
 | Stencils | Read vendor stencil packs (.vssx) and render their masters correctly | P0 | Y | P |
 | Stencils | Master icons, master names and prompts, search index | P1 | Y | M |
 | Connectors | Dynamic connector: glue to connection points and to shapes (dynamic glue), _WALKGLUE behaviour | P0 | Y | M |
@@ -196,3 +196,14 @@ Core=N rows (excluded from milestone scoring):
 ## M3.4 comparison evidence
 
 - Open and save .vsdx (full fidelity, unknown parts kept): P. `every_corpus_package_roundtrips_at_least_ninety_nine_percent_of_dump_cells` covers all private packages; `complete_comparison_includes_master_pages_unknown_cells_and_deleted_rows`, `duplicate_cell_names_cannot_hide_an_earlier_change` and `rewritten_geometry_changes_are_visible_to_the_render_gate` guard the comparison surface. Visio's 230-file repair and re-export acceptance remains required before this row can be done.
+
+## M3.5 construction evidence
+
+- New master from a shape; edit master; document stencil: P.
+  `five_documents_build_and_reread` constructs three independently identified masters,
+  saves a document stencil and verifies its re-read. Editing commands remain Phase 4.
+- Drawing and stencil/template save rows remain P until the 230-file Visio repair
+  and re-export gate passes. The five-document test also covers a rectangle with
+  text, Dynamic connector Connects, a private BASIC_U drop and metric/background/
+  two-layer structure. `serialized_dump_uses_written_cache_without_claiming_inherited_predictions`
+  guards acceptance against confusing evaluation errors with serialized values.

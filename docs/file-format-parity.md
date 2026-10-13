@@ -4,6 +4,17 @@ Status: pre-alpha, M1 met. M2 human gate accepted on 2026-10-12 at 16:45; indepe
 
 ## Measured
 
+M3.5 (2026-10-13) is partial: all 1,387 packages preserve all 15,080,738
+compared local cells (100%). Successful original/rewrite raster pairs are identical,
+but 568 master and 74 shipped-page scenes fail rendering. The 230-file VM run has
+225 completed statuses (224 opened/saved, one corrupt-open rejection) and timed out
+on SOCIAL_DISTANCING_M. A harness sharing violation stopped every completed save
+before ZIP inventory and PNG export; repair and re-export parity are unmeasured.
+No zero-repair claim is supported. Fresh COM coverage (413 completed shipped dumps)
+yields 98.609090%, below the unchanged 98.624100% floor. Generated render groups
+still pass their frozen ceilings. These failures keep M3 open.
+
+
 M2.9 closure verification: pass 1 found the aggregate caller-built sheet budget
 bypass, fixed with a failing-before/passing-after regression in M2.9.5. Passes 2
 and 3 each have ten YES and zero NO at 3dc3b21. Final P2 acceptance passes all
@@ -232,7 +243,11 @@ optional relationship, reports it, and fabricates no preview. Host tests cover
 both cases. `BASIC_U.vssx` also carries a PageSheet-only page entry without
 a Rel or PageContents part; the writer preserves that absence until the page
 contains drawing content. Missing and authored PNG thumbnails have structural round-trip
-tests; Visio acceptance remains unmeasured until M3.5.
+tests. In the M3.5 run, scratch__rectangle-text.vsdx without a thumbnail
+opened and saved. The authored PNG case, scratch__dynamic-glue.vsdx, was rejected
+as corrupt. Because that file also exercises a new connector, the cause is not
+isolated. Harness failures prevented repair and render checks for either case;
+missing/PNG thumbnail acceptance is still unresolved.
 
 
 M2.9.1 shipped contact witnesses: CISCONETWORKSHAPES_M/U each had289blank

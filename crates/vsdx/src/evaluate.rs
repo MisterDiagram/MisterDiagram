@@ -139,6 +139,36 @@ impl<'a> Evaluator<'a> {
         result.install_inheritance()?;
         Ok(result)
     }
+    /// Whether the comparison-only mode has deferred real text metrics.
+    pub fn text_metrics_deferred(&self) -> bool {
+        self.defer_text_metrics
+    }
+    /// Discard all evaluation effects while retaining the immutable source/inheritance index.
+    /// Each independently rendered page/master starts with fresh caches, SETF overrides,
+    /// dependency budgets and dynamic palette indices, exactly as a new evaluator does.
+    pub fn reset_evaluation(&mut self) {
+        self.values.clear();
+        self.active.clear();
+        self.resolving_cycle = false;
+        self.work = 0;
+        self.eval_depth = 0;
+        self.eval_work = 0;
+        self.palette = self.document.colors.iter().filter_map(|(i, c)| parse_color(c).map(|c| (*i, c))).collect();
+        self.overrides.clear();
+        self.override_bytes = 0;
+        self.arguments.clear();
+        self.argument_bytes = 0;
+        self.assignments = 0;
+        self.revision = 0;
+        self.dependencies.clear();
+        self.dependents.clear();
+        self.dirty.clear();
+        self.dependency_count = 0;
+        self.dependency_bytes = 0;
+        self.graph_limited = false;
+        self.stack.clear();
+        self.snapshot = None;
+    }
     /// Inject a theme resolver from the application composition layer.
     pub fn with_theme_host(mut self, host: &'a dyn diagramcraft_sheet::host::ThemeHost) -> Self {
         self.theme_host = Some(host);
@@ -1967,6 +1997,24 @@ mod tests {
         assert_eq!(ctx.font(0), Some("Example".into()));
         assert_eq!(ctx.font_index("example"), Some(0));
         assert_eq!(ctx.color(99), None);
+    }
+    #[test]
+    fn reset_isolates_assignments_palette_and_budget_state() {
+        let mut doc = fixture();
+        let scope = Scope::PageShape { page: 7, shape: 1 };
+        doc.pages[0].shapes[0].sheet.cells.push(cell("Assign", "99", Some("SETF(GETREF(Width),9)")));
+        let mut e = Evaluator::new(&doc).unwrap();
+        e.evaluate(scope, "Assign");
+        assert_eq!(e.evaluate(scope, "Width"), Value::Number(9.));
+        e.palette.insert(300, [1, 2, 3]);
+        e.graph_limited = true;
+        e.reset_evaluation();
+        let mut fresh = Evaluator::new(&doc).unwrap();
+        assert_eq!(e.palette, fresh.palette);
+        assert!(e.overrides.is_empty() && e.dependencies.is_empty() && e.dirty.is_empty());
+        assert!(!e.graph_limited);
+        assert_eq!(e.evaluate(scope, "Width"), fresh.evaluate(scope, "Width"));
+        assert_eq!(e.evaluate(scope, "Height"), fresh.evaluate(scope, "Height"));
     }
     #[test]
     fn assignments_are_real_atomic_and_keep_source_immutable() {

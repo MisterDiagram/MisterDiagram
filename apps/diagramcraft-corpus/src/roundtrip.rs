@@ -1,7 +1,7 @@
 //! P3 round-trip cells and original-versus-rewritten rendering. Oracle inputs are read-only.
 use crate::render::{FileResult, Group};
-use diagramcraft_model::Document;
 use diagramcraft_render::scene::{self, Options};
+use diagramcraft_vsdx::evaluate::Evaluator;
 use std::{collections::BTreeMap, fmt, path::Path};
 #[derive(Debug, Default)]
 pub struct Report {
@@ -81,7 +81,7 @@ impl fmt::Display for Report {
         writeln!(f, "roundtrip result={}", if self.passed() { "PASS" } else { "FAIL" })
     }
 }
-fn image_pair(report: &mut Report, before: &Document, after: &Document, name: &str, group: &str, index: usize, master: bool) {
+fn image_pair(report: &mut Report, before: &mut Evaluator<'_>, after: &mut Evaluator<'_>, name: &str, group: &str, index: usize, master: bool) {
     let mut result = FileResult {
         file: format!("{name}#{}{}", if master { "master" } else { "page" }, index + 1),
         expected: (0, 0),
@@ -92,8 +92,8 @@ fn image_pair(report: &mut Report, before: &Document, after: &Document, name: &s
     };
     let compare = (|| -> Result<(), String> {
         let options = Options::default();
-        let a = if master { scene::master(before, index, options) } else { scene::page(before, index, options) }?;
-        let mut b = if master { scene::master(after, index, options) } else { scene::page(after, index, options) }?;
+        let a = if master { scene::master_prepared(before, index, options) } else { scene::page_prepared(before, index, options) }?;
+        let mut b = if master { scene::master_prepared(after, index, options) } else { scene::page_prepared(after, index, options) }?;
         report.scene_warnings[0] += a.warnings.len();
         report.scene_warnings[1] += b.warnings.len();
         // Master comparisons fit the original drawing into a fixed bounded cell. The same
@@ -167,13 +167,17 @@ pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
             } else {
                 "shipped-pages"
             };
+            let mut before_eval =
+                Evaluator::new(&before).map_err(|e| e.to_string())?.with_theme_host(&theme).with_text_host(&diagramcraft_text::Host);
+            let mut after_eval =
+                Evaluator::new(&after).map_err(|e| e.to_string())?.with_theme_host(&after_theme).with_text_host(&diagramcraft_text::Host);
             for (i, page) in before.pages.iter().enumerate() {
                 if !page.part.is_empty() {
-                    image_pair(&mut report, &before, &after, &name, group, i, false);
+                    image_pair(&mut report, &mut before_eval, &mut after_eval, &name, group, i, false);
                 }
             }
             for i in 0..before.masters.len() {
-                image_pair(&mut report, &before, &after, &name, "masters", i, true);
+                image_pair(&mut report, &mut before_eval, &mut after_eval, &name, "masters", i, true);
             }
             Ok(())
         })();
@@ -187,6 +191,21 @@ pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn image_pair(
+        report: &mut Report,
+        before: &diagramcraft_model::Document,
+        after: &diagramcraft_model::Document,
+        name: &str,
+        group: &str,
+        index: usize,
+        master: bool,
+    ) {
+        let a = diagramcraft_theme::Themes::from_document(before).unwrap();
+        let b = diagramcraft_theme::Themes::from_document(after).unwrap();
+        let mut ea = Evaluator::new(before).unwrap().with_theme_host(&a).with_text_host(&diagramcraft_text::Host);
+        let mut eb = Evaluator::new(after).unwrap().with_theme_host(&b).with_text_host(&diagramcraft_text::Host);
+        super::image_pair(report, &mut ea, &mut eb, name, group, index, master);
+    }
     #[test]
     fn rewritten_geometry_changes_are_visible_to_the_render_gate() {
         let mut before = diagramcraft_model::skeleton::document(false);
