@@ -2,6 +2,13 @@
 
 Status: pre-alpha, M0 and M1 met; M2 human gate accepted; independent closure verification complete. Phase 3 is in progress; Visio acceptance of writer output is pending.
 
+## G0: Contributed fixes
+
+- PR #4 (Matheus Breguêz): a self-closing element no longer bypasses the OPC XML depth cap; `depth_boundary_is_independent_of_empty_element_syntax` and `public_xml_parser_enforces_depth_for_both_empty_element_forms` hold MAX_DEPTH for both element forms. Closes #1.
+- PR #5 (Matheus Breguêz): VBA project parts are classified by OPC content type as well as filename, so a renamed payload is dropped and flagged; `typed_vba_parts_are_removed_with_default_and_override_content_types`. Closes #2.
+- PR #6 (Matheus Breguêz): macro-enabled stencils and templates (.vssm, .vstm) are admitted by the package validator and the CLI; `imports_macro_enabled_stencils_and_templates_without_vba_payloads`. Closes #3.
+- PR #35 (Matheus Breguêz): TRIM evaluates with the MS-VSDX whitespace set; the reference example and all 23 scalars are tested in `crates/sheet/tests/trim.rs`, imported-cell recalculation in `crates/vsdx/tests/trim.rs`. Closes #7.
+
 ## G1: Remaining ShapeSheet fidelity
 
 The Phase 1 reader loads all 1387 corpus files; 5548 deterministic mutations produce no panics.

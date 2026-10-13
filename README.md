@@ -1,6 +1,6 @@
 # DiagramCraft
 
-A clean-room, headless Rust core of Microsoft Visio. It opens .vsdx, .vssx and .vstx files,
+A clean-room, headless Rust core of Microsoft Visio. It opens .vsdx, .vssx and .vstx files, and their macro-enabled .vsdm, .vssm and .vstm variants with the VBA payload dropped,
 evaluates the ShapeSheet the way Visio does, and renders pages and stencils to PNG, SVG and
 PDF. Writing files that Visio opens unrepaired, connectors and routing, and an MCP server for
 AI agents are in progress. It is built in the mould of the Craft apps (deckcraft, vectorcraft
