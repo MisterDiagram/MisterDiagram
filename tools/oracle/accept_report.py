@@ -453,6 +453,34 @@ def scratch_render_assertion(name, stem, result, image):
                 raise ValueError('dynamic connector has no dark pixels across its gap')
 
 
+def allowed_rewrites(old_cells, new_cells, differences, part_diff):
+    """Only Charles's M3.20 classes may differ without being a repair.
+
+    Witness: scratch rectangle-text original/saved master UniqueID and MasterType;
+    missing thumbnail accepted, 2x2 PNG rejected in diag-variants/v1-nothumb.vsdx.
+    """
+    import re
+    classes = {'thumbnail_added': [], 'master_type': [], 'master_uniqueid': []}
+    if 'docProps/thumbnail.emf' in part_diff['added']:
+        classes['thumbnail_added'].append('docProps/thumbnail.emf')
+        part_diff = dict(part_diff, added=[n for n in part_diff['added'] if n != 'docProps/thumbnail.emf'])
+    kinds = {str(k):v.get('kind') for k,v in old_cells.items()}
+    kinds.update({str(k):v.get('kind') for k,v in new_cells.items()})
+    remaining = []
+    guid = re.compile(r'^\{[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-8E40-00608CF305B2\}$', re.I)
+    for diff in differences:
+        key, field, before, after = diff
+        kind = kinds.get(key)
+        if kind == 'opaque' and key == str(('docProps/thumbnail.emf/Opaque',0)) and field == 'added' and classes['thumbnail_added']:
+            continue
+        if kind == 'master_type' and field == 'V':
+            classes['master_type'].append(diff)
+        elif kind == 'master_uniqueid' and field == 'V' and isinstance(before,str) and isinstance(after,str) and guid.fullmatch(after) and before[:19].lower() == after[:19].lower():
+            classes['master_uniqueid'].append(diff)
+        else: remaining.append(diff)
+    return remaining, part_diff, classes
+
+
 def report(out, manifest):
     m = load_json(manifest)
     if len(m['files']) != 230 or len({e['output'] for e in m['files']}) != 230:
@@ -501,10 +529,9 @@ def report(out, manifest):
                 raise ValueError('post-save part list disagrees with saved package')
             part_diff = {'added': sorted(set(new_parts)-set(old_parts)), 'removed': sorted(set(old_parts)-set(new_parts))}
             cells = cell_diffs(old_cells, new_cells, filters)
-            # MasterType is an observed Visio rewrite even on its own input files.
-            type_keys = {str(k) for k,v in old_cells.items() if v.get('kind') == 'master_type'} | {str(k) for k,v in new_cells.items() if v.get('kind') == 'master_type'}
-            row['master_type_rewrites'] = [d for d in cells if d[0] in type_keys]
-            cells = [d for d in cells if d[0] not in type_keys]
+            cells, part_diff, allowed = allowed_rewrites(old_cells,new_cells,cells,part_diff)
+            row['allowed'] = allowed
+            for kind, witnesses in allowed.items(): counter[kind] += len(witnesses)
             row['part_diff'] = part_diff
             row['cell_diff'] = cells[:200]
             row['repair_count'] = len(cells)+len(part_diff['added'])+len(part_diff['removed'])
@@ -578,7 +605,7 @@ def report(out, manifest):
         for i in worst:
             print('  worst',i)
     for name,c in sorted(sets.items()):
-        print(f"accept set {name}: files={c['files']} opened={c['opened']} repaired={c['repaired']} failed={c['failed']}")
+        print(f"accept set {name}: files={c['files']} opened={c['opened']} repaired={c['repaired']} failed={c['failed']} thumbnail_added={c['thumbnail_added']} master_type={c['master_type']} master_uniqueid={c['master_uniqueid']}")
         success &= c['opened'] == c['files'] and c['repaired'] == c['failed'] == 0
     success &= bool(groups)
     target = ROOT/'corpus/_state/m3/accept-report.json'

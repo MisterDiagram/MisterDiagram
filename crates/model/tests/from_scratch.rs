@@ -274,3 +274,12 @@ fn glue_replaces_case_insensitive_objtype_in_place() {
     assert_eq!(d.pages[0].shapes[0].sheet.cells.len(), count);
     assert_eq!(d.pages[0].shapes[0].sheet.cell("ObjType").unwrap().value.as_deref(), Some("1"));
 }
+
+#[test]
+fn synthetic_master_unique_ids_use_observed_visio_suffix() {
+    let a = skeleton::document(false);
+    let b = skeleton::document(false);
+    let id = a.masters[0].unique_id.as_deref().unwrap();
+    assert!(id.ends_with("-8E40-00608CF305B2}"));
+    assert_ne!(a.masters[0].unique_id, b.masters[0].unique_id);
+}

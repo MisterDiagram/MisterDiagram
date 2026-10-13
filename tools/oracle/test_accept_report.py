@@ -228,5 +228,19 @@ class Acceptance(unittest.TestCase):
         im.putpixel((240,48),(180,180,180));im.save(p)
         report.scratch_render_assertion('scratch__dynamic-glue','page-0',{'sizes':[(481,97),(481,97)]},p)
 
+
+    def test_allowed_rewrites_do_not_hide_other_repairs(self):
+        def cell(value,kind): return {'V':value,'F':None,'U':None,'E':None,'kind':kind}
+        keys=[('master/Attribute:MasterType',0),('master/Attribute:UniqueID',0),('master/Cell:LayerMember',0)]
+        a={keys[0]:cell('0','master_type'),keys[1]:cell('{ABCDEF12-1234-ABCD-1111-1234567890AB}','master_uniqueid')}
+        b={keys[0]:cell('541','master_type'),keys[1]:cell('{ABCDEF12-1234-ABCD-8E40-00608CF305B2}','master_uniqueid'),keys[2]:cell('0','cell')}
+        parts={'added':['docProps/thumbnail.emf','unexpected.xml'],'removed':[]}
+        diffs,left,allowed=report.allowed_rewrites(a,b,report.cell_diffs(a,b,set()),parts)
+        self.assertEqual(len(diffs),1)
+        self.assertEqual(left['added'],['unexpected.xml'])
+        self.assertEqual({k:len(v) for k,v in allowed.items()},{'thumbnail_added':1,'master_type':1,'master_uniqueid':1})
+        b[keys[1]]=cell('{00000000-1234-ABCD-8E40-00608CF305B2}','master_uniqueid')
+        self.assertEqual(len(report.allowed_rewrites(a,b,report.cell_diffs(a,b,set()),parts)[0]),2)
+
 if __name__ == '__main__':
     unittest.main()

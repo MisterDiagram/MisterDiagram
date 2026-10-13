@@ -168,6 +168,16 @@ pub fn page(id: u32, name: &str, metric: bool) -> Page {
         ..Default::default()
     }
 }
+/// Synthetic master identities retain Visio's observed suffix on SaveAs.
+/// Random first three groups remain contributor-authored; no vendor identity is copied.
+/// Observed: corpus/_vm/out/accept/scratch__rectangle-text/saved.vsdx.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
+fn master_unique_id() -> String {
+    let random = uuid::Uuid::new_v4();
+    let (a, b, c, _) = random.as_fields();
+    let id = uuid::Uuid::from_fields(a, b, c, &[0x8e, 0x40, 0x00, 0x60, 0x8c, 0xf3, 0x05, 0xb2]);
+    format!("{{{}}}", id.hyphenated()).to_uppercase()
+}
 /// Independently authored master using the probe's functional cell names and formulas.
 /// Fresh identities replace both vendor GUIDs; no icon, help reference or copyright cell.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
@@ -177,7 +187,7 @@ pub fn dynamic_connector() -> Master {
         id: 2,
         name: "Dynamic connector".into(),
         name_u: "Dynamic connector".into(),
-        unique_id: Some(guid()),
+        unique_id: Some(master_unique_id()),
         base_id: Some(guid()),
         part: "visio/masters/master1.xml".into(),
         sheet: defaults::connector_page_sheet(),

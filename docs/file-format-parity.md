@@ -1297,3 +1297,20 @@ packages both contain no shapes skip pixel comparison, and our output must be
 blank. Empty pairs are counted separately. Every other acceptance size difference,
 including one pixel, is a hard failure. Charles authorized these definitions in
 P3-closure-2 M3.19; no pixel ceiling changes.
+
+### M3.20: authorized SaveAs differences
+
+Observed, undocumented, authorized by Charles in P3-closure-2: the repair gate
+allows only an added `docProps/thumbnail.emf`, a rewritten MasterType value, and
+an otherwise unchanged master UniqueID whose final groups become
+`8E40-00608CF305B2`. Each class has its own count and witnesses in the acceptance
+report. All other part, attribute and cell differences remain repairs, including
+LayerMember additions and changed V text. An existing thumbnail changing bytes
+is not the added-thumbnail exception.
+
+Witnesses: the probe master changes MasterType 0 to 541 on Visio's own re-save;
+`corpus/_vm/out/accept/scratch__rectangle-text/saved.vsdx` supplies the UniqueID
+form. The thumbnail bisect in `corpus/_state/m3/diag-variants/` and
+`corpus/_vm/out/diag-scratch/probe-log.txt` accepted no thumbnail and rejected the
+2 by 2 PNG. We author no thumbnail and will not implement the minimal EMF option.
+New synthetic masters use random first three GUID groups and the observed suffix.
