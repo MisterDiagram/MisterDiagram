@@ -50,6 +50,12 @@ fn every_corpus_package_roundtrips_at_least_ninety_nine_percent_of_dump_cells() 
         total.percent(),
         diagramcraft_vsdx::roundtrip::FLOOR
     );
+    eprintln!(
+        "roundtrip evaluation-only diagnostic: passed={}/{} rate={:.6}%",
+        total.evaluation_only_matched,
+        total.total,
+        100. * total.evaluation_only_matched as f64 / total.total.max(1) as f64
+    );
     let mut failures: Vec<_> = total.failures.iter().collect();
     failures.sort_by(|a, b| b.1.cmp(a.1).then(a.0.cmp(b.0)));
     for (name, count) in failures {

@@ -47,6 +47,13 @@ impl fmt::Display for Report {
             self.writer_warnings,
             self.scene_warnings
         )?;
+        writeln!(
+            f,
+            "roundtrip evaluation-only diagnostic: passed={}/{} rate={:.6}%",
+            self.cells.evaluation_only_matched,
+            self.cells.total,
+            100. * self.cells.evaluation_only_matched as f64 / self.cells.total.max(1) as f64
+        )?;
         let mut failures: Vec<_> = self.cells.failures.iter().collect();
         failures.sort_by(|a, b| b.1.cmp(a.1).then(a.0.cmp(b.0)));
         for (name, count) in failures {

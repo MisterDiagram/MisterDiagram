@@ -217,7 +217,7 @@ size_and_render_errors = "every hard size mismatch or render error fails its gro
 # P3's explicitly required initial floor. Existing cell floors and render ceilings stay unchanged.
 roundtrip-cell = 0.99
 denominator = "union of all local source cell identities including deleted and unmapped cells; no exclusions"
-comparison = "exact effective formula and units, numeric result tolerance 1e-6, typed nonnumeric values; deleted/error cells literal"
+comparison = "unchanged raw formula requires identical source V text, plus exact effective formula and units, numeric result tolerance 1e-6, typed nonnumeric values; deleted/error cells literal"
 render = "every content page and master, frozen M2 pixel ceilings; original fixed world-space viewport and pixel denominator, origin shifts over one device pixel fail, master scale fixed from original"
 
 [m3_10_coverage]

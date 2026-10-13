@@ -1221,3 +1221,11 @@ text-position controls, deleted unused Geometry row, ConFixedCode and Connector 
 Witness: generated/connector/dynamic-glue.vsdx page1 shape3. Four page-space direction
 cases pass after write/read; endpoint hooks retain caller-supplied caches. The two
 Connect records remain. Live Visio ink, size and Connect verification is still pending.
+
+M3.17 round-trip comparison: unchanged source formulas require identical cached V
+text as well as the existing evaluated comparison. This exposes altered Inh caches
+that resolve to the same provider. The local-cell union denominator and 99% floor
+are unchanged; the evaluation-only rate is printed separately for comparison.
+
+M3.17 full corpus literal-cache comparison: 15079024/15091678=99.916152% across1,387packages, above the unchanged99% floor. The prior M3.4 raw-cache observation was578769/584822=98.96% before the writer corrections; its replacement by evaluation-only comparison hid real differences. The current diagnostic prints both strict and evaluation-only rates on the same local-cell union.
+Evaluation-only diagnostic for that full run: 15079024/15091678=99.916152%.

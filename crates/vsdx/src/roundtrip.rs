@@ -10,6 +10,7 @@ const MAX_ROWS: usize = 2_000_000;
 #[derive(Debug, Default)]
 pub struct Report {
     pub matched: u64,
+    pub evaluation_only_matched: u64,
     pub total: u64,
     pub failures: BTreeMap<String, u64>,
 }
@@ -22,6 +23,7 @@ impl Report {
     }
     pub fn merge(&mut self, other: Self) {
         self.matched = self.matched.saturating_add(other.matched);
+        self.evaluation_only_matched = self.evaluation_only_matched.saturating_add(other.evaluation_only_matched);
         self.total = self.total.saturating_add(other.total);
         for (name, count) in other.failures {
             let name = if self.failures.len() >= 4096 && !self.failures.contains_key(&name) { "<additional names>".into() } else { name };
@@ -165,7 +167,8 @@ fn equal(a: &Entry<'_>, b: &Entry<'_>, ea: &mut Evaluator<'_>, eb: &mut Evaluato
 }
 /// Compare all local source cells, without COM omissions, hook or volatile exclusions.
 /// The denominator is the union of positional source identities. Deleted cells compare
-/// literally; active cells compare effective formulas, units and typed evaluated values.
+/// literally; active cells compare source V text when F is unchanged, plus effective
+/// formulas, units and typed evaluated values.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
 pub fn compare(
     before: &Document,
@@ -191,7 +194,10 @@ pub fn compare(
     let mut report = Report { total: a.rows.len() as u64, ..Report::default() };
     for (key, b) in b.rows {
         if let Some(a) = a.rows.remove(&key) {
-            if equal(&a, &b, &mut ea, &mut eb) {
+            let evaluated_equal = equal(&a, &b, &mut ea, &mut eb);
+            report.evaluation_only_matched += u64::from(evaluated_equal);
+            // A source cache is a file contract even when evaluation hides a change.
+            if evaluated_equal && (a.cell.formula != b.cell.formula || a.cell.value == b.cell.value) {
                 report.matched += 1;
             } else {
                 report.failed(&b.name);
@@ -223,7 +229,7 @@ mod tests {
         assert!(compare(&a, &b, None, None, None).unwrap().matched < compare(&a, &a, None, None, None).unwrap().matched);
     }
     #[test]
-    fn inherited_provider_is_not_a_duplicate_local_cell() {
+    fn inherited_cache_corruption_is_visible_despite_equal_provider_values() {
         let mut a = diagramcraft_model::skeleton::document(false);
         a.pages[0].shapes.push(Shape {
             id: 1,
@@ -234,10 +240,14 @@ mod tests {
             },
             ..Shape::default()
         });
-        let written = crate::write(&a).unwrap();
-        let b = crate::import(&written.bytes).unwrap();
+        let mut b = a.clone();
+        b.pages[0].shapes[0].sheet.cells[0].value = Some("0".into());
         let r = compare(&a, &b, None, None, None).unwrap();
-        assert!(!r.failures.contains_key("Width"), "{:?}", r.failures);
+        assert_eq!(r.failures.get("Width"), Some(&1));
+        assert_eq!(r.evaluation_only_matched, r.total);
+        b.pages[0].shapes[0].sheet.cells[0].value = Some("999.0".into());
+        assert_eq!(compare(&a, &b, None, None, None).unwrap().failures.get("Width"), Some(&1));
+        assert!(compare(&a, &a, None, None, None).unwrap().passed());
     }
     #[test]
     fn duplicate_cell_names_cannot_hide_an_earlier_change() {
