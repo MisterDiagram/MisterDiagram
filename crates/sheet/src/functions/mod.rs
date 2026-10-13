@@ -87,6 +87,7 @@ pub const IMPLEMENTED: &[&str] = &[
     "FORMAT",
     "FORMATEX",
     "STRSAME",
+    "TRIM",
     "LEN",
     "FIND",
     "LEFT",
