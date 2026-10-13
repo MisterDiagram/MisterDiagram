@@ -188,3 +188,7 @@ Core=N rows (excluded from milestone scoring):
 ## M3.2 writer evidence
 
 - Open and save .vsdx (full fidelity, unknown parts kept): P. `authored_skeleton_writes_complete_opc_and_recalculates_local_cells`, `unknown_parts_and_extensions_survive_modelled_edits` and `instances_keep_only_local_overrides_and_master_relationships` cover serialization. Full corpus dump/render equality and Visio repair detection remain the M3.4/M3.5 gates.
+
+## M3.3 package-kind evidence
+
+- Open .vssx stencils and .vstx templates; save a stencil: P. `authored_stencil_and_template_retain_their_distinct_contracts` verifies the main content types, removal of drawing content for a document stencil, preservation of template pages, and re-reading. `existing_shipped_stencil_and_template_write_and_reopen` covers BASIC_U and BASFLO_U. Visio acceptance remains M3.5.

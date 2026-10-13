@@ -197,3 +197,8 @@ and `serialization_does_not_apply_setf_actions_to_later_caches`. All 1,387
 packages read-write-read and 5,548 mutations produce zero panics. Stencil/template
 output, full dump/render measurement and the 230-file Visio acceptance remain
 pending; structural re-reading does not establish save fidelity.
+M3.3 adds explicit drawing/stencil/template output. The stencil retains masters
+and a PageSheet-only metadata entry while removing drawing page parts. Tests:
+`authored_stencil_and_template_retain_their_distinct_contracts` and
+`existing_shipped_stencil_and_template_write_and_reopen`. Visio acceptance is
+still pending.

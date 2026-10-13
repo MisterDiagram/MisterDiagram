@@ -6,6 +6,8 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     io::{Cursor, Write},
 };
+mod format;
+pub use format::{SaveKind, write_as, write_as_with_hosts};
 mod model;
 mod validate;
 mod xml;
