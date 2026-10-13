@@ -240,6 +240,7 @@ pub(crate) fn document(d: &Document) -> Result<(), WriteError> {
         b.connects(&m.connects)?;
         b.sheet(&m.sheet)?;
         b.shapes(&m.shapes)?;
+        master_ids(d, m)?;
         if let Some(i) = &m.icon {
             b.xml(i)?;
         }
@@ -320,4 +321,38 @@ pub(super) fn sheet(sheet: &Sheet) -> Result<usize, WriteError> {
     let mut budget = Budget { bytes: 0, nodes: 0 };
     budget.sheet(sheet)?;
     Ok(budget.bytes)
+}
+
+/// Authored master content starts at ID 5. Preserve only witnessed source ID 4.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
+/// Observed: corpus/_vm/out/diag-masters/probe-log.txt, tm-v0 and tm-v1-shapeid5.
+fn master_ids(d: &Document, m: &Master) -> Result<(), WriteError> {
+    let mut pending: Vec<_> = m.shapes.iter().collect();
+    let mut reserved = false;
+    while let Some(shape) = pending.pop() {
+        reserved |= shape.id < 5;
+        pending.extend(&shape.shapes);
+    }
+    if !reserved {
+        return Ok(());
+    }
+    let mut original = BTreeSet::new();
+    if let Some(part) = d.parts.get(&m.part).filter(|p| !p.bytes.is_empty()) {
+        let root = crate::parse_xml(&part.bytes).map_err(|e| error(e.to_string()))?;
+        let mut pending: Vec<_> = root.child("Shapes").into_iter().flat_map(|s| s.elements()).filter(|s| s.is_visio("Shape")).collect();
+        while let Some(node) = pending.pop() {
+            if node.is_visio("Shape") && node.attr("ID").and_then(|id| id.parse::<u32>().ok()) == Some(4) {
+                original.insert(4);
+            }
+            pending.extend(node.child("Shapes").into_iter().flat_map(|s| s.elements()).filter(|s| s.is_visio("Shape")));
+        }
+    }
+    let mut pending: Vec<_> = m.shapes.iter().collect();
+    while let Some(shape) = pending.pop() {
+        if shape.id < 5 && !original.contains(&shape.id) {
+            return Err(error(format!("master {} content shape ID {} must start at 5", m.id, shape.id)));
+        }
+        pending.extend(&shape.shapes);
+    }
+    Ok(())
 }

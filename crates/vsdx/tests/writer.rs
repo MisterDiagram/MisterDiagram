@@ -710,3 +710,109 @@ fn inherited_text_caches_compare_as_text_and_named_fonts_as_faces() {
     }
     assert!(!sheet.sections.iter().any(|s| s.name == "Character"));
 }
+
+#[test]
+fn authored_master_content_rejects_reserved_ids() {
+    for id in 0..5 {
+        let mut d = skeleton::document(false);
+        d.masters[0].shapes[0].id = id;
+        assert!(write(&d).is_err(), "reserved master content ID {id}");
+    }
+    let d = skeleton::document(false);
+    assert_eq!(import(&write(&d).unwrap().bytes).unwrap().masters[0].shapes[0].id, 5);
+}
+#[test]
+fn original_visio_master_content_id_four_is_preserved() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    let d = diagramcraft_vsdx::read(root.join("ms-shipped/1033/PHONE_CONN_U.vstx")).unwrap();
+    let a = import(&write(&d).unwrap().bytes).unwrap();
+    let count = |d: &diagramcraft_model::Document| {
+        let mut stack: Vec<_> = d.masters.iter().flat_map(|m| &m.shapes).collect();
+        let mut count = 0;
+        while let Some(s) = stack.pop() {
+            count += usize::from(s.id == 4);
+            stack.extend(&s.shapes);
+        }
+        count
+    };
+    assert!(count(&d) > 0);
+    assert_eq!(count(&d), count(&a));
+}
+
+#[test]
+fn authored_and_edited_literal_cache_types_are_serialized_by_type() {
+    let mut d = skeleton::document(false);
+    let mut shape = skeleton::rectangle(1, 0., 0., 1., 1., "").unwrap();
+    for (name, value) in [("TextBkgnd", "2"), ("LineColor", "0"), ("Comment", "")] {
+        shape.sheet.cells.push(Cell { name: name.into(), value: Some(value.into()), ..Default::default() });
+    }
+    shape.sheet.sections.push(Section {
+        name: "Character".into(),
+        rows: vec![Row {
+            index: Some(0),
+            cells: vec![
+                Cell { name: "LangID".into(), value: Some("1033".into()), ..Default::default() },
+                Cell { name: "Font".into(), value: Some("0".into()), ..Default::default() },
+            ],
+            ..Default::default()
+        }],
+        ..Default::default()
+    });
+    d.pages[0].shapes.push(shape);
+    let mut a = import(&write(&d).unwrap().bytes).unwrap();
+    let sheet = &mut a.pages[0].shapes[0].sheet;
+    assert_eq!(sheet.cell("TextBkgnd").unwrap().value.as_deref(), Some("#ffffff"));
+    assert_eq!(sheet.cell("LineColor").unwrap().value.as_deref(), Some("#000000"));
+    assert_eq!(sheet.cell("Comment").unwrap().value.as_deref(), Some(""));
+    let row = &mut sheet.sections.iter_mut().find(|s| s.name == "Character").unwrap().rows[0];
+    assert_eq!(row.cells[0].value.as_deref(), Some("en-US"));
+    assert_eq!(row.cells[1].value.as_deref(), Some("0"));
+    row.cells[0].value = Some("2057".into());
+    row.cells[1].value = Some("Calibri".into());
+    sheet.cells.iter_mut().find(|c| c.name == "LineColor").unwrap().value = Some("1".into());
+    let b = import(&write(&a).unwrap().bytes).unwrap();
+    let sheet = &b.pages[0].shapes[0].sheet;
+    assert_eq!(sheet.cell("LineColor").unwrap().value.as_deref(), Some("#ffffff"));
+    let row = &sheet.sections.iter().find(|s| s.name == "Character").unwrap().rows[0];
+    assert_eq!(row.cells[0].value.as_deref(), Some("en-GB"));
+    assert_eq!(row.cells[1].value.as_deref(), Some("Calibri"));
+}
+
+#[test]
+fn extension_xml_cannot_authorize_a_reserved_master_shape_id() {
+    let mut d = import(&write(&skeleton::document(false)).unwrap().bytes).unwrap();
+    let part = d.parts.get_mut("visio/masters/master1.xml").unwrap();
+    let mut unrelated = XmlElement { name: "Extension".into(), namespace: "urn:diagramcraft:test".into(), ..Default::default() };
+    unrelated.children.push(XmlNode::Element(XmlElement {
+        name: "Shape".into(),
+        namespace: skeleton::VISIO_NS.into(),
+        attributes: std::collections::BTreeMap::from([("ID".into(), "4".into())]),
+        ..Default::default()
+    }));
+    part.xml.as_mut().unwrap().children.push(XmlNode::Element(unrelated));
+    d.masters[0].shapes[0].id = 4;
+    assert!(write(&d).expect_err("extension is not source master content").to_string().contains("must start at 5"));
+}
+
+#[test]
+fn edited_source_tree_cannot_authorize_reserved_master_id() {
+    let mut d = import(&write(&skeleton::document(false)).unwrap().bytes).unwrap();
+    let part = d.parts.get_mut("visio/masters/master1.xml").unwrap();
+    fn alter(e: &mut XmlElement) {
+        if e.is_visio("Shape") {
+            e.attributes.insert("ID".into(), "4".into());
+        }
+        for child in &mut e.children {
+            if let XmlNode::Element(e) = child {
+                alter(e);
+            }
+        }
+    }
+    alter(part.xml.as_mut().unwrap());
+    d.masters[0].shapes[0].id = 4;
+    assert!(write(&d).is_err());
+}

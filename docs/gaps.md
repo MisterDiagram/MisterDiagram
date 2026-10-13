@@ -319,3 +319,8 @@ local `Inh` records. The basic-rectangle exact-cell-set regression passes, inclu
 reconstruction of its Geometry and Connection caches. Visio export validation of the
 resized scratch master remains pending the new acceptance run. This does not yet
 close the dropped-master render gap.
+
+M3.14: authored master content IDs now start at 5 and invalid lower IDs are rejected.
+Original Visio ID 4 is retained with a source-byte witness (PHONE_CONN_U.vstx).
+Host regressions pass; the three live master counts and PNG sizes await the fresh
+M3.23 acceptance run. No live acceptance claim is made from host tests.

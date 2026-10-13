@@ -114,12 +114,13 @@ fn five_documents_build_and_reread() {
         m.name = format!("Authored {}", i + 1);
         m.name_u = m.name.clone();
         m.part = format!("visio/masters/master{}.xml", i + 1);
-        m.shapes = vec![skeleton::rectangle(1, 0., 0., 1. + f64::from(i) * 0.5, 1., &m.name).unwrap()];
+        m.shapes = vec![skeleton::rectangle(5, 0., 0., 1. + f64::from(i) * 0.5, 1., &m.name).unwrap()];
         d.masters.push(m);
     }
     let a = save(&root, "scratch__three-masters.vssx", &d, SaveKind::Stencil);
     assert_eq!(a.masters.len(), 3);
     assert!(a.masters.iter().all(|m| m.icon.is_none()));
+    assert!(a.masters.iter().all(|m| m.shapes.len() == 1 && m.shapes[0].id == 5));
     let witness = root.join("corpus/ms-shipped/1033/BASIC_U.vssx");
     if !root.join("corpus").exists() {
         eprintln!("skip: private corpus/ absent, BASIC_U dropped-master case");

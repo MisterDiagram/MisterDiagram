@@ -1186,3 +1186,21 @@ master cache. The serialized cache uses the source unit. Witness:
 `resized_basic_rectangle_reproduces_inherited_instance_cache_set` verifies the exact
 cell and `Inh` sets, including reconstruction after removing those local caches.
 Expanded strings are charged against the sheet byte bound before insertion.
+
+### Master content IDs (M3.14, observed)
+
+The diagnostic `corpus/_vm/out/diag-masters/probe-log.txt` records that `tm-v0`
+with authored content ID 1 opens with no master shapes, while `tm-v1-shapeid5`
+loads the shape. New master content must use IDs from 5 upward; invalid IDs are
+rejected rather than silently renumbered. The three-master fixture uses ID 5.
+
+There is a narrow source-preservation exception: 691 original shipped shape records
+use ID 4, with no IDs 0 through 3 found. Witness:
+`corpus/ms-shipped/1033/PHONE_CONN_U.vstx`, `visio/masters/master2.xml`, and its
+COM dump (`master:4:Procedure/Sheet.4`, Width 1, Height 0.75). The writer retains
+ID 4 only when the original bytes of that master part contain it as master content.
+An editable XML tree or unrelated extension cannot authorize the exception.
+
+Authored and edited literal caches also use the typed serializer: numeric language
+IDs become language tags, color indices become RGB strings, Font literals retain their numeric value or supplied name, and empty strings remain empty. Imported unchanged literals
+retain their source text. These cases extend the M3.12 formula-cache regressions.

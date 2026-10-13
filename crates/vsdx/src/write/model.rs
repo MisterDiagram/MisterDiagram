@@ -94,6 +94,26 @@ impl Writer<'_> {
                 }
             }
         }
+        // Authored/edited literals also carry a type. Font literals retain their
+        // supplied name or numeric identity; neither is an evaluated FONT result.
+        // Witness: generated/basic/0001-probe stores Font V="Calibri".
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+        if c.formula.as_deref().is_none_or(|f| f.is_empty() || f.eq_ignore_ascii_case("No Formula"))
+            && self.source_state.changed.contains(&(scope, name.to_ascii_lowercase()))
+            && c.value.as_deref().is_some_and(|v| v != "Themed")
+            && c.error.is_none()
+            && c.units.as_deref() != Some("STR")
+            && c.name != "Font"
+        {
+            match self.evaluator.cached_cell(c) {
+                Value::Number(n) => match self.evaluator.serialized_number(scope, name, c, n) {
+                    Ok(v) => value = Some(v),
+                    Err(e) => self.warn(scope, name, e),
+                },
+                Value::Color { rgb, .. } => value = Some(format!("#{:02x}{:02x}{:02x}", rgb[0], rgb[1], rgb[2])),
+                _ => {}
+            }
+        }
         for (key, v) in [("N", Some(c.name.clone())), ("V", value), ("F", formula), ("U", c.units.clone()), ("E", err)] {
             set(&mut e, key, v);
         }
