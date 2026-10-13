@@ -74,13 +74,13 @@ class Acceptance(unittest.TestCase):
         with self.assertRaises(ValueError):
             report.package_cells(path)
 
-    def test_common_area_one_pixel_and_hard_two_pixel(self):
+    def test_acceptance_rejects_one_and_two_pixel_mismatches(self):
         from PIL import Image
         a,b=self.root/'a.png',self.root/'b.png'
         Image.new('RGB',(4,4),'white').save(a)
         Image.new('RGB',(5,4),'white').save(b)
         result=report.pixels(a,b)
-        self.assertEqual((result['mad'],result['pixels']),(0,16))
+        self.assertEqual(result['error'],'hard size mismatch')
         Image.new('RGB',(6,4),'white').save(b)
         self.assertEqual(report.pixels(a,b)['error'],'hard size mismatch')
 
@@ -197,6 +197,36 @@ class Acceptance(unittest.TestCase):
         mapped={tuple(row[:6]):row}
         self.assertTrue(report.source_com_compare(raw,mapped,{},set(),[])[1])
         self.assertTrue(report.source_com_compare(raw,{},mapped,set(),[])[1])
+
+
+    def test_nonempty_export_requires_identical_size(self):
+        from PIL import Image
+        a=self.root/'a.png';b=self.root/'b.png'
+        Image.new('RGB',(97,97),'white').save(a)
+        Image.new('RGB',(98,97),'white').save(b)
+        self.assertIn('error',report.pixels(a,b))
+        Image.new('RGB',(97,97),'white').save(b)
+        self.assertEqual(report.pixels(a,b)['mad'],0)
+
+    def test_empty_export_requires_blank_480_by_288_ours(self):
+        from PIL import Image
+        a=self.root/'a.png';b=self.root/'b.png'
+        Image.new('RGB',(480,288),'white').save(a)
+        Image.new('RGB',(480,288),'white').save(b)
+        self.assertTrue(report.empty_pixels(a,b)['empty'])
+        ink=Image.new('RGB',(480,288),'white');ink.putpixel((1,1),(0,0,0));ink.save(a)
+        with self.assertRaises(ValueError): report.empty_pixels(a,b)
+
+
+    def test_scratch_sizes_and_connector_gap_are_explicit(self):
+        from PIL import Image
+        result={'sizes':[(193,97),(193,97)]}
+        report.scratch_render_assertion('scratch__dropped-master','page-0',result,None)
+        with self.assertRaises(ValueError): report.scratch_render_assertion('scratch__dropped-master','page-0',{'sizes':[(145,97),(145,97)]},None)
+        p=self.root/'route.png';im=Image.new('RGB',(481,97),'white');im.save(p)
+        with self.assertRaises(ValueError): report.scratch_render_assertion('scratch__dynamic-glue','page-0',{'sizes':[(481,97),(481,97)]},p)
+        im.putpixel((240,48),(180,180,180));im.save(p)
+        report.scratch_render_assertion('scratch__dynamic-glue','page-0',{'sizes':[(481,97),(481,97)]},p)
 
 if __name__ == '__main__':
     unittest.main()

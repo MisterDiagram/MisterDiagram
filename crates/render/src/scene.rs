@@ -37,10 +37,13 @@ pub struct Options {
     pub scale: f64,
     pub print: bool,
     pub crop: bool,
+    /// Page.Export acceptance uses alignment boxes for the geometry contribution.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/width-cell-shape-transform-section
+    pub alignment_extent: bool,
 }
 impl Default for Options {
     fn default() -> Self {
-        Self { scale: 1., print: false, crop: true }
+        Self { scale: 1., print: false, crop: true, alignment_extent: false }
     }
 }
 impl Scene {
@@ -233,6 +236,9 @@ pub fn page_prepared(evaluator: &mut Evaluator<'_>, index: usize, options: Optio
         shapes(evaluator, &p.shapes, scope, &p.part, Affine::scale(ratio), options, &mut scene, 0)?;
     }
     finish_bounds(&mut scene, options.crop);
+    if options.alignment_extent && p.shapes.is_empty() && !p.attributes.contains_key("BackPage") {
+        scene.bounds = Rect::new(0., 0., 5., 3.);
+    }
     scene.canvas(options)?;
     Ok(scene)
 }
@@ -255,6 +261,9 @@ pub fn master_prepared(evaluator: &mut Evaluator<'_>, index: usize, options: Opt
     let ratio = number(evaluator, scope, "PageScale", 1.) / number(evaluator, scope, "DrawingScale", 1.).max(1e-12);
     shapes(evaluator, &m.shapes, scope, &m.part, Affine::scale(ratio), options, &mut scene, 0)?;
     finish_bounds(&mut scene, true);
+    if options.alignment_extent && m.shapes.is_empty() {
+        scene.bounds = Rect::new(0., 0., 5., 3.);
+    }
     // A master has no raster allocation until its contact-cell scale is known.
     // raster::render validates the fitted canvas before allocating pixels.
     Ok(scene)
@@ -404,12 +413,20 @@ fn shapes(
         if mode == 0. || mode == 2. {
             shapes(e, &shape.shapes, parent, part, scale, options, scene, depth + 1)?;
         }
-        if mode == 0. {
+        if mode == 0. && !options.alignment_extent {
             continue;
         }
         let transform = scale * e.shape_to_page(scope).map_err(|e| format!("shape {} transform: {e}", shape.id))?;
         let width = number(e, scope, "Width", 1.);
         let height = number(e, scope, "Height", 1.);
+        if options.alignment_extent {
+            // Every visible shape contributes its alignment box, including groups
+            // and text-only shapes without any Geometry section.
+            scene.ops.push(Op::Bounds(transform.transform_rect_bbox(Rect::new(0., 0., width, height).abs())));
+        }
+        if mode == 0. {
+            continue;
+        }
         let fill = Fill {
             pattern: number(e, scope, "FillPattern", 1.).max(0.) as u32,
             foreground: color(e, scope, "FillForegnd", "FillForegndTrans"),
@@ -471,6 +488,25 @@ fn shapes(
                     }
                 } else {
                     (transform * &path).bounding_box()
+                };
+                let bounds = if options.alignment_extent {
+                    // Alignment boxes, rather than stray Geometry points, define
+                    // the logical drawing footprint. Pen/marker/text extents remain
+                    // explicit contributions, as in the generated SVG witnesses.
+                    let alignment = transform.transform_rect_bbox(Rect::new(0., 0., width, height).abs());
+                    if geometry.stroked() && line.pattern != 0 {
+                        let centerline = (transform * &path).bounding_box();
+                        Rect::new(
+                            alignment.x0 - (centerline.x0 - bounds.x0).max(0.),
+                            alignment.y0 - (centerline.y0 - bounds.y0).max(0.),
+                            alignment.x1 + (bounds.x1 - centerline.x1).max(0.),
+                            alignment.y1 + (bounds.y1 - centerline.y1).max(0.),
+                        )
+                    } else {
+                        alignment
+                    }
+                } else {
+                    bounds
                 };
                 scene.ops.push(Op::Bounds(bounds));
             }

@@ -1279,3 +1279,21 @@ these rows are inaccessible in COM. Previous197517 included this unobserved clas
 and is superseded. Literal/part differences30237, opened230, repaired230 unchanged.
 Python19/19 tests pass under python3 with Pillow; project .venv lacks Pillow and
 was not used for the final measurement. No VM output or input was modified.
+
+### M3.19: acceptance export extent
+
+Observed, undocumented: Page.Export uses shape alignment boxes for the logical
+geometry extent, rather than arbitrary Geometry coordinates. Every visible shape
+contributes its transformed Width by Height box, including geometry-free groups.
+Stroke, marker and text overhangs remain separate painted extents: the original
+`text/multiline-wrap` exports 206 pixels for a 2 inch alignment width, and
+`arrow/begin-02` exports 482 pixels for a 5 inch alignment width. The acceptance
+renderer uses this extent; ordinary generated-corpus rendering retains its frozen
+M2 contract.
+
+An empty page or master exports 480 by 288: witnesses `blank__blank`, BASFLO_M
+page 0, WWFC_M page 4 and UCMNME_U page 0. Only pairs whose input and saved
+packages both contain no shapes skip pixel comparison, and our output must be
+blank. Empty pairs are counted separately. Every other acceptance size difference,
+including one pixel, is a hard failure. Charles authorized these definitions in
+P3-closure-2 M3.19; no pixel ceiling changes.

@@ -85,23 +85,26 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             .with_theme_host(&theme)
             .with_text_host(&diagramcraft_text::Host);
         let mut images = vec![];
+        let options = Options { alignment_extent: true, ..Default::default() };
         for (master, count) in [(false, doc.pages.len()), (true, doc.masters.len())] {
             for i in 0..count {
                 if !master && doc.pages.get(i).is_none_or(|p| p.part.is_empty()) {
                     continue;
                 }
                 let id = if master { doc.masters.get(i).ok_or("master")?.id } else { doc.pages.get(i).ok_or("page")?.id };
+                let empty = if master {
+                    doc.masters.get(i).ok_or("master")?.shapes.is_empty()
+                } else {
+                    doc.pages.get(i).is_some_and(|p| p.shapes.is_empty() && !p.attributes.contains_key("BackPage"))
+                };
                 let stem = format!("{}-{id}", if master { "master" } else { "page" });
                 let result = (|| -> Result<(), String> {
-                    let scene = if master {
-                        scene::master_prepared(&mut evaluator, i, Options::default())
-                    } else {
-                        scene::page_prepared(&mut evaluator, i, Options::default())
-                    }?;
-                    let image = raster::render(&scene, Options::default())?;
+                    let scene =
+                        if master { scene::master_prepared(&mut evaluator, i, options) } else { scene::page_prepared(&mut evaluator, i, options) }?;
+                    let image = raster::render(&scene, options)?;
                     image.save(dir.join(format!("{stem}.png"))).map_err(|e| e.to_string())
                 })();
-                images.push(serde_json::json!({"stem":stem,"error":result.err()}));
+                images.push(serde_json::json!({"stem":stem,"error":result.err(),"empty":empty}));
             }
         }
         fs::write(dir.join("images.json"), serde_json::to_vec_pretty(&images)?)?;

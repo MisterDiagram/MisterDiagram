@@ -492,3 +492,40 @@ fn shipped_roundtrip_render_regressions() {
         assert!(result.is_ok(), "{file}: {:?}", result.err());
     }
 }
+
+#[test]
+fn acceptance_empty_page_and_master_use_observed_canvas() {
+    let mut doc = diagramcraft_model::skeleton::document(false);
+    let options = scene::Options { alignment_extent: true, ..Default::default() };
+    let page = scene::page(&doc, 0, options).unwrap();
+    let image = raster::render(&page, options).unwrap();
+    assert_eq!(image.dimensions(), (480, 288));
+    assert!(image.pixels().all(|p| p.0[..3] == [255, 255, 255]));
+    doc.masters[0].shapes.clear();
+    let master = scene::master(&doc, 0, options).unwrap();
+    let image = raster::render(&master, options).unwrap();
+    assert_eq!(image.dimensions(), (480, 288));
+    assert!(image.pixels().all(|p| p.0[..3] == [255, 255, 255]));
+}
+
+#[test]
+fn acceptance_alignment_includes_geometry_free_groups_and_shapes() {
+    use diagramcraft_model::{Cell, skeleton};
+    let mut doc = skeleton::document(false);
+    let mut group = skeleton::rectangle(1, 0., 0., 8., 6., "").unwrap();
+    group.shape_type = Some("Group".into());
+    group.sheet.sections.retain(|s| s.name != "Geometry");
+    group.shapes.push(skeleton::rectangle(2, 2., 2., 1., 1., "").unwrap());
+    let options = scene::Options { alignment_extent: true, ..Default::default() };
+    for mode in ["0", "1", "2"] {
+        group.sheet.cells.retain(|c| c.name != "DisplayMode");
+        group.sheet.cells.push(Cell { name: "DisplayMode".into(), value: Some(mode.into()), ..Default::default() });
+        doc.pages[0].shapes = vec![group.clone()];
+        let drawing = scene::page(&doc, 0, options).unwrap();
+        assert_eq!(drawing.bounds, kurbo::Rect::new(0., 0., 8., 6.), "mode={mode}");
+    }
+    group.shapes.clear();
+    doc.pages[0].shapes = vec![group];
+    let drawing = scene::page(&doc, 0, options).unwrap();
+    assert_eq!(drawing.bounds, kurbo::Rect::new(0., 0., 8., 6.));
+}

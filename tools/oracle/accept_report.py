@@ -328,7 +328,7 @@ def pixels(a, b):
         sizes = ia.size, ib.size
         if any(im.width <= 0 or im.height <= 0 or im.width > 16384 or im.height > 16384 or im.width*im.height > 32*1024*1024 for im in (ia,ib)):
             raise ValueError('image header pixel budget')
-        if any(abs(x-y) > 1 for x, y in zip(*sizes)):
+        if sizes[0] != sizes[1]:
             return {'sizes': sizes, 'error': 'hard size mismatch'}
         w, h = min(ia.width, ib.width), min(ia.height, ib.height)
         if w*h > 32*1024*1024 or w*h == 0:
@@ -343,6 +343,49 @@ def pixels(a, b):
         r,g,b = d.split()
         over = sum(ImageChops.lighter(ImageChops.lighter(r,g),b).histogram()[17:])
         return {'sizes': sizes, 'mad': mad, 'over': over, 'pixels': w*h}
+
+
+def package_empty_views(path):
+    """Resolve actual saved page/master content, rather than trusting an expectation."""
+    import posixpath
+    empty = set()
+    with zipfile.ZipFile(path) as z:
+        def xml(name):
+            info = z.getinfo(name)
+            if info.file_size > MAX_XML: raise ValueError('view XML budget')
+            data = z.read(info)
+            if b'\x00' in data or b'<!DOCTYPE' in data.upper() or b'<!ENTITY' in data.upper(): raise ValueError('view XML entities')
+            return ET.fromstring(data)
+        for plural, singular in [('pages','Page'),('masters','Master')]:
+            listing = f'visio/{plural}/{plural}.xml'
+            if listing not in z.namelist(): continue
+            rels_path = f'visio/{plural}/_rels/{plural}.xml.rels'
+            rels = {} if rels_path not in z.namelist() else {r.get('Id'):r.get('Target') for r in xml(rels_path) if r.get('TargetMode') != 'External'}
+            for node in xml(listing):
+                if node.tag.rsplit('}',1)[-1] != singular: continue
+                rel = node.find('{*}Rel')
+                rid = next((v for k,v in rel.attrib.items() if k.rsplit('}',1)[-1] == 'id'),None) if rel is not None else None
+                target = rels.get(rid)
+                if not target: continue
+                part = posixpath.normpath(posixpath.join(posixpath.dirname(listing),target))
+                if part.startswith('../') or part.startswith('/'): raise ValueError('view relationship traversal')
+                content = xml(part)
+                if node.get('BackPage') is None and content.find('.//{*}Shape') is None:
+                    empty.add(('page-' if singular == 'Page' else 'master-')+node.get('ID',''))
+    return empty
+
+
+def empty_pixels(a,b):
+    from PIL import Image,ImageChops
+    with Image.open(a) as ia, Image.open(b) as ib:
+        if any(im.width <= 0 or im.height <= 0 or im.width*im.height > 32*1024*1024 for im in (ia,ib)):
+            raise ValueError('empty image header budget')
+        if ia.size != (480,288): raise ValueError('empty acceptance canvas must be 480x288')
+        rgba = ia.convert('RGBA')
+        white = Image.new('RGBA',rgba.size,'white')
+        if ImageChops.difference(Image.alpha_composite(white,rgba).convert('RGB'),white.convert('RGB')).getbbox():
+            raise ValueError('empty source rendered ink')
+        return {'sizes':(ia.size,ib.size),'empty':True}
 
 
 def prepare_manifest():
@@ -387,6 +430,27 @@ def computed_diagnostic(observed, computed, old_cells, new_cells, filters):
     expected = {k:v for k,v in computed.items() if not excluded(v[6],filters) and not excluded(observed.get(k,v)[6],filters)}
     _,_,failures = compare(actual,expected,filters)
     return [f for f in failures if not(f[0] in phantom and f[1].startswith('units '))],len(phantom)
+
+
+def scratch_render_assertion(name, stem, result, image):
+    """Concrete from-scratch witnesses required by M3.13 to M3.16."""
+    if 'error' in result: return
+    expected = None
+    if name == 'scratch__dropped-master' and stem == 'page-0': expected = (193,97)
+    if name == 'scratch__three-masters':
+        expected = {'master-1':(97,97),'master-2':(145,97),'master-3':(193,97)}.get(stem)
+    if expected and any(tuple(size) != expected for size in result['sizes']):
+        raise ValueError(f'from-scratch required size {expected}, measured {result["sizes"]}')
+    if name == 'scratch__dynamic-glue' and stem == 'page-0':
+        from PIL import Image
+        with Image.open(image) as source:
+            rgb=source.convert('RGB')
+            # The two authored rectangles span x1..3 and x4..6. Their empty gap
+            # occupies the middle fifth of the export; the route lies at mid-height.
+            left,right=rgb.width*9//20,rgb.width*11//20
+            mid=rgb.height//2
+            if not any(max(rgb.getpixel((x,y))) < 240 for y in range(max(0,mid-1),min(rgb.height,mid+2)) for x in range(left,right)):
+                raise ValueError('dynamic connector has no dark pixels across its gap')
 
 
 def report(out, manifest):
@@ -466,6 +530,8 @@ def report(out, manifest):
             row['serialized_records'] = len(old_cells)
             row['com_failures'] = len(failures)
             row['com_diff'] = failures[:100]
+            empty_before = package_empty_views(path)
+            empty_after = package_empty_views(actual/saved)
             images = load_json(expected/'images.json')
             for item in images:
                 stem = item['stem']
@@ -476,7 +542,12 @@ def report(out, manifest):
                         raise ValueError('our renderer: '+item['error'])
                     if stem+'.png' not in hashes:
                         raise ValueError('missing Visio image')
-                    result = pixels(expected/(stem+'.png'), actual/(stem+'.png'))
+                    if item.get('empty') and stem in empty_before and stem in empty_after:
+                        result = empty_pixels(expected/(stem+'.png'), actual/(stem+'.png'))
+                    else:
+                        result = pixels(expected/(stem+'.png'), actual/(stem+'.png'))
+                    scratch_render_assertion(name,stem,result,actual/(stem+'.png'))
+                    scratch_render_assertion(name,stem,result,expected/(stem+'.png'))
                 except (OSError, ValueError) as error:
                     result = {'error': str(error)}
                 result['file'] = name+'#'+stem
@@ -494,14 +565,16 @@ def report(out, manifest):
     summaries = {}
     for group, items in sorted(groups.items()):
         valid = [i for i in items if 'error' not in i]
-        mad = sum(i['mad'] for i in valid)/len(valid) if valid else math.inf
-        count = sum(i['pixels'] for i in valid)
-        frac = sum(i['over'] for i in valid)/count if count else math.inf
-        ok = len(valid) == len(items) and mad <= (8 if group == 'text' else 4) and frac <= (.05 if group == 'text' else .02)
+        scored = [i for i in valid if not i.get('empty')]
+        empty_count = len(valid)-len(scored)
+        mad = sum(i['mad'] for i in scored)/len(scored) if scored else math.inf
+        count = sum(i['pixels'] for i in scored)
+        frac = sum(i['over'] for i in scored)/count if count else math.inf
+        ok = len(valid) == len(items) and (not scored or (mad <= (8 if group == 'text' else 4) and frac <= (.05 if group == 'text' else .02)))
         success &= ok
-        worst = sorted(items, key=lambda i:i.get('mad',math.inf),reverse=True)[:3]
-        summaries[group] = {'images':len(items),'errors':len(items)-len(valid),'mad':mad if math.isfinite(mad) else None,'fraction':frac if math.isfinite(frac) else None,'passed':ok,'worst':worst}
-        print(f'accept render {group}: images={len(items)} errors={len(items)-len(valid)} MAD={mad:.6f} over16={frac:.6%} pass={ok}')
+        worst = sorted((i for i in items if not i.get('empty')), key=lambda i:i.get('mad',math.inf),reverse=True)[:3]
+        summaries[group] = {'images':len(items),'empty':empty_count,'errors':len(items)-len(valid),'mad':mad if math.isfinite(mad) else None,'fraction':frac if math.isfinite(frac) else None,'passed':ok,'worst':worst}
+        print(f'accept render {group}: images={len(items)} empty={empty_count} errors={len(items)-len(valid)} MAD={mad:.6f} over16={frac:.6%} pass={ok}')
         for i in worst:
             print('  worst',i)
     for name,c in sorted(sets.items()):
