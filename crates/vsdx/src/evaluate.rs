@@ -520,6 +520,18 @@ impl<'a> Evaluator<'a> {
         {
             return value.clone();
         }
+        // Action formulas run on user invocation, not passive cell recalculation.
+        // ANNOT_U master26 uses a toggle referencing its own previous Action result.
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/action-cell-actions-section
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/eventdblclick-cell-events-section
+        if key.name.starts_with("actions.") && key.name.ends_with(".action")
+            || matches!(key.name.as_str(), "eventdblclick" | "eventdrop" | "eventmultidrop" | "eventxfmod" | "eventthetext")
+        {
+            return self
+                .local_inh_cell(scope, &key.name)
+                .or_else(|| self.cell(scope, &key.name))
+                .map_or(Value::Error(Error::Ref), |c| self.cached_cell(c));
+        }
         if !self.active.insert(key.clone()) {
             return self.prove_clamped_cycle(&key);
         }
@@ -804,7 +816,21 @@ impl<'a> Evaluator<'a> {
     pub fn resolve(&mut self, scope: Scope, reference: &str) -> Value {
         self.add_dependency(scope, reference);
         match self.reference_target(scope, reference) {
-            Ok((scope, name)) => self.evaluate_inner(scope, &name),
+            Ok((scope, name)) => {
+                let value = self.evaluate_inner(scope, &name);
+                // E retains the current error while V is the last valid numeric value.
+                // ARROWS_M master2 Scratch.A1 exposes V through numeric references.
+                // https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+                if value.error().is_some()
+                    && let Some(c) = self.cell(scope, &name).filter(|c| c.error.is_some())
+                {
+                    let saved = diagramcraft_sheet::units::cached(c.value.as_deref(), c.units.as_deref(), None);
+                    if matches!(saved, Value::Number(_)) {
+                        return saved;
+                    }
+                }
+                value
+            }
             Err(e) => Value::Error(e),
         }
     }
@@ -929,7 +955,7 @@ fn page_scope(scope: Scope) -> Option<Scope> {
         _ => None,
     }
 }
-fn section_prefix(section: &Section) -> Result<String, Error> {
+pub(crate) fn section_prefix(section: &Section) -> Result<String, Error> {
     Ok(match section.name.as_str() {
         "Geometry" => format!("Geometry{}", section.index.unwrap_or(0).checked_add(1).ok_or(Error::Limit)?),
         "Character" => "Char".into(),
@@ -1143,6 +1169,11 @@ impl Context for BoundContext<'_, '_> {
             Ok(r) => self.evaluator.resolve(self.scope, &r),
             Err(e) => Value::Error(e),
         }
+    }
+    fn reference_error(&mut self, reference: &str) -> Option<Error> {
+        let reference = self.reference(reference).ok()?;
+        let (scope, name) = self.evaluator.reference_target(self.scope, &reference).ok()?;
+        self.evaluator.evaluate_inner(scope, &name).error()
     }
     fn list_sheet_reference(&mut self) -> Value {
         match self.evaluator.list_sheet_reference(self.scope) {
@@ -1979,7 +2010,8 @@ mod tests {
         assert_eq!(e.evaluate(scope, "TextValue"), Value::Number(54.));
         assert_eq!(e.evaluate(scope, "D"), Value::Bool(false));
         assert_eq!(e.evaluate(scope, "R"), Value::Text("Width".into()));
-        assert_eq!(e.evaluate(scope, "EventXFMod"), Value::Bool(false));
+        // Passive reads retain the saved event result; event execution is separate.
+        assert_eq!(e.evaluate(scope, "EventXFMod"), Value::Number(0.));
         assert!(e.dependencies[&Key { scope, name: "d".into() }].contains(&Key { scope, name: "width".into() }));
         assert!(!e.dependencies.contains_key(&Key { scope, name: "r".into() }));
         assert!(!e.dependencies.contains_key(&Key { scope, name: "eventxfmod".into() }));

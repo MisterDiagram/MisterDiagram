@@ -46,7 +46,8 @@ pub const TABLE: &[(&str, Class)] = &[
     ("web", Class::Exempt),
     ("xtask", Class::Exempt),
 ];
-pub const DEV_EXCEPTIONS: &[(&str, &str)] = &[];
+// Integration-only hosts for the named P3 round-trip acceptance test.
+pub const DEV_EXCEPTIONS: &[(&str, &str)] = &[("vsdx", "theme"), ("vsdx", "text")];
 
 /// Explicit orderings *within* a layer (earlier may be used by later).
 pub const INTRA_LAYER_ORDER: &[&[&str]] = &[];

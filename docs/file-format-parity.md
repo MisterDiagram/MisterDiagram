@@ -11,7 +11,7 @@ six commands, including all eight mandatory CI gates. The renderer mutation
 harness passes 1,387 original packages and 5,548 mutations without a panic.
 All 24 paired sheets were regenerated and a separate drawing-crop scan confirms
 1,108 ink-bearing cells, zero blank. Generated measurements below are unchanged
-to six decimals. M2 is closed; Phase 3 awaits the next brief.
+to six decimals. M2 is closed; Phase 3 is in progress; Visio acceptance of writer output is pending.
 
 M2.9.4 aggregation disclosure: group MAD is the unweighted arithmetic mean
 of scored per-file RGB MAD. The differing-pixel fraction is weighted by the
@@ -77,8 +77,7 @@ Render comparison is mandatory in CI again. The one-pixel rule is tested in
 `one_pixel_common_area_preserves_rows_and_rejects_two_pixels`; frozen limits are
 checked by `ceilings_match_charles_frozen_record`. Independent closure passes 2
 and 3 are clean at revision 3dc3b21. Pass 1 found the caller-built aggregate
-sheet budget gap; its regression and correction remain recorded. Phase 3 awaits
-the next brief.
+sheet budget gap; its regression and correction remain recorded. Phase 3 is in progress; writer acceptance remains pending.
 
 Measured completed coverage:1387packages,1181shipped,301completed shared dumps,
 514TSVs. The shared directory has302dump artifacts including one partial.
@@ -960,3 +959,40 @@ align-0-2 and sizes. All now receive common-area pixel measurements.
 Regression tests cover both size directions, both axes, unequal row strides,
 alpha compositing, common-area weighting, empty images and two-pixel rejection.
 The render advisory bypass has been removed from both CI and corpus tests.
+
+### P3 round-trip discoveries
+
+`ANNOT_U.vssx`, master26 (Property line), shape5 has an Action toggle
+`NOT(User.TextSide)` with cached result0. `User.TextSide` and `Scratch.B1`
+reference that Action. COM reports0 for all three. Passive recalculation must
+read the saved Action result; the Action formula runs only on invocation, as
+[the Action reference](https://learn.microsoft.com/en-us/office/client-developer/visio/action-cell-actions-section) specifies.
+
+`ARROWS_M.vssx`, master2 (Simple Arrow), shape5 `Scratch.A1` stores
+`E="#DIV/0!"` and last valid `V="1.3336"`. COM ResultIU reports1.3336, and
+`Geometry1.X4` reports0.15748031496062989. Numeric references use the last
+valid value while error predicates retain the error state. This follows the
+[Cell E/V contract](https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml);
+our previous evaluator propagated the error into geometry and failed rendering.
+These observations do not alter any oracle exclusion or floor.
+
+### P3 round-trip comparison contract
+
+The round-trip cell denominator is the union of all local source cells, including
+master PageSheets, style gradient/LayerMember cells, deleted rows and cells with
+no COM SRC mapping. No hook or volatile exclusions and no synthetic COM defaults
+pad this count. Numeric sheet IDs and section/row identities must match.
+Effective formulas and unit attributes compare exactly; numeric values have the
+existing 1e-6 tolerance, and text/color values compare by their typed content.
+Deleted cells, error values and ambiguous duplicate local names compare literally.
+Inherited cells compare their resolved values, so legitimate recalculation of a
+stale local Inh cache is not confused with duplicate-name masking. Missing and
+extra cells fail. The required initial floor is 99%.
+
+Each content page and master is rendered before and after writing. The image pair
+uses the original world-space viewport and pixel denominator, and masters use one
+scale fitted from the original. Native size differences over one pixel and origin
+changes over one device pixel fail before scoring. This catches translations
+without diluting them with additional white space. Frozen M2 pixel ceilings and
+group aggregation apply. The generated Visio comparison remains a separate gate,
+including its maximum-ten individual-outlier ratchet.

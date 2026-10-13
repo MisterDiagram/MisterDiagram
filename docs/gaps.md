@@ -1,6 +1,6 @@
 # Gaps
 
-Status: pre-alpha, M0 and M1 met; M2 human gate accepted; independent closure verification complete. Phase 3 awaits the next brief.
+Status: pre-alpha, M0 and M1 met; M2 human gate accepted; independent closure verification complete. Phase 3 is in progress; Visio acceptance of writer output is pending.
 
 ## G1: Remaining ShapeSheet fidelity
 
@@ -91,8 +91,7 @@ Charles accepted the human gate on 2026-10-12 at 16:45. Four one-pixel boundarie
 are accepted under the common-area rule; they remain visible measurements.
 Text promotion and the 97.4911% oracle1 floor stand. Render CI is mandatory again.
 Independent closure passes 2 and 3 are clean. The aggregate caller-built
-sheet-budget issue from pass 1 is fixed and regression-tested. Phase 3 awaits
-the next brief.
+sheet-budget issue from pass 1 is fixed and regression-tested. Phase 3 is in progress; writer acceptance remains pending.
 
 The last full text snapshot has 6087 cached and 1311 COM failures. Counts below are
 measured buckets or confirmed witnesses, not a disjoint root-cause census. A
@@ -202,3 +201,12 @@ and a PageSheet-only metadata entry while removing drawing page parts. Tests:
 `authored_stencil_and_template_retain_their_distinct_contracts` and
 `existing_shipped_stencil_and_template_write_and_reopen`. Visio acceptance is
 still pending.
+
+M3.4 adds complete local-cell and fixed-viewport render comparisons to the
+round-trip gate. Final CI passes all eight gates, including the 1,387-package
+cell test at its 99% floor and the 256-package quick render set. An earlier quick diagnostic measured zero MAD and differing fraction for
+every original/rewrite pair, with no render errors (769 master images plus
+223 page images). The final full render sweep
+and exact full cell rates must be recorded from a current-tree corpus check;
+an older diagnostic run was stopped at the requested session handoff. No
+230-file Visio acceptance or thumbnail acceptance is claimed.

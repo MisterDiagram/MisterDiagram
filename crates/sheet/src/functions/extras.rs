@@ -23,7 +23,14 @@ fn dispatch(name: &str, args: &[Expr], context: &mut dyn Context, budget: &mut u
     if name == "NA" {
         return Ok(na());
     }
-    let first = eval(args.first().ok_or(Error::Value)?, context, budget, depth + 1);
+    let mut first = eval(args.first().ok_or(Error::Value)?, context, budget, depth + 1);
+    if matches!(name, "ISERROR" | "ISERRVALUE" | "ISERR" | "ISERRNA" | "IFERROR")
+        && let Some(Expr::Reference(r)) = args.first()
+        && let Some(error) = context.reference_error(r)
+    {
+        first = Value::Error(error);
+    }
+
     match name {
         "ISERROR" => return iserror(first),
         "ISERRVALUE" => return iserrvalue(first),

@@ -192,3 +192,7 @@ Core=N rows (excluded from milestone scoring):
 ## M3.3 package-kind evidence
 
 - Open .vssx stencils and .vstx templates; save a stencil: P. `authored_stencil_and_template_retain_their_distinct_contracts` verifies the main content types, removal of drawing content for a document stencil, preservation of template pages, and re-reading. `existing_shipped_stencil_and_template_write_and_reopen` covers BASIC_U and BASFLO_U. Visio acceptance remains M3.5.
+
+## M3.4 comparison evidence
+
+- Open and save .vsdx (full fidelity, unknown parts kept): P. `every_corpus_package_roundtrips_at_least_ninety_nine_percent_of_dump_cells` covers all private packages; `complete_comparison_includes_master_pages_unknown_cells_and_deleted_rows`, `duplicate_cell_names_cannot_hide_an_earlier_change` and `rewritten_geometry_changes_are_visible_to_the_render_gate` guard the comparison surface. Visio's 230-file repair and re-export acceptance remains required before this row can be done.

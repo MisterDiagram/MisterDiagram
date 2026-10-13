@@ -13,7 +13,9 @@ Page coordinates are inches, y-up, origin bottom-left. Dependencies go to strict
 | L6 | mcp | Protocol adapter. |
 
 The L2 document evaluator supplies adapters to theme and text hosts using L1 traits and
-model inputs. Theme and text do not depend on vsdx; L2 sibling dependencies remain forbidden.
+model inputs. Theme and text do not depend on vsdx; production L2 sibling dependencies
+remain forbidden. The named P3 `vsdx` integration test injects real theme/text hosts
+through explicit dev-only dependency exceptions; production libraries remain independent.
 
 The writer receives optional theme/text services through those same traits. It serializes
 local overrides and evaluates caches through an isolated snapshot, retaining unsupported

@@ -363,6 +363,11 @@ fn shapes(
         return Err("shape depth limit".into());
     }
     for shape in items {
+        // Deleted inherited shapes are tombstones, not painting instructions.
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
+        if shape.sheet.attributes.get("Del").is_some_and(|d| d == "1") {
+            continue;
+        }
         if scene.ops.len() > 100_000 {
             return Err("render operation limit".into());
         }

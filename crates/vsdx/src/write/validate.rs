@@ -150,7 +150,7 @@ impl Budget {
         Ok(())
     }
 }
-pub(super) fn document(d: &Document) -> Result<(), WriteError> {
+pub(crate) fn document(d: &Document) -> Result<(), WriteError> {
     if d.parts.len() > diagramcraft_opc::MAX_ENTRIES || d.pages.len() > 100_000 || d.masters.len() > 100_000 || d.styles.len() > 65536 {
         return Err(error("model collection limit"));
     }

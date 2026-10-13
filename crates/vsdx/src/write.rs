@@ -10,6 +10,7 @@ mod format;
 pub use format::{SaveKind, write_as, write_as_with_hosts};
 mod model;
 mod validate;
+pub(crate) use validate::document as validate_document;
 mod xml;
 use model::{node, replace, set};
 #[derive(Debug, thiserror::Error)]

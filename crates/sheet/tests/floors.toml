@@ -212,3 +212,10 @@ mad = "unweighted arithmetic mean of scored per-file RGB MAD"
 fraction = "pixel-weighted fraction over each file's top-left common area"
 individual_exceedances = "informational count of scored files above either group pixel ceiling"
 size_and_render_errors = "every hard size mismatch or render error fails its group"
+
+[roundtrip]
+# P3's explicitly required initial floor. Existing cell floors and render ceilings stay unchanged.
+roundtrip-cell = 0.99
+denominator = "union of all local source cell identities including deleted and unmapped cells; no exclusions"
+comparison = "exact effective formula and units, numeric result tolerance 1e-6, typed nonnumeric values; deleted/error cells literal"
+render = "every content page and master, frozen M2 pixel ceilings; original fixed world-space viewport and pixel denominator, origin shifts over one device pixel fail, master scale fixed from original"

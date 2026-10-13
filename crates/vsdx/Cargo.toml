@@ -18,4 +18,6 @@ quick-xml.workspace = true
 zip.workspace = true
 
 [dev-dependencies]
+diagramcraft-theme.workspace = true
+diagramcraft-text.workspace = true
 image.workspace = true

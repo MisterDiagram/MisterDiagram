@@ -616,6 +616,8 @@ fn format_date(serial: f64, picture: &str) -> Result<String, Error> {
     if !(-693593. ..=2958465.99999).contains(&serial) {
         return Err(Error::Value);
     }
+    // The deterministic default locale is en-US (1033), already checked by FORMAT.
+    let picture = if picture == "ddddd" { "M/d/yyyy" } else { picture };
     let office = picture.starts_with("{{");
     let picture = if office { picture.strip_prefix("{{").and_then(|s| s.strip_suffix("}}")).ok_or(Error::Value)? } else { picture };
     let tokens = picture_tokens(picture)?;
@@ -817,6 +819,7 @@ mod tests {
     }
     #[test]
     fn formatting_edges_and_date_serials() {
+        assert_eq!(run(r#"FORMAT(2,"ddddd")"#), Value::Text("1/1/1900".into()));
         assert_eq!(run("FORMAT(12345.6,\"#,##0.00\")"), Value::Text("12,345.60".into()));
         assert_eq!(run("FORMAT(2,\"yyyy-MM-dd\")"), Value::Text("1900-01-01".into()));
         assert_eq!(run("FORMATEX(2,\"{{M/d/yyyy}}\")"), Value::Text("1/1/1900".into()));

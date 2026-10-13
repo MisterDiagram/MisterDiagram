@@ -1,6 +1,7 @@
 //! Read-only comparisons against original package caches and completed COM dumps.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 pub mod render;
+pub mod roundtrip;
 use diagramcraft_sheet::Value;
 use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
 use std::{
@@ -49,6 +50,7 @@ pub struct Witness {
 #[derive(Debug)]
 pub struct Report {
     pub render: Option<render::Report>,
+    pub roundtrip: Option<roundtrip::Report>,
     pub text_metric_floor: f64,
     pub text_promotion_sticky: bool,
     pub text_cached_floor: f64,
@@ -81,7 +83,9 @@ pub struct Report {
 }
 impl Report {
     pub fn passed(&self) -> bool {
-        self.render.as_ref().is_none_or(render::Report::passed) && self.cells_passed()
+        self.render.as_ref().is_none_or(render::Report::passed)
+            && self.roundtrip.as_ref().is_none_or(roundtrip::Report::passed)
+            && self.cells_passed()
     }
     /// Cell accuracy is reported separately; the complete gate also requires rendering.
     pub fn cells_passed(&self) -> bool {
@@ -105,6 +109,9 @@ impl Report {
 }
 impl fmt::Display for Report {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(roundtrip) = &self.roundtrip {
+            writeln!(f, "{roundtrip}")?;
+        }
         if let Some(render) = &self.render {
             writeln!(f, "{render}")?;
         }
@@ -725,6 +732,7 @@ pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
         report.com_classes = deferred.com_classes;
     }
     report.render = Some(render::run(root)?);
+    report.roundtrip = Some(roundtrip::run(root, quick)?);
     Ok(report)
 }
 fn text_promoted(cached: &Rate, com: &Rate, floor: f64) -> bool {
@@ -745,6 +753,7 @@ fn run_pass(root: &Path, quick: bool, deferred: bool) -> Result<Report, String> 
     files.sort();
     let mut report = Report {
         render: None,
+        roundtrip: None,
         text_metric_floor: floor(include_str!("../../../crates/sheet/tests/floors.toml"), "text-metric")? * 100.,
         text_promotion_sticky: promoted(frozen)?,
         text_cached_floor: floor(frozen, "text-cached-floor")? * 100.,
@@ -1062,6 +1071,7 @@ mod tests {
     fn shipped_floor_cannot_be_masked_by_overall_and_empty_oracles_fail() {
         let mut report = Report {
             render: None,
+            roundtrip: None,
             text_metric_floor: 90.,
             text_promotion_sticky: false,
             text_cached_floor: 90.,

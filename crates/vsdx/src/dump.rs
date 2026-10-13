@@ -67,19 +67,25 @@ fn selected(doc: &Document, selection: Selection) -> Result<Vec<(Scope, u32, Str
         ),
         _ => None,
     };
-    let mut result = Vec::new();
+    let mut result = SelectionList::default();
     if matches!(selection, Selection::All | Selection::Document | Selection::Page(_)) {
-        result.push((Scope::Document, 0, "document/TheDoc".into()));
+        result.push((Scope::Document, 0, "document/TheDoc".into()))?;
     }
     if matches!(selection, Selection::All | Selection::Page(_)) {
         for style in &doc.styles {
-            result.push((Scope::Style(style.id), style.id, format!("style/{}", name(&style.name_u, &style.name))));
+            if name(&style.name_u, &style.name).len() > 65536 {
+                return Err("dump identity limit".into());
+            }
+            result.push((Scope::Style(style.id), style.id, format!("style/{}", name(&style.name_u, &style.name))))?;
         }
     }
     if matches!(selection, Selection::All | Selection::Page(_) | Selection::Master(_)) {
         for master in &doc.masters {
             if matches!(selection,Selection::Master(n) if master.id!=n) {
                 continue;
+            }
+            if name(&master.name_u, &master.name).len() > 65536 {
+                return Err("dump identity limit".into());
             }
             let prefix = format!("master:{}:{}", master.id, name(&master.name_u, &master.name));
             add_shapes(doc, &master.shapes, &prefix, None, Some(master.id), None, &mut result)?;
@@ -91,8 +97,11 @@ fn selected(doc: &Document, selection: Selection) -> Result<Vec<(Scope, u32, Str
                 continue;
             }
             let pname = name(&p.name_u, &p.name);
+            if pname.len() > 65536 {
+                return Err("dump identity limit".into());
+            }
             if !matches!(selection, Selection::Shape(_)) {
-                result.push((Scope::Page(p.id), p.id, format!("pagesheet:{}:{pname}/ThePage", p.id)));
+                result.push((Scope::Page(p.id), p.id, format!("pagesheet:{}:{pname}/ThePage", p.id)))?;
             }
             add_shapes(
                 doc,
@@ -108,10 +117,25 @@ fn selected(doc: &Document, selection: Selection) -> Result<Vec<(Scope, u32, Str
             )?;
         }
     }
-    if result.is_empty() {
+    if result.entries.is_empty() {
         return Err("selected sheet not found".into());
     }
-    Ok(result)
+    Ok(result.entries)
+}
+#[derive(Default)]
+struct SelectionList {
+    entries: Vec<(Scope, u32, String)>,
+    bytes: usize,
+}
+impl SelectionList {
+    fn push(&mut self, value: (Scope, u32, String)) -> Result<(), String> {
+        self.bytes = self.bytes.checked_add(value.2.len()).ok_or("dump identity overflow")?;
+        if self.entries.len() >= 100_000 || self.bytes > 64 * 1024 * 1024 || value.2.len() > 65536 {
+            return Err("dump identity limit".into());
+        }
+        self.entries.push(value);
+        Ok(())
+    }
 }
 fn name<'a>(universal: &'a str, local: &'a str) -> &'a str {
     if universal.is_empty() { local } else { universal }
@@ -125,10 +149,15 @@ fn add_shapes(
     page: Option<u32>,
     master: Option<u32>,
     filter: Option<u32>,
-    result: &mut Vec<(Scope, u32, String)>,
+    result: &mut SelectionList,
 ) -> Result<(), String> {
-    let mut stack: Vec<_> = shapes.iter().rev().map(|shape| (shape, prefix.to_owned(), 0usize)).collect();
+    if shapes.len() > 100_000 || prefix.len() > 65536 {
+        return Err("shape traversal limit".into());
+    }
+    let prefix: std::sync::Arc<str> = prefix.into();
+    let mut stack: Vec<_> = shapes.iter().rev().map(|shape| (shape, prefix.clone(), 0usize)).collect();
     let mut count = 0usize;
+    let mut path_bytes = prefix.len();
     while let Some((shape, parent, depth)) = stack.pop() {
         count += 1;
         if depth > 128 || count > 100000 || parent.len() > 65536 {
@@ -137,15 +166,25 @@ fn add_shapes(
         if shape.sheet.attributes.get("Del").is_some_and(|s| s == "1") {
             continue;
         }
+        if name(&shape.name_u, &shape.name).len() > 65536 {
+            return Err("dump identity limit".into());
+        }
         let shape_name = if !shape.name_u.is_empty() {
             shape.name_u.clone()
         } else if !shape.name.is_empty() {
             shape.name.clone()
         } else if let Some(m) = shape.master.and_then(|id| doc.masters.iter().find(|m| m.id == id)) {
+            if name(&m.name_u, &m.name).len() > 65536 {
+                return Err("dump identity limit".into());
+            }
             format!("{}.{}", name(&m.name_u, &m.name), shape.id)
         } else {
             format!("Sheet.{}", shape.id)
         };
+        path_bytes = path_bytes.checked_add(parent.len().saturating_add(shape_name.len()).saturating_add(1)).ok_or("dump identity overflow")?;
+        if path_bytes > 64 * 1024 * 1024 {
+            return Err("dump identity limit".into());
+        }
         let identity = format!("{parent}/{shape_name}");
         let scope = match (page, master) {
             (Some(page), _) => Scope::PageShape { page, shape: shape.id },
@@ -153,8 +192,12 @@ fn add_shapes(
             _ => return Err("missing shape scope".into()),
         };
         if filter.is_none_or(|id| id == shape.id) {
-            result.push((scope, shape.id, identity.clone()));
+            result.push((scope, shape.id, identity.clone()))?;
         }
+        if stack.len().saturating_add(shape.shapes.len()) > 100_000 {
+            return Err("shape traversal limit".into());
+        }
+        let identity: std::sync::Arc<str> = identity.into();
         for child in shape.shapes.iter().rev() {
             stack.push((child, identity.clone(), depth + 1));
         }
@@ -644,6 +687,18 @@ fn supplement(slots: &mut BTreeMap<(u16, u16, u16), Slot<'_>>) -> Result<(), Str
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn hostile_group_name_fanout_is_bounded_before_dump_output() {
+        let mut doc = diagramcraft_model::skeleton::document(false);
+        let group = diagramcraft_model::Shape {
+            name_u: "x".repeat(64000),
+            shapes: (1..90001).map(|id| diagramcraft_model::Shape { id, ..Default::default() }).collect(),
+            ..Default::default()
+        };
+        doc.pages[0].shapes.push(group);
+        assert!(super::selected(&doc, super::Selection::All).is_err());
+        assert!(super::selected(&doc, super::Selection::Shape(89999)).is_err());
+    }
     use super::*;
     use diagramcraft_model::{Page, Sheet};
     #[test]

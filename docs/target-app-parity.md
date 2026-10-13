@@ -17,4 +17,4 @@ See file-format-parity.md for measurements and gaps.md for counted follow-ups.
 Core=N shell, view, review and platform rows remain separately reported. Authoring,
 round-trip writing, routing and automation are not accepted. The human gate
 and two consecutive independent closure verification passes
-are complete. Phase 3 awaits the next brief.
+are complete. Phase 3 is in progress; Visio acceptance of writer output is pending.

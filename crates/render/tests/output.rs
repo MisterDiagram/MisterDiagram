@@ -469,3 +469,26 @@ fn group_display_mode_hides_or_orders_group_paint() {
         assert_eq!(actual, colors, "DisplayMode={mode}");
     }
 }
+
+#[test]
+fn shipped_roundtrip_render_regressions() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus/ms-shipped/1033");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    for (file, master) in [
+        ("ANNOT_U.vssx", Some(23)),
+        ("ARROWS_M.vssx", Some(1)),
+        ("ARROWS_M.vssx", Some(13)),
+        ("ARROWS_M.vssx", Some(26)),
+        ("ARROWS_M.vssx", Some(27)),
+        ("ACTUAL_FINISHDATES_GANTTCHART_M.vstx", None),
+        ("ASSOCIATIONS_UML_CLASS_M.vstx", None),
+    ] {
+        let d = diagramcraft_vsdx::read(root.join(file)).unwrap();
+        let result =
+            if let Some(m) = master { scene::master(&d, m, scene::Options::default()) } else { scene::page(&d, 0, scene::Options::default()) };
+        assert!(result.is_ok(), "{file}: {:?}", result.err());
+    }
+}
