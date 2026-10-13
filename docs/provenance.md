@@ -80,3 +80,9 @@ case reads only the private local stencil and writes only gitignored acceptance
 outputs. No stencil, icon or copied drawing enters the public repository. M3.7 removes the experimental authored PNG thumbnail from all scratch outputs
 after Charles isolated its open failure. Authored skeletons write no thumbnail;
 existing imported EMF thumbnails are retained opaquely.
+
+M3.8 dynamic-glue formulas are observed functional behavior from private
+corpus/generated/connector/dynamic-glue.vsdx, not copied graphics. The model helper
+writes WALKGLUE endpoints, XFTRIGGER target events, target ObjType1 and both Connects;
+cached endpoints come from the caller's page geometry. The scratch reread and hostile
+request tests cover this contract. Acceptance requires both live COM Connects rows.

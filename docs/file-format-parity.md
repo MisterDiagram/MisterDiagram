@@ -1023,3 +1023,9 @@ changes over one device pixel fail before scoring. This catches translations
 without diluting them with additional white space. Frozen M2 pixel ceilings and
 group aggregation apply. The generated Visio comparison remains a separate gate,
 including its maximum-ten individual-outlier ratchet.
+
+M3.8 dynamic-glue formulas are observed functional behavior from private
+corpus/generated/connector/dynamic-glue.vsdx, not copied graphics. The model helper
+writes WALKGLUE endpoints, XFTRIGGER target events, target ObjType1 and both Connects;
+cached endpoints come from the caller's page geometry. The scratch reread and hostile
+request tests cover this contract. Acceptance requires both live COM Connects rows.

@@ -21,6 +21,15 @@ class Acceptance(unittest.TestCase):
             z.writestr('visio/document.xml', xml)
         return path
 
+    def test_connects_are_required_and_bounded(self):
+        p = self.root/'connects.tsv'
+        header = 'from_sheet\tfrom_cell\tto_sheet\tto_cell\tfrom_part\tto_part\n'
+        p.write_text(header+'3\tBeginX\t1\tPinX\t9\t3\n3\tEndX\t2\tPinX\t12\t3\n')
+        self.assertEqual(len(report.read_connects(p)), 2)
+        for bad in ['wrong header', header+'-1\tBeginX\t1\tPinX\t9\t3\n', header+'x'*(8*1024*1024)]:
+            p.write_text(bad)
+            with self.assertRaises(ValueError): report.read_connects(p)
+
     def test_hostile_json_is_bounded(self):
         path=self.root/'bad.json'
         for payload in [b'x'*(4*1024*1024+1), b'['*10000+b']'*10000, b'\xff']:

@@ -322,3 +322,77 @@ fn metadata(doc: &mut Document, metric: bool) {
         ),
     );
 }
+
+/// Add dynamic glue between two top-level shapes using page-space cached endpoints.
+/// The caller supplies endpoints from its geometry; routing remains a host operation.
+/// Observed formulas and ObjType: corpus/generated/connector/dynamic-glue.vsdx.
+pub fn glue_dynamic(page: &mut Page, id: u32, master: u32, targets: [u32; 2], endpoints: [[f64; 2]; 2]) -> Result<(), String> {
+    if page.shapes.len() >= 100_000
+        || page.connects.len() > 99_998
+        || endpoints.iter().flatten().any(|v| !v.is_finite() || v.abs() > 1e6)
+        || page.shapes.iter().any(|s| s.id == id)
+        || targets.iter().any(|target| page.shapes.iter().filter(|s| s.id == *target).count() != 1)
+        || page.shapes.iter().any(|s| targets.contains(&s.id) && s.sheet.cells.len() >= 20_000)
+    {
+        return Err("dynamic glue target, coordinate or collection limit".into());
+    }
+    let mut stack: Vec<_> = page.shapes.iter().map(|s| (s, 0usize)).collect();
+    let mut ids = std::collections::BTreeSet::new();
+    let mut count = 0usize;
+    while let Some((shape, depth)) = stack.pop() {
+        count += 1;
+        let tombstone =
+            shape.id == u32::MAX && shape.master_shape.is_some() && shape.sheet.attributes.get("Del").is_some_and(|v| v == "1" || v == "true");
+        if shape.id == id
+            || depth > 128
+            || count >= 100_000
+            || (!tombstone && !ids.insert(shape.id))
+            || count.saturating_add(stack.len()).saturating_add(shape.shapes.len()) >= 100_000
+        {
+            return Err("dynamic glue shape IDs, nesting or count limit".into());
+        }
+        stack.extend(shape.shapes.iter().map(|s| (s, depth + 1)));
+    }
+    let [begin, end] = endpoints;
+    let [from, to] = targets;
+    let forward = "_WALKGLUE(BegTrigger,EndTrigger,WalkPreference)";
+    let reverse = "_WALKGLUE(EndTrigger,BegTrigger,WalkPreference)";
+    let [bx, by] = begin;
+    let [ex, ey] = end;
+    let connector = Shape {
+        id,
+        master: Some(master),
+        shape_type: Some("Shape".into()),
+        sheet: Sheet {
+            cells: vec![
+                cell("BeginX", Some(&bx.to_string()), Some(forward), None),
+                cell("BeginY", Some(&by.to_string()), Some(forward), None),
+                cell("EndX", Some(&ex.to_string()), Some(reverse), None),
+                cell("EndY", Some(&ey.to_string()), Some(reverse), None),
+                cell("BegTrigger", Some("2"), Some(&format!("_XFTRIGGER(Sheet.{from}!EventXFMod)")), None),
+                cell("EndTrigger", Some("2"), Some(&format!("_XFTRIGGER(Sheet.{to}!EventXFMod)")), None),
+            ],
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    for shape in &mut page.shapes {
+        if targets.contains(&shape.id) {
+            shape.sheet.cells.retain(|c| c.name != "ObjType");
+            shape.sheet.cells.push(cell("ObjType", Some("1"), None, None));
+        }
+    }
+    page.shapes.push(connector);
+    for (name, target, part) in [("BeginX", from, 9), ("EndX", to, 12)] {
+        page.connects.push(Connect {
+            from_sheet: id,
+            from_cell: Some(name.into()),
+            from_part: Some(part),
+            to_sheet: target,
+            to_cell: Some("PinX".into()),
+            to_part: Some(3),
+            ..Default::default()
+        });
+    }
+    Ok(())
+}

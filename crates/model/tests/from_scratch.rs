@@ -32,33 +32,8 @@ fn five_documents_build_and_reread() {
     assert_eq!(a.pages[0].shapes[0].text.as_ref().unwrap().text(), "Authored rectangle\n");
     assert!(!a.root_relationships.iter().any(|r| r.type_uri.ends_with("/thumbnail")));
     d.pages[0].shapes.push(skeleton::rectangle(2, 4., 1., 2., 1., "Destination").unwrap());
-    let connector = Shape {
-        id: 3,
-        master: Some(2),
-        shape_type: Some("Shape".into()),
-        sheet: Sheet {
-            cells: vec![
-                cell("BeginX", "2", Some("PAR(PNT(Sheet.1!PinX,Sheet.1!PinY))")),
-                cell("BeginY", "1.5", Some("PAR(PNT(Sheet.1!PinX,Sheet.1!PinY))")),
-                cell("EndX", "5", Some("PAR(PNT(Sheet.2!PinX,Sheet.2!PinY))")),
-                cell("EndY", "1.5", Some("PAR(PNT(Sheet.2!PinX,Sheet.2!PinY))")),
-            ],
-            ..Default::default()
-        },
-        ..Default::default()
-    };
-    d.pages[0].shapes.push(connector);
-    for (name, target, part) in [("BeginX", 1, 9), ("EndX", 2, 12)] {
-        d.pages[0].connects.push(Connect {
-            from_sheet: 3,
-            from_cell: Some(name.into()),
-            from_part: Some(part),
-            to_sheet: target,
-            to_cell: Some("PinX".into()),
-            to_part: Some(3),
-            ..Default::default()
-        });
-    }
+    // Right edge of the first rectangle, left edge of the destination, in page inches.
+    skeleton::glue_dynamic(&mut d.pages[0], 3, 2, [1, 2], [[3., 1.5], [4., 1.5]]).unwrap();
     let a = save(&root, "scratch__dynamic-glue.vsdx", &d, SaveKind::Drawing);
     assert_eq!(a.pages[0].connects.len(), 2);
     for (a, b) in a.pages[0].connects.iter().zip(&d.pages[0].connects) {
@@ -69,6 +44,22 @@ fn five_documents_build_and_reread() {
     }
     assert_eq!(a.pages[0].shapes[2].master, Some(2));
     assert!(!a.parts.keys().any(|n| n.starts_with("docProps/thumbnail.")));
+    let glue = &a.pages[0].shapes[2].sheet;
+    for (name, formula, value) in [
+        ("BeginX", "_WALKGLUE(BegTrigger,EndTrigger,WalkPreference)", "3"),
+        ("BeginY", "_WALKGLUE(BegTrigger,EndTrigger,WalkPreference)", "1.5"),
+        ("EndX", "_WALKGLUE(EndTrigger,BegTrigger,WalkPreference)", "4"),
+        ("EndY", "_WALKGLUE(EndTrigger,BegTrigger,WalkPreference)", "1.5"),
+        ("BegTrigger", "_XFTRIGGER(Sheet.1!EventXFMod)", "2"),
+        ("EndTrigger", "_XFTRIGGER(Sheet.2!EventXFMod)", "2"),
+    ] {
+        let c = glue.cell(name).unwrap();
+        assert_eq!(c.formula.as_deref(), Some(formula));
+        assert_eq!(c.value.as_deref(), Some(value));
+    }
+    for target in &a.pages[0].shapes[..2] {
+        assert_eq!(target.sheet.cell("ObjType").unwrap().value.as_deref(), Some("1"));
+    }
     let mut d = skeleton::document(true);
     let mut back = skeleton::page(1, "Background", true);
     back.attributes.insert("Background".into(), "1".into());
@@ -150,4 +141,44 @@ fn five_documents_build_and_reread() {
     let a = save(&root, "scratch__dropped-master.vsdx", &d, SaveKind::Drawing);
     assert_eq!(a.pages[0].shapes[0].master, Some(3));
     assert_eq!(a.masters.iter().find(|m| m.id == 3).unwrap().name_u, "Rectangle");
+}
+
+#[test]
+fn dynamic_glue_rejects_hostile_requests_without_mutation() {
+    let mut d = skeleton::document(false);
+    d.pages[0].shapes.push(skeleton::rectangle(1, 0., 0., 1., 1., "").unwrap());
+    d.pages[0].shapes.push(skeleton::rectangle(2, 2., 0., 1., 1., "").unwrap());
+    let before = d.pages[0].clone();
+    for x in [f64::NAN, f64::INFINITY, -f64::INFINITY, 1e7] {
+        assert!(skeleton::glue_dynamic(&mut d.pages[0], 3, 2, [1, 2], [[x, 0.5], [2., 0.5]]).is_err());
+        assert_eq!(d.pages[0], before);
+    }
+    assert!(skeleton::glue_dynamic(&mut d.pages[0], 3, 2, [1, 99], [[1., 0.5], [2., 0.5]]).is_err());
+    assert!(skeleton::glue_dynamic(&mut d.pages[0], 1, 2, [1, 2], [[1., 0.5], [2., 0.5]]).is_err());
+    assert_eq!(d.pages[0], before);
+}
+
+#[test]
+fn dynamic_glue_rejects_nested_ids_and_writer_boundaries() {
+    let mut d = skeleton::document(false);
+    for id in 1..=2 {
+        d.pages[0].shapes.push(skeleton::rectangle(id, f64::from(id), 0., 1., 1., "").unwrap());
+    }
+    d.pages[0].shapes[0].shapes.push(Shape { id: 3, ..Default::default() });
+    let before = d.pages[0].clone();
+    assert!(skeleton::glue_dynamic(&mut d.pages[0], 3, 2, [1, 2], [[1., 0.5], [2., 0.5]]).is_err());
+    assert_eq!(d.pages[0], before);
+    d.pages[0].shapes[0].shapes = (3..=100_000).map(|id| Shape { id, ..Default::default() }).collect();
+    assert!(skeleton::glue_dynamic(&mut d.pages[0], 100_001, 2, [1, 2], [[1., 0.5], [2., 0.5]]).is_err());
+    assert_eq!(d.pages[0].shapes.len(), 2);
+    assert_eq!(d.pages[0].shapes[0].shapes.len(), 99_998);
+    assert!(d.pages[0].connects.is_empty());
+    d.pages[0].shapes[0].shapes.clear();
+    d.pages[0].connects = vec![Connect::default(); 99_999];
+    assert!(skeleton::glue_dynamic(&mut d.pages[0], 3, 2, [1, 2], [[1., 0.5], [2., 0.5]]).is_err());
+    assert_eq!(d.pages[0].connects.len(), 99_999);
+    assert!(d.pages[0].shapes[0].sheet.cell("ObjType").is_none());
+    d.pages[0].connects.pop();
+    skeleton::glue_dynamic(&mut d.pages[0], 3, 2, [1, 2], [[1., 0.5], [2., 0.5]]).unwrap();
+    assert_eq!(d.pages[0].connects.len(), 100_000);
 }

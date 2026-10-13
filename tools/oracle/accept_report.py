@@ -6,6 +6,7 @@ Expected manifest: corpus/_state/m3/accept-manifest.json. Generated expectations
 under corpus/_state/m3/accept-expected/. No input observation is modified.
 """
 import argparse
+import csv
 from collections import Counter, defaultdict
 import hashlib
 import json
@@ -40,6 +41,29 @@ def load_json(path):
         return value
     except (RecursionError, UnicodeError) as error:
         raise ValueError('invalid or excessively nested acceptance JSON') from error
+
+
+def read_connects(path):
+    """Bounded COM connectivity table, independent of the post-save XML."""
+    with Path(path).open('rb') as f:
+        data = f.read(8*1024*1024+1)
+    if len(data) > 8*1024*1024:
+        raise ValueError('connects byte budget')
+    try:
+        lines = csv.reader(data.decode('utf-8-sig').splitlines(), delimiter='\t')
+        if next(lines, None) != ['from_sheet','from_cell','to_sheet','to_cell','from_part','to_part']:
+            raise ValueError('connects header')
+        rows = []
+        for row in lines:
+            if len(rows) >= 100000 or len(row) != 6 or any(len(v) > 4096 for v in row):
+                raise ValueError('connects row budget or columns')
+            for i in (0,2,4,5):
+                if not row[i].isascii() or not row[i].isdecimal() or int(row[i]) > 4294967295:
+                    raise ValueError('connects integer')
+            rows.append(tuple(row))
+        return rows
+    except (UnicodeError, csv.Error) as error:
+        raise ValueError('invalid connects table') from error
 
 
 def digest(path):
@@ -220,6 +244,11 @@ def report(out, manifest):
             saved = 'saved'+path.suffix
             if not {'observed.sheet.tsv', 'connects.tsv', 'parts.txt', saved} <= hashes.keys():
                 raise ValueError('incomplete VM artifact inventory')
+            connects = read_connects(actual/'connects.tsv')
+            row['connects'] = len(connects)
+            if name == 'scratch__dynamic-glue' and Counter(connects) != Counter([
+                ('3','BeginX','1','PinX','9','3'), ('3','EndX','2','PinX','12','3')]):
+                raise ValueError('scratch dynamic glue must have its two observed Connects rows')
             old_parts, old_cells = package_cells(path)
             new_parts, new_cells = package_cells(actual/saved)
             if (actual/'parts.txt').read_text(encoding='utf-8-sig').splitlines() != new_parts:
