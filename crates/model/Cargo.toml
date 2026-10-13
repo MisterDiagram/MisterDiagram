@@ -16,4 +16,3 @@ uuid.workspace = true
 [dev-dependencies]
 diagramcraft-opc.workspace = true
 diagramcraft-vsdx.workspace = true
-image.workspace = true

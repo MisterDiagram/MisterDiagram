@@ -11,6 +11,8 @@ fn put(s: &mut Sheet, c: Cell) {
 fn save(root: &Path, name: &str, d: &Document, kind: SaveKind) -> Document {
     let bytes = write_as(d, kind).unwrap().bytes;
     let reread = import(&bytes).unwrap();
+    assert!(!reread.parts.keys().any(|n| n.starts_with("docProps/thumbnail.")));
+    assert!(!reread.root_relationships.iter().any(|r| r.type_uri.ends_with("/thumbnail")));
     if root.join("corpus").exists() {
         let out = root.join("corpus/_state/m3/scratch");
         std::fs::create_dir_all(&out).unwrap();
@@ -57,15 +59,6 @@ fn five_documents_build_and_reread() {
             ..Default::default()
         });
     }
-    let mut bytes = std::io::Cursor::new(Vec::new());
-    image::RgbaImage::from_pixel(2, 2, image::Rgba([40, 120, 180, 255])).write_to(&mut bytes, image::ImageFormat::Png).unwrap();
-    d.parts.insert("docProps/thumbnail.png".into(), Part { bytes: bytes.into_inner(), content_type: Some("image/png".into()), ..Default::default() });
-    d.root_relationships.push(Relationship {
-        id: "rIdThumbnail".into(),
-        type_uri: "http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail".into(),
-        target: "docProps/thumbnail.png".into(),
-        external: false,
-    });
     let a = save(&root, "scratch__dynamic-glue.vsdx", &d, SaveKind::Drawing);
     assert_eq!(a.pages[0].connects.len(), 2);
     for (a, b) in a.pages[0].connects.iter().zip(&d.pages[0].connects) {
@@ -75,7 +68,7 @@ fn five_documents_build_and_reread() {
         );
     }
     assert_eq!(a.pages[0].shapes[2].master, Some(2));
-    assert!(a.parts.contains_key("docProps/thumbnail.png"));
+    assert!(!a.parts.keys().any(|n| n.starts_with("docProps/thumbnail.")));
     let mut d = skeleton::document(true);
     let mut back = skeleton::page(1, "Background", true);
     back.attributes.insert("Background".into(), "1".into());

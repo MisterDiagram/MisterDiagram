@@ -254,3 +254,8 @@ Fresh coverage: 1,387 packages, 1,181 shipped, 413 completed shipped dumps,
 Text remains promoted: cached 61,748/67,797 (91.077776%); COM 16,631/18,113
 (91.818031%). Coverage grew; no floor, ceiling, denominator or corpus observation
 was changed. Parity remains partial at 25%.
+
+M3.7 thumbnail item CLOSED by Charles's P3-closure decision and diagnostic variants:
+all five scratch documents now omit thumbnail parts and relationships. The existing
+EMF round-trip remains byte-preserving. PNG rejection is isolated by v1-nothumb;
+the separate dynamic-glue issue and post-save repair comparisons remain open.

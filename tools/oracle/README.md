@@ -156,12 +156,12 @@ and snapshot literal serialized cells in `corpus/_state/m3/accept-manifest.json`
 From the repository root:
 
 ```sh
-tools/oracle/run-in-vm.sh accept.ps1 7200 corpus/_state/m3/accept-inputs/*.vsdx corpus/_state/m3/accept-inputs/*.vssx corpus/_state/m3/accept-inputs/*.vstx
+tools/oracle/run-in-vm.sh accept.ps1 21600 corpus/_state/m3/accept-inputs/*.vsdx corpus/_state/m3/accept-inputs/*.vssx corpus/_state/m3/accept-inputs/*.vstx
 python3 tools/oracle/accept_report.py corpus/_vm/out/accept
 ```
 
 The runner health-checks Visio before the interactive scheduled task. Each file
-gets its own directory containing the actual post-open `saved.*`, a COM dump,
+gets its own directory containing the actual post-open `saved.*`, a COM dump, connects.tsv,
 part inventory and every page/master PNG. A hashed `status.json` is the per-file
 completion record. A rerun reuses only successful, unchanged input/script/output
 hashes and archives stale or failed observations. DONE means the script finished,

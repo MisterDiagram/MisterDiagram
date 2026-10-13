@@ -77,6 +77,6 @@ path, commit and licence recorded in [ATTRIBUTION.md](../ATTRIBUTION.md).
 M3.5's five acceptance constructions use the typed skeleton and authored rectangles,
 labels, connector instance, layers and master identities. The explicit BASIC_U drop
 case reads only the private local stencil and writes only gitignored acceptance
-outputs. No stencil, icon or copied drawing enters the public repository. A two-pixel
-solid-colour PNG thumbnail is authored in test code; the alternate case has no
-thumbnail. The Visio acceptance run, rather than host parsing, determines support.
+outputs. No stencil, icon or copied drawing enters the public repository. M3.7 removes the experimental authored PNG thumbnail from all scratch outputs
+after Charles isolated its open failure. Authored skeletons write no thumbnail;
+existing imported EMF thumbnails are retained opaquely.

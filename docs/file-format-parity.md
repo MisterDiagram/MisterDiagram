@@ -234,6 +234,18 @@ the other measured files use 2012/main. Container inspection accepts both exact 
 
 ## Observed, undocumented
 
+M3.7 thumbnail decision (Charles, P3-closure): authored skeletons omit both the
+thumbnail part and its relationship. The read-only private variants
+corpus/_state/m3/diag-variants/v0-original.vsdx, v2-noconnector.vsdx and
+v3-nopagerels.vsdx retain the authored 2x2 PNG and fail open with0x86db04fb.
+v1-nothumb.vsdx opens (1page,1master,3shapes), isolating the PNG as the cause.
+The private scratch rectangle without a thumbnail also opens. Existing thumbnail.emf
+parts remain opaque on round-trip. Test: five_documents_build_and_reread asserts
+no thumbnail part or relationship in all five outputs. Visio may add a thumbnail on
+its subsequent save; that remains a disclosed part-list difference under the repair
+contract, not an exclusion.
+
+
 M3.2 writer witnesses: `ASSOCIATIONS_UML_CLASS_M.vstx`, page 1, group 242,
 contains two deleted inherited members with the sentinel ID 4294967295 and
 MasterShape 7 and 9. Preserve both tombstones; ordinary duplicate shape IDs
