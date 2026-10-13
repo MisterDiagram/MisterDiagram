@@ -1,94 +1,87 @@
-# Diagramcraft
+# DiagramCraft
 
-A clean-room, headless Rust implementation of Microsoft Visio's core: ShapeSheet, document
-model, file interoperability, rendering and authoring. Stage: pre-alpha, M1 reader and
-ShapeSheet milestone and M2 rendering milestone met.
+A clean-room, headless Rust core of Microsoft Visio. It opens .vsdx, .vssx and .vstx files,
+evaluates the ShapeSheet the way Visio does, and renders pages and stencils to PNG, SVG and
+PDF. Writing files that Visio opens unrepaired, connectors and routing, and an MCP server for
+AI agents are in progress. It is built in the mould of the Craft apps (deckcraft, vectorcraft
+and their siblings) and is offered to that project.
 
-The reader loads .vsdx, .vssx and .vstx packages and strips macro payloads from .vsdm.
-`info` lists package parts; `sheet` evaluates cells and prints the COM-compatible TSV columns.
-`corpus check` compares computed values against package caches and local Visio dumps,
-reporting denominators and frozen acceptance floors, plus the generated render comparisons. Unsupported formulas return errors.
-PNG, SVG and vector PDF rendering passes the generated-corpus M2 gate.
-Shipped contact sheets contain drawing ink in all 1,108 master cells; this is
-coverage evidence, not complete visual parity. Writing and authoring remain future phases.
+![Visio 2021 on the left, DiagramCraft on the right, on four drawings made by this repo's scripts](docs/images/visio-vs-diagramcraft.png)
+
+*Left: Visio 2021's own PNG export. Right: DiagramCraft rendering the same file.*
+
+## What works today (2026-10-13)
+
+- **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
+  204-drawing test corpus, with zero errors and zero panics under mutation fuzzing.
+- **Evaluate** the ShapeSheet: 104 functions, inheritance from masters, style sheets and
+  document defaults, dirty-set recalculation. Measured against Visio itself: 97.7% of 4.8
+  million formula cells match the value Visio cached in the file, and 98.5% of 44.7 million
+  cells match Visio's live COM dumps, theme and text-metric cells included.
+- **Render** PNG, SVG and vector PDF. Every feature group of the test corpus is inside fixed
+  pixel ceilings against Visio's own 96 dpi export, and all 1,108 masters in the review
+  stencil set render.
+- **Round-trip** read, write, read: 15.1 million cells preserved across 1,387 packages. In
+  the first full acceptance run Visio opened all 230 files the writer produced, five of them
+  built from scratch. That run also found four writer defects (inherited cell values, master
+  shape IDs, background page relationships, connector instances), so unrepaired saving is
+  not claimed yet.
+
+Known gaps are listed in [docs/gaps.md](docs/gaps.md). Text wrapping is the weakest area,
+EMF+ images are not drawn, and compound line patterns are approximate.
 
 ## Try it
 
 ```sh
-cargo build --workspace
-cargo test --workspace
-cargo run -p diagramcraft-cli -- info /path/to/your-drawing.vsdx
-cargo run -p diagramcraft-cli -- sheet /path/to/your-drawing.vsdx --page 1
-cargo run -p diagramcraft-cli -- render /path/to/your-drawing.vsdx --page 1 output.png
+cargo build --release
+cargo run --release -p diagramcraft-cli -- info drawing.vsdx
+cargo run --release -p diagramcraft-cli -- sheet drawing.vsdx --page 1
+cargo run --release -p diagramcraft-cli -- render drawing.vsdx --page 1 out.png
 ```
 
-Use your own `.vsdx` file. Corpus-dependent tests print a one-line skip message when
-`corpus/` is absent (use `cargo test --workspace -- --nocapture` to see test output).
-When the local corpus exists, cell floors and structural tests remain mandatory.
-The M2 human gate was accepted on 2026-10-12. Render comparisons are mandatory
-in `cargo xtask ci`, using the frozen pixel ceilings and a one-pixel size allowance
-with comparison over the common area. Independent M2 closure verification has
-two consecutive clean passes. Phase 3 awaits the next brief.
+`info` lists the package parts. `sheet` prints every evaluated cell in the same columns as a
+Visio COM dump, so the two diff directly. `render` also takes `.svg` and `.pdf` output names,
+and `--masters stencil.vssx` draws a contact sheet of a stencil. No binaries are published yet;
+Rust stable with edition 2024 is required. There is no GUI and none is planned in this repo.
 
-`cargo run --release -p diagramcraft-cli -- corpus check` needs the generated drawings,
-blank-document dumps, shipped packages and completed COM dumps under `corpus/`.
-SVG/PDF validation also requires a local `.venv` with `pypdf` installed.
-The reference corpus is private by design: Visio-generated files can embed Microsoft
-masters and artwork. It is not distributed with this public repository. The scripts in
-[tools/oracle](tools/oracle/) are the regeneration path for a local Visio installation;
-see [the oracle runbook](tools/oracle/README.md) for the VM workflow.
+## What is coming
 
-The embedded Latin faces work in a public checkout. Additional craft-fonts faces are optional. `.cargo/config.toml` uses the relative
-`../craft-apps/craft-fonts/src` path; set `CRAFT_FONTS_DIR` to your own checkout to override
-it. If the directory is absent, the build warning refers to the optional sibling faces;
-the vendored Latin faces remain embedded. No fonts are downloaded automatically.
+- Phase 3, in closure: write .vsdx, .vssx and .vstx that Visio opens without repair, and
+  build documents from scratch.
+- Phase 4: authoring commands, master instancing, glue, orthogonal connector routing.
+- Phase 5: an MCP server and pptx export, so an AI agent can build a diagram from a
+  description and hand over a file Visio opens.
 
-## Build and check
+See [ROADMAP.md](ROADMAP.md) for the milestones and the numbers each one has to reach.
 
-```sh
-cargo build --workspace
-cargo xtask ci
-cargo xtask parity
-cargo run -p diagramcraft-cli -- info FILE.vsdx
-cargo run -p diagramcraft-cli -- sheet FILE.vsdx --page 1
-cargo run --release -p diagramcraft-cli -- corpus check
-```
+## How it is built
 
-Use Rust edition 2024 with rustfmt, clippy and wasm32-unknown-unknown available. The local
-`.cargo/config.toml` points at the optional sibling craft-fonts checkout. Carlito is the last-resort Latin face, ahead of the optional BIZ UDPGothic fallback.
+Clean room. Visio is observed only as a black box, on drawings this repo's own scripts made,
+in a licensed copy of Visio Standard 2021. File formats come from Microsoft's published
+references, cited in doc comments and collected in [docs/sources.md](docs/sources.md). No
+Microsoft stencils, templates, icons or fonts are in this repository; the reference corpus is
+private for that reason, and the scripts to regenerate it with your own Visio are in
+[tools/oracle](tools/oracle/). Every milestone is a number produced by the test harness against
+Visio's output, with floors that only rise. Details are in
+[docs/provenance.md](docs/provenance.md).
 
-See AGENTS.md for operating rules and docs/architecture.md for layers and provenance.
-Generated Visio oracles live in a permanently private companion corpus repo. Microsoft's
-shipped stencils and templates stay local under gitignored corpus/. Neither ships here.
+Code reused from the Craft apps is MIT OR Apache-2.0 and is listed per file in
+[ATTRIBUTION.md](ATTRIBUTION.md).
 
-Licensed MIT OR Apache-2.0. See ATTRIBUTION.md and NOTICE.
+## Status and handover
 
-The private reference corpus is pinned by `xtask/src/corpus_pins.rs`. With its clean checkout
-at `../diagramcraft-corpus`, run `cargo xtask corpus --local` to copy and SHA256-verify it.
-`--update-manifest` is for an intentional new pin, never for accepting a mismatch.
-M0 is met: normal-process Visio launch and COM attachment passed the two-file acceptance.
-Shipped dump coverage is reported by `corpus check`; the shared inputs can grow between runs.
+Pre-alpha. Milestones M0 to M2 are met and independently reviewed; M3 (writing) is in
+closure. The name follows the Craft apps' convention and belongs to that project: if they
+adopt this work, it transfers with the name; if not, the name changes. Issues and discussion
+are welcome.
 
-The Craft name belongs to the upstream project and is theirs to keep or drop if they adopt this work.
+## Development
 
-The Phase 1 reader library loads all 1,387 local corpus packages; deterministic mutation tests cover each package. Evaluation accuracy is being measured against the Phase 1 floors.
+Build gates, the oracle VM workflow, corpus pinning and contact sheets are in
+[docs/development.md](docs/development.md). Operating rules for agents are in
+[AGENTS.md](AGENTS.md); layers and architecture in [docs/architecture.md](docs/architecture.md).
 
-Carlito, Caladea, Arimo, Tinos and Cousine are embedded under the SIL Open Font License 1.1; a separate craft-fonts checkout is optional.
+## Licence
 
-## Private master comparisons
-
-Render a labelled contact sheet with
-`cargo run --release -p diagramcraft-cli -- render --masters STENCIL.vssx OUT.png`.
-Each master is scaled into its cell before rasterization. The pixel cap applies to the
-whole sheet; a failed master is marked and the command returns an error.
-
-For the local human gate, `corpus/_state/m2-contact-inputs.txt` lists the stencil paths.
-Generate their `corpus/_state/contact-sheets/<stem>-ours.png` files, then run
-`cargo run --release -p diagramcraft-corpus --example contact_pairs`.
-This pairs each master with its existing private Visio export from the oracle runner:
-ours on the left, Visio on the right. Neither reference images nor paired sheets ship
-with the public repository. See the oracle runbook for `export-masters.ps1`.
-
-Run the explicit release performance measurement with
-`cargo test --release -p diagramcraft-render --test perf -- --ignored --nocapture`.
-The observations in `perf/budgets.toml` are measurements, not acceptance limits.
+MIT OR Apache-2.0; see LICENSE-MIT, LICENSE-APACHE and NOTICE. The embedded fonts Carlito,
+Caladea, Arimo, Tinos and Cousine are under the SIL Open Font License 1.1.
