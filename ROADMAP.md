@@ -73,3 +73,13 @@ and may only rise from this population. Text ratchets, cached floor, exclusions 
 render ceilings are unchanged. The shared directory remains read-only.
 Measurement: cargo run -q --release -p diagramcraft-corpus --example com_coverage --
 corpus/_state/m3/old-coverage-paths.txt; log/m3-10-coverage.log.
+
+## M3.11 acceptance rerun (2026-10-13): partial
+
+All 230files opened and produced artifacts; the scratch connector has2 live COM connects.
+All 230files fail the unchanged repair comparison (4,107 literal/part differences).
+All 10generated page render groups pass; other acceptance groups still fail.
+Host read-write-read cells remain 100% and image pairs are identical or the 642 authorized
+same-error pairs. Main COM meets its measured coverage rebase; promoted COM text is
+90.413403%, below its unchanged 90.713900% ratchet. No M3 acceptance or Phase 4 start.
+Representative witnesses and per-group results are in docs/file-format-parity.md.

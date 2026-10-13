@@ -283,3 +283,23 @@ are not assigned pixel scores. Generated Visio comparisons retain their frozen g
 | #NAME? LISTMEMBERCOUNT | 4 | ms-shipped/1033/WFCTRL_M.vssx#master11 |
 | #DIV/0! | 2 | ms-shipped/1033/PROCESS_M.vssx#master20 |
 | #NAME? _UCON_ENDTYP | 2 | ms-shipped/1033/IDEF0_M.vssx#master8 |
+
+### P3-closure acceptance blockers (M3.11, 2026-10-13)
+
+- 230/230 opened, 230/230 repaired by the frozen comparison:4,107 literal/part differences
+ and295,787 source COM differences. Basic probe witnesses BulletStr 0 versus empty,
+ LangID 1033 versus en-US, and TextBkgnd 26 versus#ffffff.
+- All 5 scratch saves add thumbnail.emf despite the explicitly required thumbnail-free
+ input. Preserve both the construction rule and the strict repair result; do not exclude it.
+- Scratch three-masters loses all 3 master parts and masters.xml.rels on Visio SaveAs.
+ Scratch metric/background/layers has99 literal/part and323 source COM differences.
+- Acceptance render failures remain in 7 groups: blank-pages, from-scratch-pages,
+ from-scratch-masters, generated-masters, shipped-stencil-masters,
+ shipped-template-masters and shipped-template-pages. The10named generated page groups pass.
+- Promoted COM text27,360/30,261 =90.413403%, below the unchanged 90.713900% floor.
+ Remaining text failures: 6,049 cached,2,901COM. Main COM coverage rebase does not waive
+ the independent sticky text ratchet. Coverage is 702 completed shipped dumps.
+- Frozen milestone verification cannot close while the measured acceptance and text gates fail.
+
+Per-file JSON and full worst-file lists are retained privately in
+corpus/_state/m3/accept-report.json and corpus/_state/P3-closure-report.md.

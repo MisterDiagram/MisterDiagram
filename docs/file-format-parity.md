@@ -1074,3 +1074,90 @@ New-population failures by called function (overlapping, one row can name severa
 | LUMDIFF | 1969 | `corpus/ms-shipped-dumps/1033/LEGEND_M.VSSX.tsv` |
 | MODULUS | 1890 | `corpus/ms-shipped-dumps/1033/OBJREL_M.VSSX.tsv` |
 | SHADE | 1824 | `corpus/ms-shipped-dumps/1033/MATRIXDOT_M.VSSX.tsv` |
+
+## M3.11 acceptance rerun, 2026-10-13 (partial)
+
+| Set | Files | Opened | Repaired | Failed |
+|---|---:|---:|---:|---:|
+| generated | 204 | 204 | 204 | 204 |
+| blank | 1 | 1 | 1 | 1 |
+| from-scratch | 5 | 5 | 5 | 5 |
+| shipped-stencil | 10 | 10 | 10 | 10 |
+| shipped-template | 10 | 10 | 10 | 10 |
+
+Old COM population: 20,805,945/21,055,732 =98.813686458% over 514 dumps
+(301 completed shipped plus 213 generated/blank). This meets 98.6241%, so Charles's
+P3-closure M3.10 coverage rebase is authorized. New 401 dumps:
+23,240,476/23,671,431 =98.179429879%. Combined 915 dumps:
+44,046,421/44,727,163 =98.478012120%; floor 98.478012100%.
+The historical 302 artifacts were 301 complete plus one partial, independently verified.
+The later measurement has 702 completed shipped dumps; earlier 413/523 snapshots are historical.
+Text stays promoted and its existing ratchets stay unchanged.
+
+
+The changed harness completed every file. Scratch dynamic glue now has exactly the two
+COM rows: shape 3 BeginX -> shape 1 PinX (9,3), EndX -> shape 2 PinX (12,3).
+This closes the position-only glue defect without claiming repair-free serialization.
+
+### Observed, undocumented: post-open saves
+
+Literal/part witnesses, retained under corpus/_vm/out/accept/:
+
+- generated__basic__0001-probe:9 literal differences,17 source COM differences; BulletStr
+  changes from 0 to an empty string, LangID 1033 to en-US, TextBkgnd 26 to #ffffff.
+- blank__blank:4 literal differences,0 source COM differences, no part changes.
+- scratch__rectangle-text:12 differences including added docProps/thumbnail.emf.
+- scratch__dynamic-glue:13 differences including added thumbnail.emf;2 live connects;
+  zero source COM differences.
+- scratch__metric-background-layers:99 differences,323 source COM differences; added
+  thumbnail.emf and visio/pages/_rels/page2.xml.rels.
+- scratch__three-masters:89 differences,321 source COM differences; Visio removes all
+  three authored master parts and masters.xml.rels, and adds thumbnail.emf.
+- shipped-template__SOCIAL_DISTANCING_M:1,446 literal/part differences, the largest count.
+
+All five scratch inputs omit thumbnails as explicitly required by M3.7. Visio adds an
+EMF thumbnail on SaveAs in all five, so the unchanged part-list definition fails.
+This observation prevents a claim of zero repair while retaining the explicit no-thumbnail
+construction rule. No thumbnail exclusion, oracle output or threshold was changed.
+Other serialization and render disagreements remain real bugs, not waived exceptions.
+
+### Measured
+
+Host round-trip:15,080,738/15,080,738 cells (100%); all successful image pairs have
+MAD 0/fraction 0, no size mismatch. Equal errors are 568 masters + 74 pages, separately
+reported without pixel scores. Every round-trip group passes the authorized M3.9 rule.
+Generated Visio groups remain within frozen ceilings, with 10 individual outliers,
+4 tolerated one-pixel differences and0 hard size failures.
+
+Full cached floor passes: 4,675,663/4,783,865 =97.738189% versus 97.491100%.
+Full COM main floor passes at 98.478012120%. Text cached 61,748/67,797 =91.077776%;
+text COM 27,360/30,261 =90.413403%, below its unchanged 90.713900% sticky floor.
+Remaining text failures: 6,049 cached and 2,901 COM. corpus check therefore exits 1.
+Coverage: 1,387 packages, 1,181 shipped sources, 702 completed shipped dumps, 915 TSVs.
+Parity 25% (1 D, 17 P, 27 M of 45 Core rows), explicitly partial.
+
+Independent discovery and source followups found and closed diagnostic storage and
+presentation issues. The production glue seed was caught (exit 101); exact source bytes
+were restored and the same regression passed (exit 0). Frozen verification remains
+blocked by measured M3-Gates failures; do not claim two clean closure passes.
+
+
+| Acceptance render group | Images | Errors | Mean MAD (0 to 255) | Pixels over16 | Pass |
+|---|---:|---:|---:|---:|---|
+| arrow | 92 | 0 | 0.543633 | 1.071225% | YES |
+| basic | 1 | 0 | 0.443949 | 0.745332% | YES |
+| blank-pages | 1 | 1 | n/a | n/a | NO |
+| connector | 6 | 0 | 2.142340 | 1.225363% | YES |
+| fill | 44 | 0 | 1.112028 | 1.373298% | YES |
+| from-scratch-masters | 8 | 3 | 1.160070 | 2.572484% | NO |
+| from-scratch-pages | 5 | 2 | 3.767709 | 2.309100% | NO |
+| generated-masters | 9 | 0 | 1.202102 | 2.648070% | NO |
+| group | 1 | 0 | 0.690956 | 1.251292% | YES |
+| image | 3 | 0 | 1.602828 | 1.731289% | YES |
+| line | 37 | 0 | 1.076040 | 1.030076% | YES |
+| master | 1 | 0 | 1.608085 | 1.791412% | YES |
+| page | 4 | 0 | 2.821761 | 1.171389% | YES |
+| shipped-stencil-masters | 186 | 18 | 15.839527 | 12.408190% | NO |
+| shipped-template-masters | 115 | 29 | 8.180108 | 2.313173% | NO |
+| shipped-template-pages | 11 | 10 | 1.926767 | 3.725650% | NO |
+| text | 16 | 0 | 3.890125 | 3.318851% | YES |
