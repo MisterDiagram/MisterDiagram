@@ -101,7 +101,7 @@ Core=N rows (excluded from milestone scoring):
 
 - Open and save .vsdx (full fidelity, unknown parts kept): P, `diagramcraft-vsdx::reads_shape_cells_sections_text_and_unknown_content`.
 - Open .vssx stencils and .vstx templates; save a stencil: P, `diagramcraft-vsdx::all_corpus_parses_and_seeded_mutations_never_panic`.
-- Open .vsdm/.vssm/.vstm (drop macros, keep the rest): P, `diagramcraft-vsdx::macro_payload_removed_and_flagged` and `typed_vba_parts_are_removed_with_default_and_override_content_types`. M2.8.1 removes renamed typed VBA parts while retaining opaque bytes. Macro-enabled stencil/template main types remain unsupported (upstream #3); this row stays partial.
+- Open .vsdm/.vssm/.vstm (drop macros, keep the rest): P, `diagramcraft-vsdx::macro_payload_removed_and_flagged`, `typed_vba_parts_are_removed_with_default_and_override_content_types` and `imports_macro_enabled_stencils_and_templates_without_vba_payloads`. Renamed typed VBA parts are removed by content type (PR #5); all six package families are admitted in library and CLI tests (PR #6). Full preservation and real-file fidelity remain partial.
 - ShapeSheet model: Object, Geometry, Character, Paragraph, Tabs, Controls, Connection, User, Actions, Scratch, gradient stops: D, `diagramcraft-vsdx::reads_shape_cells_sections_text_and_unknown_content`.
 
 - Drop masters from a stencil; master instances inherit and can be overridden: P, `diagramcraft-vsdx::evaluate::inherit::tests::corpus_basic_rect_and_probe_inheritance_witnesses`. Read/evaluation subset; editing, host implementations and full corpus accuracy remain open.

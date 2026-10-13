@@ -6,8 +6,8 @@ use std::path::Path;
 use std::process::ExitCode;
 fn info(path: &Path, out: &mut impl Write) -> Result<(), String> {
     let ext = path.extension().and_then(|e| e.to_str()).unwrap_or_default().to_ascii_lowercase();
-    if !matches!(ext.as_str(), "vsdx" | "vssx" | "vstx" | "vsdm") {
-        return Err("expected .vsdx, .vssx, .vstx or .vsdm".into());
+    if !matches!(ext.as_str(), "vsdx" | "vssx" | "vstx" | "vsdm" | "vssm" | "vstm") {
+        return Err("expected .vsdx, .vssx, .vstx, .vsdm, .vssm or .vstm".into());
     }
     let f = std::fs::File::open(path).map_err(|e| e.to_string())?;
     let mut bytes = Vec::new();

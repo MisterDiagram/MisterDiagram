@@ -25,7 +25,14 @@ mod tests {
     }
     #[test]
     fn supported_package_types_and_root_relationships() {
-        for (ext, kind) in [("vsdx", "drawing"), ("vssx", "stencil"), ("vstx", "template"), ("vsdm", "drawing.macroEnabled")] {
+        for (ext, kind) in [
+            ("vsdx", "drawing"),
+            ("vssx", "stencil"),
+            ("vstx", "template"),
+            ("vsdm", "drawing.macroEnabled"),
+            ("vssm", "stencil.macroEnabled"),
+            ("vstm", "template.macroEnabled"),
+        ] {
             let o = invoke(&package(&format!("application/vnd.ms-visio.{kind}.main+xml")), ext);
             assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
             let s = String::from_utf8(o.stdout).unwrap();

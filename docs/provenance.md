@@ -14,9 +14,16 @@ Every implemented element, cell and function cites its reference page in its doc
 
 ## 3. Third-party projects consulted
 
-None for Visio format documentation to date. libvisio and libvisio-rs documentation may be
-consulted; their source is never opened. Record each non-Microsoft documentation consultation
-about Visio or its formats here in the same commit, with the source and how it was used.
+The [libvisio project README](https://github.com/LibreOffice/libvisio) was consulted
+on 2026-10-12 for project scope and licence metadata only. No implementation,
+sample documents or assets were used.
+
+The [Apache Tika MIME proposal TIKA-1286](https://issues.apache.org/jira/browse/TIKA-1286)
+was consulted for the .vssm and .vstm main-part content type identifiers.
+No implementation or attached files were used.
+
+Record each non-Microsoft documentation consultation about Visio or its formats
+here in the same commit, with the source and how it was used.
 Permissive sibling implementation reuse is recorded separately in section 7.
 
 M3.18: W3C XML 1.0 fifth edition, sections 2.11 and 3.3.3
