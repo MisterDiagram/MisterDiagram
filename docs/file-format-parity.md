@@ -224,6 +224,18 @@ the other measured files use 2012/main. Container inspection accepts both exact 
 
 ## Observed, undocumented
 
+M3.2 writer witnesses: `ASSOCIATIONS_UML_CLASS_M.vstx`, page 1, group 242,
+contains two deleted inherited members with the sentinel ID 4294967295 and
+MasterShape 7 and 9. Preserve both tombstones; ordinary duplicate shape IDs
+remain invalid. `AWSANALYTICS_M.vssx` has a root thumbnail relationship to
+`docProps/thumbnail.emf` without that part. The writer omits this dangling
+optional relationship, reports it, and fabricates no preview. Host tests cover
+both cases. `BASIC_U.vssx` also carries a PageSheet-only page entry without
+a Rel or PageContents part; the writer preserves that absence until the page
+contains drawing content. Missing and authored PNG thumbnails have structural round-trip
+tests; Visio acceptance remains unmeasured until M3.5.
+
+
 M2.9.1 shipped contact witnesses: CISCONETWORKSHAPES_M/U each had289blank
 cells out of292, KUBERNETESVISIOSTENCIL_M/U each31out of40,
 AWSANALYTICS_U one of28, and AWSNETCONTENTDELIVERY_M/U each one of36.

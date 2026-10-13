@@ -184,3 +184,7 @@ Core=N rows (excluded from milestone scoring):
 - M2.9.1: vendor stencil rendering remains P. `shipped_cisco_kubernetes_and_aws_have_drawing_ink` and `labels_do_not_turn_blank_masters_into_rendered_masters` replace successful-call counting with drawing-ink evidence.24stencils1108ink/0blank/0errors, corrected from465ink/643blank; visual fidelity remains bounded by the documented scope.
 
 - M2.9 closure verification: two consecutive clean frozen passes at 3dc3b21. Vendor stencil rendering remains P: 1,108 ink-bearing drawing areas, zero blank or failed cells. Tests: `shipped_cisco_kubernetes_and_aws_have_drawing_ink`, `group_display_mode_hides_or_orders_group_paint`, `caller_built_sheet_cannot_split_cell_budget_across_sections`. Ink coverage and memory bounds do not establish complete visual or authoring parity.
+
+## M3.2 writer evidence
+
+- Open and save .vsdx (full fidelity, unknown parts kept): P. `authored_skeleton_writes_complete_opc_and_recalculates_local_cells`, `unknown_parts_and_extensions_survive_modelled_edits` and `instances_keep_only_local_overrides_and_master_relationships` cover serialization. Full corpus dump/render equality and Visio repair detection remain the M3.4/M3.5 gates.

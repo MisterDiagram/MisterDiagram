@@ -52,6 +52,13 @@ fn corpus() -> Vec<PathBuf> {
     files.sort();
     files
 }
+fn exercise(bytes: &[u8]) {
+    if let Ok(doc) = import(bytes)
+        && let Ok(written) = diagramcraft_vsdx::write(&doc)
+    {
+        import(&written.bytes).expect("writer output must re-read");
+    }
+}
 #[test]
 fn random_bytes_and_empty() {
     let mut seed = 7u64;
@@ -84,9 +91,11 @@ fn all_corpus_parses_and_seeded_mutations_never_panic() {
     let mut mutations = 0;
     for file in &files {
         let bytes = std::fs::read(file).expect("read");
-        import(&bytes).unwrap_or_else(|e| panic!("{}: {e}", file.display()));
+        let doc = import(&bytes).unwrap_or_else(|e| panic!("{}: {e}", file.display()));
+        let written = diagramcraft_vsdx::write(&doc).unwrap_or_else(|e| panic!("{}: {e}", file.display()));
+        import(&written.bytes).unwrap_or_else(|e| panic!("written {}: {e}", file.display()));
         for cut in [bytes.len() / 2, bytes.len().saturating_sub(1)] {
-            let _ = import(&bytes[..cut]);
+            exercise(&bytes[..cut]);
             mutations += 1;
         }
         let mut es = entries(&bytes);
@@ -109,17 +118,17 @@ fn all_corpus_parses_and_seeded_mutations_never_panic() {
                 }
             }
         }
-        let _ = import(&zip_of(&es));
+        exercise(&zip_of(&es));
         mutations += 1;
         let mut b = bytes.clone();
         for _ in 0..1 + rnd(16) {
             let at = rnd(b.len());
             b[at] = rnd(256) as u8;
         }
-        let _ = import(&b);
+        exercise(&b);
         mutations += 1;
     }
-    eprintln!("malformed: {} corpus files parsed; {mutations} seeded mutations; zero panics", files.len());
+    eprintln!("malformed: {} corpus files read-written-read; {mutations} seeded mutations; zero panics", files.len());
 }
 #[test]
 fn hostile_xml_in_known_part() {

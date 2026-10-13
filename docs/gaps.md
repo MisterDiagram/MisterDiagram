@@ -190,6 +190,10 @@ fidelity and two extreme-stroke cases above carry into Phase 3 as counted gaps.
 M3.1 provides the typed skeleton, observed style/cell sets and an authored
 connector master with fresh UUIDs. Tests: `skeleton_parts_styles_and_fresh_connector_identity`,
 `skeleton_cell_set_matches_blank_and_probe_observations`,
-`rectangle_rejects_hostile_coordinates_and_text`. Writer serialization,
-stencil/template output, full round-trip measurement and the 230-file Visio
-acceptance set remain pending; these tests do not claim save fidelity.
+`rectangle_rejects_hostile_coordinates_and_text`. M3.2 adds model-driven writing,
+opaque payload preservation, scalar cache recalculation and bounded hostile-model
+validation. Tests include `unknown_parts_and_extensions_survive_modelled_edits`
+and `serialization_does_not_apply_setf_actions_to_later_caches`. All 1,387
+packages read-write-read and 5,548 mutations produce zero panics. Stencil/template
+output, full dump/render measurement and the 230-file Visio acceptance remain
+pending; structural re-reading does not establish save fidelity.

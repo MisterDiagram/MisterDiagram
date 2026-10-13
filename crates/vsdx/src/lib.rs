@@ -2,6 +2,7 @@
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 pub mod dump;
 pub mod evaluate;
+pub mod write;
 use diagramcraft_model::*;
 use diagramcraft_opc::{Package, xml};
 use std::{
@@ -9,6 +10,7 @@ use std::{
     io::Read,
     path::Path,
 };
+pub use write::{WriteError, Written, write, write_with_hosts};
 const REL_NS: &str = "http://schemas.openxmlformats.org/package/2006/relationships";
 const ATTR_REL_NS: &str = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 const VIS_REL: &str = "http://schemas.microsoft.com/visio/2010/relationships/";

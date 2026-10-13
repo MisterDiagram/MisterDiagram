@@ -6,7 +6,7 @@ Page coordinates are inches, y-up, origin bottom-left. Dependencies go to strict
 |---|---|---|
 | L0 | geom, color, opc | Geometry rows to kurbo paths in y-up inches, colour and package primitives. |
 | L1 | sheet, model, fonts | sheet: formula syntax, values, units, functions and host traits; model: document structures; fonts: shaping database. |
-| L2 | text, theme, vsdx | vsdx: package reading, document evaluator, inheritance, dependency tracking and dirty recalc; text/theme: model-based host implementations. |
+| L2 | text, theme, vsdx | vsdx: package reading/writing, document evaluator, inheritance, dependency tracking and dirty recalc; text/theme: model-based host implementations. |
 | L3 | route, render | Routing and rendered outputs. |
 | L4 | export | External format export. |
 | L5 | engine | Commands and session state. |
@@ -14,6 +14,11 @@ Page coordinates are inches, y-up, origin bottom-left. Dependencies go to strict
 
 The L2 document evaluator supplies adapters to theme and text hosts using L1 traits and
 model inputs. Theme and text do not depend on vsdx; L2 sibling dependencies remain forbidden.
+
+The writer receives optional theme/text services through those same traits. It serializes
+local overrides and evaluates caches through an isolated snapshot, retaining unsupported
+cached values with warnings. It validates caller-built models before cloning, applies
+reader sheet limits after XML escaping, and preserves opaque part payloads exactly.
 
 ## Copied from siblings
 
