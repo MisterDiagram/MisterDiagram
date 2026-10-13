@@ -6,9 +6,10 @@ PDF. Writing files that Visio opens unrepaired, connectors and routing, and an M
 AI agents are in progress. It is built in the mould of the Craft apps (deckcraft, vectorcraft
 and their siblings) and is offered to that project.
 
-![Visio 2021 on the left, DiagramCraft on the right, on four drawings made by this repo's scripts](docs/images/visio-vs-diagramcraft.png)
+![Four drawings made by this repo's scripts, rendered by DiagramCraft](docs/images/diagramcraft-renders.png)
 
-*Left: Visio 2021's own PNG export. Right: DiagramCraft rendering the same file.*
+*DiagramCraft's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
+export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
 ## What works today (2026-10-13)
 
