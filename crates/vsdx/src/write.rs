@@ -13,6 +13,7 @@ mod model;
 mod source;
 mod validate;
 pub(crate) use validate::document as validate_document;
+pub(crate) use validate::dump_bounds;
 mod xml;
 use model::{node, replace, set};
 #[derive(Debug, thiserror::Error)]
@@ -334,7 +335,11 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
                 return Err(error(format!("missing relationship target {}", r.target)));
             }
         }
-        let bytes = if let Some(e) = &p.xml { xml::tree(e)? } else { p.bytes.clone() };
+        let bytes = if let Some(e) = &p.xml {
+            if !p.bytes.is_empty() && crate::parse_xml(&p.bytes).map_err(|e| error(e.to_string()))? == *e { p.bytes.clone() } else { xml::tree(e)? }
+        } else {
+            p.bytes.clone()
+        };
         if bytes.len() as u64 > diagramcraft_opc::MAX_PART {
             return Err(error("written part byte limit"));
         }

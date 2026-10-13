@@ -1227,5 +1227,55 @@ text as well as the existing evaluated comparison. This exposes altered Inh cach
 that resolve to the same provider. The local-cell union denominator and 99% floor
 are unchanged; the evaluation-only rate is printed separately for comparison.
 
-M3.17 full corpus literal-cache comparison: 15079024/15091678=99.916152% across1,387packages, above the unchanged99% floor. The prior M3.4 raw-cache observation was578769/584822=98.96% before the writer corrections; its replacement by evaluation-only comparison hid real differences. The current diagnostic prints both strict and evaluation-only rates on the same local-cell union.
+M3.17 full corpus literal-cache comparison: 15079024/15091678=99.916152% across 1,387 packages, above the unchanged 99% floor. The prior M3.4 raw-cache observation was 578769/584822=98.96% before the writer corrections; its replacement by evaluation-only comparison hid real differences. The current diagnostic prints both strict and evaluation-only rates on the same local-cell union.
 Evaluation-only diagnostic for that full run: 15079024/15091678=99.916152%.
+
+M3.18 acceptance comparison uses literal local V/F/U/E records, including Inh
+instance caches, without evaluating them. COM differences have their own column;
+they remain a gate but do not by themselves classify a file as repaired. Row type
+and deletion, shape/master/page attributes, structural presence, Text and Icon
+character data, and SHA256 digests of opaque payloads are compared. Exclusion
+filters apply to both sides. Unmodified docProps and windows XML retains its
+original bytes. XML physical newlines normalize on read according to XML 1.0;
+explicit character references remain literal. No observation file is rewritten.
+The PageSheet XForm row 1 unit 32 versus 73 difference is disclosed as a computed
+harness artifact only when neither package has a local source cell. Source cache
+values remain mandatory. Historical P3-closure counts are restated separately
+before the later acceptance extent and allowed-repair amendments.
+
+## M3.18 historical P3-closure restatement
+
+The inputs and Visio outputs are unchanged. Expectations now use literal local caches; COM differences remain mandatory but are separate from repair classification. This is the historical run, before M3.19/M3.20/M3.22 amendments and before the fixed writer rerun.
+
+| Set | Files | Opened | Repaired | Failed |
+|---|---:|---:|---:|---:|
+| blank | 1 | 1 | 1 | 1 |
+| from-scratch | 5 | 5 | 5 | 5 |
+| generated | 204 | 204 | 204 | 204 |
+| shipped-stencil | 10 | 10 | 10 | 10 |
+| shipped-template | 10 | 10 | 10 | 10 |
+
+Literal/part differences: 30237; source COM differences: 197517; disclosed phantom XForm unit slots: 1296.
+MasterType rewrites disclosed separately: 14.
+Reporter exit is recorded in log/m3-18-historical-report.exit. Full evidence: corpus/_state/m3/accept-report-restated-p3-closure.json and log/m3-18-historical-report.log.
+
+M3.18 CI exposed and fixed a text-adapter dependency on raw CRLF: BA_DEC_BAN_M
+master 25 shape 6 switches from 28 pt field text to a 14 pt paragraph terminator.
+After XML 1.0 normalization, the empty chunk before LF lost that terminal run,
+changing User.Width from 1.66889274052908 to 1.7128533108181425. Preserve the
+terminator's character style explicitly for both LF and referenced CR+LF.
+The unchanged corpus regression and all 19 render-output tests now pass; writer 39/39
+still passes, including zero probe literal differences. Earlier CI exit 101 is a
+real fixed regression, not a waived gate. Full CI and historical expectation/render
+regeneration restart on the corrected source. No observations or thresholds changed.
+
+M3.18 final measurement classification: 180294 source COM differences; 17223 style-local
+XML cells are unobserved by both collectors and separately listed in each report
+row. Literal XML comparison remains mandatory. Numeric eligibility is identical
+for every file before and after this classification (verified). A metadata-only or
+observation-only cell still fails. Witness: generated__arrow__begin-00 style0 has
+75 such rows, including HelpTopic and Copyright. The collector does not promise
+these rows are inaccessible in COM. Previous197517 included this unobserved class
+and is superseded. Literal/part differences30237, opened230, repaired230 unchanged.
+Python19/19 tests pass under python3 with Pillow; project .venv lacks Pillow and
+was not used for the final measurement. No VM output or input was modified.

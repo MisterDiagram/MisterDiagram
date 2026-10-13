@@ -402,3 +402,23 @@ fn background_chains(d: &Document) -> Result<(), WriteError> {
     }
     Ok(())
 }
+
+pub(crate) fn dump_bounds(d: &Document) -> Result<(), WriteError> {
+    if d.pages.len() > 100_000 || d.masters.len() > 100_000 || d.styles.len() > 65_536 {
+        return Err(error("dump collection limit"));
+    }
+    let mut b = Budget { bytes: 0, nodes: 0 };
+    b.sheet(&d.document_sheet)?;
+    for style in &d.styles {
+        b.sheet(&style.sheet)?;
+    }
+    for page in &d.pages {
+        b.sheet(&page.sheet)?;
+        b.shapes(&page.shapes)?;
+    }
+    for master in &d.masters {
+        b.sheet(&master.sheet)?;
+        b.shapes(&master.shapes)?;
+    }
+    Ok(())
+}

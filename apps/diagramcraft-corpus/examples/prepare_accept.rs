@@ -16,6 +16,12 @@ fn relative(value: &str, prefix: &str) -> Result<PathBuf, String> {
     Ok(p.to_path_buf())
 }
 fn run() -> Result<(), Box<dyn std::error::Error>> {
+    let args: Vec<_> = std::env::args().skip(1).collect();
+    let expected_only = match args.as_slice() {
+        [] => false,
+        [arg] if arg == "--expected-only" => true,
+        _ => return Err("usage: prepare_accept [--expected-only]".into()),
+    };
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
     let plan_path = root.join("corpus/_state/m3/accept-plan.json");
     if fs::metadata(&plan_path)?.len() > 1024 * 1024 {
@@ -45,17 +51,21 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         if !source.canonicalize()?.starts_with(root.join("corpus")) {
             return Err("source symlink outside corpus".into());
         }
-        let before = diagramcraft_vsdx::read(&source)?;
-        let theme = diagramcraft_theme::Themes::from_document(&before).map_err(|e| e.to_string())?;
-        let written = diagramcraft_vsdx::write_with_hosts(&before, Some(&theme), Some(&diagramcraft_text::Host))?;
-        fs::create_dir_all(output.parent().ok_or("output parent")?)?;
-        if !output.parent().ok_or("parent")?.canonicalize()?.starts_with(&root)
-            || fs::symlink_metadata(&output).is_ok_and(|m| m.file_type().is_symlink())
-        {
-            return Err("output symlink".into());
-        }
-        fs::write(&output, &written.bytes)?;
-        let doc = diagramcraft_vsdx::import(&written.bytes)?;
+        let (doc, warning_count) = if expected_only {
+            (diagramcraft_vsdx::read(&output)?, 0)
+        } else {
+            let before = diagramcraft_vsdx::read(&source)?;
+            let theme = diagramcraft_theme::Themes::from_document(&before).map_err(|e| e.to_string())?;
+            let written = diagramcraft_vsdx::write_with_hosts(&before, Some(&theme), Some(&diagramcraft_text::Host))?;
+            fs::create_dir_all(output.parent().ok_or("output parent")?)?;
+            if !output.parent().ok_or("parent")?.canonicalize()?.starts_with(&root)
+                || fs::symlink_metadata(&output).is_ok_and(|m| m.file_type().is_symlink())
+            {
+                return Err("output symlink".into());
+            }
+            fs::write(&output, &written.bytes)?;
+            (diagramcraft_vsdx::import(&written.bytes)?, written.warning_count)
+        };
         let theme = diagramcraft_theme::Themes::from_document(&doc).map_err(|e| e.to_string())?;
         let dir = expected.join(name);
         fs::create_dir_all(&dir)?;
@@ -95,7 +105,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
         fs::write(dir.join("images.json"), serde_json::to_vec_pretty(&images)?)?;
-        eprintln!("prepared {} warnings={}", PathBuf::from(name).display(), written.warning_count);
+        eprintln!("prepared {} warnings={}", PathBuf::from(name).display(), warning_count);
     }
     Ok(())
 }

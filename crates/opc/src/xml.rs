@@ -282,7 +282,9 @@ pub fn parse(bytes: &[u8]) -> Result<Doc, OpcError> {
                 }
             }
             Event::Text(t) => {
-                let text = t.decode().map_err(xml_error)?;
+                // XML1.0 normalizes physical CR/CRLF before character-reference expansion.
+                // https://www.w3.org/TR/xml/#sec-line-ends
+                let text = t.xml10_content().map_err(xml_error)?;
                 check_chars(&text)?;
                 if let Some(p) = stack.last_mut() {
                     push_text(p, &text);
@@ -291,7 +293,9 @@ pub fn parse(bytes: &[u8]) -> Result<Doc, OpcError> {
                 }
             }
             Event::CData(t) => {
-                let text = t.decode().map_err(xml_error)?;
+                // XML1.0 normalizes physical CR/CRLF before character-reference expansion.
+                // https://www.w3.org/TR/xml/#sec-line-ends
+                let text = t.xml10_content().map_err(xml_error)?;
                 check_chars(&text)?;
                 let p = stack.last_mut().ok_or_else(|| xml_error("CDATA outside root"))?;
                 push_text(p, &text);
@@ -352,7 +356,11 @@ fn start_el(b: &quick_xml::events::BytesStart, reader: &quick_xml::Reader<&[u8]>
     for a in b.attributes() {
         let a = a.map_err(xml_error)?;
         let k = std::str::from_utf8(a.key.as_ref()).map_err(xml_error)?.to_string();
-        let v = a.decode_and_unescape_value(reader.decoder()).map_err(xml_error)?.into_owned();
+        // Normalize literal attribute whitespace before expanding character references.
+        // https://www.w3.org/TR/xml/#AVNormalize
+        let raw = reader.decoder().decode(&a.value).map_err(xml_error)?;
+        let normalized = raw.replace("\r\n", "\n").replace(['\r', '\n', '\t'], " ");
+        let v = quick_xml::escape::unescape(&normalized).map_err(xml_error)?.into_owned();
         check_chars(&v)?;
         attrs.push((k, v));
     }
@@ -386,6 +394,7 @@ pub fn esc(s: &str) -> String {
             '&' => o.push_str("&amp;"),
             '<' => o.push_str("&lt;"),
             '>' => o.push_str("&gt;"),
+            '\r' => o.push_str("&#13;"),
             c if xml_char(c) => o.push(c),
             _ => {}
         }
@@ -567,5 +576,27 @@ mod tests {
     fn roundtrip_serialize() {
         let d = parse(b"<p:sp a=\"1\"><p:t>x &amp; y</p:t><e/></p:sp>").unwrap();
         assert_eq!(d.root.to_xml(), "<p:sp a=\"1\"><p:t>x &amp; y</p:t><e/></p:sp>");
+    }
+}
+
+#[cfg(test)]
+mod newline_regression {
+    #[test]
+    fn physical_newlines_normalize_but_character_references_remain_literal() {
+        let tree = super::parse(b"<Text V='a\r\nb\tc&#13;d&#10;e'>a\r\nb\rc&#13;d<![CDATA[e\r\nf\rg]]></Text>").unwrap();
+        assert_eq!(tree.root.attr("V"), Some("a b c\rd\ne"));
+        assert_eq!(tree.root.text(), "a\nb\nc\rde\nf\ng");
+    }
+}
+
+#[cfg(test)]
+mod referenced_whitespace_regression {
+    #[test]
+    fn referenced_whitespace_survives_parse_serialize_parse() {
+        let original = super::parse(b"<x V='a&#13;b&#10;c&#9;d'>a&#13;b&#10;c&#9;d</x>").unwrap();
+        let saved = original.root.to_xml();
+        assert!(saved.contains("&#13;"));
+        let reread = super::parse(saved.as_bytes()).unwrap();
+        assert_eq!(original.root, reread.root);
     }
 }

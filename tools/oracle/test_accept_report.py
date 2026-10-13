@@ -43,17 +43,18 @@ class Acceptance(unittest.TestCase):
 
     def test_duplicates_missing_and_volatile_are_explicit(self):
         _, a = report.package_cells(self.package('<DocumentSheet><Cell N="X" V="1"/><Cell N="X" V="2"/><Cell N="Y" V="3" F="NOW()"/></DocumentSheet>'))
-        self.assertEqual(len(a),3)
-        self.assertEqual(len(report.cell_diffs(a,{}, {'NOW'})),2)
+        self.assertEqual(len(a),4)
+        self.assertEqual(len(report.cell_diffs(a,{}, {'NOW'})),3)
         self.assertEqual(len(report.cell_diffs({},a, {'NOW'})),3)
 
-    def test_opaque_solution_payload_is_in_part_list_not_sheet_dump(self):
+    def test_opaque_solution_payload_has_part_and_digest_records(self):
         path = self.package('<DocumentSheet><Cell N="X" V="1"/></DocumentSheet>')
         with zipfile.ZipFile(path,'a') as z:
             z.writestr('visio/solutions/solution1.xml','<vendor:opaque/>')
         parts,cells = report.package_cells(path)
         self.assertIn('visio/solutions/solution1.xml',parts)
-        self.assertEqual(len(cells),1)
+        self.assertEqual(len(cells),3)
+        self.assertIn(('visio/solutions/solution1.xml/Opaque',0),cells)
 
     def test_lost_connectivity_is_visible(self):
         _, a = report.package_cells(self.package('<PageContents><Connects><Connect FromSheet="3" FromCell="BeginX" ToSheet="1" ToCell="PinX"/></Connects></PageContents>'))
@@ -82,6 +83,120 @@ class Acceptance(unittest.TestCase):
         self.assertEqual((result['mad'],result['pixels']),(0,16))
         Image.new('RGB',(6,4),'white').save(b)
         self.assertEqual(report.pixels(a,b)['error'],'hard size mismatch')
+
+
+    def test_cache_formatting_is_a_literal_difference(self):
+        _,a=report.package_cells(self.package('<DocumentSheet><Cell N="X" V="1" F="2"/></DocumentSheet>'))
+        _,b=report.package_cells(self.package('<DocumentSheet><Cell N="X" V="1.0" F="2"/></DocumentSheet>'))
+        self.assertEqual(len(report.cell_diffs(a,b,set())),1)
+
+    def test_attributes_text_icons_and_opaque_bytes_are_compared(self):
+        before='<PageContents><Shapes><Shape ID="1" Type="Shape"><Section N="Geometry" IX="0"><Row IX="1" T="MoveTo" Del="0"/></Section><Text>Hello</Text><Icon>abc</Icon></Shape></Shapes></PageContents>'
+        after=before.replace('Type="Shape"','Type="Group"').replace('T="MoveTo"','T="LineTo"').replace('Del="0"','Del="1"').replace('Hello','Bye').replace('abc','def')
+        _,a=report.package_cells(self.package(before))
+        _,b=report.package_cells(self.package(after))
+        self.assertEqual(len(report.cell_diffs(a,b,set())),5)
+        a_path=self.package('<DocumentSheet/>')
+        with zipfile.ZipFile(a_path,'a') as z: z.writestr('visio/media/image1.bmp',b'one')
+        _,a=report.package_cells(a_path)
+        b_path=self.package('<DocumentSheet/>')
+        with zipfile.ZipFile(b_path,'a') as z: z.writestr('visio/media/image1.bmp',b'two')
+        _,b=report.package_cells(b_path)
+        self.assertEqual(len(report.cell_diffs(a,b,set())),1)
+
+    def test_raw_inh_uses_local_value_and_preserves_unit_context(self):
+        def check(name, value, unit, expected, unit_code):
+            row=['1','page:0:Page-1/Sheet.1','1','1','0',name,'Width/2',expected,unit_code]
+            observed={tuple(row[:6]):row}
+            computed_row=list(row);computed_row[7]='1.5'
+            computed={tuple(row[:6]):computed_row}
+            raw=[('page-shape',0,1,name,value,'Inh',unit,None,True)]
+            counts,failures=report.source_com_compare(raw,computed,observed,set(),['Calibri'])
+            self.assertEqual(counts['eligible'],1)
+            self.assertEqual(failures,[])
+        check('PinX','4','IN','4','65')
+        check('PinX','4','DL','4','70')
+        check('Char.LangID','en',None,'9','32')
+        check('Char.Font','0',None,'0','32')
+
+    def test_unmapped_source_and_unknown_language_do_not_pass_silently(self):
+        raw=[('page-shape',0,1,'PinX','4','Inh',None,None,True)]
+        counts,failures=report.source_com_compare(raw,{}, {},set(),[])
+        self.assertEqual(counts['unmapped_local'],1)
+        self.assertTrue(failures)
+        row=['1','page:0:Page-1/Sheet.1','3','0','0','Char.LangID','0','0','32']
+        rows={tuple(row[:6]):row}
+        raw=[('page-shape',0,1,'Char.LangID','unknown-language',None,None,None,True)]
+        self.assertTrue(report.source_com_compare(raw,rows,rows,set(),[])[1])
+
+    def test_raw_source_missing_and_empty_attributes_remain_distinct(self):
+        path=self.root/'serialized.tsv'
+        header='scope\towner\tshape\tname\tV\tF\tU\tE\tpresent\tactive\n'
+        path.write_text(header+'page-shape\t0\t1\tComment\t\t\t\t\t1\t1\n')
+        row=report.read_serialized(path)[0]
+        self.assertEqual(row[4:8],('',None,None,None))
+        path.write_text(header+'page-shape\t0\t1\tWidth\t999.000\tInh\tIN\t\t7\t1\n')
+        self.assertEqual(report.read_serialized(path)[0][4:8],('999.000','Inh','IN',None))
+
+
+    def test_style_xml_only_cells_are_disclosed_before_metadata_lookup(self):
+        raw=[('style',0,0,'FillGradientStops.GradientStopColor','#ffffff',None,None,None,True),('style',0,0,'LayerMember','0',None,None,None,True)]
+        counts,failures=report.source_com_compare(raw,{}, {},set(),[])
+        self.assertEqual(counts['non_COM_local'],2)
+        self.assertEqual(failures,[])
+
+    def test_phantom_pagesheet_unit_is_diagnostic_only(self):
+        want=['0','pagesheet:0:Page/ThePage','1','1','2','Width','','0','32']
+        got=list(want);got[7]='1';got[8]='73'
+        k=tuple(want[:6]);a={k:got};b={k:want}
+        failures,count=report.computed_diagnostic(a,b,{}, {},set())
+        self.assertEqual(count,1)
+        self.assertEqual(len(failures),1) # The differing value is still reported.
+        real={('visio/pages/pages.xml/Page:0/PageSheet/Cell:Width',0):{'V':'0'}}
+        failures,count=report.computed_diagnostic(a,b,real,{},set())
+        self.assertEqual(count,0)
+        self.assertEqual(len(failures),2)
+
+
+    def test_serialized_source_cumulative_byte_limit(self):
+        path=self.root/'large-serialized.tsv'
+        header='scope\towner\tshape\tname\tV\tF\tU\tE\tpresent\tactive\n'
+        row='page-shape\t0\t1\tComment\t'+('x'*700000)+'\t\t\t\t1\t1\n'
+        with path.open('w') as f:
+            f.write(header)
+            for _ in range(100): f.write(row)
+        with self.assertRaisesRegex(ValueError,'serialized source budget'):
+            report.read_serialized(path)
+
+
+    def test_empty_objects_and_anonymous_row_membership_are_visible(self):
+        _,a=report.package_cells(self.package('<PageContents><Shapes><Shape ID="1"/></Shapes></PageContents>'))
+        _,b=report.package_cells(self.package('<PageContents><Shapes><Shape ID="2"/></Shapes></PageContents>'))
+        self.assertTrue(report.cell_diffs(a,b,set()))
+        a_xml='<DocumentSheet><Section N="User"><Row><Cell N="X" V="1"/></Row><Row><Cell N="Y" V="2"/></Row></Section></DocumentSheet>'
+        b_xml='<DocumentSheet><Section N="User"><Row><Cell N="X" V="1"/><Cell N="Y" V="2"/></Row><Row/></Section></DocumentSheet>'
+        _,a=report.package_cells(self.package(a_xml));_,b=report.package_cells(self.package(b_xml))
+        self.assertTrue(report.cell_diffs(a,b,set()))
+
+
+    def test_pagesheet_identity_uses_zero_shape_id_for_any_page(self):
+        row=['0','pagesheet:7:Background/ThePage','1','10','0','PageWidth','10','10','70']
+        computed=list(row);computed[0]='7'
+        raw=[('page',7,0,'PageWidth','10',None,None,None,True)]
+        counts,failures=report.source_com_compare(raw,{tuple(computed[:6]):computed},{tuple(row[:6]):row},set(),[])
+        self.assertEqual(counts['eligible'],1)
+        self.assertEqual(failures,[])
+
+    def test_unobserved_style_cells_are_disclosed_without_numeric_eligibility(self):
+        raw=[('style',0,0,'HelpTopic','0',None,None,None,True)]
+        counts,failures=report.source_com_compare(raw,{}, {},set(),[])
+        self.assertEqual(counts['unobserved_style_local'],1)
+        self.assertEqual(counts['eligible'],0)
+        self.assertEqual(failures,[])
+        row=['0','style/No style','1','0','0','HelpTopic','','0','32']
+        mapped={tuple(row[:6]):row}
+        self.assertTrue(report.source_com_compare(raw,mapped,{},set(),[])[1])
+        self.assertTrue(report.source_com_compare(raw,{},mapped,set(),[])[1])
 
 if __name__ == '__main__':
     unittest.main()

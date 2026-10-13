@@ -40,21 +40,21 @@ pub fn dump_with_hosts(
     text: Option<&dyn diagramcraft_model::text::TextHost>,
     out: &mut impl Write,
 ) -> Result<(), String> {
-    dump_internal(document, selection, host, text, false, out)
+    dump_internal(document, selection, host, text, out)
 }
-/// Emit only active local cells with a concrete serialized V, for writer acceptance.
-/// Inherited and Themed values are not claimed as serialized instance caches.
-/// The literal XML comparison separately covers unmapped, deleted and Themed cells.
+#[path = "dump/serialized.rs"]
+mod serialized;
+/// Emit every local V/F/U/E verbatim, including Inh, Themed and deleted records.
+/// The literal schema keeps missing attributes distinct from empty values.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
 pub fn dump_serialized(document: &Document, out: &mut impl Write) -> Result<(), String> {
-    dump_internal(document, Selection::All, None, None, true, out)
+    serialized::dump(document, out)
 }
 fn dump_internal(
     document: &Document,
     selection: Selection,
     host: Option<&dyn diagramcraft_sheet::host::ThemeHost>,
     text: Option<&dyn diagramcraft_model::text::TextHost>,
-    serialized: bool,
     out: &mut impl Write,
 ) -> Result<(), String> {
     let mut evaluator = Evaluator::new(document).map_err(|e| e.to_string())?;
@@ -67,7 +67,7 @@ fn dump_internal(
     let sheets = selected(document, selection)?;
     writeln!(out, "shape_id\tshape_name\tsection\trow\tcell\tname\tformula\tresult_iu\tunits").map_err(io_error)?;
     for (scope, id, identity) in sheets {
-        dump_sheet(&mut evaluator, scope, id, &identity, serialized, out)?;
+        dump_sheet(&mut evaluator, scope, id, &identity, out)?;
     }
     Ok(())
 }
@@ -118,7 +118,10 @@ fn selected(doc: &Document, selection: Selection) -> Result<Vec<(Scope, u32, Str
                 return Err("dump identity limit".into());
             }
             if !matches!(selection, Selection::Shape(_)) {
-                result.push((Scope::Page(p.id), p.id, format!("pagesheet:{}:{pname}/ThePage", p.id)))?;
+                // PageSheet.ID is zero, independently of its owning Page.ID.
+                // Witness: scratch metric Background page1 and its observed.sheet.tsv.
+                // https://learn.microsoft.com/en-us/office/vba/api/visio.shape.id
+                result.push((Scope::Page(p.id), 0, format!("pagesheet:{}:{pname}/ThePage", p.id)))?;
             }
             add_shapes(
                 doc,
@@ -229,9 +232,7 @@ struct Slot<'a> {
     units: u16,
     synthetic: Option<Value>,
 }
-fn dump_sheet(evaluator: &mut Evaluator<'_>, scope: Scope, id: u32, identity: &str, serialized: bool, out: &mut impl Write) -> Result<(), String> {
-    let local: BTreeMap<_, _> =
-        if serialized { evaluator.named_cells(scope).iter().map(|n| (n.name.to_ascii_lowercase(), n.cell)).collect() } else { BTreeMap::new() };
+fn dump_sheet(evaluator: &mut Evaluator<'_>, scope: Scope, id: u32, identity: &str, out: &mut impl Write) -> Result<(), String> {
     let mut slots = BTreeMap::new();
     for named in evaluator.resolved_named_cells(scope) {
         if let Some((s, r, c, mut u)) = metadata(evaluator, scope, &named) {
@@ -303,24 +304,7 @@ fn dump_sheet(evaluator: &mut Evaluator<'_>, scope: Scope, id: u32, identity: &s
         if slot.cell.is_some_and(|c| c.value.as_ref().is_some_and(|v| v.len() > 65536) || c.formula.as_ref().is_some_and(|f| f.len() > 65536)) {
             return Err("dump cell text exceeds limit".into());
         }
-        let value = if serialized {
-            let Some(cell) = local.get(&slot.name.to_ascii_lowercase()) else { continue };
-            if cell.value.as_deref().is_none_or(|v| v == "Themed") {
-                continue;
-            }
-            let literal = cell.value.as_deref().unwrap_or_default();
-            // Hex RGB and named font values do not serialize COM's transient table
-            // index. Their literal value is covered by the complete XML comparison.
-            if literal.starts_with('#') || (cell.name == "Font" && literal.parse::<u32>().is_err()) {
-                continue;
-            }
-            // COM ResultIU exposes last-valid V even when E records a current formula error.
-            let mut cache = (*cell).clone();
-            cache.error = None;
-            evaluator.cached_cell(&cache)
-        } else {
-            slot.synthetic.clone().unwrap_or_else(|| evaluator.evaluate_snapshot(scope, &slot.name))
-        };
+        let value = slot.synthetic.clone().unwrap_or_else(|| evaluator.evaluate_snapshot(scope, &slot.name));
         let formula = match slot.cell {
             Some(cell) => match evaluator.effective_formula(scope, &slot.name).filter(|f| f != "No Formula" && f != "Inh") {
                 Some(f) => rebind_formula(evaluator, scope, &slot.name, &f),
@@ -775,9 +759,16 @@ mod tests {
         super::dump_serialized(&d, &mut output).unwrap();
         let output = String::from_utf8(output).unwrap();
         let row = output.lines().find(|l| l.contains("UNSUPPORTED_ACCEPTANCE_WITNESS()")).unwrap();
-        assert_eq!(row.split('\t').nth(7), Some("23"));
-        assert!(!output.lines().any(|l| l.contains("page:0:") && l.contains("\tFillForegnd\t")));
-        assert!(!output.lines().any(|l| l.contains("page:0:") && l.contains("\tLineWeight\t")));
+        assert_eq!(row.split('\t').nth(4), Some("23"));
+        assert!(output.lines().any(|l| l.starts_with("page-shape\t0\t1\tFillForegnd\t#123456\t")));
+        assert!(!output.lines().any(|l| l.starts_with("page-shape\t0\t1\tLineWeight\t")));
+        let width = d.pages[0].shapes[0].sheet.cells.iter_mut().find(|c| c.name == "Width").unwrap();
+        width.formula = Some("Inh".into());
+        width.value = Some("999.000".into());
+        width.units = Some("IN".into());
+        let mut bytes = Vec::new();
+        super::dump_serialized(&d, &mut bytes).unwrap();
+        assert!(String::from_utf8(bytes).unwrap().contains("Width\t999.000\tInh\tIN\t#VALUE!\t15\t1"));
     }
 
     #[test]
@@ -1023,5 +1014,20 @@ mod metric_metres_regression {
             let row = output.lines().skip(1).find(|l| l.split('\t').nth(5) == Some(name)).unwrap();
             assert_eq!(row.split('\t').nth(8), Some("71"), "{name}");
         }
+    }
+}
+
+#[cfg(test)]
+mod page_sheet_identity_regression {
+    #[test]
+    fn nonzero_page_keeps_owner_but_pagesheet_shape_id_is_zero() {
+        let mut d = diagramcraft_model::skeleton::document(false);
+        d.pages[0].id = 7;
+        let mut raw = Vec::new();
+        super::dump_serialized(&d, &mut raw).unwrap();
+        assert!(String::from_utf8(raw).unwrap().lines().any(|l| l.starts_with("page\t7\t0\tPageWidth\t")));
+        let mut computed = Vec::new();
+        super::dump(&d, super::Selection::All, &mut computed).unwrap();
+        assert!(String::from_utf8(computed).unwrap().lines().any(|l| l.starts_with("0\tpagesheet:7:")));
     }
 }

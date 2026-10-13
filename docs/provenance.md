@@ -19,6 +19,16 @@ consulted; their source is never opened. Record each non-Microsoft documentation
 about Visio or its formats here in the same commit, with the source and how it was used.
 Permissive sibling implementation reuse is recorded separately in section 7.
 
+M3.18: W3C XML 1.0 fifth edition, sections 2.11 and 3.3.3
+(https://www.w3.org/TR/xml/#sec-line-ends and https://www.w3.org/TR/xml/#AVNormalize),
+consulted 2026-10-13 to correct physical newline and attribute-whitespace normalization.
+The 0.38.4 quick-xml API documentation in the installed crate
+(https://docs.rs/quick-xml/0.38.4/quick_xml/events/struct.BytesText.html#method.xml10_content)
+confirmed the existing decoder's normalization API. No implementation was copied.
+The witness is 0001-probe's Text/Icon: our writer had turned physical CRLF into explicit
+carriage-return references, changing the parsed text. This is our defect, not a Visio
+normalization exception; character references still preserve their specified characters.
+
 ## 4. Excluded content
 
 This repository never contains Microsoft's shipped stencils, templates, fonts, icons or

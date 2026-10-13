@@ -892,3 +892,38 @@ fn background_cycles_reject_and_removed_link_prunes_relationship_part() {
     let a = import(&write(&d).unwrap().bytes).unwrap();
     assert!(!a.parts.contains_key("visio/pages/_rels/page1.xml.rels"));
 }
+
+#[test]
+fn unchanged_metadata_keeps_original_bytes_and_edits_are_serialized() {
+    let d = import(&write(&skeleton::document(false)).unwrap().bytes).unwrap();
+    let a = import(&write(&d).unwrap().bytes).unwrap();
+    for name in ["docProps/core.xml", "docProps/app.xml", "docProps/custom.xml", "visio/windows.xml"] {
+        assert_eq!(d.parts[name].bytes, a.parts[name].bytes, "{name}");
+    }
+    let mut edited = d.clone();
+    let xml = edited.parts.get_mut("docProps/custom.xml").unwrap().xml.as_mut().unwrap();
+    xml.attributes.insert("edited".into(), "true".into());
+    let a = import(&write(&edited).unwrap().bytes).unwrap();
+    assert_ne!(d.parts["docProps/custom.xml"].bytes, a.parts["docProps/custom.xml"].bytes);
+    assert_eq!(a.parts["docProps/custom.xml"].xml.as_ref().unwrap().attr("edited"), Some("true"));
+}
+
+#[test]
+fn probe_resave_has_no_literal_differences_in_acceptance_reporter() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    if !root.join("corpus").exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    let source = root.join("corpus/generated/basic/0001-probe.vsdx");
+    let d = diagramcraft_vsdx::read(&source).unwrap();
+    let directory = root.join("target/writer-acceptance-tests");
+    std::fs::create_dir_all(&directory).unwrap();
+    let output = directory.join(format!("probe-{}.vsdx", std::process::id()));
+    std::fs::write(&output, write(&d).unwrap().bytes).unwrap();
+    let result=std::process::Command::new("python3").current_dir(&root).arg("-c").arg(
+        "import sys;sys.path.insert(0,'tools/oracle');import accept_report as r;_,a=r.package_cells(sys.argv[1]);_,b=r.package_cells(sys.argv[2]);d=r.cell_diffs(a,b,set());print('probe literal differences:',len(d),d[:20]);sys.exit(bool(d))"
+    ).arg(&source).arg(&output).output().unwrap();
+    let _ = std::fs::remove_file(output);
+    assert!(result.status.success(), "{}{}", String::from_utf8_lossy(&result.stdout), String::from_utf8_lossy(&result.stderr));
+}

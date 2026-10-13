@@ -357,7 +357,11 @@ impl<'a> Evaluator<'a> {
             }
             let mut chunks = text.split('\n').peekable();
             while let Some(chunk) = chunks.next() {
-                if !chunk.is_empty() || matches!(kind, RunKind::Field { .. }) {
+                // Paragraph terminators carry the current character style even when
+                // XML1.0 normalization leaves an empty chunk before LF.
+                // BA_DEC_BAN_M master25 shape6 switches from28pt to14pt here.
+                // https://learn.microsoft.com/en-us/office/client-developer/visio/cp-element-text_type-complextypevisio-xml
+                if !chunk.is_empty() || chunks.peek().is_some() || matches!(kind, RunKind::Field { .. }) {
                     para.runs.push(Run { text: chunk.trim_end_matches('\r').into(), props: self.run_props(scope, cr), kind: kind.clone() });
                 }
                 para.end_props = self.run_props(scope, cr);
@@ -437,6 +441,17 @@ mod tests {
         {
             let doc = document(&xml);
             assert!(Evaluator::new(&doc).unwrap().text_body(scope).is_err());
+        }
+    }
+    #[test]
+    fn normalized_paragraph_marker_preserves_its_terminal_character_run() {
+        for ending in ["\n", "&#13;\n"] {
+            let doc = document(&format!("<Text>First<cp IX='1'/>{ending}</Text>"));
+            let mut e = Evaluator::new(&doc).unwrap();
+            let body = e.text_body(Scope::PageShape { page: 1, shape: 1 }).unwrap();
+            assert_eq!(body.paragraphs.len(), 1);
+            assert_eq!(body.paragraphs[0].runs.len(), 2);
+            assert_eq!(body.paragraphs[0].runs[1].text, "");
         }
     }
     #[test]

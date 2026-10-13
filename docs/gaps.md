@@ -334,3 +334,10 @@ M3.16 closes the host-side missing routed-state defect for the authored connecto
 Straight horizontal, reverse, vertical and diagonal route regressions pass. Live gap
 ink and two-Connect acceptance remains pending; the earlier COM result alone did not
 prove visible routed geometry.
+
+M3.18 restates the historical run on unchanged inputs and Visio output: 230 opened,
+230 repaired, 30,237 literal/part differences and 180,294 source COM differences.
+The 17,223 unobserved style-local XML cells are listed separately, with unchanged
+numeric eligibility and mandatory literal XML comparison. The reporter also
+separately discloses 1,296 phantom PageSheet unit slots and 14 MasterType rewrites.
+These replace the unreliable M3.11 counts above. Fresh writer acceptance is pending.
