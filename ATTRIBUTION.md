@@ -108,3 +108,4 @@ The pinned Tinos directory has no OFL.txt. Its font name table supplies its copy
 |---|---|---|---|---|
 | krilla `icc/sRGB-v4.icc`, `icc/sRGB-v2-magic.icc`, `icc/sGrey-v4.icc`, `icc/sGrey-v2-magic.icc` | Clinton Ingram (saucecontrol) | https://github.com/saucecontrol/Compact-ICC-Profiles, bytes distributed by krilla 0.8.2 | CC0-1.0, krilla `icc/LICENSE` | PDF colour profiles |
 | vello_common `assets/probe.rgba` | Vello Authors | https://github.com/linebender/vello, vello_common 0.2.0 | MIT OR Apache-2.0 | Dependency render capability probe, not document art |
+| `docs/images/visio-vs-diagramcraft.png` | This repository | Visio 2021 PNG exports of four drawings made by tools/oracle/make-corpus.ps1, paired with DiagramCraft renders by `diagramcraft-corpus --example contact_pairs` | MIT OR Apache-2.0 | `6efe516deec3ba0101e74404b57dd499b87336d5cc97247418e32344e9aae09b` |
