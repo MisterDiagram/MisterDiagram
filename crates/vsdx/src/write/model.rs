@@ -7,6 +7,7 @@ use crate::evaluate::{Evaluator, Scope, cell_name};
 use diagramcraft_sheet::{Expr, Value};
 pub(super) struct Writer<'a> {
     pub evaluator: Evaluator<'a>,
+    pub source_state: super::source::SourceState,
     pub warnings: Vec<String>,
     pub warning_count: usize,
 }
@@ -56,31 +57,41 @@ impl Writer<'_> {
         let mut value = c.value.clone();
         let mut formula = c.formula.clone();
         let mut err = c.error.clone();
-        if c.value.as_deref() != Some("Themed") && c.formula.as_deref().is_some_and(|f| !f.is_empty() && !f.eq_ignore_ascii_case("No Formula")) {
-            match self.evaluator.evaluate_snapshot(scope, name) {
-                Value::Number(n) if n.is_finite() => {
-                    value = Some(n.to_string());
-                    err = None;
-                }
-                Value::Bool(b) => {
-                    value = Some(u8::from(b).to_string());
-                    err = None;
-                }
-                Value::Text(t) => {
-                    value = Some(t);
-                    err = None;
-                }
-                Value::Color { rgb, .. } => {
-                    // Evaluator palette indices are process-local. Persist concrete RGB,
-                    // never an index that is absent from the document's Colors table.
-                    value = Some(format!("#{:02x}{:02x}{:02x}", rgb[0], rgb[1], rgb[2]));
-                    if constant_rgb(c.formula.as_deref().unwrap_or("")) {
-                        formula = None;
+        let has_changes = !self.source_state.changed.is_empty() || !self.source_state.contexts.is_empty();
+        if has_changes
+            && c.value.as_deref() != Some("Themed")
+            && c.formula.as_deref().is_some_and(|f| !f.is_empty() && !f.eq_ignore_ascii_case("No Formula"))
+        {
+            let evaluated = self.evaluator.evaluate_snapshot(scope, name);
+            if self.evaluator.depends_on_changed(scope, name, &self.source_state.changed, &self.source_state.contexts) {
+                match evaluated {
+                    Value::Number(n) if n.is_finite() => match self.evaluator.serialized_number(scope, name, c, n) {
+                        Ok(v) => {
+                            value = Some(v);
+                            err = None;
+                        }
+                        Err(e) => self.warn(scope, name, e),
+                    },
+                    Value::Bool(b) => {
+                        value = Some(u8::from(b).to_string());
+                        err = None;
                     }
-                    err = None;
+                    Value::Text(t) => {
+                        value = Some(t);
+                        err = None;
+                    }
+                    Value::Color { rgb, .. } => {
+                        // Evaluator palette indices are process-local. Persist concrete RGB,
+                        // never an index that is absent from the document's Colors table.
+                        value = Some(format!("#{:02x}{:02x}{:02x}", rgb[0], rgb[1], rgb[2]));
+                        if constant_rgb(c.formula.as_deref().unwrap_or("")) {
+                            formula = None;
+                        }
+                        err = None;
+                    }
+                    Value::Error(error) => self.warn(scope, name, error),
+                    _ => self.warn(scope, name, "non-scalar cache"),
                 }
-                Value::Error(error) => self.warn(scope, name, error),
-                _ => self.warn(scope, name, "non-scalar cache"),
             }
         }
         for (key, v) in [("N", Some(c.name.clone())), ("V", value), ("F", formula), ("U", c.units.clone()), ("E", err)] {
@@ -130,7 +141,7 @@ impl Writer<'_> {
             }
             replace(&mut section, "Cell", cells);
             let mut rows = vec![];
-            for r in &s.rows {
+            for (row_position, r) in s.rows.iter().enumerate() {
                 let old = old.and_then(|o| {
                     o.elements().find(|e| {
                         e.is_visio("Row") && e.attr("N") == r.name.as_deref() && e.attr("IX").and_then(|n| n.parse::<u32>().ok()) == r.index
@@ -145,8 +156,8 @@ impl Writer<'_> {
                     set(&mut row, "Del", Some(u8::from(r.deleted).to_string()));
                 }
                 let mut cells = vec![];
-                for (i, c) in r.cells.iter().enumerate() {
-                    let name = cell_name(s, r, i, c).map_err(|e| error(e.to_string()))?;
+                for c in &r.cells {
+                    let name = cell_name(s, r, row_position, c).map_err(|e| error(e.to_string()))?;
                     cells.push(self.cell(
                         c,
                         &name,

@@ -15,6 +15,11 @@ pub fn lcid(value: &str) -> Result<u16, Error> {
         .find_map(|(name, id)| name.eq_ignore_ascii_case(value).then_some(*id))
         .ok_or_else(|| Error::Unsupported(format!("language {value}")))
 }
+/// The serialized culture name corresponding to a numeric language identifier.
+/// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/f91b1356-cff1-4c71-8a04-247007cbe4c9
+pub fn tag(id: u16) -> Option<&'static str> {
+    LANGUAGES.iter().find_map(|(name, value)| (*value == id).then_some(*name))
+}
 const LANGUAGES: &[(&str, u16)] = &[
     ("af", 54),
     ("af-ZA", 1078),

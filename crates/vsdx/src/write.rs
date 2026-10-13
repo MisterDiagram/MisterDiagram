@@ -9,6 +9,7 @@ use std::{
 mod format;
 pub use format::{SaveKind, write_as, write_as_with_hosts};
 mod model;
+mod source;
 mod validate;
 pub(crate) use validate::document as validate_document;
 mod xml;
@@ -37,14 +38,15 @@ pub fn write_with_hosts(
     text: Option<&dyn diagramcraft_model::text::TextHost>,
 ) -> Result<Written, WriteError> {
     validate::document(doc)?;
-    let mut evaluator = Evaluator::new(doc).map_err(|e| error(e.to_string()))?;
+    let mut evaluator = Evaluator::new(doc).map_err(|e| error(e.to_string()))?.with_internal_cache_units();
     if let Some(h) = theme {
         evaluator = evaluator.with_theme_host(h);
     }
     if let Some(h) = text {
         evaluator = evaluator.with_text_host(h);
     }
-    let mut w = model::Writer { evaluator, warnings: vec![], warning_count: 0 };
+    let source_state = source::SourceState::new(doc, &evaluator)?;
+    let mut w = model::Writer { evaluator, source_state, warnings: vec![], warning_count: 0 };
     let mut parts = doc.parts.clone();
     let mut main = source(doc, &doc.main_part).cloned().unwrap_or_else(|| node("VisioDocument"));
     replace(&mut main, "DocumentSettings", doc.document_settings.clone().into_iter().collect());
@@ -271,9 +273,7 @@ fn fonts(d: &Document, old: Option<&XmlElement>) -> XmlElement {
                     .map(|(_, e)| e)
             });
             let mut f = old.cloned().unwrap_or_else(|| node("FaceName"));
-            if old.is_none() {
-                set(&mut f, "ID", Some(id.to_string()));
-            }
+            f.attributes.remove("ID");
             set(&mut f, "NameU", Some(name.clone()));
             f
         })

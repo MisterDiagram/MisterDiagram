@@ -1161,3 +1161,20 @@ blocked by measured M3-Gates failures; do not claim two clean closure passes.
 | shipped-template-masters | 115 | 29 | 8.180108 | 2.313173% | NO |
 | shipped-template-pages | 11 | 10 | 1.926767 | 3.725650% | NO |
 | text | 16 | 0 | 3.890125 | 3.318851% | YES |
+
+### Source caches on open and save (M3.12)
+
+A plain save preserves the local V text, F, U and E of each unchanged cell,
+including F="Inh". A source index and dependency checks distinguish these caches
+from authored cells and cells affected by edits. The writer evaluates dirty caches
+in internal inches, then serializes colors, language tags, strings and document
+font ordinals by cell type. Evaluator font IDs are not FaceName ordinals.
+FaceName records do not gain an ID attribute.
+
+Witnesses: `generated/arrow/begin-00.vsdx`,
+`generated/basic/0001-probe.vsdx` and `ms-shipped/1033/SITACC_M.vssx`.
+The writer regression compares every local V/F/U/E in these packages literally.
+The original probe already has LangID `en-US`, empty BulletStr and TextBkgnd
+`#ffffff`. Earlier saves that replaced them with `1033`, `0` and `26` were
+writer defects, not normalization by Visio. Earlier acceptance COM counts require
+the M3.18 reporter correction before they can support a conclusion.

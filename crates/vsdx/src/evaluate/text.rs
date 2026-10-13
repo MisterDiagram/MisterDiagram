@@ -23,8 +23,11 @@ fn serialization_indent(text: &str) -> bool {
     text.contains('\n') && text.contains(' ') && text.chars().all(char::is_whitespace)
 }
 impl<'a> Evaluator<'a> {
-    fn text_source(&self, mut scope: Scope) -> Result<Option<&'a XmlElement>, Error> {
+    fn text_source(&mut self, mut scope: Scope) -> Result<Option<&'a XmlElement>, Error> {
         for _ in 0..128 {
+            if self.internal_cache_units {
+                self.add_dependency_key(super::Key { scope, name: "thetext".into() });
+            }
             let Some(shape) = self.shape(scope) else {
                 return Ok(None);
             };

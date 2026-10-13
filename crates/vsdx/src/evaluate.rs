@@ -49,6 +49,7 @@ struct Snapshot {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references
 pub struct Evaluator<'a> {
     defer_text_metrics: bool,
+    internal_cache_units: bool,
     text_host: Option<&'a dyn diagramcraft_model::text::TextHost>,
     theme_host: Option<&'a dyn diagramcraft_sheet::host::ThemeHost>,
     inheritance: inherit::Inheritance<'a>,
@@ -92,6 +93,7 @@ impl<'a> Evaluator<'a> {
             theme_host: None,
             text_host: None,
             defer_text_metrics: false,
+            internal_cache_units: false,
             document,
             inheritance: Default::default(),
             sheets: BTreeMap::new(),
@@ -138,6 +140,48 @@ impl<'a> Evaluator<'a> {
         }
         result.install_inheritance()?;
         Ok(result)
+    }
+    /// Writer caches use physical internal inches, independently of displayed drawing units.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+    pub(crate) fn with_internal_cache_units(mut self) -> Self {
+        self.internal_cache_units = true;
+        self
+    }
+    /// Convert evaluator colour/font/language identities into serialized cell values.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/textbkgnd-cell-text-block-format-section
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/langid-cell-character-section
+    pub(crate) fn serialized_number(&self, scope: Scope, name: &str, cell: &Cell, number: f64) -> Result<String, Error> {
+        if !number.is_finite() {
+            return Err(Error::Num);
+        }
+        let index = || -> Result<u32, Error> {
+            if !(0. ..=f64::from(u32::MAX)).contains(&number) || number.fract() != 0. {
+                return Err(Error::Value);
+            }
+            Ok(number as u32)
+        };
+        if matches!(cell.name.as_str(), "LangID" | "DocLangID") {
+            let id = u16::try_from(index()?).map_err(|_| Error::Value)?;
+            return diagramcraft_sheet::language::tag(id).map(str::to_string).ok_or(Error::Value);
+        }
+        if cell.name == "Font" {
+            let face = self.fonts.get(&index()?).ok_or(Error::Value)?;
+            let ordinal = self.document.face_names.values().position(|f| f.eq_ignore_ascii_case(face)).ok_or(Error::Value)?;
+            return Ok(ordinal.to_string());
+        }
+        if Self::baseline_metadata(scope, name).is_some_and(|m| m.3 == 251) {
+            let mut index = index()?;
+            if cell.name == "TextBkgnd" {
+                if index == 0 {
+                    return Ok("0".into());
+                }
+                index -= 1;
+            }
+            let rgb = self.palette.get(&index).copied().or_else(|| diagramcraft_sheet::functions::default_color(index)).ok_or(Error::Value)?;
+            return Ok(format!("#{:02x}{:02x}{:02x}", rgb[0], rgb[1], rgb[2]));
+        }
+        Ok(number.to_string())
     }
     /// Whether the comparison-only mode has deferred real text metrics.
     pub fn text_metrics_deferred(&self) -> bool {
@@ -294,6 +338,9 @@ impl<'a> Evaluator<'a> {
     }
     pub fn sheet(&self, scope: Scope) -> Option<&'a Sheet> {
         self.sheets.get(&scope).copied()
+    }
+    pub(crate) fn source_parent(&self, scope: Scope) -> Option<Scope> {
+        self.parents.get(&scope).copied()
     }
     pub fn shape(&self, scope: Scope) -> Option<&'a Shape> {
         self.shapes.get(&scope).copied()
@@ -491,6 +538,9 @@ impl<'a> Evaluator<'a> {
         self.values.clear();
     }
     pub fn evaluate(&mut self, scope: Scope, name: &str) -> Value {
+        if self.internal_cache_units {
+            self.add_dependency_key(Key { scope, name: name.to_ascii_lowercase() });
+        }
         if self.eval_depth == 0 {
             self.work = 0;
             self.eval_work = 0;
@@ -536,6 +586,31 @@ impl<'a> Evaluator<'a> {
         }
         result
     }
+    /// Whether the evaluated dependency closure intersects changed serialized inputs.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references
+    pub(crate) fn depends_on_changed(&self, scope: Scope, name: &str, changed: &BTreeSet<(Scope, String)>, contexts: &BTreeSet<Scope>) -> bool {
+        if self.graph_limited {
+            return true;
+        }
+        let mut pending = vec![Key { scope, name: name.to_ascii_lowercase() }];
+        let mut seen = BTreeSet::new();
+        while let Some(key) = pending.pop() {
+            if contexts.contains(&key.scope) || changed.contains(&(key.scope, key.name.clone())) {
+                return true;
+            }
+            if !seen.insert(key.clone()) {
+                continue;
+            }
+            if seen.len() > 100_000 {
+                return true;
+            }
+            if let Some(edges) = self.dependencies.get(&key) {
+                pending.extend(edges.iter().cloned());
+            }
+        }
+        false
+    }
+
     fn evaluate_inner(&mut self, scope: Scope, name: &str) -> Value {
         if self.graph_limited || name.len() > 65536 || self.active.len() >= 128 || self.work >= 100_000 {
             return Value::Error(Error::Limit);
@@ -816,6 +891,9 @@ impl<'a> Evaluator<'a> {
     /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/360407c5-34d8-417d-b08d-4044fd858a5e
     /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/c5e4da4b-c1d0-4cdd-a418-04fccbc098ae
     pub fn cached_cell(&self, cell: &Cell) -> Value {
+        if self.internal_cache_units && cell.error.is_none() && matches!(cell.name.as_str(), "BulletStr" | "Comment" | "ShapeKeywords") {
+            return Value::Text(cell.value.clone().unwrap_or_default());
+        }
         if matches!(cell.name.as_str(), "LangID" | "DocLangID") && cell.error.is_none() {
             return match diagramcraft_sheet::language::lcid(cell.value.as_deref().unwrap_or("0")) {
                 Ok(id) => Value::Number(f64::from(id)),
@@ -1354,7 +1432,7 @@ impl Context for BoundContext<'_, '_> {
             if page_scale <= 0. || drawing_scale <= 0. {
                 return Err(Error::Value);
             }
-            let ratio = drawing_scale / page_scale;
+            let ratio = if self.evaluator.internal_cache_units { 1. } else { drawing_scale / page_scale };
             if !ratio.is_finite() || !(1e-9..=1e9).contains(&ratio) {
                 return Err(Error::Limit);
             }

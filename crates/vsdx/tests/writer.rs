@@ -284,3 +284,216 @@ fn deleted_sentinel_extensions_stay_with_their_master_shape() {
     let text: Vec<_> = shapes.elements().map(XmlElement::text).collect();
     assert_eq!(text, ["seven", "nine"]);
 }
+
+// Source V text is a serialization contract, independently of the evaluator's value.
+fn raw_cells(root: &XmlElement) -> Vec<(String, Option<String>, Option<String>, Option<String>, Option<String>)> {
+    let mut cells = Vec::new();
+    let mut stack = vec![(String::new(), root)];
+    while let Some((path, node)) = stack.pop() {
+        let path = format!("{path}/{}:{:?}:{:?}:{:?}", node.name, node.attr("ID"), node.attr("N"), node.attr("IX"));
+        if node.is_visio("Cell") {
+            cells.push((
+                path.clone(),
+                node.attr("V").map(str::to_string),
+                node.attr("F").map(str::to_string),
+                node.attr("U").map(str::to_string),
+                node.attr("E").map(str::to_string),
+            ));
+        }
+        for child in node.elements() {
+            stack.push((path.clone(), child));
+        }
+    }
+    cells.sort();
+    cells
+}
+#[test]
+fn unchanged_arrow_and_probe_preserve_every_local_cache_and_unit() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    for file in ["generated/arrow/begin-00.vsdx", "generated/basic/0001-probe.vsdx", "ms-shipped/1033/SITACC_M.vssx"] {
+        let before = diagramcraft_vsdx::read(root.join(file)).unwrap();
+        let after = import(&write(&before).unwrap().bytes).unwrap();
+        for (path, p) in &before.parts {
+            if let Some(xml) = &p.xml {
+                assert_eq!(raw_cells(xml), raw_cells(after.parts[path].xml.as_ref().unwrap()), "{file}: {path}");
+            }
+        }
+    }
+}
+#[test]
+fn changed_dependency_recalculates_only_affected_caches() {
+    let mut d = skeleton::document(false);
+    let mut s = skeleton::rectangle(1, 1., 1., 2., 1., "").unwrap();
+    s.sheet.cells.extend([
+        Cell { name: "Affected".into(), formula: Some("Width*2".into()), value: Some("4.0000".into()), ..Default::default() },
+        Cell { name: "Unrelated".into(), formula: Some("Height*2".into()), value: Some("2.0000".into()), ..Default::default() },
+    ]);
+    d.pages[0].shapes.push(s);
+    let mut d = import(&write(&d).unwrap().bytes).unwrap();
+    // Preserve an existing textual precision that differs from n.to_string().
+    let xml = &mut d.parts.get_mut("visio/pages/page1.xml").unwrap().xml;
+    fn rewrite(e: &mut XmlElement) {
+        if e.is_visio("Cell") && e.attr("N") == Some("Unrelated") {
+            e.attributes.insert("V".into(), "2.0000".into());
+        }
+        for child in &mut e.children {
+            if let XmlNode::Element(e) = child {
+                rewrite(e);
+            }
+        }
+    }
+    rewrite(xml.as_mut().unwrap());
+    let s = &mut d.pages[0].shapes[0];
+    s.sheet.cells.iter_mut().find(|c| c.name == "Unrelated").unwrap().value = Some("2.0000".into());
+    s.sheet.cells.iter_mut().find(|c| c.name == "Width").unwrap().value = Some("3".into());
+    let after = import(&write(&d).unwrap().bytes).unwrap();
+    assert_eq!(after.pages[0].shapes[0].sheet.cell("Affected").unwrap().value.as_deref(), Some("6"));
+    assert_eq!(after.pages[0].shapes[0].sheet.cell("Unrelated").unwrap().value.as_deref(), Some("2.0000"));
+}
+#[test]
+fn authored_cache_types_do_not_leak_evaluator_ids_or_empty_zeroes() {
+    let mut d = skeleton::document(false);
+    let mut s = skeleton::rectangle(1, 1., 1., 2., 1., "").unwrap();
+    s.sheet.cells.extend([
+        Cell { name: "Comment".into(), formula: Some("\"\"".into()), value: Some("wrong".into()), ..Default::default() },
+        Cell { name: "TextBkgnd".into(), formula: Some("26".into()), value: Some("wrong".into()), ..Default::default() },
+    ]);
+    s.sheet.sections.push(Section {
+        name: "Character".into(),
+        rows: vec![Row {
+            index: Some(0),
+            cells: vec![
+                Cell { name: "LangID".into(), formula: Some("1033".into()), ..Default::default() },
+                Cell { name: "Font".into(), formula: Some("FONT(\"Calibri\")".into()), ..Default::default() },
+                Cell { name: "Color".into(), formula: Some("0".into()), ..Default::default() },
+            ],
+            ..Default::default()
+        }],
+        ..Default::default()
+    });
+    d.colors.insert(25, "#ffffff".into());
+    d.pages[0].shapes.push(s);
+    let after = import(&write(&d).unwrap().bytes).unwrap();
+    let s = &after.pages[0].shapes[0].sheet;
+    assert_eq!(s.cell("Comment").unwrap().value.as_deref(), Some(""));
+    assert_eq!(s.cell("TextBkgnd").unwrap().value.as_deref(), Some("#ffffff"));
+    let cells = &s.sections.iter().find(|s| s.name == "Character").unwrap().rows[0].cells;
+    assert_eq!(cells[0].value.as_deref(), Some("en-US"));
+    assert_eq!(cells[1].value.as_deref(), Some("0"));
+    assert_eq!(cells[2].value.as_deref(), Some("#000000"));
+    assert!(after.parts["visio/document.xml"].xml.as_ref().unwrap().child("FaceNames").unwrap().elements().all(|f| f.attr("ID").is_none()));
+}
+
+#[test]
+fn writer_text_metrics_are_internal_inches_without_rescaling_width_references() {
+    struct FixedMetrics;
+    impl diagramcraft_model::text::TextHost for FixedMetrics {
+        fn measure(&self, _: &diagramcraft_model::text::TextBody, _: Option<f64>) -> Result<(f64, f64), String> {
+            Ok((72., 36.))
+        }
+    }
+    let mut d = skeleton::document(false);
+    d.pages[0].sheet.cells.iter_mut().find(|c| c.name == "DrawingScale").unwrap().value = Some("100".into());
+    d.pages[0].sheet.cells.iter_mut().find(|c| c.name == "PageScale").unwrap().value = Some("1".into());
+    let mut s = skeleton::rectangle(1, 1., 1., 2., 1., "A").unwrap();
+    for (name, formula) in [("TxtWidth", "TEXTWIDTH(TheText)"), ("TxtHeight", "TEXTHEIGHT(TheText,TxtWidth)"), ("TxtPinX", "Width/2")] {
+        s.sheet.cells.retain(|c| c.name != name);
+        s.sheet.cells.push(Cell { name: name.into(), formula: Some(formula.into()), ..Default::default() });
+    }
+    d.pages[0].shapes.push(s);
+    let after = import(&diagramcraft_vsdx::write_with_hosts(&d, None, Some(&FixedMetrics)).unwrap().bytes).unwrap();
+    let s = &after.pages[0].shapes[0].sheet;
+    assert_eq!(s.cell("TxtWidth").unwrap().value.as_deref(), Some("1"));
+    assert_eq!(s.cell("TxtHeight").unwrap().value.as_deref(), Some("0.5"));
+    assert_eq!(s.cell("TxtPinX").unwrap().value.as_deref(), Some("1"));
+}
+#[test]
+fn inherited_local_cache_is_not_replaced_by_the_provider() {
+    let mut d = skeleton::document(false);
+    let mut s = diagramcraft_model::Shape { id: 1, master: Some(2), shape_type: Some("Shape".into()), ..Default::default() };
+    s.sheet.cells.push(Cell {
+        name: "Width".into(),
+        value: Some("999.00".into()),
+        formula: Some("Inh".into()),
+        units: Some("IN".into()),
+        ..Default::default()
+    });
+    d.pages[0].shapes.push(s);
+    let mut d = import(&write(&d).unwrap().bytes).unwrap();
+    let c = d.pages[0].shapes[0].sheet.cells.iter_mut().find(|c| c.name == "Width").unwrap();
+    c.value = Some("999.00".into());
+    let e = d.parts.get_mut("visio/pages/page1.xml").unwrap().xml.as_mut().unwrap();
+    for n in &mut e.children {
+        if let XmlNode::Element(shapes) = n {
+            for n in &mut shapes.children {
+                if let XmlNode::Element(shape) = n {
+                    for n in &mut shape.children {
+                        if let XmlNode::Element(c) = n
+                            && c.attr("N") == Some("Width")
+                        {
+                            c.attributes.insert("V".into(), "999.00".into());
+                        }
+                    }
+                }
+            }
+        }
+    }
+    let a = import(&write(&d).unwrap().bytes).unwrap();
+    let c = a.pages[0].shapes[0].sheet.cell("Width").unwrap();
+    assert_eq!(c.value.as_deref(), Some("999.00"));
+    assert_eq!(c.formula.as_deref(), Some("Inh"));
+    assert_eq!(c.units.as_deref(), Some("IN"));
+}
+
+#[test]
+fn no_ix_connection_row_uses_row_position_for_both_coordinates() {
+    let mut d = skeleton::document(false);
+    let mut s = skeleton::rectangle(1, 1., 1., 2., 3., "").unwrap();
+    s.sheet.sections.push(Section {
+        name: "Connection".into(),
+        rows: vec![Row {
+            row_type: Some("Connection".into()),
+            cells: vec![
+                Cell { name: "X".into(), formula: Some("Width*0.5".into()), value: Some("999".into()), ..Default::default() },
+                Cell { name: "Y".into(), formula: Some("Height*0.5".into()), value: Some("999".into()), ..Default::default() },
+            ],
+            ..Default::default()
+        }],
+        ..Default::default()
+    });
+    d.pages[0].shapes.push(s);
+    let a = import(&write(&d).unwrap().bytes).unwrap();
+    let row = &a.pages[0].shapes[0].sheet.sections.iter().find(|s| s.name == "Connection").unwrap().rows[0];
+    assert_eq!(row.cells[0].value.as_deref(), Some("1"));
+    assert_eq!(row.cells[1].value.as_deref(), Some("1.5"));
+}
+
+#[test]
+fn row_type_and_palette_edits_dirty_dependent_caches() {
+    let mut d = skeleton::document(false);
+    d.colors.insert(25, "#110000".into());
+    let mut s = skeleton::rectangle(1, 1., 1., 2., 1., "").unwrap();
+    for (n, f) in [("PathMeasure", "PATHLENGTH(Geometry1.Path)"), ("RedMeasure", "RED(25)"), ("RedDependent", "RedMeasure+1")] {
+        s.sheet.cells.push(Cell { name: n.into(), formula: Some(f.into()), ..Default::default() });
+    }
+    d.pages[0].shapes.push(s);
+    let mut d = import(&write(&d).unwrap().bytes).unwrap();
+    let old = d.pages[0].shapes[0].sheet.cell("PathMeasure").unwrap().value.clone();
+    assert_eq!(d.pages[0].shapes[0].sheet.cell("RedMeasure").unwrap().value.as_deref(), Some("17"));
+    d.colors.insert(25, "#220000".into());
+    let palette_only = import(&write(&d).unwrap().bytes).unwrap();
+    assert_eq!(palette_only.pages[0].shapes[0].sheet.cell("RedMeasure").unwrap().value.as_deref(), Some("34"));
+    assert_eq!(palette_only.pages[0].shapes[0].sheet.cell("RedDependent").unwrap().value.as_deref(), Some("35"));
+    assert_eq!(palette_only.pages[0].shapes[0].sheet.cell("PathMeasure").unwrap().value, old);
+    d.colors.insert(25, "#110000".into());
+    d.pages[0].shapes[0].sheet.sections.iter_mut().find(|s| s.name == "Geometry").unwrap().rows[1].row_type = Some("MoveTo".into());
+    let a = import(&write(&d).unwrap().bytes).unwrap();
+    let sheet = &a.pages[0].shapes[0].sheet;
+    assert_ne!(sheet.cell("PathMeasure").unwrap().value, old);
+    assert_eq!(sheet.cell("RedMeasure").unwrap().value.as_deref(), Some("17"));
+    assert_eq!(sheet.cell("RedDependent").unwrap().value.as_deref(), Some("18"));
+}

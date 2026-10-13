@@ -303,3 +303,13 @@ are not assigned pixel scores. Generated Visio comparisons retain their frozen g
 
 Per-file JSON and full worst-file lists are retained privately in
 corpus/_state/m3/accept-report.json and corpus/_state/P3-closure-report.md.
+
+### M3.12 source-cache correction
+
+The M3.11 source COM count above is historical and unreliable: its expected dump
+resolved inherited providers rather than the local values actually written. The
+claim that Visio normalized the original BulletStr, LangID and TextBkgnd values
+was also wrong. Our writer replaced those values. M3.12 preserves unchanged local
+caches, with raw arrow/probe/SITACC regressions and typed dirty-cache tests. The
+historical acceptance results still need the M3.18 restatement; this fix alone does
+not close Visio acceptance.
