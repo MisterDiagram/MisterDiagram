@@ -117,6 +117,16 @@ fn namespace_rebinding_cannot_supply_visio_cells() {
     assert_eq!(s.cells[0].name, "Height");
 }
 #[test]
+fn public_xml_parser_enforces_depth_for_both_empty_element_forms() {
+    let limit = diagramcraft_opc::xml::MAX_DEPTH;
+    for depth in [limit, limit + 1] {
+        for leaf in ["<leaf/>", "<leaf></leaf>"] {
+            let xml = format!("{}{leaf}{}", "<a>".repeat(depth - 1), "</a>".repeat(depth - 1));
+            assert_eq!(parse_xml(xml.as_bytes()).is_ok(), depth <= limit, "depth {depth}, leaf {leaf}");
+        }
+    }
+}
+#[test]
 fn public_sheet_parser_bounds_caller_built_trees() {
     use diagramcraft_model::{XmlElement, XmlNode};
     let mut e = XmlElement::default();

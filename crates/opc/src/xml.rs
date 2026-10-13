@@ -255,22 +255,19 @@ pub fn parse(bytes: &[u8]) -> Result<Doc, OpcError> {
             Event::Start(_) | Event::Empty(_) if root.is_some() => {
                 return Err(OpcError::Xml("multiple root elements".into()));
             }
-            Event::Start(b) => {
+            Event::Start(ref b) | Event::Empty(ref b) => {
                 nodes += 1;
                 if nodes > MAX_NODES || stack.len() >= MAX_DEPTH {
                     return Err(OpcError::Xml("document too large or too deeply nested".into()));
                 }
-                stack.push(start_el(&b, &reader)?);
-            }
-            Event::Empty(b) => {
-                nodes += 1;
-                if nodes > MAX_NODES {
-                    return Err(OpcError::Xml("document too large".into()));
-                }
-                let el = start_el(&b, &reader)?;
-                match stack.last_mut() {
-                    Some(p) => p.children.push(Node::El(el)),
-                    None => root = Some(el),
+                let el = start_el(b, &reader)?;
+                if matches!(ev, Event::Start(_)) {
+                    stack.push(el);
+                } else {
+                    match stack.last_mut() {
+                        Some(p) => p.children.push(Node::El(el)),
+                        None => root = Some(el),
+                    }
                 }
             }
             Event::End(_) => {
@@ -547,6 +544,16 @@ mod tests {
         assert!(parse(b"").is_err());
         let deep = "<a>".repeat(MAX_DEPTH + 10);
         assert!(parse(deep.as_bytes()).is_err());
+    }
+
+    #[test]
+    fn depth_boundary_is_independent_of_empty_element_syntax() {
+        for depth in [MAX_DEPTH - 1, MAX_DEPTH, MAX_DEPTH + 1] {
+            for leaf in ["<leaf/>", "<leaf></leaf>"] {
+                let xml = format!("{}{leaf}{}", "<a>".repeat(depth - 1), "</a>".repeat(depth - 1));
+                assert_eq!(parse(xml.as_bytes()).is_ok(), depth <= MAX_DEPTH, "depth {depth}, leaf {leaf}");
+            }
+        }
     }
 
     #[test]
