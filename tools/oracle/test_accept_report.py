@@ -242,5 +242,21 @@ class Acceptance(unittest.TestCase):
         b[keys[1]]=cell('{00000000-1234-ABCD-8E40-00608CF305B2}','master_uniqueid')
         self.assertEqual(len(report.allowed_rewrites(a,b,report.cell_diffs(a,b,set()),parts)[0]),2)
 
+    def test_com_floor_populations_are_pinned_by_sha256(self):
+        import hashlib,tomllib
+        floors=tomllib.loads((report.ROOT/'crates/sheet/tests/floors.toml').read_text())
+        pins=floors['m3_21_cohorts']
+        members={}
+        for name in ['old_packages','combined_packages','old_dumps','combined_dumps']:
+            data=(report.ROOT/pins[name+'_path']).read_bytes()
+            self.assertEqual(hashlib.sha256(data).hexdigest(),pins[name+'_sha256'])
+            lines=data.decode().splitlines()
+            self.assertEqual(len(lines),pins[name+'_count'])
+            self.assertEqual(len(lines),len(set(lines)))
+            self.assertTrue(all(not Path(v).is_absolute() and '..' not in Path(v).parts for v in lines))
+            members[name]=set(lines)
+        self.assertLess(members['old_packages'],members['combined_packages'])
+        self.assertLess(members['old_dumps'],members['combined_dumps'])
+
 if __name__ == '__main__':
     unittest.main()

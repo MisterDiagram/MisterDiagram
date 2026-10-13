@@ -16,7 +16,7 @@ all = 0.984780121
 packages = 1387
 shipped_packages = 1181
 # Shared completed-dump coverage refreshed at M2.9; other closure counts are historical M1.
-completed_shipped_dumps = 301
+completed_shipped_dumps = 702
 full_cached_matches = 5247024
 full_cached_denominator = 5355260
 full_resolved_matches = 7181152
@@ -45,7 +45,7 @@ text-metric = 0.90
 promoted = true
 # Lesser achieved quick/full rate, rounded down to six decimals, as with main floors.
 text-cached-floor = 0.909875
-text-com-floor = 0.907139
+text-com-floor = 0.904134033
 quick_text_cached_passed = 1686
 quick_text_cached_eligible = 1853
 quick_text_com_passed = 1550
@@ -181,9 +181,9 @@ eligible = 67797
 rate = 0.91021727
 
 [text-metric.com]
-passed = 12807
-eligible = 14118
-rate = 0.90713982
+passed = 27360
+eligible = 30261
+rate = 0.904134033905
 
 [m2_4_text_promotion]
 # Pre-promotion excludes text; promoted includes the qualified text family.
@@ -239,3 +239,38 @@ combined_passed = 44046421
 combined_eligible = 44727163
 combined_achieved = 0.984780121198
 rebased_floor = 0.984780121
+
+[m3_21_cohorts]
+# Both main COM and sticky text COM floors use these immutable membership pins.
+# The 702 snapshot is fixed; later dumps are ordinary coverage, not a new rebase.
+old_packages_path = "apps/diagramcraft-corpus/tests/cohorts/m3-old-package-paths.txt"
+old_packages_sha256 = "05375146b6ef812251baa5f22a41266dd2d261a43469fc927bf85b71cdf9bc81"
+old_packages_count = 301
+combined_packages_path = "apps/diagramcraft-corpus/tests/cohorts/m3-702-package-paths.txt"
+combined_packages_sha256 = "401c0377fc272c2d3020ae69240ae7a59f3782d3d7461b965d8701a5647f0e9c"
+combined_packages_count = 702
+old_dumps_path = "apps/diagramcraft-corpus/tests/cohorts/m3-old-dumps.txt"
+old_dumps_sha256 = "1376ced388a0d01baae3208e6a4907181cb61b170c7e96afc4dfde20db6cf3f0"
+old_dumps_count = 514
+combined_dumps_path = "apps/diagramcraft-corpus/tests/cohorts/m3-702-dumps.txt"
+combined_dumps_sha256 = "234b1e706bfee698ae66021f6a1f692b3ad6f5741e371dc2fa6410f2d61590ee"
+combined_dumps_count = 915
+
+[m3_21_text_coverage]
+authorization = "Charles, P3-closure-2 M3.21, 2026-10-13"
+old_passed = 12807
+old_eligible = 14118
+old_contract = 0.907139
+new_passed = 14553
+new_eligible = 16143
+combined_passed = 27360
+combined_eligible = 30261
+combined_achieved = 0.904134033905
+rebased_floor = 0.904134033
+
+[m3_10_previous_413_observation]
+# The preceding brief described302old+111new; completed membership is301+112.
+completed_shipped_dumps = 413
+passed = 27416668
+eligible = 27803388
+achieved = 0.986090901

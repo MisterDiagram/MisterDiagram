@@ -83,3 +83,22 @@ Host read-write-read cells remain 100% and image pairs are identical or the 642 
 same-error pairs. Main COM meets its measured coverage rebase; promoted COM text is
 90.413403%, below its unchanged 90.713900% ratchet. No M3 acceptance or Phase 4 start.
 Representative witnesses and per-group results are in docs/file-format-parity.md.
+
+### M3.21: pinned COM text cohort ruling
+
+Charles's P3-closure-2 M3.21 authorizes the same coverage rule for sticky text COM.
+Old text: 12807/14118 = 90.713982150%, meeting the 90.7139% contract.
+New text: 14553/16143 = 90.150529641%. Combined: 27360/30261 = 90.413403391%.
+The combined sticky text floor is 90.413403300%, rounded down at nine decimal places.
+The cached text floor is unchanged. Pinned historical 702-dump main COM remains 44,046,421/44,727,163 =
+98.478012120%, with floor98.478012100%. Its old cohort was20,805,945/21,055,732 =
+98.813686458%, above98.6241%; new was23,240,476/23,671,431 =98.179429879%.
+
+The preceding brief's413-dump observation was27,416,668/27,803,388 =98.609090%,
+framed as302old+111new. Proven completed membership was301old+112new, because
+one old artifact was partial. The702-dump measured main floor stands. The later872-dump audit measured
+53,865,489/54,718,413 =98.441248652%, below that standing floor; it is not rebased. Both main
+and text cohorts are now committed under apps/diagramcraft-corpus/tests/cohorts/,
+with exact dump paths, counts and SHA256 pins in floors.toml. Generated/blank213
+dumps stay in the old population; old total514, combined915. These fixed lists
+cannot silently move to a later snapshot. The shared source directory is read-only.
