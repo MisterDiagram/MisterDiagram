@@ -27,7 +27,7 @@ to six decimals. M2 is closed; Phase 3 is in progress; Visio acceptance of write
 M2.9.4 aggregation disclosure: group MAD is the unweighted arithmetic mean
 of scored per-file RGB MAD. The differing-pixel fraction is weighted by the
 number of compared pixels in each file's top-left common area. Every hard size
-mismatch or render error still fails its group. `corpus check` prints all204
+mismatch or render error still fails its group. `corpus check` prints all 204
 per-file rows and the number individually above either of the group's pixel
 ceilings. P3/M3.0 adds a count ratchet: more than ten individual exceedances
 fails the report. The frozen group gate and pixel ceilings are unchanged.
@@ -1728,3 +1728,19 @@ Scratch allowance columns count five thumbnail additions and seven MasterType
 rewrites. They remove 17 path/kind records after baseline subtraction: each new
 thumbnail contributes both a part-presence record and its opaque payload record.
 No UniqueID rewrite is present. The remaining 693 scratch records are repairs.
+
+### Unchanged instance structure (M3.31)
+
+An open/save preserves the local section, row and cell keys of a read shape,
+including literal V, F and U. Inherited cache expansion is an authoring operation:
+it runs for a new or edited instance, or a changed dependency. The witnesses are
+SOCIAL_DISTANCING_M page1 shape 1076 (spurious Geometry1/23), shape 1057 (User.Text),
+and PTSKST_M shape 27/34 (User.ValueFormat). The regression
+`shipped_acceptance_shapes_preserve_local_structure_and_literal_attributes`
+compares every shape in the 20 shipped acceptance originals with a fresh save.
+
+The strict round-trip sweep after M3.31 matches 15,080,738/15,080,738 cells
+(100%) over 1,387 packages, from 15,079,024/15,091,678 (99.916152%) before
+the fix. No comparison or floor changed. The union denominator falls because
+invented local instance cells are no longer emitted. Visio repair/COM validation
+requires the subsequent changed-input rerun and is not inferred from this test.

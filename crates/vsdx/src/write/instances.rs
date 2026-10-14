@@ -38,6 +38,11 @@ impl model::Writer<'_> {
         }
         let local: BTreeSet<_> =
             self.evaluator.source_named_cells(scope).map_err(|e| error(e.to_string()))?.into_iter().map(|n| n.name.to_ascii_lowercase()).collect();
+        let edited = authored || self.source_state.contexts.contains(&scope) || self.source_state.changed.iter().any(|(owner, _)| *owner == scope);
+        let has_changes = !self.source_state.changed.is_empty() || !self.source_state.contexts.is_empty();
+        if !edited && !has_changes {
+            return Ok(result);
+        }
         let inherited = self.evaluator.named_cells(master).to_vec();
         let mut count =
             sheet.cells.len() + sheet.sections.iter().map(|s| s.cells.len() + s.rows.iter().map(|r| r.cells.len()).sum::<usize>()).sum::<usize>();
@@ -50,6 +55,11 @@ impl model::Writer<'_> {
                 continue;
             }
             let value = self.evaluator.evaluate_snapshot(scope, &n.name);
+            // Reading an instance is not an authoring operation. Only an edit to
+            // the instance or a dependency can require a new inherited cache.
+            if !edited && !self.evaluator.depends_on_changed(scope, &n.name, &self.source_state.changed, &self.source_state.contexts) {
+                continue;
+            }
             let source = self.evaluator.local_source_cell(master, &n.name).unwrap_or(n.cell);
             if matches!(value, Value::Error(_)) || source.value.as_deref() == Some("Themed") {
                 continue;

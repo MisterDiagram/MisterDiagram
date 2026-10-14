@@ -973,3 +973,73 @@ fn authored_inherited_empty_strings_do_not_serialize_com_zero() {
         assert_eq!(after.masters[0].shapes[0].sheet.cell(name).unwrap().value.as_deref(), Some("0"));
     }
 }
+
+// Acceptance originals, including SOCIAL_DISTANCING_M and PTSKST_M, are private
+// witnesses. Compare local XML keys and literal attributes without evaluation.
+#[test]
+fn shipped_acceptance_shapes_preserve_local_structure_and_literal_attributes() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus/ms-shipped/1033");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    fn records(root: &XmlElement) -> std::collections::BTreeMap<String, std::collections::BTreeMap<String, String>> {
+        let mut result = std::collections::BTreeMap::new();
+        let mut stack = vec![(String::new(), root, false)];
+        while let Some((parent, node, in_shape)) = stack.pop() {
+            let in_shape = in_shape || node.is_visio("Shape");
+            let path =
+                format!("{parent}/{}:{:?}:{:?}:{:?}:{:?}", node.name, node.attr("ID"), node.attr("N"), node.attr("IX"), node.attr("MasterShape"));
+            if in_shape && ["Shape", "Section", "Row", "Cell"].iter().any(|n| node.is_visio(n)) {
+                assert!(result.insert(path.clone(), node.attributes.clone()).is_none(), "duplicate key {path}");
+            }
+            stack.extend(node.elements().map(|c| (path.clone(), c, in_shape)));
+        }
+        result
+    }
+    for file in [
+        "AZUREVMWARESOLUTION_M.vssx",
+        "ENTITY_U.vssx",
+        "USTRME_U.vssx",
+        "AZUREAPPSERVICES_U.vssx",
+        "EEPATH_U.vssx",
+        "AZURECOMPUTE_M.vssx",
+        "FURN_VISIO2013_M.vssx",
+        "DTLNET_U.vssx",
+        "SITACC_M.vssx",
+        "PLANT_M.vssx",
+        "WWFC_M.vstx",
+        "BASFLO_M.vstx",
+        "UCMNME_U.vstx",
+        "PIN_MARKING_TEMPLATE_U.vstx",
+        "SITPLN_M.vstx",
+        "UMLSEQUENCE_INTERACTIONFRAME_M.vstx",
+        "UCOMME_SUBSYSTEM_R2L.vstx",
+        "NEW_ORGCH_U.vstx",
+        "PTSKST_M.vstx",
+        "SOCIAL_DISTANCING_M.vstx",
+    ] {
+        let before = diagramcraft_vsdx::read(root.join(file)).unwrap();
+        let after = import(&write(&before).unwrap().bytes).unwrap();
+        for (path, part) in &before.parts {
+            if let Some(xml) = &part.xml {
+                let old = records(xml);
+                let new = records(after.parts[path].xml.as_ref().unwrap());
+                let differences: Vec<_> = old
+                    .keys()
+                    .chain(new.keys())
+                    .collect::<std::collections::BTreeSet<_>>()
+                    .into_iter()
+                    .filter(|k| old.get(*k) != new.get(*k))
+                    .collect();
+                assert!(
+                    differences.is_empty(),
+                    "{file}: {path}: {} differing keys, first {:?}",
+                    differences.len(),
+                    differences.iter().take(10).collect::<Vec<_>>()
+                );
+            }
+        }
+        eprintln!("preserved shipped local shape structure: {file}");
+    }
+}
