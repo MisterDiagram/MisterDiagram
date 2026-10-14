@@ -75,7 +75,7 @@ area. MAD below uses RGB units 0..255. Oracle images are unchanged.
 | text | 16 | 4 | 4 | 0 | 3.547545 | 3.193997% | PASS |
 
 All 204 SVG/resvg and PDF checks pass, including extractable text in all 16 text
-PDFs. Ligature extraction and complete reading order remain separate gaps.
+PDFs. Complete reading order remains a separate gap.
 M2.9.1 corrects the old successful-call count: only465/1108 contact cells
 had drawing ink before the fix (643 blank). After the fix,1108/1108 have
 drawing ink, zero blank and zero errors across24stencils. Names and failure

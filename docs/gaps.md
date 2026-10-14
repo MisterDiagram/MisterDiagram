@@ -120,7 +120,7 @@ proof that every row has that cause. Phase 3 must complete that attribution.
 
 Other cached buckets include 1742 User.Width, 746 Width, 198 Height and 26 DirArrowOffset;
 these overlap the categories above. Complete failure and witness lists remain in
-the private corpus report. PDF ligature extraction and reading order still need
+the private corpus report. PDF reading order still needs
 stronger fidelity coverage beyond nonempty text. Performance budgets are not yet
 frozen; the gate decision froze pixel ceilings only.
 

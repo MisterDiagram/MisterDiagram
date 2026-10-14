@@ -1,5 +1,7 @@
 //! PDF path conversion and font embedding retargeted from deckcraft crates/pdf/src/lib.rs,
 //! be14248577b92059eb2b8c0c9460cceffbc1f01d, MIT OR Apache-2.0.
+//! Cluster text ranges and their test from deckcraft crates/pdf/src/{lib,tests}.rs,
+//! dd404af8b53029e80d1ff9a7ede02619fdc7ab8a, MarekSpodBiedry, MIT OR Apache-2.0.
 //! Scene paths remain vectors and glyphs remain extractable text.
 use crate::scene::{Op, Options, Paint, Scene};
 use diagramcraft_geom::Affine;
@@ -111,22 +113,15 @@ pub fn render(scenes: &[Scene], options: Options) -> Result<Vec<u8>, String> {
                             entry.insert(font);
                         }
                         let font = fonts.get(&id).ok_or("missing PDF font")?.clone();
-                        let text: String = run.cells.iter().map(|(_, c)| *c).collect();
-                        let starts: Vec<usize> = text.char_indices().map(|(b, _)| b).chain(std::iter::once(text.len())).collect();
-                        let single = starts.len().saturating_sub(1) == run.glyphs.len();
+                        let text = &run.text;
+                        let ranges = glyph_text_ranges(text, run.chars, &run.cells, run.glyphs.len());
                         let glyphs: Vec<_> = run
                             .glyphs
                             .iter()
+                            .zip(ranges)
                             .enumerate()
-                            .map(|(i, g)| {
+                            .map(|(i, (g, range))| {
                                 let next = run.glyphs.get(i + 1).map_or(g.1 + run.face.advance(g.0) * run.size / run.face.upem.max(1.), |n| n.1);
-                                let range = if single {
-                                    starts.get(i).copied().unwrap_or(0)..starts.get(i + 1).copied().unwrap_or(text.len())
-                                } else if i == 0 {
-                                    0..text.len()
-                                } else {
-                                    text.len()..text.len()
-                                };
                                 KrillaGlyph::new(
                                     GlyphId::new(g.0),
                                     ((next - g.1) / run.size) as f32,
@@ -142,7 +137,7 @@ pub fn render(scenes: &[Scene], options: Options) -> Result<Vec<u8>, String> {
                         let mut c = run.color;
                         c.a = (f64::from(c.a) * run.alpha.clamp(0., 1.)).round() as u8;
                         surface.set_fill(Some(fill(c)));
-                        surface.draw_glyphs(Point::from_xy(0., 0.), &glyphs, font, &text, run.size as f32, false);
+                        surface.draw_glyphs(Point::from_xy(0., 0.), &glyphs, font, text, run.size as f32, false);
                         surface.pop();
                     }
                 }
@@ -152,4 +147,33 @@ pub fn render(scenes: &[Scene], options: Options) -> Result<Vec<u8>, String> {
         page.finish();
     }
     pdf.finish().map_err(|e| format!("PDF finish: {e:?}"))
+}
+
+/// Byte range in `text` (the run's characters `chars`) of each of `n` glyphs, for the ToUnicode map.
+/// `cells` holds each glyph's shaping-cluster head (paragraph character index); a cluster runs to the
+/// next head in the run, so a ligature maps to all its characters and every glyph of a cluster shares
+/// its range (krilla then writes the text once).
+fn glyph_text_ranges(text: &str, chars: (usize, usize), cells: &[(usize, char)], n: usize) -> Vec<std::ops::Range<usize>> {
+    let starts: Vec<usize> = text.char_indices().map(|(b, _)| b).collect();
+    let byte = |ci: usize| ci.checked_sub(chars.0).and_then(|i| starts.get(i).copied()).unwrap_or(text.len());
+    let mut heads: Vec<usize> = cells.iter().map(|c| c.0).collect();
+    heads.sort_unstable();
+    heads.dedup();
+    let end = |ci: usize| heads.get(heads.partition_point(|&h| h <= ci)).copied().unwrap_or(chars.1);
+    (0..n).map(|gi| cells.get(gi).map_or(text.len()..text.len(), |&(ci, _)| byte(ci)..byte(end(ci)))).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::glyph_text_ranges;
+
+    #[test]
+    fn glyph_ranges_follow_shaping_clusters() {
+        // "fl" ligature: its glyph maps to both characters, the rest stay one to one (#164).
+        assert_eq!(glyph_text_ranges("flash", (0, 5), &[(0, 'f'), (2, 'a'), (3, 's'), (4, 'h')], 4), vec![0..2, 2..3, 3..4, 4..5]);
+        // Two glyphs in one cluster (base and mark) share its range.
+        assert_eq!(glyph_text_ranges("ab", (0, 2), &[(0, 'a'), (0, 'a'), (1, 'b')], 3), vec![0..1, 0..1, 1..2]);
+        // A run starting mid-paragraph, multi-byte characters in visual (right-to-left) order.
+        assert_eq!(glyph_text_ranges("αβγ", (3, 6), &[(5, 'γ'), (4, 'β'), (3, 'α')], 3), vec![4..6, 2..4, 0..2]);
+    }
 }

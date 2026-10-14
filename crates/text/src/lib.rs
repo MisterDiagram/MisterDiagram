@@ -52,6 +52,8 @@ pub struct GlyphRun {
     /// Paragraph and character range this run covers (for hyperlinks, selection colours).
     pub para: usize,
     pub chars: (usize, usize),
+    /// Logical paragraph characters in `chars`, including ligature tails and combining marks.
+    pub text: String,
     pub link: bool,
     /// Alpha of the fill (0–1).
     pub alpha: f64,
@@ -1173,6 +1175,7 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
                 outline: None,
                 para: line.para,
                 chars: (0, 0),
+                text: String::new(),
                 link: false,
                 alpha: st.alpha,
             });
@@ -1190,7 +1193,8 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
             let size = if st.caps == Caps::Small && cell.ch.is_lowercase() { size * 0.8 } else { size };
             let key = (cell.style, cell.face);
             if key != cur_key {
-                if let Some(r) = cur.take() {
+                if let Some(mut r) = cur.take() {
+                    r.text = p.cells.get(r.chars.0..r.chars.1).unwrap_or_default().iter().map(|c| c.ch).collect();
                     out.runs.push(r);
                 }
                 let Some(face) = p.faces.get(cell.face) else { continue };
@@ -1205,6 +1209,7 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
                     outline: st.outline,
                     para: line.para,
                     chars: (ci, ci + 1),
+                    text: String::new(),
                     link: st.link,
                     alpha: st.alpha,
                 });
@@ -1264,7 +1269,8 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
                 }
             }
         }
-        if let Some(r) = cur.take() {
+        if let Some(mut r) = cur.take() {
+            r.text = p.cells.get(r.chars.0..r.chars.1).unwrap_or_default().iter().map(|c| c.ch).collect();
             out.runs.push(r);
         }
     }
