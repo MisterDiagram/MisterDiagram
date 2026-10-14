@@ -532,7 +532,7 @@ Shipped rendering remains informational under M3.22. Latest error inventory:
 These58image failures are retained in the report. Shipped open, repair and COM
 checks remain mandatory. All input and output observations are preserved.
 
-## M3.33 vertical export investigation: stopped at the specified gate
+## M3.33 vertical export investigation: mapping unresolved
 
 M3.31 prevents inherited-cache expansion on unchanged read shapes. The new
 regression checks exact local shape/section/row/cell keys and literal attributes
@@ -554,9 +554,51 @@ Visio, with identical 481x97 dimensions. The requested vertical-only change
 cannot move those X coordinates. No production mapping was changed and no
 ceiling was moved. This does not prove that every untested mapping must fail.
 
-The P3-closure-4 M3.33 stop rule applies. M3.34 keyed OPC comparison, the changed
-input VM rerun, the five seeded verification checks and two clean full passes
-remain pending. M3 is not accepted. No Phase 4 implementation has begun.
+The P3-closure-4 stop was a faithful reading of that brief. Charles clarified in
+P3-closure-5 that it stops mapping work, not the whole brief. The three small-image
+groups remain measured, ruling pending. Comparison, rerun and verification work
+have resumed. M3 is not accepted; no Phase 4 implementation has begun.
+
+### M3.37 connector extent diagnostic (2026-10-14)
+
+Bounded diagnostic completed in under one hour, with no renderer change. The
+comparison covers 67 extent-related cells: scratch page 0 shape 3 against the
+original probe page 0 shape 4 (the first, straight Dynamic connector). Sources:
+`corpus/_vm/out/accept/scratch__dynamic-glue/observed.sheet.tsv` and
+`corpus/_vm/out/baseline/generated__basic__0001-probe/observed.sheet.tsv`.
+The pre-rerun scratch dump is preserved at
+`corpus/_vm/out/accept/history-scratch__dynamic-glue-1c7ac390b42e41ac8ca5b55c874f7b44/observed.sheet.tsv`.
+The source hashes, formulas, units and all equal rows are retained privately in
+`corpus/_state/m3/closure5/extent-cell-diagnostic.json`.
+
+| Differing cell | Scratch ResultIU | Probe ResultIU | Interpretation |
+|---|---:|---:|---|
+| BeginY | 1.5 | 8.75 | Different connector position or length |
+| EndX | 4 | 5 | Different connector position or length |
+| EndY | 1.5 | 8.75 | Different connector position or length |
+| Geometry1.X2 | 1 | 2 | Different connector position or length |
+| LocPinX | 0.5 | 1 | Different connector position or length |
+| PinX | 3.5 | 4 | Different connector position or length |
+| PinY | 1.5 | 8.75 | Different connector position or length |
+| ShdwForegnd | 25 | 0 | Palette index; shadow pattern is zero |
+| TxtPinX | 0.5 | 1 | Different connector position or length |
+| Width | 1 | 2 | Different connector position or length |
+| ThePage!ShdwForegnd | 25 | 0 | Palette index; shadow pattern is zero |
+
+All other 56 selected rows agree, including units and formulas. Height is 0.25 in,
+LocPinY/TxtPinY 0.125 in, TxtWidth 0.55555555555555558 in and
+TxtHeight 0.24444444444444441 in. Both arrows are 0, both arrow sizes 2,
+LineWeight 0.01041666666666667 in, shape shadow offsets 0 and page shadow
+offsets +0.125/-0.125 in. Geometry has MoveTo (0, 0.125) and a horizontal LineTo
+whose X equals the different connector Width (1 versus 2 in).
+
+No differing length or delta equals the measured approximately 0.04 in padding.
+The four-pixel edge displacement is approximately 0.041667 in at 96 dpi, numerically
+four times the common LineWeight, but that weight is identical in both drawings.
+That coincidence does not identify a differing authored cell or establish a cause.
+No skeleton term is selected for a fix from this table. The extent cause remains
+open for the next brief; M3.33 sampling and the three small-image groups remain
+measured, ruling pending at the M3 human gate. No ceiling has moved.
 
 ## M3.35 changed-input rerun: partial (2026-10-14)
 
