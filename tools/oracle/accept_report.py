@@ -165,7 +165,7 @@ def source_com_compare(raw, computed, observed, filters, font_names):
                 expected_value = float(language_ids[value.lower()])
             elif name.split('.')[-1].split('[')[0] in {'LangID','DocLangID'}:
                 expected_value = float(value)
-            elif units == '231': expected_value = 0.
+            elif units == '231' and name != 'LayerMember': expected_value = 0.
             else:
                 try: expected_value = float(value or '0')
                 except ValueError: expected_value = 0.  # COM ResultIU for literal text.

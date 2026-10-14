@@ -70,19 +70,7 @@ fn five_documents_build_and_reread() {
     d.pages[0].attributes.insert("BackPage".into(), "1".into());
     d.pages[0].sheet.sections.push(Section {
         name: "Layer".into(),
-        rows: (0..2)
-            .map(|i| Row {
-                index: Some(i),
-                cells: vec![
-                    cell("Name", if i == 0 { "Visible" } else { "Hidden" }, None),
-                    cell("Visible", if i == 0 { "1" } else { "0" }, None),
-                    cell("Print", "1", None),
-                    cell("Active", "0", None),
-                    cell("Lock", "0", None),
-                ],
-                ..Default::default()
-            })
-            .collect(),
+        rows: (0..2).map(|i| skeleton::layer(i, if i == 0 { "Visible" } else { "Hidden" }, i == 0).unwrap()).collect(),
         ..Default::default()
     });
     for i in 0..2 {
@@ -200,9 +188,12 @@ fn authored_dynamic_route_is_straight_in_page_space() {
         skeleton::glue_dynamic(&mut d.pages[0], 3, 2, [1, 2], endpoints).unwrap();
         let a = diagramcraft_vsdx::import(&diagramcraft_vsdx::write(&d).unwrap().bytes).unwrap();
         let shape = &a.pages[0].shapes[2];
-        assert_eq!(shape.sheet.cell("Width").unwrap().formula.as_deref(), Some("GUARD(EndX-BeginX)"));
-        for name in ["PinX", "PinY", "LocPinX", "LocPinY", "TxtPinX", "TxtPinY"] {
-            assert_eq!(shape.sheet.cell(name).unwrap().formula.as_deref(), Some("Inh"));
+        let provider = &a.masters[0].shapes[0].sheet;
+        for name in ["Width", "PinX", "PinY", "LocPinX", "LocPinY", "TxtPinX", "TxtPinY"] {
+            if let Some(c) = shape.sheet.cell(name) {
+                assert_eq!(c.formula.as_deref(), Some(if name == "Width" { "GUARD(EndX-BeginX)" } else { "Inh" }));
+                assert_ne!(c.value, provider.cell(name).unwrap().value, "redundant authored {name}");
+            }
         }
         let rows = &shape.sheet.sections.iter().find(|s| s.name == "Geometry").unwrap().rows;
         assert!(rows.iter().any(|r| r.index == Some(3) && r.deleted));

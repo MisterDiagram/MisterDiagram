@@ -85,6 +85,20 @@ pub struct Evaluator<'a> {
     snapshot: Option<Snapshot>,
 }
 impl<'a> Evaluator<'a> {
+    /// Register literal colours without requiring a serialized palette entry.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/colors-element-visiodocument_type-complextypevisio-xml
+    fn intern_color(&mut self, rgb: [u8; 3]) -> Option<u32> {
+        if let Some(index) = self.palette.iter().find_map(|(index, value)| (*value == rgb).then_some(*index)) {
+            return Some(index);
+        }
+        if self.palette.len() >= 65536 {
+            return None;
+        }
+        let index = self.palette.last_key_value().map_or(Some(24), |(i, _)| i.checked_add(1).map(|i| i.max(24)))?;
+        self.palette.insert(index, rgb);
+        Some(index)
+    }
+
     pub fn new(document: &'a Document) -> Result<Self, Error> {
         if document.colors.len() > 65536 {
             return Err(Error::Limit);
@@ -181,7 +195,40 @@ impl<'a> Evaluator<'a> {
             let rgb = self.palette.get(&index).copied().or_else(|| diagramcraft_sheet::functions::default_color(index)).ok_or(Error::Value)?;
             return Ok(format!("#{:02x}{:02x}{:02x}", rgb[0], rgb[1], rgb[2]));
         }
-        Ok(number.to_string())
+        diagramcraft_model::skeleton::number_text(number).ok_or(Error::Num)
+    }
+    /// Resolve omitted length units from the owning metric drawing or master.
+    /// Witnesses: scratch metric Para.IndFirst and SOCIAL_DISTANCING_M PageSheet.
+    /// Explicit physical U wins. Master DL resolves through its PageSheet as COM does.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+    pub fn default_unit_code(&self, scope: Scope, name: &str, cell: &Cell, code: u16) -> u16 {
+        if code != 73
+            || cell.units.is_some() && !(cell.units.as_deref() == Some("DL") && matches!(scope, Scope::MasterShape { .. }))
+            || matches!(name, "DrawingScale" | "PageScale")
+        {
+            return code;
+        }
+        let unit = |scope| self.sheet(scope).and_then(|s| s.cell("DrawingScale")).and_then(|c| c.units.as_deref());
+        let metric = self
+            .document
+            .parts
+            .get("docProps/custom.xml")
+            .and_then(|p| p.xml.as_ref())
+            .is_some_and(|root| root.elements().any(|p| p.attr("name") == Some("IsMetric") && matches!(p.text().as_str(), "true" | "1")));
+        let (unit, master) = match scope {
+            Scope::Master(id) | Scope::MasterShape { master: id, .. } => (unit(Scope::Master(id)), true),
+            Scope::Page(id) | Scope::PageShape { page: id, .. } => (unit(Scope::Page(id)), false),
+            Scope::Document | Scope::Style(_) if metric => (self.document.pages.first().and_then(|p| unit(Scope::Page(p.id))).or(Some("MM")), false),
+            _ => (None, false),
+        };
+        match unit {
+            Some("MM") => 70,
+            Some("CM") => 69,
+            Some("M") => 71,
+            Some("IN") if master => 65,
+            Some("FT") if master => 66,
+            _ => code,
+        }
     }
     /// Whether the comparison-only mode has deferred real text metrics.
     pub fn text_metrics_deferred(&self) -> bool {
@@ -891,7 +938,10 @@ impl<'a> Evaluator<'a> {
     /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/360407c5-34d8-417d-b08d-4044fd858a5e
     /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/c5e4da4b-c1d0-4cdd-a418-04fccbc098ae
     pub fn cached_cell(&self, cell: &Cell) -> Value {
-        if self.internal_cache_units && cell.error.is_none() && matches!(cell.name.as_str(), "BulletStr" | "Comment" | "ShapeKeywords") {
+        if self.internal_cache_units
+            && cell.error.is_none()
+            && matches!(cell.name.as_str(), "BulletStr" | "Comment" | "ShapeKeywords" | "Copyright" | "HelpTopic")
+        {
             return Value::Text(cell.value.clone().unwrap_or_default());
         }
         if matches!(cell.name.as_str(), "LangID" | "DocLangID") && cell.error.is_none() {
@@ -909,6 +959,25 @@ impl<'a> Evaluator<'a> {
             && let Some(index) = self.document.colors.iter().find_map(|(i, v)| (parse_color(v) == Some(rgb)).then_some(*i))
         {
             return Value::Number(f64::from(index) + if cell.name == "TextBkgnd" { 1. } else { 0. });
+        }
+        if cell.units.as_deref() != Some("STR")
+            && cell.error.is_none()
+            && let Some(rgb) = cell.value.as_deref().and_then(parse_color)
+        {
+            // Reading a speculative formula cache must not allocate a COM palette ID.
+            // RGB-bearing values carry their colour independently of an optional index.
+            let index = self
+                .palette
+                .iter()
+                .find_map(|(i, c)| (*c == rgb).then_some(*i))
+                .or_else(|| (0..24).find(|i| diagramcraft_sheet::functions::default_color(*i) == Some(rgb)))
+                .or_else(|| self.palette.last_key_value().map_or(Some(24), |(i, _)| i.checked_add(1)))
+                .unwrap_or(0);
+            return if cell.name == "TextBkgnd" {
+                index.checked_add(1).map_or(Value::Error(Error::Limit), |n| Value::Number(f64::from(n)))
+            } else {
+                Value::Color { index, rgb, hsl: None }
+            };
         }
         if cell.name == "Font"
             && cell.error.is_none()
@@ -1455,15 +1524,7 @@ impl Context for BoundContext<'_, '_> {
         self.evaluator.palette.get(&index).copied().or_else(|| diagramcraft_sheet::functions::default_color(index))
     }
     fn color_index(&mut self, rgb: [u8; 3]) -> Option<u32> {
-        if let Some(index) = self.evaluator.palette.iter().find_map(|(index, value)| (*value == rgb).then_some(*index)) {
-            return Some(index);
-        }
-        if self.evaluator.palette.len() >= 65536 {
-            return None;
-        }
-        let index = self.evaluator.palette.last_key_value().map_or(Some(24), |(i, _)| i.checked_add(1).map(|i| i.max(24)))?;
-        self.evaluator.palette.insert(index, rgb);
-        Some(index)
+        self.evaluator.intern_color(rgb)
     }
     fn font(&self, index: u32) -> Option<String> {
         self.evaluator.fonts.get(&index).cloned()
@@ -1719,6 +1780,14 @@ mod tests {
         for formula in ["Pages[NOW()]!Width", "'THEMEVAL()'!Width", "UNIMPLEMENTEDFUNCTION(1)"] {
             assert!(hook_references(&diagramcraft_sheet::parse(formula).unwrap(), false).unwrap().is_none());
         }
+    }
+    #[test]
+    fn speculative_rgb_cache_does_not_allocate_palette_ids() {
+        let doc = Document::default();
+        let mut e = Evaluator::new(&doc).unwrap();
+        assert!(matches!(e.cached_cell(&cell("FillForegnd", "#123456", Some("RGB(1,2,3)"))), Value::Color { rgb: [18, 52, 86], .. }));
+        assert!(e.palette.is_empty());
+        assert_eq!(e.intern_color([1, 2, 3]), Some(24));
     }
     #[test]
     fn language_cells_use_lcid_not_text_zero() {

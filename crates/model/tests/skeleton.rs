@@ -101,13 +101,23 @@ fn skeleton_cell_set_matches_blank_and_probe_observations() {
             continue;
         }
         let original = styles.elements().find(|e| e.u32("ID") == Some(s.id)).unwrap();
-        assert_eq!(model_cells(&s.sheet), observed_cells(original), "style {}", s.id);
+        let mut expected = observed_cells(original);
+        if s.id == 0 {
+            for name in ["Copyright", "HelpTopic"] {
+                expected.insert(format!("/{name}"), (Some("".into()), None, None));
+            }
+        }
+        assert_eq!(model_cells(&s.sheet), expected, "style {}", s.id);
     }
     let pages = p.xml("visio/pages/pages.xml").unwrap();
     assert_eq!(model_cells(&d.pages[0].sheet), observed_cells(pages.root.child("Page").unwrap().child("PageSheet").unwrap()));
     let p = diagramcraft_opc::Package::open(&std::fs::read(root.join("generated/basic/0001-probe.vsdx")).unwrap()).unwrap();
     let master = p.xml("visio/masters/master1.xml").unwrap();
-    assert_eq!(model_cells(&d.masters[0].shapes[0].sheet), observed_cells(master.root.child("Shapes").unwrap().child("Shape").unwrap()));
+    let mut expected = observed_cells(master.root.child("Shapes").unwrap().child("Shape").unwrap());
+    for name in ["Comment", "ShapeKeywords"] {
+        expected.insert(format!("/{name}"), (Some("".into()), Some("Inh".into()), None));
+    }
+    assert_eq!(model_cells(&d.masters[0].shapes[0].sheet), expected);
     let xml = p.xml("visio/document.xml").unwrap();
     assert_eq!(
         model_cells(&d.styles.iter().find(|s| s.id == 7).unwrap().sheet),
@@ -129,4 +139,30 @@ fn rectangle_rejects_hostile_coordinates_and_text() {
         assert!(skeleton::rectangle(1, 0., 0., w, 1., "").is_err());
     }
     assert!(skeleton::rectangle(1, 0., 0., 1., 1., &"x".repeat(1024 * 1024 + 1)).is_err());
+}
+
+#[test]
+fn authored_numbers_empty_style_and_layer_defaults_follow_saved_witness() {
+    assert_eq!(skeleton::number_text(297. / 25.4).as_deref(), Some("11.69291338582677"));
+    assert_eq!(skeleton::number_text(210. / 25.4).as_deref(), Some("8.267716535433072"));
+    assert_eq!(skeleton::number_text(-0.).as_deref(), Some("0"));
+    for n in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+        assert!(skeleton::number_text(n).is_none());
+    }
+    let d = skeleton::document(false);
+    for name in ["Copyright", "HelpTopic"] {
+        assert_eq!(d.styles[0].sheet.cell(name).unwrap().value.as_deref(), Some(""));
+    }
+    for name in ["Comment", "ShapeKeywords"] {
+        let c = d.masters[0].shapes[0].sheet.cell(name).unwrap();
+        assert_eq!(c.formula.as_deref(), Some("Inh"));
+        assert_eq!(c.value.as_deref(), Some(""));
+    }
+    let layer = skeleton::layer(0, "Visible", true).unwrap();
+    assert_eq!(
+        layer.cells.iter().map(|c| c.name.as_str()).collect::<Vec<_>>(),
+        vec!["Name", "Color", "Status", "Visible", "Print", "Active", "Lock", "Snap", "Glue", "NameUniv", "ColorTrans"]
+    );
+    assert!(skeleton::layer(16_384, "bad", true).is_err());
+    assert!(skeleton::layer(0, &"x".repeat(65_537), true).is_err());
 }

@@ -3,10 +3,39 @@
 use super::*;
 use diagramcraft_sheet::Value;
 impl model::Writer<'_> {
-    pub(super) fn instance_sheet(&mut self, sheet: &Sheet, scope: Scope) -> Result<Sheet, WriteError> {
+    pub(super) fn instance_sheet(&mut self, sheet: &Sheet, scope: Scope, authored: bool) -> Result<Sheet, WriteError> {
         let mut bytes = super::validate::sheet(sheet)?;
         let mut result = sheet.clone();
         let Some(master) = self.evaluator.master_source(scope) else { return Ok(result) };
+        if authored {
+            result.cells.retain(|cell| {
+                let Some(provider) = self.evaluator.cell(master, &cell.name) else {
+                    return true;
+                };
+                let inherited = cell.formula.as_deref() == Some("Inh") || cell.formula.is_some() && cell.formula == provider.formula;
+                if !inherited || cell.units != provider.units {
+                    return true;
+                }
+                let value = self.evaluator.evaluate_snapshot(scope, &cell.name);
+                let value = match value {
+                    Value::Number(n) => self.evaluator.serialized_number(scope, &cell.name, cell, n).ok(),
+                    Value::Text(t) => Some(t),
+                    _ => None,
+                };
+                let Some(value) = value else {
+                    return true;
+                };
+                let Some(cached) = provider.value.as_deref() else {
+                    return true;
+                };
+                let same = value == cached
+                    || match (value.parse::<f64>(), cached.parse::<f64>()) {
+                        (Ok(a), Ok(b)) => a.is_finite() && b.is_finite() && (a - b).abs() <= 1e-6,
+                        _ => false,
+                    };
+                !same
+            });
+        }
         let local: BTreeSet<_> =
             self.evaluator.source_named_cells(scope).map_err(|e| error(e.to_string()))?.into_iter().map(|n| n.name.to_ascii_lowercase()).collect();
         let inherited = self.evaluator.named_cells(master).to_vec();

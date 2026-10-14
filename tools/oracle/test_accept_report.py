@@ -139,6 +139,12 @@ class Acceptance(unittest.TestCase):
         raw=[('page-shape',0,1,'Char.LangID','unknown-language',None,None,None,True)]
         self.assertTrue(report.source_com_compare(raw,rows,rows,set(),[])[1])
 
+    def test_single_layer_membership_uses_its_numeric_result(self):
+        raw=[('page-shape',0,1,'LayerMember','1',None,None,None,True)]
+        row=['1','page:0:Page/Sheet.1','1','6','2','LayerMember','1','1','231']
+        rows={tuple(row[:6]):row}
+        self.assertEqual(report.source_com_compare(raw,rows,rows,set(),[])[1],[])
+
     def test_raw_source_missing_and_empty_attributes_remain_distinct(self):
         path=self.root/'serialized.tsv'
         header='scope\towner\tshape\tname\tV\tF\tU\tE\tpresent\tactive\n'

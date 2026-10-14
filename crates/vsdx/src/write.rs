@@ -320,6 +320,35 @@ fn relationships(path: &str, rels: &[Relationship]) -> Result<Vec<u8>, WriteErro
     }
     xml::tree(&e)
 }
+/// Preserve an unchanged relationship part, including its original serialization.
+/// Witness: the probe's six unmatched OPC hashes in the M3.24 baseline comparison.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
+fn relationship_bytes(parts: &BTreeMap<String, Part>, path: &str, rels: &[Relationship]) -> Result<Vec<u8>, WriteError> {
+    if let Some(p) = parts.get(&diagramcraft_opc::rels_path(path)).filter(|p| !p.bytes.is_empty()) {
+        let root = crate::parse_xml(&p.bytes).map_err(|e| error(e.to_string()))?;
+        if root.name != "Relationships" || root.namespace != crate::REL_NS {
+            return Err(error("invalid source relationship root"));
+        }
+        let original: Result<Vec<_>, WriteError> = root
+            .elements()
+            .filter(|e| e.name == "Relationship" && e.namespace == crate::REL_NS)
+            .map(|e| {
+                let external = e.attr("TargetMode") == Some("External");
+                let target = e.attr("Target").ok_or_else(|| error("source relationship target missing"))?;
+                Ok(Relationship {
+                    id: e.attr("Id").ok_or_else(|| error("source relationship ID missing"))?.into(),
+                    type_uri: e.attr("Type").ok_or_else(|| error("source relationship type missing"))?.into(),
+                    target: if external { target.into() } else { diagramcraft_opc::resolve(&diagramcraft_opc::dir_of(path), target) },
+                    external,
+                })
+            })
+            .collect();
+        if original? == rels {
+            return Ok(p.bytes.clone());
+        }
+    }
+    relationships(path, rels)
+}
 fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Result<Vec<u8>, WriteError> {
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     let mut types = BTreeMap::new();
@@ -347,7 +376,7 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
         add_file(&mut files, &mut output_bytes, name.clone(), bytes)?;
         let rel_path = diagramcraft_opc::rels_path(name);
         if !p.relationships.is_empty() || parts.contains_key(&rel_path) {
-            add_file(&mut files, &mut output_bytes, rel_path, relationships(name, &p.relationships)?)?;
+            add_file(&mut files, &mut output_bytes, rel_path, relationship_bytes(&parts, name, &p.relationships)?)?;
         }
     }
     for r in &root_rels {
@@ -355,13 +384,14 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
             return Err(error("missing root relationship target"));
         }
     }
-    add_file(&mut files, &mut output_bytes, "_rels/.rels".into(), relationships("", &root_rels)?)?;
+    add_file(&mut files, &mut output_bytes, "_rels/.rels".into(), relationship_bytes(&parts, "", &root_rels)?)?;
     let ns = "http://schemas.openxmlformats.org/package/2006/content-types";
-    let mut ct = if let Some(p) = parts.get("[Content_Types].xml") {
+    let original_ct = if let Some(p) = parts.get("[Content_Types].xml") {
         crate::parse_xml(&p.bytes).map_err(|e| error(e.to_string()))?
     } else {
         XmlElement { name: "Types".into(), namespace: ns.into(), ..Default::default() }
     };
+    let mut ct = original_ct.clone();
     // Keep observed default/override order. Remove only absent entries; append genuinely new parts.
     ct.children.retain(
         |n| !matches!(n,XmlNode::Element(e) if e.name=="Override" && !files.contains_key(e.attr("PartName").unwrap_or("").trim_start_matches('/'))),
@@ -405,7 +435,12 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
             ..Default::default()
         }));
     }
-    add_file(&mut files, &mut output_bytes, "[Content_Types].xml".into(), xml::tree(&ct)?)?;
+    let ct_bytes = if ct == original_ct {
+        parts.get("[Content_Types].xml").map(|p| p.bytes.clone()).map(Ok).unwrap_or_else(|| xml::tree(&ct))?
+    } else {
+        xml::tree(&ct)?
+    };
+    add_file(&mut files, &mut output_bytes, "[Content_Types].xml".into(), ct_bytes)?;
     if files.len() > diagramcraft_opc::MAX_ENTRIES {
         return Err(error("written entry limit"));
     }

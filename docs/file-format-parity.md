@@ -1553,3 +1553,35 @@ six residual OPC byte-hash changes after its ten baseline differences are
 subtracted. The arrow begin-00 drawing has four. These remain repairs, not a new
 formatting exception. Private evidence: `baseline-observations-partial.json` and
 the matching input/saved packages under the M3 baseline trees.
+
+### M3.26: authored defaults and literal colour caches
+
+Visio's saved scratch rectangle supplies the observed no-theme palette: 24 is
+`#7F7F7F`, 25 `#000000`, 26 `#FFFFFF`, 27 `#0000FF`. The skeleton authors these
+four entries, empty style-0 Copyright/HelpTopic, and the connector master's empty
+inherited Comment/ShapeKeywords. A cached literal RGB carries its colour even
+without a palette declaration. Reading a speculative cache does not allocate a
+dynamic palette ID, so it cannot change subsequent formula results.
+
+The metric scratch save uses 16 significant digits in authored numeric caches:
+297 mm is `11.69291338582677` internal inches. Unchanged read caches still bypass
+formatting. The complete authored layer row contains Name, Color, Status, Visible,
+Print, Active, Lock, Snap, Glue, NameUniv and ColorTrans. Omitted metric length
+units resolve in the evaluator from the owning PageSheet, including paragraph
+indents and text-after-bullet position. Explicit master DL also resolves through
+its PageSheet, as basic-rect master 4 Geometry1.A4 demonstrates.
+
+An authored instance omits an inherited scalar whose evaluated value equals the
+actual master cache. The dynamic scratch witness therefore omits redundant PinY,
+LocPinX and Width. Existing local cells from a read file retain M3.12 preservation.
+A diagnostic on the old metric scratch local-cell set now has 623 eligible COM
+cells and zero differences, versus 65 before. Added authored cells and final
+pixels still require the new scratch observations.
+
+The baseline additionally proved that unchanged OPC wrappers must retain their
+source bytes: the probe had six unmatched hashes and arrow begin-00 had four,
+while their original-file baseline left those parts unchanged. Relationships are
+compared by their resolved model and content types by their parsed tree before
+reusing bytes. Changed relationships and content types are regenerated, so removed
+pages and macro removal retain their validation. This fix requires regenerating
+and observing all 230 acceptance inputs, not only the five scratch files.

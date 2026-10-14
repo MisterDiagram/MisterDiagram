@@ -236,53 +236,7 @@ fn dump_sheet(evaluator: &mut Evaluator<'_>, scope: Scope, id: u32, identity: &s
     let mut slots = BTreeMap::new();
     for named in evaluator.resolved_named_cells(scope) {
         if let Some((s, r, c, mut u)) = metadata(evaluator, scope, &named) {
-            // Metric formatting defaults use the drawing unit when XML omits U.
-            // Witnesses: metric scratch (MM), SOCIAL_DISTANCING_M (M).
-            // https://learn.microsoft.com/en-us/office/client-developer/visio/rounding-cell-line-format-section
-            if u == 73
-                && named.cell.units.is_none()
-                && matches!(scope, Scope::Document | Scope::Style(_))
-                && matches!(
-                    named.name.as_str(),
-                    "Rounding"
-                        | "ShapeShdwOffsetX"
-                        | "ShapeShdwOffsetY"
-                        | "ShdwOffsetX"
-                        | "ShdwOffsetY"
-                        | "LeftMargin"
-                        | "RightMargin"
-                        | "TopMargin"
-                        | "BottomMargin"
-                        | "DefaultTabStop"
-                        | "LineToNodeX"
-                        | "LineToNodeY"
-                        | "LineToLineX"
-                        | "LineToLineY"
-                )
-                && evaluator
-                    .document
-                    .parts
-                    .get("docProps/custom.xml")
-                    .and_then(|p| p.xml.as_ref())
-                    .is_some_and(|root| root.elements().any(|p| p.attr("name") == Some("IsMetric") && matches!(p.text().as_str(), "true" | "1")))
-            {
-                u = evaluator
-                    .document
-                    .pages
-                    .first()
-                    .and_then(|p| p.sheet.cells.iter().find(|c| c.name == "DrawingScale"))
-                    .map_or(70, |c| unit_code(c, 70));
-            }
-
-            if u == 73
-                && !(s == 1 && r == 10 && matches!(c, 4 | 5))
-                && let Scope::MasterShape { master, .. } = scope
-            {
-                // A master's drawing units come from its own PageSheet.
-                if let Some(cell) = evaluator.sheet(Scope::Master(master)).and_then(|sheet| sheet.cells.iter().find(|c| c.name == "DrawingScale")) {
-                    u = unit_code(cell, u);
-                }
-            }
+            u = evaluator.default_unit_code(scope, &named.name, named.cell, u);
             // Probe and blank COM Style.Section traversal omits XML gradient sections and LayerMember.
             // https://learn.microsoft.com/en-us/office/vba/api/visio.style.section
             if matches!(scope, Scope::Style(_)) && (matches!(s, 248 | 249) || (s == 1 && r == 6)) {

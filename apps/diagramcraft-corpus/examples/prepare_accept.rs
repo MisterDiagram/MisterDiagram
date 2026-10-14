@@ -17,11 +17,12 @@ fn relative(value: &str, prefix: &str) -> Result<PathBuf, String> {
 }
 fn run() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<_> = std::env::args().skip(1).collect();
-    let (expected_only, baseline) = match args.as_slice() {
-        [] => (false, false),
-        [arg] if arg == "--expected-only" => (true, false),
-        [arg] if arg == "--baseline" => (true, true),
-        _ => return Err("usage: prepare_accept [--expected-only|--baseline]".into()),
+    let (expected_only, baseline, scratch_only) = match args.as_slice() {
+        [] => (false, false, false),
+        [arg] if arg == "--expected-only" => (true, false, false),
+        [arg] if arg == "--baseline" => (true, true, false),
+        [arg] if arg == "--scratch-only" => (false, false, true),
+        _ => return Err("usage: prepare_accept [--expected-only|--baseline|--scratch-only]".into()),
     };
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
     let plan_path = root.join("corpus/_state/m3/accept-plan.json");
@@ -40,6 +41,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         return Err("expected directory symlink".into());
     }
     for entry in entries {
+        if scratch_only && entry.get("source").and_then(|v| v.as_str()).is_some() {
+            continue;
+        }
         if baseline && entry.get("source").and_then(|v| v.as_str()).is_none() {
             continue;
         }

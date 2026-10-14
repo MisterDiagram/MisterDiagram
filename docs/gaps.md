@@ -468,3 +468,11 @@ are non-disjoint: no-function 166,151, THEMEVAL 3,661, IF 1,449, GUARD 559,
 THEMEGUARD 442. Witness DVCALL_M master50 Textcallout: LocPinY Height*.5 yields
 #VALUE!, and User.ThemeColor differs (81 versus color index32). Full evidence is
 log/m3-21-coverage.log. The sticky text floor is resolved under the pinned M3.21 rule.
+
+### Phase 5: authored master icons
+
+The seven master entries across the five scratch documents have no authored Icon.
+Visio generates previews on save. Diagramcraft will author its own master icons
+in Phase 5; no vendor icon is copied into the skeleton. Baseline subtraction remains
+per file and path: an unmatched scratch Icon addition is disclosed as a residual
+repair rather than silently borrowing another master's baseline event.

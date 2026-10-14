@@ -927,3 +927,24 @@ fn probe_resave_has_no_literal_differences_in_acceptance_reporter() {
     let _ = std::fs::remove_file(output);
     assert!(result.status.success(), "{}{}", String::from_utf8_lossy(&result.stdout), String::from_utf8_lossy(&result.stderr));
 }
+
+#[test]
+fn unchanged_opc_wrappers_keep_original_bytes() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    for name in ["generated/basic/0001-probe.vsdx", "generated/arrow/begin-00.vsdx"] {
+        let before = diagramcraft_vsdx::read(root.join(name)).unwrap();
+        let after = import(&write(&before).unwrap().bytes).unwrap();
+        let mut count = 0;
+        for (name, part) in &before.parts {
+            if name == "[Content_Types].xml" || name.ends_with(".rels") {
+                assert_eq!(part.bytes, after.parts[name].bytes, "{name}");
+                count += 1;
+            }
+        }
+        assert!(count >= 4);
+    }
+}

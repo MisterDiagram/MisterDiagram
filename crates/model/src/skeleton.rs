@@ -3,6 +3,46 @@
 use crate::*;
 #[path = "skeleton_defaults.rs"]
 mod defaults;
+/// Format authored numeric caches with the observed 16 significant digits.
+/// Read caches bypass this formatter. Witness: scratch metric PageHeight 297 mm.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+pub fn number_text(value: f64) -> Option<String> {
+    if !value.is_finite() {
+        return None;
+    }
+    if value == 0. {
+        return Some("0".into());
+    }
+    format!("{value:.15e}").parse::<f64>().ok().map(|n| n.to_string())
+}
+
+/// Complete authored layer defaults observed in generated/page/layers.vsdx.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/layer-section
+pub fn layer(index: u32, name: &str, visible: bool) -> Result<Row, String> {
+    if index >= 16_384 || name.len() > 65_536 {
+        return Err("layer index or name limit".into());
+    }
+    Ok(row(
+        &[("IX", &index.to_string())],
+        [
+            ("Name", name),
+            ("Color", "0"),
+            ("Status", "0"),
+            ("Visible", if visible { "1" } else { "0" }),
+            ("Print", "1"),
+            ("Active", "0"),
+            ("Lock", "0"),
+            ("Snap", "0"),
+            ("Glue", "0"),
+            ("NameUniv", ""),
+            ("ColorTrans", "0"),
+        ]
+        .into_iter()
+        .map(|(n, v)| cell(n, Some(v), matches!(n, "Color" | "Status" | "Snap" | "Glue" | "NameUniv" | "ColorTrans").then_some("No Formula"), None))
+        .collect(),
+    ))
+}
+
 pub const VISIO_NS: &str = "http://schemas.microsoft.com/office/visio/2012/main";
 const VIS_REL: &str = "http://schemas.microsoft.com/visio/2010/relationships/";
 const OFFICE_REL: &str = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/";
@@ -21,7 +61,15 @@ fn text_element(name: &str, value: &str) -> XmlNode {
 fn cell(name: &str, value: Option<&str>, formula: Option<&str>, units: Option<&str>) -> Cell {
     Cell {
         name: name.into(),
-        value: value.map(str::to_owned),
+        value: value.map(|v| {
+            if units == Some("STR")
+                || matches!(name, "Name" | "NameUniv" | "Prompt" | "Label" | "Comment" | "ShapeKeywords" | "HelpTopic" | "Copyright")
+            {
+                v.to_owned()
+            } else {
+                v.parse::<f64>().ok().and_then(number_text).unwrap_or_else(|| v.to_owned())
+            }
+        }),
         formula: formula.map(str::to_owned),
         units: units.map(str::to_owned),
         ..Default::default()
@@ -70,7 +118,7 @@ pub fn document(metric: bool) -> Document {
         main_part: main.into(),
         document_sheet: defaults::document_sheet(),
         styles: defaults::styles(),
-        colors: BTreeMap::from([(24, "#7f7f7f".into())]),
+        colors: BTreeMap::from([(24, "#7F7F7F".into()), (25, "#000000".into()), (26, "#FFFFFF".into()), (27, "#0000FF".into())]),
         face_names: BTreeMap::from([(0, "Calibri".into())]),
         pages: vec![page(0, "Page-1", metric)],
         masters: vec![dynamic_connector()],
@@ -86,6 +134,11 @@ pub fn document(metric: bool) -> Document {
         ("TextStyle", "0"),
     ]);
     for style in &mut doc.styles {
+        if style.id == 0 {
+            for name in ["Copyright", "HelpTopic"] {
+                style.sheet.cells.push(cell(name, Some(""), None, None));
+            }
+        }
         style.sheet.attributes = attributes(&[("IsCustomNameU", "1"), ("IsCustomName", "1")]);
     }
     doc.document_settings = Some(settings());
@@ -148,10 +201,10 @@ pub fn page(id: u32, name: &str, metric: bool) -> Page {
     if metric {
         for c in &mut sheet.cells {
             match c.name.as_str() {
-                "PageWidth" => c.value = Some((210. / 25.4f64).to_string()),
-                "PageHeight" => c.value = Some((297. / 25.4f64).to_string()),
+                "PageWidth" => c.value = number_text(210. / 25.4),
+                "PageHeight" => c.value = number_text(297. / 25.4),
                 "PageScale" | "DrawingScale" => {
-                    c.value = Some((1. / 25.4f64).to_string());
+                    c.value = number_text(1. / 25.4);
                     c.units = Some("MM".into());
                 }
                 _ => {}
@@ -197,7 +250,14 @@ pub fn dynamic_connector() -> Master {
             line_style: Some(7),
             fill_style: Some(7),
             text_style: Some(7),
-            sheet: defaults::connector_sheet(),
+            sheet: {
+                let mut sheet = defaults::connector_sheet();
+                for name in ["Comment", "ShapeKeywords"] {
+                    sheet.cells.retain(|c| c.name != name);
+                    sheet.cells.push(cell(name, Some(""), Some("Inh"), None));
+                }
+                sheet
+            },
             ..Default::default()
         }],
         attributes: attributes(&[
