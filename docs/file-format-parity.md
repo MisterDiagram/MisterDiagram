@@ -1355,3 +1355,139 @@ Historical run, corrected M3.18 reporter (before the fixed writer's rerun):
 | size | 38 | shipped-stencil__ENTITY_U#master-10 |
 
 Fresh PLANT and SOCIAL_DISTANCING COM counts and ENTITY_U/UCMNME_U size witnesses will be recorded after M3.23. Their historical values are not evidence for the fixed writer.
+
+## M3.23 fresh acceptance, 2026-10-14 UTC: partial
+
+Required results are not met. All 230 files opened, but 226 are repaired under the
+M3.20 definition and 229 fail at least one mandatory check. There are 5,856 repair
+differences and 179,958 source COM differences. COM is a separate column and does
+not by itself mark a file repaired. No new repair exception was added.
+| Set | Files | Opened | Repaired | Failed | Thumbnail added | MasterType | UniqueID |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| generated | 204 | 204 | 203 | 203 | 0 | 7 | 0 |
+| blank | 1 | 1 | 1 | 1 | 0 | 0 | 0 |
+| from-scratch | 5 | 5 | 5 | 5 | 5 | 7 | 0 |
+| shipped-stencil | 10 | 10 | 7 | 10 | 1 | 0 | 0 |
+| shipped-template | 10 | 10 | 10 | 10 | 0 | 0 | 0 |
+
+Allowed classes are six added thumbnails (all five scratch files and
+shipped-stencil__AZURECOMPUTE_M), 14 MasterType rewrites (seven generated,
+seven scratch) and zero UniqueID rewrites. Witnesses: scratch__rectangle-text adds
+docProps/thumbnail.emf; generated__basic__0001-probe master 2 changes MasterType
+0 to 541. MasterType counts are attributes, thumbnail counts are parts. No
+existing opaque thumbnail, Icon, media or embedding change is waived.
+
+The historical P3-closure restatement on unchanged old inputs/outputs is 230 opened,
+230 repaired, 30,237 literal/part differences and 180,294 source COM differences.
+The former 4,107/295,787 report was unreliable. Historical evaluator-only round-trip
+100% was also insufficient: the old raw-cache result 578,769/584,822 = 98.96% was
+real. After the writer fixes, the strict local-cache comparison is
+15,079,024/15,091,678 = 99.916152% across 1,387 packages, above the unchanged 99%.
+The current evaluation-only diagnostic has the same numerator and denominator.
+
+The harness-only PageSheet XForm row 1 unit artifacts remain disclosed separately:
+1,296 absent-in-both-XML slots, with COM codes 32/73, are not source cell changes.
+17,223 style-local cells unobserved by COM remain covered by literal XML comparison.
+The numeric COM eligible population was not changed to conceal these failures.
+
+| Group | Images | Empty | Errors | MAD (0 to 255) | Pixels over 16 | Gate |
+|---|---:|---:|---:|---:|---:|---|
+| arrow | 92 | 0 | 0 | 0.543633 | 1.071225% | PASS |
+| basic | 1 | 0 | 0 | 0.443949 | 0.745332% | PASS |
+| blank-pages | 1 | 1 | 0 | n/a | n/a | PASS |
+| connector | 6 | 0 | 1 | 2.368622 | 1.116240% | FAIL |
+| fill | 44 | 0 | 0 | 1.112028 | 1.373298% | PASS |
+| from-scratch-masters | 8 | 0 | 0 | 119.602383 | 59.281546% | FAIL |
+| from-scratch-pages | 5 | 0 | 0 | 235.505866 | 96.519357% | FAIL |
+| generated-masters | 9 | 0 | 0 | 1.202102 | 2.648070% | FAIL |
+| group | 1 | 0 | 0 | 0.690956 | 1.251292% | PASS |
+| image | 3 | 0 | 0 | 1.602828 | 1.731289% | PASS |
+| line | 37 | 0 | 1 | 1.105930 | 1.047197% | FAIL |
+| master | 1 | 0 | 0 | 1.608085 | 1.791412% | PASS |
+| page | 4 | 0 | 0 | 2.821761 | 1.171389% | PASS |
+| shipped-stencil-masters | 186 | 0 | 102 | 10.127434 | 8.677037% | informational |
+| shipped-template-masters | 115 | 0 | 63 | 5.829746 | 2.323606% | informational |
+| shipped-template-pages | 11 | 6 | 4 | 1.917666 | 3.722501% | informational |
+| text | 16 | 0 | 5 | 1.740866 | 2.243005% | FAIL |
+
+From-scratch results:
+
+| File | Repairs | Source COM differences | Measured result |
+|---|---:|---:|---|
+| rectangle-text | 5 | 0 | Both page images 193 x 97; pixel ceiling fails |
+| dynamic-glue | 8 | 0 | Both 481 x 97; dark route in Visio, two COM connects; pixel ceiling fails |
+| dropped-master | 5 | 0 | Both 193 x 97; resized geometry present; pixel ceiling fails |
+| three-masters | 5 | 0 | Three masters retain one shape each; both sides 97 x 97, 145 x 97, 193 x 97; pixel ceiling fails |
+| metric-background-layers | 19 | 65 | Background relationship retained, no unexpected part difference; pixel and COM checks fail |
+
+Our scratch fills are opaque black where Visio paints white. This is not an alpha
+comparison artifact: rectangle-text pixel (3,3) is (0,0,0,255), while Visio is white.
+The serialized default FillForegnd is #ffffff and the palette only declares index24.
+Evaluator::cached_cell recognizes a literal RGB cache only through a declared
+palette match, otherwise its numeric cached-value path returns #VALUE!; the scene
+color fallback paints black. The page sheet and shape FillForegnd diagnostics both
+show #VALUE! in log/m3-23-scratch-sheet.tsv. This is an implementation gap, not
+Visio changing the intended fill or grounds for changing the pixel comparison.
+
+The remaining scratch repairs include empty Copyright/HelpTopic cells, inherited
+Comment/ShapeKeywords, master Icon additions, removed connector caches and missing
+layer defaults. The metric page height also differs in final decimal digits.
+Metric COM still has 65 differences, including Para.IndFirst/IndLeft/IndRight and
+TextPosAfterBullet units 73 versus 70 when U is absent. The zero-COM requirement
+is not met. No vendor Icon is copied into the authored skeleton.
+
+The most frequent generated repair witness is pages.xml Page ViewCenterX/Y:
+begin-00 and 0001-probe change 4.2538462786703 to 4.2461539707522 and
+5.5076924693091 to 5.500000161391. These are still repairs under M3.20.
+Seven generated page images fail strict size comparison: connector/obstacle,
+one line image and five text images (the exact names and sizes follow in the report).
+Generated master pixels also fail (2.648070% over 16). The M2 generated-corpus gate
+still passes all ten frozen groups, with ten individual outliers; it is a different
+comparison and retains its approved one-pixel rule. M3 acceptance is strict.
+
+Shipped render checks are informational only. The selected shipped files still
+must pass open, part, attribute, literal and COM checks. PLANT_M has 25 repairs
+and 125,161 COM differences; SOCIAL_DISTANCING_M has 4,876 repairs and 27,436 COM
+differences. These are fresh fixed-writer measurements. ENTITY_U master4 is
+98 x 98 versus 99 x 99; UCMNME_U master5 is 97 x 49 versus 865 x 433.
+These render gaps carry into Phase 4, while structural/COM failures still block M3.
+
+- generated__connector__obstacle#page-0: ours [529, 289], Visio [529, 307]
+- generated__line__pattern-00#page-0: ours [480, 384], Visio [384, 288]
+- generated__text__align-0-0#page-0: ours [388, 289], Visio [387, 289]
+- generated__text__align-0-1#page-0: ours [388, 289], Visio [387, 289]
+- generated__text__align-0-2#page-0: ours [388, 291], Visio [387, 291]
+- generated__text__multiline-wrap#page-0: ours [206, 385], Visio [207, 385]
+- generated__text__sizes#page-0: ours [481, 531], Visio [481, 532]
+
+| COM cohort | Main passed / eligible | Main rate | Text passed / eligible | Text rate |
+|---|---:|---:|---:|---:|
+| Old, 301 shipped plus 213 generated/blank | 20805945 / 21055732 | 98.813686458% | 12807 / 14118 | 90.713982150% |
+| New within pinned 702, 401 dumps | 23240476 / 23671431 | 98.179429879% | 14553 / 16143 | 90.150529641% |
+| Pinned 702 shipped, 915 total | 44046421 / 44727163 | 98.478012120% | 27360 / 30261 | 90.413403391% |
+| Later 170 shipped, outside rebase | 9819068 / 9991250 | 98.276672088% | 11477 / 11764 | 97.560353621% |
+| Full measured 872 shipped, 1085 total | 53865489 / 54718413 | 98.441248652% | 38837 / 42025 | 92.414039% |
+
+Old text meets 90.7139%, authorizing M3.21's pinned combined text floor
+90.413403300%. Cached text is unchanged: 61,748/67,797 = 91.077776%, above
+90.9875%. Main COM retains 98.478012100%; later coverage fails that floor and is
+not rebased. Cached main is 4,675,663/4,783,865 = 97.738189%, above 97.4911%.
+The preceding 413-dump measurement was 27,416,668/27,803,388 = 98.609090%, framed
+in the brief as 302 old plus 111 new; proven complete membership is 301 plus 112.
+Both pinned main/text memberships and SHA256 values are committed in
+apps/diagramcraft-corpus/tests/cohorts/ and named in floors.toml. Ordinary full
+checks keep consuming all completed coverage. Workers' shared input remains read-only.
+
+Round-trip render: every scored original/rewritten pair has MAD 0 and fraction 0,
+with no size mismatch. Identical renderer errors remain 568 master pairs and 74
+page pairs, separately disclosed without pixel scores. Strict cell mismatches total
+12,654; largest names are FillBkgnd 1,307, Char.Size 593,
+User.SubShapeType.Prompt 242, Rounding 233 and User.ValueFormat 184.
+Complete name counts are in log/m3-23-roundtrip.log.
+
+Final frozen verification passes1and2 each returned10YES/4NO. The NO lines are
+M3.13 (dropped-master pixels), M3.15 (metric COM units), M3.16 (connector pixels)
+and M3.23-Gates. Both seeds were caught101/restored0. No two-clean-pass claim.
+M3.23 records partial results only. Full private report:
+corpus/_state/P3-closure-2-report.md; detailed register:
+plan/m3-verification-register.md. Final Python reporter suite25/25 passes.

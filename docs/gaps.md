@@ -382,3 +382,77 @@ Historical run, corrected M3.18 reporter (before the fixed writer's rerun):
 | size | 38 | shipped-stencil__ENTITY_U#master-10 |
 
 Fresh PLANT and SOCIAL_DISTANCING COM counts and ENTITY_U/UCMNME_U size witnesses will be recorded after M3.23. Their historical values are not evidence for the fixed writer.
+
+## M3.23 fresh acceptance, 2026-10-14 UTC: partial
+
+Required results are not met. All 230 files opened, but 226 are repaired under the
+M3.20 definition and 229 fail at least one mandatory check. There are 5,856 repair
+differences and 179,958 source COM differences. COM is a separate column and does
+not by itself mark a file repaired. No new repair exception was added.
+From-scratch results:
+
+| File | Repairs | Source COM differences | Measured result |
+|---|---:|---:|---|
+| rectangle-text | 5 | 0 | Both page images 193 x 97; pixel ceiling fails |
+| dynamic-glue | 8 | 0 | Both 481 x 97; dark route in Visio, two COM connects; pixel ceiling fails |
+| dropped-master | 5 | 0 | Both 193 x 97; resized geometry present; pixel ceiling fails |
+| three-masters | 5 | 0 | Three masters retain one shape each; both sides 97 x 97, 145 x 97, 193 x 97; pixel ceiling fails |
+| metric-background-layers | 19 | 65 | Background relationship retained, no unexpected part difference; pixel and COM checks fail |
+
+Our scratch fills are opaque black where Visio paints white. This is not an alpha
+comparison artifact: rectangle-text pixel (3,3) is (0,0,0,255), while Visio is white.
+The serialized default FillForegnd is #ffffff and the palette only declares index24.
+Evaluator::cached_cell recognizes a literal RGB cache only through a declared
+palette match, otherwise its numeric cached-value path returns #VALUE!; the scene
+color fallback paints black. The page sheet and shape FillForegnd diagnostics both
+show #VALUE! in log/m3-23-scratch-sheet.tsv. This is an implementation gap, not
+Visio changing the intended fill or grounds for changing the pixel comparison.
+
+The remaining scratch repairs include empty Copyright/HelpTopic cells, inherited
+Comment/ShapeKeywords, master Icon additions, removed connector caches and missing
+layer defaults. The metric page height also differs in final decimal digits.
+Metric COM still has 65 differences, including Para.IndFirst/IndLeft/IndRight and
+TextPosAfterBullet units 73 versus 70 when U is absent. The zero-COM requirement
+is not met. No vendor Icon is copied into the authored skeleton.
+
+The most frequent generated repair witness is pages.xml Page ViewCenterX/Y:
+begin-00 and 0001-probe change 4.2538462786703 to 4.2461539707522 and
+5.5076924693091 to 5.500000161391. These are still repairs under M3.20.
+Seven generated page images fail strict size comparison: connector/obstacle,
+one line image and five text images (the exact names and sizes follow in the report).
+Generated master pixels also fail (2.648070% over 16). The M2 generated-corpus gate
+still passes all ten frozen groups, with ten individual outliers; it is a different
+comparison and retains its approved one-pixel rule. M3 acceptance is strict.
+
+Shipped render checks are informational only. The selected shipped files still
+must pass open, part, attribute, literal and COM checks. PLANT_M has 25 repairs
+and 125,161 COM differences; SOCIAL_DISTANCING_M has 4,876 repairs and 27,436 COM
+differences. These are fresh fixed-writer measurements. ENTITY_U master4 is
+98 x 98 versus 99 x 99; UCMNME_U master5 is 97 x 49 versus 865 x 433.
+These render gaps carry into Phase 4, while structural/COM failures still block M3.
+
+- generated__connector__obstacle#page-0: ours [529, 289], Visio [529, 307]
+- generated__line__pattern-00#page-0: ours [480, 384], Visio [384, 288]
+- generated__text__align-0-0#page-0: ours [388, 289], Visio [387, 289]
+- generated__text__align-0-1#page-0: ours [388, 289], Visio [387, 289]
+- generated__text__align-0-2#page-0: ours [388, 291], Visio [387, 291]
+- generated__text__multiline-wrap#page-0: ours [206, 385], Visio [207, 385]
+- generated__text__sizes#page-0: ours [481, 531], Visio [481, 532]
+
+| Shipped render error | Views | Witness |
+|---|---:|---|
+| #CYCLE! | 4 | shipped-stencil__USTRME_U#master-10 |
+| #NAME? REF | 2 | shipped-stencil__EEPATH_U#master-23 |
+| #VALUE! | 8 | shipped-template__PTSKST_M#page-0 |
+| CHAR | 2 | shipped-stencil__ENTITY_U#master-2 |
+| LISTORDER | 2 | shipped-template__UMLSEQUENCE_INTERACTIONFRAME_M#page-0 |
+| our renderer: The image format could not be determined | 1 | shipped-template__SOCIAL_DISTANCING_M#page-0 |
+| size | 150 | shipped-stencil__AZUREVMWARESOLUTION_M#master-2 |
+
+Later full COM coverage adds 170 completed dumps beyond the pinned 702. Its rate
+98.441248652% is below the standing main floor 98.478012100%; this is an open
+Phase 3 gate, not another authorized rebase. New-set failing function occurrences
+are non-disjoint: no-function 166,151, THEMEVAL 3,661, IF 1,449, GUARD 559,
+THEMEGUARD 442. Witness DVCALL_M master50 Textcallout: LocPinY Height*.5 yields
+#VALUE!, and User.ThemeColor differs (81 versus color index32). Full evidence is
+log/m3-21-coverage.log. The sticky text floor is resolved under the pinned M3.21 rule.

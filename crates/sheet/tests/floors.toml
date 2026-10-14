@@ -15,8 +15,8 @@ all = 0.984780121
 [closure]
 packages = 1387
 shipped_packages = 1181
-# Shared completed-dump coverage refreshed at M2.9; other closure counts are historical M1.
-completed_shipped_dumps = 702
+# Shared completed-dump coverage measured at M3.23; other closure counts are historical M1.
+completed_shipped_dumps = 872
 full_cached_matches = 5247024
 full_cached_denominator = 5355260
 full_resolved_matches = 7181152

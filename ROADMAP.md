@@ -102,3 +102,50 @@ and text cohorts are now committed under apps/diagramcraft-corpus/tests/cohorts/
 with exact dump paths, counts and SHA256 pins in floors.toml. Generated/blank213
 dumps stay in the old population; old total514, combined915. These fixed lists
 cannot silently move to a later snapshot. The shared source directory is read-only.
+
+## M3.23 fresh acceptance, 2026-10-14 UTC: partial
+
+Required results are not met. All 230 files opened, but 226 are repaired under the
+M3.20 definition and 229 fail at least one mandatory check. There are 5,856 repair
+differences and 179,958 source COM differences. COM is a separate column and does
+not by itself mark a file repaired. No new repair exception was added.
+| Set | Files | Opened | Repaired | Failed | Thumbnail added | MasterType | UniqueID |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| generated | 204 | 204 | 203 | 203 | 0 | 7 | 0 |
+| blank | 1 | 1 | 1 | 1 | 0 | 0 | 0 |
+| from-scratch | 5 | 5 | 5 | 5 | 5 | 7 | 0 |
+| shipped-stencil | 10 | 10 | 7 | 10 | 1 | 0 | 0 |
+| shipped-template | 10 | 10 | 10 | 10 | 0 | 0 | 0 |
+
+Strict round-trip cells: 15,079,024/15,091,678 = 99.916152%. Successful image pairs
+are identical; 642 identical error pairs remain separately disclosed. Host CI,
+parity, round-trip, malformed and from-scratch tests pass; full corpus and acceptance
+reporter fail. All 230 files opened, including the three authored masters and the
+resized dropped master. Scratch connector has two COM connections and visible ink.
+The required pixel, repair and metric COM conditions remain unmet. Parity stays
+25% (1 D, 17 P, 27 M of 45 Core rows). M3 is partial; Phase 4 has not started.
+
+| COM cohort | Main passed / eligible | Main rate | Text passed / eligible | Text rate |
+|---|---:|---:|---:|---:|
+| Old, 301 shipped plus 213 generated/blank | 20805945 / 21055732 | 98.813686458% | 12807 / 14118 | 90.713982150% |
+| New within pinned 702, 401 dumps | 23240476 / 23671431 | 98.179429879% | 14553 / 16143 | 90.150529641% |
+| Pinned 702 shipped, 915 total | 44046421 / 44727163 | 98.478012120% | 27360 / 30261 | 90.413403391% |
+| Later 170 shipped, outside rebase | 9819068 / 9991250 | 98.276672088% | 11477 / 11764 | 97.560353621% |
+| Full measured 872 shipped, 1085 total | 53865489 / 54718413 | 98.441248652% | 38837 / 42025 | 92.414039% |
+
+Old text meets 90.7139%, authorizing M3.21's pinned combined text floor
+90.413403300%. Cached text is unchanged: 61,748/67,797 = 91.077776%, above
+90.9875%. Main COM retains 98.478012100%; later coverage fails that floor and is
+not rebased. Cached main is 4,675,663/4,783,865 = 97.738189%, above 97.4911%.
+The preceding 413-dump measurement was 27,416,668/27,803,388 = 98.609090%, framed
+in the brief as 302 old plus 111 new; proven complete membership is 301 plus 112.
+Both pinned main/text memberships and SHA256 values are committed in
+apps/diagramcraft-corpus/tests/cohorts/ and named in floors.toml. Ordinary full
+checks keep consuming all completed coverage. Workers' shared input remains read-only.
+
+Final frozen verification passes1and2 each returned10YES/4NO. The NO lines are
+M3.13 (dropped-master pixels), M3.15 (metric COM units), M3.16 (connector pixels)
+and M3.23-Gates. Both seeds were caught101/restored0. No two-clean-pass claim.
+M3.23 records partial results only. Full private report:
+corpus/_state/P3-closure-2-report.md; detailed register:
+plan/m3-verification-register.md. Final Python reporter suite25/25 passes.
