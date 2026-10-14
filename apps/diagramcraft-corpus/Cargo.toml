@@ -6,6 +6,7 @@ license.workspace = true
 [lints]
 workspace = true
 [dependencies]
+serde_json.workspace = true
 sha2 = "0.10.9"
 diagramcraft-render.workspace = true
 image.workspace = true
@@ -17,4 +18,3 @@ diagramcraft-theme.workspace = true
 
 [dev-dependencies]
 zip.workspace = true
-serde_json.workspace = true

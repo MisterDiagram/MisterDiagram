@@ -48,7 +48,11 @@ pub fn write_as_with_hosts(
         // A document stencil has no background-page relationship.
         page.attributes.remove("BackPage");
         page.attributes.remove("Background");
-        page.attributes.insert("ViewScale".into(), "0".into());
+        // PageSheet-only stencil entries have no drawing view. Visio preserves zeros.
+        // Witness: scratch__three-masters/saved.vssx, visio/pages/pages.xml.
+        for name in ["ViewScale", "ViewCenterX", "ViewCenterY"] {
+            page.attributes.insert(name.into(), "0".into());
+        }
         let mut pages = source(&d, &path).cloned().unwrap_or_else(|| node("Pages"));
         let mut entry = pages
             .elements()

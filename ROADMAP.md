@@ -273,3 +273,19 @@ the 15 residual metadata repairs. All five production seeds are caught and
 restored byte for byte. These are two completed passes, not two clean passes.
 No additional source changes, comparison exceptions or render changes were
 introduced to manufacture closure.
+
+## M3 gate ruling: small-image export mapping (Charles, 2026-10-14)
+
+M3 render acceptance rests on the ten page-size groups, with unchanged frozen
+ceilings and the one-pixel/common-area rule. Generated-masters,
+from-scratch-masters and from-scratch-pages are informational until Visio's
+export mapping for small images is derived, then reopen as required gates.
+Corpus check prints their saved acceptance measurements explicitly as such;
+the acceptance reporter still measures and prints them. No ceiling changes.
+
+M3.39 authors Page ViewScale=-1 and ViewCenterX/Y at the page centre in internal
+inches. The Page-level class "Page view attributes rewritten on save" is counted
+separately beside the scratch document-level blank baseline. Only the three
+exact Page attributes with finite saved numbers qualify; removals, other paths
+and unrelated attributes remain repairs. Witnesses: corpus/blank/blank.vsdx,
+the generated D_base Page records and Visio's saved scratch drawings.

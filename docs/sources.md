@@ -153,7 +153,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/nurbs-function> | `crates/geom/src/rows.rs`, `crates/sheet/src/functions/constructors.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/nurbsto-row-geometry-section> | `crates/geom/src/rows.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/or-function> | `crates/sheet/src/functions/mod.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/write.rs`, `crates/vsdx/src/write/validate.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs`, `crates/model/tests/from_scratch.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/write.rs`, `crates/vsdx/src/write/validate.rs`, `tools/oracle/accept_report.py` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pages-elementvisio-xml> | `crates/vsdx/src/write/format.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pagescale-cell-page-properties-section> | `crates/render/src/scene.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pagesheet-element-page_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs` |

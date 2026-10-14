@@ -216,6 +216,8 @@ fn settings() -> XmlElement {
     )
 }
 /// Page defaults come from the blank witness; metric pages use A4 physical dimensions.
+/// Page view defaults are centred with ViewScale=-1, observed in corpus/blank/blank.vsdx.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/pagesheet-element-page_type-complextypevisio-xml
 pub fn page(id: u32, name: &str, metric: bool) -> Page {
     let mut sheet = defaults::page_sheet();
@@ -238,7 +240,11 @@ pub fn page(id: u32, name: &str, metric: bool) -> Page {
         name: name.into(),
         name_u: name.into(),
         sheet,
-        attributes: attributes(&[("ViewScale", "1"), ("ViewCenterX", "0"), ("ViewCenterY", "0")]),
+        attributes: attributes(&[
+            ("ViewScale", "-1"),
+            ("ViewCenterX", &number_text(if metric { 105. / 25.4 } else { 4.25 }).unwrap_or_default()),
+            ("ViewCenterY", &number_text(if metric { 148.5 / 25.4 } else { 5.5 }).unwrap_or_default()),
+        ]),
         part: format!("visio/pages/page{}.xml", u64::from(id) + 1),
         ..Default::default()
     }

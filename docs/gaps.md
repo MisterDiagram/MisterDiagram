@@ -649,3 +649,13 @@ The three small-image groups remain measured, ruling pending under closure-5;
 M3.33 and M3.37 diagnostic findings stand with no renderer change. The first
 SOCIAL attempt timed out, but the single-file retry completed within 3600s, so
 no acceptance observation remains incomplete.
+
+## Phase 4: export mapping for small images
+
+Charles's M3 gate ruling, 2026-10-14: generated-masters, from-scratch-masters
+and from-scratch-pages are informational until the mapping is derived, when
+this item reopens as a required gate. Ceilings stay unchanged. Keep the M3.33
+66-view table and all six candidate results in file-format-parity.md, and the
+M3.37 67-cell connector diagnostic above: no differing cell explains the
+approximately 0.04 in padding. No renderer change is part of M3.39/M3.40.
+Saved measurements remain visible in corpus check and measured in reports.

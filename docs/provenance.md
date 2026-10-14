@@ -143,3 +143,11 @@ pins, guarded width/height, TextPosition controls, straight Geometry rows with t
 unused master row deleted, ConFixedCode6 and membership in a Connector layer. Endpoint
 caches come from the caller's geometry. This is observed functional formula/format
 behavior, with no copied icon, artwork or Microsoft copyright cell.
+
+### Section 5 addendum: M3.39 authored Page view defaults
+
+Page ViewScale=-1 and centred ViewCenterX/Y are authored from observed
+corpus/blank/blank.vsdx and the saved scratch Page witnesses. Metric centres
+use the authored A4 page dimensions in internal inches. These scalar format
+defaults contain no vendor visual asset. Public Page reference:
+https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml

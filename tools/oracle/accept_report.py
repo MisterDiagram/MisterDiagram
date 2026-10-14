@@ -559,13 +559,15 @@ def scratch_render_assertion(name, stem, result, image):
 
 
 def allowed_rewrites(old_cells, new_cells, differences, part_diff):
-    """Only Charles's three M3.32 authored first-save classes are allowed.
+    """Charles's M3.32 first-save classes and M3.39 Page view rewrites.
 
     Witness: scratch rectangle-text original/saved master UniqueID and MasterType;
     missing thumbnail accepted, 2x2 PNG rejected in diag-variants/v1-nothumb.vsdx.
+    Page views: saved scratch Page elements and original generated D_base records.
+    https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
     """
     import re
-    classes = {'thumbnail_added': [], 'master_type': [], 'master_uniqueid': [], 'icon_added': [], 'first_save_stamps': []}
+    classes = {'thumbnail_added': [], 'master_type': [], 'master_uniqueid': [], 'icon_added': [], 'first_save_stamps': [], 'page_view_rewrites': []}
     if 'docProps/thumbnail.emf' in part_diff['added']:
         classes['thumbnail_added'].append('docProps/thumbnail.emf')
         part_diff = dict(part_diff, added=[n for n in part_diff['added'] if n != 'docProps/thumbnail.emf'])
@@ -601,6 +603,18 @@ def allowed_rewrites(old_cells, new_cells, differences, part_diff):
         kind = kinds.get(key)
         import ast
         path = ast.literal_eval(key)[0]
+        # M3.39: exact Page attributes only, with finite numeric saved values.
+        # https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
+        if (kind == 'attribute' and field in ('V', 'added') and ast.literal_eval(key)[1] == 0
+            and re.fullmatch(r'visio/pages/pages\.xml/Page:[0-9]+/Attribute:(ViewScale|ViewCenterX|ViewCenterY)', path)):
+            saved = new_cells.get(ast.literal_eval(key), {}).get('V')
+            try:
+                numeric = math.isfinite(float(saved))
+            except (TypeError, ValueError, OverflowError):
+                numeric = False
+            if numeric:
+                classes['page_view_rewrites'].append(diff)
+                continue
         if kind == 'metadata' and field == 'added' and path in thumbnail_records:
             continue
         if kind == 'icon' and field == 'added' and '/Master:' in path:
@@ -676,7 +690,7 @@ def verified_observation(path, actual, entry, manifest):
 
 
 def render_required(set_or_group):
-    """M3.22 shipped views and closure-5 small-image views are informational."""
+    """M3.22 shipped views and Charles's 2026-10-14 small-image ruling are informational."""
     return set_or_group not in {
         'generated-masters','from-scratch-masters','from-scratch-pages',
         'shipped-stencil','shipped-template',
@@ -763,7 +777,7 @@ def report(out, manifest, baseline=None):
             remaining, subtracted = subtract_baseline(ours,base)
             _, _, allowed = allowed_rewrites(old_cells,new_cells,cells,part_diff)
             if not entry.get('source'):
-                # Only the three M3.32 classes supplement the blank baseline.
+                # M3.32 first-save and M3.39 Page-view classes supplement the blank baseline.
                 retained_cells, retained_parts, _ = allowed_rewrites(old_cells,new_cells,cells,part_diff)
                 retained = {(d[0],d[1]) for d in retained_cells}
                 retained.update(('part:'+p,k) for k in ('added','removed') for p in retained_parts[k])
@@ -873,7 +887,7 @@ def report(out, manifest, baseline=None):
         for i in worst:
             print('  worst',i)
     for name,c in sorted(sets.items()):
-        print(f"accept set {name}: files={c['files']} opened={c['opened']} repaired={c['repaired']} failed={c['failed']} thumbnail_added={c['thumbnail_added']} master_type={c['master_type']} master_uniqueid={c['master_uniqueid']} icon_added={c['icon_added']} first_save_stamps={c['first_save_stamps']} opc_byte_only={c['opc_byte_only']}")
+        print(f"accept set {name}: files={c['files']} opened={c['opened']} repaired={c['repaired']} failed={c['failed']} thumbnail_added={c['thumbnail_added']} master_type={c['master_type']} master_uniqueid={c['master_uniqueid']} icon_added={c['icon_added']} first_save_stamps={c['first_save_stamps']} page_view_rewrites={c['page_view_rewrites']} opc_byte_only={c['opc_byte_only']}")
         success &= c['opened'] == c['files'] and c['repaired'] == c['failed'] == 0
     success &= bool(groups)
     target = ROOT/'corpus/_state/m3/accept-report.json'

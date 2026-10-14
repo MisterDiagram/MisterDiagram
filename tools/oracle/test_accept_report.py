@@ -21,6 +21,39 @@ class Acceptance(unittest.TestCase):
             z.writestr('visio/document.xml', xml)
         return path
 
+
+    def test_page_view_rewrites_are_exact_numeric_and_scratch_only(self):
+        def records(path, value):
+            return {(path,0):{'kind':'attribute','V':value,'F':None,'U':None,'E':None}}
+        prefix='visio/pages/pages.xml/Page:0/Attribute:'
+        observed=[]
+        for scale in ('1','-1'):
+            path=self.root/(scale+'.vsdx')
+            with zipfile.ZipFile(path,'w') as z:
+                z.writestr('visio/pages/pages.xml',f'<Pages xmlns="http://schemas.microsoft.com/office/visio/2012/main"><Page ID="0" ViewScale="{scale}"/></Pages>')
+            observed.append(report.package_cells(path)[1])
+        diff=report.cell_diffs(*observed,set())
+        self.assertEqual(len(diff),1)
+        remaining,_,classes=report.allowed_rewrites(*observed,diff,{'added':[],'removed':[]})
+        self.assertEqual(remaining,[])
+        self.assertEqual(len(classes['page_view_rewrites']),1)
+        for name in ('ViewScale','ViewCenterX','ViewCenterY'):
+            a,b=records(prefix+name,'0'),records(prefix+name,'4.25')
+            diff=report.cell_diffs(a,b,set())
+            self.assertEqual(len(diff),1)  # Ordinary originals still use D_base.
+            remaining,_,classes=report.allowed_rewrites(a,b,diff,{'added':[],'removed':[]})
+            self.assertEqual(remaining,[])
+            self.assertEqual(len(classes['page_view_rewrites']),1)
+        for path,value in [(prefix+'Width','4.25'),(prefix+'ViewCenterX','nan'),
+                           ('visio/pages/page1.xml/Page:0/Attribute:ViewScale','1'),
+                           ('visio/pages/pages.xml/Shape:0/Attribute:ViewScale','1')]:
+            a,b=records(path,'0'),records(path,value)
+            remaining,_,_=report.allowed_rewrites(a,b,report.cell_diffs(a,b,set()),{'added':[],'removed':[]})
+            self.assertEqual(len(remaining),1)
+        a=records(prefix+'ViewScale','1')
+        remaining,_,_=report.allowed_rewrites(a,{},report.cell_diffs(a,{},set()),{'added':[],'removed':[]})
+        self.assertEqual(len(remaining),1)
+
     def test_connects_are_required_and_bounded(self):
         p = self.root/'connects.tsv'
         header = 'from_sheet\tfrom_cell\tto_sheet\tto_cell\tfrom_part\tto_part\n'
@@ -326,7 +359,7 @@ class Acceptance(unittest.TestCase):
         diffs,left,allowed=report.allowed_rewrites(a,b,report.cell_diffs(a,b,set()),parts)
         self.assertEqual(len(diffs),3)
         self.assertEqual(left['added'],['unexpected.xml'])
-        self.assertEqual({k:len(v) for k,v in allowed.items()},{'thumbnail_added':1,'master_type':1,'master_uniqueid':1,'icon_added':0,'first_save_stamps':0})
+        self.assertEqual({k:len(v) for k,v in allowed.items()},{'thumbnail_added':1,'master_type':1,'master_uniqueid':1,'icon_added':0,'first_save_stamps':0,'page_view_rewrites':0})
         b[keys[1]]=cell('{00000000-1234-ABCD-8E40-00608CF305B2}','master_uniqueid')
         self.assertEqual(len(report.allowed_rewrites(a,b,report.cell_diffs(a,b,set()),parts)[0]),3)
 

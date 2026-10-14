@@ -51,6 +51,7 @@ pub struct Witness {
 }
 #[derive(Debug, Default)]
 pub struct Report {
+    pub small_image_observations: Vec<String>,
     pub render: Option<render::Report>,
     pub roundtrip: Option<roundtrip::Report>,
     pub text_metric_floor: f64,
@@ -123,6 +124,9 @@ impl Report {
 }
 impl fmt::Display for Report {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for line in &self.small_image_observations {
+            writeln!(f, "{line}")?;
+        }
         if let Some(roundtrip) = &self.roundtrip {
             writeln!(f, "{roundtrip}")?;
         }
@@ -792,6 +796,7 @@ fn run_pass_with_coverage(root: &Path, quick: bool, deferred: bool, mut coverage
     files.sort();
     pinned.require_available(root)?;
     let mut report = Report {
+        small_image_observations: saved_small_image_observations(root),
         render: None,
         roundtrip: None,
         text_metric_floor: floor(include_str!("../../../crates/sheet/tests/floors.toml"), "text-metric")? * 100.,
@@ -1133,6 +1138,7 @@ mod tests {
     #[test]
     fn shipped_floor_cannot_be_masked_by_overall_and_empty_oracles_fail() {
         let mut report = Report {
+            small_image_observations: Vec::new(),
             render: None,
             roundtrip: None,
             text_metric_floor: 90.,
@@ -1272,6 +1278,53 @@ mod text_gate_tests {
         assert_eq!(promoted(include_str!("../../../crates/sheet/tests/floors.toml")), Ok(true));
         for invalid in ["", "promoted=maybe", "promoted=true\npromoted=false"] {
             assert!(promoted(invalid).is_err());
+        }
+    }
+}
+
+// Charles's M3 gate keeps these measured groups visible without changing a ceiling.
+// This is explicitly a saved acceptance observation, not a fresh pixel comparison.
+fn saved_small_image_observations(root: &Path) -> Vec<String> {
+    let path = root.join("_state/m3/accept-report.json");
+    let bytes = (|| -> Result<Vec<u8>, std::io::Error> {
+        let mut bytes = Vec::new();
+        File::open(&path)?.take(8 * 1024 * 1024 + 1).read_to_end(&mut bytes)?;
+        Ok(bytes)
+    })();
+    match bytes.map_err(|e| e.to_string()).and_then(|bytes| small_image_observations(&bytes)) {
+        Ok(lines) => lines,
+        Err(e) => vec![format!("small-image saved acceptance informational: unavailable ({e}); Phase 4 export mapping for small images")],
+    }
+}
+fn small_image_observations(bytes: &[u8]) -> Result<Vec<String>, String> {
+    if bytes.len() > 8 * 1024 * 1024 {
+        return Err("acceptance observation byte limit".into());
+    }
+    let value: serde_json::Value = serde_json::from_slice(bytes).map_err(|e| e.to_string())?;
+    let mut lines = Vec::new();
+    for name in ["generated-masters", "from-scratch-masters", "from-scratch-pages"] {
+        let group = value.get("groups").and_then(|v| v.get(name)).ok_or("missing small-image group")?;
+        let images = group.get("images").and_then(|v| v.as_u64()).ok_or("invalid image count")?;
+        let mad = group.get("mad").and_then(|v| v.as_f64()).filter(|v| (0. ..=255.).contains(v)).ok_or("invalid MAD")?;
+        let fraction = group.get("fraction").and_then(|v| v.as_f64()).filter(|v| (0. ..=1.).contains(v)).ok_or("invalid fraction")?;
+        lines.push(format!(
+            "small-image saved acceptance {name}: images={images} MAD={mad:.6} over16={:.6}% informational; gate reopens when mapping is derived (Phase 4)",
+            fraction * 100.
+        ));
+    }
+    Ok(lines)
+}
+#[cfg(test)]
+mod small_image_tests {
+    #[test]
+    fn saved_measurements_are_disclosed_and_hostile_json_is_bounded() {
+        let group = serde_json::json!({"images": 3, "mad": 7.0, "fraction": 0.09});
+        let value = serde_json::json!({"groups": {"generated-masters": group, "from-scratch-masters": group, "from-scratch-pages": group}});
+        let lines = super::small_image_observations(&serde_json::to_vec(&value).unwrap()).unwrap();
+        assert_eq!(lines.len(), 3);
+        assert!(lines.iter().all(|line| line.contains("MAD=7.000000 over16=9.000000% informational")));
+        for bytes in [b"{}".to_vec(), vec![b'['; 1000], vec![0; 8 * 1024 * 1024 + 1]] {
+            assert!(super::small_image_observations(&bytes).is_err());
         }
     }
 }

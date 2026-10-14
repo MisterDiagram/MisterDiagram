@@ -290,3 +290,24 @@ fn synthetic_master_unique_ids_use_observed_visio_suffix() {
     assert!(id.ends_with("-8E40-00608CF305B2}"));
     assert_ne!(a.masters[0].unique_id, b.masters[0].unique_id);
 }
+
+/// Authored view defaults follow the blank Page witness, in internal inches.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
+#[test]
+fn authored_page_view_is_centred() {
+    for metric in [false, true] {
+        let d = skeleton::document(metric);
+        let reread = import(&write_as(&d, SaveKind::Drawing).unwrap().bytes).unwrap();
+        let page = &reread.pages[0];
+        assert_eq!(page.attributes.get("ViewScale").map(String::as_str), Some("-1"));
+        let stencil = import(&write_as(&d, SaveKind::Stencil).unwrap().bytes).unwrap();
+        for attribute in ["ViewScale", "ViewCenterX", "ViewCenterY"] {
+            assert_eq!(stencil.pages[0].attributes.get(attribute).map(String::as_str), Some("0"));
+        }
+        for (attribute, cell) in [("ViewCenterX", "PageWidth"), ("ViewCenterY", "PageHeight")] {
+            let centre: f64 = page.attributes[attribute].parse().unwrap();
+            let size: f64 = page.sheet.cell(cell).unwrap().value.as_ref().unwrap().parse().unwrap();
+            assert!((centre - size / 2.).abs() < 1e-12, "{attribute}: {centre}, page size {size}");
+        }
+    }
+}
