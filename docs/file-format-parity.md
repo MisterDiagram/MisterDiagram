@@ -1621,3 +1621,18 @@ in force; no shape or size failure is excluded. Empty views retain the explicit
 corpus witnesses. Host diagnostics on the previous 230-file VM run show zero hard
 size failures in required generated/scratch views; shipped views remain informational.
 The final regenerated-input comparison is still required.
+
+### Small master export coverage (M3.29, Phase 4)
+
+The generated BASIC rectangle masters retain an edge-sampling gap. For
+`generated/master/basic-rect.vsdx` master 2 (145 x 97), the top-centre vertical RGB
+profile is ours `[191,64,255,255]`, Visio `[127,127,255,255]`; the left-centre
+profile is `[191,64,255,255]` on both. All 574 pixels over 16 are within four pixels
+of the image border. Master 4 has 592 such pixels: 559 in that border band and
+33 on its rounded corners. Probe master 2 (97 x 97) has 189, all in the border band.
+Both top profiles have approximately the same integrated darkness; their coverage
+centroids differ by about a quarter pixel. This is an observed sampling/placement
+gap, not evidence of a missing shape. No rendering rule or ceiling is changed on
+the strength of this small-image case. Private evidence: paired VM master PNGs and
+`log/m3-29-before-profiles.json`. Generated master group remains a required gate;
+recording the implementation work for Phase 4 does not mark that gate passed.
