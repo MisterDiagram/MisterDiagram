@@ -1983,3 +1983,52 @@ relationship entries after our plain save, compared by Type and Target.
 Newly authored dangling links remain errors. Explicit page deletion or background
 retargeting updates only the links owned by that model edit; unrelated read links
 survive. Existing relationship bytes remain unchanged when their entries do.
+
+### M3.41 changed-input acceptance (2026-10-14)
+
+M3.39 and M3.40 close the fifteen closure-5 residual records. Six inputs changed
+SHA256: rectangle-text, dynamic-glue, dropped-master, metric-background-layers,
+three-masters and AZURECOMPUTE_M. The stencil also changed because fresh authored
+IDs and timestamps were regenerated. Only these six ran through accept.ps1
+with 3600 seconds; all 224 other input hashes and all 1664 baseline artifact
+hashes stayed identical. The reporter exits 0: 230 opened, zero residual repair
+records and zero residual COM cells. Dynamic glue retains two Connects rows.
+
+| Set | Opened | D_ours | D_base | Subtracted | Residual | Thumbnail events | Icons | First-save stamps | Page view rewrites |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| generated | 204/204 | 1843 | 1843 | 1843 | 0 | 0 | 0 | 0 | 405 |
+| blank | 1/1 | 9 | 9 | 9 | 0 | 0 | 0 | 0 | 2 |
+| from-scratch | 5/5 | 110 | 35 | 33 | 0 | 5 | 7 | 10 | 10 |
+| shipped-stencil | 10/10 | 460 | 460 | 460 | 0 | 1 | 0 | 4 | 0 |
+| shipped-template | 10/10 | 1667 | 1668 | 1667 | 0 | 0 | 0 | 7 | 20 |
+
+Class columns disclose events or records rather than interchangeable counts.
+For original files the classes are ordinary baseline differences. Scratch uses
+the blank document baseline plus the four explicitly authorized classes. Seven
+generated MasterType rewrites and zero UniqueID rewrites are informational
+columns, not additional scratch exceptions.
+
+| Render group | Images | Errors | MAD (0 to 255) | Pixels over 16 (%) | Status |
+|---|---:|---:|---:|---:|---|
+| arrow | 92 | 0 | 0.543633 | 1.071225 | PASS |
+| basic | 1 | 0 | 0.443949 | 0.745332 | PASS |
+| blank-pages | 1 | 0 | N/A | N/A | PASS |
+| connector | 6 | 0 | 2.142340 | 1.225363 | PASS |
+| fill | 44 | 0 | 1.112028 | 1.373298 | PASS |
+| from-scratch-masters | 8 | 0 | 2.823616 | 4.452799 | informational |
+| from-scratch-pages | 5 | 0 | 4.609743 | 3.019190 | informational |
+| generated-masters | 9 | 0 | 1.202102 | 2.648070 | informational |
+| group | 1 | 0 | 0.690956 | 1.251292 | PASS |
+| image | 3 | 0 | 1.602828 | 1.731289 | PASS |
+| line | 37 | 0 | 1.076040 | 1.030076 | PASS |
+| master | 1 | 0 | 1.608085 | 1.791412 | PASS |
+| page | 4 | 0 | 2.821761 | 1.171389 | PASS |
+| shipped-stencil-masters | 186 | 25 | 14.604653 | 11.776394 | informational |
+| shipped-template-masters | 115 | 29 | 8.206572 | 2.316836 | informational |
+| shipped-template-pages | 11 | 4 | 1.917666 | 3.722501 | informational |
+| text | 16 | 0 | 3.889404 | 3.318799 | PASS |
+
+The ten page-size groups pass the unchanged ceilings with one-pixel/common-area
+comparison. The blank export is checked blank. Small-image groups are retained
+as measured under Charles's 2026-10-14 ruling and reopen when their mapping is
+derived. Shipped render rows remain informational. No renderer or floor changed.

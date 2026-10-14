@@ -629,7 +629,7 @@ under keyed comparison and is not a byte-only difference. No comparison exceptio
 is introduced for either result. The three small-image groups remain measured,
 ruling pending under P3-closure-5. Final retry results are recorded in M3.38.
 
-### M3.38 closure-5 remaining repairs (2026-10-14)
+### M3.38 closure-5 repairs (historical; closed by M3.41)
 
 230/230 opened; all residual COM counts are zero, including SOCIAL_DISTANCING_M
 and PTSKST_M after M3.31. SOCIAL's 15712 raw COM differences also occur in the
@@ -666,3 +666,11 @@ The writer no longer drops AZURECOMPUTE_M's original dangling thumbnail link.
 The twenty shipped acceptance originals pass the keyed relationship regression;
 synthetic source-byte cases cover unreferenced page-type links and explicit
 background retargeting. Fresh VM residual counts are recorded in M3.41.
+
+### M3.41 metadata closure
+
+The historical fifteen residual records above are closed: all 230 files have
+zero residual repairs and zero residual COM under the explicit M3.39 Page-view
+class and preserved M3.40 source relationships. SOCIAL_DISTANCING_M and PTSKST_M
+remain zero. The Phase 4 export-mapping item and its measured small-image
+failures remain open, as do the informational shipped renderer errors above.

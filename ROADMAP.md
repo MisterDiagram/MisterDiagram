@@ -289,3 +289,16 @@ separately beside the scratch document-level blank baseline. Only the three
 exact Page attributes with finite saved numbers qualify; removals, other paths
 and unrelated attributes remain repairs. Witnesses: corpus/blank/blank.vsdx,
 the generated D_base Page records and Visio's saved scratch drawings.
+
+## M3.41 acceptance rerun, 2026-10-14
+
+M3.39 and M3.40 close the fifteen prior residual metadata records. Six SHA-changed
+inputs alone were rerun: five scratch files and AZURECOMPUTE_M. All 230 inputs
+now have complete opened observations, zero residual repairs and zero residual
+COM differences; the acceptance reporter exits 0. The 224 unchanged input hashes
+and 1664 baseline artifact hashes are unchanged. Dynamic glue has two Connects.
+Ten page-size groups pass the frozen ceilings with the one-pixel rule. The three
+small-image groups remain informational under the dated ruling above. Both
+implementation CI runs pass all eight gates; strict roundtrip is 15080738 of
+15080738, and 5548 mutations across 1387 packages produce zero panics. Final
+full corpus completion and two clean frozen passes are recorded in M3.42.
