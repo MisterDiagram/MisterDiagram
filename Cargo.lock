@@ -201,6 +201,7 @@ dependencies = [
  "diagramcraft-vsdx",
  "image",
  "serde_json",
+ "sha2",
  "zip",
 ]
 

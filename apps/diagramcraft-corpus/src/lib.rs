@@ -1,6 +1,7 @@
 //! Read-only comparisons against original package caches and completed COM dumps.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 pub mod coverage;
+mod population;
 pub mod render;
 pub mod roundtrip;
 use diagramcraft_sheet::Value;
@@ -48,7 +49,7 @@ pub struct Witness {
     pub expected: String,
     pub actual: String,
 }
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Report {
     pub render: Option<render::Report>,
     pub roundtrip: Option<roundtrip::Report>,
@@ -63,6 +64,9 @@ pub struct Report {
     pub com_classes: [Rate; 3],
     pub cached: Rate,
     pub com: Rate,
+    pub com_directory: Rate,
+    pub com_directory_hosts: [Rate; 2],
+    pub pinned_dump_files: usize,
     pub shipped_cached: Rate,
     pub shipped_com: Rate,
     pub packages: usize,
@@ -87,6 +91,15 @@ impl Report {
         self.render.as_ref().is_none_or(render::Report::passed)
             && self.roundtrip.as_ref().is_none_or(roundtrip::Report::passed)
             && self.cells_passed()
+    }
+    fn record_com(&mut self, calls: &BTreeSet<String>, formula: &str, matched: bool, pinned: bool) {
+        self.com_directory.record(matched);
+        record_hosts(&mut self.com_directory_hosts, calls, matched);
+        if pinned {
+            self.com.record(matched);
+            record_hosts(&mut self.com_hosts, calls, matched);
+            self.com_classes[formula_class(formula)].record(matched);
+        }
     }
     /// Cell accuracy is reported separately; the complete gate also requires rendering.
     pub fn cells_passed(&self) -> bool {
@@ -128,7 +141,9 @@ impl fmt::Display for Report {
         )?;
         for (name, rate, floor) in [
             ("cached overall informational", &self.cached, None),
-            ("COM", &self.com, Some(self.com_floor)),
+            ("COM pinned", &self.com, Some(self.com_floor)),
+            ("COM directory informational", &self.com_directory, None),
+            ("COM directory text-metric informational", &self.com_directory_hosts[1], None),
             ("shipped cached", &self.shipped_cached, Some(self.cached_floor)),
             ("shipped COM", &self.shipped_com, None),
         ] {
@@ -142,6 +157,8 @@ impl fmt::Display for Report {
                 floor.map(|n| format!("{n:.6}%")).unwrap_or_else(|| "reported separately".into())
             )?;
         }
+        writeln!(f, "COM pinned population: dumps={} scope=complete membership (new directory members are informational)", self.pinned_dump_files)?;
+        writeln!(f, "COM membership: {}", population::description())?;
         for (oracle, classes) in [("cached", &self.cached_classes), ("COM", &self.com_classes)] {
             for (class, rate) in ["literal-constant", "empty-formula", "non-literal"].into_iter().zip(classes) {
                 writeln!(f, "{oracle} {class}: {}/{} ({:.6}%)", rate.matched, rate.total, rate.percent())?;
@@ -715,7 +732,8 @@ fn read_dump(mut reader: impl BufRead, label: &str, mut visit: impl FnMut(DumpRo
     Ok(())
 }
 /// Root is the corpus directory. Quick mode includes all generated and blank packages,
-/// then the first 50 sorted shipped packages and only their available completed dumps.
+/// then the first 50 sorted shipped packages for cached/roundtrip checks. COM always
+/// measures its complete pinned population, with later dumps informational.
 pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
     let mut report = run_pass(root, quick, false)?;
     if report.include_text() {
@@ -746,6 +764,7 @@ fn run_pass_with_coverage(root: &Path, quick: bool, deferred: bool, mut coverage
     let frozen = include_str!("../../../crates/sheet/tests/floors.toml");
     let cached_floor = floor(frozen, "shipped")? * 100.;
     let com_floor = floor(frozen, "all")? * 100.;
+    let pinned = population::Population::frozen()?;
     let generated = walk(&root.join("generated"))?;
     let blank = walk(&root.join("blank"))?;
     let shipped = walk(&root.join("ms-shipped"))?;
@@ -753,8 +772,25 @@ fn run_pass_with_coverage(root: &Path, quick: bool, deferred: bool, mut coverage
     let shipped_all: Vec<_> = shipped.into_iter().filter(|p| package(p)).collect();
     let selected: Vec<_> = shipped_all.iter().take(if quick { 50 } else { usize::MAX }).cloned().collect();
     let mut files: Vec<_> = generated.iter().chain(&blank).filter(|p| package(p)).cloned().collect();
-    files.extend(selected.iter().cloned());
+    let selected_paths: BTreeSet<_> = selected.iter().cloned().collect();
+    let dump_sources: BTreeSet<_> = dumps
+        .iter()
+        .filter(|p| p.extension().is_some_and(|e| e == "tsv"))
+        .filter_map(|p| p.strip_prefix(root.join("ms-shipped-dumps")).ok())
+        .map(|p| p.with_extension("").to_string_lossy().to_lowercase())
+        .collect();
+    files.extend(
+        shipped_all
+            .iter()
+            .filter(|p| {
+                !quick
+                    || selected_paths.contains(*p)
+                    || p.strip_prefix(root.join("ms-shipped")).is_ok_and(|p| dump_sources.contains(&p.to_string_lossy().to_lowercase()))
+            })
+            .cloned(),
+    );
     files.sort();
+    pinned.require_available(root)?;
     let mut report = Report {
         render: None,
         roundtrip: None,
@@ -769,6 +805,9 @@ fn run_pass_with_coverage(root: &Path, quick: bool, deferred: bool, mut coverage
         com_classes: Default::default(),
         cached: Rate::default(),
         com: Rate::default(),
+        com_directory: Rate::default(),
+        com_directory_hosts: Default::default(),
+        pinned_dump_files: 0,
         shipped_cached: Rate::default(),
         shipped_com: Rate::default(),
         packages: files.len(),
@@ -827,6 +866,7 @@ fn run_pass_with_coverage(root: &Path, quick: bool, deferred: bool, mut coverage
     let mut diagnostics = Diagnostics::default();
     for path in files {
         let is_shipped = path.starts_with(root.join("ms-shipped"));
+        let measure_cached = !quick || !is_shipped || selected_paths.contains(&path);
         let document = read_package(&path)?;
         let themes = diagramcraft_theme::Themes::from_document(&document).map_err(|e| format!("{}: {e}", path.display()))?;
         let mut evaluator = Evaluator::new(&document)
@@ -846,9 +886,11 @@ fn run_pass_with_coverage(root: &Path, quick: bool, deferred: bool, mut coverage
                 let effective = effective.as_deref().unwrap_or(formula);
                 let calls = function_calls(effective)?;
                 if cached_excluded(formula, effective, named.cell.value.as_deref(), &calls, &exclude) {
-                    report.cached.excluded += 1;
-                    if is_shipped {
-                        report.shipped_cached.excluded += 1;
+                    if measure_cached {
+                        report.cached.excluded += 1;
+                        if is_shipped {
+                            report.shipped_cached.excluded += 1;
+                        }
                     }
                     continue;
                 }
@@ -857,6 +899,11 @@ fn run_pass_with_coverage(root: &Path, quick: bool, deferred: bool, mut coverage
                 let expected = evaluator.cached_cell(&original);
                 let actual = evaluator.evaluate_snapshot(scope, &named.name);
                 let matched = cached_equal(named.cell.value.as_deref(), &expected, &actual);
+                // Preserve the same evaluation order for COM in quick and full modes.
+                // Only cached/roundtrip checks retain the fifty-package CI sample.
+                if !measure_cached {
+                    continue;
+                }
                 record_hosts(&mut report.cached_hosts, &calls, matched);
                 report.cached_classes[formula_class(effective)].record(matched);
                 report.cached.record(matched);
@@ -884,6 +931,8 @@ fn run_pass_with_coverage(root: &Path, quick: bool, deferred: bool, mut coverage
         if let Some(tsvs) = associations.get(&path) {
             for tsv in tsvs {
                 let population = if let Some(c) = coverage.as_deref_mut() { c.dump(root, &path, is_shipped)? } else { 0 };
+                let in_pin = pinned.contains(root, tsv);
+                report.pinned_dump_files += usize::from(in_pin);
                 report.dump_files += 1;
                 if is_shipped {
                     report.shipped_dump_files += 1;
@@ -894,7 +943,10 @@ fn run_pass_with_coverage(root: &Path, quick: bool, deferred: bool, mut coverage
                         if let Some(c) = coverage.as_deref_mut() {
                             c.excluded(population);
                         }
-                        report.com.excluded += 1;
+                        report.com_directory.excluded += 1;
+                        if in_pin {
+                            report.com.excluded += 1;
+                        }
                         if is_shipped {
                             report.shipped_com.excluded += 1;
                         }
@@ -909,9 +961,7 @@ fn run_pass_with_coverage(root: &Path, quick: bool, deferred: bool, mut coverage
                         (Some(a), Ok(b)) => (a - b).abs() <= TOLERANCE,
                         _ => false,
                     };
-                    record_hosts(&mut report.com_hosts, &calls, matched);
-                    report.com_classes[formula_class(&row.formula)].record(matched);
-                    report.com.record(matched);
+                    report.record_com(&calls, &row.formula, matched, in_pin);
                     if is_shipped {
                         report.shipped_com.record(matched);
                     }
@@ -940,6 +990,7 @@ fn run_pass_with_coverage(root: &Path, quick: bool, deferred: bool, mut coverage
             }
         }
     }
+    pinned.complete(report.pinned_dump_files)?;
     diagnostics.finish(&mut report);
     Ok(report)
 }
@@ -1096,6 +1147,9 @@ mod tests {
             cached: Rate { matched: 999, total: 1000, excluded: 0 },
             shipped_cached: Rate { matched: 90, total: 100, excluded: 0 },
             com: Rate { matched: 90, total: 100, excluded: 0 },
+            com_directory: Rate::default(),
+            com_directory_hosts: Default::default(),
+            pinned_dump_files: 0,
             shipped_com: Rate::default(),
             packages: 0,
             shipped_packages: 0,
@@ -1122,6 +1176,15 @@ mod tests {
         report.shipped_cached.matched = 97;
         report.cached.matched = 800;
         assert!(report.passed());
+        let calls = BTreeSet::from(["TEXTWIDTH".into()]);
+        for _ in 0..1000 {
+            report.record_com(&calls, "TEXTWIDTH(TheText)", false, false);
+        }
+        assert!(report.cells_passed(), "later bad rows must not move the pinned gate");
+        assert_eq!((report.com.matched, report.com.total), (90, 100));
+        assert_eq!((report.com_directory.matched, report.com_directory.total), (0, 1000));
+        assert_eq!(report.com_hosts[1].total, 0);
+        assert_eq!(report.com_directory_hosts[1].total, 1000);
         report.render = Some(render::Report::default());
         assert!(report.cells_passed(), "cell-only CI gate must still measure cell floors");
         assert!(!report.passed(), "CLI gate must reject failed render comparisons");

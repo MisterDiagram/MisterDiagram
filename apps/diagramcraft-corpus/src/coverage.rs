@@ -165,12 +165,14 @@ pub fn compare(root: &Path, mut coverage: Coverage) -> Result<Coverage, String> 
     let matched: u64 = coverage.populations.iter().map(|p| p.rate.matched).sum();
     let excluded: u64 = coverage.populations.iter().map(|p| p.rate.excluded).sum();
     let dumps: usize = coverage.populations.iter().map(|p| p.dumps).sum();
-    if (total, matched, excluded, dumps) != (report.com.total, report.com.matched, report.com.excluded, report.dump_files) {
+    if (total, matched, excluded, dumps)
+        != (report.com_directory.total, report.com_directory.matched, report.com_directory.excluded, report.dump_files)
+    {
         return Err("COM partition does not reconcile".into());
     }
     let text_total: u64 = coverage.populations.iter().map(|p| p.text.total).sum();
     let text_matched: u64 = coverage.populations.iter().map(|p| p.text.matched).sum();
-    if (text_total, text_matched) != (report.com_hosts[1].total, report.com_hosts[1].matched) {
+    if (text_total, text_matched) != (report.com_directory_hosts[1].total, report.com_directory_hosts[1].matched) {
         return Err("COM text partition does not reconcile".into());
     }
     Ok(coverage)

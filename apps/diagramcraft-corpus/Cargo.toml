@@ -6,6 +6,7 @@ license.workspace = true
 [lints]
 workspace = true
 [dependencies]
+sha2 = "0.10.9"
 diagramcraft-render.workspace = true
 image.workspace = true
 diagramcraft-text.workspace = true

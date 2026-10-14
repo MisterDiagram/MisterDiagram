@@ -10,7 +10,7 @@
 shipped = 0.974911
 
 [oracle2]
-all = 0.984780121
+all = 0.984412486
 
 [closure]
 packages = 1387
@@ -45,7 +45,7 @@ text-metric = 0.90
 promoted = true
 # Lesser achieved quick/full rate, rounded down to six decimals, as with main floors.
 text-cached-floor = 0.909875
-text-com-floor = 0.904134033
+text-com-floor = 0.924140392
 quick_text_cached_passed = 1686
 quick_text_cached_eligible = 1853
 quick_text_com_passed = 1550
@@ -274,3 +274,30 @@ completed_shipped_dumps = 413
 passed = 27416668
 eligible = 27803388
 achieved = 0.986090901
+
+[m3_27_gate_population]
+authorization = "Charles, P3-closure-3 M3.27, 2026-10-14"
+dumps_path = "apps/diagramcraft-corpus/tests/cohorts/m3-872-dumps.txt"
+dumps_sha256 = "c6e799b605821b38e35a3c3ad372af75344738364c4d23904736e6da4a390ff7"
+dumps_count = 1085
+shipped_count = 872
+packages_path = "apps/diagramcraft-corpus/tests/cohorts/m3-872-package-paths.txt"
+packages_sha256 = "3fe68431102e8e8f46b154bafb7bac0d5c9e38cb872c325c114aa45c72a1a2b3"
+old_main_passed = 44046421
+old_main_eligible = 44727163
+old_main_rate = 0.984780121198
+new_main_passed = 9819068
+new_main_eligible = 9991250
+combined_main_passed = 53865489
+combined_main_eligible = 54718413
+combined_main_rate = 0.984412486524
+old_text_passed = 27360
+old_text_eligible = 30261
+old_text_rate = 0.904134033905
+new_text_passed = 11477
+new_text_eligible = 11764
+combined_text_passed = 38837
+combined_text_eligible = 42025
+combined_text_rate = 0.924140392623
+# Both old rates still meet their contracts. Floor fractions round down to9decimals.
+# Later directory members are informational only, never another implicit rebase.

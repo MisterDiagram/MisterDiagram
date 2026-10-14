@@ -149,3 +149,25 @@ and M3.23-Gates. Both seeds were caught101/restored0. No two-clean-pass claim.
 M3.23 records partial results only. Full private report:
 corpus/_state/P3-closure-2-report.md; detailed register:
 plan/m3-verification-register.md. Final Python reporter suite25/25 passes.
+
+## M3.27 pinned COM populations (2026-10-14)
+
+Charles's P3-closure-3 authorizes the 702-to-872 coverage rebase. The old population
+still meets both contracts; no evaluator regression is hidden.
+
+| Population | Main passed / eligible | Main rate | Text passed / eligible | Text rate |
+|---|---:|---:|---:|---:|
+| Old 702 shipped plus generated/blank | 44046421 / 44727163 | 98.478012120% | 27360 / 30261 | 90.413403391% |
+| Additional 170 shipped | 9819068 / 9991250 | 98.276672088% | 11477 / 11764 | 97.560353621% |
+| Combined 872 shipped plus generated/blank | 53865489 / 54718413 | 98.441248652% | 38837 / 42025 | 92.414039262% |
+
+Both main and text COM gates now measure exactly the 1085 dumps named in
+`apps/diagramcraft-corpus/tests/cohorts/m3-872-dumps.txt`, including 213 generated/blank
+dumps. SHA256: c6e799b605821b38e35a3c3ad372af75344738364c4d23904736e6da4a390ff7.
+The 872 package list has SHA256
+3fe68431102e8e8f46b154bafb7bac0d5c9e38cb872c325c114aa45c72a1a2b3.
+Missing members or changed membership hashes fail. CI uses the full COM population;
+its cached and round-trip sample remains 50 shipped files. Later dump additions
+are printed separately and cannot move the gate. At the audit, another 246 dumps
+were informational: main 9751471/9999792 (97.516738348%), text 8574/9193
+(93.266615903%). Cached floors and render ceilings are unchanged.
