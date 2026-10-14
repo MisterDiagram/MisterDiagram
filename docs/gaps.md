@@ -557,3 +557,32 @@ ceiling was moved. This does not prove that every untested mapping must fail.
 The P3-closure-4 M3.33 stop rule applies. M3.34 keyed OPC comparison, the changed
 input VM rerun, the five seeded verification checks and two clean full passes
 remain pending. M3 is not accepted. No Phase 4 implementation has begun.
+
+## M3.35 changed-input rerun: partial (2026-10-14)
+
+M3.34 now compares OPC entries by their keys, with byte-only differences kept
+informational. M3.31/M3.32 changed seven acceptance inputs: scratch rectangle-text,
+dynamic-glue, dropped-master, metric-background-layers, three-masters, and shipped
+PTSKST_M and SOCIAL_DISTANCING_M. The other 223 hashes are unchanged. The baseline
+was not rerun. The 3,600-second changed-input run completed six files, then timed
+out while dumping SOCIAL_DISTANCING_M. A single-file retry uses the same budget.
+The original baseline took 62 minutes 1 second for SOCIAL_DISTANCING_M, so the
+budget is a material limitation; no larger budget is inferred or substituted.
+
+The first new comparison has 229 complete verified observations, five repaired
+files and 15 residual records. Every completed file has zero residual COM rows.
+PTSKST_M has zero residual repairs and COM. SOCIAL remains unverified, rather
+than inheriting its historical 309-row result or being counted as zero.
+
+| Witness | Residual records | Values or cause |
+|---|---:|---|
+| scratch rectangle-text, dynamic-glue, dropped-master | 3 each | Page 0 ViewCenterX 0 to 4.2461539707522; ViewCenterY 0 to 5.500000161391; ViewScale 1 to -1 |
+| scratch metric-background-layers | 3 | Page 0 ViewCenterX 0 to 4.1338583298009; ViewCenterY 0 to 5.8480972006905; ViewScale 1 to -1 |
+| shipped-stencil AZURECOMPUTE_M | 3 | Writer removes the original thumbnail relationship; Visio restores its Present, Type and Target records. Original and baseline save both retain the relationship, so baseline subtraction cannot remove our addition. |
+
+The scratch page attributes are outside the authorized document-level blank
+baseline and the three first-save classes. They remain repairs. AZURECOMPUTE_M's
+original root relationship targets docProps/thumbnail.emf; its removal is visible
+under keyed comparison and is not a byte-only difference. No comparison exception
+is introduced for either result. The three small-image groups remain measured,
+ruling pending under P3-closure-5. Final retry results are recorded in M3.38.
