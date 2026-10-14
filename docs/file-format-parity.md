@@ -2032,3 +2032,13 @@ The ten page-size groups pass the unchanged ceilings with one-pixel/common-area
 comparison. The blank export is checked blank. Small-image groups are retained
 as measured under Charles's 2026-10-14 ruling and reopen when their mapping is
 derived. Shipped render rows remain informational. No renderer or floor changed.
+
+M3.42 final verification (2026-10-14): all host and VM acceptance commands exit
+0, with two consecutive independent frozen passes of 12 YES and 0 NO. Seven
+production seeds were caught and restored byte for byte. Strict literal-cache
+roundtrip is 15080738/15080738 (100%); every mismatch class is zero. Identical
+original-side render failures are separately disclosed: 568 masters, 74 pages.
+Scored roundtrip pairs have MAD 0 and fraction-over16 0. Full corpus prints the
+three saved small-image measurements above, and its ten-outlier ratchet passes.
+The final cohort floors and memberships are unchanged. M3 is met under the
+dated ruling, with the small-image mapping work retained as a Phase 4 gate.

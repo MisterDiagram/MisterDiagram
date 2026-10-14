@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: pre-alpha, M0 and M1 met; M2 human gate accepted, independent closure verification complete. Target: Visio Standard 2021.
+Status: pre-alpha, M0 through M3 met. M3 closed on 2026-10-14 under Charles's small-image ruling and two clean independent frozen passes. Phase 4 has not started. Target: Visio Standard 2021.
 
 Phase 0 establishes the workspace, conventions, oracle scripts and private corpus. Phases 1
 through 5 add reading and ShapeSheet evaluation, rendering, writing, authoring, and exports.
@@ -302,3 +302,30 @@ small-image groups remain informational under the dated ruling above. Both
 implementation CI runs pass all eight gates; strict roundtrip is 15080738 of
 15080738, and 5548 mutations across 1387 packages produce zero panics. Final
 full corpus completion and two clean frozen passes are recorded in M3.42.
+
+## M3 met: final closure record, 2026-10-14
+
+M3.39 through M3.41 complete the file contract: 230/230 opened, zero residual
+repairs beyond the explicitly listed classes, zero residual COM differences.
+Ten required page-size render groups pass their unchanged ceilings with the
+one-pixel/common-area rule. Generated-masters, from-scratch-masters and
+from-scratch-pages stay informational until export mapping is derived, then
+reopen as required gates. Their measured values and Phase 4 evidence remain
+in file-format-parity.md and gaps.md. No ceiling or floor changed in this brief.
+
+All acceptance commands exit 0: CI (eight gates), parity, full corpus, standalone
+roundtrip, malformed, from_scratch, the six-input VM rerun and reporter over both
+output trees. Strict cells: 15080738/15080738 (100%), all mismatch classes zero.
+Scored roundtrip image pairs are identical; 568 master and 74 page equal-error
+pairs remain original-side renderer gaps. Fuzz: 1387 packages, 5548 mutations,
+zero panics. Coverage: 1181/1181 shipped dumps, 1394 total pinned dumps.
+Cached shipped: 4676949/4783865 (97.765071%); cached text: 61748/67797
+(91.077776%). Pinned main COM: 74954465/76153083 (98.426041399%); pinned text
+COM: 54191/58180 (93.143691990%). The six cohort rates recorded above stand.
+Per-file generated render outliers remain 10/10. Parity is 27% over 45 Core=Y
+rows, with drawing and stencil/template save rows complete under this contract.
+
+Seven production seeds were caught and restored exactly. Consecutive independent
+frozen passes by closure5_review and m3_writer_review each have 12 YES and 0 NO.
+The final pass verified all 230 input hashes, 1664 baseline files and 5029
+observation artifact hashes. M3 is met; stop before Phase 4.

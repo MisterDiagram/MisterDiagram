@@ -1,19 +1,19 @@
 # Visio feature checklist
 
-> **Drafted:** 2026-10-11 from the observed app (visio-observed.md) and Microsoft's documentation · **Target:** Microsoft Visio Standard 2021 16.0.20430 (Professional rows marked Pro) · **Status:** Phase 1 reader implemented; authoring, evaluation and rendering remain in progress. Format follows the storytold apps' `docs/parity-checklist.md`: area, feature, priority, Core Y/N, status D/P/M.
+> **Drafted:** 2026-10-11 from the observed app (visio-observed.md) and Microsoft's documentation · **Target:** Microsoft Visio Standard 2021 16.0.20430 (Professional rows marked Pro) · **Status:** M3 file acceptance met; authoring commands and remaining evaluation/rendering fidelity are in progress. Format follows the storytold apps' `docs/parity-checklist.md`: area, feature, priority, Core Y/N, status D/P/M.
 
 <!-- SUMMARY -->
-**Weighted breadth parity: 25%** over 45 Core=Y features.
+**Weighted breadth parity: 27%** over 45 Core=Y features.
 
 | Priority | Features | Done | Partial | Missing | Parity |
 |---|---|---|---|---|---|
-| P0 | 27 | 1 | 16 | 10 | 33% |
+| P0 | 27 | 3 | 14 | 10 | 37% |
 | P1 | 15 | 0 | 1 | 14 | 3% |
 | P2 | 3 | 0 | 0 | 3 | 0% |
 
 | Area | Parity |
 |---|---|
-| Files | 32% |
+| Files | 50% |
 | Pages | 25% |
 | Shapes | 17% |
 | Stencils | 54% |
@@ -26,7 +26,7 @@
 | Data | 0% |
 | Automation | 0% |
 
-Open P0 items: Open and save .vsdx (full fidelity, unknown parts kept), Open .vssx stencils and .vstx templates; save a stencil, Export SVG (with Visio extension namespace), PNG, JPEG, EMF/WMF, PDF (vector, text, links), Multiple pages, background pages, page size and orientation, drawing scale and units, Page tabs: add, rename, reorder, duplicate, delete, Draw tools: rectangle, ellipse, line, freeform, arc, pencil, Drop masters from a stencil; master instances inherit and can be overridden, Selection, move, resize, rotate, flip, duplicate, group and ungroup, Shape text with text block control handle; double-click to edit, Shape data (custom properties) and the Shape Data window, Control handles, connection points (add, move, type in/out/both), Geometry sections with formulas (Width*0.5 style), guarded cells, Formula engine: cell references, cross-sheet references (Sheet.N!Cell), GUARD, Inh, THEMEVAL, SETATREF, dependency recalculation, New master from a shape; edit master; document stencil, Read vendor stencil packs (.vssx) and render their masters correctly, Dynamic connector: glue to connection points and to shapes (dynamic glue), _WALKGLUE behaviour, Orthogonal routing with reroute on move; straight and curved styles, Connector text that stays with the line; begin and end arrows; line ends per theme, Character and paragraph formatting, tabs, bullets, fields (date, page, shape data), Text block rotation, margins, vertical alignment, text resize behaviour, Fill, line, shadow, effects (glow, soft edge, bevel, 3-D) with the Format Shape pane, Themes, variants, theme colours and effects; THEMEVAL cells follow them, Align, distribute, same size, bring to front/back, position pane, Layers per page: visible, print, lock, snap, glue, colour; layer membership, Every command on a CLI, a JSON control channel and MCP; headless render to PNG/SVG/PDF, Build a diagram from a script: drop, glue, route, lay out, export.
+Open P0 items: Export SVG (with Visio extension namespace), PNG, JPEG, EMF/WMF, PDF (vector, text, links), Multiple pages, background pages, page size and orientation, drawing scale and units, Page tabs: add, rename, reorder, duplicate, delete, Draw tools: rectangle, ellipse, line, freeform, arc, pencil, Drop masters from a stencil; master instances inherit and can be overridden, Selection, move, resize, rotate, flip, duplicate, group and ungroup, Shape text with text block control handle; double-click to edit, Shape data (custom properties) and the Shape Data window, Control handles, connection points (add, move, type in/out/both), Geometry sections with formulas (Width*0.5 style), guarded cells, Formula engine: cell references, cross-sheet references (Sheet.N!Cell), GUARD, Inh, THEMEVAL, SETATREF, dependency recalculation, New master from a shape; edit master; document stencil, Read vendor stencil packs (.vssx) and render their masters correctly, Dynamic connector: glue to connection points and to shapes (dynamic glue), _WALKGLUE behaviour, Orthogonal routing with reroute on move; straight and curved styles, Connector text that stays with the line; begin and end arrows; line ends per theme, Character and paragraph formatting, tabs, bullets, fields (date, page, shape data), Text block rotation, margins, vertical alignment, text resize behaviour, Fill, line, shadow, effects (glow, soft edge, bevel, 3-D) with the Format Shape pane, Themes, variants, theme colours and effects; THEMEVAL cells follow them, Align, distribute, same size, bring to front/back, position pane, Layers per page: visible, print, lock, snap, glue, colour; layer membership, Every command on a CLI, a JSON control channel and MCP; headless render to PNG/SVG/PDF, Build a diagram from a script: drop, glue, route, lay out, export.
 
 Core=N rows (excluded from milestone scoring):
 
@@ -45,8 +45,8 @@ Core=N rows (excluded from milestone scoring):
 | Application shell | Shapes window: open stencils, search shapes, quick shapes, favorites | P0 | N | M |
 | Application shell | ShapeSheet window (sections, cells, formulas, live edit) | P1 | N | M |
 | Application shell | Command palette / Tell me | P1 | N | M |
-| Files | Open and save .vsdx (full fidelity, unknown parts kept) | P0 | Y | P |
-| Files | Open .vssx stencils and .vstx templates; save a stencil | P0 | Y | P |
+| Files | Open and save .vsdx (full fidelity, unknown parts kept) | P0 | Y | D |
+| Files | Open .vssx stencils and .vstx templates; save a stencil | P0 | Y | D |
 | Files | Open legacy .vsd (binary) and .vdx (XML 2003) | P1 | Y | M |
 | Files | Open .vsdm/.vssm/.vstm (drop macros, keep the rest) | P1 | Y | P |
 | Files | Export SVG (with Visio extension namespace), PNG, JPEG, EMF/WMF, PDF (vector, text, links) | P0 | Y | P |
@@ -207,3 +207,23 @@ Core=N rows (excluded from milestone scoring):
   text, Dynamic connector Connects, a private BASIC_U drop and metric/background/
   two-layer structure. `serialized_dump_uses_written_cache_without_claiming_inherited_predictions`
   guards acceptance against confusing evaluation errors with serialized values.
+
+## M3.41 save acceptance evidence (2026-10-14)
+
+- Open and save .vsdx (full fidelity, unknown parts kept): D for the M3 file
+  contract. `every_corpus_package_roundtrips_at_least_ninety_nine_percent_of_dump_cells`
+  reports 15080738/15080738 strict cells across 1387 packages.
+  `unknown_parts_and_extensions_survive_modelled_edits`,
+  `shipped_acceptance_shapes_preserve_local_structure_and_literal_attributes` and
+  `shipped_acceptance_relationships_are_written_as_read` protect preservation.
+  The 230-file Visio acceptance reports zero residual repairs and COM cells
+  under the explicit baseline and first-save classes. Ten page-size groups pass.
+  Charles's small-image ruling and the Phase 4 renderer gaps remain disclosed;
+  this does not promote the separate rendering or authoring-command rows.
+- Open .vssx stencils and .vstx templates; save a stencil: D for the M3 package
+  contract. `authored_stencil_and_template_retain_their_distinct_contracts`,
+  `existing_shipped_stencil_and_template_write_and_reopen` and
+  `five_documents_build_and_reread` cover both save families and three authored
+  masters. The ten shipped stencils, ten shipped templates and scratch stencil
+  open with zero residual repairs and COM differences in the M3.41 VM record.
+  The vendor-master rendering row remains partial.

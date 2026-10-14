@@ -674,3 +674,10 @@ zero residual repairs and zero residual COM under the explicit M3.39 Page-view
 class and preserved M3.40 source relationships. SOCIAL_DISTANCING_M and PTSKST_M
 remain zero. The Phase 4 export-mapping item and its measured small-image
 failures remain open, as do the informational shipped renderer errors above.
+
+M3.42 closure status (2026-10-14): no open closure-6 blocker. Two consecutive
+independent frozen passes are clean, 12 YES each. Small-image export mapping
+remains a Phase 4 item with its existing 66-view table, six candidates and
+connector diagnostic. The ten per-file outliers, text/evaluator limitations,
+17 EMF+ payloads, compound lines and extreme-stroke cases remain documented
+work; M3 does not claim those rendering gaps are solved.
