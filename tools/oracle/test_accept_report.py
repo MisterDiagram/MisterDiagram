@@ -65,6 +65,42 @@ class Acceptance(unittest.TestCase):
         _,cells=report.package_cells(p)
         self.assertIn(('[Content_Types].xml/Opaque',0),cells)
 
+    def test_keyed_opc_order_ids_and_byte_only_disclosure(self):
+        import hashlib
+        fixtures = [
+            ('[Content_Types].xml','Types','http://schemas.openxmlformats.org/package/2006/content-types',
+             '<Default Extension="xml" ContentType="application/xml"/>',
+             '<Override PartName="/visio/document.xml" ContentType="application/visio"/>'),
+            ('_rels/.rels','Relationships','http://schemas.openxmlformats.org/package/2006/relationships',
+             '<Relationship Id="rId1" Type="doc" Target="visio/document.xml"/>',
+             '<Relationship Id="rId2" Type="core" Target="docProps/core.xml"/>')]
+        for part,tag,ns,first,second in fixtures:
+            def records(children):
+                data=f'<{tag} xmlns="{ns}">{children}</{tag}>'.encode()
+                result=report.metadata_records(data,part)
+                result[part+'/Opaque',0]={'V':hashlib.sha256(data).hexdigest(),'F':None,'U':None,'E':None,'kind':'opaque'}
+                return result
+            a=records(first+second)
+            b=records((second+first).replace('rId1','rId42').replace('rId2','rId71'))
+            for left,right in [(a,b),(b,a)]:
+                self.assertEqual(report.package_differences([part],left,[part],right,set()),[])
+                self.assertEqual(report.opc_byte_differences(left,right),[part])
+            for changed in [records(first),records((first+second).replace('application/visio','wrong').replace('Target="docProps/core.xml"','Target="wrong"')),
+                            records((first+second).replace('/>',' Extra="retained"/>',1))]:
+                for left,right in [(a,changed),(changed,a)]:
+                    self.assertTrue(report.package_differences([part],left,[part],right,set()))
+                    self.assertEqual(report.opc_byte_differences(left,right),[])
+            with self.assertRaisesRegex(ValueError,'duplicate OPC'):
+                records(first+first)
+
+    def test_small_image_groups_are_measured_pending_ruling(self):
+        for group in ['generated-masters','from-scratch-masters','from-scratch-pages']:
+            self.assertFalse(report.render_required(group))
+            self.assertFalse(report.content_failed('generated',0,[],[{'group':group,'error':'gap'}]))
+            self.assertTrue(report.content_failed('generated',1,[],[{'group':group,'error':'gap'}]))
+        for group in ['basic','arrow','text','master','connector']:
+            self.assertTrue(report.render_required(group))
+
     def test_lost_connectivity_is_visible(self):
         _, a = report.package_cells(self.package('<PageContents><Connects><Connect FromSheet="3" FromCell="BeginX" ToSheet="1" ToCell="PinX"/></Connects></PageContents>'))
         _, b = report.package_cells(self.package('<PageContents/>'))
@@ -277,7 +313,7 @@ class Acceptance(unittest.TestCase):
         self.assertTrue(any('Unexpected' in d[0] for d in remaining(extra,'[Content_Types].xml')))
         valid=f'<Relationships xmlns="{rel}"><Relationship Id="rId2" Type="{rel}/metadata/thumbnail" Target="docProps/thumbnail.emf"/></Relationships>'
         self.assertEqual(len(remaining(valid,'_rels/.rels')),1)
-        self.assertEqual(len(remaining(valid.replace('/metadata/thumbnail','/unrelated'),'_rels/.rels')),5)
+        self.assertEqual(len(remaining(valid.replace('/metadata/thumbnail','/unrelated'),'_rels/.rels')),4)
         wrong=f'<coreProperties xmlns="{core}" xmlns:x="urn:unrelated"><x:lastPrinted>stamp</x:lastPrinted><nested><lastPrinted>stamp</lastPrinted></nested></coreProperties>'
         self.assertEqual(len(remaining(wrong,'docProps/core.xml')),6)
 

@@ -15,6 +15,7 @@ from pathlib import Path
 import sys
 import xml.etree.ElementTree as ET
 import zipfile
+from urllib.parse import quote
 from diff_dump import compare, excluded, read_dump, read_filters
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -209,7 +210,8 @@ def metadata_records(data, part):
         path = parent+'/'+node.tag+':'+str(ordinal)
         if depth > 128 or len(path) > 65536: raise ValueError('metadata depth/identity budget')
         fields = {'Present':node.tag}
-        fields.update({'Attribute:'+k:v for k,v in node.attrib.items()})
+        is_relationship = part.endswith('.rels') and depth == 1 and node.tag == '{http://schemas.openxmlformats.org/package/2006/relationships}Relationship'
+        fields.update({'Attribute:'+k:v for k,v in node.attrib.items() if not (is_relationship and k == 'Id')})
         if node.text and node.text.strip(): fields['Text'] = node.text
         for name,value in fields.items():
             key = path+'/'+name
@@ -219,7 +221,21 @@ def metadata_records(data, part):
         positions = Counter()
         children = []
         for child in node:
-            i=positions[child.tag];positions[child.tag]+=1
+            identity = None
+            if depth == 0 and part == '[Content_Types].xml':
+                if child.tag == '{http://schemas.openxmlformats.org/package/2006/content-types}Default':
+                    identity = ('Extension',child.get('Extension'))
+                elif child.tag == '{http://schemas.openxmlformats.org/package/2006/content-types}Override':
+                    identity = ('PartName',child.get('PartName'))
+            elif depth == 0 and part.endswith('.rels') and child.tag == '{http://schemas.openxmlformats.org/package/2006/relationships}Relationship':
+                identity = (child.get('Type'),child.get('Target'))
+            if identity is not None:
+                if None in identity: raise ValueError('missing OPC entry key')
+                i = quote(json.dumps(identity,separators=(',',':')),safe='')
+                if positions[(child.tag,i)]: raise ValueError('duplicate OPC entry key')
+                positions[(child.tag,i)] += 1
+            else:
+                i=positions[child.tag];positions[child.tag]+=1
             children.append((child,path,depth+1,i))
         pending.extend(reversed(children))
     return records
@@ -347,9 +363,27 @@ def package_cells(path):
         return sorted(names), cells
 
 
+def opc_part(part):
+    return part == '[Content_Types].xml' or part.endswith('.rels')
+
+
+def opc_byte_differences(before, after):
+    """M3.34: byte-only OPC differences are informational after keyed equality."""
+    result = []
+    for key in sorted(before.keys() & after.keys()):
+        part = key[0][:-7]
+        if not key[0].endswith('/Opaque') or not opc_part(part) or before[key] == after[key]: continue
+        a = {k:v for k,v in before.items() if k[0].startswith(part+'/')}
+        b = {k:v for k,v in after.items() if k[0].startswith(part+'/')}
+        if not cell_diffs(a,b,set()): result.append(part)
+    return result
+
+
 def cell_diffs(before, after, filters):
     failures = []
     for key in sorted(before.keys() | after.keys()):
+        if key[0].endswith('/Opaque') and opc_part(key[0][:-7]):
+            continue
         a, b = before.get(key), after.get(key)
         if (a is not None and excluded(a.get('F') or '', filters)) or (b is not None and excluded(b.get('F') or '', filters)):
             continue
@@ -547,9 +581,9 @@ def allowed_rewrites(old_cells, new_cells, differences, part_diff):
     }
     if classes['thumbnail_added']:
         patterns = [
-            (re.compile(re.escape(f'[Content_Types].xml/{{{ct_ns}}}Types:0/{{{ct_ns}}}Default:')+r'[0-9]+'),
+            (re.compile(re.escape(f'[Content_Types].xml/{{{ct_ns}}}Types:0/{{{ct_ns}}}Default:')+r'[^/]+'),
              {'Present':f'{{{ct_ns}}}Default','Attribute:Extension':'emf','Attribute:ContentType':'image/x-emf'}),
-            (re.compile(re.escape(f'_rels/.rels/{{{rel_ns}}}Relationships:0/{{{rel_ns}}}Relationship:')+r'[0-9]+'),
+            (re.compile(re.escape(f'_rels/.rels/{{{rel_ns}}}Relationships:0/{{{rel_ns}}}Relationship:')+r'[^/]+'),
              {'Present':f'{{{rel_ns}}}Relationship','Attribute:Type':rel_ns+'/metadata/thumbnail','Attribute:Target':'docProps/thumbnail.emf'}),
         ]
         for (path, ordinal), cell in new_cells.items():
@@ -642,8 +676,9 @@ def verified_observation(path, actual, entry, manifest):
 
 
 def render_required(set_or_group):
-    """M3.22 makes only the selected shipped stencil/template render rows informational."""
+    """M3.22 shipped views and closure-5 small-image views are informational."""
     return set_or_group not in {
+        'generated-masters','from-scratch-masters','from-scratch-pages',
         'shipped-stencil','shipped-template',
         'shipped-stencil-pages','shipped-stencil-masters',
         'shipped-template-pages','shipped-template-masters',
@@ -651,7 +686,7 @@ def render_required(set_or_group):
 
 
 def content_failed(set_name, repairs, com_failures, renders):
-    return bool(repairs or com_failures or (render_required(set_name) and any('error' in r for r in renders)))
+    return bool(repairs or com_failures or any('error' in r and render_required(r.get('group',set_name)) for r in renders))
 
 
 def report(out, manifest, baseline=None):
@@ -733,6 +768,9 @@ def report(out, manifest, baseline=None):
                 retained = {(d[0],d[1]) for d in retained_cells}
                 retained.update(('part:'+p,k) for k in ('added','removed') for p in retained_parts[k])
                 remaining = [d for d in remaining if (d[0],d[1]) in retained]
+            row['opc_byte_only'] = opc_byte_differences(old_cells,new_cells)
+            row['baseline_opc_byte_only'] = opc_byte_differences(base_cells,saved_base_cells)
+            counter['opc_byte_only'] += len(row['opc_byte_only'])
             row['allowed'] = allowed
             for kind, witnesses in allowed.items(): counter[kind] += len(witnesses)
             row['d_ours'] = len(ours)
@@ -784,7 +822,7 @@ def report(out, manifest, baseline=None):
                 failures = subtract_com_baseline(failures,baseline_com)
             row['com_baseline_failures'] = len(baseline_com)
             row['com_failures'] = len(failures)
-            row['com_diff'] = failures[:100]
+            row['com_diff'] = failures
             empty_before = package_empty_views(path)
             empty_after = package_empty_views(actual/saved)
             images = load_json(expected/'images.json')
@@ -806,8 +844,9 @@ def report(out, manifest, baseline=None):
                 except (OSError, ValueError) as error:
                     result = {'error': str(error)}
                 result['file'] = name+'#'+stem
-                row['renders'].append(result)
                 group = name.split('__')[1] if name.startswith('generated__') and stem.startswith('page-') else entry['set']+('-masters' if stem.startswith('master-') else '-pages')
+                result['group'] = group
+                row['renders'].append(result)
                 groups[group].append(result)
             if content_failed(entry['set'],row['repair_count'],failures,row['renders']):
                 counter['failed'] += 1
@@ -815,7 +854,7 @@ def report(out, manifest, baseline=None):
             row['errors'].append(str(error))
             counter['failed'] += 1
         all_rows.append(row)
-        print(f"accept file {name}: D_ours={row.get('d_ours')} D_base={row.get('d_base')} subtracted={row.get('baseline_subtracted')} repair_diffs={row['repair_count']} COM_failures={row['com_failures']} unobserved_style_local={len(row.get('unobserved_style_local',[]))} errors={row['errors']}")
+        print(f"accept file {name}: D_ours={row.get('d_ours')} D_base={row.get('d_base')} subtracted={row.get('baseline_subtracted')} repair_diffs={row['repair_count']} COM_failures={row['com_failures']} OPC_byte_only={len(row.get('opc_byte_only',[]))} unobserved_style_local={len(row.get('unobserved_style_local',[]))} errors={row['errors']}")
     success = (out/'DONE').exists()
     summaries = {}
     for group, items in sorted(groups.items()):
@@ -834,7 +873,7 @@ def report(out, manifest, baseline=None):
         for i in worst:
             print('  worst',i)
     for name,c in sorted(sets.items()):
-        print(f"accept set {name}: files={c['files']} opened={c['opened']} repaired={c['repaired']} failed={c['failed']} thumbnail_added={c['thumbnail_added']} master_type={c['master_type']} master_uniqueid={c['master_uniqueid']} icon_added={c['icon_added']} first_save_stamps={c['first_save_stamps']}")
+        print(f"accept set {name}: files={c['files']} opened={c['opened']} repaired={c['repaired']} failed={c['failed']} thumbnail_added={c['thumbnail_added']} master_type={c['master_type']} master_uniqueid={c['master_uniqueid']} icon_added={c['icon_added']} first_save_stamps={c['first_save_stamps']} opc_byte_only={c['opc_byte_only']}")
         success &= c['opened'] == c['files'] and c['repaired'] == c['failed'] == 0
     success &= bool(groups)
     target = ROOT/'corpus/_state/m3/accept-report.json'

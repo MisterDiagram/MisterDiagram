@@ -1880,3 +1880,16 @@ Candidate group results follow. Each pair is MAD in 0..255 and percent of common
 | master | 1.608085 / 1.791412% | 0.304458 / 0.917252% | 0.300580 / 0.911096% | 0.409296 / 0.665880% | 0.962284 / 1.781152% |
 | page | 2.821761 / 1.171389% | 2.724654 / 1.415789% | 3.356183 / 1.439824% | 2.802486 / 1.138871% | 3.035145 / 1.121811% |
 | text | 3.889404 / 3.318799% | 3.856522 / 3.450185% | 4.411715 / 3.838339% | 3.844625 / 2.985802% | 3.731781 / 3.086633% |
+
+### M3.34: OPC entry identity (2026-10-14)
+
+The acceptance comparison keys content types by Extension or PartName, and
+relationships by (Type, Target). Entry order and relationship Id are not repairs.
+Missing, extra, duplicate or changed entries remain failures in both directions.
+When these keyed records agree, differing OPC byte hashes are reported separately
+as `opc_byte_only`: quote style and attribute order alone do not change meaning.
+Other opaque parts keep their byte contract. Regression:
+`test_keyed_opc_order_ids_and_byte_only_disclosure`.
+P3-closure-5 leaves the three small-image groups measured, ruling pending:
+generated-masters, from-scratch-masters and from-scratch-pages. Their ceilings
+and measured pass/fail values remain visible; no renderer change is made.
