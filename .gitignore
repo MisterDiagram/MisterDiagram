@@ -3,3 +3,4 @@
 /plan
 /log
 /.venv
+__pycache__/
