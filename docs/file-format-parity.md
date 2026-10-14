@@ -1893,3 +1893,26 @@ Other opaque parts keep their byte contract. Regression:
 P3-closure-5 leaves the three small-image groups measured, ruling pending:
 generated-masters, from-scratch-masters and from-scratch-pages. Their ceilings
 and measured pass/fail values remain visible; no renderer change is made.
+
+## M3.36 final COM coverage (2026-10-14)
+
+Charles authorizes this final coverage rebase in P3-closure-5. The pinned 872
+population retains its measured main and text rates, so this is coverage growth,
+not an evaluator regression. The 309 additions were evaluated as a separate
+cohort through the same oracle, with both partitions reconciled to the directory.
+
+| Population | Main passed / eligible | Main rate | Text passed / eligible | Text rate |
+|---|---:|---:|---:|---:|
+| Pinned 872 shipped plus 213 generated/blank dumps | 53,865,489 / 54,718,413 | 98.441248652% | 38,837 / 42,025 | 92.414039262% |
+| Additional 309 shipped dumps | 21,088,976 / 21,434,670 | 98.387220330% | 15,354 / 16,155 | 95.041782730% |
+| Final 1,181 shipped plus 213 generated/blank dumps | 74,954,465 / 76,153,083 | 98.426041399% | 54,191 / 58,180 | 93.143691990% |
+
+The final gate pins 1,394 dump paths (1,181 shipped plus 213 generated/blank) in
+`apps/diagramcraft-corpus/tests/cohorts/m3-1181-dumps.txt`, SHA256
+`d571c4e903ea24a08ed1b2190d6984f8aed0add91977b08e9429b360b0a75b44`.
+The package membership SHA256 is
+`0370d8758e00ca1573c70d909e504bbade52acce674418f466a9b5d375f77a4a`.
+Main floor: 0.984260413; sticky text COM floor: 0.931436919, each rounded
+down to nine decimal places as before. Cached floors and render ceilings are
+unchanged. The old 872 and earlier cohort lists remain committed as evidence.
+The worker is retired: 1,181 of 1,181 shipped dumps are complete, with no partials.

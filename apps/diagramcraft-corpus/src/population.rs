@@ -7,8 +7,8 @@ use std::{
 
 pub(crate) fn description() -> String {
     format!(
-        "apps/diagramcraft-corpus/tests/cohorts/m3-872-dumps.txt sha256={:x}",
-        Sha256::digest(include_bytes!("../tests/cohorts/m3-872-dumps.txt"))
+        "apps/diagramcraft-corpus/tests/cohorts/m3-1181-dumps.txt sha256={:x}",
+        Sha256::digest(include_bytes!("../tests/cohorts/m3-1181-dumps.txt"))
     )
 }
 
@@ -43,7 +43,7 @@ impl Population {
     pub fn frozen() -> Result<Self, String> {
         let floors = include_str!("../../../crates/sheet/tests/floors.toml");
         let section =
-            floors.split("[m3_27_gate_population]").nth(1).ok_or("missing pinned COM population")?.split("\n[").next().ok_or("population section")?;
+            floors.split("[m3_36_gate_population]").nth(1).ok_or("missing pinned COM population")?.split("\n[").next().ok_or("population section")?;
         let value = |key| {
             section
                 .lines()
@@ -53,10 +53,10 @@ impl Population {
                 })
                 .ok_or("missing population key")
         };
-        if value("dumps_path")? != "apps/diagramcraft-corpus/tests/cohorts/m3-872-dumps.txt" {
+        if value("dumps_path")? != "apps/diagramcraft-corpus/tests/cohorts/m3-1181-dumps.txt" {
             return Err("compiled COM population path disagrees with floor".into());
         }
-        let p = Self::parse(include_str!("../tests/cohorts/m3-872-dumps.txt"), value("dumps_sha256")?)?;
+        let p = Self::parse(include_str!("../tests/cohorts/m3-1181-dumps.txt"), value("dumps_sha256")?)?;
         p.complete(value("dumps_count")?.parse().map_err(|_| "invalid population count")?)?;
         Ok(p)
     }
@@ -96,6 +96,6 @@ mod tests {
         assert!(p.require_available(Path::new("target/nonexistent-com-pin-fixture")).is_err());
         assert!(p.complete(0).is_err());
         assert!(p.complete(1).is_ok());
-        Population::frozen().unwrap().complete(1085).unwrap();
+        Population::frozen().unwrap().complete(1394).unwrap();
     }
 }

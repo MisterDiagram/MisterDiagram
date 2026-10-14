@@ -10,13 +10,13 @@
 shipped = 0.974911
 
 [oracle2]
-all = 0.984412486
+all = 0.984260413
 
 [closure]
 packages = 1387
 shipped_packages = 1181
-# Shared completed-dump coverage measured at M3.23; other closure counts are historical M1.
-completed_shipped_dumps = 872
+# Final shipped dump coverage measured at M3.36; other closure counts are historical M1.
+completed_shipped_dumps = 1181
 full_cached_matches = 5247024
 full_cached_denominator = 5355260
 full_resolved_matches = 7181152
@@ -45,7 +45,7 @@ text-metric = 0.90
 promoted = true
 # Lesser achieved quick/full rate, rounded down to six decimals, as with main floors.
 text-cached-floor = 0.909875
-text-com-floor = 0.924140392
+text-com-floor = 0.931436919
 quick_text_cached_passed = 1686
 quick_text_cached_eligible = 1853
 quick_text_com_passed = 1550
@@ -181,9 +181,9 @@ eligible = 67797
 rate = 0.91021727
 
 [text-metric.com]
-passed = 27360
-eligible = 30261
-rate = 0.904134033905
+passed = 54191
+eligible = 58180
+rate = 0.931436919904
 
 [m2_4_text_promotion]
 # Pre-promotion excludes text; promoted includes the qualified text family.
@@ -301,3 +301,32 @@ combined_text_eligible = 42025
 combined_text_rate = 0.924140392623
 # Both old rates still meet their contracts. Floor fractions round down to9decimals.
 # Later directory members are informational only, never another implicit rebase.
+
+[m3_36_gate_population]
+# Charles, P3-closure-5: final coverage rebase after the pinned872 rates pass.
+# Main and sticky text share exactly this population. No later implicit rebase.
+authorization = "P3-closure-5 M3.36, 2026-10-14"
+dumps_path = "apps/diagramcraft-corpus/tests/cohorts/m3-1181-dumps.txt"
+dumps_sha256 = "d571c4e903ea24a08ed1b2190d6984f8aed0add91977b08e9429b360b0a75b44"
+packages_path = "apps/diagramcraft-corpus/tests/cohorts/m3-1181-package-paths.txt"
+packages_sha256 = "0370d8758e00ca1573c70d909e504bbade52acce674418f466a9b5d375f77a4a"
+dumps_count = 1394
+shipped_count = 1181
+old_main_passed = 53865489
+old_main_eligible = 54718413
+old_main_rate = 0.984412486524
+new_main_passed = 21088976
+new_main_eligible = 21434670
+new_main_rate = 0.983872203304
+combined_main_passed = 74954465
+combined_main_eligible = 76153083
+combined_main_rate = 0.984260413987
+old_text_passed = 38837
+old_text_eligible = 42025
+old_text_rate = 0.924140392623
+new_text_passed = 15354
+new_text_eligible = 16155
+new_text_rate = 0.950417827298
+combined_text_passed = 54191
+combined_text_eligible = 58180
+combined_text_rate = 0.931436919904
