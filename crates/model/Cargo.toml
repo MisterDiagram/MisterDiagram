@@ -12,6 +12,7 @@ diagramcraft-geom.workspace = true
 diagramcraft-color.workspace = true
 serde.workspace = true
 uuid.workspace = true
+chrono = { workspace = true, features = ["wasmbind"] }
 
 [dev-dependencies]
 diagramcraft-opc.workspace = true

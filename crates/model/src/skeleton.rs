@@ -3,6 +3,9 @@
 use crate::*;
 #[path = "skeleton_defaults.rs"]
 mod defaults;
+#[path = "skeleton_properties.rs"]
+mod properties;
+pub use properties::update_summary;
 /// Format authored numeric caches with the observed 16 significant digits.
 /// Read caches bypass this formatter. Witness: scratch metric PageHeight 297 mm.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
@@ -113,6 +116,7 @@ fn part(root: XmlElement, content_type: &str) -> Part {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/stylesheet-element-stylesheets_type-complextypevisio-xml
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/colors-element-visiodocument_type-complextypevisio-xml
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/facenames-element-visiodocument_type-complextypevisio-xml
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/facename-element-facenames_type-complextypevisio-xml
 pub fn document(metric: bool) -> Document {
     let main = "visio/document.xml";
     let mut doc = Document {
@@ -154,10 +158,27 @@ pub fn document(metric: bool) -> Document {
     }
     if let Some(p) = doc.parts.get_mut(main) {
         p.relationships = vec![
-            vis_relation(1, "masters", "visio/masters/masters.xml"),
             vis_relation(2, "pages", "visio/pages/pages.xml"),
+            vis_relation(1, "masters", "visio/masters/masters.xml"),
             vis_relation(3, "windows", "visio/windows.xml"),
         ];
+        if let Some(root) = &mut p.xml {
+            root.children.push(XmlNode::Element(element(
+                "FaceNames",
+                &[],
+                vec![XmlNode::Element(element(
+                    "FaceName",
+                    &[
+                        ("NameU", "Calibri"),
+                        ("UnicodeRanges", "-469750017 -1040178053 9 0"),
+                        ("CharSets", "536871423 0"),
+                        ("Panose", "2 15 5 2 2 2 4 3 2 4"),
+                        ("Flags", "357"),
+                    ],
+                    vec![],
+                ))],
+            )));
+        }
     }
     if let Some(p) = doc.parts.get_mut("visio/pages/pages.xml") {
         p.relationships.push(vis_relation(1, "page", "visio/pages/page1.xml"));
@@ -166,13 +187,13 @@ pub fn document(metric: bool) -> Document {
         p.relationships.push(vis_relation(1, "master", "visio/masters/master1.xml"));
     }
     doc.root_relationships = vec![
+        relation(3, "http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties", "docProps/core.xml"),
         vis_relation(1, "document", main),
-        relation(2, "http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties", "docProps/core.xml"),
-        relation(3, &format!("{OFFICE_REL}extended-properties"), "docProps/app.xml"),
-        relation(4, &format!("{OFFICE_REL}custom-properties"), "docProps/custom.xml"),
+        relation(5, &format!("{OFFICE_REL}custom-properties"), "docProps/custom.xml"),
+        relation(4, &format!("{OFFICE_REL}extended-properties"), "docProps/app.xml"),
     ];
     doc.parts.insert("visio/windows.xml".into(), part(windows(), "application/vnd.ms-visio.windows+xml"));
-    metadata(&mut doc, metric);
+    properties::metadata(&mut doc, metric);
     doc
 }
 /// Default settings observed in the blank document, with no UI customization payload.
@@ -255,7 +276,6 @@ pub fn dynamic_connector() -> Master {
                 let mut sheet = defaults::connector_sheet();
                 for name in ["Comment", "ShapeKeywords"] {
                     sheet.cells.retain(|c| c.name != name);
-                    sheet.cells.push(cell(name, Some(""), Some("Inh"), None));
                 }
                 sheet
             },
@@ -271,7 +291,7 @@ pub fn dynamic_connector() -> Master {
             ("IconUpdate", "1"),
             ("PatternFlags", "0"),
             ("Hidden", "0"),
-            ("MasterType", "0"),
+            ("MasterType", "541"),
         ]),
         ..Default::default()
     }
@@ -333,73 +353,46 @@ pub fn rectangle(id: u32, x: f64, y: f64, width: f64, height: f64, text: &str) -
         ..Default::default()
     })
 }
-/// Window metadata is authored, with portable dimensions rather than copied desktop geometry.
-/// https://learn.microsoft.com/en-us/office/client-developer/visio/windows-elementvisio-xml
+/// Full window settings observed in corpus/blank/blank.vsdx.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/window-element-windows_type-complextypevisio-xml
 fn windows() -> XmlElement {
     element(
         "Windows",
-        &[("xmlns", VISIO_NS), ("ClientWidth", "1200"), ("ClientHeight", "800")],
+        &[("xmlns", VISIO_NS), ("xml:space", "preserve"), ("ClientWidth", "3840"), ("ClientHeight", "1614")],
         vec![XmlNode::Element(element(
             "Window",
             &[
                 ("ID", "0"),
                 ("WindowType", "Drawing"),
                 ("WindowState", "1073741824"),
-                ("WindowLeft", "0"),
-                ("WindowTop", "0"),
-                ("WindowWidth", "1200"),
-                ("WindowHeight", "800"),
+                ("WindowLeft", "-13"),
+                ("WindowTop", "-58"),
+                ("WindowWidth", "3866"),
+                ("WindowHeight", "1685"),
                 ("ContainerType", "Page"),
                 ("Page", "0"),
-                ("ViewScale", "1"),
+                ("ViewScale", "-1"),
+                ("ViewCenterX", "4.2538462786703"),
+                ("ViewCenterY", "5.5076924693091"),
             ],
-            vec![],
+            [
+                ("ShowRulers", "1"),
+                ("ShowGrid", "0"),
+                ("ShowPageBreaks", "1"),
+                ("ShowGuides", "1"),
+                ("ShowConnectionPoints", "1"),
+                ("GlueSettings", "9"),
+                ("SnapSettings", "65847"),
+                ("SnapExtensions", "34"),
+                ("SnapAngles", ""),
+                ("DynamicGridEnabled", "1"),
+                ("TabSplitterPos", "0.5"),
+            ]
+            .into_iter()
+            .map(|(n, v)| text_element(n, v))
+            .collect(),
         ))],
     )
-}
-/// Authored OPC properties, including the observed numeric build and metric flag fields.
-/// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
-fn metadata(doc: &mut Document, metric: bool) {
-    let core_ns = "http://schemas.openxmlformats.org/package/2006/metadata/core-properties";
-    let core = element_ns("coreProperties", core_ns, &[("xmlns", core_ns)], vec![]);
-    doc.parts.insert("docProps/core.xml".into(), part(core, "application/vnd.openxmlformats-package.core-properties+xml"));
-    let app_ns = "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties";
-    let app = element_ns(
-        "Properties",
-        app_ns,
-        &[("xmlns", app_ns)],
-        vec![
-            XmlNode::Element(element_ns("Application", app_ns, &[], vec![XmlNode::Text("Diagramcraft".into())])),
-            XmlNode::Element(element_ns("AppVersion", app_ns, &[], vec![XmlNode::Text("1.0000".into())])),
-        ],
-    );
-    doc.parts.insert("docProps/app.xml".into(), part(app, "application/vnd.openxmlformats-officedocument.extended-properties+xml"));
-    let custom_ns = "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties";
-    let vt = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";
-    let mut children = vec![];
-    for (i, (name, kind, value)) in [
-        ("_VPID_ALTERNATENAMES", "lpwstr", ""),
-        ("BuildNumberCreated", "i4", "1074417614"),
-        ("BuildNumberEdited", "i4", "1074417614"),
-        ("IsMetric", "bool", if metric { "true" } else { "false" }),
-    ]
-    .into_iter()
-    .enumerate()
-    {
-        children.push(XmlNode::Element(element_ns(
-            "property",
-            custom_ns,
-            &[("fmtid", "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}"), ("pid", &(i + 2).to_string()), ("name", name)],
-            vec![XmlNode::Element(element_ns(kind, vt, &[], vec![XmlNode::Text(value.into())]))],
-        )));
-    }
-    doc.parts.insert(
-        "docProps/custom.xml".into(),
-        part(
-            element_ns("Properties", custom_ns, &[("xmlns", custom_ns), ("xmlns:vt", vt)], children),
-            "application/vnd.openxmlformats-officedocument.custom-properties+xml",
-        ),
-    );
 }
 
 /// Add dynamic glue between two top-level shapes using page-space cached endpoints.

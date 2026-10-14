@@ -50,6 +50,11 @@ pub fn write_with_hosts(
     let source_state = source::SourceState::new(doc, &evaluator)?;
     let mut w = model::Writer { evaluator, source_state, warnings: vec![], warning_count: 0 };
     let mut parts = doc.parts.clone();
+    if let Some(p) = parts.get_mut("docProps/app.xml").filter(|p| p.bytes.is_empty())
+        && let Some(app) = &mut p.xml
+    {
+        diagramcraft_model::skeleton::update_summary(doc, app).map_err(error)?;
+    }
     let mut main = source(doc, &doc.main_part).cloned().unwrap_or_else(|| node("VisioDocument"));
     replace(&mut main, "DocumentSettings", doc.document_settings.clone().into_iter().collect());
     let palette = colors(doc, main.child("Colors"));
@@ -306,7 +311,11 @@ fn fonts(d: &Document, old: Option<&XmlElement>) -> XmlElement {
 }
 fn relationships(path: &str, rels: &[Relationship]) -> Result<Vec<u8>, WriteError> {
     let mut e = XmlElement { name: "Relationships".into(), namespace: crate::REL_NS.into(), ..Default::default() };
-    for r in rels {
+    let mut ordered: Vec<_> = rels.iter().collect();
+    if !path.is_empty() {
+        ordered.sort_by_key(|r| std::cmp::Reverse(r.id.strip_prefix("rId").and_then(|n| n.parse::<u32>().ok()).unwrap_or(0)));
+    }
+    for r in ordered {
         let mut x = XmlElement { name: "Relationship".into(), namespace: crate::REL_NS.into(), ..Default::default() };
         x.attributes = BTreeMap::from([
             ("Id".into(), r.id.clone()),
@@ -365,7 +374,13 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
             }
         }
         let bytes = if let Some(e) = &p.xml {
-            if !p.bytes.is_empty() && crate::parse_xml(&p.bytes).map_err(|e| error(e.to_string()))? == *e { p.bytes.clone() } else { xml::tree(e)? }
+            if !p.bytes.is_empty() && crate::parse_xml(&p.bytes).map_err(|e| error(e.to_string()))? == *e {
+                p.bytes.clone()
+            } else if p.bytes.is_empty() && name == "docProps/app.xml" {
+                xml::authored_app(e)?
+            } else {
+                xml::tree(e)?
+            }
         } else {
             p.bytes.clone()
         };
@@ -424,6 +439,38 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
             ..Default::default()
         }));
     }
+    if !parts.contains_key("[Content_Types].xml") && !defaults.contains_key("xml") {
+        ct.children.push(XmlNode::Element(XmlElement {
+            name: "Default".into(),
+            namespace: ns.into(),
+            attributes: BTreeMap::from([("Extension".into(), "xml".into()), ("ContentType".into(), "application/xml".into())]),
+            ..Default::default()
+        }));
+    }
+    let mut types: Vec<_> = types.into_iter().collect();
+    types.sort_by_key(|(name, _)| {
+        let rank = match name.as_str() {
+            "visio/document.xml" => 0,
+            "visio/masters/masters.xml" => 1,
+            n if n.starts_with("visio/masters/master") => 2,
+            "visio/pages/pages.xml" => 3,
+            n if n.starts_with("visio/pages/page") => 4,
+            "visio/windows.xml" => 5,
+            "docProps/core.xml" => 6,
+            "docProps/app.xml" => 7,
+            "docProps/custom.xml" => 8,
+            _ => 9,
+        };
+        let number = name
+            .rsplit('/')
+            .next()
+            .unwrap_or("")
+            .trim_end_matches(".xml")
+            .trim_start_matches(|c: char| !c.is_ascii_digit())
+            .parse::<u32>()
+            .unwrap_or(0);
+        (rank, number, name.clone())
+    });
     for (name, ty) in types {
         if covered.contains(&name) || defaults.get(&name.rsplit('.').next().unwrap_or("").to_ascii_lowercase()) == Some(&ty) {
             continue;

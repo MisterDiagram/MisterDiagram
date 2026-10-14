@@ -136,7 +136,7 @@ fn missing_and_authored_png_thumbnails_are_explicit_host_cases() {
     let png = bytes.into_inner();
     d.parts.insert("docProps/thumbnail.png".into(), Part { bytes: png.clone(), content_type: Some("image/png".into()), ..Default::default() });
     d.root_relationships.push(diagramcraft_model::Relationship {
-        id: "rId5".into(),
+        id: "rId2".into(),
         type_uri: "http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail".into(),
         target: "docProps/thumbnail.png".into(),
         external: false,
@@ -954,14 +954,21 @@ fn unchanged_opc_wrappers_keep_original_bytes() {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
 #[test]
 fn authored_inherited_empty_strings_do_not_serialize_com_zero() {
-    let d = skeleton::document(false);
+    let mut d = skeleton::document(false);
+    for name in ["Comment", "ShapeKeywords"] {
+        d.masters[0].shapes[0].sheet.cells.push(Cell {
+            name: name.into(),
+            value: Some("".into()),
+            formula: Some("Inh".into()),
+            ..Default::default()
+        });
+    }
     let after = import(&write(&d).unwrap().bytes).unwrap();
     for name in ["Comment", "ShapeKeywords"] {
         let c = after.masters[0].shapes[0].sheet.cell(name).unwrap();
         assert_eq!(c.formula.as_deref(), Some("Inh"));
         assert_eq!(c.value.as_deref(), Some(""), "{name}");
     }
-    let mut d = skeleton::document(false);
     for c in &mut d.masters[0].shapes[0].sheet.cells {
         if matches!(c.name.as_str(), "Comment" | "ShapeKeywords") {
             c.formula = None;

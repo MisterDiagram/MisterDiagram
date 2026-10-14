@@ -115,7 +115,7 @@ fn skeleton_cell_set_matches_blank_and_probe_observations() {
     let master = p.xml("visio/masters/master1.xml").unwrap();
     let mut expected = observed_cells(master.root.child("Shapes").unwrap().child("Shape").unwrap());
     for name in ["Comment", "ShapeKeywords"] {
-        expected.insert(format!("/{name}"), (Some("".into()), Some("Inh".into()), None));
+        expected.remove(&format!("/{name}"));
     }
     assert_eq!(model_cells(&d.masters[0].shapes[0].sheet), expected);
     let xml = p.xml("visio/document.xml").unwrap();
@@ -154,9 +154,7 @@ fn authored_numbers_empty_style_and_layer_defaults_follow_saved_witness() {
         assert_eq!(d.styles[0].sheet.cell(name).unwrap().value.as_deref(), Some(""));
     }
     for name in ["Comment", "ShapeKeywords"] {
-        let c = d.masters[0].shapes[0].sheet.cell(name).unwrap();
-        assert_eq!(c.formula.as_deref(), Some("Inh"));
-        assert_eq!(c.value.as_deref(), Some(""));
+        assert!(d.masters[0].shapes[0].sheet.cell(name).is_none());
     }
     let layer = skeleton::layer(0, "Visible", true).unwrap();
     assert_eq!(
@@ -165,4 +163,47 @@ fn authored_numbers_empty_style_and_layer_defaults_follow_saved_witness() {
     );
     assert!(skeleton::layer(16_384, "bad", true).is_err());
     assert!(skeleton::layer(0, &"x".repeat(65_537), true).is_err());
+}
+
+#[test]
+fn authored_summary_is_bounded_before_mutation() {
+    let mut d = skeleton::document(false);
+    let mut app = d.parts["docProps/app.xml"].xml.clone().unwrap();
+    let before = app.clone();
+    d.pages[0].name = "x".repeat(16 * 1024 * 1024 + 1);
+    assert!(skeleton::update_summary(&d, &mut app).is_err());
+    assert_eq!(app, before);
+}
+
+#[test]
+fn authored_window_and_face_metadata_follow_blank_witness() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip authored metadata witness: private corpus absent");
+        return;
+    }
+    let blank = diagramcraft_vsdx::import(&std::fs::read(root.join("blank/blank.vsdx")).unwrap()).unwrap();
+    let bytes = diagramcraft_vsdx::write(&skeleton::document(false)).unwrap().bytes;
+    let authored = diagramcraft_vsdx::import(&bytes).unwrap();
+    let original_window = blank.parts["visio/windows.xml"].xml.as_ref().unwrap();
+    let authored_window = authored.parts["visio/windows.xml"].xml.as_ref().unwrap();
+    let attributes = |e: &diagramcraft_model::XmlElement| {
+        e.attributes.iter().filter(|(key, _)| !key.starts_with("xmlns")).map(|(k, v)| (k.clone(), v.clone())).collect::<BTreeMap<_, _>>()
+    };
+    assert_eq!(attributes(authored_window), attributes(original_window));
+    assert_eq!(authored_window.children, original_window.children);
+    let face = |d: &diagramcraft_model::Document| {
+        d.parts["visio/document.xml"]
+            .xml
+            .as_ref()
+            .unwrap()
+            .child("FaceNames")
+            .unwrap()
+            .elements()
+            .find(|e| e.attr("NameU") == Some("Calibri"))
+            .unwrap()
+            .attributes
+            .clone()
+    };
+    assert_eq!(face(&authored), face(&blank));
 }

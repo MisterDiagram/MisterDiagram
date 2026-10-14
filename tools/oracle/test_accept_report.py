@@ -248,6 +248,39 @@ class Acceptance(unittest.TestCase):
         report.scratch_render_assertion('scratch__dynamic-glue','page-0',{'sizes':[(481,97),(481,97)]},p)
 
 
+
+    def test_authored_first_save_classes_are_narrow_and_counted(self):
+        old = report.metadata_records(b'<coreProperties xmlns="http://schemas.openxmlformats.org/package/2006/metadata/core-properties"/>', 'docProps/core.xml')
+        new = report.metadata_records(b'<coreProperties xmlns="http://schemas.openxmlformats.org/package/2006/metadata/core-properties"><lastPrinted>2026-10-14T00:00:00Z</lastPrinted><lastModifiedBy>observer</lastModifiedBy><keywords>unexpected</keywords></coreProperties>', 'docProps/core.xml')
+        icon = ('visio/masters/masters.xml/Master:2/Icon',0)
+        new[icon] = {'V':'hash','F':None,'U':None,'E':None,'kind':'icon'}
+        remaining, _, classes = report.allowed_rewrites(old,new,report.cell_diffs(old,new,set()),{'added':[], 'removed':[]})
+        self.assertEqual(len(classes['first_save_stamps']),2)
+        self.assertEqual(len(classes['icon_added']),1)
+        self.assertEqual(len(remaining),2)
+        self.assertTrue(all('keywords' in d[0] for d in remaining))
+        remaining, _, _ = report.allowed_rewrites(new,old,report.cell_diffs(new,old,set()),{'added':[], 'removed':[]})
+        self.assertTrue(any('lastPrinted' in d[0] for d in remaining))
+
+    def test_thumbnail_and_stamp_classes_check_namespace_and_values(self):
+        ns='http://schemas.openxmlformats.org/package/2006/content-types'
+        rel='http://schemas.openxmlformats.org/package/2006/relationships'
+        core='http://schemas.openxmlformats.org/package/2006/metadata/core-properties'
+        def remaining(xml,part):
+            records=report.metadata_records(xml.encode(),part)
+            return report.allowed_rewrites({},records,report.cell_diffs({},records,set()),{'added':['docProps/thumbnail.emf'],'removed':[]})[0]
+        valid=f'<Types xmlns="{ns}"><Default Extension="emf" ContentType="image/x-emf"/></Types>'
+        self.assertEqual(len(remaining(valid,'[Content_Types].xml')),1) # root presence remains
+        for wrong in [valid.replace('image/x-emf','application/x-unexpected'),valid.replace(ns,'urn:unrelated')]:
+            self.assertEqual(len(remaining(wrong,'[Content_Types].xml')),4)
+        extra=valid.replace('/>',' Unexpected="retained"/>')
+        self.assertTrue(any('Unexpected' in d[0] for d in remaining(extra,'[Content_Types].xml')))
+        valid=f'<Relationships xmlns="{rel}"><Relationship Id="rId2" Type="{rel}/metadata/thumbnail" Target="docProps/thumbnail.emf"/></Relationships>'
+        self.assertEqual(len(remaining(valid,'_rels/.rels')),1)
+        self.assertEqual(len(remaining(valid.replace('/metadata/thumbnail','/unrelated'),'_rels/.rels')),5)
+        wrong=f'<coreProperties xmlns="{core}" xmlns:x="urn:unrelated"><x:lastPrinted>stamp</x:lastPrinted><nested><lastPrinted>stamp</lastPrinted></nested></coreProperties>'
+        self.assertEqual(len(remaining(wrong,'docProps/core.xml')),6)
+
     def test_allowed_rewrites_do_not_hide_other_repairs(self):
         def cell(value,kind): return {'V':value,'F':None,'U':None,'E':None,'kind':kind}
         keys=[('master/Attribute:MasterType',0),('master/Attribute:UniqueID',0),('master/Cell:LayerMember',0)]
@@ -255,11 +288,11 @@ class Acceptance(unittest.TestCase):
         b={keys[0]:cell('541','master_type'),keys[1]:cell('{ABCDEF12-1234-ABCD-8E40-00608CF305B2}','master_uniqueid'),keys[2]:cell('0','cell')}
         parts={'added':['docProps/thumbnail.emf','unexpected.xml'],'removed':[]}
         diffs,left,allowed=report.allowed_rewrites(a,b,report.cell_diffs(a,b,set()),parts)
-        self.assertEqual(len(diffs),1)
+        self.assertEqual(len(diffs),3)
         self.assertEqual(left['added'],['unexpected.xml'])
-        self.assertEqual({k:len(v) for k,v in allowed.items()},{'thumbnail_added':1,'master_type':1,'master_uniqueid':1})
+        self.assertEqual({k:len(v) for k,v in allowed.items()},{'thumbnail_added':1,'master_type':1,'master_uniqueid':1,'icon_added':0,'first_save_stamps':0})
         b[keys[1]]=cell('{00000000-1234-ABCD-8E40-00608CF305B2}','master_uniqueid')
-        self.assertEqual(len(report.allowed_rewrites(a,b,report.cell_diffs(a,b,set()),parts)[0]),2)
+        self.assertEqual(len(report.allowed_rewrites(a,b,report.cell_diffs(a,b,set()),parts)[0]),3)
 
     def test_com_floor_populations_are_pinned_by_sha256(self):
         import hashlib,tomllib

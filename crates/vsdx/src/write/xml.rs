@@ -39,13 +39,22 @@ fn valid_name(s: &str) -> bool {
         })
 }
 pub(super) fn tree(root: &XmlElement) -> Result<Vec<u8>, WriteError> {
-    let mut out = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
+    tree_format(root, false)
+}
+// Observed app.xml serialization: CRLF after the declaration, size before baseType.
+// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
+pub(super) fn authored_app(root: &XmlElement) -> Result<Vec<u8>, WriteError> {
+    tree_format(root, true)
+}
+fn tree_format(root: &XmlElement, app: bool) -> Result<Vec<u8>, WriteError> {
+    let mut out = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
+    out.push_str(if app { "\r\n" } else { "\n" });
     let mut count = 0;
-    node(root, &BTreeMap::from([("xml".into(), "http://www.w3.org/XML/1998/namespace".into())]), 0, &mut count, &mut out)?;
+    node(root, &BTreeMap::from([("xml".into(), "http://www.w3.org/XML/1998/namespace".into())]), 0, &mut count, &mut out, app)?;
     crate::limits::preflight(out.as_bytes()).map_err(|e| error(e.to_string()))?;
     Ok(out.into_bytes())
 }
-fn node(e: &XmlElement, parent: &BTreeMap<String, String>, depth: usize, count: &mut usize, out: &mut String) -> Result<(), WriteError> {
+fn node(e: &XmlElement, parent: &BTreeMap<String, String>, depth: usize, count: &mut usize, out: &mut String, app: bool) -> Result<(), WriteError> {
     *count = count.saturating_add(1);
     if depth >= diagramcraft_opc::xml::MAX_DEPTH || *count > diagramcraft_opc::xml::MAX_NODES || e.attributes.len() > 65536 {
         return Err(error("XML tree limit"));
@@ -78,7 +87,11 @@ fn node(e: &XmlElement, parent: &BTreeMap<String, String>, depth: usize, count: 
         append(out, "\"")?;
     }
     let mut expanded = std::collections::BTreeSet::new();
-    for (k, v) in &e.attributes {
+    let mut attributes: Vec<_> = e.attributes.iter().collect();
+    if app && e.name == "vector" {
+        attributes.sort_by_key(|(k, _)| if k.as_str() == "size" { 0 } else { 1 });
+    }
+    for (k, v) in attributes {
         if declare && k == "xmlns" {
             continue;
         }
@@ -115,7 +128,7 @@ fn node(e: &XmlElement, parent: &BTreeMap<String, String>, depth: usize, count: 
     for c in &e.children {
         match c {
             XmlNode::Text(s) => escaped(out, s, false)?,
-            XmlNode::Element(e) => node(e, &ns, depth + 1, count, out)?,
+            XmlNode::Element(e) => node(e, &ns, depth + 1, count, out, app)?,
         }
     }
     append(out, "</")?;

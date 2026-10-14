@@ -525,30 +525,65 @@ def scratch_render_assertion(name, stem, result, image):
 
 
 def allowed_rewrites(old_cells, new_cells, differences, part_diff):
-    """Only Charles's M3.20 classes may differ without being a repair.
+    """Only Charles's three M3.32 authored first-save classes are allowed.
 
     Witness: scratch rectangle-text original/saved master UniqueID and MasterType;
     missing thumbnail accepted, 2x2 PNG rejected in diag-variants/v1-nothumb.vsdx.
     """
     import re
-    classes = {'thumbnail_added': [], 'master_type': [], 'master_uniqueid': []}
+    classes = {'thumbnail_added': [], 'master_type': [], 'master_uniqueid': [], 'icon_added': [], 'first_save_stamps': []}
     if 'docProps/thumbnail.emf' in part_diff['added']:
         classes['thumbnail_added'].append('docProps/thumbnail.emf')
         part_diff = dict(part_diff, added=[n for n in part_diff['added'] if n != 'docProps/thumbnail.emf'])
     kinds = {str(k):v.get('kind') for k,v in old_cells.items()}
     kinds.update({str(k):v.get('kind') for k,v in new_cells.items()})
+    thumbnail_records = set()
+    ct_ns = 'http://schemas.openxmlformats.org/package/2006/content-types'
+    rel_ns = 'http://schemas.openxmlformats.org/package/2006/relationships'
+    core_ns = 'http://schemas.openxmlformats.org/package/2006/metadata/core-properties'
+    stamp_records = {
+        f'docProps/core.xml/{{{core_ns}}}coreProperties:0/{{{core_ns}}}{name}:0/{field}'
+        for name in ('lastModifiedBy','lastPrinted') for field in ('Present','Text')
+    }
+    if classes['thumbnail_added']:
+        patterns = [
+            (re.compile(re.escape(f'[Content_Types].xml/{{{ct_ns}}}Types:0/{{{ct_ns}}}Default:')+r'[0-9]+'),
+             {'Present':f'{{{ct_ns}}}Default','Attribute:Extension':'emf','Attribute:ContentType':'image/x-emf'}),
+            (re.compile(re.escape(f'_rels/.rels/{{{rel_ns}}}Relationships:0/{{{rel_ns}}}Relationship:')+r'[0-9]+'),
+             {'Present':f'{{{rel_ns}}}Relationship','Attribute:Type':rel_ns+'/metadata/thumbnail','Attribute:Target':'docProps/thumbnail.emf'}),
+        ]
+        for (path, ordinal), cell in new_cells.items():
+            if ordinal != 0 or not path.endswith('/Present') or cell.get('kind') != 'metadata': continue
+            parent = path.rsplit('/',1)[0]
+            for pattern, expected in patterns:
+                if pattern.fullmatch(parent) and all(new_cells.get((parent+'/'+field,0),{}).get('V') == value for field,value in expected.items()):
+                    thumbnail_records.update(parent+'/'+field for field in expected)
+                    if 'Attribute:Target' in expected and new_cells.get((parent+'/Attribute:Id',0),{}).get('V'):
+                        thumbnail_records.add(parent+'/Attribute:Id')
     remaining = []
     guid = re.compile(r'^\{[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-8E40-00608CF305B2\}$', re.I)
     for diff in differences:
         key, field, before, after = diff
         kind = kinds.get(key)
+        import ast
+        path = ast.literal_eval(key)[0]
+        if kind == 'metadata' and field == 'added' and path in thumbnail_records:
+            continue
+        if kind == 'icon' and field == 'added' and '/Master:' in path:
+            classes['icon_added'].append(diff)
+            continue
+        if kind == 'metadata' and field == 'added' and path in stamp_records:
+            stamp = path.rsplit('/', 1)[0]
+            if stamp not in classes['first_save_stamps']: classes['first_save_stamps'].append(stamp)
+            continue
         if kind == 'opaque' and key == str(('docProps/thumbnail.emf/Opaque',0)) and field == 'added' and classes['thumbnail_added']:
             continue
         if kind == 'master_type' and field == 'V':
             classes['master_type'].append(diff)
         elif kind == 'master_uniqueid' and field == 'V' and isinstance(before,str) and isinstance(after,str) and guid.fullmatch(after) and before[:19].lower() == after[:19].lower():
             classes['master_uniqueid'].append(diff)
-        else: remaining.append(diff)
+        # Legacy MasterType/UniqueID columns are disclosure, not scratch waivers.
+        remaining.append(diff)
     return remaining, part_diff, classes
 
 
@@ -693,7 +728,7 @@ def report(out, manifest, baseline=None):
             remaining, subtracted = subtract_baseline(ours,base)
             _, _, allowed = allowed_rewrites(old_cells,new_cells,cells,part_diff)
             if not entry.get('source'):
-                # Only the already-authorized M3.20 classes supplement the blank baseline.
+                # Only the three M3.32 classes supplement the blank baseline.
                 retained_cells, retained_parts, _ = allowed_rewrites(old_cells,new_cells,cells,part_diff)
                 retained = {(d[0],d[1]) for d in retained_cells}
                 retained.update(('part:'+p,k) for k in ('added','removed') for p in retained_parts[k])
@@ -799,7 +834,7 @@ def report(out, manifest, baseline=None):
         for i in worst:
             print('  worst',i)
     for name,c in sorted(sets.items()):
-        print(f"accept set {name}: files={c['files']} opened={c['opened']} repaired={c['repaired']} failed={c['failed']} thumbnail_added={c['thumbnail_added']} master_type={c['master_type']} master_uniqueid={c['master_uniqueid']}")
+        print(f"accept set {name}: files={c['files']} opened={c['opened']} repaired={c['repaired']} failed={c['failed']} thumbnail_added={c['thumbnail_added']} master_type={c['master_type']} master_uniqueid={c['master_uniqueid']} icon_added={c['icon_added']} first_save_stamps={c['first_save_stamps']}")
         success &= c['opened'] == c['files'] and c['repaired'] == c['failed'] == 0
     success &= bool(groups)
     target = ROOT/'corpus/_state/m3/accept-report.json'

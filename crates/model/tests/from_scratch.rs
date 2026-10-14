@@ -12,6 +12,21 @@ fn save(root: &Path, name: &str, d: &Document, kind: SaveKind) -> Document {
     let bytes = write_as(d, kind).unwrap().bytes;
     let reread = import(&bytes).unwrap();
     assert!(!reread.parts.keys().any(|n| n.starts_with("docProps/thumbnail.")));
+    let app = reread.parts["docProps/app.xml"].xml.as_ref().unwrap();
+    assert_eq!(app.elements().find(|e| e.name == "AppVersion").unwrap().text(), "16.0000");
+    let titles = app.elements().find(|e| e.name == "TitlesOfParts").unwrap().elements().next().unwrap();
+    assert_eq!(titles.attr("size").unwrap().parse::<usize>().unwrap(), d.pages.len() + d.masters.len());
+    let core = reread.parts["docProps/core.xml"].xml.as_ref().unwrap();
+    for name in ["created", "modified"] {
+        let c = core.elements().find(|e| e.name == name).unwrap();
+        assert!(chrono::DateTime::parse_from_rfc3339(&c.text()).is_ok());
+        assert_eq!(c.attr("xsi:type"), Some("dcterms:W3CDTF"));
+    }
+    assert_eq!(core.elements().find(|e| e.name == "language").unwrap().text(), "en-US");
+    let custom = reread.parts["docProps/custom.xml"].xml.as_ref().unwrap();
+    let edited = custom.elements().find(|e| e.attr("name") == Some("TimeEdited")).unwrap();
+    assert_eq!(edited.attr("pid"), Some("6"));
+    assert!(chrono::DateTime::parse_from_rfc3339(&edited.text()).is_ok());
     assert!(!reread.root_relationships.iter().any(|r| r.type_uri.ends_with("/thumbnail")));
     if root.join("corpus").exists() {
         let out = root.join("corpus/_state/m3/scratch");
@@ -106,6 +121,7 @@ fn five_documents_build_and_reread() {
         m.id = i + 1;
         m.name = format!("Authored {}", i + 1);
         m.name_u = m.name.clone();
+        m.attributes.insert("MasterType".into(), "2".into());
         m.part = format!("visio/masters/master{}.xml", i + 1);
         m.shapes = vec![skeleton::rectangle(5, 0., 0., 1. + f64::from(i) * 0.5, 1., &m.name).unwrap()];
         d.masters.push(m);

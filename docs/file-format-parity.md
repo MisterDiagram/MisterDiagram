@@ -1744,3 +1744,42 @@ The strict round-trip sweep after M3.31 matches 15,080,738/15,080,738 cells
 the fix. No comparison or floor changed. The union denominator falls because
 invented local instance cells are no longer emitted. Visio repair/COM validation
 requires the subsequent changed-input rerun and is not inferred from this test.
+
+### Authored package completion (M3.32, observed)
+
+The five saved scratch witnesses retain `Application=Diagramcraft` and rewrite
+`AppVersion=1.0000` to `16.0000`. The skeleton now writes 16.0000 and the complete
+app summary, refreshing page/master counts and names before its first save.
+The metric witness lists foreground names before background names. Authored
+app.xml uses the observed declaration line ending and vector attribute order;
+unchanged read metadata still retains its original bytes.
+
+Created/modified and TimeEdited are fresh W3CDTF UTC values; language comes from
+DocLangID. Visio adds lastModifiedBy and lastPrinted on the first save. The
+reporter lists these two first-save stamps separately. Thumbnail addition is one
+event including its relationship and emf Default. A generated master Icon is a
+separate first-save class. All three classes have witnesses in
+`corpus/_vm/out/accept/scratch__rectangle-text/saved.vsdx`.
+
+The blank's Calibri FaceName carries UnicodeRanges `-469750017 -1040178053 9 0`,
+CharSets `536871423 0`, Panose `2 15 5 2 2 2 4 3 2 4` and Flags `357`.
+These are authored font metadata, with no Calibri font embedded. The complete
+blank Window settings and OPC defaults/order are also authored from that witness.
+The current scratch input's master Comment/ShapeKeywords are empty inherited
+cells which Visio removes; the skeleton omits them. Style sheet 0's empty
+Copyright/HelpTopic survive and are retained. A fresh VM rerun is still required
+before claiming zero residual repairs for the completed skeleton.
+
+The FaceName reference table spells the signature attribute `Panos`; the blank
+package writes `Panose`. Authored output follows the witnessed `Panose` spelling.
+The reference was read from MicrosoftDocs' `facename-element-facenames_type-complextypevisio-xml.md`; the XML witness is `corpus/blank/blank.vsdx`, document.xml.
+
+The M3.32 three-class contract replaces the former scratch MasterType and
+UniqueID waivers. Their counts remain informational columns; only matching
+original-file baseline changes can subtract them. Fresh authored MasterTypes
+use the values retained in the saved witnesses.
+
+Host checks confirm all five authored app.xml parts match their saved witness
+bytes. The Window tree regression also checks the root xml:space=preserve
+attribute and every child against blank.vsdx, together with the Calibri FaceName
+attributes. These part-level checks do not establish whole-package acceptance.
