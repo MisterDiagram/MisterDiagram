@@ -1783,3 +1783,100 @@ Host checks confirm all five authored app.xml parts match their saved witness
 bytes. The Window tree regression also checks the root xml:space=preserve
 attribute and every child against blank.vsdx, together with the Calibri FaceName
 attributes. These part-level checks do not establish whole-package acceptance.
+
+### Vertical export mapping investigation (M3.33, unresolved)
+
+Coverage-weighted centres were measured on 66 views with separated, solid black horizontal edges, including 40 required views. Each measurement retained at least three consistent sample columns. The local diagnostic `log/m3-33-coverage-table.json` records the samples, known edge coordinates, stroke weight and fitted scale. Coordinates below use distance from the top of the evaluated extent in inches; scale is pixels per inch. These are observations, not a replacement gate.
+
+The existing transform has `sy=(h-2)/extent_height` and top offset 1. The first candidate uses the existing horizontal scale `sx=(w-2)/extent_width` for Y and centres the vertical extent. The second uses `sy=(h-1)/extent_height`, offset 0.5. A third uses the larger original axis scale and centres Y. Additional diagnostic variants extend the vertical span by 0.25 pixel and shift its centre down 0.0625 pixel, to test the measured eighth-pixel coverage lattice. These variants are hypotheses, not an established export rule. Horizontal mapping was untouched in all trials.
+
+None passes every required group. No production transform was changed, no ceiling was relaxed and no group was waived. The M3.33 explicit stop rule applies. The prior M3.29 profile diagnosis remains valid; it did not establish a general mapping.
+
+An additional counterexample is `scratch__dynamic-glue/page-0.png`: at row 10 the dark-core pixels (RGB below 200) of our rectangle edges occupy x=1,192..193,288,479; Visio occupies x=5,193,287,475. Both images are 481 x 97. The horizontal displacement is outside this item's authorized vertical-only correction. Its vertical edge span also differs from the isolated rectangle despite equal image height and equal extent height.
+
+| View | Image height | Extent height (px) | Measured top offset | Measured scale (px/in) |
+|---|---:|---:|---:|---:|
+| generated__basic__0001-probe / page-0 | 529 | 529.000000 | 0.988761 | 95.685789 |
+| generated__connector__dynamic-glue / page-0 | 145 | 145.000000 | 0.964243 | 94.833987 |
+| generated__connector__line-jumps / page-0 | 673 | 673.000000 | 1.029336 | 95.726719 |
+| generated__connector__move-after / page-0 | 241 | 241.000000 | 0.486786 | 95.691855 |
+| generated__connector__move-before / page-0 | 145 | 145.000000 | 0.964243 | 94.833987 |
+| generated__connector__obstacle / page-0 | 307 | 307.000000 | 0.792960 | 95.610204 |
+| generated__connector__static-glue / page-0 | 145 | 145.000000 | 0.964243 | 94.833987 |
+| generated__fill__pattern-00 / page-0 | 289 | 289.000000 | 0.751188 | 95.583660 |
+| generated__line__pattern-01 / page-0 | 385 | 385.000000 | 0.973293 | 95.567572 |
+| generated__line__weight-0.25 / page-0 | 385 | 384.333333 | 1.112089 | 95.682881 |
+| generated__line__weight-1 / page-0 | 386 | 385.333333 | 1.115025 | 95.682504 |
+| generated__master__basic-rect / page-0 | 193 | 192.320000 | 0.654144 | 95.749020 |
+| generated__master__basic-rect / master-2 | 97 | 96.320000 | 0.841252 | 95.249020 |
+| generated__master__basic-rect / master-4 | 97 | 96.320000 | 0.841252 | 95.249020 |
+| generated__page__layers / page-0 | 193 | 193.000000 | 1.004555 | 95.125490 |
+| generated__text__align-0-0 / page-0 | 289 | 289.000000 | 1.003036 | 95.416993 |
+| generated__text__align-0-1 / page-0 | 289 | 289.000000 | 1.003036 | 95.416993 |
+| generated__text__align-0-2 / page-0 | 291 | 290.366667 | 1.002604 | 95.500000 |
+| generated__text__align-1-0 / page-0 | 289 | 289.000000 | 0.751188 | 95.583660 |
+| generated__text__align-1-1 / page-0 | 289 | 289.000000 | 0.751188 | 95.583660 |
+| generated__text__align-1-2 / page-0 | 291 | 290.366667 | 1.002604 | 95.500000 |
+| generated__text__align-2-0 / page-0 | 289 | 289.000000 | 1.003036 | 95.416993 |
+| generated__text__align-2-1 / page-0 | 289 | 289.000000 | 1.003036 | 95.416993 |
+| generated__text__align-2-2 / page-0 | 291 | 290.366667 | 1.002604 | 95.500000 |
+| generated__text__bullets / page-0 | 289 | 289.000000 | 0.751188 | 95.583660 |
+| generated__text__fields / page-0 | 289 | 289.000000 | 0.751188 | 95.583660 |
+| generated__text__margins / page-0 | 289 | 289.000000 | 0.751188 | 95.583660 |
+| generated__text__multiline-wrap / page-0 | 385 | 385.000000 | 1.002277 | 95.562745 |
+| generated__text__rotated-30 / page-0 | 289 | 289.000000 | 0.751188 | 95.583660 |
+| generated__text__sizes / page-0 | 531 | 530.900000 | 1.096898 | 95.681232 |
+| generated__text__tabs / page-0 | 289 | 289.000000 | 0.751188 | 95.583660 |
+| scratch__rectangle-text / page-0 | 97 | 97.000000 | 0.503911 | 95.249020 |
+| scratch__dynamic-glue / page-0 | 97 | 97.000000 | 0.967279 | 94.250980 |
+| scratch__dropped-master / page-0 | 97 | 96.320000 | 0.841252 | 95.249020 |
+| scratch__dropped-master / master-3 | 97 | 96.320000 | 0.841252 | 95.249020 |
+| scratch__metric-background-layers / page-1 | 289 | 289.000000 | 0.751188 | 95.583660 |
+| scratch__metric-background-layers / page-0 | 289 | 289.000000 | 0.709624 | 95.595425 |
+| scratch__three-masters / master-1 | 97 | 97.000000 | 1.009109 | 94.250980 |
+| scratch__three-masters / master-2 | 97 | 97.000000 | 0.755525 | 94.750980 |
+| scratch__three-masters / master-3 | 97 | 97.000000 | 0.503911 | 95.249020 |
+| shipped-stencil__USTRME_U / master-4 | 27 | 26.500000 | 1.031250 | 90.000000 |
+| shipped-stencil__USTRME_U / master-8 | 223 | 223.000000 | 0.945460 | 95.264964 |
+| shipped-stencil__USTRME_U / master-9 | 49 | 49.000000 | 0.507823 | 94.498039 |
+| shipped-stencil__EEPATH_U / master-18 | 68 | 67.225227 | 0.612746 | 94.169935 |
+| shipped-stencil__EEPATH_U / master-22 | 31 | 30.346457 | 1.142799 | 92.308907 |
+| shipped-stencil__EEPATH_U / master-25 | 64 | 64.025600 | 0.022434 | 94.776458 |
+| shipped-stencil__FURN_VISIO2013_M / master-5 | 64 | 63.716923 | 1.129676 | 93.454715 |
+| shipped-stencil__FURN_VISIO2013_M / master-14 | 58 | 57.988571 | 1.262400 | 92.363834 |
+| shipped-stencil__FURN_VISIO2013_M / master-16 | 31 | 30.556220 | 0.593558 | 94.453137 |
+| shipped-stencil__FURN_VISIO2013_M / master-20 | 105 | 104.257008 | 1.104597 | 94.896406 |
+| shipped-template__UMLSEQUENCE_INTERACTIONFRAME_M / master-18 | 114 | 113.705827 | 0.841604 | 95.037503 |
+| shipped-template__UMLSEQUENCE_INTERACTIONFRAME_M / master-26 | 190 | 189.976378 | 0.519244 | 95.503941 |
+| shipped-template__UCOMME_SUBSYSTEM_R2L / master-13 | 114 | 113.705827 | 0.841604 | 95.037503 |
+| shipped-template__UCOMME_SUBSYSTEM_R2L / master-34 | 96 | 95.488189 | 0.672986 | 95.296084 |
+| shipped-template__NEW_ORGCH_U / master-11 | 49 | 49.000000 | 0.507823 | 94.498039 |
+| shipped-template__NEW_ORGCH_U / master-12 | 49 | 49.000000 | 0.507823 | 94.498039 |
+| shipped-template__PTSKST_M / master-9 | 67 | 67.000000 | 0.758482 | 94.183244 |
+| shipped-template__PTSKST_M / master-21 | 97 | 97.000000 | 0.972962 | 94.271919 |
+| shipped-template__PTSKST_M / master-22 | 97 | 97.000000 | 1.009109 | 94.250980 |
+| shipped-template__SOCIAL_DISTANCING_M / master-16 | 190 | 189.976378 | 0.502583 | 95.504000 |
+| shipped-template__SOCIAL_DISTANCING_M / master-31 | 228 | 227.771652 | 1.026389 | 95.347175 |
+| shipped-template__SOCIAL_DISTANCING_M / master-32 | 153 | 152.181101 | 1.069228 | 94.726601 |
+| shipped-template__SOCIAL_DISTANCING_M / master-34 | 153 | 152.181101 | 1.083764 | 94.710745 |
+| shipped-template__SOCIAL_DISTANCING_M / master-35 | 228 | 227.771652 | 1.101376 | 95.300777 |
+| shipped-template__SOCIAL_DISTANCING_M / master-36 | 304 | 303.362202 | 1.186951 | 95.539670 |
+| shipped-template__SOCIAL_DISTANCING_M / master-63 | 39 | 38.115276 | 1.097674 | 90.807490 |
+
+Candidate group results follow. Each pair is MAD in 0..255 and percent of common-area pixels over 16. The full candidate/worst-three inventory is in `log/m3-33-candidate-groups.json`. Original means the accepted closure-3 measurement. These private trial renders do not replace any oracle output.
+
+| Group | Original | Horizontal scale, centred | Half-pixel margin | Horizontal plus grid trial | Original plus grid trial |
+|---|---:|---:|---:|---:|---:|
+| arrow | 0.543633 / 1.071225% | 0.339529 / 0.826557% | 1.080179 / 1.202958% | 0.568590 / 1.231447% | 0.470488 / 0.961404% |
+| basic | 0.443949 / 0.745332% | 0.429310 / 0.734193% | 1.006456 / 1.409743% | 0.457146 / 0.891123% | 0.378041 / 0.614285% |
+| connector | 2.142340 / 1.225363% | 2.944047 / 1.342807% | 2.767241 / 1.401775% | 3.463569 / 1.651282% | 2.146155 / 1.314943% |
+| fill | 1.112028 / 1.373298% | 0.353900 / 0.641160% | 0.719831 / 1.206906% | 0.180841 / 0.000000% | 0.922423 / 1.351728% |
+| from-scratch-masters | 2.823616 / 4.452799% FAIL | 1.542937 / 3.443171% FAIL | 2.992387 / 4.262162% FAIL | 1.077698 / 2.055466% FAIL | 2.036446 / 3.463406% FAIL |
+| from-scratch-pages | 4.609743 / 3.019190% FAIL | 3.735655 / 2.490908% FAIL | 3.744781 / 3.070555% FAIL | 3.946167 / 3.074973% FAIL | 3.922172 / 2.915080% FAIL |
+| generated-masters | 1.202102 / 2.648070% FAIL | 0.659890 / 2.053344% FAIL | 1.933918 / 2.633175% FAIL | 0.033830 / 0.101071% | 0.296808 / 1.208601% |
+| group | 0.690956 / 1.251292% | 0.687326 / 1.249354% | 1.117804 / 1.676357% | 0.690226 / 1.213824% | 0.701505 / 1.266796% |
+| image | 1.602828 / 1.731289% | 1.618461 / 1.997733% | 1.751487 / 2.057412% FAIL | 1.705902 / 2.022449% FAIL | 1.588297 / 1.347295% |
+| line | 1.076040 / 1.030076% | 1.059749 / 1.117933% | 1.669901 / 1.515044% | 1.259480 / 1.290825% | 1.000730 / 0.853385% |
+| master | 1.608085 / 1.791412% | 0.304458 / 0.917252% | 0.300580 / 0.911096% | 0.409296 / 0.665880% | 0.962284 / 1.781152% |
+| page | 2.821761 / 1.171389% | 2.724654 / 1.415789% | 3.356183 / 1.439824% | 2.802486 / 1.138871% | 3.035145 / 1.121811% |
+| text | 3.889404 / 3.318799% | 3.856522 / 3.450185% | 4.411715 / 3.838339% | 3.844625 / 2.985802% | 3.731781 / 3.086633% |

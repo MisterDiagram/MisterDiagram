@@ -531,3 +531,29 @@ Shipped rendering remains informational under M3.22. Latest error inventory:
 
 These58image failures are retained in the report. Shipped open, repair and COM
 checks remain mandatory. All input and output observations are preserved.
+
+## M3.33 vertical export investigation: stopped at the specified gate
+
+M3.31 prevents inherited-cache expansion on unchanged read shapes. The new
+regression checks exact local shape/section/row/cell keys and literal attributes
+for all 20 shipped acceptance originals. M3.32 completes the observed authored
+package metadata. Neither change has a new Visio acceptance measurement yet;
+the M3.30 repair and COM counts above remain historical, not updated results.
+
+Six global Y-only mappings were compared with the existing VM images. None
+passes every required group. The best observed fraction for scratch masters is
+2.055466% (MAD 1.077698), and for scratch pages 2.490908% (MAD 3.735655), from
+different candidates. Both still exceed 2%. These are diagnostic minima, not a
+combined render rule or a replacement gate. The horizontal-plus-grid candidate
+improves generated masters to 0.101071% but fails image at 2.022449%.
+
+The 66-view measured edge table and candidate group table are recorded in
+file-format-parity.md. A further witness, scratch dynamic-glue page-0 at row10,
+has dark-core edge positions x=1,192..193,288,479 in ours and x=5,193,287,475 in
+Visio, with identical 481x97 dimensions. The requested vertical-only change
+cannot move those X coordinates. No production mapping was changed and no
+ceiling was moved. This does not prove that every untested mapping must fail.
+
+The P3-closure-4 M3.33 stop rule applies. M3.34 keyed OPC comparison, the changed
+input VM rerun, the five seeded verification checks and two clean full passes
+remain pending. M3 is not accepted. No Phase 4 implementation has begun.

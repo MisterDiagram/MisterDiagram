@@ -182,3 +182,32 @@ round-trip 99.916152%, CI eight gates green, 5,548 mutations without panic, pari
 25%. The pinned 872 population passes at 98.441248652% main and 92.414039262%
 text, against old 702 rates 98.478012120% and 90.413403391% (full cohort table
 above). M3 remains unaccepted pending repair/pixel fixes and clean frozen review.
+
+## P3-closure-4: stopped at M3.33 (2026-10-14)
+
+M3.31 preserves the exact local structure and literal attributes of unchanged read
+shapes. All 20 shipped acceptance originals pass the regression. Strict round-trip
+is now 15,080,738/15,080,738 cells (100%) across 1,387 packages, from 99.916152%
+and 12,654 mismatches. The comparison and 99% floor are unchanged; the writer no
+longer adds 10,940 local inherited cells to the union being compared.
+
+M3.32 completes the observed authored package metadata and narrows the three
+permitted scratch first-save classes. Host validation passes; fresh Visio residual
+repair and COM validation is pending. The acceptance inputs and VM artifacts are
+still the closure-3 run. Reclassifying those old inputs leaves 673 scratch repair
+records (from 693), including seven legacy MasterType changes now counted as
+repairs under the current three-class contract. This is not a new-writer result.
+
+M3.33 measured 66 straight-edge views and six global vertical mappings. None
+passes all required groups. Best diagnostic fractions are 2.055466% for scratch
+masters and 2.490908% for scratch pages, from different candidates, against 2%.
+The horizontal grid trial passes generated masters at 0.101071% but fails image
+at 2.022449%. No transform was adopted. The specified M3.33 stop rule applies;
+M3.34 comparison refinement, the changed-input VM run and full verification are
+pending. M3 remains unaccepted and Phase 4 has not started.
+
+All 1,181 shipped dumps are now complete (1,394 total). The pinned 872-shipped
+population still gives main COM 98.441248652% and text 92.414039262%. CI's full
+COM directory informational rates are 98.426041% and 93.143692%; cached quick
+coverage is only 50 shipped files and is not a full cached-corpus measurement.
+No floor, ceiling or pinned population changed. Parity remains 25%.
