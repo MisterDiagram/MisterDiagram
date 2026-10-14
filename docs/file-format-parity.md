@@ -1516,3 +1516,40 @@ will be recorded when this run completes, without inventing evidence while it ru
 Charles also corrects M3.19: the M2 human gate's one-pixel export tolerance applies
 to M3 acceptance. Compare the common area when either dimension differs by one;
 a difference of two or more stays a hard failure. No pixel ceiling changes.
+
+### M3.25: observed baseline save behaviours (2026-10-14)
+
+The first 212 completed original-file observations contain 2,349 differences.
+Their input and output hashes were verified before inspection. The remaining 13
+observations are still running; this is an interim inventory, not an acceptance
+result. The final run record will complete the inventory. These are observations,
+not comparator exceptions: subtraction always uses the same path and change kind.
+
+| Behaviour | Original-file baseline witness |
+|---|---|
+| Window state changes | `generated/basic/0001-probe.vsdx`: ViewCenterX changes from `4.2538462786703` to `4.2461539707522` in pages.xml and windows.xml; ViewCenterY changes too. No ViewScale change has yet appeared in these 212 observations. |
+| Empty clipping formula removed | `generated/image/png.vsdx`, shape 1: ClippingPath keeps its value and loses `F='""'`. The JPEG and EMF drawings show the same behaviour. |
+| Redundant paragraph marker removed | `generated/text/align-1-0.vsdx`, shape 1: the leading `<pp IX="0"/>` disappears, while the text remains. |
+| Field display text refreshed | `generated/text/fields.vsdx`, shape 1, field 1: `10/11/2026` becomes `10/13/2026` in this baseline run. The field is not replaced with a comparison-time expected value. |
+| Older sheet schema updated | `ENTITY_U.vssx`: style cells listed below are added or removed; DocumentSheet also gains DocLockDuplicatePage. |
+| Existing icons regenerated | `ENTITY_U.vssx`, master 10: the Icon digest changes. There are 75 Icon changes in the inspected set. A scratch icon addition still needs its own authorized baseline identity. |
+| Font metadata refreshed | `AZUREVMWARESOLUTION_M.vssx`, FaceName 0: Flags changes from 325 to 357. `ENTITY_U.vssx` changes the attribute spelling Panos to Panose. |
+| Older row/section metadata updated | `ENTITY_U.vssx`, master2.xml shape 5: a Connection row gains T. An empty Paragraph section disappears in master1.xml. |
+| Save metadata refreshed | `generated/arrow/begin-00.vsdx`: core modified time and custom filetime change. Their part hashes change as well. `AZUREVMWARESOLUTION_M.vssx` gains lastModifiedBy. |
+| Missing preview generated | `AZURECOMPUTE_M.vssx` gains docProps/thumbnail.emf. No preview bytes are authored or copied into the project. |
+| Master type updated | `generated/basic/0001-probe.vsdx`, master 2: MasterType changes from 0 to 541. The reporting column remains visible. |
+| Palette entries appended | The saved scratch rectangle demonstrates entries 25 to 27, recorded in M3.26. No original-file ColorEntry difference has yet appeared in the inspected 212-file baseline, so no palette difference is subtracted on that evidence. |
+
+The ENTITY_U style-cell list is EmbellishmentIndex, FillGradientAngle,
+FillGradientDir, FillGradientEnabled, LineGradientAngle, LineGradientDir,
+LineGradientEnabled, LockThemeIndex, LockVariation, NoProofing,
+QuickStyleFontMatrix, QuickStyleVariation, ReplaceCopyCells,
+RotateGradientWithShape, ShdwBkgnd, ShdwBkgndTrans, UseGroupGradient,
+VariationColorIndex and VariationStyleIndex. The private inventory records the
+exact path, direction and values for each change.
+
+The inventory also exposes differences introduced by our writer: the probe has
+six residual OPC byte-hash changes after its ten baseline differences are
+subtracted. The arrow begin-00 drawing has four. These remain repairs, not a new
+formatting exception. Private evidence: `baseline-observations-partial.json` and
+the matching input/saved packages under the M3 baseline trees.
