@@ -15,7 +15,7 @@ fn authored_palette_and_white_render_follow_saved_witness() {
     d.pages[0].shapes.push(skeleton::rectangle(1, 1., 1., 2., 1., "Authored rectangle").unwrap());
     let written = diagramcraft_vsdx::write(&d).unwrap();
     let d = diagramcraft_vsdx::import(&written.bytes).unwrap();
-    let options = scene::Options { alignment_extent: true, ..Default::default() };
+    let options = scene::Options { visio_export: true, ..Default::default() };
     let image = raster::render(&scene::page(&d, 0, options).unwrap(), options).unwrap();
     assert_eq!(image.dimensions(), (193, 97));
     assert_eq!(image.get_pixel(3, 3).0, [255, 255, 255, 255]);

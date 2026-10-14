@@ -1607,3 +1607,17 @@ its cached and round-trip sample remains 50 shipped files. Later dump additions
 are printed separately and cannot move the gate. At the audit, another 246 dumps
 were informational: main 9751471/9999792 (97.516738348%), text 8574/9193
 (93.266615903%). Cached floors and render ceilings are unchanged.
+
+### M3.28 observed export extent (2026-10-14)
+
+Page.Export includes visible painted geometry, its pen/marker bounds and logical
+text bounds. An unpainted alignment box contributes nothing. Witness
+`generated/line/pattern-00.vsdx` becomes 384 x 288, matching Visio, when the hidden
+line is omitted. `generated/connector/obstacle.vsdx` becomes 529 x 307 when the
+routed geometry outside its alignment box is included. The earlier alignment-only
+M3.19 rule was incomplete. The M2 one-pixel tolerance over the common area remains
+in force; no shape or size failure is excluded. Empty views retain the explicit
+480 x 288 blank-export handling. Regression tests cover an unpainted group and both
+corpus witnesses. Host diagnostics on the previous 230-file VM run show zero hard
+size failures in required generated/scratch views; shipped views remain informational.
+The final regenerated-input comparison is still required.

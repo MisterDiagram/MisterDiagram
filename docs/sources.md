@@ -245,7 +245,6 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/variationstyleindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/visible-cell-layer-properties-section> | `crates/render/src/scene.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml> | `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs`, `crates/vsdx/src/lib.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/width-cell-shape-transform-section> | `crates/render/src/scene.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/windows-elementvisio-xml> | `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.applicationsettings.setrasterexportresolution> | `tools/oracle/common.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.applicationsettings.setrasterexportsize> | `tools/oracle/common.ps1` |
@@ -255,6 +254,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.saveas> | `tools/oracle/accept.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.documents.openex> | `tools/oracle/accept.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.master.export> | `tools/oracle/export-masters.ps1` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.page.export> | `crates/render/src/scene.rs`, `crates/render/tests/output.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.pages.item> | `crates/vsdx/src/dump.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.selection.layout> | `tools/oracle/common.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.cellssrc> | `crates/vsdx/src/evaluate.rs` |

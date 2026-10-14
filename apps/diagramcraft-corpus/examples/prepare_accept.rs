@@ -97,7 +97,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             .with_theme_host(&theme)
             .with_text_host(&diagramcraft_text::Host);
         let mut images = vec![];
-        let options = Options { alignment_extent: true, ..Default::default() };
+        let options = Options { visio_export: true, ..Default::default() };
         for (master, count) in [(false, doc.pages.len()), (true, doc.masters.len())] {
             for i in 0..count {
                 if !master && doc.pages.get(i).is_none_or(|p| p.part.is_empty()) {

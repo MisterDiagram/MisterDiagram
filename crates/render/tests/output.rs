@@ -496,7 +496,7 @@ fn shipped_roundtrip_render_regressions() {
 #[test]
 fn acceptance_empty_page_and_master_use_observed_canvas() {
     let mut doc = diagramcraft_model::skeleton::document(false);
-    let options = scene::Options { alignment_extent: true, ..Default::default() };
+    let options = scene::Options { visio_export: true, ..Default::default() };
     let page = scene::page(&doc, 0, options).unwrap();
     let image = raster::render(&page, options).unwrap();
     assert_eq!(image.dimensions(), (480, 288));
@@ -508,24 +508,39 @@ fn acceptance_empty_page_and_master_use_observed_canvas() {
     assert!(image.pixels().all(|p| p.0[..3] == [255, 255, 255]));
 }
 
+/// Visible geometry, not an unpainted group box, determines the export extent.
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.page.export
 #[test]
-fn acceptance_alignment_includes_geometry_free_groups_and_shapes() {
+fn acceptance_extent_ignores_geometry_free_group_bounds() {
     use diagramcraft_model::{Cell, skeleton};
     let mut doc = skeleton::document(false);
     let mut group = skeleton::rectangle(1, 0., 0., 8., 6., "").unwrap();
     group.shape_type = Some("Group".into());
     group.sheet.sections.retain(|s| s.name != "Geometry");
     group.shapes.push(skeleton::rectangle(2, 2., 2., 1., 1., "").unwrap());
-    let options = scene::Options { alignment_extent: true, ..Default::default() };
+    let options = scene::Options { visio_export: true, ..Default::default() };
     for mode in ["0", "1", "2"] {
         group.sheet.cells.retain(|c| c.name != "DisplayMode");
         group.sheet.cells.push(Cell { name: "DisplayMode".into(), value: Some(mode.into()), ..Default::default() });
         doc.pages[0].shapes = vec![group.clone()];
         let drawing = scene::page(&doc, 0, options).unwrap();
-        assert_eq!(drawing.bounds, kurbo::Rect::new(0., 0., 8., 6.), "mode={mode}");
+        assert!(drawing.bounds.width() < 1.1 && drawing.bounds.height() < 1.1, "mode={mode}: {:?}", drawing.bounds);
     }
-    group.shapes.clear();
-    doc.pages[0].shapes = vec![group];
-    let drawing = scene::page(&doc, 0, options).unwrap();
-    assert_eq!(drawing.bounds, kurbo::Rect::new(0., 0., 8., 6.));
+}
+
+/// Page.Export witnesses: invisible line omitted, routed geometry outside the box retained.
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.page.export
+#[test]
+fn acceptance_extent_matches_hidden_line_and_obstacle_witnesses() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !root.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    let options = scene::Options { visio_export: true, ..Default::default() };
+    for (file, size) in [("line/pattern-00.vsdx", (384, 288)), ("connector/obstacle.vsdx", (529, 307))] {
+        let d = diagramcraft_vsdx::read(root.join("generated").join(file)).unwrap();
+        let image = raster::render(&scene::page(&d, 0, options).unwrap(), options).unwrap();
+        assert_eq!(image.dimensions(), size, "{file}");
+    }
 }
