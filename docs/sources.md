@@ -107,7 +107,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/indright-cell-paragraph-section> | `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/infiniteline-row-geometry-section> | `crates/geom/src/rows.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/int-function> | `crates/sheet/src/functions/numeric.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx> | `crates/model/src/lib.rs`, `crates/model/src/skeleton_properties.rs`, `crates/opc/src/opc.rs`, `crates/vsdx/src/lib.rs`, `crates/vsdx/src/write.rs`, `crates/vsdx/src/write/format.rs`, `crates/vsdx/src/write/xml.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx> | `crates/model/src/lib.rs`, `crates/model/src/skeleton_properties.rs`, `crates/opc/src/opc.rs`, `crates/vsdx/src/lib.rs`, `crates/vsdx/src/write.rs`, `crates/vsdx/src/write/format.rs`, `crates/vsdx/src/write/xml.rs`, `crates/vsdx/tests/writer.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/iserr-function> | `crates/sheet/src/functions/extras.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/iserrna-function> | `crates/sheet/src/functions/extras.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/iserror-function-visioshapesheet> | `crates/sheet/src/functions/extras.rs` |

@@ -98,13 +98,22 @@ pub fn write_with_hosts(
             .filter(|(_, p)| !sheet_only(doc, p))
             .map(|(i, p)| if p.part.is_empty() { format!("visio/pages/page{}.xml", i + 1) } else { p.part.clone() })
             .collect();
+        let read_index = doc.parts.get(&pages_path).is_some_and(|p| !p.bytes.is_empty());
+        // Only a relationship owned by a deleted or retargeted modeled Page is removed.
+        // An unreferenced source relationship is not an authoring edit.
+        let owned: BTreeSet<_> = root.elements().filter(|e| e.is_visio("Page")).filter_map(page_relation_id).collect();
         let removed: Vec<_> = relations
             .iter()
-            .filter(|r| !r.external && r.type_uri == format!("{}page", crate::VIS_REL) && !desired.contains(&r.target))
-            .map(|r| r.target.clone())
+            .filter(|r| {
+                !r.external
+                    && r.type_uri == format!("{}page", crate::VIS_REL)
+                    && !desired.contains(&r.target)
+                    && (!read_index || owned.contains(r.id.as_str()))
+            })
+            .map(|r| (r.id.clone(), r.target.clone()))
             .collect();
-        relations.retain(|r| r.external || r.type_uri != format!("{}page", crate::VIS_REL) || desired.contains(&r.target));
-        for path in removed {
+        relations.retain(|r| !removed.iter().any(|(id, _)| id == &r.id));
+        for (_, path) in removed {
             parts.remove(&path);
             parts.remove(&diagramcraft_opc::rels_path(&path));
         }
@@ -189,20 +198,6 @@ pub fn write_with_hosts(
         }
         root_rels.retain(|r| !r.type_uri.ends_with("/vbaProject"));
     }
-    // AWSANALYTICS_M has an optional thumbnail relationship but no thumbnail part.
-    // Do not fabricate vendor preview bytes or emit a dangling link in a new package.
-    root_rels.retain(|r| {
-        let missing_thumbnail = !r.external
-            && r.type_uri == "http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail"
-            && !parts.contains_key(&r.target);
-        if missing_thumbnail {
-            w.warning_count = w.warning_count.saturating_add(1);
-            if w.warnings.len() < 100 {
-                w.warnings.push(format!("omitted missing optional thumbnail relationship: {}", r.target));
-            }
-        }
-        !missing_thumbnail
-    });
     let bytes = package(parts, root_rels)?;
     Ok(Written { bytes, warnings: w.warnings, warning_count: w.warning_count })
 }
@@ -333,31 +328,41 @@ fn relationships(path: &str, rels: &[Relationship]) -> Result<Vec<u8>, WriteErro
 /// Witness: the probe's six unmatched OPC hashes in the M3.24 baseline comparison.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
 fn relationship_bytes(parts: &BTreeMap<String, Part>, path: &str, rels: &[Relationship]) -> Result<Vec<u8>, WriteError> {
-    if let Some(p) = parts.get(&diagramcraft_opc::rels_path(path)).filter(|p| !p.bytes.is_empty()) {
-        let root = crate::parse_xml(&p.bytes).map_err(|e| error(e.to_string()))?;
-        if root.name != "Relationships" || root.namespace != crate::REL_NS {
-            return Err(error("invalid source relationship root"));
-        }
-        let original: Result<Vec<_>, WriteError> = root
-            .elements()
-            .filter(|e| e.name == "Relationship" && e.namespace == crate::REL_NS)
-            .map(|e| {
-                let external = e.attr("TargetMode") == Some("External");
-                let target = e.attr("Target").ok_or_else(|| error("source relationship target missing"))?;
-                Ok(Relationship {
-                    id: e.attr("Id").ok_or_else(|| error("source relationship ID missing"))?.into(),
-                    type_uri: e.attr("Type").ok_or_else(|| error("source relationship type missing"))?.into(),
-                    target: if external { target.into() } else { diagramcraft_opc::resolve(&diagramcraft_opc::dir_of(path), target) },
-                    external,
-                })
-            })
-            .collect();
-        if original? == rels {
-            return Ok(p.bytes.clone());
-        }
+    if source_relationships(parts, path)?.as_deref() == Some(rels)
+        && let Some(p) = parts.get(&diagramcraft_opc::rels_path(path))
+    {
+        return Ok(p.bytes.clone());
     }
     relationships(path, rels)
 }
+/// Source relationships survive an unchanged save even if their target is absent.
+/// Observed: AZURECOMPUTE_M.vssx root thumbnail relationship and its Visio save.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
+fn source_relationships(parts: &BTreeMap<String, Part>, path: &str) -> Result<Option<Vec<Relationship>>, WriteError> {
+    let Some(p) = parts.get(&diagramcraft_opc::rels_path(path)).filter(|p| !p.bytes.is_empty()) else {
+        return Ok(None);
+    };
+    let root = crate::parse_xml(&p.bytes).map_err(|e| error(e.to_string()))?;
+    if root.name != "Relationships" || root.namespace != crate::REL_NS {
+        return Err(error("invalid source relationship root"));
+    }
+    let original: Result<Vec<_>, WriteError> = root
+        .elements()
+        .filter(|e| e.name == "Relationship" && e.namespace == crate::REL_NS)
+        .map(|e| {
+            let external = e.attr("TargetMode") == Some("External");
+            let target = e.attr("Target").ok_or_else(|| error("source relationship target missing"))?;
+            Ok(Relationship {
+                id: e.attr("Id").ok_or_else(|| error("source relationship ID missing"))?.into(),
+                type_uri: e.attr("Type").ok_or_else(|| error("source relationship type missing"))?.into(),
+                target: if external { target.into() } else { diagramcraft_opc::resolve(&diagramcraft_opc::dir_of(path), target) },
+                external,
+            })
+        })
+        .collect();
+    Ok(Some(original?))
+}
+
 fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Result<Vec<u8>, WriteError> {
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     let mut types = BTreeMap::new();
@@ -368,8 +373,9 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
             continue;
         }
         validate::valid_path(name)?;
+        let read_relationships = source_relationships(&parts, name)?.unwrap_or_default();
         for r in &p.relationships {
-            if !r.external && !all.contains(r.target.as_str()) {
+            if !r.external && !all.contains(r.target.as_str()) && !read_relationships.contains(r) {
                 return Err(error(format!("missing relationship target {}", r.target)));
             }
         }
@@ -394,8 +400,9 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
             add_file(&mut files, &mut output_bytes, rel_path, relationship_bytes(&parts, name, &p.relationships)?)?;
         }
     }
+    let read_relationships = source_relationships(&parts, "")?.unwrap_or_default();
     for r in &root_rels {
-        if !r.external && !all.contains(r.target.as_str()) {
+        if !r.external && !all.contains(r.target.as_str()) && !read_relationships.contains(r) {
             return Err(error("missing root relationship target"));
         }
     }
@@ -536,8 +543,26 @@ fn page_background_link(parts: &mut BTreeMap<String, Part>, path: &str, page: &P
             Ok(if background.part.is_empty() { format!("visio/pages/page{}.xml", i + 1) } else { background.part.clone() })
         })
         .transpose()?;
+    let pages_path = doc.parts.get(&doc.main_part).and_then(|p| related(&p.relationships, "pages")).unwrap_or_else(|| "visio/pages/pages.xml".into());
+    let old_page = source(doc, &pages_path)
+        .and_then(|root| root.elements().find(|e| e.is_visio("Page") && e.attr("ID").and_then(|n| n.parse::<u32>().ok()) == Some(page.id)));
+    let is_read = doc.parts.get(path).is_some_and(|p| !p.bytes.is_empty());
+    let old_target = old_page
+        .and_then(|e| e.attr("BackPage"))
+        .and_then(|id| source(doc, &pages_path)?.elements().find(|e| e.is_visio("Page") && e.attr("ID") == Some(id)))
+        .and_then(page_relation_id)
+        .and_then(|id| doc.parts.get(&pages_path)?.relationships.iter().find(|r| r.id == id))
+        .map(|r| r.target.clone());
+    if is_read && old_target == target && old_page.is_some_and(|e| e.attr("BackPage") == page.attributes.get("BackPage").map(String::as_str)) {
+        return Ok(());
+    }
     let p = parts.get_mut(path).ok_or_else(|| error("missing foreground part"))?;
-    p.relationships.retain(|r| r.external || r.type_uri != format!("{}page", crate::VIS_REL) || target.as_ref() == Some(&r.target));
+    p.relationships.retain(|r| {
+        r.external
+            || r.type_uri != format!("{}page", crate::VIS_REL)
+            || target.as_ref() == Some(&r.target)
+            || (is_read && old_target.as_ref() != Some(&r.target))
+    });
     if let Some(target) = target {
         link(&mut p.relationships, "page", &target)?;
     }
@@ -545,4 +570,13 @@ fn page_background_link(parts: &mut BTreeMap<String, Part>, path: &str, page: &P
         parts.remove(&diagramcraft_opc::rels_path(path));
     }
     Ok(())
+}
+
+// Resolve only the namespace-qualified Rel reference owned by a modeled Page.
+fn page_relation_id(page: &XmlElement) -> Option<&str> {
+    let rel = page.child("Rel")?;
+    rel.attributes
+        .iter()
+        .find(|(key, _)| key.rsplit(':').next() == Some("id") && rel.attribute_namespaces.get(*key).is_some_and(|ns| ns == crate::ATTR_REL_NS))
+        .map(|(_, value)| value.as_str())
 }

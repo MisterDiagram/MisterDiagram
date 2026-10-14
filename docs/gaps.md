@@ -659,3 +659,10 @@ this item reopens as a required gate. Ceilings stay unchanged. Keep the M3.33
 M3.37 67-cell connector diagnostic above: no differing cell explains the
 approximately 0.04 in padding. No renderer change is part of M3.39/M3.40.
 Saved measurements remain visible in corpus check and measured in reports.
+
+### M3.40 relationship preservation
+
+The writer no longer drops AZURECOMPUTE_M's original dangling thumbnail link.
+The twenty shipped acceptance originals pass the keyed relationship regression;
+synthetic source-byte cases cover unreferenced page-type links and explicit
+background retargeting. Fresh VM residual counts are recorded in M3.41.

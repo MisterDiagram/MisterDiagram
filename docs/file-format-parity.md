@@ -1971,3 +1971,15 @@ separately beside the scratch document-level blank baseline. Only the three
 exact Page attributes with finite saved numbers qualify; removals, other paths
 and unrelated attributes remain repairs. Witnesses: corpus/blank/blank.vsdx,
 the generated D_base Page records and Visio's saved scratch drawings.
+
+### Observed, undocumented: read dangling relationships (M3.40)
+
+AZURECOMPUTE_M.vssx carries a root thumbnail relationship without the target
+part. Visio preserves that relationship when saving the original. We now write
+read relationships as read, including this dangling link; no thumbnail part is
+fabricated. Witnesses: corpus/ms-shipped/1033/AZURECOMPUTE_M.vssx and its
+baseline saved file. All twenty shipped acceptance originals have identical
+relationship entries after our plain save, compared by Type and Target.
+Newly authored dangling links remain errors. Explicit page deletion or background
+retargeting updates only the links owned by that model edit; unrelated read links
+survive. Existing relationship bytes remain unchanged when their entries do.

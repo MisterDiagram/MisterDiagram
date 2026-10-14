@@ -173,7 +173,7 @@ fn shipped_missing_thumbnail_relationship_does_not_fabricate_a_part() {
     assert!(!d.parts.contains_key("docProps/thumbnail.emf"));
     assert!(d.root_relationships.iter().any(|r| r.target == "docProps/thumbnail.emf"));
     let a = import(&write(&d).unwrap().bytes).unwrap();
-    assert!(!a.root_relationships.iter().any(|r| r.target == "docProps/thumbnail.emf"));
+    assert!(a.root_relationships.iter().any(|r| r.target == "docProps/thumbnail.emf"));
     assert!(!a.parts.contains_key("docProps/thumbnail.emf"));
 }
 
@@ -1049,4 +1049,122 @@ fn shipped_acceptance_shapes_preserve_local_structure_and_literal_attributes() {
         }
         eprintln!("preserved shipped local shape structure: {file}");
     }
+}
+
+/// Preserve every read relationship, including AZURECOMPUTE_M's dangling preview.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
+#[test]
+fn shipped_acceptance_relationships_are_written_as_read() {
+    let corpus = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
+    if !corpus.exists() {
+        eprintln!("skip: private corpus/ is absent");
+        return;
+    }
+    let root = corpus.join("ms-shipped/1033");
+    fn keyed(rels: &[diagramcraft_model::Relationship]) -> std::collections::BTreeMap<(&str, &str), Vec<(&str, bool)>> {
+        let mut result: std::collections::BTreeMap<_, Vec<_>> = std::collections::BTreeMap::new();
+        for r in rels {
+            result.entry((r.type_uri.as_str(), r.target.as_str())).or_default().push((r.id.as_str(), r.external));
+        }
+        for entries in result.values_mut() {
+            entries.sort();
+        }
+        result
+    }
+    for file in [
+        "AZUREVMWARESOLUTION_M.vssx",
+        "ENTITY_U.vssx",
+        "USTRME_U.vssx",
+        "AZUREAPPSERVICES_U.vssx",
+        "EEPATH_U.vssx",
+        "AZURECOMPUTE_M.vssx",
+        "FURN_VISIO2013_M.vssx",
+        "DTLNET_U.vssx",
+        "SITACC_M.vssx",
+        "PLANT_M.vssx",
+        "WWFC_M.vstx",
+        "BASFLO_M.vstx",
+        "UCMNME_U.vstx",
+        "PIN_MARKING_TEMPLATE_U.vstx",
+        "SITPLN_M.vstx",
+        "UMLSEQUENCE_INTERACTIONFRAME_M.vstx",
+        "UCOMME_SUBSYSTEM_R2L.vstx",
+        "NEW_ORGCH_U.vstx",
+        "PTSKST_M.vstx",
+        "SOCIAL_DISTANCING_M.vstx",
+    ] {
+        let before = diagramcraft_vsdx::read(root.join(file)).unwrap();
+        let after = import(&write(&before).unwrap().bytes).unwrap();
+        assert_eq!(keyed(&before.root_relationships), keyed(&after.root_relationships), "{file}: root");
+        for (path, part) in &before.parts {
+            assert_eq!(keyed(&part.relationships), keyed(&after.parts[path].relationships), "{file}: {path}");
+        }
+        eprintln!("preserved shipped relationships: {file}");
+    }
+}
+
+#[test]
+fn newly_authored_dangling_relationships_are_errors() {
+    let mut d = skeleton::document(false);
+    let r = diagramcraft_model::Relationship {
+        id: "missing".into(),
+        type_uri: "urn:diagramcraft:missing".into(),
+        target: "missing.bin".into(),
+        external: false,
+    };
+    d.root_relationships.push(r.clone());
+    assert!(write(&d).is_err());
+    d.root_relationships.pop();
+    d.parts.get_mut("visio/document.xml").unwrap().relationships.push(r);
+    assert!(write(&d).is_err());
+}
+
+/// Unreferenced source relationships are preserved at every owner, not just root.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
+#[test]
+fn original_unreferenced_page_relationships_survive_plain_save() {
+    use std::io::{Cursor, Read, Write};
+    let bytes = write(&skeleton::document(false)).unwrap().bytes;
+    let mut archive = zip::ZipArchive::new(Cursor::new(bytes)).unwrap();
+    let mut files = std::collections::BTreeMap::new();
+    for i in 0..archive.len() {
+        let mut file = archive.by_index(i).unwrap();
+        let mut bytes = Vec::new();
+        file.read_to_end(&mut bytes).unwrap();
+        files.insert(file.name().to_owned(), bytes);
+    }
+    for path in ["_rels/.rels", "visio/pages/_rels/pages.xml.rels", "visio/pages/_rels/page1.xml.rels"] {
+        let xml = files
+            .get(path)
+            .map(|b| std::str::from_utf8(b).unwrap())
+            .unwrap_or("<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"></Relationships>");
+        let xml = xml.replace("</Relationships>", "<Relationship Id=\"unreferenced\" Type=\"http://schemas.microsoft.com/visio/2010/relationships/page\" Target=\"missing.xml\"/></Relationships>");
+        files.insert(path.into(), xml.into_bytes());
+    }
+    let mut zip = zip::ZipWriter::new(Cursor::new(Vec::new()));
+    for (name, bytes) in files {
+        zip.start_file(name, zip::write::SimpleFileOptions::default()).unwrap();
+        zip.write_all(&bytes).unwrap();
+    }
+    let before = import(&zip.finish().unwrap().into_inner()).unwrap();
+    let after = import(&write(&before).unwrap().bytes).unwrap();
+    assert_eq!(before.root_relationships, after.root_relationships);
+    for (name, part) in &before.parts {
+        assert_eq!(part.relationships, after.parts[name].relationships, "{name}");
+    }
+    assert_eq!(before.parts.keys().collect::<Vec<_>>(), after.parts.keys().collect::<Vec<_>>());
+}
+
+#[test]
+fn retargeting_a_background_part_updates_only_its_owned_relationship() {
+    let mut d = skeleton::document(false);
+    d.pages.push(skeleton::page(1, "Back", false));
+    d.pages[0].attributes.insert("BackPage".into(), "1".into());
+    let mut d = import(&write(&d).unwrap().bytes).unwrap();
+    d.pages[1].part = "visio/pages/retargeted.xml".into();
+    let after = import(&write(&d).unwrap().bytes).unwrap();
+    let links = &after.parts["visio/pages/page1.xml"].relationships;
+    assert!(links.iter().any(|r| r.target == "visio/pages/retargeted.xml"));
+    assert!(!links.iter().any(|r| r.target == "visio/pages/page2.xml"));
+    assert!(!after.parts.contains_key("visio/pages/page2.xml"));
 }
