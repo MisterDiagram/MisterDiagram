@@ -942,6 +942,11 @@ impl<'a> Evaluator<'a> {
             && cell.error.is_none()
             && matches!(cell.name.as_str(), "BulletStr" | "Comment" | "ShapeKeywords" | "Copyright" | "HelpTopic")
         {
+            // Synthetic COM defaults store numeric ResultIU=0 for an empty string.
+            // An actual source/authored string "0" must retain its spelling.
+            if cell.value.as_deref() == Some("0") && cell.formula.is_none() && defaults::CELLS.iter().any(|d| std::ptr::eq(&d.cell, cell)) {
+                return Value::Text(String::new());
+            }
             return Value::Text(cell.value.clone().unwrap_or_default());
         }
         if matches!(cell.name.as_str(), "LangID" | "DocLangID") && cell.error.is_none() {

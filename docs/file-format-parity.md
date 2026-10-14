@@ -1519,26 +1519,27 @@ a difference of two or more stays a hard failure. No pixel ceiling changes.
 
 ### M3.25: observed baseline save behaviours (2026-10-14)
 
-The first 212 completed original-file observations contain 2,349 differences.
-Their input and output hashes were verified before inspection. The remaining 13
-observations are still running; this is an interim inventory, not an acceptance
-result. The final run record will complete the inventory. These are observations,
+The completed 225-file original baseline contains 4,624 differences. All 225
+files opened; input and output hashes were verified before inspection. These are observations,
 not comparator exceptions: subtraction always uses the same path and change kind.
 
 | Behaviour | Original-file baseline witness |
 |---|---|
-| Window state changes | `generated/basic/0001-probe.vsdx`: ViewCenterX changes from `4.2538462786703` to `4.2461539707522` in pages.xml and windows.xml; ViewCenterY changes too. No ViewScale change has yet appeared in these 212 observations. |
+| Window state changes | `generated/basic/0001-probe.vsdx`: ViewCenterX changes from `4.2538462786703` to `4.2461539707522` in pages.xml and windows.xml; ViewCenterY changes too. No ViewScale change appears in the completed 225-file baseline. |
 | Empty clipping formula removed | `generated/image/png.vsdx`, shape 1: ClippingPath keeps its value and loses `F='""'`. The JPEG and EMF drawings show the same behaviour. |
 | Redundant paragraph marker removed | `generated/text/align-1-0.vsdx`, shape 1: the leading `<pp IX="0"/>` disappears, while the text remains. |
 | Field display text refreshed | `generated/text/fields.vsdx`, shape 1, field 1: `10/11/2026` becomes `10/13/2026` in this baseline run. The field is not replaced with a comparison-time expected value. |
 | Older sheet schema updated | `ENTITY_U.vssx`: style cells listed below are added or removed; DocumentSheet also gains DocLockDuplicatePage. |
-| Existing icons regenerated | `ENTITY_U.vssx`, master 10: the Icon digest changes. There are 75 Icon changes in the inspected set. A scratch icon addition still needs its own authorized baseline identity. |
+| Existing icons regenerated | `ENTITY_U.vssx`, master 10: the Icon digest changes. There are 266 Icon changes in the completed set. A scratch icon addition still needs its own authorized baseline identity. |
 | Font metadata refreshed | `AZUREVMWARESOLUTION_M.vssx`, FaceName 0: Flags changes from 325 to 357. `ENTITY_U.vssx` changes the attribute spelling Panos to Panose. |
 | Older row/section metadata updated | `ENTITY_U.vssx`, master2.xml shape 5: a Connection row gains T. An empty Paragraph section disappears in master1.xml. |
 | Save metadata refreshed | `generated/arrow/begin-00.vsdx`: core modified time and custom filetime change. Their part hashes change as well. `AZUREVMWARESOLUTION_M.vssx` gains lastModifiedBy. |
 | Missing preview generated | `AZURECOMPUTE_M.vssx` gains docProps/thumbnail.emf. No preview bytes are authored or copied into the project. |
 | Master type updated | `generated/basic/0001-probe.vsdx`, master 2: MasterType changes from 0 to 541. The reporting column remains visible. |
-| Palette entries appended | The saved scratch rectangle demonstrates entries 25 to 27, recorded in M3.26. No original-file ColorEntry difference has yet appeared in the inspected 212-file baseline, so no palette difference is subtracted on that evidence. |
+| Locale refreshed | `PIN_MARKING_TEMPLATE_U.vstx`, DocumentSheet DocLangID: en-IN becomes en-US. |
+| Inferred unit metadata simplified | `USTRME_U.vssx`, master1.xml shape 5, User.BackGrndLine: explicit U=COLOR is removed. |
+| Older window schema updated | `ENTITY_U.vssx`: 2011 Windows attributes such as ClientHeight are replaced during reserialization. The comparison records attributes and byte hashes. |
+| Palette entries appended | The saved scratch rectangle demonstrates entries 25 to 27, recorded in M3.26. No original-file ColorEntry difference appears in the completed 225-file baseline, so no palette difference is subtracted on that evidence. |
 
 The ENTITY_U style-cell list is EmbellishmentIndex, FillGradientAngle,
 FillGradientDir, FillGradientEnabled, LineGradientAngle, LineGradientDir,
@@ -1548,11 +1549,41 @@ RotateGradientWithShape, ShdwBkgnd, ShdwBkgndTrans, UseGroupGradient,
 VariationColorIndex and VariationStyleIndex. The private inventory records the
 exact path, direction and values for each change.
 
-The inventory also exposes differences introduced by our writer: the probe has
-six residual OPC byte-hash changes after its ten baseline differences are
-subtracted. The arrow begin-00 drawing has four. These remain repairs, not a new
-formatting exception. Private evidence: `baseline-observations-partial.json` and
-the matching input/saved packages under the M3 baseline trees.
+The interim inventory exposed writer-introduced OPC byte changes: six for the
+probe and four for arrow begin-00. M3.26 preserves unchanged wrapper bytes; the
+fresh acceptance rerun tests that fix. These were implementation defects, not
+formatting exceptions. Private evidence: `baseline-observations.json`, the earlier
+`baseline-observations-partial.json` and the matching input/saved packages.
+
+
+Complete baseline comparison inventory (225 files, 4,624 path/kind differences):
+
+| Comparison category | Count | One original-file witness |
+|---|---:|---|
+| Part byte hash | 709 | generated__arrow__begin-00: `('docProps/core.xml/Opaque', 0)` |
+| Structure/metadata V | 485 | generated__arrow__begin-00: `('docProps/core.xml/{http://schemas.openxmlformats.org/package/2006/metadata/core-properties}coreProperties:0/{http://purl.org/dc/terms/}modif...` |
+| Page view attributes | 854 | generated__arrow__begin-00: `('visio/pages/pages.xml/Page:0/Attribute:ViewCenterX', 0)` |
+| Other XML attribute V | 748 | generated__basic__0001-probe: `('visio/masters/masters.xml/Master:2/Attribute:MasterType', 0)` |
+| ClippingPath cell | 3 | generated__image__emf: `('visio/pages/page1.xml/Shape:1/Cell:ClippingPath', 0)` |
+| Shape Text serialization or field reevaluation | 31 | generated__text__align-1-0: `('visio/pages/page1.xml/Shape:1/Text', 0)` |
+| Structure/metadata added | 24 | shipped-stencil__AZUREVMWARESOLUTION_M: `('docProps/core.xml/{http://schemas.openxmlformats.org/package/2006/metadata/core-properties}coreProperties:0/{http://schemas.openxmlformats.o...` |
+| FaceNames table V | 48 | shipped-stencil__AZUREVMWARESOLUTION_M: `('visio/document.xml/FaceName:0/Attribute:Flags', 0)` |
+| Literal cell added | 33 | shipped-stencil__ENTITY_U: `('visio/document.xml/DocumentSheet/Cell:DocLockDuplicatePage', 0)` |
+| FaceNames table removed | 1 | shipped-stencil__ENTITY_U: `('visio/document.xml/FaceName:0/Attribute:Panos', 0)` |
+| FaceNames table added | 1 | shipped-stencil__ENTITY_U: `('visio/document.xml/FaceName:0/Attribute:Panose', 0)` |
+| Literal cell removed | 836 | shipped-stencil__ENTITY_U: `('visio/document.xml/StyleSheet:0/Cell:ShdwBkgnd', 0)` |
+| Structure/metadata removed | 141 | shipped-stencil__ENTITY_U: `('visio/masters/master1.xml/Shape:5/Section:Paragraph:/Present', 0)` |
+| Other XML attribute added | 204 | shipped-stencil__ENTITY_U: `('visio/masters/master2.xml/Shape:5/Section:Connection:/Row::0/Attribute:T', 0)` |
+| Master Icon V | 266 | shipped-stencil__ENTITY_U: `('visio/masters/masters.xml/Master:10/Icon', 0)` |
+| Other XML attribute removed | 237 | shipped-stencil__ENTITY_U: `('visio/windows.xml/{http://schemas.microsoft.com/office/visio/2011/1/core}Windows:0/Attribute:ClientHeight', 0)` |
+| Literal cell U | 1 | shipped-stencil__USTRME_U: `('visio/masters/master1.xml/Shape:5/Section:User:/Row:BackGrndLine:/Cell:Value', 0)` |
+| Part added | 1 | shipped-stencil__AZURECOMPUTE_M: `part:docProps/thumbnail.emf` |
+| Literal cell V | 1 | shipped-template__PIN_MARKING_TEMPLATE_U: `('visio/document.xml/DocumentSheet/Cell:DocLangID', 0)` |
+
+These counts describe D_base before intersection with D_ours. The acceptance
+report retains the intersected and residual counts per file. No category is an
+exception in code. The complete baseline has zero ViewScale and zero ColorEntry
+changes; the authored palette uses the separate saved-scratch witness.
 
 ### M3.26: authored defaults and literal colour caches
 
@@ -1636,3 +1667,64 @@ gap, not evidence of a missing shape. No rendering rule or ceiling is changed on
 the strength of this small-image case. Private evidence: paired VM master PNGs and
 `log/m3-29-before-profiles.json`. Generated master group remains a required gate;
 recording the implementation work for Phase 4 does not mark that gate passed.
+
+## M3.30 acceptance after original-file baseline (2026-10-14): partial
+
+All 230 inputs opened. Baseline has 225/225 opened originals. Generated and blank
+packages have zero residual repairs and zero residual source COM differences.
+Eight files still have 4,705 repair differences; SOCIAL_DISTANCING_M retains 309
+COM differences. Five scratch files have zero source COM differences. No required
+repair or pixel failure is waived.
+
+| Set | Opened | D_ours | D_base | Subtracted | Residual repairs (files / differences) | Thumbnail | MasterType | UniqueID | Residual COM |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| generated | 204/204 | 1843 | 1843 | 1843 | 0 / 0 | 0 | 7 | 0 | 0 |
+| blank | 1/1 | 9 | 9 | 9 | 0 / 0 | 0 | 0 | 0 | 0 |
+| from-scratch | 5/5 | 725 | 35 | 15 | 5 / 693 | 5 | 7 | 0 | 0 |
+| shipped-stencil | 10/10 | 781 | 767 | 767 | 1 / 14 | 1 | 0 | 0 | 0 |
+| shipped-template | 10/10 | 5991 | 2005 | 1993 | 2 / 3998 | 0 | 0 | 0 | 309 |
+
+
+| Render group | Images | Errors | Mean MAD (0 to 255) | Pixels over 16 | Gate |
+|---|---:|---:|---:|---:|---|
+| arrow | 92 | 0 | 0.543633 | 1.071225% | PASS |
+| basic | 1 | 0 | 0.443949 | 0.745332% | PASS |
+| blank-pages | 1 | 0 | blank | blank | PASS |
+| connector | 6 | 0 | 2.142340 | 1.225363% | PASS |
+| fill | 44 | 0 | 1.112028 | 1.373298% | PASS |
+| from-scratch-masters | 8 | 0 | 2.823616 | 4.452799% | FAIL |
+| from-scratch-pages | 5 | 0 | 4.609743 | 3.019190% | FAIL |
+| generated-masters | 9 | 0 | 1.202102 | 2.648070% | FAIL |
+| group | 1 | 0 | 0.690956 | 1.251292% | PASS |
+| image | 3 | 0 | 1.602828 | 1.731289% | PASS |
+| line | 37 | 0 | 1.076040 | 1.030076% | PASS |
+| master | 1 | 0 | 1.608085 | 1.791412% | PASS |
+| page | 4 | 0 | 2.821761 | 1.171389% | PASS |
+| shipped-stencil-masters | 186 | 25 | 14.604653 | 11.776394% | informational |
+| shipped-template-masters | 115 | 29 | 8.206572 | 2.316836% | informational |
+| shipped-template-pages | 11 | 4 | 1.917666 | 3.722501% | informational |
+| text | 16 | 0 | 3.889404 | 3.318799% | PASS |
+
+
+The final evaluator is used for both host metadata sets. PLANT_M has 125,169 raw
+COM differences and the same 125,169 in its original baseline: residual zero.
+SOCIAL_DISTANCING_M has 16,021 raw, 15,712 baseline and 309 residual differences,
+including page 0 shape 337 Prop.VisWallHeight and User.3D_extrude_length, local
+V=`2.6 m` versus observed `2.6`. The earlier interim residual unit counts mixed
+host metadata versions; regenerating our own baseline metadata removes that skew
+without changing any Visio input or observation.
+
+Authored inherited empty Comment/ShapeKeywords now preserve empty caches rather
+than the synthetic COM numeric default zero. A genuine authored string `0` stays
+`0`. The regression fails before the fix and passes after it. Only the five scratch
+input hashes changed; their separate 3600-second rerun opened all five.
+
+Strict host round-trip remains 15,079,024/15,091,678 (99.916152%), all scored image
+pairs identical, 568 master and 74 page equal-error pairs disclosed. Final CI has
+all eight gates green; corpus, parity, roundtrip, malformed and from_scratch pass.
+Fuzz: 1,387 files, 5,548 mutations, zero panics. Acceptance reporter exits 1.
+
+Scratch allowance columns count five thumbnail additions and seven MasterType
+rewrites. They remove 17 path/kind records after baseline subtraction: each new
+thumbnail contributes both a part-presence record and its opaque payload record.
+No UniqueID rewrite is present. The remaining 693 scratch records are repairs.

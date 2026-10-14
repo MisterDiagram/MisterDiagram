@@ -291,13 +291,14 @@ class Acceptance(unittest.TestCase):
         # Real comparison identities: probe window state, scratch style defaults.
         for shared, defect in [('pages/Page:0/Attribute:ViewCenterX','pages/Shape:1/Cell:Width'),
                                ('visio/document.xml/StyleSheet:0/Cell:X','pages/Shape:1/Cell:FillForegnd')]:
-            ours=[(shared,'V','1','2'),(defect,'V','0','1')]
-            base=[(shared,'V','3','4'),('baseline-only','added',None,'x')]
-            remaining, removed=report.subtract_baseline(ours,base)
-            self.assertEqual(remaining,[ours[1]])
-            self.assertEqual(removed,[ours[0]])
-            self.assertEqual(report.subtract_baseline(ours,[])[0],ours)
-            self.assertEqual(report.subtract_baseline(ours,[(defect,'F','0','1')])[0],ours)
+            with self.subTest(witness=shared):
+                ours=[(shared,'V','1','2'),(defect,'V','0','1')]
+                base=[(shared,'V','3','4'),('baseline-only','added',None,'x')]
+                remaining, removed=report.subtract_baseline(ours,base)
+                self.assertEqual(remaining,[ours[1]])
+                self.assertEqual(removed,[ours[0]])
+                self.assertEqual(report.subtract_baseline(ours,[])[0],ours)
+                self.assertEqual(report.subtract_baseline(ours,[(defect,'F','0','1')])[0],ours)
 
     def test_scratch_baseline_is_document_scoped(self):
         self.assertTrue(report.document_level_difference((str(('visio/document.xml/StyleSheet:0/Cell:X',0)),'added')))

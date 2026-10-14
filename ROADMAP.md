@@ -171,3 +171,14 @@ its cached and round-trip sample remains 50 shipped files. Later dump additions
 are printed separately and cannot move the gate. At the audit, another 246 dumps
 were informational: main 9751471/9999792 (97.516738348%), text 8574/9193
 (93.266615903%). Cached floors and render ceilings are unchanged.
+
+## M3.30 closure-3 (2026-10-14): partial
+
+230/230 opened, 225/225 originals baselined. Generated/blank repairs are zero;
+eight files retain 4,705 repair differences. Scratch COM is zero, shipped residual
+COM is 309 (SOCIAL_DISTANCING_M). All ten generated page groups pass; generated
+masters and scratch page/master groups fail the unchanged ceilings. Strict host
+round-trip 99.916152%, CI eight gates green, 5,548 mutations without panic, parity
+25%. The pinned 872 population passes at 98.441248652% main and 92.414039262%
+text, against old 702 rates 98.478012120% and 90.413403391% (full cohort table
+above). M3 remains unaccepted pending repair/pixel fixes and clean frozen review.

@@ -491,3 +491,43 @@ gap, not evidence of a missing shape. No rendering rule or ceiling is changed on
 the strength of this small-image case. Private evidence: paired VM master PNGs and
 `log/m3-29-before-profiles.json`. Generated master group remains a required gate;
 recording the implementation work for Phase 4 does not mark that gate passed.
+
+## M3.30 remaining closure gaps, measured 2026-10-14
+
+Required M3 repairs remain open, not deferred or excused:
+
+| File or set | Residual repair differences | Witness and cause |
+|---|---:|---|
+| Five scratch files | 693 | rectangle 139, dynamic glue 140, dropped master 148, metric 148, three masters 118. OPC/content-type ordering and byte serialization, docProps/windows metadata, FaceNames metadata and generated Icon differences lack matching blank-baseline identities. Empty master defaults may be removed by SaveAs. |
+| AZURECOMPUTE_M | 14 | Root relationship bytes/attributes change when the missing thumbnail relationship is restored: 10 value differences and 4 additions beyond that file's baseline. |
+| PTSKST_M | 24 | Six newly emitted named User.ValueFormat rows carry IX; Visio removes IX. Each becomes a removed/added row and cell identity. Example page1.xml shape27/shape34. |
+| SOCIAL_DISTANCING_M | 3974 | 3 relationship changes, 28 XCon removals, 705 Geometry A additions, named-row/attribute changes, Value/Menu/Prompt changes and 6 ComplexScriptFont changes. Example page1.xml shape1006 Control.Row_1.XCon; shape1050/1074/1076 Geometry row2 A. Original XCon count151, ours181, Visio save of ours153, original baseline151. |
+
+The full SOCIAL counts by comparison category are in private
+`corpus/_state/m3/residual-repair-causes.json`. These are writer defects under
+the exact baseline rule. No denominator or repair exception is changed.
+Its 309 residual COM differences remain required too; page0 shape337
+Prop.VisWallHeight and User.3D_extrude_length are witnesses (`2.6 m` versus `2.6`).
+PLANT_M's125169raw differences are also present in its baseline: residual0.
+
+Phase 4 renderer work (these three required pixel groups still prevent M3 closure):
+generated masters MAD1.202102,2.648070% over16; scratch masters MAD2.823616,
+4.452799%; scratch pages MAD4.609743,3.019190%. All required dimensions pass the
+one-pixel rule. Master edge profiles are documented above; scratch text faces
+and antialiasing remain visibly different. No ceiling moves.
+
+Shipped rendering remains informational under M3.22. Latest error inventory:
+
+| Class | Images | Witness |
+|---|---:|---|
+| Hard size mismatch | 39 | ENTITY_U master10; UCMNME_U master11 |
+| CHAR | 2 | ENTITY_U master2 |
+| LISTORDER | 2 | UMLSEQUENCE_INTERACTIONFRAME_M page0/master27 |
+| REF | 2 | EEPATH_U master23 transform and master27 geometry |
+| CYCLE | 4 | USTRME_U master10; PTSKST_M master4 text block; SOCIAL_DISTANCING_M page4 |
+| VALUE transform | 7 | PTSKST_M page0 and master2 |
+| VALUE text | 1 | SOCIAL_DISTANCING_M master42 |
+| Undetermined image format | 1 | SOCIAL_DISTANCING_M page0 |
+
+These58image failures are retained in the report. Shipped open, repair and COM
+checks remain mandatory. All input and output observations are preserved.

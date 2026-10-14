@@ -16,7 +16,8 @@ pub fn number_text(value: f64) -> Option<String> {
     format!("{value:.15e}").parse::<f64>().ok().map(|n| n.to_string())
 }
 
-/// Complete authored layer defaults observed in generated/page/layers.vsdx.
+/// Complete layer cells observed in generated/page/layers.vsdx; values follow
+/// scratch__metric-background-layers/saved.vsdx, including its No Formula defaults.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/layer-section
 pub fn layer(index: u32, name: &str, visible: bool) -> Result<Row, String> {
     if index >= 16_384 || name.len() > 65_536 {
