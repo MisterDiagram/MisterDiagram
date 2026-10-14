@@ -628,3 +628,24 @@ original root relationship targets docProps/thumbnail.emf; its removal is visibl
 under keyed comparison and is not a byte-only difference. No comparison exception
 is introduced for either result. The three small-image groups remain measured,
 ruling pending under P3-closure-5. Final retry results are recorded in M3.38.
+
+### M3.38 closure-5 remaining repairs (2026-10-14)
+
+230/230 opened; all residual COM counts are zero, including SOCIAL_DISTANCING_M
+and PTSKST_M after M3.31. SOCIAL's 15712 raw COM differences also occur in the
+baseline. The zero-repair gate still fails on 15 metadata records in five files:
+
+| Witness | Records | Cause |
+|---|---:|---|
+| scratch__rectangle-text | 3 | Page 0 ViewCenterX, ViewCenterY, ViewScale differ |
+| scratch__dynamic-glue | 3 | Same three Page attributes |
+| scratch__dropped-master | 3 | Same three Page attributes |
+| scratch__metric-background-layers | 3 | Same three Page attributes |
+| shipped-stencil__AZURECOMPUTE_M | 3 | Writer removes original root-thumbnail relationship; Visio restores it |
+
+The page attributes are outside the scratch document-level baseline. The missing
+thumbnail relationship is not a baseline addition. Neither class is waived.
+The three small-image groups remain measured, ruling pending under closure-5;
+M3.33 and M3.37 diagnostic findings stand with no renderer change. The first
+SOCIAL attempt timed out, but the single-file retry completed within 3600s, so
+no acceptance observation remains incomplete.

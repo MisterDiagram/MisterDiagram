@@ -234,3 +234,42 @@ Main floor: 0.984260413; sticky text COM floor: 0.931436919, each rounded
 down to nine decimal places as before. Cached floors and render ceilings are
 unchanged. The old 872 and earlier cohort lists remain committed as evidence.
 The worker is retired: 1,181 of 1,181 shipped dumps are complete, with no partials.
+
+## M3.38 final closure-5 measurement (2026-10-14): partial
+
+The changed-input run selected exactly seven of 230 packages: five scratch files,
+PTSKST_M and SOCIAL_DISTANCING_M. The first 3600s run completed six and timed
+out (124) on SOCIAL. Its unchanged-budget single-file retry completed in about
+58 minutes (exit 0). Checks were at least 900 seconds apart; baseline was not
+rerun. All 230 files now have complete opened observations.
+
+The acceptance reporter exits 1: five files retain 15 genuine repair records.
+Four scratch Page 0 entries change ViewCenterX, ViewCenterY and ViewScale (12
+records); AZURECOMPUTE_M has three added root-thumbnail relationship records
+after our writer removed a relationship present in the original and its baseline.
+No broader exception is applied. All 230 files have zero residual COM differences.
+SOCIAL has D_ours 1011, D_base 1012, subtracted 1011 and residual repairs 0;
+its 15712 raw COM differences all occur in the baseline, leaving residual 0.
+The previous 309 added-cell differences are gone. PTSKST_M also has zero repairs
+and residual COM.
+
+All required page render groups pass the frozen ceilings and one-pixel rule.
+Generated masters: MAD 1.202102, over16 2.648070%; scratch masters: 2.823616,
+4.452799%; scratch pages: 4.609743, 3.019190%. These three groups remain
+measured, ruling pending. There is no renderer change.
+
+CI (8 gates), parity, corpus, current-target roundtrip, malformed and from_scratch
+all exit 0. Strict cells: 15080738/15080738 (100%), every mismatch class zero.
+Writer fuzz: 1387 files, 5548 mutations, zero panics. The stale standalone
+roundtrip log from a reused seed Cargo target is superseded by the main-target
+-current logs; CI and corpus independently agree with the corrected run.
+Five source seeds were caught and restored exactly. M3 remains unaccepted
+because the reporter's zero-repair condition is unmet, not because of the three
+small-image groups. Phase 4 has not started.
+
+Two independent frozen passes completed in order: closure5_review then
+m3_writer_review. Each has 8 YES and 2 NO (M3.35 and M3.38-Gates), both due to
+the 15 residual metadata repairs. All five production seeds are caught and
+restored byte for byte. These are two completed passes, not two clean passes.
+No additional source changes, comparison exceptions or render changes were
+introduced to manufacture closure.
