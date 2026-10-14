@@ -1,7 +1,11 @@
 # P3 acceptance: retain the actual post-open save, COM observation and every page/master image.
 # https://learn.microsoft.com/en-us/office/vba/api/visio.document.saveas
 # https://learn.microsoft.com/en-us/office/vba/api/visio.documents.openex
-$out = '\\Mac\Home\Projects\diagramcraft\corpus\_vm\out\accept'
+$outputName = 'accept'
+$outputConfig = Join-Path $PSScriptRoot 'accept-output.txt'
+if (Test-Path -LiteralPath $outputConfig) { $outputName = (Get-Content -LiteralPath $outputConfig -Raw).Trim() }
+if ($outputName -notin @('accept','baseline')) { throw 'invalid acceptance output tree' }
+$out = Join-Path (Join-Path $PSScriptRoot 'out') $outputName
 New-Item -ItemType Directory -Force $out | Out-Null
 $log = Join-Path $out 'probe-log.txt'
 if (Test-Path -LiteralPath $log) {

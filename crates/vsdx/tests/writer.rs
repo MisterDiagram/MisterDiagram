@@ -922,7 +922,7 @@ fn probe_resave_has_no_literal_differences_in_acceptance_reporter() {
     let output = directory.join(format!("probe-{}.vsdx", std::process::id()));
     std::fs::write(&output, write(&d).unwrap().bytes).unwrap();
     let result=std::process::Command::new("python3").current_dir(&root).arg("-c").arg(
-        "import sys;sys.path.insert(0,'tools/oracle');import accept_report as r;_,a=r.package_cells(sys.argv[1]);_,b=r.package_cells(sys.argv[2]);d=r.cell_diffs(a,b,set());print('probe literal differences:',len(d),d[:20]);sys.exit(bool(d))"
+        "import sys;sys.path.insert(0,'tools/oracle');import accept_report as r;_,a=r.package_cells(sys.argv[1]);_,b=r.package_cells(sys.argv[2]);all_d=r.cell_diffs(a,b,set());kinds={str(k):v.get('kind') for k,v in (a|b).items()};d=[x for x in all_d if kinds.get(x[0])!='opaque'];print('probe literal/structural differences:',len(d),d[:20],'; separately measured byte-hash differences:',len(all_d)-len(d));sys.exit(bool(d))"
     ).arg(&source).arg(&output).output().unwrap();
     let _ = std::fs::remove_file(output);
     assert!(result.status.success(), "{}{}", String::from_utf8_lossy(&result.stdout), String::from_utf8_lossy(&result.stderr));

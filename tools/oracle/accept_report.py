@@ -194,6 +194,37 @@ def project_language_ids():
     return {name.lower():int(value) for name,value in pairs}
 
 
+def metadata_records(data, part):
+    """Compare metadata structure as well as its byte hash, so one changed field
+    cannot authorize a different writer change elsewhere in the same XML part.
+    """
+    if b'\x00' in data or b'<!DOCTYPE' in data.upper() or b'<!ENTITY' in data.upper():
+        raise ValueError('metadata entities forbidden')
+    root = ET.fromstring(data)
+    records = {}
+    pending = [(root,part,0,0)]
+    total = 0
+    while pending:
+        node,parent,depth,ordinal = pending.pop()
+        path = parent+'/'+node.tag+':'+str(ordinal)
+        if depth > 128 or len(path) > 65536: raise ValueError('metadata depth/identity budget')
+        fields = {'Present':node.tag}
+        fields.update({'Attribute:'+k:v for k,v in node.attrib.items()})
+        if node.text and node.text.strip(): fields['Text'] = node.text
+        for name,value in fields.items():
+            key = path+'/'+name
+            total += len(key.encode())+len(value.encode())
+            if total > 64*1024*1024 or len(records) >= 2_000_000: raise ValueError('metadata budget')
+            records[key,0] = {'V':value,'F':None,'U':None,'E':None,'kind':'metadata'}
+        positions = Counter()
+        children = []
+        for child in node:
+            i=positions[child.tag];positions[child.tag]+=1
+            children.append((child,path,depth+1,i))
+        pending.extend(reversed(children))
+    return records
+
+
 def package_cells(path):
     """Literal serialized sheet dump, keyed by part, sheet IDs and section/row identities.
 
@@ -215,9 +246,14 @@ def package_cells(path):
             # solution XML is opaque to the reader and not standalone namespace-valid.
             if not (info.filename == 'visio/document.xml' or info.filename.startswith(('visio/pages/','visio/masters/'))) or not info.filename.endswith('.xml'):
                 # Opaque payloads are byte contracts, including solution XML.
-                known_xml = (info.filename == '[Content_Types].xml' or info.filename.endswith('.rels')
-                    or info.filename == 'visio/windows.xml' or info.filename.startswith(('docProps/','visio/theme/')) and info.filename.endswith('.xml'))
-                if not info.is_dir() and not known_xml:
+                if not info.is_dir() and (info.filename in {'[Content_Types].xml','visio/windows.xml'} or info.filename.endswith('.rels') or info.filename.startswith('docProps/') and info.filename.endswith('.xml')):
+                    if info.file_size > MAX_XML: raise ValueError('metadata XML budget')
+                    for key,value in metadata_records(z.read(info),info.filename).items():
+                        identity_bytes += len(key[0].encode())
+                        if identity_bytes > 64*1024*1024 or len(cells) >= 2_000_000:
+                            raise ValueError('metadata identity budget')
+                        cells[key] = value
+                if not info.is_dir():
                     h = hashlib.sha256()
                     with z.open(info) as payload:
                         for block in iter(lambda: payload.read(1024*1024), b''): h.update(block)
@@ -235,6 +271,8 @@ def package_cells(path):
                 if depth > 128:
                     raise ValueError('XML depth exceeded')
                 tag = node.tag.rsplit('}', 1)[-1]
+                if tag == 'FaceName' and node.tag not in {'FaceName','{http://schemas.microsoft.com/office/visio/2012/main}FaceName','{http://schemas.microsoft.com/office/visio/2011/1/core}FaceName'}:
+                    continue
                 if len(parent) > 65536 or sum(len(v) for v in node.attrib.values()) > 65536:
                     raise ValueError('identity length budget')
                 if tag in {'Shape', 'Master', 'Page', 'StyleSheet'}:
@@ -242,15 +280,19 @@ def package_cells(path):
                 elif tag in {'Section', 'Row'}:
                     index = node.get('IX', str(row_position) if tag == 'Row' and node.get('N') is None else '')
                     parent += '/' + tag + ':' + node.get('N', '') + ':' + index
+                elif tag in {'ColorEntry','FaceName'}:
+                    parent += '/' + tag + ':' + (node.get('IX','') if tag == 'ColorEntry' else str(row_position))
+                elif tag == 'DocumentSettings':
+                    parent += '/DocumentSettings'
                 elif tag in {'PageSheet', 'DocumentSheet'}:
                     parent += '/' + tag
-                if tag in {'Shape','Master','Page','Section','Row','PageSheet','DocumentSheet','StyleSheet'}:
+                if tag in {'Shape','Master','Page','Section','Row','PageSheet','DocumentSheet','StyleSheet','ColorEntry','FaceName','DocumentSettings'}:
                     key = parent+'/Present'
                     identity_bytes += len(key.encode('utf-8'))
                     if identity_bytes > 64*1024*1024 or len(cells) >= 2_000_000: raise ValueError('structure identity budget')
                     ordinal = ordinals[key]; ordinals[key] += 1
                     cells[key,ordinal] = {'V':tag,'F':None,'U':None,'E':None,'kind':'structure'}
-                attrs = node.attrib if tag in {'Shape','Master','Page'} else ({k:v for k,v in node.attrib.items() if k in {'T','Del'}} if tag in {'Row','Section'} else {})
+                attrs = node.attrib if tag in {'Shape','Master','Page','ColorEntry','FaceName','DocumentSettings'} else ({k:v for k,v in node.attrib.items() if k in {'T','Del'}} if tag in {'Row','Section'} else {})
                 for attr,value in sorted(attrs.items()):
                     key = parent + '/Attribute:' + attr
                     identity_bytes += len(key.encode('utf-8'))
@@ -300,7 +342,7 @@ def package_cells(path):
                 row_position = 0
                 for child in node:
                     children.append((child,parent,depth+1,row_position))
-                    if child.tag.rsplit('}',1)[-1] == 'Row': row_position += 1
+                    if (tag == 'FaceNames' and child.tag in {'{http://schemas.microsoft.com/office/visio/2012/main}FaceName','{http://schemas.microsoft.com/office/visio/2011/1/core}FaceName','FaceName'}) or child.tag.rsplit('}',1)[-1] == 'Row': row_position += 1
                 pending.extend(reversed(children))
         return sorted(names), cells
 
@@ -328,7 +370,7 @@ def pixels(a, b):
         sizes = ia.size, ib.size
         if any(im.width <= 0 or im.height <= 0 or im.width > 16384 or im.height > 16384 or im.width*im.height > 32*1024*1024 for im in (ia,ib)):
             raise ValueError('image header pixel budget')
-        if sizes[0] != sizes[1]:
+        if any(abs(x-y) > 1 for x,y in zip(*sizes)):
             return {'sizes': sizes, 'error': 'hard size mismatch'}
         w, h = min(ia.width, ib.width), min(ia.height, ib.height)
         if w*h > 32*1024*1024 or w*h == 0:
@@ -342,7 +384,7 @@ def pixels(a, b):
         mad = sum((i % 256)*n for i,n in enumerate(d.histogram()))/(w*h*3)
         r,g,b = d.split()
         over = sum(ImageChops.lighter(ImageChops.lighter(r,g),b).histogram()[17:])
-        return {'sizes': sizes, 'mad': mad, 'over': over, 'pixels': w*h}
+        return {'sizes': sizes, 'mad': mad, 'over': over, 'pixels': w*h, 'one_pixel': sizes[0] != sizes[1]}
 
 
 def package_empty_views(path):
@@ -388,14 +430,43 @@ def empty_pixels(a,b):
         return {'sizes':(ia.size,ib.size),'empty':True}
 
 
+def prepare_baseline_manifest():
+    """Pin copied original bytes and independently generated source COM metadata."""
+    path = ROOT/'corpus/_state/m3/baseline-manifest.json'
+    manifest = load_json(path)
+    if len(manifest['files']) != 225:
+        raise ValueError('expected 225 baseline originals')
+    seen = set()
+    for entry in manifest['files']:
+        source = ROOT/entry['source']
+        copied = ROOT/entry['output']
+        if not source.resolve().is_relative_to(ROOT/'corpus') or not copied.resolve().is_relative_to(ROOT/'corpus/_state/m3/baseline-inputs'):
+            raise ValueError('baseline path outside corpus')
+        if copied.stem in seen or digest(source) != entry['sha256'] or digest(copied) != entry['sha256']:
+            raise ValueError('baseline source identity mismatch')
+        seen.add(copied.stem)
+        directory = ROOT/'corpus/_state/m3/baseline-expected'/copied.stem
+        entry['expected'] = {name:digest(directory/name) for name in ('computed.sheet.tsv','serialized.sheet.tsv')}
+    path.write_text(json.dumps(manifest,indent=2)+'\n')
+    print('baseline manifest: 225 original inputs and source COM metadata pinned')
+
+
 def prepare_manifest():
     plan = load_json(ROOT/'corpus/_state/m3/accept-plan.json')
+    previous_path = ROOT/'corpus/_state/m3/accept-manifest.json'
+    previous = load_json(previous_path) if previous_path.exists() else {}
+    previous_entries = {e['output']: e for e in previous.get('files',[])}
     if len(plan['files']) != 230:
         raise ValueError('acceptance set must contain 230 files')
     expected = ROOT/'corpus/_state/m3/accept-expected'
     for entry in plan['files']:
         path = ROOT/entry['output']
         entry['sha256'] = digest(path)
+        prior = previous_entries.get(entry['output'],{})
+        unchanged = prior.get('sha256') == entry['sha256']
+        for key, script in [('script_sha256','accept.ps1'),('common_sha256','common.ps1')]:
+            entry[key] = prior.get(key,previous.get(key)) if unchanged else digest(ROOT/'tools/oracle'/script)
+            if not entry[key]: raise ValueError('missing observation provenance')
         if entry['source']:
             entry['source_sha256'] = digest(ROOT/entry['source'])
         directory = expected/path.stem
@@ -481,6 +552,60 @@ def allowed_rewrites(old_cells, new_cells, differences, part_diff):
     return remaining, part_diff, classes
 
 
+def package_differences(before_parts, before, after_parts, after, filters):
+    """One comparison for writer and original, including literal values and part presence."""
+    result = cell_diffs(before,after,filters)
+    result.extend(('part:'+p,'added',None,p) for p in sorted(set(after_parts)-set(before_parts)))
+    result.extend(('part:'+p,'removed',p,None) for p in sorted(set(before_parts)-set(after_parts)))
+    return result
+
+
+def subtract_baseline(ours, baseline):
+    """Charles's M3.24: D_ours minus D_base by exact path and change kind.
+
+    Retain both original sets and the subtracted witnesses; values do not define
+    identity because date fields legitimately reevaluate at different run times.
+    """
+    keys = {(d[0],d[1]) for d in baseline}
+    return ([d for d in ours if (d[0],d[1]) not in keys],
+            [d for d in ours if (d[0],d[1]) in keys])
+
+
+def document_level_difference(difference):
+    import ast
+    key = difference[0]
+    path = key[5:] if key.startswith('part:') else ast.literal_eval(key)[0]
+    part = path.split('/Opaque',1)[0] if '/Opaque' in path else path
+    return (part == 'visio/windows.xml' or path.startswith('visio/windows.xml/')
+        or part == 'visio/document.xml' or path.startswith('visio/document.xml/')
+        or path.startswith('docProps/'))
+
+
+def subtract_com_baseline(ours, baseline):
+    """Disclose COM value/unit differences separately with the same scoped cohort."""
+    def key(d): return (tuple(d[0]),d[1].split(' ',1)[0])
+    keys = {key(d) for d in baseline}
+    return [d for d in ours if key(d) not in keys]
+
+
+def verified_observation(path, actual, entry, manifest):
+    """Require original byte identity and complete hashed baseline observations."""
+    if digest(path) != entry['sha256']:
+        raise ValueError('baseline input hash mismatch')
+    status = load_json(actual/'status.json')
+    if (not status.get('opened') or not status.get('saved') or status.get('error')
+        or status.get('input_sha256') != entry['sha256']
+        or any(status.get(k) != entry.get(k,manifest[k]) for k in ('script_sha256','common_sha256'))):
+        raise ValueError('invalid or stale baseline observation')
+    hashes = {a['file']:a['sha256'] for a in status['artifacts']}
+    if not {'observed.sheet.tsv','connects.tsv','parts.txt','saved'+path.suffix} <= hashes.keys():
+        raise ValueError('incomplete baseline inventory')
+    for name,want in hashes.items():
+        if Path(name).name != name or digest(actual/name) != want:
+            raise ValueError('baseline artifact hash mismatch')
+    return status
+
+
 def render_required(set_or_group):
     """M3.22 makes only the selected shipped stencil/template render rows informational."""
     return set_or_group not in {
@@ -494,8 +619,13 @@ def content_failed(set_name, repairs, com_failures, renders):
     return bool(repairs or com_failures or (render_required(set_name) and any('error' in r for r in renders)))
 
 
-def report(out, manifest):
+def report(out, manifest, baseline=None):
     m = load_json(manifest)
+    baseline = baseline or ROOT/'corpus/_vm/out/baseline'
+    bm = load_json(ROOT/'corpus/_state/m3/baseline-manifest.json')
+    baseline_entries = {Path(e['output']).stem:e for e in bm['files']}
+    if len(baseline_entries) != 225 or not (baseline/'DONE').is_file():
+        raise ValueError('225-file completed original baseline required')
     if len(m['files']) != 230 or len({e['output'] for e in m['files']}) != 230:
         raise ValueError('expected exactly 230 unique acceptance files')
     filters = read_filters([ROOT/'crates/sheet/tests/hooks.txt', ROOT/'crates/sheet/tests/volatile.txt'])
@@ -516,7 +646,7 @@ def report(out, manifest):
                 if Path(file).name != file or digest(expected/file) != want:
                     raise ValueError('expected artifact hash mismatch')
             status = load_json(actual/'status.json')
-            if status['input_sha256'] != entry['sha256'] or status['script_sha256'] != m['script_sha256'] or status.get('common_sha256') != m['common_sha256']:
+            if status['input_sha256'] != entry['sha256'] or status['script_sha256'] != entry.get('script_sha256',m['script_sha256']) or status.get('common_sha256') != entry.get('common_sha256',m['common_sha256']):
                 raise ValueError('stale VM observation')
             if type(status.get('opened')) is not bool or type(status.get('saved')) is not bool:
                 raise ValueError('invalid VM status flags')
@@ -542,12 +672,43 @@ def report(out, manifest):
                 raise ValueError('post-save part list disagrees with saved package')
             part_diff = {'added': sorted(set(new_parts)-set(old_parts)), 'removed': sorted(set(old_parts)-set(new_parts))}
             cells = cell_diffs(old_cells, new_cells, filters)
-            cells, part_diff, allowed = allowed_rewrites(old_cells,new_cells,cells,part_diff)
+            ours = package_differences(old_parts,old_cells,new_parts,new_cells,filters)
+            base_name = name if entry.get('source') else 'blank__blank'
+            base_entry = baseline_entries[base_name]
+            base_path = ROOT/base_entry['output']
+            base_actual = baseline/base_name
+            if entry.get('source') and (base_entry.get('source') != entry['source']
+                or base_entry['sha256'] != entry['source_sha256']):
+                raise ValueError('baseline does not match original source revision')
+            if digest(ROOT/base_entry['source']) != base_entry['sha256']:
+                raise ValueError('original changed since baseline capture')
+            verified_observation(base_path,base_actual,base_entry,bm)
+            base_parts,base_cells = package_cells(base_path)
+            saved_base_parts,saved_base_cells = package_cells(base_actual/('saved'+base_path.suffix))
+            if (base_actual/'parts.txt').read_text(encoding='utf-8-sig').splitlines() != saved_base_parts:
+                raise ValueError('baseline saved part list mismatch')
+            base = package_differences(base_parts,base_cells,saved_base_parts,saved_base_cells,filters)
+            if not entry.get('source'):
+                base = [d for d in base if document_level_difference(d)]
+            remaining, subtracted = subtract_baseline(ours,base)
+            _, _, allowed = allowed_rewrites(old_cells,new_cells,cells,part_diff)
+            if not entry.get('source'):
+                # Only the already-authorized M3.20 classes supplement the blank baseline.
+                retained_cells, retained_parts, _ = allowed_rewrites(old_cells,new_cells,cells,part_diff)
+                retained = {(d[0],d[1]) for d in retained_cells}
+                retained.update(('part:'+p,k) for k in ('added','removed') for p in retained_parts[k])
+                remaining = [d for d in remaining if (d[0],d[1]) in retained]
             row['allowed'] = allowed
             for kind, witnesses in allowed.items(): counter[kind] += len(witnesses)
+            row['d_ours'] = len(ours)
+            row['d_base'] = len(base)
+            row['baseline_subtracted'] = len(subtracted)
+            row['baseline_diff'] = base[:200]
+            row['subtracted_diff'] = subtracted[:200]
+            for key in ('d_ours','d_base','baseline_subtracted'): counter[key] += row[key]
             row['part_diff'] = part_diff
-            row['cell_diff'] = cells[:200]
-            row['repair_count'] = len(cells)+len(part_diff['added'])+len(part_diff['removed'])
+            row['cell_diff'] = remaining[:200]
+            row['repair_count'] = len(remaining)
             if row['repair_count']:
                 counter['repaired'] += 1
             failures, phantom = computed_diagnostic(read_dump(actual/'observed.sheet.tsv'), read_dump(expected/'computed.sheet.tsv'), old_cells, new_cells, filters)
@@ -568,6 +729,25 @@ def report(out, manifest):
             observed_keys = {com_identity(v) for v in observed.values()}
             row['unobserved_style_local'] = [list(r[:4]) for r in source if r[0] == 'style' and tuple(r[:4]) not in metadata_keys and tuple(r[:4]) not in observed_keys and r[8] and r[4] is not None and r[4] != 'Themed' and not excluded(r[5] or '', filters) and r[3] != 'LayerMember' and not r[3].startswith(('FillGradientStops.','LineGradientStops.'))]
             row['serialized_records'] = len(old_cells)
+            row['com_raw_failures'] = len(failures)
+            base_expected = ROOT/'corpus/_state/m3/baseline-expected'/base_name
+            baseline_com = []
+            if entry.get('source'):
+                required_metadata = {'computed.sheet.tsv','serialized.sheet.tsv'}
+                if not required_metadata <= base_entry.get('expected',{}).keys():
+                    raise ValueError('baseline COM metadata is not pinned')
+                for metadata,want in base_entry['expected'].items():
+                    if Path(metadata).name != metadata or digest(base_expected/metadata) != want:
+                        raise ValueError('baseline metadata hash mismatch')
+                with zipfile.ZipFile(base_path) as package:
+                    if package.getinfo('visio/document.xml').file_size > MAX_XML:
+                        raise ValueError('baseline font metadata budget')
+                    base_doc = ET.fromstring(package.read('visio/document.xml'))
+                base_fonts = [n.get('NameU','') for n in base_doc.findall('./{*}FaceNames/{*}FaceName')]
+                _, baseline_com = source_com_compare(read_serialized(base_expected/'serialized.sheet.tsv'),
+                    read_dump(base_expected/'computed.sheet.tsv'),read_dump(base_actual/'observed.sheet.tsv'),filters,base_fonts)
+                failures = subtract_com_baseline(failures,baseline_com)
+            row['com_baseline_failures'] = len(baseline_com)
             row['com_failures'] = len(failures)
             row['com_diff'] = failures[:100]
             empty_before = package_empty_views(path)
@@ -600,7 +780,7 @@ def report(out, manifest):
             row['errors'].append(str(error))
             counter['failed'] += 1
         all_rows.append(row)
-        print(f"accept file {name}: repair_diffs={row['repair_count']} COM_failures={row['com_failures']} unobserved_style_local={len(row.get('unobserved_style_local',[]))} errors={row['errors']}")
+        print(f"accept file {name}: D_ours={row.get('d_ours')} D_base={row.get('d_base')} subtracted={row.get('baseline_subtracted')} repair_diffs={row['repair_count']} COM_failures={row['com_failures']} unobserved_style_local={len(row.get('unobserved_style_local',[]))} errors={row['errors']}")
     success = (out/'DONE').exists()
     summaries = {}
     for group, items in sorted(groups.items()):
@@ -631,13 +811,18 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('out',type=Path,nargs='?',default=ROOT/'corpus/_vm/out/accept')
     parser.add_argument('--prepare',action='store_true')
+    parser.add_argument('--prepare-baseline',action='store_true')
+    parser.add_argument('--baseline',type=Path,default=ROOT/'corpus/_vm/out/baseline')
     parser.add_argument('--manifest',type=Path,default=ROOT/'corpus/_state/m3/accept-manifest.json')
     args = parser.parse_args()
     try:
+        if args.prepare_baseline:
+            prepare_baseline_manifest()
+            return 0
         if args.prepare:
             prepare_manifest()
             return 0
-        return report(args.out,args.manifest)
+        return report(args.out,args.manifest,args.baseline)
     except (OSError,ValueError,KeyError,TypeError,AttributeError,zipfile.BadZipFile,ET.ParseError) as error:
         print(f'accept report: {error}',file=sys.stderr)
         return 1

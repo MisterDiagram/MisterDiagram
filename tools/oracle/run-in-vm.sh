@@ -21,10 +21,15 @@ case "$LIMIT" in ''|*[!0-9]*) echo 'timeout must be positive seconds' >&2; exit 
 [ -f "$SCRIPT" ] || { echo "script missing: $SCRIPT" >&2; exit 2; }
 SCRIPT=$(cd "$(dirname "$SCRIPT")" && pwd)/$(basename "$SCRIPT")
 STAGE="$ROOT/corpus/_vm"
-OUT="$STAGE/out/$NAME"
+ACCEPT_OUTPUT=${ORACLE_ACCEPT_OUTPUT:-accept}
+case "$ACCEPT_OUTPUT" in accept|baseline) ;; *) echo 'invalid acceptance output tree' >&2; exit 2;; esac
+OUTPUT_NAME=$NAME
+if [ "$NAME" = accept ]; then OUTPUT_NAME=$ACCEPT_OUTPUT; fi
+OUT="$STAGE/out/$OUTPUT_NAME"
 mkdir -p "$STAGE"
 case "$NAME" in
 accept)
+    printf '%s\n' "$ACCEPT_OUTPUT" > "$STAGE/accept-output.txt"
     python3 - "$ROOT" "$@" <<'LIST'
 from pathlib import Path
 import sys
@@ -133,7 +138,9 @@ launch() {
 # Run one staged script. A watchdog returns 124; the caller owns recovery.
 run_one() {
     local name=$1 limit=$2
-    local OUT="$STAGE/out/$name" win="\\\\Mac\\Home\\Projects\\diagramcraft\\corpus\\_vm\\$name.ps1"
+    local output_name=$name
+    if [ "$name" = accept ]; then output_name=$ACCEPT_OUTPUT; fi
+    local OUT="$STAGE/out/$output_name" win="\\\\Mac\\Home\\Projects\\diagramcraft\\corpus\\_vm\\$name.ps1"
     local started=$SECONDS launched=$SECONDS logged=0 attempt=1 file_age file_limit=1800
     # Large acceptance dumps need over 40 minutes; the overall caller budget bounds them.
     if [ "$name" = accept ]; then file_limit=$limit; fi
@@ -220,7 +227,9 @@ health_once() {
 recover_timeout() {
     local timed_out=$1 result=0
     gentle_stop
-    local OUT="$STAGE/out/$timed_out"
+    local output_name=$timed_out
+    if [ "$timed_out" = accept ]; then output_name=$ACCEPT_OUTPUT; fi
+    local OUT="$STAGE/out/$output_name"
     convert || return 1
     health_once || result=$?
     if [ "$result" -ne 0 ]; then

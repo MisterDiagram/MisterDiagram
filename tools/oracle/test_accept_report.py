@@ -56,6 +56,15 @@ class Acceptance(unittest.TestCase):
         self.assertEqual(len(cells),3)
         self.assertIn(('visio/solutions/solution1.xml/Opaque',0),cells)
 
+    def test_opc_metadata_byte_hashes_remain_in_acceptance(self):
+        a=report.metadata_records(b'<Types X="1"/>','[Content_Types].xml')
+        b=report.metadata_records(b'<Types X="2"/>','[Content_Types].xml')
+        self.assertTrue(report.cell_diffs(a,b,set()))
+        p=self.package('<VisioDocument/>')
+        with zipfile.ZipFile(p,'a') as z:z.writestr('[Content_Types].xml','<Types/>')
+        _,cells=report.package_cells(p)
+        self.assertIn(('[Content_Types].xml/Opaque',0),cells)
+
     def test_lost_connectivity_is_visible(self):
         _, a = report.package_cells(self.package('<PageContents><Connects><Connect FromSheet="3" FromCell="BeginX" ToSheet="1" ToCell="PinX"/></Connects></PageContents>'))
         _, b = report.package_cells(self.package('<PageContents/>'))
@@ -74,13 +83,14 @@ class Acceptance(unittest.TestCase):
         with self.assertRaises(ValueError):
             report.package_cells(path)
 
-    def test_acceptance_rejects_one_and_two_pixel_mismatches(self):
+    def test_acceptance_tolerates_one_but_rejects_two_pixel_mismatches(self):
         from PIL import Image
         a,b=self.root/'a.png',self.root/'b.png'
         Image.new('RGB',(4,4),'white').save(a)
         Image.new('RGB',(5,4),'white').save(b)
         result=report.pixels(a,b)
-        self.assertEqual(result['error'],'hard size mismatch')
+        self.assertEqual(result['mad'],0)
+        self.assertEqual(result['pixels'],16)
         Image.new('RGB',(6,4),'white').save(b)
         self.assertEqual(report.pixels(a,b)['error'],'hard size mismatch')
 
@@ -199,11 +209,14 @@ class Acceptance(unittest.TestCase):
         self.assertTrue(report.source_com_compare(raw,{},mapped,set(),[])[1])
 
 
-    def test_nonempty_export_requires_identical_size(self):
+    def test_nonempty_export_retains_human_one_pixel_rule(self):
         from PIL import Image
         a=self.root/'a.png';b=self.root/'b.png'
         Image.new('RGB',(97,97),'white').save(a)
         Image.new('RGB',(98,97),'white').save(b)
+        self.assertEqual(report.pixels(a,b)['mad'],0)
+        self.assertTrue(report.pixels(a,b)['one_pixel'])
+        Image.new('RGB',(99,97),'white').save(b)
         self.assertIn('error',report.pixels(a,b))
         Image.new('RGB',(97,97),'white').save(b)
         self.assertEqual(report.pixels(a,b)['mad'],0)
@@ -267,6 +280,43 @@ class Acceptance(unittest.TestCase):
         for name in ['generated','from-scratch','blank','shipped-unknown']:
             self.assertTrue(report.content_failed(name,0,[],[{'error':'renderer gap'}]))
             self.assertTrue(report.render_required(name))
+
+    def test_baseline_direction_probe_and_scratch(self):
+        # Real comparison identities: probe window state, scratch style defaults.
+        for shared, defect in [('pages/Page:0/Attribute:ViewCenterX','pages/Shape:1/Cell:Width'),
+                               ('visio/document.xml/StyleSheet:0/Cell:X','pages/Shape:1/Cell:FillForegnd')]:
+            ours=[(shared,'V','1','2'),(defect,'V','0','1')]
+            base=[(shared,'V','3','4'),('baseline-only','added',None,'x')]
+            remaining, removed=report.subtract_baseline(ours,base)
+            self.assertEqual(remaining,[ours[1]])
+            self.assertEqual(removed,[ours[0]])
+            self.assertEqual(report.subtract_baseline(ours,[])[0],ours)
+            self.assertEqual(report.subtract_baseline(ours,[(defect,'F','0','1')])[0],ours)
+
+    def test_scratch_baseline_is_document_scoped(self):
+        self.assertTrue(report.document_level_difference((str(('visio/document.xml/StyleSheet:0/Cell:X',0)),'added')))
+        self.assertFalse(report.document_level_difference((str(('visio/masters/master1.xml/Shape:5/Cell:X',0)),'added')))
+
+    def test_palette_font_order_and_metadata_fields_are_visible(self):
+        _,a=report.package_cells(self.package('<VisioDocument><Colors><ColorEntry IX="24" RGB="#ffffff"/></Colors><FaceNames><FaceName NameU="Carlito"/><FaceName NameU="Cousine"/></FaceNames></VisioDocument>'))
+        _,b=report.package_cells(self.package('<VisioDocument><Colors><ColorEntry IX="24" RGB="#000000"/></Colors><FaceNames><FaceName NameU="Cousine"/><FaceName NameU="Carlito"/></FaceNames></VisioDocument>'))
+        self.assertEqual(len(report.cell_diffs(a,b,set())),3)
+        _,a=report.package_cells(self.package('<VisioDocument xmlns="http://schemas.microsoft.com/office/visio/2012/main" xmlns:x="urn:extension"><FaceNames><FaceName NameU="Carlito"/><x:Payload/><FaceName NameU="Cousine"/></FaceNames></VisioDocument>'))
+        _,b=report.package_cells(self.package('<VisioDocument xmlns="http://schemas.microsoft.com/office/visio/2012/main"><FaceNames><FaceName NameU="Carlito"/><FaceName NameU="Cousine"/></FaceNames></VisioDocument>'))
+        self.assertEqual(report.cell_diffs(a,b,set()),[])
+        a=report.metadata_records(b'<Windows><Window ViewScale="1" Width="4"/></Windows>','visio/windows.xml')
+        b=report.metadata_records(b'<Windows><Window ViewScale="2" Width="9"/></Windows>','visio/windows.xml')
+        baseline=report.metadata_records(b'<Windows><Window ViewScale="2" Width="4"/></Windows>','visio/windows.xml')
+        remaining,_=report.subtract_baseline(report.cell_diffs(a,b,set()),report.cell_diffs(a,baseline,set()))
+        self.assertEqual(len(remaining),1)
+        self.assertIn('Width',remaining[0][0])
+        self.assertTrue(report.document_level_difference(('part:visio/windows.xml','added')))
+        self.assertFalse(report.document_level_difference((str(('visio/pages/page1.xml/Cell:docProps/x',0)),'V')))
+
+    def test_baseline_com_keeps_new_value_and_unit_failures(self):
+        key=('page',0,1,'Width')
+        ours=[(key,'value local V=1 actual=2'),(key,'units expected=73 actual=70')]
+        self.assertEqual(report.subtract_com_baseline(ours,[(key,'value local V=3 actual=4')]),[ours[1]])
 
 if __name__ == '__main__':
     unittest.main()

@@ -6,6 +6,8 @@ that the page was consulted during this session.
 
 | URL | Citing files |
 |---|---|
+| <http://schemas.microsoft.com/office/visio/2011/1/core> | `tools/oracle/accept_report.py` |
+| <http://schemas.microsoft.com/office/visio/2012/main> | `tools/oracle/accept_report.py`, `tools/oracle/test_accept_report.py` |
 | <https://github.com/storytold/craft-fonts> | `crates/fonts/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references> | `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-date-time-and-duration-values> | `crates/sheet/src/functions/text.rs`, `crates/sheet/src/units.rs` |

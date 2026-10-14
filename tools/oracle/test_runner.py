@@ -10,9 +10,11 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 FAKE = r'''#!/usr/bin/env python3
 from pathlib import Path
-import json, os, re, sys
+import base64, json, os, re, sys
 root = Path(os.environ['RUNNER_FIXTURE'])
 args = ' '.join(sys.argv[1:])
+if '-EncodedCommand' in sys.argv:
+    args = base64.b64decode(sys.argv[sys.argv.index('-EncodedCommand')+1]).decode('utf-16le')
 with (root/'calls.jsonl').open('a') as f: f.write(json.dumps(args)+'\n')
 if sys.argv[1:3] == ['list', '-a']:
     print('running Win11 Enterprise (ARM)')
@@ -22,7 +24,8 @@ elif 'Register-ScheduledTask ' in args:
     if name == 'quit-visio':
         (stage/'QUIT-DONE').write_text('DONE')
     else:
-        out=stage/'out'/name
+        output_name=(stage/'accept-output.txt').read_text().strip() if name=='accept' else name
+        out=stage/'out'/output_name
         out.mkdir(parents=True,exist_ok=True)
         text='START\n'
         if name == 'visio-health':
@@ -38,7 +41,7 @@ elif 'Register-ScheduledTask ' in args:
 
 
 class RunnerTests(unittest.TestCase):
-    def run_case(self, case, name='accept', selected=False):
+    def run_case(self, case, name='accept', selected=False, output='accept'):
         parent = ROOT / 'target/runner-tests'
         parent.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(dir=parent) as directory:
@@ -57,7 +60,7 @@ class RunnerTests(unittest.TestCase):
             probe.parent.mkdir()
             probe.write_bytes(b'fixture, not an oracle')
             env = dict(os.environ, RUNNER_FIXTURE=str(root), RUNNER_CASE=case,
-                       PATH=str(binary) + os.pathsep + os.environ['PATH'])
+                       PATH=str(binary) + os.pathsep + os.environ['PATH'], ORACLE_ACCEPT_OUTPUT=output)
             command = ['bash', str(scripts / 'run-in-vm.sh'), name + '.ps1', '1']
             if name == 'accept':
                 command.append(str(probe))
@@ -70,6 +73,8 @@ class RunnerTests(unittest.TestCase):
                                     text=True, timeout=40)
             if selected:
                 self.assertEqual((root / 'corpus/_vm/dump-shipped-select.txt').read_text(), 'probe.vssx\n')
+            if name == 'accept':
+                self.assertEqual((root/'corpus/_vm/accept-output.txt').read_text().strip(),output)
             calls = [json.loads(line) for line in (root / 'calls.jsonl').read_text().splitlines()]
             launches = [remainder.split('.ps1')[0].rsplit('\\', 1)[-1]
                         for call in calls if 'Register-ScheduledTask ' in call
@@ -86,6 +91,11 @@ class RunnerTests(unittest.TestCase):
         result, _, launches = self.run_case('ok', 'dump-shipped', selected=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(launches, ['visio-health', 'dump-shipped'])
+
+    def test_baseline_uses_same_health_and_script_with_separate_output(self):
+        result, _, launches = self.run_case('ok', output='baseline')
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual(launches,['visio-health','accept'])
 
     def test_failed_health_aborts_before_accept(self):
         result, _, launches = self.run_case('health-fails')

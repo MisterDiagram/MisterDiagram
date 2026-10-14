@@ -1491,3 +1491,28 @@ and M3.23-Gates. Both seeds were caught101/restored0. No two-clean-pass claim.
 M3.23 records partial results only. Full private report:
 corpus/_state/P3-closure-2-report.md; detailed register:
 plan/m3-verification-register.md. Final Python reporter suite25/25 passes.
+
+### Observed, undocumented: original-file baseline (M3.24)
+
+Charles's P3-closure-3 replaces the M3.20 repair gate with a paired experiment.
+For each of the 225 files with an original, the same OpenEx/dump/export/SaveAs/close
+sequence runs on an unchanged copy of that original. D_ours compares our writer
+output with Visio's save of it. D_base compares the original with Visio's save of
+that original. Repair differences are D_ours minus D_base, matched by exact path
+and change kind. Both full sizes and each subtraction count are reported per file.
+Cells compare literal V/F/U/E, row T/Del and shape/master attributes remain visible,
+Text/Icon and opaque payloads retain hashes, and metadata XML fields are compared
+alongside part hashes. A baseline change to one metadata field does not authorize
+a different field elsewhere in that part. Every original, copied input, observation
+and source COM metadata artifact is pinned by SHA256.
+
+Scratch files have no original. Their baseline is the blank experiment restricted
+to document.xml, windows.xml and docProps; the existing three M3.20 classes apply
+to the remaining scratch differences. Their counts stay visible. Raw, baseline
+and remaining COM differences are separate; scratch COM is never subtracted.
+Shipped render rows remain informational. The precise original-baseline witnesses
+will be recorded when this run completes, without inventing evidence while it runs.
+
+Charles also corrects M3.19: the M2 human gate's one-pixel export tolerance applies
+to M3 acceptance. Compare the common area when either dimension differs by one;
+a difference of two or more stays a hard failure. No pixel ceiling changes.

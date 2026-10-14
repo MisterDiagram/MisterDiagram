@@ -17,10 +17,11 @@ fn relative(value: &str, prefix: &str) -> Result<PathBuf, String> {
 }
 fn run() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<_> = std::env::args().skip(1).collect();
-    let expected_only = match args.as_slice() {
-        [] => false,
-        [arg] if arg == "--expected-only" => true,
-        _ => return Err("usage: prepare_accept [--expected-only]".into()),
+    let (expected_only, baseline) = match args.as_slice() {
+        [] => (false, false),
+        [arg] if arg == "--expected-only" => (true, false),
+        [arg] if arg == "--baseline" => (true, true),
+        _ => return Err("usage: prepare_accept [--expected-only|--baseline]".into()),
     };
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
     let plan_path = root.join("corpus/_state/m3/accept-plan.json");
@@ -33,12 +34,15 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         return Err("expected 230 acceptance files".into());
     }
     let mut names = std::collections::BTreeSet::new();
-    let expected = root.join("corpus/_state/m3/accept-expected");
+    let expected = root.join(if baseline { "corpus/_state/m3/baseline-expected" } else { "corpus/_state/m3/accept-expected" });
     fs::create_dir_all(&expected)?;
     if !expected.canonicalize()?.starts_with(&root) {
         return Err("expected directory symlink".into());
     }
     for entry in entries {
+        if baseline && entry.get("source").and_then(|v| v.as_str()).is_none() {
+            continue;
+        }
         let output = root.join(relative(entry.get("output").and_then(|v| v.as_str()).ok_or("output missing")?, "corpus/_state/m3/accept-inputs")?);
         let name = output.file_stem().and_then(|s| s.to_str()).ok_or("invalid name")?;
         if !names.insert(name.to_ascii_lowercase()) {
@@ -52,7 +56,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             return Err("source symlink outside corpus".into());
         }
         let (doc, warning_count) = if expected_only {
-            (diagramcraft_vsdx::read(&output)?, 0)
+            (diagramcraft_vsdx::read(if baseline { &source } else { &output })?, 0)
         } else {
             let before = diagramcraft_vsdx::read(&source)?;
             let theme = diagramcraft_theme::Themes::from_document(&before).map_err(|e| e.to_string())?;
@@ -80,6 +84,10 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             &mut fs::File::create(dir.join("computed.sheet.tsv"))?,
         )?;
         diagramcraft_vsdx::dump::dump_serialized(&doc, &mut fs::File::create(dir.join("serialized.sheet.tsv"))?)?;
+        if baseline {
+            eprintln!("prepared baseline metadata {}", PathBuf::from(name).display());
+            continue;
+        }
         let mut evaluator = diagramcraft_vsdx::evaluate::Evaluator::new(&doc)
             .map_err(|e| e.to_string())?
             .with_theme_host(&theme)
