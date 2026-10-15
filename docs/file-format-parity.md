@@ -2115,3 +2115,7 @@ Target-transform changes invalidate _XFTRIGGER and _WALKGLUE through HostHooks. 
 ### M4.6: write and recompute straight connector routes
 
 Dynamic-glue, move-before, move-after and static-glue use MoveTo(0,Height/2), LineTo(Width,Height/2), a deleted third row, signed horizontal Width and Height0.25DL. Other slopes use endpoint-derived length and angle. Right-angle routing, obstacles and jumps remain4b. Individual over16 fractions are3.190144%,3.190144%,0.736069%,3.175803%; the first, second and fourth exceed2%.
+
+### M4.7: expose session commands through the CLI
+
+The CLI authoring path uses the same dependency-aware edit transaction and writer as direct engine calls. Page arguments are one-based ordinals; shape and master arguments retain document IDs.

@@ -12,5 +12,8 @@ diagramcraft-opc.workspace = true
 diagramcraft-vsdx.workspace = true
 diagramcraft-corpus = { path = "../diagramcraft-corpus" }
 diagramcraft-theme.workspace = true
+diagramcraft-engine.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 [dev-dependencies]
 zip.workspace = true

@@ -274,7 +274,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/window-element-windows_type-complextypevisio-xml> | `crates/model/src/skeleton.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/windows-elementvisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/x-cell-connection-points-section> | `crates/route/src/static_glue.rs` |
-| <https://learn.microsoft.com/en-us/office/vba/api/visio.application.beginundoscope> | `crates/engine/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.application.beginundoscope> | `apps/diagramcraft-cli/src/author.rs`, `crates/engine/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.application.endundoscope> | `crates/engine/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.application.redo> | `crates/engine/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.application.undo> | `crates/engine/src/lib.rs` |
@@ -287,7 +287,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.cell.resultiu> | `crates/vsdx/src/dump.rs`, `tools/oracle/common.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.exportasfixedformat> | `crates/engine/src/files.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.masters> | `crates/engine/src/stencils.rs` |
-| <https://learn.microsoft.com/en-us/office/vba/api/visio.document.saveas> | `crates/engine/src/files.rs`, `tools/oracle/accept.ps1` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.document.saveas> | `apps/diagramcraft-cli/src/author.rs`, `crates/engine/src/files.rs`, `tools/oracle/accept.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.documents.add> | `crates/engine/src/files.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.documents.open> | `crates/engine/src/files.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.documents.openex> | `crates/engine/src/stencils.rs`, `tools/oracle/accept.ps1` |
@@ -304,7 +304,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.drawoval> | `crates/engine/src/shapes.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.drawrectangle> | `crates/engine/src/shapes.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.drop> | `crates/engine/src/masters.rs` |
-| <https://learn.microsoft.com/en-us/office/vba/api/visio.page.export> | `crates/engine/src/files.rs`, `crates/render/src/scene.rs`, `crates/render/tests/output.rs` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.page.export> | `apps/diagramcraft-cli/src/author.rs`, `crates/engine/src/files.rs`, `crates/render/src/scene.rs`, `crates/render/tests/output.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.index> | `crates/engine/src/pages.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.nameu> | `crates/engine/src/pages.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.pages> | `crates/engine/src/pages.rs` |

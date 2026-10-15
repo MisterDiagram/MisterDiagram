@@ -212,11 +212,14 @@ name = "diagramcraft-cli"
 version = "0.0.1"
 dependencies = [
  "diagramcraft-corpus",
+ "diagramcraft-engine",
  "diagramcraft-opc",
  "diagramcraft-render",
  "diagramcraft-text",
  "diagramcraft-theme",
  "diagramcraft-vsdx",
+ "serde",
+ "serde_json",
  "zip",
 ]
 

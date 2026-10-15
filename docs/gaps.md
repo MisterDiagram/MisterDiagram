@@ -761,3 +761,7 @@ Dynamic glue and transform triggers are route-owned evaluator hooks. The move-be
 ### P4a M4.6
 
 Straight route Geometry and XForm match four private witnesses. The explicit authoring_routes acceptance command remains nonzero for individual connector pixel comparisons; the frozen aggregate CI render gate is unchanged. This unmet requirement keeps P4a partial.
+
+### P4a M4.7
+
+commands, describe, run and convert share the engine Session. JSON schemas are listed, argv and command counts are bounded, hostile arguments have regressions, and failed sequences do not publish the final save. Corpus check is unchanged.

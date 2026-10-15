@@ -1,5 +1,6 @@
 //! Headless Diagramcraft command line.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
+mod author;
 use diagramcraft_opc::{MAX_TOTAL, Package};
 use std::io::{Read, Write};
 use std::path::Path;
@@ -111,6 +112,9 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
     }
 }
 fn execute(args: &[std::ffi::OsString], out: &mut impl Write) -> Result<(), String> {
+    if args.len() > 4096 || args.iter().try_fold(0usize, |n, arg| n.checked_add(arg.as_encoded_bytes().len())).is_none_or(|n| n > 8 * 1024 * 1024) {
+        return Err("argument count or byte limit".into());
+    }
     match args.first().and_then(|a| a.to_str()) {
         Some("info") if args.len() == 2 => info(Path::new(args.get(1).ok_or("missing file")?), out),
         Some("sheet") if matches!(args.len(), 2..=4) => {
@@ -143,12 +147,16 @@ fn execute(args: &[std::ffi::OsString], out: &mut impl Write) -> Result<(), Stri
             if report.passed() { Ok(()) } else { Err("corpus oracle gates failed".into()) }
         }
         Some("render") => render(args),
-        Some("convert" | "run" | "commands" | "describe" | "mcp") => Err("not implemented in Phase 1".into()),
+        Some("commands") => author::commands(args, out),
+        Some("describe") => author::describe(args, out),
+        Some("run") => author::run(args, out),
+        Some("convert") => author::convert(args, out),
+        Some("mcp") => Err("not implemented in Phase 1".into()),
         _ => Err("usage: diagramcraft-cli <info FILE|sheet FILE|corpus check|render|convert|run|commands|describe|mcp>".into()),
     }
 }
 fn main() -> ExitCode {
-    let args: Vec<_> = std::env::args_os().skip(1).take(17).collect();
+    let args: Vec<_> = std::env::args_os().skip(1).take(4097).collect();
     match execute(&args, &mut std::io::stdout().lock()) {
         Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
