@@ -9,6 +9,7 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-14: PDF-1 (M4.0.1): PDF ToUnicode maps each glyph to its shaping cluster; ligatures and marks extract in full (ported from deckcraft#164). Next: Phase 4a, then CI through storytold/craft-common-actions (promised on artcraft#2121, open to a contributor PR).
 - 2026-10-11: M0.1 scaffold, bounded OPC and CLI info. CI: 44 tests, 14 wasm libraries, all six gates passed.
 - 2026-10-11: M0.2 conventions and Core-aware checklist. All feature rows remain missing.
 
