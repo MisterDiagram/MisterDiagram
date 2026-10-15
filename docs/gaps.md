@@ -1034,3 +1034,27 @@ requested row pairs and reversed failures through the engine, with two-point
 horizontal geometry checked within 1e-9 in. Routing remains P for the existing
 packing and unwitnessed-layout gaps; no score or numerical contract changes.
 Reference: [Cell element](https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml).
+
+
+## ISS-37: inherited Foreign master images
+
+Resolved: the renderer finds ForeignData on the instance or its corresponding
+master shape, resolves the relationship against that provider's part, and sends
+the image through the existing decoder using the instance's transform and image
+cells. Local ForeignData wins. Tests build original 8x4 BMP and PNG stencils,
+drop native and resized instances through the engine, verify PNG bounds/colors,
+SVG image elements and drawn PDF image XObjects, then save and reopen identically.
+The master-drop row remains D; vendor-master rendering remains P for existing
+fidelity gaps. Implicit inherited master children (#21) are unchanged.
+References: [ForeignData](https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml)
+and [Rel](https://learn.microsoft.com/en-us/office/client-developer/visio/rel-element-foreigndata_type-complextypevisio-xml).
+
+`copy_parts` intentionally prefixes the original resource name with
+`visio/imported/master<ID>/` to isolate imported resources and rewrites their
+relationship targets. This explains `visio/imported/master3/visio/media/image8.bmp`.
+OPC locates parts through source-local relationships rather than fixed directory
+names; the VSDX Master XML part permits Image relationships, and neither cited
+rule requires `visio/media/`. Existing Visio-generated PNG/JPEG/EMF witnesses
+use `visio/media/image1.*`. The imported path remains unchanged.
+Sources: [OPC Parts Overview](https://learn.microsoft.com/en-us/previous-versions/windows/desktop/opc/parts-overview),
+[Master XML Part](https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/10b28d2f-d32d-4b8c-96f5-dad13d32dd11).

@@ -103,7 +103,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/font-function> | `crates/sheet/src/functions/color.rs`, `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fontschemeindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fonttoid-function> | `crates/sheet/src/functions/color.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml> | `crates/render/src/scene.rs`, `crates/vsdx/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml> | `crates/engine/tests/foreign_master.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-shape-data-section> | `crates/engine/src/content.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-text-fields-section> | `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-function> | `crates/sheet/src/functions/text.rs` |
@@ -214,6 +214,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rectsect-function> | `crates/sheet/src/functions/spatial.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/red-function> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/refby-element-cell_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/rel-element-foreigndata_type-complextypevisio-xml> | `crates/engine/tests/foreign_master.rs`, `crates/render/src/scene.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rel-element-page_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/relationships-cell-shape-layout-section> | `crates/vsdx/src/evaluate/relationships.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/relcubbezto-row-geometry-section> | `crates/geom/src/rows.rs` |

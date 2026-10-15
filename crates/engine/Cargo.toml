@@ -22,3 +22,6 @@ diagramcraft-render.workspace = true
 image.workspace = true
 diagramcraft-geom.workspace = true
 diagramcraft-route.workspace = true
+
+[dev-dependencies]
+hayro-syntax = { version = "0.7.2", default-features = false, features = ["std", "unsafe"] }

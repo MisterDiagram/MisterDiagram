@@ -260,6 +260,7 @@ dependencies = [
  "diagramcraft-text",
  "diagramcraft-theme",
  "diagramcraft-vsdx",
+ "hayro-syntax",
  "image",
  "log",
  "serde",

@@ -598,8 +598,14 @@ fn shapes(
                 }
             }
         }
-        if let Some(foreign) = &shape.foreign_data {
-            foreign_image(e, scope, part, foreign, transform, width, height, scene)?;
+        if let Some((source, foreign)) = foreign_source(e, scope)? {
+            let owner = match source {
+                Scope::MasterShape { master, .. } => {
+                    e.document.masters.iter().find(|m| m.id == master).map(|m| m.part.as_str()).ok_or("foreign master part missing")?
+                }
+                _ => part,
+            };
+            foreign_image(e, scope, owner, foreign, transform, width, height, scene)?;
         }
         if number(e, scope, "HideText", 0.) == 0. {
             let body = e.text_body(scope).map_err(|e| format!("shape {} text: {e}", shape.id))?;
@@ -650,6 +656,21 @@ fn shapes(
         }
     }
     Ok(())
+}
+/// ForeignData inherits from the corresponding master shape, with local data first.
+/// Its relationship belongs to the provider part; placement cells belong to the instance.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/rel-element-foreigndata_type-complextypevisio-xml
+fn foreign_source<'a>(e: &Evaluator<'a>, mut scope: Scope) -> Result<Option<(Scope, &'a diagramcraft_model::XmlElement)>, String> {
+    for _ in 0..=128 {
+        let shape = e.shape(scope).ok_or("foreign source shape missing")?;
+        if let Some(foreign) = &shape.foreign_data {
+            return Ok(Some((scope, foreign)));
+        }
+        let Some(master) = e.master_source(scope) else { return Ok(None) };
+        scope = master;
+    }
+    Err("foreign master inheritance depth limit".into())
 }
 /// Foreign objects use their related media part; thumbnails remain opaque package data.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml
