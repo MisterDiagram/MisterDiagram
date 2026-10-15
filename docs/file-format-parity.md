@@ -13503,3 +13503,2189 @@ report exits1 for the disclosed SAN failures. Independent frozen passes are
 9 YES/6 NO and12 YES/3 NO, neither clean. M4 is not met. All three source seeds
 are detected and pass after exact restoration. Final GitHub run metadata and
 ordered commit hashes are retained in the private P4b report.
+
+## Observed, undocumented: M4.19 authored Property and master originals
+
+The two synthetic originals were saved by Visio before the closure writer changes.
+They take precedence over the earlier SAN re-save for the same construct.
+References: [Shape Data](https://learn.microsoft.com/en-us/office/client-developer/visio/shape-data-section),
+[Value](https://learn.microsoft.com/en-us/office/client-developer/visio/value-cell-shape-data-section),
+[Masters.Drop](https://learn.microsoft.com/en-us/office/vba/api/visio.masters.drop).
+
+Property rows contain Value, Prompt, Label, Format, SortKey, Type, Invisible, Verify,
+DataLinked, LangID and Calendar. Explicit literals have no F attribute. Only string
+Value cells carry U=STR; labels, prompts, formats and sort keys have no U.
+The master has MasterType=2, no MasterShortcut, and a generated Icon. The Icon
+is observed privately, never copied into source or authored output. Plain text
+has no cp/pp/tp markers; explicit paragraph alignment produces pp IX=0. The SAN
+re-save additionally witnesses cp IX=0 before pp IX=0 when character formatting
+is local. These are formatting markers, not mandatory markers on every string.
+
+### data/property-rows
+
+SHA256 `11a6892c0526485c6443231aa057dd4910fc444e46590cb387dbde8d170c5342`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page:0:Page-1/Sheet.1 | 1 | 243,0,0 | Prop.Name | Switch A | 0 | 231 |
+| page:0:Page-1/Sheet.1 | 1 | 243,0,1 | Prop.Name.Prompt |  | 0 | 231 |
+| page:0:Page-1/Sheet.1 | 1 | 243,0,2 | Prop.Name.Label | Name | 0 | 231 |
+| page:0:Page-1/Sheet.1 | 1 | 243,0,3 | Prop.Name.Format |  | 0 | 231 |
+| page:0:Page-1/Sheet.1 | 1 | 243,0,4 | Prop.Name.SortKey |  | 0 | 231 |
+| page:0:Page-1/Sheet.1 | 1 | 243,0,5 | Prop.Name.Type | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,0,6 | Prop.Name.Invisible | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,0,7 | Prop.Name.Verify | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,0,8 | Prop.Name.DataLinked | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,0,9 | Prop.NameH7 |  | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,0,10 | Prop.NameI7 |  | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,0,11 | Prop.NameJ7 |  | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,0,12 | Prop.NameK7 |  | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,0,13 | Prop.NameL7 |  | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,0,14 | Prop.Name.LangID | 1033 | 1033 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,0,15 | Prop.Name.Calendar | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,1,0 | Prop.DomainID | 42 | 42 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,1,1 | Prop.DomainID.Prompt |  | 0 | 231 |
+| page:0:Page-1/Sheet.1 | 1 | 243,1,2 | Prop.DomainID.Label | DomainID | 0 | 231 |
+| page:0:Page-1/Sheet.1 | 1 | 243,1,3 | Prop.DomainID.Format |  | 0 | 231 |
+| page:0:Page-1/Sheet.1 | 1 | 243,1,4 | Prop.DomainID.SortKey |  | 0 | 231 |
+| page:0:Page-1/Sheet.1 | 1 | 243,1,5 | Prop.DomainID.Type | 2 | 2 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,1,6 | Prop.DomainID.Invisible | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,1,7 | Prop.DomainID.Verify | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,1,8 | Prop.DomainID.DataLinked | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,1,9 | Prop.DomainIDH8 |  | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,1,10 | Prop.DomainIDI8 |  | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,1,11 | Prop.DomainIDJ8 |  | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,1,12 | Prop.DomainIDK8 |  | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,1,13 | Prop.DomainIDL8 |  | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,1,14 | Prop.DomainID.LangID | 1033 | 1033 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,1,15 | Prop.DomainID.Calendar | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,2,0 | Prop.Fabric | A | 0 | 231 |
+| page:0:Page-1/Sheet.1 | 1 | 243,2,1 | Prop.Fabric.Prompt |  | 0 | 231 |
+| page:0:Page-1/Sheet.1 | 1 | 243,2,2 | Prop.Fabric.Label | Fabric | 0 | 231 |
+| page:0:Page-1/Sheet.1 | 1 | 243,2,3 | Prop.Fabric.Format | A;B | 0 | 231 |
+| page:0:Page-1/Sheet.1 | 1 | 243,2,4 | Prop.Fabric.SortKey |  | 0 | 231 |
+| page:0:Page-1/Sheet.1 | 1 | 243,2,5 | Prop.Fabric.Type | 1 | 1 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,2,6 | Prop.Fabric.Invisible | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,2,7 | Prop.Fabric.Verify | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,2,8 | Prop.Fabric.DataLinked | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,2,9 | Prop.FabricH9 |  | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,2,10 | Prop.FabricI9 |  | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,2,11 | Prop.FabricJ9 |  | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,2,12 | Prop.FabricK9 |  | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,2,13 | Prop.FabricL9 |  | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,2,14 | Prop.Fabric.LangID | 1033 | 1033 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,2,15 | Prop.Fabric.Calendar | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,3,0 | Prop.Installed | 45000 | 45000 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,3,1 | Prop.Installed.Prompt |  | 0 | 231 |
+| page:0:Page-1/Sheet.1 | 1 | 243,3,2 | Prop.Installed.Label | Installed | 0 | 231 |
+| page:0:Page-1/Sheet.1 | 1 | 243,3,3 | Prop.Installed.Format | yyyy-MM-dd | 0 | 231 |
+| page:0:Page-1/Sheet.1 | 1 | 243,3,4 | Prop.Installed.SortKey |  | 0 | 231 |
+| page:0:Page-1/Sheet.1 | 1 | 243,3,5 | Prop.Installed.Type | 5 | 5 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,3,6 | Prop.Installed.Invisible | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,3,7 | Prop.Installed.Verify | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,3,8 | Prop.Installed.DataLinked | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,3,9 | Prop.InstalledH10 |  | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,3,10 | Prop.InstalledI10 |  | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,3,11 | Prop.InstalledJ10 |  | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,3,12 | Prop.InstalledK10 |  | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,3,13 | Prop.InstalledL10 |  | 0 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,3,14 | Prop.Installed.LangID | 1033 | 1033 | 32 |
+| page:0:Page-1/Sheet.1 | 1 | 243,3,15 | Prop.Installed.Calendar | 0 | 0 | 32 |
+Text visio/pages/page1.xml shape 1: markers `[]`; content `'A\n'`.
+Text visio/pages/page1.xml shape 2: markers `[]`; content `'B\n'`.
+### master/from-shape
+
+SHA256 `967adac88a1f2218931c2ed472476eab9f65d6f3815bb6060b37e4f0f9155797`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| master:2:Switch/Sheet.5 | 5 | 3,0,0 | Char.Font | THEMEVAL() | 4 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,1 | Char.Color | THEMEVAL() | 0 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,2 | Char.Style | THEMEVAL() | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,3 | Char.Case | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,4 | Char.Pos | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,5 | Char.FontScale | 100% | 1 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,6 | Char._Unused6 | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,7 | Char.Size | 12 pt | 0.16666666666666666 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,8 | Char.DblUnderline | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,9 | Char.Overline | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,10 | Char.Strikethru | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,11 | Char._Unused11 | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,12 | Char._Unused12 | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,13 | Char.DoubleStrikethrough | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,14 | Char._Unused14 | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,15 | Char._Unused15 | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,16 | Char.Letterspace | 0 pt | 0 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,17 | Char.ColorTrans | 0% | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,18 | Char.Q1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,19 | Char.R1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,20 | Char.S1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,21 | Char.T1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,22 | Char.U1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,23 | Char.V1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,24 | Char.W1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,25 | Char.Z1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,26 | Char.AA1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,27 | Char.AB1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,28 | Char.AC1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,29 | Char.AD1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,30 | Char.AE1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,31 | Char.AF1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,32 | Char.AG1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,33 | Char.AH1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,34 | Char.AI1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,35 | Char.AJ1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,36 | Char.AK1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,37 | Char.AL1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,38 | Char.AM1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,39 | Char.AN1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,40 | Char.AO1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,41 | Char.AP1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,42 | Char.AQ1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,43 | Char.AR1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,44 | Char.AS1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,45 | Char.AT1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,46 | Char.AU1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,47 | Char.AV1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,48 | Char.AW1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,49 | Char.AX1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,50 | Char.AY1 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,51 | Char.AsianFont | THEMEVAL() | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,52 | Char.ComplexScriptFont | THEMEVAL() | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,53 | Char._Unused53 | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,54 | Char.ComplexScriptSize | -100% | -1 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,55 | Char.BD1 |  | 0 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,56 | Char.BE1 |  | 0 | 141 |
+| master:2:Switch/Sheet.5 | 5 | 3,0,57 | Char.LangID | 1033 | 1033 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 4,0,0 | Para.IndFirst | 0 in | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 4,0,1 | Para.IndLeft | 0 in | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 4,0,2 | Para.IndRight | 0 in | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 4,0,3 | Para.SpLine | -120% | -1.2 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 4,0,4 | Para.SpBefore | 0 pt | 0 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 4,0,5 | Para.SpAfter | 0 pt | 0 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 4,0,6 | Para.HorzAlign | 1 | 1 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 4,0,7 | Para.Bullet | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 4,0,8 | Para.BulletStr |  | 0 | 231 |
+| master:2:Switch/Sheet.5 | 5 | 4,0,9 | Para.BulletFont | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 4,0,10 | Para._Unused10 | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 4,0,11 | Para.BulletFontSize | -100% | -1 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 4,0,12 | Para.TextPosAfterBullet | 0 in | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 4,0,13 | Para.Flags | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 4,0,14 | Para.M1 |  | 0 | 141 |
+| master:2:Switch/Sheet.5 | 5 | 5,0,0 | Tabs.X1 | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 10,3,1 | Geometry1.Y3 | Height*1 | 0.75 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 10,4,1 | Geometry1.Y4 | Height*1 | 0.75 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 248,0,0 | LineGradientStops.GradientStopColor | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 248,0,1 | LineGradientStops.GradientStopColorTrans | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 248,0,2 | LineGradientStops.GradientStopPosition | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 248,1,0 | LineGradientStops.GradientStopColor[2] | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 248,1,1 | LineGradientStops.GradientStopColorTrans[2] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 248,1,2 | LineGradientStops.GradientStopPosition[2] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 248,2,0 | LineGradientStops.GradientStopColor[3] | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 248,2,1 | LineGradientStops.GradientStopColorTrans[3] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 248,2,2 | LineGradientStops.GradientStopPosition[3] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 248,3,0 | LineGradientStops.GradientStopColor[4] | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 248,3,1 | LineGradientStops.GradientStopColorTrans[4] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 248,3,2 | LineGradientStops.GradientStopPosition[4] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 248,4,0 | LineGradientStops.GradientStopColor[5] | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 248,4,1 | LineGradientStops.GradientStopColorTrans[5] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 248,4,2 | LineGradientStops.GradientStopPosition[5] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 248,5,0 | LineGradientStops.GradientStopColor[6] | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 248,5,1 | LineGradientStops.GradientStopColorTrans[6] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 248,5,2 | LineGradientStops.GradientStopPosition[6] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 248,6,0 | LineGradientStops.GradientStopColor[7] | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 248,6,1 | LineGradientStops.GradientStopColorTrans[7] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 248,6,2 | LineGradientStops.GradientStopPosition[7] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 248,7,0 | LineGradientStops.GradientStopColor[8] | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 248,7,1 | LineGradientStops.GradientStopColorTrans[8] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 248,7,2 | LineGradientStops.GradientStopPosition[8] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 248,8,0 | LineGradientStops.GradientStopColor[9] | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 248,8,1 | LineGradientStops.GradientStopColorTrans[9] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 248,8,2 | LineGradientStops.GradientStopPosition[9] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 248,9,0 | LineGradientStops.GradientStopColor[10] | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 248,9,1 | LineGradientStops.GradientStopColorTrans[10] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 248,9,2 | LineGradientStops.GradientStopPosition[10] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 249,0,0 | FillGradientStops.GradientStopColor | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 249,0,1 | FillGradientStops.GradientStopColorTrans | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 249,0,2 | FillGradientStops.GradientStopPosition | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 249,1,0 | FillGradientStops.GradientStopColor[2] | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 249,1,1 | FillGradientStops.GradientStopColorTrans[2] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 249,1,2 | FillGradientStops.GradientStopPosition[2] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 249,2,0 | FillGradientStops.GradientStopColor[3] | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 249,2,1 | FillGradientStops.GradientStopColorTrans[3] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 249,2,2 | FillGradientStops.GradientStopPosition[3] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 249,3,0 | FillGradientStops.GradientStopColor[4] | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 249,3,1 | FillGradientStops.GradientStopColorTrans[4] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 249,3,2 | FillGradientStops.GradientStopPosition[4] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 249,4,0 | FillGradientStops.GradientStopColor[5] | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 249,4,1 | FillGradientStops.GradientStopColorTrans[5] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 249,4,2 | FillGradientStops.GradientStopPosition[5] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 249,5,0 | FillGradientStops.GradientStopColor[6] | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 249,5,1 | FillGradientStops.GradientStopColorTrans[6] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 249,5,2 | FillGradientStops.GradientStopPosition[6] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 249,6,0 | FillGradientStops.GradientStopColor[7] | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 249,6,1 | FillGradientStops.GradientStopColorTrans[7] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 249,6,2 | FillGradientStops.GradientStopPosition[7] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 249,7,0 | FillGradientStops.GradientStopColor[8] | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 249,7,1 | FillGradientStops.GradientStopColorTrans[8] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 249,7,2 | FillGradientStops.GradientStopPosition[8] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 249,8,0 | FillGradientStops.GradientStopColor[9] | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 249,8,1 | FillGradientStops.GradientStopColorTrans[9] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 249,8,2 | FillGradientStops.GradientStopPosition[9] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 249,9,0 | FillGradientStops.GradientStopColor[10] | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 249,9,1 | FillGradientStops.GradientStopColorTrans[10] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 249,9,2 | FillGradientStops.GradientStopPosition[10] | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,1,0 | PinX | 0.75520833333333 in | 0.75520833333333348 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,1,1 | PinY | 0.38020833333333 in | 0.38020833333333304 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,1,3 | Height | 0.75 in | 0.75 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,1,5 | LocPinY | Height*0.5 | 0.375 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| master:2:Switch/Sheet.5 | 5 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,1,9 | ResizeMode | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,2,0 | LineWeight | THEMEVAL() | 0.010416666666666666 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 1,2,1 | LineColor | THEMEVAL() | 0 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 1,2,2 | LinePattern | THEMEVAL() | 1 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,2,3 | Rounding | THEMEVAL() | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,2,4 | EndArrowSize | 2 | 2 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,2,5 | BeginArrow | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,2,6 | EndArrow | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,2,7 | LineCap | THEMEVAL() | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,2,8 | BeginArrowSize | 2 | 2 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,2,9 | LineColorTrans | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,2,10 | CompoundType | THEMEVAL() | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,3,0 | FillForegnd | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 1,3,1 | FillBkgnd | THEMEVAL() | 0 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 1,3,2 | FillPattern | THEMEVAL() | 1 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,3,3 | ShdwForegnd | THEMEVAL() | 0 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 1,3,4 | ShdwBkgnd | 1 | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 1,3,5 | ShdwPattern | THEMEVAL() | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,3,6 | FillForegndTrans | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,3,7 | FillBkgndTrans | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,3,8 | ShdwForegndTrans | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,3,9 | ShdwBkgndTrans | 0% | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,3,10 | ShapeShdwType | THEMEVAL() | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,3,11 | ShapeShdwOffsetX | THEMEVAL() | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,3,12 | ShapeShdwOffsetY | THEMEVAL() | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,3,13 | ShapeShdwObliqueAngle | THEMEVAL() | 0 | 81 |
+| master:2:Switch/Sheet.5 | 5 | 1,3,14 | ShapeShdwScaleFactor | THEMEVAL() | 1 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,3,15 | ShapeShdwBlur | THEMEVAL() | 0 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 1,3,16 | ShapeShdwShow | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,0 | TheData |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,1 | TheText |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,2 | EventDblClick |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,3 | EventXFMod |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,4 | EventDrop |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,5 | _EventPatMas |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,6 | EventTextOverflow |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,7 | Sect1.F6 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,8 | Sect1.G6 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,9 | Sect1.H6 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,10 | Sect1.I6 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,11 | Sect1.J6 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,12 | Sect1.K6 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,13 | Sect1.L6 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,14 | Sect1.M6 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,15 | Sect1.N6 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,16 | Sect1.O6 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,17 | Sect1.P6 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,18 | Sect1.Q6 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,19 | Sect1.R6 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,20 | Sect1.S6 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,21 | Sect1.T6 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,5,22 | EventMultiDrop |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,8,0 | EnableLineProps | 1 | 1 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,8,1 | EnableFillProps | 1 | 1 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,8,2 | EnableTextProps | 1 | 1 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,8,3 | HideForApply | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,8,4 | Sect1.C9 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,8,5 | Sect1.D9 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,8,6 | Sect1.E9 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,8,7 | Sect1.F9 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,8,8 | Sect1.G9 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,8,9 | Sect1.H9 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,8,10 | Sect1.I9 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,0 | PageWidth |  | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,1 | PageHeight |  | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,2 | ShdwOffsetX |  | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,3 | ShdwOffsetY |  | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,4 | PageScale |  | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,5 | DrawingScale |  | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,6 | DrawingSizeType |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,7 | DrawingScaleType |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,8 | _Unused5F |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,9 | _Unused60 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,10 | Sect1.I11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,11 | Sect1.J11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,12 | _UpdateNotes |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,13 | Sect1.L11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,14 | Sect1.M11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,15 | Sect1.N11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,16 | Sect1.O11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,17 | Sect1.P11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,18 | Sect1.Q11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,19 | Sect1.R11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,20 | Sect1.S11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,21 | Sect1.T11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,22 | Sect1.U11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,23 | Sect1.V11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,24 | Sect1.W11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,25 | Sect1.Z11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,26 | InhibitSnap |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,27 | PageLockReplace |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,28 | PageLockDuplicate |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,29 | Sect1.AD11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,30 | Sect1.AE11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,31 | Sect1.AF11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,32 | Sect1.AG11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,33 | Sect1.AH11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,34 | UIVisibility |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,35 | ShdwType |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,36 | ShdwObliqueAngle |  | 0 | 81 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,37 | ShdwScaleFactor |  | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,38 | DrawingResizeType |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,10,39 | Sect1.AN11 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,11,0 | LeftMargin | 4 pt | 0.055555555555555552 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 1,11,1 | RightMargin | 4 pt | 0.055555555555555552 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 1,11,2 | TopMargin | 4 pt | 0.055555555555555552 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 1,11,3 | BottomMargin | 4 pt | 0.055555555555555552 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 1,11,4 | VerticalAlign | 1 | 1 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,11,5 | TextBkgnd | 0 | 0 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 1,11,6 | DefaultTabStop | 0.5 in | 0.5 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,11,7 | TextMaxDepth | 4294967295 | 4294967295 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,11,8 | TextGeometry | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,11,9 | TextContainer | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,11,10 | TextDirection | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,11,11 | TextBkgndTrans | 0% | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,11,12 | _UnusedE5 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,11,13 | _UnusedE6 |  | 0 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 1,11,14 | _UnusedE7 |  | 0 | 141 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,0 | LockWidth | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,1 | LockHeight | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,2 | LockMoveX | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,3 | LockMoveY | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,4 | LockAspect | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,5 | LockDelete | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,6 | LockBegin | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,7 | LockEnd | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,8 | LockRotate | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,9 | LockCrop | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,10 | LockVtxEdit | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,11 | LockTextEdit | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,12 | LockFormat | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,13 | LockGroup | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,14 | LockCalcWH | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,15 | LockSelect | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,16 | LockCustProp | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,17 | LockFromGroupFormat | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,18 | LockThemeColors | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,19 | LockThemeEffects | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,20 | LockThemeConnectors | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,21 | LockThemeFonts | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,22 | LockThemeIndex | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,23 | LockReplace | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,15,24 | LockVariation | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,16,0 | HelpTopic |  | 0 | 231 |
+| master:2:Switch/Sheet.5 | 5 | 1,16,1 | Copyright |  | 0 | 231 |
+| master:2:Switch/Sheet.5 | 5 | 1,16,2 | Sect1.A17 |  | 0 | 231 |
+| master:2:Switch/Sheet.5 | 5 | 1,16,3 | Sect1.B17 |  | 0 | 231 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,0 | NoObjHandles | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,1 | NonPrinting | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,2 | NoCtlHandles | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,3 | NoAlignBox | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,4 | UpdateAlignBox | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,5 | HideText | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,6 | _Unused83 | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,7 | ShapeTabStop | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,8 | DynFeedback | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,9 | GlueType | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,11 | BegTrigger |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,12 | EndTrigger |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,14 | _Unused78 | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,15 | _Unused79 | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,16 | Comment |  | 0 | 231 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,17 | IsDropSource | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,18 | NoLiveDynamics | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,19 | LocalizeMerge | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,20 | NoProofing | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,21 | Sect1.T18 | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,22 | Sect1.U18 | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,23 | Sect1.V18 | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,24 | Sect1.W18 | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,25 | Calendar | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,26 | LangID | 1033 | 1033 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,27 | ShapeKeywords |  | 0 | 231 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,28 | DropOnPageScale | 100% | 1 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,29 | Sect1.AD18 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,17,30 | Sect1.AE18 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,18,0 | XRulerDensity | 32 | 32 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,18,1 | YRulerDensity | 32 | 32 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,18,2 | XRulerSpacing | 0 in | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,18,3 | YRulerSpacing | 0 in | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,18,4 | XRulerOrigin | 0 in | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,18,5 | YRulerOrigin | 0 in | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,18,6 | XGridDensity | 8 | 8 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,18,7 | YGridDensity | 8 | 8 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,18,8 | XGridSpacing | 0 in | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,18,9 | YGridSpacing | 0 in | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,18,10 | XGridOrigin | 0 in | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,18,11 | YGridOrigin | 0 in | 0 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,21,0 | Gamma | 1 | 1 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,21,1 | Contrast | 50% | 0.5 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,21,2 | Brightness | 50% | 0.5 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,21,3 | Sharpen | 0% | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,21,4 | Blur | 0% | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,21,5 | Denoise | 0% | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,21,6 | Transparency | 0% | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,21,7 | _Unused8F | 0% | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,21,8 | _Unused90 | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,22,0 | SelectMode | 1 | 1 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,22,1 | DisplayMode | 2 | 2 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,22,2 | IsDropTarget | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,22,3 | IsSnapTarget | TRUE | 1 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,22,4 | IsTextEditTarget | TRUE | 1 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,22,5 | DontMoveChildren | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,22,6 | Sect1.E23 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,22,7 | Sect1.F23 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,22,8 | Sect1.G23 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,22,9 | Sect1.H23 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,25,0 | PageLeftMargin | 0.25 in | 0.25 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,25,1 | PageRightMargin | 0.25 in | 0.25 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,25,2 | PageTopMargin | 0.25 in | 0.25 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,25,3 | PageBottomMargin | 0.25 in | 0.25 | 73 |
+| master:2:Switch/Sheet.5 | 5 | 1,25,4 | ScaleX | 100% | 1 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,25,5 | ScaleY | 100% | 1 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,25,6 | PagesX | 1 | 1 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,25,7 | PagesY | 1 | 1 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,25,8 | CenterX | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,25,9 | CenterY | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,25,10 | OnPage | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,25,11 | PrintGrid | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,25,12 | Sect1.K26 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,25,13 | Sect1.L26 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,25,14 | Sect1.M26 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,25,15 | Sect1.N26 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,25,16 | PrintPageOrientation | 1 | 1 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,25,17 | PaperKind | 1 | 1 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,25,18 | PaperSource | 7 | 7 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,26,0 | LineGradientDir | THEMEVAL() | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,26,1 | LineGradientAngle | THEMEVAL() | 1.5707963267949 | 81 |
+| master:2:Switch/Sheet.5 | 5 | 1,26,2 | FillGradientDir | THEMEVAL() | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,26,3 | FillGradientAngle | THEMEVAL() | 1.5707963267949 | 81 |
+| master:2:Switch/Sheet.5 | 5 | 1,26,4 | LineGradientEnabled | THEMEVAL() | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,26,5 | FillGradientEnabled | THEMEVAL() | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,26,6 | RotateGradientWithShape | THEMEVAL() | 1 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,26,7 | UseGroupGradient | THEMEVAL() | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,26,8 | Sect1.G27 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,26,9 | Sect1.H27 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,26,10 | Sect1.I27 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,26,11 | Sect1.J27 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,27,0 | QuickStyleLineColor | 100 | 100 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,27,1 | QuickStyleFillColor | 100 | 100 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,27,2 | QuickStyleShadowColor | 100 | 100 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,27,3 | QuickStyleFontColor | 100 | 100 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,27,4 | QuickStyleLineMatrix | 100 | 100 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,27,5 | QuickStyleFillMatrix | 100 | 100 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,27,6 | QuickStyleEffectsMatrix | 100 | 100 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,27,7 | QuickStyleFontMatrix | 100 | 100 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,27,8 | QuickStyleType | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,27,9 | QuickStyleVariation | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,28,0 | ReflectionTrans | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,28,1 | ReflectionSize | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,28,2 | ReflectionDist | THEMEVAL() | 0 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 1,28,3 | ReflectionBlur | THEMEVAL() | 0 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 1,28,4 | GlowColor | THEMEVAL() | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 1,28,5 | GlowColorTrans | THEMEVAL() | 0 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,28,6 | GlowSize | THEMEVAL() | 0 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 1,28,7 | SoftEdgesSize | THEMEVAL() | 0 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 1,28,8 | SketchSeed | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,28,9 | SketchEnabled | THEMEVAL() | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,28,10 | SketchAmount | THEMEVAL() | 5 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,28,11 | SketchLineWeight | THEMEVAL() | 0.041666666666666664 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 1,28,12 | SketchLineChange | THEMEVAL() | 0.14 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,28,13 | SketchFillChange | THEMEVAL() | 0.1 | 33 |
+| master:2:Switch/Sheet.5 | 5 | 1,28,14 | Sect1.M29 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,28,15 | Sect1.N29 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,28,16 | Sect1.O29 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,29,0 | BevelTopType | THEMEVAL() | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,29,1 | BevelTopWidth | THEMEVAL() | 0 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 1,29,2 | BevelTopHeight | THEMEVAL() | 0 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 1,29,3 | BevelBottomType | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,29,4 | BevelBottomWidth | 0 pt | 0 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 1,29,5 | BevelBottomHeight | 0 pt | 0 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 1,29,6 | BevelDepthColor | 1 | 1 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 1,29,7 | BevelDepthSize | 0 pt | 0 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 1,29,8 | BevelContourColor | THEMEVAL() | 0 | 251 |
+| master:2:Switch/Sheet.5 | 5 | 1,29,9 | BevelContourSize | THEMEVAL() | 0 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 1,29,10 | BevelMaterialType | THEMEVAL() | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,29,11 | BevelLightingType | THEMEVAL() | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,29,12 | BevelLightingAngle | THEMEVAL() | 0 | 81 |
+| master:2:Switch/Sheet.5 | 5 | 1,30,0 | RotationXAngle | 0 deg | 0 | 81 |
+| master:2:Switch/Sheet.5 | 5 | 1,30,1 | RotationYAngle | 0 deg | 0 | 81 |
+| master:2:Switch/Sheet.5 | 5 | 1,30,2 | RotationZAngle | 0 deg | 0 | 81 |
+| master:2:Switch/Sheet.5 | 5 | 1,30,3 | RotationType | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,30,4 | Perspective | 0 deg | 0 | 81 |
+| master:2:Switch/Sheet.5 | 5 | 1,30,5 | DistanceFromGround | 0 pt | 0 | 50 |
+| master:2:Switch/Sheet.5 | 5 | 1,30,6 | KeepTextFlat | FALSE | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,30,7 | Sect1.F31 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,30,8 | Sect1.G31 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,30,9 | Sect1.H31 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,30,10 | Sect1.I31 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,30,11 | Sect1.J31 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,30,12 | Sect1.K31 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,30,13 | Sect1.L31 |  | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,31,0 | ColorSchemeIndex | 65534 | 65534 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,31,1 | EffectSchemeIndex | 65534 | 65534 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,31,2 | ConnectorSchemeIndex | 65534 | 65534 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,31,3 | FontSchemeIndex | 65534 | 65534 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,31,4 | ThemeIndex | 65534 | 65534 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,31,5 | VariationColorIndex | 65534 | 65534 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,31,6 | VariationStyleIndex | 65534 | 65534 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,31,7 | EmbellishmentIndex | 65534 | 65534 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,32,0 | ReplaceLockShapeData | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,32,1 | ReplaceLockText | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,32,2 | ReplaceLockFormat | 0 | 0 | 32 |
+| master:2:Switch/Sheet.5 | 5 | 1,32,3 | ReplaceCopyCells |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,0 | Char.Font | THEMEVAL() | 4 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,1 | Char.Color | THEMEVAL() | 0 | 251 |
+| page:0:Page-1/Switch | 2 | 3,0,2 | Char.Style | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,3 | Char.Case | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,4 | Char.Pos | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,5 | Char.FontScale | 100% | 1 | 33 |
+| page:0:Page-1/Switch | 2 | 3,0,6 | Char._Unused6 | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,7 | Char.Size | 12 pt | 0.16666666666666666 | 50 |
+| page:0:Page-1/Switch | 2 | 3,0,8 | Char.DblUnderline | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,9 | Char.Overline | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,10 | Char.Strikethru | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,11 | Char._Unused11 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,12 | Char._Unused12 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,13 | Char.DoubleStrikethrough | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,14 | Char._Unused14 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,15 | Char._Unused15 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,16 | Char.Letterspace | 0 pt | 0 | 50 |
+| page:0:Page-1/Switch | 2 | 3,0,17 | Char.ColorTrans | 0% | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 3,0,18 | Char.Q1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,19 | Char.R1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,20 | Char.S1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,21 | Char.T1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,22 | Char.U1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,23 | Char.V1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,24 | Char.W1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,25 | Char.Z1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,26 | Char.AA1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,27 | Char.AB1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,28 | Char.AC1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,29 | Char.AD1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,30 | Char.AE1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,31 | Char.AF1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,32 | Char.AG1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,33 | Char.AH1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,34 | Char.AI1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,35 | Char.AJ1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,36 | Char.AK1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,37 | Char.AL1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,38 | Char.AM1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,39 | Char.AN1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,40 | Char.AO1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,41 | Char.AP1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,42 | Char.AQ1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,43 | Char.AR1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,44 | Char.AS1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,45 | Char.AT1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,46 | Char.AU1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,47 | Char.AV1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,48 | Char.AW1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,49 | Char.AX1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,50 | Char.AY1 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,51 | Char.AsianFont | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,52 | Char.ComplexScriptFont | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,53 | Char._Unused53 | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 3,0,54 | Char.ComplexScriptSize | -100% | -1 | 33 |
+| page:0:Page-1/Switch | 2 | 3,0,55 | Char.BD1 |  | 0 | 50 |
+| page:0:Page-1/Switch | 2 | 3,0,56 | Char.BE1 |  | 0 | 141 |
+| page:0:Page-1/Switch | 2 | 3,0,57 | Char.LangID | 1033 | 1033 | 32 |
+| page:0:Page-1/Switch | 2 | 4,0,0 | Para.IndFirst | 0 in | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 4,0,1 | Para.IndLeft | 0 in | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 4,0,2 | Para.IndRight | 0 in | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 4,0,3 | Para.SpLine | -120% | -1.2 | 33 |
+| page:0:Page-1/Switch | 2 | 4,0,4 | Para.SpBefore | 0 pt | 0 | 50 |
+| page:0:Page-1/Switch | 2 | 4,0,5 | Para.SpAfter | 0 pt | 0 | 50 |
+| page:0:Page-1/Switch | 2 | 4,0,6 | Para.HorzAlign | 1 | 1 | 32 |
+| page:0:Page-1/Switch | 2 | 4,0,7 | Para.Bullet | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 4,0,8 | Para.BulletStr |  | 0 | 231 |
+| page:0:Page-1/Switch | 2 | 4,0,9 | Para.BulletFont | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 4,0,10 | Para._Unused10 | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 4,0,11 | Para.BulletFontSize | -100% | -1 | 33 |
+| page:0:Page-1/Switch | 2 | 4,0,12 | Para.TextPosAfterBullet | 0 in | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 4,0,13 | Para.Flags | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 4,0,14 | Para.M1 |  | 0 | 141 |
+| page:0:Page-1/Switch | 2 | 5,0,0 | Tabs.X1 | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| page:0:Page-1/Switch | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| page:0:Page-1/Switch | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 0.75 | 73 |
+| page:0:Page-1/Switch | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 0.75 | 73 |
+| page:0:Page-1/Switch | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 248,0,0 | LineGradientStops.GradientStopColor | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 248,0,1 | LineGradientStops.GradientStopColorTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 248,0,2 | LineGradientStops.GradientStopPosition | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 248,1,0 | LineGradientStops.GradientStopColor[2] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 248,1,1 | LineGradientStops.GradientStopColorTrans[2] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 248,1,2 | LineGradientStops.GradientStopPosition[2] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 248,2,0 | LineGradientStops.GradientStopColor[3] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 248,2,1 | LineGradientStops.GradientStopColorTrans[3] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 248,2,2 | LineGradientStops.GradientStopPosition[3] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 248,3,0 | LineGradientStops.GradientStopColor[4] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 248,3,1 | LineGradientStops.GradientStopColorTrans[4] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 248,3,2 | LineGradientStops.GradientStopPosition[4] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 248,4,0 | LineGradientStops.GradientStopColor[5] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 248,4,1 | LineGradientStops.GradientStopColorTrans[5] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 248,4,2 | LineGradientStops.GradientStopPosition[5] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 248,5,0 | LineGradientStops.GradientStopColor[6] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 248,5,1 | LineGradientStops.GradientStopColorTrans[6] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 248,5,2 | LineGradientStops.GradientStopPosition[6] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 248,6,0 | LineGradientStops.GradientStopColor[7] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 248,6,1 | LineGradientStops.GradientStopColorTrans[7] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 248,6,2 | LineGradientStops.GradientStopPosition[7] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 248,7,0 | LineGradientStops.GradientStopColor[8] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 248,7,1 | LineGradientStops.GradientStopColorTrans[8] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 248,7,2 | LineGradientStops.GradientStopPosition[8] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 248,8,0 | LineGradientStops.GradientStopColor[9] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 248,8,1 | LineGradientStops.GradientStopColorTrans[9] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 248,8,2 | LineGradientStops.GradientStopPosition[9] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 248,9,0 | LineGradientStops.GradientStopColor[10] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 248,9,1 | LineGradientStops.GradientStopColorTrans[10] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 248,9,2 | LineGradientStops.GradientStopPosition[10] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 249,0,0 | FillGradientStops.GradientStopColor | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 249,0,1 | FillGradientStops.GradientStopColorTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 249,0,2 | FillGradientStops.GradientStopPosition | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 249,1,0 | FillGradientStops.GradientStopColor[2] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 249,1,1 | FillGradientStops.GradientStopColorTrans[2] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 249,1,2 | FillGradientStops.GradientStopPosition[2] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 249,2,0 | FillGradientStops.GradientStopColor[3] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 249,2,1 | FillGradientStops.GradientStopColorTrans[3] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 249,2,2 | FillGradientStops.GradientStopPosition[3] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 249,3,0 | FillGradientStops.GradientStopColor[4] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 249,3,1 | FillGradientStops.GradientStopColorTrans[4] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 249,3,2 | FillGradientStops.GradientStopPosition[4] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 249,4,0 | FillGradientStops.GradientStopColor[5] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 249,4,1 | FillGradientStops.GradientStopColorTrans[5] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 249,4,2 | FillGradientStops.GradientStopPosition[5] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 249,5,0 | FillGradientStops.GradientStopColor[6] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 249,5,1 | FillGradientStops.GradientStopColorTrans[6] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 249,5,2 | FillGradientStops.GradientStopPosition[6] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 249,6,0 | FillGradientStops.GradientStopColor[7] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 249,6,1 | FillGradientStops.GradientStopColorTrans[7] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 249,6,2 | FillGradientStops.GradientStopPosition[7] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 249,7,0 | FillGradientStops.GradientStopColor[8] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 249,7,1 | FillGradientStops.GradientStopColorTrans[8] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 249,7,2 | FillGradientStops.GradientStopPosition[8] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 249,8,0 | FillGradientStops.GradientStopColor[9] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 249,8,1 | FillGradientStops.GradientStopColorTrans[9] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 249,8,2 | FillGradientStops.GradientStopPosition[9] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 249,9,0 | FillGradientStops.GradientStopColor[10] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 249,9,1 | FillGradientStops.GradientStopColorTrans[10] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 249,9,2 | FillGradientStops.GradientStopPosition[10] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 1,1,0 | PinX | 2 in | 2 | 73 |
+| page:0:Page-1/Switch | 2 | 1,1,1 | PinY | 6 in | 6 | 73 |
+| page:0:Page-1/Switch | 2 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| page:0:Page-1/Switch | 2 | 1,1,3 | Height | 0.75 in | 0.75 | 73 |
+| page:0:Page-1/Switch | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| page:0:Page-1/Switch | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.375 | 73 |
+| page:0:Page-1/Switch | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| page:0:Page-1/Switch | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,1,9 | ResizeMode | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,2,0 | LineWeight | THEMEVAL() | 0.010416666666666666 | 50 |
+| page:0:Page-1/Switch | 2 | 1,2,1 | LineColor | THEMEVAL() | 0 | 251 |
+| page:0:Page-1/Switch | 2 | 1,2,2 | LinePattern | THEMEVAL() | 1 | 32 |
+| page:0:Page-1/Switch | 2 | 1,2,3 | Rounding | THEMEVAL() | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 1,2,4 | EndArrowSize | 2 | 2 | 32 |
+| page:0:Page-1/Switch | 2 | 1,2,5 | BeginArrow | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,2,6 | EndArrow | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,2,7 | LineCap | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,2,8 | BeginArrowSize | 2 | 2 | 32 |
+| page:0:Page-1/Switch | 2 | 1,2,9 | LineColorTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 1,2,10 | CompoundType | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,3,0 | FillForegnd | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 1,3,1 | FillBkgnd | THEMEVAL() | 0 | 251 |
+| page:0:Page-1/Switch | 2 | 1,3,2 | FillPattern | THEMEVAL() | 1 | 32 |
+| page:0:Page-1/Switch | 2 | 1,3,3 | ShdwForegnd | THEMEVAL() | 0 | 251 |
+| page:0:Page-1/Switch | 2 | 1,3,4 | ShdwBkgnd | 1 | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 1,3,5 | ShdwPattern | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,3,6 | FillForegndTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 1,3,7 | FillBkgndTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 1,3,8 | ShdwForegndTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 1,3,9 | ShdwBkgndTrans | 0% | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 1,3,10 | ShapeShdwType | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,3,11 | ShapeShdwOffsetX | THEMEVAL() | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 1,3,12 | ShapeShdwOffsetY | THEMEVAL() | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 1,3,13 | ShapeShdwObliqueAngle | THEMEVAL() | 0 | 81 |
+| page:0:Page-1/Switch | 2 | 1,3,14 | ShapeShdwScaleFactor | THEMEVAL() | 1 | 33 |
+| page:0:Page-1/Switch | 2 | 1,3,15 | ShapeShdwBlur | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Switch | 2 | 1,3,16 | ShapeShdwShow | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,0 | TheData |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,1 | TheText |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,2 | EventDblClick |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,3 | EventXFMod |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,4 | EventDrop |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,5 | _EventPatMas |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,6 | EventTextOverflow |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,7 | Sect1.F6 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,8 | Sect1.G6 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,9 | Sect1.H6 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,10 | Sect1.I6 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,11 | Sect1.J6 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,12 | Sect1.K6 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,13 | Sect1.L6 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,14 | Sect1.M6 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,15 | Sect1.N6 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,16 | Sect1.O6 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,17 | Sect1.P6 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,18 | Sect1.Q6 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,19 | Sect1.R6 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,20 | Sect1.S6 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,21 | Sect1.T6 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,5,22 | EventMultiDrop |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,8,0 | EnableLineProps | 1 | 1 | 32 |
+| page:0:Page-1/Switch | 2 | 1,8,1 | EnableFillProps | 1 | 1 | 32 |
+| page:0:Page-1/Switch | 2 | 1,8,2 | EnableTextProps | 1 | 1 | 32 |
+| page:0:Page-1/Switch | 2 | 1,8,3 | HideForApply | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,8,4 | Sect1.C9 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,8,5 | Sect1.D9 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,8,6 | Sect1.E9 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,8,7 | Sect1.F9 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,8,8 | Sect1.G9 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,8,9 | Sect1.H9 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,8,10 | Sect1.I9 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,0 | PageWidth |  | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 1,10,1 | PageHeight |  | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 1,10,2 | ShdwOffsetX |  | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 1,10,3 | ShdwOffsetY |  | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 1,10,4 | PageScale |  | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 1,10,5 | DrawingScale |  | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 1,10,6 | DrawingSizeType |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,7 | DrawingScaleType |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,8 | _Unused5F |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,9 | _Unused60 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,10 | Sect1.I11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,11 | Sect1.J11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,12 | _UpdateNotes |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,13 | Sect1.L11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,14 | Sect1.M11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,15 | Sect1.N11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,16 | Sect1.O11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,17 | Sect1.P11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,18 | Sect1.Q11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,19 | Sect1.R11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,20 | Sect1.S11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,21 | Sect1.T11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,22 | Sect1.U11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,23 | Sect1.V11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,24 | Sect1.W11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,25 | Sect1.Z11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,26 | InhibitSnap |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,27 | PageLockReplace |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,28 | PageLockDuplicate |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,29 | Sect1.AD11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,30 | Sect1.AE11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,31 | Sect1.AF11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,32 | Sect1.AG11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,33 | Sect1.AH11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,34 | UIVisibility |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,35 | ShdwType |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,36 | ShdwObliqueAngle |  | 0 | 81 |
+| page:0:Page-1/Switch | 2 | 1,10,37 | ShdwScaleFactor |  | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 1,10,38 | DrawingResizeType |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,10,39 | Sect1.AN11 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,11,0 | LeftMargin | 4 pt | 0.055555555555555552 | 50 |
+| page:0:Page-1/Switch | 2 | 1,11,1 | RightMargin | 4 pt | 0.055555555555555552 | 50 |
+| page:0:Page-1/Switch | 2 | 1,11,2 | TopMargin | 4 pt | 0.055555555555555552 | 50 |
+| page:0:Page-1/Switch | 2 | 1,11,3 | BottomMargin | 4 pt | 0.055555555555555552 | 50 |
+| page:0:Page-1/Switch | 2 | 1,11,4 | VerticalAlign | 1 | 1 | 32 |
+| page:0:Page-1/Switch | 2 | 1,11,5 | TextBkgnd | 0 | 0 | 251 |
+| page:0:Page-1/Switch | 2 | 1,11,6 | DefaultTabStop | 0.5 in | 0.5 | 73 |
+| page:0:Page-1/Switch | 2 | 1,11,7 | TextMaxDepth | 4294967295 | 4294967295 | 32 |
+| page:0:Page-1/Switch | 2 | 1,11,8 | TextGeometry | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,11,9 | TextContainer | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,11,10 | TextDirection | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,11,11 | TextBkgndTrans | 0% | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 1,11,12 | _UnusedE5 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,11,13 | _UnusedE6 |  | 0 | 251 |
+| page:0:Page-1/Switch | 2 | 1,11,14 | _UnusedE7 |  | 0 | 141 |
+| page:0:Page-1/Switch | 2 | 1,15,0 | LockWidth | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,1 | LockHeight | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,2 | LockMoveX | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,3 | LockMoveY | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,4 | LockAspect | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,5 | LockDelete | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,6 | LockBegin | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,7 | LockEnd | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,8 | LockRotate | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,9 | LockCrop | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,10 | LockVtxEdit | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,11 | LockTextEdit | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,12 | LockFormat | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,13 | LockGroup | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,14 | LockCalcWH | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,15 | LockSelect | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,16 | LockCustProp | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,17 | LockFromGroupFormat | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,18 | LockThemeColors | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,19 | LockThemeEffects | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,20 | LockThemeConnectors | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,21 | LockThemeFonts | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,22 | LockThemeIndex | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,23 | LockReplace | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,15,24 | LockVariation | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,16,0 | HelpTopic |  | 0 | 231 |
+| page:0:Page-1/Switch | 2 | 1,16,1 | Copyright |  | 0 | 231 |
+| page:0:Page-1/Switch | 2 | 1,16,2 | Sect1.A17 |  | 0 | 231 |
+| page:0:Page-1/Switch | 2 | 1,16,3 | Sect1.B17 |  | 0 | 231 |
+| page:0:Page-1/Switch | 2 | 1,17,0 | NoObjHandles | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,1 | NonPrinting | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,2 | NoCtlHandles | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,3 | NoAlignBox | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,4 | UpdateAlignBox | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,5 | HideText | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,6 | _Unused83 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,7 | ShapeTabStop | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,8 | DynFeedback | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,9 | GlueType | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,11 | BegTrigger |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,12 | EndTrigger |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,14 | _Unused78 | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,15 | _Unused79 | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,16 | Comment |  | 0 | 231 |
+| page:0:Page-1/Switch | 2 | 1,17,17 | IsDropSource | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,18 | NoLiveDynamics | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,19 | LocalizeMerge | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,20 | NoProofing | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,21 | Sect1.T18 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,22 | Sect1.U18 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,23 | Sect1.V18 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,24 | Sect1.W18 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,25 | Calendar | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,26 | LangID | 1033 | 1033 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,27 | ShapeKeywords |  | 0 | 231 |
+| page:0:Page-1/Switch | 2 | 1,17,28 | DropOnPageScale | 100% | 1 | 33 |
+| page:0:Page-1/Switch | 2 | 1,17,29 | Sect1.AD18 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,17,30 | Sect1.AE18 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,18,0 | XRulerDensity | 32 | 32 | 32 |
+| page:0:Page-1/Switch | 2 | 1,18,1 | YRulerDensity | 32 | 32 | 32 |
+| page:0:Page-1/Switch | 2 | 1,18,2 | XRulerSpacing | 0 in | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 1,18,3 | YRulerSpacing | 0 in | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 1,18,4 | XRulerOrigin | 0 in | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 1,18,5 | YRulerOrigin | 0 in | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 1,18,6 | XGridDensity | 8 | 8 | 32 |
+| page:0:Page-1/Switch | 2 | 1,18,7 | YGridDensity | 8 | 8 | 32 |
+| page:0:Page-1/Switch | 2 | 1,18,8 | XGridSpacing | 0 in | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 1,18,9 | YGridSpacing | 0 in | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 1,18,10 | XGridOrigin | 0 in | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 1,18,11 | YGridOrigin | 0 in | 0 | 73 |
+| page:0:Page-1/Switch | 2 | 1,21,0 | Gamma | 1 | 1 | 32 |
+| page:0:Page-1/Switch | 2 | 1,21,1 | Contrast | 50% | 0.5 | 33 |
+| page:0:Page-1/Switch | 2 | 1,21,2 | Brightness | 50% | 0.5 | 33 |
+| page:0:Page-1/Switch | 2 | 1,21,3 | Sharpen | 0% | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 1,21,4 | Blur | 0% | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 1,21,5 | Denoise | 0% | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 1,21,6 | Transparency | 0% | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 1,21,7 | _Unused8F | 0% | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 1,21,8 | _Unused90 | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,22,0 | SelectMode | 1 | 1 | 32 |
+| page:0:Page-1/Switch | 2 | 1,22,1 | DisplayMode | 2 | 2 | 32 |
+| page:0:Page-1/Switch | 2 | 1,22,2 | IsDropTarget | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,22,3 | IsSnapTarget | TRUE | 1 | 32 |
+| page:0:Page-1/Switch | 2 | 1,22,4 | IsTextEditTarget | TRUE | 1 | 32 |
+| page:0:Page-1/Switch | 2 | 1,22,5 | DontMoveChildren | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,22,6 | Sect1.E23 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,22,7 | Sect1.F23 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,22,8 | Sect1.G23 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,22,9 | Sect1.H23 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page:0:Page-1/Switch | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page:0:Page-1/Switch | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page:0:Page-1/Switch | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page:0:Page-1/Switch | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page:0:Page-1/Switch | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page:0:Page-1/Switch | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page:0:Page-1/Switch | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page:0:Page-1/Switch | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,25,0 | PageLeftMargin | 0.25 in | 0.25 | 73 |
+| page:0:Page-1/Switch | 2 | 1,25,1 | PageRightMargin | 0.25 in | 0.25 | 73 |
+| page:0:Page-1/Switch | 2 | 1,25,2 | PageTopMargin | 0.25 in | 0.25 | 73 |
+| page:0:Page-1/Switch | 2 | 1,25,3 | PageBottomMargin | 0.25 in | 0.25 | 73 |
+| page:0:Page-1/Switch | 2 | 1,25,4 | ScaleX | 100% | 1 | 33 |
+| page:0:Page-1/Switch | 2 | 1,25,5 | ScaleY | 100% | 1 | 33 |
+| page:0:Page-1/Switch | 2 | 1,25,6 | PagesX | 1 | 1 | 32 |
+| page:0:Page-1/Switch | 2 | 1,25,7 | PagesY | 1 | 1 | 32 |
+| page:0:Page-1/Switch | 2 | 1,25,8 | CenterX | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,25,9 | CenterY | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,25,10 | OnPage | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,25,11 | PrintGrid | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,25,12 | Sect1.K26 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,25,13 | Sect1.L26 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,25,14 | Sect1.M26 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,25,15 | Sect1.N26 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,25,16 | PrintPageOrientation | 1 | 1 | 32 |
+| page:0:Page-1/Switch | 2 | 1,25,17 | PaperKind | 1 | 1 | 32 |
+| page:0:Page-1/Switch | 2 | 1,25,18 | PaperSource | 7 | 7 | 32 |
+| page:0:Page-1/Switch | 2 | 1,26,0 | LineGradientDir | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,26,1 | LineGradientAngle | THEMEVAL() | 1.5707963267949 | 81 |
+| page:0:Page-1/Switch | 2 | 1,26,2 | FillGradientDir | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,26,3 | FillGradientAngle | THEMEVAL() | 1.5707963267949 | 81 |
+| page:0:Page-1/Switch | 2 | 1,26,4 | LineGradientEnabled | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,26,5 | FillGradientEnabled | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,26,6 | RotateGradientWithShape | THEMEVAL() | 1 | 32 |
+| page:0:Page-1/Switch | 2 | 1,26,7 | UseGroupGradient | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,26,8 | Sect1.G27 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,26,9 | Sect1.H27 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,26,10 | Sect1.I27 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,26,11 | Sect1.J27 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,27,0 | QuickStyleLineColor | 100 | 100 | 32 |
+| page:0:Page-1/Switch | 2 | 1,27,1 | QuickStyleFillColor | 100 | 100 | 32 |
+| page:0:Page-1/Switch | 2 | 1,27,2 | QuickStyleShadowColor | 100 | 100 | 32 |
+| page:0:Page-1/Switch | 2 | 1,27,3 | QuickStyleFontColor | 100 | 100 | 32 |
+| page:0:Page-1/Switch | 2 | 1,27,4 | QuickStyleLineMatrix | 100 | 100 | 32 |
+| page:0:Page-1/Switch | 2 | 1,27,5 | QuickStyleFillMatrix | 100 | 100 | 32 |
+| page:0:Page-1/Switch | 2 | 1,27,6 | QuickStyleEffectsMatrix | 100 | 100 | 32 |
+| page:0:Page-1/Switch | 2 | 1,27,7 | QuickStyleFontMatrix | 100 | 100 | 32 |
+| page:0:Page-1/Switch | 2 | 1,27,8 | QuickStyleType | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,27,9 | QuickStyleVariation | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,28,0 | ReflectionTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 1,28,1 | ReflectionSize | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 1,28,2 | ReflectionDist | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Switch | 2 | 1,28,3 | ReflectionBlur | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Switch | 2 | 1,28,4 | GlowColor | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 1,28,5 | GlowColorTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch | 2 | 1,28,6 | GlowSize | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Switch | 2 | 1,28,7 | SoftEdgesSize | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Switch | 2 | 1,28,8 | SketchSeed | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,28,9 | SketchEnabled | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,28,10 | SketchAmount | THEMEVAL() | 5 | 32 |
+| page:0:Page-1/Switch | 2 | 1,28,11 | SketchLineWeight | THEMEVAL() | 0.041666666666666664 | 50 |
+| page:0:Page-1/Switch | 2 | 1,28,12 | SketchLineChange | THEMEVAL() | 0.14 | 33 |
+| page:0:Page-1/Switch | 2 | 1,28,13 | SketchFillChange | THEMEVAL() | 0.1 | 33 |
+| page:0:Page-1/Switch | 2 | 1,28,14 | Sect1.M29 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,28,15 | Sect1.N29 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,28,16 | Sect1.O29 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,29,0 | BevelTopType | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,29,1 | BevelTopWidth | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Switch | 2 | 1,29,2 | BevelTopHeight | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Switch | 2 | 1,29,3 | BevelBottomType | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,29,4 | BevelBottomWidth | 0 pt | 0 | 50 |
+| page:0:Page-1/Switch | 2 | 1,29,5 | BevelBottomHeight | 0 pt | 0 | 50 |
+| page:0:Page-1/Switch | 2 | 1,29,6 | BevelDepthColor | 1 | 1 | 251 |
+| page:0:Page-1/Switch | 2 | 1,29,7 | BevelDepthSize | 0 pt | 0 | 50 |
+| page:0:Page-1/Switch | 2 | 1,29,8 | BevelContourColor | THEMEVAL() | 0 | 251 |
+| page:0:Page-1/Switch | 2 | 1,29,9 | BevelContourSize | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Switch | 2 | 1,29,10 | BevelMaterialType | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,29,11 | BevelLightingType | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,29,12 | BevelLightingAngle | THEMEVAL() | 0 | 81 |
+| page:0:Page-1/Switch | 2 | 1,30,0 | RotationXAngle | 0 deg | 0 | 81 |
+| page:0:Page-1/Switch | 2 | 1,30,1 | RotationYAngle | 0 deg | 0 | 81 |
+| page:0:Page-1/Switch | 2 | 1,30,2 | RotationZAngle | 0 deg | 0 | 81 |
+| page:0:Page-1/Switch | 2 | 1,30,3 | RotationType | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,30,4 | Perspective | 0 deg | 0 | 81 |
+| page:0:Page-1/Switch | 2 | 1,30,5 | DistanceFromGround | 0 pt | 0 | 50 |
+| page:0:Page-1/Switch | 2 | 1,30,6 | KeepTextFlat | FALSE | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,30,7 | Sect1.F31 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,30,8 | Sect1.G31 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,30,9 | Sect1.H31 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,30,10 | Sect1.I31 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,30,11 | Sect1.J31 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,30,12 | Sect1.K31 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,30,13 | Sect1.L31 |  | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,31,0 | ColorSchemeIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Switch | 2 | 1,31,1 | EffectSchemeIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Switch | 2 | 1,31,2 | ConnectorSchemeIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Switch | 2 | 1,31,3 | FontSchemeIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Switch | 2 | 1,31,4 | ThemeIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Switch | 2 | 1,31,5 | VariationColorIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Switch | 2 | 1,31,6 | VariationStyleIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Switch | 2 | 1,31,7 | EmbellishmentIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Switch | 2 | 1,32,0 | ReplaceLockShapeData | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,32,1 | ReplaceLockText | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,32,2 | ReplaceLockFormat | 0 | 0 | 32 |
+| page:0:Page-1/Switch | 2 | 1,32,3 | ReplaceCopyCells |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,0 | Char.Font | THEMEVAL() | 4 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,1 | Char.Color | THEMEVAL() | 0 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,2 | Char.Style | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,3 | Char.Case | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,4 | Char.Pos | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,5 | Char.FontScale | 100% | 1 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,6 | Char._Unused6 | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,7 | Char.Size | 12 pt | 0.16666666666666666 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,8 | Char.DblUnderline | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,9 | Char.Overline | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,10 | Char.Strikethru | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,11 | Char._Unused11 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,12 | Char._Unused12 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,13 | Char.DoubleStrikethrough | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,14 | Char._Unused14 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,15 | Char._Unused15 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,16 | Char.Letterspace | 0 pt | 0 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,17 | Char.ColorTrans | 0% | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,18 | Char.Q1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,19 | Char.R1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,20 | Char.S1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,21 | Char.T1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,22 | Char.U1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,23 | Char.V1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,24 | Char.W1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,25 | Char.Z1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,26 | Char.AA1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,27 | Char.AB1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,28 | Char.AC1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,29 | Char.AD1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,30 | Char.AE1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,31 | Char.AF1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,32 | Char.AG1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,33 | Char.AH1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,34 | Char.AI1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,35 | Char.AJ1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,36 | Char.AK1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,37 | Char.AL1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,38 | Char.AM1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,39 | Char.AN1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,40 | Char.AO1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,41 | Char.AP1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,42 | Char.AQ1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,43 | Char.AR1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,44 | Char.AS1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,45 | Char.AT1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,46 | Char.AU1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,47 | Char.AV1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,48 | Char.AW1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,49 | Char.AX1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,50 | Char.AY1 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,51 | Char.AsianFont | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,52 | Char.ComplexScriptFont | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,53 | Char._Unused53 | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,54 | Char.ComplexScriptSize | -100% | -1 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,55 | Char.BD1 |  | 0 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,56 | Char.BE1 |  | 0 | 141 |
+| page:0:Page-1/Switch.3 | 3 | 3,0,57 | Char.LangID | 1033 | 1033 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 4,0,0 | Para.IndFirst | 0 in | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 4,0,1 | Para.IndLeft | 0 in | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 4,0,2 | Para.IndRight | 0 in | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 4,0,3 | Para.SpLine | -120% | -1.2 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 4,0,4 | Para.SpBefore | 0 pt | 0 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 4,0,5 | Para.SpAfter | 0 pt | 0 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 4,0,6 | Para.HorzAlign | 1 | 1 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 4,0,7 | Para.Bullet | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 4,0,8 | Para.BulletStr |  | 0 | 231 |
+| page:0:Page-1/Switch.3 | 3 | 4,0,9 | Para.BulletFont | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 4,0,10 | Para._Unused10 | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 4,0,11 | Para.BulletFontSize | -100% | -1 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 4,0,12 | Para.TextPosAfterBullet | 0 in | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 4,0,13 | Para.Flags | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 4,0,14 | Para.M1 |  | 0 | 141 |
+| page:0:Page-1/Switch.3 | 3 | 5,0,0 | Tabs.X1 | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 10,3,1 | Geometry1.Y3 | Height*1 | 0.75 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 10,4,1 | Geometry1.Y4 | Height*1 | 0.75 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 248,0,0 | LineGradientStops.GradientStopColor | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 248,0,1 | LineGradientStops.GradientStopColorTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 248,0,2 | LineGradientStops.GradientStopPosition | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 248,1,0 | LineGradientStops.GradientStopColor[2] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 248,1,1 | LineGradientStops.GradientStopColorTrans[2] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 248,1,2 | LineGradientStops.GradientStopPosition[2] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 248,2,0 | LineGradientStops.GradientStopColor[3] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 248,2,1 | LineGradientStops.GradientStopColorTrans[3] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 248,2,2 | LineGradientStops.GradientStopPosition[3] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 248,3,0 | LineGradientStops.GradientStopColor[4] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 248,3,1 | LineGradientStops.GradientStopColorTrans[4] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 248,3,2 | LineGradientStops.GradientStopPosition[4] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 248,4,0 | LineGradientStops.GradientStopColor[5] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 248,4,1 | LineGradientStops.GradientStopColorTrans[5] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 248,4,2 | LineGradientStops.GradientStopPosition[5] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 248,5,0 | LineGradientStops.GradientStopColor[6] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 248,5,1 | LineGradientStops.GradientStopColorTrans[6] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 248,5,2 | LineGradientStops.GradientStopPosition[6] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 248,6,0 | LineGradientStops.GradientStopColor[7] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 248,6,1 | LineGradientStops.GradientStopColorTrans[7] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 248,6,2 | LineGradientStops.GradientStopPosition[7] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 248,7,0 | LineGradientStops.GradientStopColor[8] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 248,7,1 | LineGradientStops.GradientStopColorTrans[8] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 248,7,2 | LineGradientStops.GradientStopPosition[8] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 248,8,0 | LineGradientStops.GradientStopColor[9] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 248,8,1 | LineGradientStops.GradientStopColorTrans[9] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 248,8,2 | LineGradientStops.GradientStopPosition[9] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 248,9,0 | LineGradientStops.GradientStopColor[10] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 248,9,1 | LineGradientStops.GradientStopColorTrans[10] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 248,9,2 | LineGradientStops.GradientStopPosition[10] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 249,0,0 | FillGradientStops.GradientStopColor | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 249,0,1 | FillGradientStops.GradientStopColorTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 249,0,2 | FillGradientStops.GradientStopPosition | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 249,1,0 | FillGradientStops.GradientStopColor[2] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 249,1,1 | FillGradientStops.GradientStopColorTrans[2] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 249,1,2 | FillGradientStops.GradientStopPosition[2] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 249,2,0 | FillGradientStops.GradientStopColor[3] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 249,2,1 | FillGradientStops.GradientStopColorTrans[3] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 249,2,2 | FillGradientStops.GradientStopPosition[3] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 249,3,0 | FillGradientStops.GradientStopColor[4] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 249,3,1 | FillGradientStops.GradientStopColorTrans[4] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 249,3,2 | FillGradientStops.GradientStopPosition[4] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 249,4,0 | FillGradientStops.GradientStopColor[5] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 249,4,1 | FillGradientStops.GradientStopColorTrans[5] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 249,4,2 | FillGradientStops.GradientStopPosition[5] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 249,5,0 | FillGradientStops.GradientStopColor[6] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 249,5,1 | FillGradientStops.GradientStopColorTrans[6] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 249,5,2 | FillGradientStops.GradientStopPosition[6] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 249,6,0 | FillGradientStops.GradientStopColor[7] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 249,6,1 | FillGradientStops.GradientStopColorTrans[7] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 249,6,2 | FillGradientStops.GradientStopPosition[7] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 249,7,0 | FillGradientStops.GradientStopColor[8] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 249,7,1 | FillGradientStops.GradientStopColorTrans[8] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 249,7,2 | FillGradientStops.GradientStopPosition[8] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 249,8,0 | FillGradientStops.GradientStopColor[9] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 249,8,1 | FillGradientStops.GradientStopColorTrans[9] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 249,8,2 | FillGradientStops.GradientStopPosition[9] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 249,9,0 | FillGradientStops.GradientStopColor[10] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 249,9,1 | FillGradientStops.GradientStopColorTrans[10] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 249,9,2 | FillGradientStops.GradientStopPosition[10] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,1,0 | PinX | 5 in | 5 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,1,1 | PinY | 6 in | 6 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,1,3 | Height | 0.75 in | 0.75 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,1,5 | LocPinY | Height*0.5 | 0.375 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| page:0:Page-1/Switch.3 | 3 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,1,9 | ResizeMode | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,2,0 | LineWeight | THEMEVAL() | 0.010416666666666666 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 1,2,1 | LineColor | THEMEVAL() | 0 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 1,2,2 | LinePattern | THEMEVAL() | 1 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,2,3 | Rounding | THEMEVAL() | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,2,4 | EndArrowSize | 2 | 2 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,2,5 | BeginArrow | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,2,6 | EndArrow | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,2,7 | LineCap | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,2,8 | BeginArrowSize | 2 | 2 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,2,9 | LineColorTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,2,10 | CompoundType | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,3,0 | FillForegnd | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 1,3,1 | FillBkgnd | THEMEVAL() | 0 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 1,3,2 | FillPattern | THEMEVAL() | 1 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,3,3 | ShdwForegnd | THEMEVAL() | 0 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 1,3,4 | ShdwBkgnd | 1 | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 1,3,5 | ShdwPattern | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,3,6 | FillForegndTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,3,7 | FillBkgndTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,3,8 | ShdwForegndTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,3,9 | ShdwBkgndTrans | 0% | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,3,10 | ShapeShdwType | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,3,11 | ShapeShdwOffsetX | THEMEVAL() | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,3,12 | ShapeShdwOffsetY | THEMEVAL() | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,3,13 | ShapeShdwObliqueAngle | THEMEVAL() | 0 | 81 |
+| page:0:Page-1/Switch.3 | 3 | 1,3,14 | ShapeShdwScaleFactor | THEMEVAL() | 1 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,3,15 | ShapeShdwBlur | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 1,3,16 | ShapeShdwShow | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,0 | TheData |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,1 | TheText |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,2 | EventDblClick |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,3 | EventXFMod |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,4 | EventDrop |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,5 | _EventPatMas |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,6 | EventTextOverflow |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,7 | Sect1.F6 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,8 | Sect1.G6 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,9 | Sect1.H6 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,10 | Sect1.I6 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,11 | Sect1.J6 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,12 | Sect1.K6 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,13 | Sect1.L6 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,14 | Sect1.M6 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,15 | Sect1.N6 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,16 | Sect1.O6 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,17 | Sect1.P6 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,18 | Sect1.Q6 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,19 | Sect1.R6 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,20 | Sect1.S6 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,21 | Sect1.T6 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,5,22 | EventMultiDrop |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,8,0 | EnableLineProps | 1 | 1 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,8,1 | EnableFillProps | 1 | 1 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,8,2 | EnableTextProps | 1 | 1 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,8,3 | HideForApply | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,8,4 | Sect1.C9 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,8,5 | Sect1.D9 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,8,6 | Sect1.E9 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,8,7 | Sect1.F9 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,8,8 | Sect1.G9 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,8,9 | Sect1.H9 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,8,10 | Sect1.I9 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,0 | PageWidth |  | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,1 | PageHeight |  | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,2 | ShdwOffsetX |  | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,3 | ShdwOffsetY |  | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,4 | PageScale |  | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,5 | DrawingScale |  | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,6 | DrawingSizeType |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,7 | DrawingScaleType |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,8 | _Unused5F |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,9 | _Unused60 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,10 | Sect1.I11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,11 | Sect1.J11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,12 | _UpdateNotes |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,13 | Sect1.L11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,14 | Sect1.M11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,15 | Sect1.N11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,16 | Sect1.O11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,17 | Sect1.P11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,18 | Sect1.Q11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,19 | Sect1.R11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,20 | Sect1.S11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,21 | Sect1.T11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,22 | Sect1.U11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,23 | Sect1.V11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,24 | Sect1.W11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,25 | Sect1.Z11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,26 | InhibitSnap |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,27 | PageLockReplace |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,28 | PageLockDuplicate |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,29 | Sect1.AD11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,30 | Sect1.AE11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,31 | Sect1.AF11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,32 | Sect1.AG11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,33 | Sect1.AH11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,34 | UIVisibility |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,35 | ShdwType |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,36 | ShdwObliqueAngle |  | 0 | 81 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,37 | ShdwScaleFactor |  | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,38 | DrawingResizeType |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,10,39 | Sect1.AN11 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,11,0 | LeftMargin | 4 pt | 0.055555555555555552 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 1,11,1 | RightMargin | 4 pt | 0.055555555555555552 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 1,11,2 | TopMargin | 4 pt | 0.055555555555555552 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 1,11,3 | BottomMargin | 4 pt | 0.055555555555555552 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 1,11,4 | VerticalAlign | 1 | 1 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,11,5 | TextBkgnd | 0 | 0 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 1,11,6 | DefaultTabStop | 0.5 in | 0.5 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,11,7 | TextMaxDepth | 4294967295 | 4294967295 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,11,8 | TextGeometry | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,11,9 | TextContainer | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,11,10 | TextDirection | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,11,11 | TextBkgndTrans | 0% | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,11,12 | _UnusedE5 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,11,13 | _UnusedE6 |  | 0 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 1,11,14 | _UnusedE7 |  | 0 | 141 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,0 | LockWidth | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,1 | LockHeight | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,2 | LockMoveX | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,3 | LockMoveY | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,4 | LockAspect | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,5 | LockDelete | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,6 | LockBegin | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,7 | LockEnd | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,8 | LockRotate | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,9 | LockCrop | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,10 | LockVtxEdit | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,11 | LockTextEdit | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,12 | LockFormat | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,13 | LockGroup | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,14 | LockCalcWH | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,15 | LockSelect | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,16 | LockCustProp | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,17 | LockFromGroupFormat | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,18 | LockThemeColors | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,19 | LockThemeEffects | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,20 | LockThemeConnectors | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,21 | LockThemeFonts | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,22 | LockThemeIndex | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,23 | LockReplace | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,15,24 | LockVariation | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,16,0 | HelpTopic |  | 0 | 231 |
+| page:0:Page-1/Switch.3 | 3 | 1,16,1 | Copyright |  | 0 | 231 |
+| page:0:Page-1/Switch.3 | 3 | 1,16,2 | Sect1.A17 |  | 0 | 231 |
+| page:0:Page-1/Switch.3 | 3 | 1,16,3 | Sect1.B17 |  | 0 | 231 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,0 | NoObjHandles | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,1 | NonPrinting | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,2 | NoCtlHandles | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,3 | NoAlignBox | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,4 | UpdateAlignBox | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,5 | HideText | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,6 | _Unused83 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,7 | ShapeTabStop | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,8 | DynFeedback | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,9 | GlueType | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,11 | BegTrigger |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,12 | EndTrigger |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,14 | _Unused78 | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,15 | _Unused79 | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,16 | Comment |  | 0 | 231 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,17 | IsDropSource | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,18 | NoLiveDynamics | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,19 | LocalizeMerge | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,20 | NoProofing | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,21 | Sect1.T18 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,22 | Sect1.U18 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,23 | Sect1.V18 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,24 | Sect1.W18 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,25 | Calendar | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,26 | LangID | 1033 | 1033 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,27 | ShapeKeywords |  | 0 | 231 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,28 | DropOnPageScale | 100% | 1 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,29 | Sect1.AD18 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,17,30 | Sect1.AE18 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,18,0 | XRulerDensity | 32 | 32 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,18,1 | YRulerDensity | 32 | 32 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,18,2 | XRulerSpacing | 0 in | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,18,3 | YRulerSpacing | 0 in | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,18,4 | XRulerOrigin | 0 in | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,18,5 | YRulerOrigin | 0 in | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,18,6 | XGridDensity | 8 | 8 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,18,7 | YGridDensity | 8 | 8 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,18,8 | XGridSpacing | 0 in | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,18,9 | YGridSpacing | 0 in | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,18,10 | XGridOrigin | 0 in | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,18,11 | YGridOrigin | 0 in | 0 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,21,0 | Gamma | 1 | 1 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,21,1 | Contrast | 50% | 0.5 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,21,2 | Brightness | 50% | 0.5 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,21,3 | Sharpen | 0% | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,21,4 | Blur | 0% | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,21,5 | Denoise | 0% | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,21,6 | Transparency | 0% | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,21,7 | _Unused8F | 0% | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,21,8 | _Unused90 | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,22,0 | SelectMode | 1 | 1 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,22,1 | DisplayMode | 2 | 2 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,22,2 | IsDropTarget | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,22,3 | IsSnapTarget | TRUE | 1 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,22,4 | IsTextEditTarget | TRUE | 1 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,22,5 | DontMoveChildren | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,22,6 | Sect1.E23 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,22,7 | Sect1.F23 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,22,8 | Sect1.G23 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,22,9 | Sect1.H23 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,25,0 | PageLeftMargin | 0.25 in | 0.25 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,25,1 | PageRightMargin | 0.25 in | 0.25 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,25,2 | PageTopMargin | 0.25 in | 0.25 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,25,3 | PageBottomMargin | 0.25 in | 0.25 | 73 |
+| page:0:Page-1/Switch.3 | 3 | 1,25,4 | ScaleX | 100% | 1 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,25,5 | ScaleY | 100% | 1 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,25,6 | PagesX | 1 | 1 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,25,7 | PagesY | 1 | 1 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,25,8 | CenterX | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,25,9 | CenterY | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,25,10 | OnPage | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,25,11 | PrintGrid | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,25,12 | Sect1.K26 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,25,13 | Sect1.L26 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,25,14 | Sect1.M26 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,25,15 | Sect1.N26 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,25,16 | PrintPageOrientation | 1 | 1 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,25,17 | PaperKind | 1 | 1 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,25,18 | PaperSource | 7 | 7 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,26,0 | LineGradientDir | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,26,1 | LineGradientAngle | THEMEVAL() | 1.5707963267949 | 81 |
+| page:0:Page-1/Switch.3 | 3 | 1,26,2 | FillGradientDir | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,26,3 | FillGradientAngle | THEMEVAL() | 1.5707963267949 | 81 |
+| page:0:Page-1/Switch.3 | 3 | 1,26,4 | LineGradientEnabled | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,26,5 | FillGradientEnabled | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,26,6 | RotateGradientWithShape | THEMEVAL() | 1 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,26,7 | UseGroupGradient | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,26,8 | Sect1.G27 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,26,9 | Sect1.H27 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,26,10 | Sect1.I27 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,26,11 | Sect1.J27 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,27,0 | QuickStyleLineColor | 100 | 100 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,27,1 | QuickStyleFillColor | 100 | 100 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,27,2 | QuickStyleShadowColor | 100 | 100 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,27,3 | QuickStyleFontColor | 100 | 100 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,27,4 | QuickStyleLineMatrix | 100 | 100 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,27,5 | QuickStyleFillMatrix | 100 | 100 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,27,6 | QuickStyleEffectsMatrix | 100 | 100 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,27,7 | QuickStyleFontMatrix | 100 | 100 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,27,8 | QuickStyleType | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,27,9 | QuickStyleVariation | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,28,0 | ReflectionTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,28,1 | ReflectionSize | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,28,2 | ReflectionDist | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 1,28,3 | ReflectionBlur | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 1,28,4 | GlowColor | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 1,28,5 | GlowColorTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,28,6 | GlowSize | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 1,28,7 | SoftEdgesSize | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 1,28,8 | SketchSeed | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,28,9 | SketchEnabled | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,28,10 | SketchAmount | THEMEVAL() | 5 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,28,11 | SketchLineWeight | THEMEVAL() | 0.041666666666666664 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 1,28,12 | SketchLineChange | THEMEVAL() | 0.14 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,28,13 | SketchFillChange | THEMEVAL() | 0.1 | 33 |
+| page:0:Page-1/Switch.3 | 3 | 1,28,14 | Sect1.M29 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,28,15 | Sect1.N29 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,28,16 | Sect1.O29 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,29,0 | BevelTopType | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,29,1 | BevelTopWidth | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 1,29,2 | BevelTopHeight | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 1,29,3 | BevelBottomType | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,29,4 | BevelBottomWidth | 0 pt | 0 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 1,29,5 | BevelBottomHeight | 0 pt | 0 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 1,29,6 | BevelDepthColor | 1 | 1 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 1,29,7 | BevelDepthSize | 0 pt | 0 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 1,29,8 | BevelContourColor | THEMEVAL() | 0 | 251 |
+| page:0:Page-1/Switch.3 | 3 | 1,29,9 | BevelContourSize | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 1,29,10 | BevelMaterialType | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,29,11 | BevelLightingType | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,29,12 | BevelLightingAngle | THEMEVAL() | 0 | 81 |
+| page:0:Page-1/Switch.3 | 3 | 1,30,0 | RotationXAngle | 0 deg | 0 | 81 |
+| page:0:Page-1/Switch.3 | 3 | 1,30,1 | RotationYAngle | 0 deg | 0 | 81 |
+| page:0:Page-1/Switch.3 | 3 | 1,30,2 | RotationZAngle | 0 deg | 0 | 81 |
+| page:0:Page-1/Switch.3 | 3 | 1,30,3 | RotationType | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,30,4 | Perspective | 0 deg | 0 | 81 |
+| page:0:Page-1/Switch.3 | 3 | 1,30,5 | DistanceFromGround | 0 pt | 0 | 50 |
+| page:0:Page-1/Switch.3 | 3 | 1,30,6 | KeepTextFlat | FALSE | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,30,7 | Sect1.F31 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,30,8 | Sect1.G31 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,30,9 | Sect1.H31 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,30,10 | Sect1.I31 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,30,11 | Sect1.J31 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,30,12 | Sect1.K31 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,30,13 | Sect1.L31 |  | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,31,0 | ColorSchemeIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,31,1 | EffectSchemeIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,31,2 | ConnectorSchemeIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,31,3 | FontSchemeIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,31,4 | ThemeIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,31,5 | VariationColorIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,31,6 | VariationStyleIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,31,7 | EmbellishmentIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,32,0 | ReplaceLockShapeData | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,32,1 | ReplaceLockText | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,32,2 | ReplaceLockFormat | 0 | 0 | 32 |
+| page:0:Page-1/Switch.3 | 3 | 1,32,3 | ReplaceCopyCells |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,1,0 | PinX | 2.5 in | 2.5 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,1,1 | PinY | 8.3 in | 8.3 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,1,2 | Width | 3 in | 3 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,1,3 | Height | 0.6 in | 0.59999999999999964 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,1,4 | LocPinX | Width*0.5 | 1.5 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,1,5 | LocPinY | Height*0.5 | 0.29999999999999982 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| page:0:Page-1/Sheet.4 | 4 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,1,9 | ResizeMode | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,2,0 | LineWeight | THEMEVAL() | 0.010416666666666666 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 1,2,1 | LineColor | THEMEVAL() | 0 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 1,2,2 | LinePattern | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,2,3 | Rounding | THEMEVAL() | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,2,4 | EndArrowSize | 2 | 2 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,2,5 | BeginArrow | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,2,6 | EndArrow | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,2,7 | LineCap | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,2,8 | BeginArrowSize | 2 | 2 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,2,9 | LineColorTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,2,10 | CompoundType | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,0 | Char.Font | THEMEVAL() | 4 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,1 | Char.Color | THEMEVAL() | 0 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,2 | Char.Style | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,3 | Char.Case | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,4 | Char.Pos | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,5 | Char.FontScale | 100% | 1 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,6 | Char._Unused6 | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,7 | Char.Size | 12 pt | 0.16666666666666666 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,8 | Char.DblUnderline | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,9 | Char.Overline | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,10 | Char.Strikethru | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,11 | Char._Unused11 | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,12 | Char._Unused12 | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,13 | Char.DoubleStrikethrough | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,14 | Char._Unused14 | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,15 | Char._Unused15 | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,16 | Char.Letterspace | 0 pt | 0 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,17 | Char.ColorTrans | 0% | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,18 | Char.Q1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,19 | Char.R1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,20 | Char.S1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,21 | Char.T1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,22 | Char.U1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,23 | Char.V1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,24 | Char.W1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,25 | Char.Z1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,26 | Char.AA1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,27 | Char.AB1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,28 | Char.AC1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,29 | Char.AD1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,30 | Char.AE1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,31 | Char.AF1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,32 | Char.AG1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,33 | Char.AH1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,34 | Char.AI1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,35 | Char.AJ1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,36 | Char.AK1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,37 | Char.AL1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,38 | Char.AM1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,39 | Char.AN1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,40 | Char.AO1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,41 | Char.AP1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,42 | Char.AQ1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,43 | Char.AR1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,44 | Char.AS1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,45 | Char.AT1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,46 | Char.AU1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,47 | Char.AV1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,48 | Char.AW1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,49 | Char.AX1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,50 | Char.AY1 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,51 | Char.AsianFont | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,52 | Char.ComplexScriptFont | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,53 | Char._Unused53 | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,54 | Char.ComplexScriptSize | -100% | -1 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,55 | Char.BD1 |  | 0 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,56 | Char.BE1 |  | 0 | 141 |
+| page:0:Page-1/Sheet.4 | 4 | 3,0,57 | Char.LangID | 1033 | 1033 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 4,0,0 | Para.IndFirst | 0 in | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 4,0,1 | Para.IndLeft | 0 in | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 4,0,2 | Para.IndRight | 0 in | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 4,0,3 | Para.SpLine | -120% | -1.2 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 4,0,4 | Para.SpBefore | 0 pt | 0 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 4,0,5 | Para.SpAfter | 0 pt | 0 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 4,0,6 | Para.HorzAlign | 1 | 1 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 4,0,7 | Para.Bullet | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 4,0,8 | Para.BulletStr |  | 0 | 231 |
+| page:0:Page-1/Sheet.4 | 4 | 4,0,9 | Para.BulletFont | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 4,0,10 | Para._Unused10 | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 4,0,11 | Para.BulletFontSize | -100% | -1 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 4,0,12 | Para.TextPosAfterBullet | 0 in | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 4,0,13 | Para.Flags | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 4,0,14 | Para.M1 |  | 0 | 141 |
+| page:0:Page-1/Sheet.4 | 4 | 5,0,0 | Tabs.X1 | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 10,2,0 | Geometry1.X2 | Width*1 | 3 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 10,3,0 | Geometry1.X3 | Width*1 | 3 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 10,3,1 | Geometry1.Y3 | Height*1 | 0.59999999999999964 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 10,4,1 | Geometry1.Y4 | Height*1 | 0.59999999999999964 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 248,0,0 | LineGradientStops.GradientStopColor | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 248,0,1 | LineGradientStops.GradientStopColorTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 248,0,2 | LineGradientStops.GradientStopPosition | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 248,1,0 | LineGradientStops.GradientStopColor[2] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 248,1,1 | LineGradientStops.GradientStopColorTrans[2] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 248,1,2 | LineGradientStops.GradientStopPosition[2] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 248,2,0 | LineGradientStops.GradientStopColor[3] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 248,2,1 | LineGradientStops.GradientStopColorTrans[3] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 248,2,2 | LineGradientStops.GradientStopPosition[3] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 248,3,0 | LineGradientStops.GradientStopColor[4] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 248,3,1 | LineGradientStops.GradientStopColorTrans[4] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 248,3,2 | LineGradientStops.GradientStopPosition[4] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 248,4,0 | LineGradientStops.GradientStopColor[5] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 248,4,1 | LineGradientStops.GradientStopColorTrans[5] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 248,4,2 | LineGradientStops.GradientStopPosition[5] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 248,5,0 | LineGradientStops.GradientStopColor[6] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 248,5,1 | LineGradientStops.GradientStopColorTrans[6] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 248,5,2 | LineGradientStops.GradientStopPosition[6] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 248,6,0 | LineGradientStops.GradientStopColor[7] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 248,6,1 | LineGradientStops.GradientStopColorTrans[7] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 248,6,2 | LineGradientStops.GradientStopPosition[7] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 248,7,0 | LineGradientStops.GradientStopColor[8] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 248,7,1 | LineGradientStops.GradientStopColorTrans[8] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 248,7,2 | LineGradientStops.GradientStopPosition[8] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 248,8,0 | LineGradientStops.GradientStopColor[9] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 248,8,1 | LineGradientStops.GradientStopColorTrans[9] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 248,8,2 | LineGradientStops.GradientStopPosition[9] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 248,9,0 | LineGradientStops.GradientStopColor[10] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 248,9,1 | LineGradientStops.GradientStopColorTrans[10] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 248,9,2 | LineGradientStops.GradientStopPosition[10] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 249,0,0 | FillGradientStops.GradientStopColor | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 249,0,1 | FillGradientStops.GradientStopColorTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 249,0,2 | FillGradientStops.GradientStopPosition | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 249,1,0 | FillGradientStops.GradientStopColor[2] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 249,1,1 | FillGradientStops.GradientStopColorTrans[2] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 249,1,2 | FillGradientStops.GradientStopPosition[2] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 249,2,0 | FillGradientStops.GradientStopColor[3] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 249,2,1 | FillGradientStops.GradientStopColorTrans[3] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 249,2,2 | FillGradientStops.GradientStopPosition[3] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 249,3,0 | FillGradientStops.GradientStopColor[4] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 249,3,1 | FillGradientStops.GradientStopColorTrans[4] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 249,3,2 | FillGradientStops.GradientStopPosition[4] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 249,4,0 | FillGradientStops.GradientStopColor[5] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 249,4,1 | FillGradientStops.GradientStopColorTrans[5] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 249,4,2 | FillGradientStops.GradientStopPosition[5] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 249,5,0 | FillGradientStops.GradientStopColor[6] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 249,5,1 | FillGradientStops.GradientStopColorTrans[6] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 249,5,2 | FillGradientStops.GradientStopPosition[6] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 249,6,0 | FillGradientStops.GradientStopColor[7] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 249,6,1 | FillGradientStops.GradientStopColorTrans[7] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 249,6,2 | FillGradientStops.GradientStopPosition[7] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 249,7,0 | FillGradientStops.GradientStopColor[8] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 249,7,1 | FillGradientStops.GradientStopColorTrans[8] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 249,7,2 | FillGradientStops.GradientStopPosition[8] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 249,8,0 | FillGradientStops.GradientStopColor[9] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 249,8,1 | FillGradientStops.GradientStopColorTrans[9] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 249,8,2 | FillGradientStops.GradientStopPosition[9] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 249,9,0 | FillGradientStops.GradientStopColor[10] | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 249,9,1 | FillGradientStops.GradientStopColorTrans[10] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 249,9,2 | FillGradientStops.GradientStopPosition[10] | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,3,0 | FillForegnd | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 1,3,1 | FillBkgnd | THEMEVAL() | 0 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 1,3,2 | FillPattern | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,3,3 | ShdwForegnd | THEMEVAL() | 0 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 1,3,4 | ShdwBkgnd | 1 | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 1,3,5 | ShdwPattern | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,3,6 | FillForegndTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,3,7 | FillBkgndTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,3,8 | ShdwForegndTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,3,9 | ShdwBkgndTrans | 0% | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,3,10 | ShapeShdwType | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,3,11 | ShapeShdwOffsetX | THEMEVAL() | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,3,12 | ShapeShdwOffsetY | THEMEVAL() | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,3,13 | ShapeShdwObliqueAngle | THEMEVAL() | 0 | 81 |
+| page:0:Page-1/Sheet.4 | 4 | 1,3,14 | ShapeShdwScaleFactor | THEMEVAL() | 1 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,3,15 | ShapeShdwBlur | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 1,3,16 | ShapeShdwShow | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,0 | TheData |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,1 | TheText |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,2 | EventDblClick |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,3 | EventXFMod |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,4 | EventDrop |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,5 | _EventPatMas |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,6 | EventTextOverflow |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,7 | Sect1.F6 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,8 | Sect1.G6 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,9 | Sect1.H6 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,10 | Sect1.I6 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,11 | Sect1.J6 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,12 | Sect1.K6 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,13 | Sect1.L6 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,14 | Sect1.M6 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,15 | Sect1.N6 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,16 | Sect1.O6 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,17 | Sect1.P6 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,18 | Sect1.Q6 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,19 | Sect1.R6 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,20 | Sect1.S6 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,21 | Sect1.T6 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,5,22 | EventMultiDrop |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,8,0 | EnableLineProps | 1 | 1 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,8,1 | EnableFillProps | 1 | 1 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,8,2 | EnableTextProps | 1 | 1 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,8,3 | HideForApply | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,8,4 | Sect1.C9 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,8,5 | Sect1.D9 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,8,6 | Sect1.E9 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,8,7 | Sect1.F9 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,8,8 | Sect1.G9 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,8,9 | Sect1.H9 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,8,10 | Sect1.I9 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,0 | PageWidth |  | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,1 | PageHeight |  | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,2 | ShdwOffsetX |  | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,3 | ShdwOffsetY |  | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,4 | PageScale |  | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,5 | DrawingScale |  | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,6 | DrawingSizeType |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,7 | DrawingScaleType |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,8 | _Unused5F |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,9 | _Unused60 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,10 | Sect1.I11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,11 | Sect1.J11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,12 | _UpdateNotes |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,13 | Sect1.L11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,14 | Sect1.M11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,15 | Sect1.N11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,16 | Sect1.O11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,17 | Sect1.P11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,18 | Sect1.Q11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,19 | Sect1.R11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,20 | Sect1.S11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,21 | Sect1.T11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,22 | Sect1.U11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,23 | Sect1.V11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,24 | Sect1.W11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,25 | Sect1.Z11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,26 | InhibitSnap |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,27 | PageLockReplace |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,28 | PageLockDuplicate |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,29 | Sect1.AD11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,30 | Sect1.AE11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,31 | Sect1.AF11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,32 | Sect1.AG11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,33 | Sect1.AH11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,34 | UIVisibility |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,35 | ShdwType |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,36 | ShdwObliqueAngle |  | 0 | 81 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,37 | ShdwScaleFactor |  | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,38 | DrawingResizeType |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,10,39 | Sect1.AN11 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,11,0 | LeftMargin | 4 pt | 0.055555555555555552 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 1,11,1 | RightMargin | 4 pt | 0.055555555555555552 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 1,11,2 | TopMargin | 4 pt | 0.055555555555555552 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 1,11,3 | BottomMargin | 4 pt | 0.055555555555555552 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 1,11,4 | VerticalAlign | 1 | 1 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,11,5 | TextBkgnd | 0 | 0 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 1,11,6 | DefaultTabStop | 0.5 in | 0.5 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,11,7 | TextMaxDepth | 4294967295 | 4294967295 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,11,8 | TextGeometry | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,11,9 | TextContainer | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,11,10 | TextDirection | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,11,11 | TextBkgndTrans | 0% | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,11,12 | _UnusedE5 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,11,13 | _UnusedE6 |  | 0 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 1,11,14 | _UnusedE7 |  | 0 | 141 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,0 | LockWidth | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,1 | LockHeight | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,2 | LockMoveX | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,3 | LockMoveY | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,4 | LockAspect | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,5 | LockDelete | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,6 | LockBegin | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,7 | LockEnd | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,8 | LockRotate | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,9 | LockCrop | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,10 | LockVtxEdit | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,11 | LockTextEdit | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,12 | LockFormat | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,13 | LockGroup | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,14 | LockCalcWH | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,15 | LockSelect | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,16 | LockCustProp | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,17 | LockFromGroupFormat | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,18 | LockThemeColors | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,19 | LockThemeEffects | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,20 | LockThemeConnectors | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,21 | LockThemeFonts | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,22 | LockThemeIndex | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,23 | LockReplace | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,15,24 | LockVariation | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,16,0 | HelpTopic |  | 0 | 231 |
+| page:0:Page-1/Sheet.4 | 4 | 1,16,1 | Copyright |  | 0 | 231 |
+| page:0:Page-1/Sheet.4 | 4 | 1,16,2 | Sect1.A17 |  | 0 | 231 |
+| page:0:Page-1/Sheet.4 | 4 | 1,16,3 | Sect1.B17 |  | 0 | 231 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,0 | NoObjHandles | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,1 | NonPrinting | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,2 | NoCtlHandles | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,3 | NoAlignBox | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,4 | UpdateAlignBox | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,5 | HideText | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,6 | _Unused83 | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,7 | ShapeTabStop | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,8 | DynFeedback | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,9 | GlueType | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,11 | BegTrigger |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,12 | EndTrigger |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,14 | _Unused78 | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,15 | _Unused79 | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,16 | Comment |  | 0 | 231 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,17 | IsDropSource | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,18 | NoLiveDynamics | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,19 | LocalizeMerge | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,20 | NoProofing | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,21 | Sect1.T18 | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,22 | Sect1.U18 | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,23 | Sect1.V18 | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,24 | Sect1.W18 | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,25 | Calendar | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,26 | LangID | 1033 | 1033 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,27 | ShapeKeywords |  | 0 | 231 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,28 | DropOnPageScale | 100% | 1 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,29 | Sect1.AD18 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,17,30 | Sect1.AE18 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,18,0 | XRulerDensity | 32 | 32 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,18,1 | YRulerDensity | 32 | 32 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,18,2 | XRulerSpacing | 0 in | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,18,3 | YRulerSpacing | 0 in | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,18,4 | XRulerOrigin | 0 in | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,18,5 | YRulerOrigin | 0 in | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,18,6 | XGridDensity | 8 | 8 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,18,7 | YGridDensity | 8 | 8 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,18,8 | XGridSpacing | 0 in | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,18,9 | YGridSpacing | 0 in | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,18,10 | XGridOrigin | 0 in | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,18,11 | YGridOrigin | 0 in | 0 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,21,0 | Gamma | 1 | 1 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,21,1 | Contrast | 50% | 0.5 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,21,2 | Brightness | 50% | 0.5 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,21,3 | Sharpen | 0% | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,21,4 | Blur | 0% | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,21,5 | Denoise | 0% | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,21,6 | Transparency | 0% | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,21,7 | _Unused8F | 0% | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,21,8 | _Unused90 | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,22,0 | SelectMode | 1 | 1 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,22,1 | DisplayMode | 2 | 2 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,22,2 | IsDropTarget | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,22,3 | IsSnapTarget | TRUE | 1 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,22,4 | IsTextEditTarget | TRUE | 1 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,22,5 | DontMoveChildren | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,22,6 | Sect1.E23 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,22,7 | Sect1.F23 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,22,8 | Sect1.G23 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,22,9 | Sect1.H23 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,25,0 | PageLeftMargin | 0.25 in | 0.25 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,25,1 | PageRightMargin | 0.25 in | 0.25 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,25,2 | PageTopMargin | 0.25 in | 0.25 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,25,3 | PageBottomMargin | 0.25 in | 0.25 | 73 |
+| page:0:Page-1/Sheet.4 | 4 | 1,25,4 | ScaleX | 100% | 1 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,25,5 | ScaleY | 100% | 1 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,25,6 | PagesX | 1 | 1 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,25,7 | PagesY | 1 | 1 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,25,8 | CenterX | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,25,9 | CenterY | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,25,10 | OnPage | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,25,11 | PrintGrid | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,25,12 | Sect1.K26 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,25,13 | Sect1.L26 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,25,14 | Sect1.M26 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,25,15 | Sect1.N26 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,25,16 | PrintPageOrientation | 1 | 1 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,25,17 | PaperKind | 1 | 1 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,25,18 | PaperSource | 7 | 7 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,26,0 | LineGradientDir | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,26,1 | LineGradientAngle | THEMEVAL() | 1.5707963267949 | 81 |
+| page:0:Page-1/Sheet.4 | 4 | 1,26,2 | FillGradientDir | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,26,3 | FillGradientAngle | THEMEVAL() | 1.5707963267949 | 81 |
+| page:0:Page-1/Sheet.4 | 4 | 1,26,4 | LineGradientEnabled | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,26,5 | FillGradientEnabled | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,26,6 | RotateGradientWithShape | THEMEVAL() | 1 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,26,7 | UseGroupGradient | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,26,8 | Sect1.G27 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,26,9 | Sect1.H27 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,26,10 | Sect1.I27 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,26,11 | Sect1.J27 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,27,0 | QuickStyleLineColor | 100 | 100 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,27,1 | QuickStyleFillColor | 100 | 100 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,27,2 | QuickStyleShadowColor | 100 | 100 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,27,3 | QuickStyleFontColor | 100 | 100 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,27,4 | QuickStyleLineMatrix | 100 | 100 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,27,5 | QuickStyleFillMatrix | 100 | 100 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,27,6 | QuickStyleEffectsMatrix | 100 | 100 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,27,7 | QuickStyleFontMatrix | 100 | 100 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,27,8 | QuickStyleType | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,27,9 | QuickStyleVariation | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,28,0 | ReflectionTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,28,1 | ReflectionSize | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,28,2 | ReflectionDist | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 1,28,3 | ReflectionBlur | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 1,28,4 | GlowColor | THEMEVAL() | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 1,28,5 | GlowColorTrans | THEMEVAL() | 0 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,28,6 | GlowSize | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 1,28,7 | SoftEdgesSize | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 1,28,8 | SketchSeed | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,28,9 | SketchEnabled | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,28,10 | SketchAmount | THEMEVAL() | 5 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,28,11 | SketchLineWeight | THEMEVAL() | 0.041666666666666664 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 1,28,12 | SketchLineChange | THEMEVAL() | 0.14 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,28,13 | SketchFillChange | THEMEVAL() | 0.1 | 33 |
+| page:0:Page-1/Sheet.4 | 4 | 1,28,14 | Sect1.M29 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,28,15 | Sect1.N29 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,28,16 | Sect1.O29 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,29,0 | BevelTopType | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,29,1 | BevelTopWidth | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 1,29,2 | BevelTopHeight | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 1,29,3 | BevelBottomType | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,29,4 | BevelBottomWidth | 0 pt | 0 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 1,29,5 | BevelBottomHeight | 0 pt | 0 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 1,29,6 | BevelDepthColor | 1 | 1 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 1,29,7 | BevelDepthSize | 0 pt | 0 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 1,29,8 | BevelContourColor | THEMEVAL() | 0 | 251 |
+| page:0:Page-1/Sheet.4 | 4 | 1,29,9 | BevelContourSize | THEMEVAL() | 0 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 1,29,10 | BevelMaterialType | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,29,11 | BevelLightingType | THEMEVAL() | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,29,12 | BevelLightingAngle | THEMEVAL() | 0 | 81 |
+| page:0:Page-1/Sheet.4 | 4 | 1,30,0 | RotationXAngle | 0 deg | 0 | 81 |
+| page:0:Page-1/Sheet.4 | 4 | 1,30,1 | RotationYAngle | 0 deg | 0 | 81 |
+| page:0:Page-1/Sheet.4 | 4 | 1,30,2 | RotationZAngle | 0 deg | 0 | 81 |
+| page:0:Page-1/Sheet.4 | 4 | 1,30,3 | RotationType | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,30,4 | Perspective | 0 deg | 0 | 81 |
+| page:0:Page-1/Sheet.4 | 4 | 1,30,5 | DistanceFromGround | 0 pt | 0 | 50 |
+| page:0:Page-1/Sheet.4 | 4 | 1,30,6 | KeepTextFlat | FALSE | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,30,7 | Sect1.F31 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,30,8 | Sect1.G31 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,30,9 | Sect1.H31 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,30,10 | Sect1.I31 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,30,11 | Sect1.J31 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,30,12 | Sect1.K31 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,30,13 | Sect1.L31 |  | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,31,0 | ColorSchemeIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,31,1 | EffectSchemeIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,31,2 | ConnectorSchemeIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,31,3 | FontSchemeIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,31,4 | ThemeIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,31,5 | VariationColorIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,31,6 | VariationStyleIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,31,7 | EmbellishmentIndex | 65534 | 65534 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,32,0 | ReplaceLockShapeData | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,32,1 | ReplaceLockText | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,32,2 | ReplaceLockFormat | 0 | 0 | 32 |
+| page:0:Page-1/Sheet.4 | 4 | 1,32,3 | ReplaceCopyCells |  | 0 | 32 |
+
+Master attributes: `{"AlignName": "2", "BaseID": "{052EB6F2-ABA5-46DF-B488-2E31CD4C1717}", "Hidden": "0", "ID": "2", "IconSize": "1", "IconUpdate": "1", "IsCustomName": "1", "IsCustomNameU": "1", "MasterType": "2", "MatchByName": "0", "Name": "Switch", "NameU": "Switch", "PatternFlags": "0", "Prompt": "", "UniqueID": "{0211518D-0002-0000-8E40-00608CF305B2}"}`.
+Icon: present; MasterShortcut: absent.
+
+Text visio/pages/page1.xml shape 4: markers `[]`; content `'Single run\n'`.
+Text visio/masters/master1.xml shape 5: markers `[["pp", {"IX": "0"}]]`; content `'Switch\nOriginal\n'`.

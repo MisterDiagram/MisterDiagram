@@ -184,3 +184,11 @@ observation is retained privately, including the failed SAN Property/text/master
 serialization, font identity and export-height comparisons. No vendor artwork,
 font binary or theme asset is committed with the generator. The named packing
 gap is checked against only its measured coordinate differences.
+
+M4.19 (2026-10-15): original synthetic `data/property-rows` and
+`master/from-shape` were produced with the public Shape Data/AddNamedRow and
+Masters.Drop APIs. Property serialization, MasterType, generated Icon presence
+and text markers were observed in their saved XML and COM dumps before writer
+changes. All vendor-generated files remain in the permanently private corpus.
+The retained SAN re-save is an additional authored-cell witness under Charles's
+2026-10-15 ruling; originals take precedence for the same construct.

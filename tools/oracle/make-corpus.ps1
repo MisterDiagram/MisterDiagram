@@ -97,6 +97,46 @@ try {
     }
     # Validate the explicit obstacle recipe before the larger sweeps.
     Drawing 'connector/obstacle' { param($doc,$page) $pair=Pair $page; $o=$page.DrawRectangle(3,5,4,8); $o.Text='Obstacle'; Cell $o 'ObjType' '1'; Cell $o 'ShapePermeableX' 'FALSE'; Cell $o 'ShapePermeableY' 'FALSE'; Dynamic $page $pair[0] $pair[1] | Out-Null; Route-Connectors $page } | Out-Null
+    # Shape Data section (visSectionProp=243); AddNamedRow with visTagDefault=0.
+    # https://learn.microsoft.com/en-us/office/client-developer/visio/shape-data-section
+    # https://learn.microsoft.com/en-us/office/client-developer/visio/value-cell-shape-data-section
+    # https://learn.microsoft.com/en-us/office/vba/api/visio.shape.addnamedrow
+    Drawing 'data/property-rows' {
+        param($doc,$page)
+        $pair=Pair $page; $a=$pair[0]
+        if (-not $a.SectionExists(243,0)) { $a.AddSection(243) | Out-Null }
+        $properties=@(
+            @{Name='Name'; Type='0'; Format='""'; Value='"Switch A"'},
+            @{Name='DomainID'; Type='2'; Format='""'; Value='42'},
+            @{Name='Fabric'; Type='1'; Format='"A;B"'; Value='"A"'},
+            @{Name='Installed'; Type='5'; Format='"yyyy-MM-dd"'; Value='45000'}
+        )
+        foreach ($p in $properties) {
+            $a.AddNamedRow(243,$p.Name,0) | Out-Null
+            Cell $a "Prop.$($p.Name).Label" ('"'+$p.Name+'"')
+            Cell $a "Prop.$($p.Name).Prompt" '""'
+            Cell $a "Prop.$($p.Name).Type" $p.Type
+            Cell $a "Prop.$($p.Name).Format" $p.Format
+            Cell $a "Prop.$($p.Name).Value" $p.Value
+            Cell $a "Prop.$($p.Name).SortKey" '""'
+            Cell $a "Prop.$($p.Name).Invisible" 'FALSE'
+        }
+    } | Out-Null
+    # https://learn.microsoft.com/en-us/office/vba/api/visio.masters.drop
+    # https://learn.microsoft.com/en-us/office/vba/api/visio.shape.text
+    # https://learn.microsoft.com/en-us/office/client-developer/visio/horzalign-cell-paragraph-section
+    Drawing 'master/from-shape' {
+        param($doc,$page)
+        $s=$page.DrawRectangle(1,6,2.5,6.75)
+        $s.Text="Switch`r`nOriginal"
+        Cell $s 'Para.HorzAlign' '1'
+        $master=$doc.Masters.Drop($s,0,0); $master.NameU='Switch'; $master.Name='Switch'
+        $s.Delete()
+        $page.Drop($master,2,6) | Out-Null
+        $page.Drop($master,5,6) | Out-Null
+        $label=$page.DrawRectangle(1,8,4,8.6); $label.Text='Single run'
+        Cell $label 'LinePattern' '0'; Cell $label 'FillPattern' '0'
+    } | Out-Null
     # Exact synthetic geometry, text, glue, fill and layer from the original probe.ps1.
     Drawing 'basic/0001-probe' {
         param($doc,$page)

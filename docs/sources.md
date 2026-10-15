@@ -115,7 +115,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/green-function> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/guard-function> | `crates/sheet/src/functions/mod.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/height-cell-shape-transform-section> | `crates/engine/src/arrange.rs`, `crates/engine/src/shapes.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/horzalign-cell-paragraph-section> | `crates/engine/src/content.rs`, `crates/vsdx/src/evaluate/text.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/horzalign-cell-paragraph-section> | `crates/engine/src/content.rs`, `crates/vsdx/src/evaluate/text.rs`, `tools/oracle/make-corpus.ps1` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/hsl-function> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/hue-function> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/icon-element-master_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
@@ -235,6 +235,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/setatrefexpr-function> | `crates/sheet/src/functions/references.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/setf-function> | `crates/sheet/src/functions/references.rs`, `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/shade-function> | `crates/sheet/src/functions/color_adjust.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/shape-data-section> | `tools/oracle/make-corpus.ps1` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml> | `crates/engine/src/masters.rs`, `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs`, `crates/vsdx/src/evaluate/inherit.rs`, `crates/vsdx/src/lib.rs`, `crates/vsdx/src/write/model.rs`, `crates/vsdx/src/write/validate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/shape-transform-section> | `crates/geom/src/rows.rs`, `crates/vsdx/src/evaluate/transform.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/shapekeywords-cell-miscellaneous-section> | `crates/engine/src/stencils.rs` |
@@ -286,7 +287,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/type-cell-shape-data-section> | `crates/engine/src/content.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/typec-cell-connection-points-section> | `crates/route/src/static_glue.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/use-function> | `crates/sheet/src/functions/numeric.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/value-cell-shape-data-section> | `crates/engine/src/content.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/value-cell-shape-data-section> | `crates/engine/src/content.rs`, `tools/oracle/make-corpus.ps1` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/value-cell-text-fields-section> | `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/value-cell-user-defined-cells-section> | `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/variationcolorindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
@@ -323,6 +324,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.master.export> | `tools/oracle/export-masters.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.master.matchbyname> | `crates/engine/src/masters.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.masters.add> | `crates/engine/src/masters.rs` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.masters.drop> | `tools/oracle/make-corpus.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.backpage> | `crates/engine/src/pages.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.delete> | `crates/engine/src/pages.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.drawline> | `crates/engine/src/shapes.rs` |
@@ -342,7 +344,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.selection.distribute> | `crates/engine/src/arrange.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.selection.group> | `crates/engine/src/arrange.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.selection.layout> | `tools/oracle/common.ps1` |
-| <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.addnamedrow> | `crates/engine/src/sheet.rs` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.addnamedrow> | `crates/engine/src/sheet.rs`, `tools/oracle/make-corpus.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.addrow> | `crates/engine/src/glue.rs`, `crates/engine/src/sheet.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.addsection> | `crates/engine/src/sheet.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.bringforward> | `crates/engine/src/shapes.rs` |
@@ -358,7 +360,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.sectionexists> | `tools/oracle/common.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.sendbackward> | `crates/engine/src/shapes.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.sendtoback> | `crates/engine/src/shapes.rs` |
-| <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.text> | `crates/engine/src/content.rs` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.text> | `crates/engine/src/content.rs`, `tools/oracle/make-corpus.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.ungroup> | `crates/engine/src/arrange.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.style.cellssrcexists> | `tools/oracle/common.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.style.section> | `tools/oracle/common.ps1` |
