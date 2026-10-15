@@ -740,3 +740,12 @@ have transactional tests. Group child scale formulas match the private rotated
 group witness. DrawLine endpoint transforms stay consistent after move/resize/rotate.
 The full probe diff remains open until the later glue, route and CLI steps.
 Authoring rows retain their existing score until that acceptance evidence is available.
+
+### P4a M4.3: stencil and master authoring
+
+Stencil open/search/list, document-master creation and inherited master drops are
+implemented. The BASIC_U Rectangle regression matches every local cell, formula,
+unit and Inh marker of the private basic-rect witness within1e-6. Ten drops from
+BASFLO_U and NETSME_U are generated for the later four-file VM acceptance.
+Nested MasterShape IDs, deduplication, styles, fonts and related resources are
+mapped with bounded traversal. VM repair acceptance remains pending.

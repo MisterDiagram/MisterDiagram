@@ -184,6 +184,11 @@ pub(crate) fn resize(s: &mut Session, p: &Value) -> Result<Value> {
             set_number(sheet, "Width", w)?;
             set_number(sheet, "Height", h)?;
         }
+        for cell in &mut sheet.cells {
+            if matches!(cell.name.as_str(), "Width" | "Height") {
+                cell.units = Some("IN".into());
+            }
+        }
         Ok(json!({}))
     })
 }

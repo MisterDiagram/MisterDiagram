@@ -407,6 +407,27 @@ pub fn command_specs() -> &'static [CommandSpec] {
             always,
             crate::arrange::same_size
         ),
+        cmd!(noundo "stencil.open", "stencil.open", ["Stencils"], None, r#"{"type":"object","properties":{"path":{"type":"string","minLength":1,"maxLength":65536}},"required":["path"],"additionalProperties":false}"#, always, crate::stencils::open),
+        cmd!(query "stencil.search", "stencil.search", ["Stencils"], None, r#"{"type":"object","properties":{"stencil":{"type":"integer","minimum":1,"maximum":64},"query":{"type":"string","minLength":1,"maxLength":65536},"limit":{"type":"integer","minimum":0,"maximum":4294967294}},"required":["query"],"additionalProperties":false}"#, always, crate::stencils::search),
+        cmd!(query "stencil.masters", "stencil.masters", ["Stencils"], None, r#"{"type":"object","properties":{"stencil":{"type":"integer","minimum":1,"maximum":64},"limit":{"type":"integer","minimum":0,"maximum":4294967294}},"required":[],"additionalProperties":false}"#, always, crate::stencils::masters),
+        cmd!(
+            "master.drop",
+            "master.drop",
+            ["Stencils"],
+            None,
+            r#"{"type":"object","properties":{"stencil":{"type":"integer","minimum":1,"maximum":64},"master":{"type":["integer","string"]},"page":{"type":"integer","minimum":1},"x":{"type":"number","minimum":-1000000.0,"maximum":1000000.0},"y":{"type":"number","minimum":-1000000.0,"maximum":1000000.0},"width":{"type":"number","minimum":-1000000.0,"maximum":1000000.0},"height":{"type":"number","minimum":-1000000.0,"maximum":1000000.0}},"required":["master","x","y"],"additionalProperties":false}"#,
+            always,
+            crate::masters::drop_master
+        ),
+        cmd!(
+            "master.new_from_shape",
+            "master.new_from_shape",
+            ["Stencils"],
+            None,
+            r#"{"type":"object","properties":{"id":{"type":"integer","minimum":0,"maximum":4294967294},"page":{"type":"integer","minimum":1},"name":{"type":"string","minLength":1,"maxLength":65536}},"required":["name"],"additionalProperties":false}"#,
+            always,
+            crate::masters::new_from_shape
+        ),
     ]
 }
 

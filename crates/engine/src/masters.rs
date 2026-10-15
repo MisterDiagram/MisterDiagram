@@ -1,0 +1,477 @@
+//! Master copying, instance overrides and document-stencil authoring.
+use crate::{Result, Session, edit::*, operation};
+use diagramcraft_model::{Document, Shape, ShapeId, Sheet};
+use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use serde_json::{Value, json};
+use std::collections::{BTreeMap, BTreeSet};
+
+fn next_master(doc: &Document) -> Result<u32> {
+    if doc.masters.len() >= 10000 {
+        return Err(operation("master count limit"));
+    }
+    doc.masters
+        .iter()
+        .map(|m| m.id)
+        .max()
+        .map_or(Some(1), |v| v.checked_add(1))
+        .filter(|v| *v != u32::MAX)
+        .ok_or_else(|| operation("master ID limit"))
+}
+fn part_name(doc: &Document) -> Result<String> {
+    for i in 1..=10001 {
+        let part = format!("visio/masters/master{i}.xml");
+        if !doc.parts.contains_key(&part) && !doc.masters.iter().any(|m| m.part == part) {
+            return Ok(part);
+        }
+    }
+    Err(operation("master part count limit"))
+}
+fn cells_mut(sheet: &mut Sheet) -> impl Iterator<Item = &mut diagramcraft_model::Cell> {
+    sheet.cells.iter_mut().chain(sheet.sections.iter_mut().flat_map(|s| s.cells.iter_mut().chain(s.rows.iter_mut().flat_map(|r| r.cells.iter_mut()))))
+}
+fn copy_fonts(doc: &mut Document, source: &Document) -> Result<BTreeMap<u32, u32>> {
+    let mut map = BTreeMap::new();
+    for (ordinal, name) in source.face_names.values().enumerate() {
+        if !doc.face_names.values().any(|v| v.eq_ignore_ascii_case(name)) {
+            if doc.face_names.len() >= 65536 {
+                return Err(operation("font count limit"));
+            }
+            let id = doc.face_names.keys().max().map_or(Some(0), |v| v.checked_add(1)).ok_or_else(|| operation("font ID limit"))?;
+            doc.face_names.insert(id, name.clone());
+        }
+        let destination = doc.face_names.values().position(|v| v.eq_ignore_ascii_case(name)).ok_or_else(|| operation("font mapping missing"))?;
+        map.insert(u32::try_from(ordinal).map_err(operation)?, u32::try_from(destination).map_err(operation)?);
+    }
+    Ok(map)
+}
+fn map_fonts(sheet: &mut Sheet, fonts: &BTreeMap<u32, u32>) {
+    for c in cells_mut(sheet) {
+        if c.name == "Font"
+            && let Some(new) = c.value.as_deref().and_then(|v| v.parse::<u32>().ok()).and_then(|id| fonts.get(&id))
+        {
+            c.value = Some(new.to_string());
+            if c.formula.as_deref().is_some_and(|f| f.parse::<u32>().is_ok()) {
+                c.formula = None;
+            }
+        }
+    }
+}
+fn copy_styles(doc: &mut Document, source: &Document, fonts: &BTreeMap<u32, u32>) -> Result<BTreeMap<u32, u32>> {
+    let mut map = BTreeMap::new();
+    let mut copies = vec![];
+    let mut next = doc.styles.iter().map(|s| s.id).max().unwrap_or(0).checked_add(1).ok_or_else(|| operation("style ID overflow"))?;
+    for style in &source.styles {
+        if let Some(existing) = doc.styles.iter().find(|s| s.name_u.eq_ignore_ascii_case(&style.name_u)) {
+            map.insert(style.id, existing.id);
+        } else {
+            if doc.styles.len().saturating_add(copies.len()) >= 65536 {
+                return Err(operation("style count limit"));
+            }
+            map.insert(style.id, next);
+            copies.push(style.clone());
+            next = next.checked_add(1).ok_or_else(|| operation("style ID overflow"))?;
+        }
+    }
+    for mut style in copies {
+        style.id = *map.get(&style.id).ok_or_else(|| operation("style mapping missing"))?;
+        for id in [&mut style.line_style, &mut style.fill_style, &mut style.text_style] {
+            if let Some(old) = *id {
+                *id = Some(*map.get(&old).ok_or_else(|| operation("parent style missing"))?);
+            }
+        }
+        map_fonts(&mut style.sheet, fonts);
+        doc.styles.push(style);
+    }
+    Ok(map)
+}
+fn map_shape_ids(shapes: &[Shape], start: u32) -> Result<BTreeMap<u32, u32>> {
+    let mut map = BTreeMap::new();
+    let mut pending = shapes.iter().rev().map(|s| (s, 0usize)).collect::<Vec<_>>();
+    let mut next = start;
+    while let Some((shape, depth)) = pending.pop() {
+        if depth > 128 || map.len() >= 100000 {
+            return Err(operation("master shape count or depth limit"));
+        }
+        if shape.id == u32::MAX && shape.sheet.attributes.get("Del").is_some_and(|v| v == "1" || v == "true") {
+            continue;
+        }
+        if map.insert(shape.id, next).is_some() {
+            return Err(operation("duplicate master shape ID"));
+        }
+        next = next.checked_add(1).filter(|v| *v != u32::MAX).ok_or_else(|| operation("shape ID limit"))?;
+        pending.extend(shape.shapes.iter().rev().map(|s| (s, depth + 1)));
+    }
+    Ok(map)
+}
+fn imported_ids(shapes: &[Shape]) -> Result<BTreeMap<u32, u32>> {
+    let mapped = map_shape_ids(shapes, 5)?;
+    if mapped.keys().all(|id| *id >= 5) { Ok(mapped.keys().map(|id| (*id, *id)).collect()) } else { Ok(mapped) }
+}
+fn rewrite_shapes(
+    shapes: &mut [Shape],
+    ids: &BTreeMap<u32, u32>,
+    styles: &BTreeMap<u32, u32>,
+    fonts: &BTreeMap<u32, u32>,
+    depth: usize,
+) -> Result<()> {
+    if depth > 128 {
+        return Err(operation("master shape nesting limit"));
+    }
+    for shape in shapes {
+        if shape.id != u32::MAX {
+            shape.id = *ids.get(&shape.id).ok_or_else(|| operation("shape ID mapping missing"))?;
+        }
+        for style in [&mut shape.line_style, &mut shape.fill_style, &mut shape.text_style] {
+            if let Some(old) = *style {
+                *style = Some(*styles.get(&old).ok_or_else(|| operation("shape style missing"))?);
+            }
+        }
+        map_fonts(&mut shape.sheet, fonts);
+        for c in cells_mut(&mut shape.sheet) {
+            c.ref_by.clear();
+            if let Some(f) = &mut c.formula {
+                *f = crate::arrange::remap(f, ids)?;
+            }
+        }
+        rewrite_shapes(&mut shape.shapes, ids, styles, fonts, depth + 1)?;
+    }
+    Ok(())
+}
+fn copy_parts(doc: &mut Document, source: &Document, root: &str, destination: &str, master_id: u32) -> Result<()> {
+    if !source.parts.contains_key(root) {
+        return Ok(());
+    }
+    let mut mapping = BTreeMap::from([(root.to_owned(), destination.to_owned())]);
+    let mut pending = vec![root.to_owned()];
+    let mut bytes = doc.parts.values().fold(0usize, |n, p| n.saturating_add(p.bytes.len()));
+    while let Some(name) = pending.pop() {
+        if mapping.len() > 10000 {
+            return Err(operation("master resource count limit"));
+        }
+        let part = source.parts.get(&name).ok_or_else(|| operation("master resource is missing"))?;
+        bytes = bytes.saturating_add(part.bytes.len());
+        if bytes > 128 * 1024 * 1024 {
+            return Err(operation("master resource byte limit"));
+        }
+        for rel in &part.relationships {
+            if rel.external || mapping.contains_key(&rel.target) {
+                continue;
+            }
+            if !source.parts.contains_key(&rel.target) {
+                return Err(operation("master relationship target missing"));
+            }
+            let target = format!("visio/imported/master{master_id}/{}", rel.target);
+            mapping.insert(rel.target.clone(), target);
+            pending.push(rel.target.clone());
+        }
+    }
+    for (name, target) in &mapping {
+        let mut part = source.parts.get(name).ok_or_else(|| operation("resource missing"))?.clone();
+        for rel in &mut part.relationships {
+            if !rel.external {
+                rel.target = mapping.get(&rel.target).ok_or_else(|| operation("resource mapping missing"))?.clone();
+            }
+        }
+        if doc.parts.contains_key(target) {
+            return Err(operation("resource part collision"));
+        }
+        doc.parts.insert(target.clone(), part);
+    }
+    Ok(())
+}
+fn nested_references(
+    shapes: &mut [Shape],
+    active: Option<u32>,
+    masters: &BTreeMap<u32, u32>,
+    ids: &BTreeMap<u32, BTreeMap<u32, u32>>,
+    depth: usize,
+) -> Result<()> {
+    if depth > 128 {
+        return Err(operation("nested master depth limit"));
+    }
+    for shape in shapes {
+        let source = shape.master.or(active);
+        if let Some(old) = shape.master {
+            shape.master = Some(*masters.get(&old).ok_or_else(|| operation("nested master mapping missing"))?);
+        }
+        if let (Some(master), Some(old)) = (source, shape.master_shape) {
+            shape.master_shape =
+                Some(*ids.get(&master).and_then(|map| map.get(&old)).ok_or_else(|| operation("nested master shape mapping missing"))?);
+        }
+        nested_references(&mut shape.shapes, source, masters, ids, depth + 1)?;
+    }
+    Ok(())
+}
+fn foreign_relationship_ids(shapes: &[Shape]) -> Result<BTreeSet<String>> {
+    let mut ids = BTreeSet::new();
+    let mut shapes = shapes.iter().collect::<Vec<_>>();
+    let mut work = 0usize;
+    while let Some(shape) = shapes.pop() {
+        shapes.extend(&shape.shapes);
+        let mut nodes = shape.foreign_data.iter().collect::<Vec<_>>();
+        while let Some(node) = nodes.pop() {
+            work += 1;
+            if work > 100000 {
+                return Err(operation("foreign resource node limit"));
+            }
+            for (key, value) in &node.attributes {
+                if node.attribute_namespaces.get(key).is_some_and(|ns| ns == "http://schemas.openxmlformats.org/officeDocument/2006/relationships") {
+                    ids.insert(value.clone());
+                }
+            }
+            nodes.extend(node.elements());
+        }
+        work += 1;
+        if work > 100000 {
+            return Err(operation("master shape count limit"));
+        }
+    }
+    Ok(ids)
+}
+fn import_master(doc: &mut Document, source: &Document, source_id: u32, visiting: &mut BTreeSet<u32>) -> Result<u32> {
+    let master = source.masters.iter().find(|m| m.id == source_id).ok_or_else(|| operation("master missing"))?;
+    if let Some(existing) = doc.masters.iter().find(|m| {
+        master.unique_id.is_some() && m.unique_id == master.unique_id
+            || m.attributes.get("MatchByName").is_some_and(|v| v == "1") && m.name_u.eq_ignore_ascii_case(&master.name_u)
+    }) {
+        return Ok(existing.id);
+    }
+    if visiting.len() >= 128 || !visiting.insert(source_id) {
+        return Err(operation("master dependency cycle or depth limit"));
+    }
+    let mut nested = BTreeSet::new();
+    let mut pending = master.shapes.iter().collect::<Vec<_>>();
+    while let Some(shape) = pending.pop() {
+        if let Some(id) = shape.master {
+            nested.insert(id);
+        }
+        pending.extend(&shape.shapes);
+        if pending.len() > 100000 {
+            return Err(operation("master shape count limit"));
+        }
+    }
+    let mut nested_map = BTreeMap::new();
+    let mut nested_ids = BTreeMap::new();
+    for id in nested {
+        nested_map.insert(id, import_master(doc, source, id, visiting)?);
+        let master = source.masters.iter().find(|m| m.id == id).ok_or_else(|| operation("nested master missing"))?;
+        nested_ids.insert(id, imported_ids(&master.shapes)?);
+    }
+    let fonts = copy_fonts(doc, source)?;
+    let styles = copy_styles(doc, source, &fonts)?;
+    let id = next_master(doc)?;
+    let part = part_name(doc)?;
+    let mut copy = master.clone();
+    copy.id = id;
+    copy.part = part.clone();
+    let ids = imported_ids(&copy.shapes)?;
+    rewrite_shapes(&mut copy.shapes, &ids, &styles, &fonts, 0)?;
+    nested_references(&mut copy.shapes, None, &nested_map, &nested_ids, 0)?;
+    for connect in &mut copy.connects {
+        if let Some(id) = ids.get(&connect.from_sheet) {
+            connect.from_sheet = *id;
+        }
+        if let Some(id) = ids.get(&connect.to_sheet) {
+            connect.to_sheet = *id;
+        }
+    }
+    copy_parts(doc, source, &master.part, &part, id)?;
+    if copy.unique_id.is_none() {
+        copy.unique_id = diagramcraft_model::skeleton::dynamic_connector().unique_id;
+    }
+    doc.masters.push(copy);
+    visiting.remove(&source_id);
+    Ok(id)
+}
+fn instance(source: &Shape, ids: &BTreeMap<u32, u32>, master: u32, root: bool, depth: usize) -> Result<Shape> {
+    if depth > 128 {
+        return Err(operation("instance nesting limit"));
+    }
+    let id = *ids.get(&source.id).ok_or_else(|| operation("instance ID mapping missing"))?;
+    let mut shape = Shape {
+        id,
+        shape_type: source.shape_type.clone(),
+        master: root.then_some(master),
+        master_shape: (!root).then_some(source.id),
+        ..Default::default()
+    };
+    for child in &source.shapes {
+        if child.sheet.attributes.get("Del").is_some_and(|v| v == "1" || v == "true") {
+            continue;
+        }
+        shape.shapes.push(instance(child, ids, master, false, depth + 1)?);
+    }
+    Ok(shape)
+}
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.page.drop
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.master.matchbyname
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
+pub(crate) fn drop_master(s: &mut Session, p: &Value) -> Result<Value> {
+    let page_index = page_index(s, p)?;
+    let x = number(p, "x")?;
+    let y = number(p, "y")?;
+    let width = p.get("width").map(|_| number(p, "width")).transpose()?;
+    let height = p.get("height").map(|_| number(p, "height")).transpose()?;
+    if width.is_some_and(|v| v <= 0.) || height.is_some_and(|v| v <= 0.) {
+        return Err(operation("master dimensions must be positive"));
+    }
+    let source = crate::stencils::document(s, p)?;
+    let source_id = crate::stencils::find(&source, p)?.id;
+    let own = p.get("stencil").is_none();
+    s.edit_document(|doc, selection| {
+        let master_id = if own { source_id } else { import_master(doc, &source, source_id, &mut BTreeSet::new())? };
+        let master = doc.masters.iter().find(|m| m.id == master_id).ok_or_else(|| operation("master missing"))?;
+        let roots = master.shapes.iter().filter(|s| !s.sheet.attributes.get("Del").is_some_and(|v| v == "1" || v == "true")).collect::<Vec<_>>();
+        if roots.len() != 1 {
+            return Err(operation("master must have one top-level shape"));
+        }
+        let root = *roots.first().ok_or_else(|| operation("master has no shape"))?;
+        let first = next_id(doc.pages.get(page_index).ok_or_else(|| operation("page missing"))?)?;
+        let ids = map_shape_ids(std::slice::from_ref(root), first)?;
+        let mut shape = instance(root, &ids, master_id, true, 0)?;
+        set_number(&mut shape.sheet, "PinX", x)?;
+        set_number(&mut shape.sheet, "PinY", y)?;
+        if let Some(width) = width {
+            set_number(&mut shape.sheet, "Width", width)?;
+        }
+        if let Some(height) = height {
+            set_number(&mut shape.sheet, "Height", height)?;
+        }
+        for cell in &mut shape.sheet.cells {
+            if matches!(cell.name.as_str(), "Width" | "Height") {
+                cell.units = Some("IN".into());
+            }
+        }
+        let scope = Scope::MasterShape { master: master_id, shape: root.id };
+        let mut e = Evaluator::new(doc).map_err(operation)?;
+        if e.cell(scope, "BeginX").is_some() {
+            let px = e.evaluate(scope, "PinX").numeric().map_err(operation)?;
+            let py = e.evaluate(scope, "PinY").numeric().map_err(operation)?;
+            for (name, offset) in [("BeginX", x - px), ("BeginY", y - py), ("EndX", x - px), ("EndY", y - py)] {
+                let value = e.evaluate(scope, name).numeric().map_err(operation)? + offset;
+                set_number(&mut shape.sheet, name, value)?;
+            }
+        }
+        let mut connects = vec![];
+        for connect in &master.connects {
+            let mut copy = connect.clone();
+            copy.from_sheet = *ids.get(&connect.from_sheet).ok_or_else(|| operation("master connector source missing"))?;
+            copy.to_sheet = *ids.get(&connect.to_sheet).ok_or_else(|| operation("master connector target missing"))?;
+            connects.push(copy);
+        }
+        let id = shape.id;
+        let page = page_mut(doc, page_index)?;
+        page.connects.extend(connects);
+        page.shapes.push(shape);
+        selection.page = page_index;
+        selection.shapes = vec![ShapeId(id)];
+        Ok(json!({"id":id,"master":master_id}))
+    })
+}
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.masters.add
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
+pub(crate) fn new_from_shape(s: &mut Session, p: &Value) -> Result<Value> {
+    let selected;
+    let p = if p.get("id").is_none() {
+        if s.selection.shapes.len() != 1 {
+            return Err(operation("select exactly one shape or supply id"));
+        }
+        let id = s.selection.shapes.first().ok_or_else(|| operation("selection is empty"))?.0;
+        selected = crate::cmd::with_param(p, "id", json!(id));
+        &selected
+    } else {
+        p
+    };
+    let (index, _, scope) = shape_scope(s, p)?;
+    let title = name(p, "name")?.to_owned();
+    if s.document.masters.iter().any(|m| m.name_u.eq_ignore_ascii_case(&title)) {
+        return Err(operation("master name already exists"));
+    }
+    let mut e = Evaluator::new(&s.document).map_err(operation)?;
+    let shape = e.shape(scope).ok_or_else(|| operation("shape missing"))?.clone();
+    let width = e.evaluate(scope, "Width").numeric().map_err(operation)?;
+    let height = e.evaluate(scope, "Height").numeric().map_err(operation)?;
+    s.edit_document(|doc, _| {
+        let mut master = diagramcraft_model::skeleton::dynamic_connector();
+        master.id = next_master(doc)?;
+        master.part = part_name(doc)?;
+        master.name = title.clone();
+        master.name_u = title;
+        master.icon = None;
+        master.shapes = vec![shape];
+        master.connects.clear();
+        let ids = map_shape_ids(&master.shapes, 5)?;
+        let page = doc.pages.get(index).ok_or_else(|| operation("source page missing"))?;
+        for connect in &page.connects {
+            if let (Some(from), Some(to)) = (ids.get(&connect.from_sheet), ids.get(&connect.to_sheet)) {
+                let mut copy = connect.clone();
+                copy.from_sheet = *from;
+                copy.to_sheet = *to;
+                master.connects.push(copy);
+            }
+        }
+        if let Some(source) = doc.parts.get(&page.part) {
+            let referenced = foreign_relationship_ids(&master.shapes)?;
+            let relationships = source.relationships.iter().filter(|rel| referenced.contains(&rel.id)).cloned().collect();
+            doc.parts.insert(
+                master.part.clone(),
+                diagramcraft_model::Part {
+                    relationships,
+                    content_type: Some("application/vnd.ms-visio.master+xml".into()),
+                    xml: Some(diagramcraft_model::XmlElement {
+                        name: "MasterContents".into(),
+                        namespace: "http://schemas.microsoft.com/office/visio/2012/main".into(),
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                },
+            );
+        }
+
+        let styles = doc.styles.iter().map(|s| (s.id, s.id)).collect();
+        rewrite_shapes(&mut master.shapes, &ids, &styles, &BTreeMap::new(), 0)?;
+        let root = master.shapes.first_mut().ok_or_else(|| operation("master shape missing"))?;
+        set_number(&mut root.sheet, "PinX", width / 2.)?;
+        set_number(&mut root.sheet, "PinY", height / 2.)?;
+        set_number(&mut master.sheet, "PageWidth", width.max(1e-9))?;
+        set_number(&mut master.sheet, "PageHeight", height.max(1e-9))?;
+        let id = master.id;
+        doc.masters.push(master);
+        Ok(json!({"master":id}))
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn nested_mastershape_ids_follow_reserved_id_remapping() {
+        let mut source = diagramcraft_model::skeleton::document(false);
+        source.masters[0].shapes[0].id = 4;
+        let mut outer = source.masters[0].clone();
+        outer.id = 3;
+        outer.unique_id = Some("{OWN-OUTER}".into());
+        outer.name_u = "Outer".into();
+        outer.part.clear();
+        outer.shapes = vec![Shape { id: 8, shape_type: Some("Shape".into()), master: Some(2), master_shape: Some(4), ..Default::default() }];
+        source.masters.push(outer);
+        let mut destination = diagramcraft_model::skeleton::document(false);
+        let id = import_master(&mut destination, &source, 3, &mut BTreeSet::new()).unwrap();
+        let master = destination.masters.iter().find(|m| m.id == id).unwrap();
+        assert_eq!(master.shapes[0].master_shape, Some(5));
+        assert!(Evaluator::new(&destination).unwrap().evaluate(Scope::MasterShape { master: id, shape: 8 }, "Width").numeric().is_ok());
+    }
+    #[test]
+    fn hostile_master_dependency_cycles_roll_back_at_the_command_boundary() {
+        let mut source = diagramcraft_model::skeleton::document(false);
+        source.masters[0].name_u = "Cyclic master".into();
+        source.masters[0].shapes[0].master = Some(2);
+        let mut destination = diagramcraft_model::skeleton::document(false);
+        assert!(import_master(&mut destination, &source, 2, &mut BTreeSet::new()).is_err());
+        let mut s = Session::new();
+        let before = s.document().clone();
+        s.stencils.push(crate::stencils::Stencil { path: std::path::PathBuf::from("cycle.vssx"), document: std::sync::Arc::new(source) });
+        assert!(s.execute("master.drop", &json!({"stencil":1,"master":2,"x":1,"y":1})).is_err());
+        assert_eq!(s.document(), &before);
+    }
+}

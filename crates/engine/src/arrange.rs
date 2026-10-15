@@ -213,7 +213,7 @@ pub(crate) fn ungroup(s: &mut Session, p: &Value) -> Result<Value> {
 }
 /// Rewrite numeric Sheet references without changing quoted string contents.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references
-fn remap(formula: &str, ids: &BTreeMap<u32, u32>) -> Result<String> {
+pub(crate) fn remap(formula: &str, ids: &BTreeMap<u32, u32>) -> Result<String> {
     if formula.len() > 65536 {
         return Err(operation("formula byte limit"));
     }

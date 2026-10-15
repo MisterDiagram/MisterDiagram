@@ -2093,3 +2093,13 @@ PinY, Width and Height relative to its group's Width/Height. Session grouping wr
 those same formulas, and ungrouping composes the transforms into the parent frame.
 Witness: corpus/generated/group/two-rects-rotated.vsdx. The exact probe rebuild
 comparison is pending the P4a dynamic glue and CLI steps. No new oracle disagreement.
+
+### M4.3: authored master instances
+
+The BASIC_U Rectangle witness in generated/master/basic-rect.vsdx has nominal
+master size1.5x1, drop PinX2/PinY6 and final size3x2. The instance writer matches
+its exact local V/F/U and Inh cell set. Master imports retain IDs at or above5
+when possible, otherwise remap collision-free IDs from5, including nested
+MasterShape references. UniqueID follows the M3.20 form. New instances contain
+only overrides, while the writer supplies the observed M3.13 inherited set.
+Ten-master VM acceptance remains pending; this is host-side evidence only.

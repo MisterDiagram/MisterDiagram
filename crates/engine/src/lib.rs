@@ -8,9 +8,11 @@ mod content;
 mod edit;
 mod files;
 pub mod guard;
+mod masters;
 mod pages;
 mod shapes;
 mod sheet;
+mod stencils;
 pub use cmd::{command_specs, find_command};
 use diagramcraft_model::{Document, ShapeId};
 use serde_json::Value;
@@ -53,6 +55,7 @@ pub struct JournalEntry {
 }
 #[derive(Clone)]
 pub struct Session {
+    stencils: Vec<stencils::Stencil>,
     document: Arc<Document>,
     selection: Selection,
     path: Option<PathBuf>,
@@ -67,6 +70,7 @@ impl Default for Session {
     fn default() -> Self {
         Self {
             document: Arc::new(diagramcraft_model::skeleton::document(false)),
+            stencils: Vec::new(),
             selection: Selection::default(),
             path: None,
             undo: VecDeque::new(),

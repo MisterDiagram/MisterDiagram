@@ -337,3 +337,5 @@ observation artifact hashes. M3 is met; stop before Phase 4.
 - 2026-10-14: P4a M4.1 implements a transactional Document session, bounded undo/redo and journal, and six file/history commands. Focused probe round-trip 998/998; rollback preserves saved bytes. Full CI passed all eight gates; commit a302d88 is pushed to both remotes. Authoring and glue follow in the remaining P4a steps.
 
 - 2026-10-15: P4a M4.2 adds 37 page, layer, shape, ShapeSheet, formatting and arrange commands. Focused tests pass (4 unit, 8 authoring, 11 session). Full CI passed all eight gates; exact probe rebuild is covered by the queued glue and CLI steps.
+
+- 2026-10-15: P4a M4.3 adds stencil search/list, master import/drop and master creation. Exact BASIC_U cell-set and nested-ID regressions pass. Full CI passes all eight gates; the later acceptance record carries the ten-master VM result.
