@@ -10,6 +10,7 @@ clean independent frozen verification passes.
 ## Progress
 
 - 2026-10-14: PDF-1 (M4.0.1): PDF ToUnicode maps each glyph to its shaping cluster; ligatures and marks extract in full (ported from deckcraft#164). Next: Phase 4a, then CI through storytold/craft-common-actions (promised on artcraft#2121, open to a contributor PR).
+- 2026-10-15: CI on GitHub Actions: `cargo xtask ci` on Linux, Windows and macOS for every push and pull request (the promise on artcraft#2121). craft-common-actions has no lint or test workflow to call; its release pipeline waits for a binary worth shipping. Windows needed three portability fixes in corpus tooling only (LF-pinned hashes, forward-slash keys); the engine crates passed unchanged. First green run 02:02 UTC. Next: Phase 4a.
 - 2026-10-11: M0.1 scaffold, bounded OPC and CLI info. CI: 44 tests, 14 wasm libraries, all six gates passed.
 - 2026-10-11: M0.2 conventions and Core-aware checklist. All feature rows remain missing.
 
