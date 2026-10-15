@@ -1,0 +1,2 @@
+# Pinned cohort lists and floors are hashed as bytes; keep LF on every platform.
+* text=auto eol=lf

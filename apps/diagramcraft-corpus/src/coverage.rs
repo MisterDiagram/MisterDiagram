@@ -56,7 +56,7 @@ impl Coverage {
     }
     pub(crate) fn dump(&mut self, root: &Path, source: &Path, shipped: bool) -> Result<usize, String> {
         let index = if shipped {
-            let key = source.strip_prefix(root.join("ms-shipped")).map_err(|e| e.to_string())?.to_string_lossy().to_lowercase();
+            let key = source.strip_prefix(root.join("ms-shipped")).map_err(|e| e.to_string())?.to_string_lossy().replace('\\', "/").to_lowercase();
             self.shipped_members.insert(key.clone());
             if self.old.contains(&key) {
                 self.seen.insert(key);
