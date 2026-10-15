@@ -295,3 +295,23 @@ fn property_rows_match_visio_original_local_cells() {
     };
     assert_eq!(cells(&actual), cells(&expected));
 }
+
+/// Renderer fallback is not a document font declaration.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/facenames-element-visiodocument_type-complextypevisio-xml
+#[test]
+fn authoring_and_rendering_text_add_no_substitute_face() {
+    let mut s = Session::new();
+    let original = s.document().face_names.clone();
+    run(&mut s, "shape.draw.rect", json!({"x":1,"y":1,"width":2,"height":1}));
+    run(&mut s, "shape.text", json!({"id":1,"text":"Inherited document face"}));
+    run(&mut s, "format.text", json!({"id":1,"size":16,"bold":true,"align":1}));
+    let scene = diagramcraft_render::scene::page(s.document(), 0, Default::default()).unwrap();
+    assert!(!scene.ops.is_empty());
+    let bytes = diagramcraft_vsdx::write(s.document()).unwrap().bytes;
+    let round = diagramcraft_vsdx::import(&bytes).unwrap();
+    assert_eq!(round.face_names, original);
+    assert_eq!(s.document().face_names, original);
+    run(&mut s, "format.text", json!({"id":1,"font":"Example Explicit Face"}));
+    assert_eq!(s.document().face_names.len(), original.len() + 1, "explicit font remains supported");
+    assert!(s.document().face_names.values().any(|name| name == "Example Explicit Face"));
+}

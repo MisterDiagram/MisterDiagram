@@ -32,7 +32,8 @@ def main():
         command('layer.add', name='Fabric ' + fabric)
     command('shape.draw.rect', x=0, y=0, width=1.5, height=0.75)
     command('shape.text', id=1, text='Switch')
-    command('format.text', id=1, font='Liberation Sans', size=10, align=1)
+    # Inherit the document face. Renderer fallback names are not authored fonts.
+    command('format.text', id=1, size=10, align=1)
     command('master.new_from_shape', id=1, name='Switch')
     command('shape.delete', id=1)
 
@@ -59,7 +60,7 @@ def main():
         command('shape.text', id=shape_id, text='Fabric ' + fabric)
         command('format.fill', id=shape_id, pattern=0)
         command('format.line', id=shape_id, pattern=0)
-        command('format.text', id=shape_id, font='Liberation Sans', size=16, align=1, bold=True)
+        command('format.text', id=shape_id, size=16, align=1, bold=True)
         command('layer.assign', id=shape_id, layers=[fabric_index])
         # Labels do not block routes.
         # ObjType=0 is inherited; no redundant local cell is serialized.
