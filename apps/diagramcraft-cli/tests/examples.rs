@@ -216,6 +216,7 @@ fn from_shape_script_matches_original_dump_and_master_type() {
     if save.is_file() {
         let canonical = diagramcraft_vsdx::read(save).unwrap();
         assert_eq!(a.shapes[0].text, canonical.masters[0].shapes[0].text, "authored master text run form");
+        assert_eq!(actual.parts["docProps/app.xml"].bytes, canonical.parts["docProps/app.xml"].bytes, "authored app.xml canonical bytes");
     }
     // An unchanged original keeps its original pp and opaque metadata under M3.12.
     let round = diagramcraft_vsdx::import(&diagramcraft_vsdx::write(&expected).unwrap().bytes).unwrap();

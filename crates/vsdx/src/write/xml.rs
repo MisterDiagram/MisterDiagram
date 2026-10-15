@@ -41,7 +41,7 @@ fn valid_name(s: &str) -> bool {
 pub(super) fn tree(root: &XmlElement) -> Result<Vec<u8>, WriteError> {
     tree_format(root, false)
 }
-// Observed app.xml serialization: CRLF after the declaration, size before baseType.
+// Observed authored app.xml: CRLF declaration, size before baseType, expanded empty elements.
 // https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
 pub(super) fn authored_app(root: &XmlElement) -> Result<Vec<u8>, WriteError> {
     tree_format(root, true)
@@ -120,7 +120,7 @@ fn node(e: &XmlElement, parent: &BTreeMap<String, String>, depth: usize, count: 
         escaped(out, v, true)?;
         append(out, "\"")?;
     }
-    if e.children.is_empty() {
+    if e.children.is_empty() && !app {
         append(out, "/>")?;
         return Ok(());
     }
@@ -134,4 +134,22 @@ fn node(e: &XmlElement, parent: &BTreeMap<String, String>, depth: usize, count: 
     append(out, "</")?;
     append(out, &name)?;
     append(out, ">")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    /// Authored app.xml uses paired empty tags; ordinary retained XML is unaffected.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
+    #[test]
+    fn authored_app_empty_elements_keep_visio_spelling() {
+        let root = XmlElement {
+            name: "Properties".into(),
+            namespace: "urn:properties".into(),
+            children: vec![XmlNode::Element(XmlElement { name: "Template".into(), namespace: "urn:properties".into(), ..Default::default() })],
+            ..Default::default()
+        };
+        assert!(String::from_utf8(authored_app(&root).unwrap()).unwrap().contains("<Template></Template>"));
+        assert!(String::from_utf8(tree(&root).unwrap()).unwrap().contains("<Template/>"));
+    }
 }
