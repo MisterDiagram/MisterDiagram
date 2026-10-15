@@ -878,3 +878,9 @@ Obstacle-out/back and style/permeability regressions pass. WalkPreference0 is
 the sweep's observed value. Values1/2 have existing P4a synthetic tests, not new
 Visio route witnesses; combined3 and all other nonzero values remain unwitnessed
 by this sweep. No new walking preference choices are claimed.
+
+M4.16: `theme.apply deferred, no witness` for variants. The first sweep's
+Page.SetTheme(1) succeeds; Page.SetThemeVariant(1,1,2) returns "Requested operation
+is presently disabled". Part A explicitly permits deferral on either refusal.
+No command is implemented from the single successful theme drawing. Witness:
+private `_state/p4b/witness-probe-log.txt`, theme/builtin-1-variant failure.

@@ -404,3 +404,4 @@ review; connector stroke rendering and small-image export mapping stay recorded
 as separate renderer work.
 
 - 2026-10-15: P4b witness sweep: 23 route drawings and one theme drawing, 144 new artifacts pinned privately. Theme variant COM refused; theme.apply deferred. Corpus check passes 1411 packages and 15104014/15104014 strict cells, with 1181 shipped dumps and the unchanged ten-outlier ratchet. New route/theme groups pass the frozen non-text ceilings. M4 remains open for router and SAN acceptance.
+- 2026-10-15: M4.16 theme.apply deferred under the brief's witness rule: SetTheme succeeds but SetThemeVariant is refused by COM. Theme parity remains partial. No new VM run or guessed theme authoring.
