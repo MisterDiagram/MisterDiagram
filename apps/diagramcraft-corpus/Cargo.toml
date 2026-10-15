@@ -18,3 +18,4 @@ diagramcraft-theme.workspace = true
 
 [dev-dependencies]
 zip.workspace = true
+diagramcraft-engine.workspace = true

@@ -231,6 +231,7 @@ dependencies = [
 name = "diagramcraft-corpus"
 version = "0.0.1"
 dependencies = [
+ "diagramcraft-engine",
  "diagramcraft-model",
  "diagramcraft-render",
  "diagramcraft-sheet",

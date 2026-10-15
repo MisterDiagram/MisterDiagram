@@ -343,3 +343,5 @@ observation artifact hashes. M3 is met; stop before Phase 4.
 - 2026-10-15: M4.4 author connection points and static glue. Full CI is the precommit gate; P4a closure remains pending the full acceptance record.
 
 - 2026-10-15: M4.5 evaluate dynamic glue through route host hooks. Its isolated full CI gate must pass and match this tree before commit. P4a pixel acceptance remains partial.
+
+- 2026-10-15: M4.6 write and recompute straight connector routes. Its isolated full CI gate must pass and match this tree before commit. P4a pixel acceptance remains partial.

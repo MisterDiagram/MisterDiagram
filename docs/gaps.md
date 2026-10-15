@@ -757,3 +757,7 @@ Connection rows and static glue use the observed PAR/PNT formulas and Connects p
 ### P4a M4.5
 
 Dynamic glue and transform triggers are route-owned evaluator hooks. The move-before session command matches all ten required move-after cells within1e-6. The full CLI diff is retained in M4.8.
+
+### P4a M4.6
+
+Straight route Geometry and XForm match four private witnesses. The explicit authoring_routes acceptance command remains nonzero for individual connector pixel comparisons; the frozen aggregate CI render gate is unchanged. This unmet requirement keeps P4a partial.

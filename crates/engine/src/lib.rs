@@ -153,6 +153,7 @@ impl Session {
             let result = f(self)?;
             if self.dirty {
                 let mut glue = diagramcraft_route::GlueHost::prepare(&before.document, Arc::make_mut(&mut self.document)).map_err(operation)?;
+                diagramcraft_route::reroute(&before.document, Arc::make_mut(&mut self.document), &mut glue, None).map_err(operation)?;
                 let theme = diagramcraft_theme::Themes::from_document(&self.document).map_err(operation)?;
                 let written = diagramcraft_vsdx::write_with_glue_host(&self.document, Some(&theme), Some(&diagramcraft_text::Host), Some(&mut glue))
                     .map_err(operation)?;

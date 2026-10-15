@@ -455,6 +455,15 @@ pub fn command_specs() -> &'static [CommandSpec] {
             always,
             crate::glue::dynamic_glue
         ),
+        cmd!(
+            "route.reroute",
+            "route.reroute",
+            ["Glue"],
+            None,
+            r#"{"type":"object","properties":{"page":{"type":"integer","minimum":1},"id":{"type":"integer","minimum":0,"maximum":4294967294}},"required":[],"additionalProperties":false}"#,
+            always,
+            crate::glue::reroute
+        ),
     ]
 }
 
