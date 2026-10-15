@@ -2083,3 +2083,13 @@ edit updates LocPinX; undo and redo restore the respective cached states.
 This is host-side session evidence. No new Visio acceptance run or oracle change
 is part of M4.1. Page parameters exposed by file.export are one-based ordinals;
 the session's internal page selection is zero-based.
+
+### M4.2: authored shape and group cells
+
+Rectangle geometry follows the five-row DrawRectangle witness; ellipses use the
+observed Ellipse row with A/B/C/D values and DL units. DrawLine uses endpoint-derived
+Width and Angle. The rotated two-rectangle group witness stores each child PinX,
+PinY, Width and Height relative to its group's Width/Height. Session grouping writes
+those same formulas, and ungrouping composes the transforms into the parent frame.
+Witness: corpus/generated/group/two-rects-rotated.vsdx. The exact probe rebuild
+comparison is pending the P4a dynamic glue and CLI steps. No new oracle disagreement.

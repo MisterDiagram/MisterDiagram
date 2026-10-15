@@ -2,9 +2,15 @@
 //! Session, snapshot history and journal pattern adapted from deckcraft
 //! be14248577b92059eb2b8c0c9460cceffbc1f01d, MIT OR Apache-2.0.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
+mod arrange;
 pub mod cmd;
+mod content;
+mod edit;
 mod files;
 pub mod guard;
+mod pages;
+mod shapes;
+mod sheet;
 pub use cmd::{command_specs, find_command};
 use diagramcraft_model::{Document, ShapeId};
 use serde_json::Value;

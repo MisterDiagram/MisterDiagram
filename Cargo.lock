@@ -247,6 +247,7 @@ dependencies = [
 name = "diagramcraft-engine"
 version = "0.0.1"
 dependencies = [
+ "diagramcraft-geom",
  "diagramcraft-model",
  "diagramcraft-render",
  "diagramcraft-sheet",

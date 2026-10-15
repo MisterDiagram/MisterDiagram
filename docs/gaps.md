@@ -730,3 +730,13 @@ image, geometry and text storage, with small-budget regression fixtures.
 CLI authoring, master drop, glue and generator acceptance remain open in the later
 P4a steps. Breadth parity remains 27%; existing file and export rows retain their
 current D/P scores. M4.1 does not establish P4a or M4 acceptance.
+
+### P4a M4.2: authoring command surface
+
+The registry now has 43 commands. Page/background relationships, layer membership,
+rectangle/ellipse/line geometry, transforms, grouping, ordering, text runs, shape
+data, hyperlinks, arbitrary parsed cell formulas and formatting/arrangement edits
+have transactional tests. Group child scale formulas match the private rotated
+group witness. DrawLine endpoint transforms stay consistent after move/resize/rotate.
+The full probe diff remains open until the later glue, route and CLI steps.
+Authoring rows retain their existing score until that acceptance evidence is available.
