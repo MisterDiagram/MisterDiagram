@@ -73,8 +73,10 @@ Code reused from the Craft apps is MIT OR Apache-2.0 and is listed per file in
 
 Pre-alpha. Milestones M0 to M2 are met and independently reviewed; M3 (writing) is in
 closure. The name follows the Craft apps' convention and belongs to that project: if they
-adopt this work, it transfers with the name; if not, the name changes. Issues and discussion
-are welcome.
+adopt this work, it transfers with the name; if not, the name changes. The project lives at
+[github.com/charles-hood/DiagramCraft](https://github.com/charles-hood/DiagramCraft) until
+that transfer happens; any other copy, including forks in community or incubator
+organisations, is a mirror. Issues, discussion and pull requests go to this repository.
 
 ## Development
 
