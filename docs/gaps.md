@@ -872,3 +872,9 @@ connectors10/12 atx2.015625/5.984375; ours at2/6. BeginX,EndX,PinX and horizonta
 connector9 Geometry1.X2/X3/X6/X7 have ten differences of0.015625in. The nonempty
 diff is retained. The other28 route drawings match within1e-6, including the
 original line-jumps and five new jump witnesses. No tolerance was widened.
+
+M4.15: obstacle, target and page-layout edits invalidate routes transactionally.
+Obstacle-out/back and style/permeability regressions pass. WalkPreference0 is
+the sweep's observed value. Values1/2 have existing P4a synthetic tests, not new
+Visio route witnesses; combined3 and all other nonzero values remain unwitnessed
+by this sweep. No new walking preference choices are claimed.

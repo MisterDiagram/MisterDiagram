@@ -260,6 +260,62 @@ pub(crate) fn path(start: Point, end: Point, obs: &[Rect], first_dir: Option<usi
     Ok(simplified)
 }
 
+/// Transform, obstacle and layout dependencies that invalidate page routes.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/eventxfmod-cell-events-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/avoidpagebreaks-cell-page-layout-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/blocksizex-cell-page-layout-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/linetonodex-cell-page-layout-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/plowcode-cell-page-layout-section
+pub(crate) fn page_signature(e: &mut Evaluator<'_>, page: u32) -> Result<Vec<(u64, Vec<f64>)>, String> {
+    let scopes = e.scopes().filter(|s| matches!(s,Scope::PageShape{page:p,..}if *p==page)).collect::<Vec<_>>();
+    if scopes.len() > 100000 {
+        return Err("route dependency count limit".into());
+    }
+    let layout = [
+        "RouteStyle",
+        "PlowCode",
+        "BlockSizeX",
+        "BlockSizeY",
+        "LineToNodeX",
+        "LineToNodeY",
+        "LineToLineX",
+        "LineToLineY",
+        "AvoidPageBreaks",
+        "PageWidth",
+        "PageHeight",
+        "LineJumpCode",
+        "LineJumpStyle",
+        "LineJumpFactorX",
+        "LineJumpFactorY",
+        "PageLineJumpDirX",
+        "PageLineJumpDirY",
+    ];
+    let mut signature = vec![(u64::MAX, layout.map(|n| number(e, Scope::Page(page), n, 0.)).to_vec())];
+    for scope in scopes {
+        let Scope::PageShape { shape, .. } = scope else { continue };
+        let mut values = [
+            "Width",
+            "Height",
+            "ObjType",
+            "ShapePermeableX",
+            "ShapePermeableY",
+            "ShapeRouteStyle",
+            "ShapePlowCode",
+            "ConFixedCode",
+            "ConLineJumpCode",
+            "ConLineJumpStyle",
+            "ConLineJumpDirX",
+            "ConLineJumpDirY",
+        ]
+        .map(|n| number(e, scope, n, 0.))
+        .to_vec();
+        values.extend(e.shape_to_page(scope).map_err(|v| v.to_string())?.as_coeffs());
+        signature.push((u64::from(shape), values));
+    }
+    signature.sort_by_key(|(id, _)| *id);
+    Ok(signature)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

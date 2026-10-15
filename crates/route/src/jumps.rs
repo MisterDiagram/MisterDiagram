@@ -50,7 +50,9 @@ fn row(index: u32, kind: &str, p: Point, a: Option<diagramcraft_model::Cell>) ->
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/pagelinejumpdirx-cell-page-layout-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/pagelinejumpdiry-cell-page-layout-section
 pub(crate) fn apply(doc: &mut Document, host: &mut GlueHost, pages: &BTreeSet<usize>) -> Result<(), String> {
-    let mut e = Evaluator::new(doc).map_err(|v| v.to_string())?.with_glue_host(host);
+    let themes = diagramcraft_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
+    let text = diagramcraft_text::Host;
+    let mut e = Evaluator::new(doc).map_err(|v| v.to_string())?.with_theme_host(&themes).with_text_host(&text).with_glue_host(host);
     let mut connectors = Vec::new();
     let mut segments = 0usize;
     for index in pages {

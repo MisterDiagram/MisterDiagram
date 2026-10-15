@@ -128,6 +128,7 @@ pub struct GlueHost {
     points: BTreeMap<Key, Point>,
     triggers: BTreeMap<Key, f64>,
     active: std::collections::BTreeSet<(u32, u32)>,
+    dirty_pages: std::collections::BTreeSet<u32>,
 }
 impl HostHooks for GlueHost {
     fn supports(&self, name: &str) -> bool {
@@ -146,6 +147,9 @@ impl HostHooks for GlueHost {
     }
 }
 impl GlueHost {
+    pub(crate) fn page_dirty(&self, page: u32) -> bool {
+        self.dirty_pages.contains(&page)
+    }
     pub(crate) fn activate(&mut self, page: u32, shape: u32) {
         self.active.insert((page, shape));
     }
@@ -153,13 +157,20 @@ impl GlueHost {
     /// Endpoint caches are not filled here: evaluation must call `_WALKGLUE` to obtain the new point.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/eventxfmod-cell-events-section
     pub fn prepare(before: &Document, doc: &mut Document) -> Result<Self, String> {
-        let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?;
-        let mut old = Evaluator::new(before).map_err(|e| e.to_string())?;
+        let themes = diagramcraft_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
+        let old_themes = diagramcraft_theme::Themes::from_document(before).map_err(|e| e.to_string())?;
+        let text = diagramcraft_text::Host;
+        let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&text);
+        let mut old = Evaluator::new(before).map_err(|e| e.to_string())?.with_theme_host(&old_themes).with_text_host(&text);
         let mut host = Self::default();
         let mut changes = vec![];
         let mut affected = std::collections::BTreeSet::new();
         let mut count = 0usize;
         for (page_index, page) in doc.pages.iter().enumerate() {
+            let layout_changed = crate::orthogonal::page_signature(&mut e, page.id)? != crate::orthogonal::page_signature(&mut old, page.id)?;
+            if layout_changed {
+                host.dirty_pages.insert(page.id);
+            }
             let mut links = BTreeMap::<u32, [Option<&diagramcraft_model::Connect>; 2]>::new();
             for c in &page.connects {
                 count += 1;
@@ -219,7 +230,7 @@ impl GlueHost {
                         }
                     }
                 }
-                if inputs_changed {
+                if inputs_changed || layout_changed {
                     affected.insert((page_index, id));
                 }
                 for (side, link) in links.iter().enumerate() {

@@ -71,8 +71,12 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             }
         }
     }
-    let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_glue_host(host);
-    let mut old = Evaluator::new(before).map_err(|e| e.to_string())?;
+    let dirty_pages = doc.pages.iter().filter(|p| host.page_dirty(p.id)).map(|p| p.id).collect::<std::collections::BTreeSet<_>>();
+    let themes = diagramcraft_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
+    let old_themes = diagramcraft_theme::Themes::from_document(before).map_err(|e| e.to_string())?;
+    let text = diagramcraft_text::Host;
+    let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&text).with_glue_host(host);
+    let mut old = Evaluator::new(before).map_err(|e| e.to_string())?.with_theme_host(&old_themes).with_text_host(&text);
     let mut routes = vec![];
     for scope in e.scopes().collect::<Vec<_>>() {
         let Scope::PageShape { page, shape: id } = scope else { continue };
@@ -87,7 +91,7 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             ["BeginX", "BeginY", "EndX", "EndY", "BegTrigger", "EndTrigger"].iter().any(|name| old.sheet.cell(name) != current.sheet.cell(name))
         });
         let changed = changed || ["BeginX", "BeginY", "EndX", "EndY"].iter().any(|name| e.evaluate(scope, name) != old.evaluate(scope, name));
-        if !forced && !changed {
+        if !forced && !changed && !dirty_pages.contains(&page) {
             continue;
         }
         let [bx, by, ex, ey] = ["BeginX", "BeginY", "EndX", "EndY"]

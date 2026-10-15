@@ -355,6 +355,8 @@ dependencies = [
  "diagramcraft-geom",
  "diagramcraft-model",
  "diagramcraft-sheet",
+ "diagramcraft-text",
+ "diagramcraft-theme",
  "diagramcraft-vsdx",
 ]
 

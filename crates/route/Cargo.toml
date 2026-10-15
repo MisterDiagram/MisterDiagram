@@ -12,3 +12,5 @@ diagramcraft-model.workspace = true
 diagramcraft-sheet.workspace = true
 diagramcraft-geom.workspace = true
 diagramcraft-vsdx.workspace = true
+diagramcraft-text.workspace = true
+diagramcraft-theme.workspace = true

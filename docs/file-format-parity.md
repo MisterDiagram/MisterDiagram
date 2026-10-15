@@ -13453,3 +13453,8 @@ the actual sweep, despite the brief's parenthetical description. ArcTo A is
 negative in the positive-direction horizontal witness. Gap uses MoveTo; square
 and two-side styles use PolylineTo controls. The three-crossing attachment
 packing difference is retained in docs/gaps.md rather than explained by a guess.
+
+M4.15: moving connector/obstacle.vsdx shape3 to3.5,2 yields the unobstructed
+straight route; restoring3.5,6.5 restores the original Geometry/XForm. Both
+transitions are session regressions. Routing evaluation uses the existing text
+and theme hosts so master dimensions depending on text remain evaluable.

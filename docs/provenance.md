@@ -172,3 +172,7 @@ code, not third-party router code. All comparisons retain1e-6 tolerance.
 M4.14 crossing rows, radius, direction and style selection come from the five
 matching route/jump witnesses and connector/line-jumps. The sixth sweep case
 has the disclosed attachment-packing gap. No oracle or threshold was changed.
+
+M4.15 session invalidation is tested against the original obstacle drawing and
+its observed unobstructed pair, with explicit page-style and permeability edits.
+No additional Visio behavior is inferred for unwitnessed WalkPreference values.
