@@ -131,6 +131,7 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
     }
     drop(e);
     let count = routes.len();
+    let pages = routes.iter().map(|r| r.0).collect();
     for (index, id, bx, by, ex, ey, style, points) in routes {
         let page = doc.pages.get_mut(index).ok_or("route page missing")?;
         let dynamic = page.connects.iter().any(|c| c.from_sheet == id && matches!(c.to_cell.as_deref(), Some("PinX" | "PinY")));
@@ -211,5 +212,6 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             shape.sheet.sections.push(Section { name: "Control".into(), rows: vec![control], ..Default::default() });
         }
     }
+    crate::jumps::apply(doc, host, &pages)?;
     Ok(count)
 }

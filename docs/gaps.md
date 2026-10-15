@@ -866,3 +866,9 @@ M4.13: bounded orthogonal routing now matches the17 non-jump route sweep cases,
 the original obstacle witness and all four P4a straight witnesses within1e-6.
 Grid, plow, page-break and dense-connector behavior remain partial beyond the
 observed cases. Line jumps follow in M4.14.
+
+M4.14 named gap: `jump-three-crossings endpoint packing`. Visio places vertical
+connectors10/12 atx2.015625/5.984375; ours at2/6. BeginX,EndX,PinX and horizontal
+connector9 Geometry1.X2/X3/X6/X7 have ten differences of0.015625in. The nonempty
+diff is retained. The other28 route drawings match within1e-6, including the
+original line-jumps and five new jump witnesses. No tolerance was widened.

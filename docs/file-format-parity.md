@@ -13446,3 +13446,10 @@ frame. Dynamic right-angle connectors carry ConFixedCode6; straight style2 uses0
 Observed clearance is1.5 times LineToLineX/Y. ObjType1 alignment boxes block
 routes unless both ShapePermeableX/Y are true. All17 non-jump sweep cases,
 connector/obstacle and four P4a straight witnesses compare within1e-6.
+
+M4.14 observed jump rule: radius equals half LineToLine times LineJumpFactor.
+Page code1 selects horizontal crossings; code2 selected vertical crossings in
+the actual sweep, despite the brief's parenthetical description. ArcTo A is
+negative in the positive-direction horizontal witness. Gap uses MoveTo; square
+and two-side styles use PolylineTo controls. The three-crossing attachment
+packing difference is retained in docs/gaps.md rather than explained by a guess.

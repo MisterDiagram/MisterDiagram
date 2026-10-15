@@ -168,3 +168,7 @@ M4.13 route authoring derives alignment-box attachment, obstacle clearance,
 signed frames and Geometry rows from the private P4b sweep table above and
 connector/obstacle. The implementation uses original bounded visibility-grid
 code, not third-party router code. All comparisons retain1e-6 tolerance.
+
+M4.14 crossing rows, radius, direction and style selection come from the five
+matching route/jump witnesses and connector/line-jumps. The sixth sweep case
+has the disclosed attachment-packing gap. No oracle or threshold was changed.
