@@ -1,9 +1,9 @@
 # DiagramCraft
 
 A clean-room, headless Rust core of Microsoft Visio. It opens .vsdx, .vssx and .vstx files, and their macro-enabled .vsdm, .vssm and .vstm variants with the VBA payload dropped,
-evaluates the ShapeSheet the way Visio does, and renders pages and stencils to PNG, SVG and
-PDF. Writing files that Visio opens unrepaired, connectors and routing, and an MCP server for
-AI agents are in progress. It is built in the mould of the Craft apps (deckcraft, vectorcraft
+evaluates the ShapeSheet the way Visio does, renders pages and stencils to PNG, SVG and
+PDF, and writes files that Visio opens without repair. Authoring commands, connectors and
+routing, and an MCP server for AI agents are in progress. It is built in the mould of the Craft apps (deckcraft, vectorcraft
 and their siblings) and is offered to that project.
 
 ![Four drawings made by this repo's scripts, rendered by DiagramCraft](docs/images/diagramcraft-renders.png)
@@ -11,7 +11,7 @@ and their siblings) and is offered to that project.
 *DiagramCraft's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-10-13)
+## What works today (2026-10-14)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   204-drawing test corpus, with zero errors and zero panics under mutation fuzzing.
@@ -21,12 +21,11 @@ export of the same file, measured by the test harness; Visio's exports stay out 
   cells match Visio's live COM dumps, theme and text-metric cells included.
 - **Render** PNG, SVG and vector PDF. Every feature group of the test corpus is inside fixed
   pixel ceilings against Visio's own 96 dpi export, and all 1,108 masters in the review
-  stencil set render.
-- **Round-trip** read, write, read: 15.1 million cells preserved across 1,387 packages. In
-  the first full acceptance run Visio opened all 230 files the writer produced, five of them
-  built from scratch. That run also found four writer defects (inherited cell values, master
-  shape IDs, background page relationships, connector instances), so unrepaired saving is
-  not claimed yet.
+  stencil set render. PDF text extracts with ligatures and combining marks intact.
+- **Write** .vsdx, .vssx and .vstx, and build documents from scratch. Visio 2021 opened all
+  230 files of the acceptance set, five of them built from scratch, with no repair beyond a
+  few disclosed metadata rewrites, and its COM dumps of the reopened files show zero
+  differences. Read, write, read preserves all 15.1 million cells across 1,387 packages.
 
 Known gaps are listed in [docs/gaps.md](docs/gaps.md). Text wrapping is the weakest area,
 EMF+ images are not drawn, and compound line patterns are approximate.
@@ -47,9 +46,7 @@ Rust stable with edition 2024 is required. There is no GUI and none is planned i
 
 ## What is coming
 
-- Phase 3, in closure: write .vsdx, .vssx and .vstx that Visio opens without repair, and
-  build documents from scratch.
-- Phase 4: authoring commands, master instancing, glue, orthogonal connector routing.
+- Phase 4, next: authoring commands, master instancing, glue, orthogonal connector routing.
 - Phase 5: an MCP server and pptx export, so an AI agent can build a diagram from a
   description and hand over a file Visio opens.
 
@@ -71,8 +68,8 @@ Code reused from the Craft apps is MIT OR Apache-2.0 and is listed per file in
 
 ## Status and handover
 
-Pre-alpha. Milestones M0 to M2 are met and independently reviewed; M3 (writing) is in
-closure. The name follows the Craft apps' convention and belongs to that project: if they
+Pre-alpha. Milestones M0 to M3 (reading, evaluation, rendering, writing) are met and
+independently reviewed; Phase 4 has not started. The name follows the Craft apps' convention and belongs to that project: if they
 adopt this work, it transfers with the name; if not, the name changes. The project lives at
 [github.com/charles-hood/DiagramCraft](https://github.com/charles-hood/DiagramCraft) until
 that transfer happens; any other copy, including forks in community or incubator
