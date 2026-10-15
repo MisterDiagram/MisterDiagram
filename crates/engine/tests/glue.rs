@@ -187,3 +187,46 @@ fn straight_route_tracks_a_diagonal_endpoint_in_page_space() {
         assert!((point.y - number(&s, 3, &format!("{prefix}Y"))).abs() < 1e-6);
     }
 }
+
+/// Local endpoint literals must survive rerouting before both ends are glued.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+#[test]
+fn parallel_row_connectors_keep_horizontal_routes_in_either_order() {
+    for (first, second) in [(1.2, 2.8), (1.5, 3.), (2.8, 1.2), (4.4, 6.), (6., 1.2), (6., 4.4), (2.8, 1.2), (3., 1.5)] {
+        let mut s = Session::new();
+        run(&mut s, "file.new", json!({}));
+        run(&mut s, "page.size", json!({"width":11,"height":8.5}));
+        run(&mut s, "sheet.set", json!({"scope":"page","name":"RouteStyle","value":1}));
+        run(&mut s, "shape.draw.rect", json!({"x":0,"y":0,"width":2.3,"height":1}));
+        run(&mut s, "master.new_from_shape", json!({"id":1,"name":"Box"}));
+        run(&mut s, "shape.delete", json!({"id":1}));
+        for y in [first, second] {
+            for x in [1.6, 7.1] {
+                run(&mut s, "master.drop", json!({"master":"Box","x":x,"y":y}));
+            }
+        }
+        for (id, target, y) in [(5, 1, first), (6, 3, second)] {
+            run(&mut s, "master.drop", json!({"master":2,"x":4.35,"y":y}));
+            for (end, target) in [("begin", target), ("end", target + 1)] {
+                run(&mut s, "connect.dynamic", json!({"id":id,"end":end,"target":target,"preference":"horizontal"}));
+            }
+        }
+        let mut e = Evaluator::new(s.document()).unwrap();
+        for (id, y) in [(5, first), (6, second)] {
+            let scope = Scope::PageShape { page: s.document().pages[0].id, shape: id };
+            let paths = e.geometry_paths(scope, diagramcraft_geom::Rect::new(0., 0., 11., 8.5)).unwrap();
+            assert_eq!(paths.len(), 1);
+            assert_eq!(paths[0].path.elements().len(), 2, "rows {first}/{second}, connector {id}");
+            let transform = e.shape_to_page(scope).unwrap();
+            for (row, x) in [(1, 2.75), (2, 5.95)] {
+                let px = e.evaluate(scope, &format!("Geometry1.X{row}")).numeric().unwrap();
+                let py = e.evaluate(scope, &format!("Geometry1.Y{row}")).numeric().unwrap();
+                let point = transform * diagramcraft_geom::Point::new(px, py);
+                assert!(
+                    (point.x - x).abs() <= 1e-9 && (point.y - y).abs() <= 1e-9,
+                    "rows {first}/{second}, connector {id}, point {row}: {point:?}, expected ({x}, {y})"
+                );
+            }
+        }
+    }
+}

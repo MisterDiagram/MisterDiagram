@@ -1022,3 +1022,15 @@ are resolved by the canonical row/text/metadata, font and extent changes. Final
 implementation GitHub checks pass, and all seven implementation commits are
 pushed. Passes 5 and 6 are independently clean (23 YES, 0 NO each). M4 plan
 gates are met; M4.28 records closure and receives its own final GitHub check.
+
+
+## ISS-36: parallel row connector creation
+
+Resolved: reroute preserves local endpoint literals instead of replacing them
+with `F="Inh"`. The replacement reset a newly dropped connector to the master's
+free endpoint and placed it inside another row's box during first-end glue.
+`parallel_row_connectors_keep_horizontal_routes_in_either_order` covers all
+requested row pairs and reversed failures through the engine, with two-point
+horizontal geometry checked within 1e-9 in. Routing remains P for the existing
+packing and unwitnessed-layout gaps; no score or numerical contract changes.
+Reference: [Cell element](https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml).

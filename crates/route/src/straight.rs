@@ -166,8 +166,11 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             set(&mut shape.sheet, cell("ConFixedCode", if style == 2. { 0 } else { 6 }, None))?;
         }
         for (name, value) in [("BeginX", bx), ("BeginY", by), ("EndX", ex), ("EndY", ey)] {
-            let formula = shape.sheet.cell(name).and_then(|c| c.formula.clone());
-            set(&mut shape.sheet, cell(name, value, formula.or_else(|| Some("Inh".into()))))?;
+            // A local literal is an override too. Inh would restore the master's
+            // original endpoint when the transaction is written and read back.
+            // https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+            let formula = shape.sheet.cell(name).map_or_else(|| Some("Inh".into()), |c| c.formula.clone());
+            set(&mut shape.sheet, cell(name, value, formula))?;
         }
         // https://learn.microsoft.com/en-us/office/client-developer/visio/layermember-cell-layer-membership-section
         let mut memberships = shape
