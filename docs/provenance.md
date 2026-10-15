@@ -113,6 +113,15 @@ ShapeKeywords are omitted because Visio removes those redundant local cells;
 style sheet 0 retains the observed empty Copyright and HelpTopic cells.
 
 
+### P4b-closure-2 canonical authored output
+
+Charles's 2026-10-15 ruling admits Visio's retained saves of the contributor-authored
+SAN and from-shape rebuild for removal of our redundant pp marker and spelling
+of authored app.xml. The implementation uses these XML observations only, with
+no artwork copied. Original cells/rows and unchanged imported bytes remain
+preserved. Render population membership comes exactly from main commit b3b42ad's
+204-file generated manifest, SHA256110f12b555cf9afb250f7deaffbc1df21cea6368b647a974264fceed12958267.
+
 ### P4b-closure authored-cell observations
 
 M4.19 (2026-10-15): original synthetic `data/property-rows` and

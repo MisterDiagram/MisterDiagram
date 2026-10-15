@@ -15752,3 +15752,30 @@ and1344 Geometry/XForm cells within1e-6, with80 Connects. Fresh SAN PNG sizes
 are1612x757 on both sides, MAD0.897574663, over16 1.282242%; required non-text
 ceilings pass. Property remains529x145, MAD5.592103948, over16 3.929340%, failing
 the unchanged ceiling. Master page433x272 passes at1.297346941/1.932482%.
+
+
+### M4.26 and M4.27: authored canonical form (2026-10-15)
+
+Observed, undocumented: the master/from-shape original contains a pp IX=0
+marker with inherited Paragraph formatting. Visio removes the same redundant
+marker from our from-shape master and the SAN master and fabric labels on save.
+Charles's dated ruling adopts removal for newly authored content, while the
+original remains authoritative for cells and rows. Imported Text trees remain
+unchanged. Local paragraph formatting still writes its run marker.
+Reference: https://learn.microsoft.com/en-us/office/client-developer/visio/pp-element-text_type-complextypevisio-xml
+Witnesses: private corpus/_vm/out/accept/p4bc__from-shape/saved.vsdx and
+p4bc__san-topology/saved.vsdx, retained in the P4b-closure private checkpoint.
+
+The from-shape save spells empty Template, Manager, Company and HyperlinkBase
+in docProps/app.xml with explicit closing tags. Authored metadata now uses that
+spelling, keeping the observed CRLF declaration and vector attribute order.
+Read metadata remains byte-preserved under M3.12. This is an authoring fix, not
+an allowed repair class.
+Reference: https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
+
+Closure-2 fresh observations: SAN and from-shape both open with zero residual
+repairs and zero COM differences. The unchanged Property observation remains
+zero/zero. SAN keeps all 40 routes across 1,344 Geometry/XForm cells, with 80
+Connects rows. Both renders are 1612x757, MAD 0.897574663 and over16 1.282242494%,
+inside the frozen required ceilings. From-shape app.xml is byte-equal to its
+fresh Visio save. No new repair class or per-file extent adjustment is used.

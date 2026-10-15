@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: pre-alpha, M0 through M3 met. M3 closed on 2026-10-14 under Charles's small-image ruling and two clean independent frozen passes. P4a met on 2026-10-15 under Charles's straight-route ruling and two clean frozen verification passes. M4 remains open until 4b. Target: Visio Standard 2021.
+Status: pre-alpha, M0 through M3 met. M3 closed on 2026-10-14 under Charles's small-image ruling and two clean independent frozen passes. P4a met on 2026-10-15 under Charles's straight-route ruling and two clean frozen verification passes. M4 plan gates are met on 2026-10-15 under the recorded closure-2 rulings and two clean frozen verification passes. Final record push checks are retained privately. Target: Visio Standard 2021.
 
 Phase 0 establishes the workspace, conventions, oracle scripts and private corpus. Phases 1
 through 5 add reading and ShapeSheet evaluation, rendering, writing, authoring, and exports.
@@ -426,3 +426,42 @@ and its GitHub checks cover documentation and observation code only.
 Independent frozen passes3 and4 each record16YES/4NO: Visio repairs, aggregate
 gates, closure records and M4.21 remain NO. Both preserve the original-first
 rule and failed render evidence. There are no two consecutive clean passes.
+
+
+## P4b-closure-2 rulings, 2026-10-15
+
+Charles pins the unchanged maximum-ten per-file pixel ratchet to the204 generated
+M3.0 drawings. Phase4 additions remain scored at the same ceilings and printed
+as informational witness outliers. Data pixels are informational until the
+small-image mapping closes; the route group remains required. Historical
+membership currently measures9 pinned and3 witness outliers, because compound-1
+now passes and route/offset-left was added in Phase4. No membership substitution
+is made to produce the brief's expected10 and2.
+
+For authored content, Visio's removal of redundant inherited-only pp markers and
+its app.xml empty-element spelling define canonical form. Original-first still
+governs cells and rows; imported files keep M3.12. No new rewrite class is added.
+
+## M4 closure, 2026-10-15
+
+P4b-closure-2 closes the plan's M4 drawing gate: the probe rebuild is clean,
+SAN opens with zero residual repairs and COM differences, its 80 Connects rows
+match 40 double-ended ISLs, and Visio retains all 40 routes across 1,344 cells.
+SAN and Visio renders are both 1612x757, MAD 0.897574663, over16 1.282242494%,
+inside the required frozen ceilings. Property and from-shape rebuilds are clean.
+
+Full local CI passes all eight gates. Full corpus passes 1,413 packages and
+15,105,590/15,105,590 strict round-trip cells (100%), with no floor decrease.
+All 12 required render groups pass. Exact historical membership measures 9 of
+10 allowed pinned outliers and 3 informational Phase 4 witness outliers, rather
+than the predicted 10 and 2. Membership, predicate and ceilings are unchanged.
+Parity moves 48% to 49% as Shape data moves P to D. Independent frozen passes
+5 and 6 each have 23 YES and 0 NO; all five source seeds fail and restore cleanly.
+
+M4.20 through M4.27 are committed and pushed; their full tested source snapshot
+matches committed HEAD, and its Linux, Windows and macOS jobs pass. Intermediate
+commit trees were not independently gated against the expanded private corpus.
+The M4.28 record receives its own final three-platform check. Carried gaps are
+jump-three-crossings packing, unwitnessed WalkPreference values, theme.apply,
+connector stroke rendering and small-image export mapping. Phase 5 estimate:
+32 to 48 hours. docs/mcp.md remains untouched until that phase.

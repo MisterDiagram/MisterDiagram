@@ -1,6 +1,6 @@
 # Gaps
 
-Status: pre-alpha, M0 through M3 met under the recorded gates. P4a met on 2026-10-15 under the straight-route ruling. Connector stroke rendering remains an open measured gap; M4 remains open until 4b.
+Status: pre-alpha, M0 through M3 met under the recorded gates. P4a met on 2026-10-15 under the straight-route ruling. M4 plan gates are met on 2026-10-15 under the closure-2 rulings and two clean frozen passes. The carried rendering and routing gaps remain measured below.
 
 ## G0: Contributed fixes
 
@@ -984,3 +984,41 @@ Candidate full CI exits1 at quick corpus: strict609674/609674 remains100%,
 pinned COM98.431411% remains above98.426041%, and text gate passes. The failure
 is the new data render group and12outliers against maximum10. Separate asset,
 layer, source-inventory and wasm checks pass. No numerical contract is relaxed.
+
+
+### P4b-closure-2, 2026-10-15
+
+Charles's two rulings supersede the preceding closure blockers without changing
+any numerical ceiling, floor, denominator or rewrite class. The204-file M3.0
+pixel population is pinned by path and hash beside the COM cohorts. Every
+Phase4 witness is still measured at the frozen ceilings and separately counted;
+data pixels are informational until small-image mapping closes, route required.
+Retained measurements classify9 historical outliers and3 Phase4 outliers:
+data/property-rows3.929340%, master/from-shape2.060691%, route/offset-left3.822345%.
+This differs from the brief's anticipated10/2 because line/compound-1 now passes
+at1.186120%. The population is not altered to reproduce a predicted count.
+
+Authored inherited-only pp markers are omitted, as Visio removes them from
+SAN and the from-shape rebuild. Authored app.xml uses explicit closing tags
+for empty elements. Imported trees and bytes keep M3.12. Full Property rows,
+MasterType2/stroke-inclusive master bounds, implicit font identity and the
+full-line-advance label extent remain the preserved candidate changes.
+Fresh acceptance, full local CI and all three implementation GitHub jobs pass.
+Two independent frozen verification passes each record 23 YES and 0 NO.
+
+Carried gaps remain jump-three-crossings endpoint packing, unwitnessed
+WalkPreference values, theme.apply, connector stroke rendering and small-image
+export mapping. Phase5 estimate remains32 to48 hours after successful closure.
+
+
+Closure-2 measured acceptance: the new two-file VM run and unchanged Property
+observation all have residual repairs0 and COM0. SAN retains40 routes across1344
+cells and80Connects;1612x757 on both sides passes0.897574663MAD/1.282242%over16.
+The full corpus command exits0 with15105590/15105590 strict cells, all12 required
+render groups passing, pinned outliers9/max10 and3 informational Phase4 witnesses.
+`san-property-row-serialization`, `san-master-text-serialization`,
+`san-font-identity`, `san-export-height` and `san-authored-cell-canonicalization`
+are resolved by the canonical row/text/metadata, font and extent changes. Final
+implementation GitHub checks pass, and all seven implementation commits are
+pushed. Passes 5 and 6 are independently clean (23 YES, 0 NO each). M4 plan
+gates are met; M4.28 records closure and receives its own final GitHub check.

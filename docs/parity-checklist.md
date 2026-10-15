@@ -1,13 +1,13 @@
 # Visio feature checklist
 
-> **Drafted:** 2026-10-11 from the observed app (visio-observed.md) and Microsoft's documentation · **Target:** Microsoft Visio Standard 2021 16.0.20430 (Professional rows marked Pro) · **Status:** M3 file acceptance met; authoring commands and remaining evaluation/rendering fidelity are in progress. Format follows the storytold apps' `docs/parity-checklist.md`: area, feature, priority, Core Y/N, status D/P/M.
+> **Drafted:** 2026-10-11 from the observed app (visio-observed.md) and Microsoft's documentation · **Target:** Microsoft Visio Standard 2021 16.0.20430 (Professional rows marked Pro) · **Status:** M4 authoring milestone met under the dated closure-2 rulings; remaining evaluation, routing and rendering gaps are recorded. Format follows the storytold apps' `docs/parity-checklist.md`: area, feature, priority, Core Y/N, status D/P/M.
 
 <!-- SUMMARY -->
-**Weighted breadth parity: 48%** over 45 Core=Y features.
+**Weighted breadth parity: 49%** over 45 Core=Y features.
 
 | Priority | Features | Done | Partial | Missing | Parity |
 |---|---|---|---|---|---|
-| P0 | 27 | 6 | 21 | 0 | 61% |
+| P0 | 27 | 7 | 20 | 0 | 63% |
 | P1 | 15 | 1 | 3 | 11 | 17% |
 | P2 | 3 | 0 | 0 | 3 | 0% |
 
@@ -15,7 +15,7 @@
 |---|---|
 | Files | 50% |
 | Pages | 50% |
-| Shapes | 57% |
+| Shapes | 63% |
 | Stencils | 61% |
 | Connectors | 37% |
 | Text | 43% |
@@ -26,7 +26,7 @@
 | Data | 0% |
 | Automation | 50% |
 
-Open P0 items: Export SVG (with Visio extension namespace), PNG, JPEG, EMF/WMF, PDF (vector, text, links), Multiple pages, background pages, page size and orientation, drawing scale and units, Page tabs: add, rename, reorder, duplicate, delete, Draw tools: rectangle, ellipse, line, freeform, arc, pencil, Shape text with text block control handle; double-click to edit, Shape data (custom properties) and the Shape Data window, Control handles, connection points (add, move, type in/out/both), Geometry sections with formulas (Width*0.5 style), guarded cells, Formula engine: cell references, cross-sheet references (Sheet.N!Cell), GUARD, Inh, THEMEVAL, SETATREF, dependency recalculation, New master from a shape; edit master; document stencil, Read vendor stencil packs (.vssx) and render their masters correctly, Dynamic connector: glue to connection points and to shapes (dynamic glue), _WALKGLUE behaviour, Orthogonal routing with reroute on move; straight and curved styles, Connector text that stays with the line; begin and end arrows; line ends per theme, Character and paragraph formatting, tabs, bullets, fields (date, page, shape data), Text block rotation, margins, vertical alignment, text resize behaviour, Fill, line, shadow, effects (glow, soft edge, bevel, 3-D) with the Format Shape pane, Themes, variants, theme colours and effects; THEMEVAL cells follow them, Layers per page: visible, print, lock, snap, glue, colour; layer membership, Every command on a CLI, a JSON control channel and MCP; headless render to PNG/SVG/PDF, Build a diagram from a script: drop, glue, route, lay out, export.
+Open P0 items: Export SVG (with Visio extension namespace), PNG, JPEG, EMF/WMF, PDF (vector, text, links), Multiple pages, background pages, page size and orientation, drawing scale and units, Page tabs: add, rename, reorder, duplicate, delete, Draw tools: rectangle, ellipse, line, freeform, arc, pencil, Shape text with text block control handle; double-click to edit, Control handles, connection points (add, move, type in/out/both), Geometry sections with formulas (Width*0.5 style), guarded cells, Formula engine: cell references, cross-sheet references (Sheet.N!Cell), GUARD, Inh, THEMEVAL, SETATREF, dependency recalculation, New master from a shape; edit master; document stencil, Read vendor stencil packs (.vssx) and render their masters correctly, Dynamic connector: glue to connection points and to shapes (dynamic glue), _WALKGLUE behaviour, Orthogonal routing with reroute on move; straight and curved styles, Connector text that stays with the line; begin and end arrows; line ends per theme, Character and paragraph formatting, tabs, bullets, fields (date, page, shape data), Text block rotation, margins, vertical alignment, text resize behaviour, Fill, line, shadow, effects (glow, soft edge, bevel, 3-D) with the Format Shape pane, Themes, variants, theme colours and effects; THEMEVAL cells follow them, Layers per page: visible, print, lock, snap, glue, colour; layer membership, Every command on a CLI, a JSON control channel and MCP; headless render to PNG/SVG/PDF, Build a diagram from a script: drop, glue, route, lay out, export.
 
 Core=N rows (excluded from milestone scoring):
 
@@ -60,7 +60,7 @@ Core=N rows (excluded from milestone scoring):
 | Shapes | Drop masters from a stencil; master instances inherit and can be overridden | P0 | Y | D |
 | Shapes | Selection, move, resize, rotate, flip, duplicate, group and ungroup | P0 | Y | D |
 | Shapes | Shape text with text block control handle; double-click to edit | P0 | Y | P |
-| Shapes | Shape data (custom properties) and the Shape Data window | P0 | Y | P |
+| Shapes | Shape data (custom properties) and the Shape Data window | P0 | Y | D |
 | Shapes | Hyperlinks on shapes | P1 | Y | D |
 | Shapes | Control handles, connection points (add, move, type in/out/both) | P0 | Y | P |
 | Shapes | Geometry sections with formulas (Width*0.5 style), guarded cells | P0 | Y | P |
@@ -289,3 +289,16 @@ and COM residuals are0. The shape data row stays P while the candidate is blocke
 from landing by full CI. No breadth point is claimed for an uncommitted change.
 Master/text serialization still has redundant-marker residuals; font identity
 and SAN extent focused checks pass. Routing/theme rows are unchanged.
+
+
+## M4.20 to M4.27 closure evidence
+
+Shape data P to D for the headless Core row: full eleven-cell Property rows,
+canonical string units/formulas,3970-cell original rebuild with zero differences,
+and fresh/retained Visio Property residual0 and COM0. Regression:
+property_rows_match_visio_original_local_cells. Shape data sets and data-linking
+remain separate missing rows; GUI windows are outside this headless score.
+Master/text authoring preserves original cells while following Visio's authored
+canonical pp/app.xml form. Master editing remains partial, routing and line jumps
+remain partial for the named packing/unwitnessed preferences gaps, theme remains
+partial with theme.apply deferred. No other row changes.
