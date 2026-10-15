@@ -14,7 +14,7 @@ fn walk(path: &Path, out: &mut Vec<PathBuf>) {
     }
 }
 #[test]
-fn every_corpus_package_roundtrips_at_least_ninety_nine_percent_of_dump_cells() {
+fn every_corpus_package_roundtrips_every_strict_literal_cell() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
     if !root.exists() {
         eprintln!("skip: private corpus/ is absent");

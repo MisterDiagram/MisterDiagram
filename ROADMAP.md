@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: pre-alpha, M0 through M3 met. M3 closed on 2026-10-14 under Charles's small-image ruling and two clean independent frozen passes. Phase 4 has not started. Target: Visio Standard 2021.
+Status: pre-alpha, M0 through M3 met. M3 closed on 2026-10-14 under Charles's small-image ruling and two clean independent frozen passes. Phase 4a is in progress; M4 closes after 4b. Target: Visio Standard 2021.
 
 Phase 0 establishes the workspace, conventions, oracle scripts and private corpus. Phases 1
 through 5 add reading and ShapeSheet evaluation, rendering, writing, authoring, and exports.
@@ -331,3 +331,5 @@ Seven production seeds were caught and restored exactly. Consecutive independent
 frozen passes by closure5_review and m3_writer_review each have 12 YES and 0 NO.
 The final pass verified all 230 input hashes, 1664 baseline files and 5029
 observation artifact hashes. M3 is met; stop before Phase 4.
+
+- 2026-10-14: P4a M4.0 started after a green eight-gate baseline. The strict literal roundtrip ratchet is 100%; compressed-DIB upstream drift is already covered. Authoring and glue acceptance remain pending; M4 closes in 4b.

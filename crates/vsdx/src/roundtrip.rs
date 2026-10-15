@@ -3,7 +3,8 @@ use crate::evaluate::{Evaluator, Scope};
 use diagramcraft_model::{Cell, Document, Row, Section, Shape, Sheet};
 use diagramcraft_sheet::Value;
 use std::collections::BTreeMap;
-pub const FLOOR: f64 = 99.;
+// P4a M4.0 ratchet: preserve the exact M3 strict-literal result.
+pub const FLOOR: f64 = 100.;
 const MAX_BYTES: usize = 64 * 1024 * 1024;
 const MAX_ROWS: usize = 2_000_000;
 
@@ -19,7 +20,7 @@ impl Report {
         if self.total == 0 { 0. } else { 100. * self.matched as f64 / self.total as f64 }
     }
     pub fn passed(&self) -> bool {
-        self.total > 0 && self.percent() >= FLOOR
+        self.total > 0 && self.matched == self.total
     }
     pub fn merge(&mut self, other: Self) {
         self.matched = self.matched.saturating_add(other.matched);
@@ -215,6 +216,15 @@ pub fn compare(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn strict_roundtrip_requires_every_cell_even_above_float_integer_precision() {
+        for total in [1, 15_080_738, u64::MAX] {
+            assert!(Report { matched: total, total, ..Report::default() }.passed());
+            assert!(!Report { matched: total - 1, total, ..Report::default() }.passed());
+        }
+        assert!(!Report::default().passed());
+        assert!(!Report { matched: 2, total: 1, ..Report::default() }.passed());
+    }
     #[test]
     fn complete_comparison_includes_master_pages_unknown_cells_and_deleted_rows() {
         let mut a = diagramcraft_model::skeleton::document(false);

@@ -160,3 +160,34 @@ pub(crate) fn decode(bmi: &[u8], bits: &[u8], alpha: Alpha) -> Result<Rgba, Stri
     }
     Ok(Rgba { width: w, height: h, pixels })
 }
+
+#[cfg(test)]
+mod size_tests {
+    use super::*;
+
+    #[test]
+    fn embedded_png_and_jpeg_branches_check_header_before_decode() {
+        let mut encoded = std::io::Cursor::new(Vec::new());
+        image::GrayImage::new(1, 1).write_to(&mut encoded, image::ImageFormat::Png).unwrap();
+        let mut png = encoded.into_inner();
+        png[16..20].copy_from_slice(&10_000u32.to_be_bytes());
+        png[20..24].copy_from_slice(&10_000u32.to_be_bytes());
+        let mut crc = !0u32;
+        for byte in &png[12..29] {
+            crc ^= u32::from(*byte);
+            for _ in 0..8 {
+                crc = (crc >> 1) ^ (0xedb88320 & 0u32.wrapping_sub(crc & 1));
+            }
+        }
+        png[29..33].copy_from_slice(&(!crc).to_be_bytes());
+        // Both compressed DIB tags share the same signature-sniffed image reader.
+        // The payload is deliberately inconsistent after its header: a pixel
+        // decode would fail differently if the pre-allocation check were removed.
+        for compression in [BI_PNG, BI_JPEG] {
+            let mut bmi = vec![0u8; 40];
+            bmi[..4].copy_from_slice(&40u32.to_le_bytes());
+            bmi[16..20].copy_from_slice(&compression.to_le_bytes());
+            assert_eq!(decode(&bmi, &png, Alpha::Ignore).unwrap_err(), "image pixel limit (header)");
+        }
+    }
+}

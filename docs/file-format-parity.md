@@ -2042,3 +2042,32 @@ Scored roundtrip pairs have MAD 0 and fraction-over16 0. Full corpus prints the
 three saved small-image measurements above, and its ten-outlier ratchet passes.
 The final cohort floors and memberships are unchanged. M3 is met under the
 dated ruling, with the small-image mapping work retained as a Phase 4 gate.
+
+## M4.0: Phase 4a carry-forward (2026-10-14)
+
+The three small-image groups remain informational and are not worked in 4a.
+The retained M3.41 measurements are: generated-masters 9 images, MAD 1.202102,
+over16 2.648070%; from-scratch-masters 8 images, MAD 2.823616, over16 4.452799%;
+from-scratch-pages 5 images, MAD 4.609743, over16 3.019190%. Ceilings and the
+mapping gap are unchanged; these are saved measurements, not a new VM run.
+
+Compared vectorcraft 63402451cce0d76926119cc9c0e961e7a4076b18
+("Check embedded PNG/JPEG bitmap size from the header before decoding (#1716)")
+with our retargeted crates/render/src/metafile/dib.rs. Both BI_JPEG and BI_PNG
+already call raster::decode, which reads header dimensions with into_dimensions
+before decoding, caps each axis at 16384 and pixels at 33554432, then configures
+decoder allocation limits. This is at least as strict as the DIB checks
+(32768 per axis, 33554432 pixels). No upstream code is ported. The compressed
+DIB regression now proves both dispatch tags reject the oversized header
+before attempting to decode its deliberately inconsistent pixel payload.
+
+Other deckcraft and cadcraft drift on copied paths is not ported in M4.0:
+render, text and fonts were retargeted and have diverged; the nurbs.rs
+arc-length changes concern algorithms we do not call. The separately completed
+PDF-1 ToUnicode port remains intact.
+
+The shipped-dump worker remains retired at 1181/1181. No new dump or VM run.
+Strict literal roundtrip is now an exact integer equality gate at 100%,
+ratcheted from the M3 result 15080738/15080738. A one-cell loss fails even
+when floating-point percentage rounding could print 100%. Other floors,
+populations, denominators, hook lists and volatile lists are unchanged.
