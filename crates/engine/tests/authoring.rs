@@ -252,3 +252,46 @@ fn line_resize_and_rotation_keep_endpoint_and_transform_cells_consistent() {
     assert_eq!(number(&s, 1, "EndY"), 3.);
     assert!((number(&s, 1, "Width") - 6.).abs() < 1e-9);
 }
+
+/// Full local cells, including LangID, must survive save exactly as the original.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-data-section
+#[test]
+fn property_rows_match_visio_original_local_cells() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let witness = root.join("corpus/generated/data/property-rows.vsdx");
+    if !witness.is_file() {
+        eprintln!("skip: private Property witness absent");
+        return;
+    }
+    let mut s = Session::new();
+    run(&mut s, "shape.draw.rect", json!({"x":1,"y":6,"width":1.5,"height":1.5}));
+    for (name, kind, format, value) in [
+        ("Name", 0, "", json!("Switch A")),
+        ("DomainID", 2, "", json!(42)),
+        ("Fabric", 1, "A;B", json!("A")),
+        ("Installed", 5, "yyyy-MM-dd", json!(45000)),
+    ] {
+        run(&mut s, "shape.data.define", json!({"id":1,"name":name,"type":kind,"format":format}));
+        run(&mut s, "shape.data.set", json!({"id":1,"name":name,"value":value}));
+    }
+    let bytes = diagramcraft_vsdx::write(s.document()).unwrap().bytes;
+    let actual = diagramcraft_vsdx::import(&bytes).unwrap();
+    let expected = diagramcraft_vsdx::read(witness).unwrap();
+    let cells = |doc: &diagramcraft_model::Document| {
+        doc.pages[0].shapes[0]
+            .sheet
+            .sections
+            .iter()
+            .find(|s| s.name == "Property")
+            .unwrap()
+            .rows
+            .iter()
+            .flat_map(|row| {
+                row.cells
+                    .iter()
+                    .map(move |c| ((row.name.clone(), c.name.clone()), (c.value.clone(), c.formula.clone(), c.units.clone(), c.error.clone())))
+            })
+            .collect::<std::collections::BTreeMap<_, _>>()
+    };
+    assert_eq!(cells(&actual), cells(&expected));
+}

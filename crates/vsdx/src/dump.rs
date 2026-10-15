@@ -708,6 +708,20 @@ fn supplement(slots: &mut BTreeMap<(u16, u16, u16), Slot<'_>>) -> Result<(), Str
                 synthetic: Some(Value::Text(String::new())),
             });
         }
+        if s == 243 && item.src.2 == 0 {
+            // Reserved live COM columns are absent from saved Property XML.
+            // Witness: data/property-rows, four rows H7..L10, zero and unit32.
+            // https://learn.microsoft.com/en-us/office/vba/api/visio.shape.cellssrc
+            for (c, letter) in [(9, 'H'), (10, 'I'), (11, 'J'), (12, 'K'), (13, 'L')] {
+                slots.entry((s, r, c)).or_insert_with(|| Slot {
+                    name: format!("{}{letter}{}", item.name, u32::from(r) + 7),
+                    cell: None,
+                    src: (s, r, c),
+                    units: 32,
+                    synthetic: Some(Value::Number(0.0)),
+                });
+            }
+        }
         if s == 242 {
             let base = item.name.strip_suffix(".Prompt").unwrap_or(&item.name);
             slots.entry((s, r, 1)).or_insert_with(|| Slot {

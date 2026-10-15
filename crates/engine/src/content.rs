@@ -15,6 +15,11 @@ fn string_cell(name: &str, value: &str) -> Cell {
     let formula = format!("\"{}\"", value.replace('"', "\"\""));
     Cell { units: Some("STR".into()), ..cell(name, value, Some(&formula)) }
 }
+fn property_string(name: &str, value: &str) -> Cell {
+    // Literal string values have no formula; only Property.Value has U=STR.
+    // Witness: generated/data/property-rows.vsdx.
+    Cell { units: (name == "Value").then(|| "STR".into()), ..cell(name, value, None) }
+}
 fn section<'a>(sheet: &'a mut Sheet, name: &str) -> Result<&'a mut Section> {
     let at = if let Some(i) = sheet.sections.iter().position(|s| s.name == name && !s.deleted) {
         i
@@ -34,6 +39,9 @@ fn row_name(p: &Value) -> Result<&str> {
         .then(|| name(p, "name"))
         .ok_or_else(|| operation("invalid universal row name"))?
 }
+/// Full authored row observed in generated/data/property-rows.vsdx.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-data-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/langid-cell-shape-data-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/type-cell-shape-data-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/label-cell-shape-data-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-shape-data-section
@@ -48,20 +56,26 @@ pub(crate) fn define(s: &mut Session, p: &Value) -> Result<Value> {
     }
     let label = text(p, "label", &name)?;
     let format = text(p, "format", "")?;
+    let prompt = text(p, "prompt", "")?;
     let sort_key = text(p, "sort_key", "")?;
     let invisible = p.get("invisible").and_then(Value::as_bool).unwrap_or(false);
     let value = if matches!(kind, 0 | 1 | 4) {
-        string_cell("Value", if kind == 1 { format.split(';').next().unwrap_or("") } else { "" })
+        property_string("Value", if kind == 1 { format.split(';').next().unwrap_or("") } else { "" })
     } else {
         cell("Value", "0", None)
     };
     let cells = vec![
         value,
-        string_cell("Label", label),
+        property_string("Label", label),
         cell("Type", &kind.to_string(), None),
-        string_cell("Format", format),
+        property_string("Format", format),
         cell("Invisible", if invisible { "1" } else { "0" }, None),
-        string_cell("SortKey", sort_key),
+        property_string("SortKey", sort_key),
+        property_string("Prompt", prompt),
+        cell("Verify", "0", None),
+        cell("DataLinked", "0", None),
+        cell("LangID", "en-US", None),
+        cell("Calendar", "0", None),
     ];
     s.edit_document(|doc, _| {
         let sec = section(&mut shape_mut(&mut page_mut(doc, index)?.shapes, id)?.sheet, "Property")?;
@@ -100,11 +114,11 @@ pub(crate) fn set_data(s: &mut Session, p: &Value) -> Result<Value> {
                         return Err(operation("list format limit"));
                     }
                     let mut address = crate::sheet::address(&s.document, scope, &format_name)?;
-                    address.cell = string_cell("Format", &if old.is_empty() { value.into() } else { format!("{old};{value}") });
+                    address.cell = property_string("Format", &if old.is_empty() { value.into() } else { format!("{old};{value}") });
                     format_change = Some(address);
                 }
             }
-            string_cell("Value", value)
+            property_string("Value", value)
         }
         3 => cell("Value", if value.as_bool().ok_or_else(|| operation("property requires boolean"))? { "1" } else { "0" }, None),
         _ => {

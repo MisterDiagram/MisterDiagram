@@ -304,7 +304,7 @@ pub fn command_specs() -> &'static [CommandSpec] {
             "shape.data.define",
             ["Shape"],
             None,
-            r#"{"type":"object","properties":{"page":{"type":"integer","minimum":1,"maximum":100000},"id":{"type":"integer","minimum":0,"maximum":4294967294},"name":{"type":"string","minLength":1,"maxLength":65536},"label":{"type":"string"},"type":{"type":"integer","minimum":0,"maximum":4294967294},"format":{"type":"string"},"invisible":{"type":"boolean"},"sort_key":{"type":"string"}},"required":["id","name"],"additionalProperties":false}"#,
+            r#"{"type":"object","properties":{"page":{"type":"integer","minimum":1,"maximum":100000},"id":{"type":"integer","minimum":0,"maximum":4294967294},"name":{"type":"string","minLength":1,"maxLength":65536},"label":{"type":"string"},"prompt":{"type":"string"},"type":{"type":"integer","minimum":0,"maximum":4294967294},"format":{"type":"string"},"invisible":{"type":"boolean"},"sort_key":{"type":"string"}},"required":["id","name"],"additionalProperties":false}"#,
             always,
             crate::content::define
         ),

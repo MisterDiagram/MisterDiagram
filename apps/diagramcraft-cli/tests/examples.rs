@@ -179,3 +179,16 @@ fn san_script_has_eighty_glues_and_ink_on_every_isl() {
     }
     assert!(std::fs::metadata(out.join("san-topology.svg")).unwrap().len() > 100);
 }
+
+/// Rebuild all four Property types through public session commands.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-data-section
+#[test]
+fn property_rows_script_matches_original_dump() {
+    if !root().join("corpus/generated/data/property-rows.vsdx").is_file() {
+        eprintln!("skip: private Property witness absent");
+        return;
+    }
+    let out = root().join("target/example-tests/property rows");
+    run("property-rows.sh", &out);
+    assert_eq!(std::fs::metadata(out.join("property-rows.diff")).unwrap().len(), 0);
+}
