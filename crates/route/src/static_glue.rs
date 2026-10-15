@@ -191,6 +191,8 @@ pub fn connect_static(doc: &mut Document, page_index: usize, id: u32, end: End, 
         to_part: Some(i32::try_from(index).ok().and_then(|n| n.checked_add(100)).ok_or("connection part overflow")?),
         ..Default::default()
     });
+    let target = shape_mut(&mut page.shapes, target, 0).ok_or("target missing")?;
+    set(&mut target.sheet, cell("ObjType", 1, None))?;
     Ok(())
 }
 

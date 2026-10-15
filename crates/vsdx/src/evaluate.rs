@@ -1346,9 +1346,13 @@ impl Context for BoundContext<'_, '_> {
         }
         value
     }
+    /// Arrow styles are theme-capable even though blank shape baselines are literal.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function
     fn theme_default(&mut self, name: &str) -> Value {
         let prototype = if name.starts_with("char.") { name.split('[').next().unwrap_or(name) } else { name };
-        if !defaults::cell(Scope::PageShape { page: 0, shape: 0 }, prototype).is_some_and(|c| c.formula.as_deref() == Some("THEMEVAL()")) {
+        if !matches!(prototype, "beginarrow" | "endarrow" | "beginarrowsize" | "endarrowsize")
+            && !defaults::cell(Scope::PageShape { page: 0, shape: 0 }, prototype).is_some_and(|c| c.formula.as_deref() == Some("THEMEVAL()"))
+        {
             return Value::Error(Error::Value);
         }
         if self.scope != Scope::Style(0) && self.evaluator.cell(Scope::Style(0), name).is_some() {

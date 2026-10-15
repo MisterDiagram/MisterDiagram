@@ -106,6 +106,18 @@ impl Writer<'_> {
             && c.name != "Font"
         {
             match self.evaluator.cached_cell(c) {
+                // Preserve explicit standard palette indexes. Converting 0/1 to RGB changes
+                // ResultIU when the drawing also contains a custom black/white entry.
+                // Witness: generated/basic/0001-probe.vsdx StyleSheet 0 LineColor=0, FillForegnd=1.
+                // https://learn.microsoft.com/en-us/office/client-developer/visio/linecolor-cell-line-format-section
+                Value::Number(n)
+                    if c.name != "TextBkgnd"
+                        && (0. ..24.).contains(&n)
+                        && n.fract() == 0.
+                        && Evaluator::baseline_metadata(scope, name).is_some_and(|m| m.3 == 251) =>
+                {
+                    value = Some(n.to_string());
+                }
                 Value::Number(n) => match self.evaluator.serialized_number(scope, name, c, n) {
                     Ok(v) => value = Some(v),
                     Err(e) => self.warn(scope, name, e),

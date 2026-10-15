@@ -329,6 +329,21 @@ pub(crate) fn drop_master(s: &mut Session, p: &Value) -> Result<Value> {
         let first = next_id(doc.pages.get(page_index).ok_or_else(|| operation("page missing"))?)?;
         let ids = map_shape_ids(std::slice::from_ref(root), first)?;
         let mut shape = instance(root, &ids, master_id, true, 0)?;
+        let page = doc.pages.get(page_index).ok_or_else(|| operation("page missing"))?;
+        let mut existing = page.shapes.iter().collect::<Vec<_>>();
+        let mut first_instance = true;
+        while let Some(candidate) = existing.pop() {
+            if candidate.master == Some(master_id) {
+                first_instance = false;
+                break;
+            }
+            existing.extend(&candidate.shapes);
+        }
+        if first_instance {
+            shape.name = master.name.clone();
+            shape.name_u = master.name_u.clone();
+        }
+
         set_number(&mut shape.sheet, "PinX", x)?;
         set_number(&mut shape.sheet, "PinY", y)?;
         if let Some(width) = width {

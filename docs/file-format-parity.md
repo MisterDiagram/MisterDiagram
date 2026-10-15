@@ -2119,3 +2119,7 @@ Dynamic-glue, move-before, move-after and static-glue use MoveTo(0,Height/2), Li
 ### M4.7: expose session commands through the CLI
 
 The CLI authoring path uses the same dependency-aware edit transaction and writer as direct engine calls. Page arguments are one-based ordinals; shape and master arguments retain document IDs.
+
+### M4.8: add generator scripts and command composition regressions
+
+Engine blank documents use the initial gray24/white25 palette observed in the probe; the lower-level skeleton retains its existing post-save palette contract. Standard authored palette literals remain indices. Layer defaults, first master names and revived Geometry rows match the supplied files. The probe elbow is authored through explicit ShapeSheet values, without implementing4b routing.

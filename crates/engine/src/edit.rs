@@ -99,9 +99,10 @@ pub(crate) fn set_number(sheet: &mut Sheet, name: &str, value: f64) -> Result<()
 pub(crate) fn evaluated(doc: &Document, scope: Scope, name: &str) -> Result<f64> {
     let themes = diagramcraft_theme::Themes::from_document(doc).map_err(operation)?;
     let mut evaluator = Evaluator::new(doc).map_err(operation)?.with_theme_host(&themes).with_text_host(&diagramcraft_text::Host);
-    match evaluator.evaluate(scope, name) {
-        diagramcraft_sheet::Value::Number(v) if v.is_finite() && v.abs() <= 1e6 => Ok(v),
-        value => Err(operation(format!("cannot evaluate {name}: {}", value.text()))),
+    let value = evaluator.evaluate(scope, name);
+    match value.numeric() {
+        Ok(v) if v.is_finite() && v.abs() <= 1e6 => Ok(v),
+        _ => Err(operation(format!("cannot evaluate {name}: {}", value.text()))),
     }
 }
 pub(crate) fn shape_scope(s: &Session, p: &Value) -> Result<(usize, u32, Scope)> {

@@ -151,6 +151,7 @@ impl GlueHost {
         let mut old = Evaluator::new(before).map_err(|e| e.to_string())?;
         let mut host = Self::default();
         let mut changes = vec![];
+        let mut affected = std::collections::BTreeSet::new();
         let mut count = 0usize;
         for (page_index, page) in doc.pages.iter().enumerate() {
             let mut links = BTreeMap::<u32, [Option<&diagramcraft_model::Connect>; 2]>::new();
@@ -175,14 +176,34 @@ impl GlueHost {
                 let dynamic = |c: Option<&diagramcraft_model::Connect>| c.is_some_and(|c| matches!(c.to_cell.as_deref(), Some("PinX" | "PinY")));
                 let boxes = links.map(|c| c.map(|c| bounds(&mut e, page.id, c.to_sheet)).transpose()).into_iter().collect::<Result<Vec<_>, _>>()?;
                 let preference = number(&mut e, scope, "WalkPreference")?;
+                let parent = e.parent_to_page(scope).map_err(|e| e.to_string())?;
+                if !parent.determinant().is_finite() || parent.determinant().abs() < 1e-15 {
+                    return Err("singular connector parent transform".into());
+                }
+                let mut inputs_changed =
+                    old.parent_to_page(scope).ok() != Some(parent) || number(&mut old, scope, "WalkPreference").ok() != Some(preference);
+                for (side, link) in links.iter().enumerate() {
+                    if link.is_none() {
+                        let prefix = if side == 0 { "Begin" } else { "End" };
+                        for axis in ["X", "Y"] {
+                            let name = format!("{prefix}{axis}");
+                            inputs_changed |= number(&mut old, scope, &name).ok() != number(&mut e, scope, &name).ok();
+                        }
+                    }
+                }
+                if inputs_changed {
+                    affected.insert((page_index, id));
+                }
                 for (side, link) in links.iter().enumerate() {
                     let Some(link) = link else { continue };
                     let end = if side == 0 { End::Begin } else { End::End };
                     let target = boxes.get(side).and_then(Option::as_ref).ok_or("glue target missing")?;
                     let old_target = bounds(&mut old, page.id, link.to_sheet).ok();
-                    let changed = old_target.is_none_or(|o| {
-                        o.transform != target.transform || o.width != target.width || o.height != target.height || o.points != target.points
-                    }) || !before.pages.iter().find(|p| p.id == page.id).is_some_and(|p| p.connects.contains(link));
+                    let changed = inputs_changed
+                        || old_target.is_none_or(|o| {
+                            o.transform != target.transform || o.width != target.width || o.height != target.height || o.points != target.points
+                        })
+                        || !before.pages.iter().find(|p| p.id == page.id).is_some_and(|p| p.connects.contains(link));
                     let prior = e.evaluate(scope, end.trigger()).numeric().map_err(|e| e.to_string())?;
                     let counter = if changed { prior + 1. } else { prior };
                     if !counter.is_finite() || counter > 9007199254740991. {
@@ -191,6 +212,7 @@ impl GlueHost {
                     host.triggers.insert((page.id, id, end.trigger().to_ascii_lowercase()), counter);
                     if changed {
                         changes.push((page_index, id, end.trigger(), counter));
+                        affected.insert((page_index, id));
                     }
                     if dynamic(Some(link)) {
                         let opposite = boxes.get(1usize.saturating_sub(side)).and_then(Option::as_ref);
@@ -201,19 +223,13 @@ impl GlueHost {
                             let prefix = if side == 0 { "End" } else { "Begin" };
                             let x = number(&mut e, scope, &format!("{prefix}X"))?;
                             let y = number(&mut e, scope, &format!("{prefix}Y"))?;
-                            fallback = BoxShape {
-                                transform: Affine::IDENTITY,
-                                width: 0.,
-                                height: 0.,
-                                min: Point::new(x, y),
-                                max: Point::new(x, y),
-                                points: vec![],
-                            };
+                            let point = parent * Point::new(x, y);
+                            fallback = BoxShape { transform: Affine::IDENTITY, width: 0., height: 0., min: point, max: point, points: vec![] };
                             &fallback
                         };
                         let vertical = link.to_cell.as_deref() == Some("PinY")
                             || if side == 0 { preference == 1. || preference == 3. } else { preference == 2. || preference == 3. };
-                        let point = endpoint(target, other, vertical)?;
+                        let point = parent.inverse() * endpoint(target, other, vertical)?;
                         for axis in ["x", "y"] {
                             host.points.insert((page.id, id, format!("{}{axis}", end.prefix().to_ascii_lowercase())), point);
                         }
@@ -222,7 +238,9 @@ impl GlueHost {
             }
         }
         drop(e);
-        let affected: std::collections::BTreeSet<_> = changes.iter().map(|(page, id, _, _)| (*page, *id)).collect();
+        let active: std::collections::BTreeSet<_> =
+            affected.iter().filter_map(|(index, id)| doc.pages.get(*index).map(|page| (page.id, *id))).collect();
+        host.points.retain(|(page, shape, _), _| active.contains(&(*page, *shape)));
         for (page, id, name, value) in changes {
             let page = doc.pages.get_mut(page).ok_or("glue page missing")?;
             let shape = shape_mut(&mut page.shapes, id, 0).ok_or("glue shape missing")?;

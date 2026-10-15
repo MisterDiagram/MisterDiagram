@@ -766,7 +766,7 @@ fn authored_and_edited_literal_cache_types_are_serialized_by_type() {
     let mut a = import(&write(&d).unwrap().bytes).unwrap();
     let sheet = &mut a.pages[0].shapes[0].sheet;
     assert_eq!(sheet.cell("TextBkgnd").unwrap().value.as_deref(), Some("#ffffff"));
-    assert_eq!(sheet.cell("LineColor").unwrap().value.as_deref(), Some("#000000"));
+    assert_eq!(sheet.cell("LineColor").unwrap().value.as_deref(), Some("0"));
     assert_eq!(sheet.cell("Comment").unwrap().value.as_deref(), Some(""));
     let row = &mut sheet.sections.iter_mut().find(|s| s.name == "Character").unwrap().rows[0];
     assert_eq!(row.cells[0].value.as_deref(), Some("en-US"));
@@ -776,7 +776,7 @@ fn authored_and_edited_literal_cache_types_are_serialized_by_type() {
     sheet.cells.iter_mut().find(|c| c.name == "LineColor").unwrap().value = Some("1".into());
     let b = import(&write(&a).unwrap().bytes).unwrap();
     let sheet = &b.pages[0].shapes[0].sheet;
-    assert_eq!(sheet.cell("LineColor").unwrap().value.as_deref(), Some("#ffffff"));
+    assert_eq!(sheet.cell("LineColor").unwrap().value.as_deref(), Some("1"));
     let row = &sheet.sections.iter().find(|s| s.name == "Character").unwrap().rows[0];
     assert_eq!(row.cells[0].value.as_deref(), Some("en-GB"));
     assert_eq!(row.cells[1].value.as_deref(), Some("Calibri"));

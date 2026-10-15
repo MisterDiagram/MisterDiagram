@@ -250,10 +250,9 @@ pub(crate) fn add_row(s: &mut Session, p: &Value) -> Result<Value> {
             .ok_or_else(|| operation("row index overflow"))?;
         let row_index = p.get("index").map(|_| uint(p, "index")).transpose()?.unwrap_or(next);
         if row_index >= 65536
-            || section
-                .rows
-                .iter()
-                .any(|r| r.index == Some(row_index) || row_name.is_some_and(|n| r.name.as_ref().is_some_and(|v| v.eq_ignore_ascii_case(n))))
+            || section.rows.iter().any(|r| {
+                !r.deleted && (r.index == Some(row_index) || row_name.is_some_and(|n| r.name.as_ref().is_some_and(|v| v.eq_ignore_ascii_case(n))))
+            })
         {
             return Err(operation("row index limit or duplicate row"));
         }
@@ -281,6 +280,7 @@ pub(crate) fn add_row(s: &mut Session, p: &Value) -> Result<Value> {
             "FillGradient" | "LineGradient" => &["GradientStopColor", "GradientStopColorTrans", "GradientStopPosition"],
             _ => return Err(operation("unsupported row")),
         };
+        section.rows.retain(|r| !(r.deleted && r.index == Some(row_index)));
         section.rows.push(Row {
             name: row_name.map(str::to_owned),
             index: Some(row_index),

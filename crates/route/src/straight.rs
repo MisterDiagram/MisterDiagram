@@ -64,7 +64,7 @@ fn row(index: u32, kind: &str, cells: Vec<diagramcraft_model::Cell>, deleted: bo
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.shape.reroute
 pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force: Option<(usize, Option<u32>)>) -> Result<usize, String> {
     let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_glue_host(host);
-    let old = Evaluator::new(before).map_err(|e| e.to_string())?;
+    let mut old = Evaluator::new(before).map_err(|e| e.to_string())?;
     let mut routes = vec![];
     for scope in e.scopes().collect::<Vec<_>>() {
         let Scope::PageShape { page, shape: id } = scope else { continue };
@@ -78,6 +78,7 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
         let changed = previous.is_none_or(|old| {
             ["BeginX", "BeginY", "EndX", "EndY", "BegTrigger", "EndTrigger"].iter().any(|name| old.sheet.cell(name) != current.sheet.cell(name))
         });
+        let changed = changed || ["BeginX", "BeginY", "EndX", "EndY"].iter().any(|name| e.evaluate(scope, name) != old.evaluate(scope, name));
         if !forced && !changed {
             continue;
         }

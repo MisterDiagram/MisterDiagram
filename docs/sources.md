@@ -37,6 +37,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/atan2-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/beginarrow-cell-line-format-section> | `crates/render/src/style.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/beginarrowsize-cell-line-format-section> | `crates/render/src/style.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/beginx-cell-1-d-endpoints-section> | `crates/vsdx/src/evaluate/transform.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/begtrigger-cell-glue-info-section> | `crates/route/src/glue_host.rs`, `crates/sheet/src/eval.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/write.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/bitand-function> | `crates/sheet/src/functions/extras.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/bitnot-function> | `crates/sheet/src/functions/extras.rs` |
@@ -50,7 +51,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml> | `crates/engine/src/lib.rs`, `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs`, `crates/model/src/skeleton_defaults.rs`, `crates/render/tests/authored.rs`, `crates/sheet/src/eval.rs`, `crates/sheet/src/units.rs`, `crates/vsdx/src/dump.rs`, `crates/vsdx/src/dump/serialized.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/defaults.rs`, `crates/vsdx/src/evaluate/inherit.rs`, `crates/vsdx/src/roundtrip.rs`, `crates/vsdx/src/write.rs`, `crates/vsdx/src/write/instances.rs`, `crates/vsdx/src/write/model.rs`, `crates/vsdx/src/write/source.rs`, `crates/vsdx/src/write/validate.rs`, `crates/vsdx/tests/writer.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/color-cell-character-section> | `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/colorentry-element-colors_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/colors-element-visiodocument_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs`, `crates/render/tests/authored.rs`, `crates/sheet/src/eval.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/write.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/colors-element-visiodocument_type-complextypevisio-xml> | `crates/engine/src/files.rs`, `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs`, `crates/render/tests/authored.rs`, `crates/sheet/src/eval.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/write.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/colorschemeindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/compoundtype-cell-line-format-section> | `crates/render/src/style.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/connect-element-connects_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/model/tests/from_scratch.rs`, `crates/route/src/static_glue.rs`, `crates/vsdx/src/write/model.rs`, `crates/vsdx/src/write/validate.rs` |
@@ -246,7 +247,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/themeguard-function> | `crates/sheet/src/functions/theme.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/themeindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/themerestore-function> | `crates/sheet/src/functions/theme.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function> | `crates/sheet/src/eval.rs`, `crates/sheet/src/functions/theme.rs`, `crates/sheet/src/host.rs`, `crates/theme/src/resolve.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function> | `crates/sheet/src/eval.rs`, `crates/sheet/src/functions/theme.rs`, `crates/sheet/src/host.rs`, `crates/theme/src/resolve.rs`, `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/tint-function> | `crates/sheet/src/functions/color_adjust.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/tp-element-text_type-complextypevisio-xml> | `crates/vsdx/src/evaluate/text.rs`, `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/trigger-elementvisio-xml> | `crates/model/src/lib.rs` |

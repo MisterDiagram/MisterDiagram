@@ -162,7 +162,7 @@ pub(crate) fn resize(s: &mut Session, p: &Value) -> Result<Value> {
     let w = number(p, "width")?;
     let h = number(p, "height")?;
     let e = diagramcraft_vsdx::evaluate::Evaluator::new(&s.document).map_err(operation)?;
-    let line = e.cell(scope, "BeginX").is_some() && e.cell(scope, "Width").and_then(|c| c.formula.as_deref()).is_some_and(|f| f.starts_with("SQRT("));
+    let line = e.cell(scope, "BeginX").is_some();
     if w <= 0. || h < 0. || (!line && h == 0.) {
         return Err(operation("shape dimensions must be positive (a line may have zero height)"));
     }
@@ -257,8 +257,41 @@ pub(crate) fn delete(s: &mut Session, p: &Value) -> Result<Value> {
         }
         Ok(())
     }
+    let page = s.document.pages.get(index).ok_or_else(|| operation("page not found"))?;
+    let mut evaluator = diagramcraft_vsdx::evaluate::Evaluator::new(&s.document).map_err(operation)?;
+    let target =
+        evaluator.shape(diagramcraft_vsdx::evaluate::Scope::PageShape { page: page.id, shape: id }).ok_or_else(|| operation("shape missing"))?;
+    let mut pending = vec![target];
+    let mut deleted = std::collections::BTreeSet::new();
+    while let Some(shape) = pending.pop() {
+        if deleted.len() >= 100000 {
+            return Err(operation("delete shape count limit"));
+        }
+        deleted.insert(shape.id);
+        pending.extend(&shape.shapes);
+    }
+    let mut detached = vec![];
+    for link in &page.connects {
+        if deleted.contains(&link.to_sheet) && !deleted.contains(&link.from_sheet) {
+            let (prefix, trigger) = match link.from_cell.as_deref() {
+                Some("BeginX" | "BeginY") => ("Begin", "BegTrigger"),
+                Some("EndX" | "EndY") => ("End", "EndTrigger"),
+                _ => continue,
+            };
+            let scope = diagramcraft_vsdx::evaluate::Scope::PageShape { page: page.id, shape: link.from_sheet };
+            for axis in ["X", "Y"] {
+                let name = format!("{prefix}{axis}");
+                let value = evaluator.evaluate(scope, &name).numeric().map_err(operation)?;
+                detached.push((link.from_sheet, name, value));
+            }
+            detached.push((link.from_sheet, trigger.to_owned(), 0.));
+        }
+    }
     s.edit_document(|doc, selection| {
         let page = page_mut(doc, index)?;
+        for (shape, name, value) in detached {
+            set_number(&mut shape_mut(&mut page.shapes, shape)?.sheet, &name, value)?;
+        }
         let mut removed = vec![];
         remove(&mut page.shapes, id, &mut removed, 0)?;
         page.connects.retain(|c| !removed.contains(&c.from_sheet) && !removed.contains(&c.to_sheet));

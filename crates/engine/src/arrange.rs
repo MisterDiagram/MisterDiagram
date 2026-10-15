@@ -51,8 +51,8 @@ struct Frame {
 }
 fn frame(e: &mut Evaluator<'_>, scope: Scope) -> Result<Frame> {
     let mut n = |name: &str| -> Result<f64> {
-        match e.evaluate(scope, name) {
-            diagramcraft_sheet::Value::Number(n) if n.is_finite() && n.abs() <= 1e6 => Ok(n),
+        match e.evaluate(scope, name).numeric() {
+            Ok(n) if n.is_finite() && n.abs() <= 1e6 => Ok(n),
             _ => Err(operation(format!("invalid {name}"))),
         }
     };
@@ -117,6 +117,11 @@ pub(crate) fn group(s: &mut Session, p: &Value) -> Result<Value> {
             .map_err(operation)?;
         group.shape_type = Some("Group".into());
         group.sheet.sections.clear();
+        let glued = page
+            .connects
+            .iter()
+            .filter_map(|c| c.from_cell.as_deref().filter(|n| matches!(*n, "BeginX" | "EndX")).map(|n| (c.from_sheet, n.to_owned())))
+            .collect::<BTreeSet<_>>();
         let shapes = siblings(&mut page.shapes, owner)?;
         let position = shapes.iter().position(|s| ids.contains(&s.id)).ok_or_else(|| operation("shape missing"))?;
         let mut i = 0;
@@ -124,6 +129,21 @@ pub(crate) fn group(s: &mut Session, p: &Value) -> Result<Value> {
             let selected = shapes.get(i).is_some_and(|s| ids.contains(&s.id));
             if selected {
                 let mut child = shapes.remove(i);
+                let glue_formulas = child
+                    .sheet
+                    .cells
+                    .iter()
+                    .filter_map(|c| {
+                        let key = if c.name.starts_with("Begin") {
+                            "BeginX"
+                        } else if c.name.starts_with("End") {
+                            "EndX"
+                        } else {
+                            ""
+                        };
+                        glued.contains(&(child.id, key.to_owned())).then(|| (c.name.clone(), c.formula.clone()))
+                    })
+                    .collect::<BTreeMap<_, _>>();
                 translate(&mut child.sheet, frames.get(&child.id).ok_or_else(|| operation("frame missing"))?, -bounds.x0, -bounds.y0)?;
                 let frame = frames.get(&child.id).ok_or_else(|| operation("frame missing"))?;
                 let width = bounds.width().max(1e-9);
@@ -145,7 +165,8 @@ pub(crate) fn group(s: &mut Session, p: &Value) -> Result<Value> {
                 };
                 for (name, value, axis, extent) in values {
                     let formula = format!("Sheet.{id}!{axis}*{}", value / extent);
-                    set(&mut child.sheet, name, &value.to_string(), Some(&formula))?;
+                    let formula = glue_formulas.get(name).map_or(Some(formula.as_str()), |f| f.as_deref());
+                    set(&mut child.sheet, name, &value.to_string(), formula)?;
                 }
                 group.shapes.push(child);
             } else {
@@ -176,6 +197,11 @@ pub(crate) fn ungroup(s: &mut Session, p: &Value) -> Result<Value> {
     }
     s.edit_document(|doc, selection| {
         let page = page_mut(doc, index)?;
+        let glued = page
+            .connects
+            .iter()
+            .filter_map(|c| c.from_cell.as_deref().filter(|n| matches!(*n, "BeginX" | "EndX")).map(|n| (c.from_sheet, n.to_owned())))
+            .collect::<BTreeSet<_>>();
         let shapes = siblings(&mut page.shapes, owner)?;
         let position = shapes.iter().position(|s| s.id == id).ok_or_else(|| operation("group not found"))?;
         let group_shape = shapes.remove(position);
@@ -185,7 +211,12 @@ pub(crate) fn ungroup(s: &mut Session, p: &Value) -> Result<Value> {
                 let a = group.transform * a;
                 let b = group.transform * b;
                 for (n, v) in [("BeginX", a.x), ("BeginY", a.y), ("EndX", b.x), ("EndY", b.y)] {
+                    let key = if n.starts_with("Begin") { "BeginX" } else { "EndX" };
+                    let formula = glued.contains(&(child.id, key.to_owned())).then(|| child.sheet.cell(n).and_then(|c| c.formula.clone())).flatten();
                     set_number(&mut child.sheet, n, v)?;
+                    if let Some(formula) = formula {
+                        set(&mut child.sheet, n, &v.to_string(), Some(&formula))?;
+                    }
                 }
             } else {
                 set_number(&mut child.sheet, "Width", f.width)?;
@@ -402,7 +433,18 @@ pub(crate) fn same_size(s: &mut Session, p: &Value) -> Result<Value> {
         for id in &ids {
             let sheet = &mut shape_mut(&mut page_mut(doc, index)?.shapes, *id)?.sheet;
             if axis != "height" {
-                set_number(sheet, "Width", reference.width)?;
+                let f = frames.get(id).ok_or_else(|| operation("frame missing"))?;
+                if let Some([a, b]) = f.ends {
+                    let angle = (b.y - a.y).atan2(b.x - a.x);
+                    let center = Point::new((a.x + b.x) / 2., (a.y + b.y) / 2.);
+                    let dx = reference.width * angle.cos() / 2.;
+                    let dy = reference.width * angle.sin() / 2.;
+                    for (name, value) in [("BeginX", center.x - dx), ("BeginY", center.y - dy), ("EndX", center.x + dx), ("EndY", center.y + dy)] {
+                        set_number(sheet, name, value)?;
+                    }
+                } else {
+                    set_number(sheet, "Width", reference.width)?;
+                }
             }
             if axis != "width" {
                 set_number(sheet, "Height", reference.height)?;

@@ -43,6 +43,14 @@ impl Evaluator<'_> {
         let (m, _) = self.page_transform(scope)?;
         Ok(diagramcraft_geom::Affine::new([m.a, m.b, m.c, m.d, m.x, m.y]))
     }
+    /// Parent coordinates (including one-dimensional endpoints) to page inches.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/beginx-cell-1-d-endpoints-section
+    pub fn parent_to_page(&mut self, scope: Scope) -> Result<diagramcraft_geom::Affine, Error> {
+        match self.parents.get(&scope).copied() {
+            Some(parent) => self.shape_to_page(parent),
+            None => Ok(diagramcraft_geom::Affine::IDENTITY),
+        }
+    }
     /// Local to page conversion uses each enclosing shape's pin, angle and flips.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/loctoloc-function
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/loctopar-function

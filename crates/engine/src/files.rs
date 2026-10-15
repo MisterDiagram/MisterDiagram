@@ -19,6 +19,15 @@ pub(crate) fn path<'a>(p: &'a Value, key: &str) -> Result<&'a Path> {
 fn extension(path: &Path) -> Result<String> {
     path.extension().and_then(|s| s.to_str()).map(str::to_ascii_lowercase).ok_or_else(|| operation("output needs a supported extension"))
 }
+/// Documents.Add's initial custom palette, before first-save RGB entries are appended.
+/// Witness: generated/basic/0001-probe.vsdx. The low-level skeleton retains its
+/// M3 post-save palette contract for existing programmatic callers.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/colors-element-visiodocument_type-complextypevisio-xml
+pub(crate) fn blank_document(metric: bool) -> diagramcraft_model::Document {
+    let mut document = diagramcraft_model::skeleton::document(metric);
+    document.colors = [(24, "#7F7F7F".into()), (25, "#FFFFFF".into())].into_iter().collect();
+    document
+}
 /// Create an empty drawing, corresponding to Documents.Add("").
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.documents.add
 pub(crate) fn new(s: &mut Session, p: &Value) -> Result<Value> {
@@ -27,7 +36,7 @@ pub(crate) fn new(s: &mut Session, p: &Value) -> Result<Value> {
         Some(Value::Bool(b)) => *b,
         _ => return Err(operation("metric must be boolean")),
     };
-    s.document = Arc::new(diagramcraft_model::skeleton::document(metric));
+    s.document = Arc::new(blank_document(metric));
     s.selection = Selection::default();
     s.path = None;
     s.undo.clear();

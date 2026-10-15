@@ -765,3 +765,7 @@ Straight route Geometry and XForm match four private witnesses. The explicit aut
 ### P4a M4.7
 
 commands, describe, run and convert share the engine Session. JSON schemas are listed, argv and command counts are bounded, hostile arguments have regressions, and failed sequences do not publish the final save. Corpus check is unchanged.
+
+### P4a M4.8
+
+Probe, static and move diffs are empty:6381,5349 and10 eligible cells respectively, using existing exclusions. Both generator scripts run in CI, including connector ink detection. Seven independent discovery findings have regression fixes. VM serialization refinements follow in M4.9; P4a pixel acceptance remains partial.

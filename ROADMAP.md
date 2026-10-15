@@ -347,3 +347,5 @@ observation artifact hashes. M3 is met; stop before Phase 4.
 - 2026-10-15: M4.6 write and recompute straight connector routes. Its isolated full CI gate must pass and match this tree before commit. P4a pixel acceptance remains partial.
 
 - 2026-10-15: M4.7 expose session commands through the CLI. Its isolated full CI gate must pass and match this tree before commit. P4a pixel acceptance remains partial.
+
+- 2026-10-15: M4.8 add generator scripts and command composition regressions. Its isolated full CI gate must pass and match this tree before commit. P4a pixel acceptance remains partial.

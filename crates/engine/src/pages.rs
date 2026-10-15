@@ -37,8 +37,12 @@ pub(crate) fn delete(s: &mut Session, p: &Value) -> Result<Value> {
                 page.attributes.remove("BackPage");
             }
         }
-        selection.page = selection.page.min(doc.pages.len() - 1);
-        selection.shapes.clear();
+        if selection.page == index {
+            selection.page = index.min(doc.pages.len() - 1);
+            selection.shapes.clear();
+        } else if selection.page > index {
+            selection.page -= 1;
+        }
         if let Some(settings) = doc.document_settings.as_mut()
             && settings.attr("TopPage") == Some(id.as_str())
             && let Some(first) = doc.pages.first()
@@ -183,7 +187,16 @@ pub(crate) fn layer_add(s: &mut Session, p: &Value) -> Result<Value> {
             .max()
             .map_or(Some(0), |v| v.checked_add(1))
             .ok_or_else(|| operation("layer index overflow"))?;
-        sec.rows.push(diagramcraft_model::skeleton::layer(id, &title, true).map_err(operation)?);
+        let mut row = diagramcraft_model::skeleton::layer(id, &title, true).map_err(operation)?;
+        // Layers.Add defaults, observed in generated/basic/0001-probe.sheet.tsv.
+        for c in &mut row.cells {
+            match c.name.as_str() {
+                "Color" => c.value = Some("255".into()),
+                "Snap" | "Glue" => c.value = Some("1".into()),
+                _ => {}
+            }
+        }
+        sec.rows.push(row);
         Ok(json!({"layer":id}))
     })
 }

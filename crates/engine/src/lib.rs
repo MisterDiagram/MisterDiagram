@@ -70,7 +70,7 @@ pub struct Session {
 impl Default for Session {
     fn default() -> Self {
         Self {
-            document: Arc::new(diagramcraft_model::skeleton::document(false)),
+            document: Arc::new(files::blank_document(false)),
             stencils: Vec::new(),
             selection: Selection::default(),
             path: None,

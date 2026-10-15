@@ -213,6 +213,7 @@ version = "0.0.1"
 dependencies = [
  "diagramcraft-corpus",
  "diagramcraft-engine",
+ "diagramcraft-geom",
  "diagramcraft-opc",
  "diagramcraft-render",
  "diagramcraft-text",
