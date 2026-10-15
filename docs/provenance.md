@@ -151,3 +151,15 @@ corpus/blank/blank.vsdx and the saved scratch Page witnesses. Metric centres
 use the authored A4 page dimensions in internal inches. These scalar format
 defaults contain no vendor visual asset. Public Page reference:
 https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
+
+### P4b route and theme observations
+
+The private synthetic sweep at corpus commit e51552a4a1552f608d2fc937988876cde8558ecb
+contains 23 route drawings and one theme observation. The recipe, dumps and
+exports were generated through the existing scheduled-task oracle runner.
+`docs/file-format-parity.md` records the full Geometry, layout, XForm and Connects
+tables before router implementation. The route frames, jump row types and
+legacy theme slot/shadow interpretation come from those outputs, with the
+Microsoft reference pages cited in the recipe and source. No implementation
+from Visio or another renderer was read or copied. No theme asset enters this
+repository. Existing `line/compound-1` supplies the double-stroke observation.

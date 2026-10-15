@@ -402,3 +402,5 @@ over16 1.225363% remain within the unchanged ceiling; G8 retains ten outliers.
 M4 stays open until 4b. Its estimate remains 24 to 40 engineering hours before
 review; connector stroke rendering and small-image export mapping stay recorded
 as separate renderer work.
+
+- 2026-10-15: P4b witness sweep: 23 route drawings and one theme drawing, 144 new artifacts pinned privately. Theme variant COM refused; theme.apply deferred. Corpus check passes 1411 packages and 15104014/15104014 strict cells, with 1181 shipped dumps and the unchanged ten-outlier ratchet. New route/theme groups pass the frozen non-text ceilings. M4 remains open for router and SAN acceptance.

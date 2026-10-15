@@ -243,6 +243,141 @@ try {
             $s=$page.Import($path); Cell $s 'PinX' '4 in'; Cell $s 'PinY' '5 in'; Cell $s 'Width' '3 in'; Cell $s 'Height' '2 in'
         } | Out-Null
     }
+    # P4b route sweep. These recipes observe Visio; no route coordinates are supplied.
+    # pinx-cell-shape-transform-section.md, piny-cell-shape-transform-section.md
+    foreach ($offset in @('right-above','right-below','above','below','left')) {
+        Drawing "route/offset-$offset" {
+            param($doc,$page)
+            $pair=Pair $page
+            switch ($offset) {
+                'right-above' { Cell $pair[1] 'PinY' '9 in' }
+                'right-below' { Cell $pair[1] 'PinY' '3 in' }
+                'above' { Cell $pair[1] 'PinX' '1.75 in'; Cell $pair[1] 'PinY' '9.75 in' }
+                'below' { Cell $pair[1] 'PinX' '1.75 in'; Cell $pair[1] 'PinY' '3.75 in' }
+                'left' { Cell $pair[0] 'PinX' '6.75 in'; Cell $pair[1] 'PinX' '1.75 in' }
+            }
+            Dynamic $page $pair[0] $pair[1] | Out-Null
+            Route-Connectors $page
+        } | Out-Null
+    }
+    function Route-Obstacle($page, [double]$x0, [double]$y0, [double]$x1, [double]$y1, [int]$kind=1, [bool]$permeable=$false) {
+        $o=$page.DrawRectangle($x0,$y0,$x1,$y1)
+        # objtype-cell-miscellaneous-section.md
+        Cell $o 'ObjType' "$kind"
+        # shapepermeablex-cell-shape-layout-section.md, shapepermeabley-cell-shape-layout-section.md
+        $value=if ($permeable) { 'TRUE' } else { 'FALSE' }
+        Cell $o 'ShapePermeableX' $value; Cell $o 'ShapePermeableY' $value
+        $o
+    }
+    foreach ($obstacle in @('below-centre','stacked','touching','permeable','objtype-zero')) {
+        Drawing "route/obstacle-$obstacle" {
+            param($doc,$page)
+            $pair=Pair $page
+            switch ($obstacle) {
+                'below-centre' { Route-Obstacle $page 3 4.5 4 7 | Out-Null }
+                'stacked' { Route-Obstacle $page 3 4 4 6.25 | Out-Null; Route-Obstacle $page 3 7.25 4 9 | Out-Null }
+                'touching' { Route-Obstacle $page 3 5 4 6.75 | Out-Null }
+                'permeable' { Route-Obstacle $page 3 5 4 8 1 $true | Out-Null }
+                'objtype-zero' { Route-Obstacle $page 3 5 4 8 0 | Out-Null }
+            }
+            Dynamic $page $pair[0] $pair[1] | Out-Null
+            Route-Connectors $page
+        } | Out-Null
+    }
+    foreach ($style in @(1,2,16)) {
+        Drawing "route/style-$style" {
+            param($doc,$page)
+            $pair=Pair $page
+            # piny-cell-shape-transform-section.md, routestyle-cell-page-layout-section.md
+            Cell $pair[1] 'PinY' '9 in'; Cell $page.PageSheet 'RouteStyle' "$style"
+            Dynamic $page $pair[0] $pair[1] | Out-Null
+            Route-Connectors $page
+        } | Out-Null
+    }
+    Drawing 'route/style-override' {
+        param($doc,$page)
+        $pair=Pair $page
+        # piny-cell-shape-transform-section.md, routestyle-cell-page-layout-section.md
+        Cell $pair[1] 'PinY' '9 in'; Cell $page.PageSheet 'RouteStyle' '1'
+        $c=Dynamic $page $pair[0] $pair[1]
+        # shaperoutestyle-cell-shape-layout-section.md
+        Cell $c 'ShapeRouteStyle' '2'
+        Route-Connectors $page
+    } | Out-Null
+    function Route-Crossings($page, [int]$count=1) {
+        $a=$page.DrawRectangle(0.5,4.5,1.5,5.5); $b=$page.DrawRectangle(6.5,4.5,7.5,5.5)
+        $ends=@()
+        $xs=if ($count -eq 3) { @(2,4,6) } else { @(4) }
+        foreach ($x in $xs) {
+            $c=$page.DrawRectangle($x-0.5,1.5,$x+0.5,2.5)
+            $d=$page.DrawRectangle($x-0.5,7.5,$x+0.5,8.5)
+            $ends+=,@($c,$d)
+        }
+        Dynamic $page $a $b | Out-Null
+        foreach ($pair in $ends) { Dynamic $page $pair[0] $pair[1] | Out-Null }
+    }
+    foreach ($jump in @('gap','square','two-sides','code-2','factor-x','three-crossings')) {
+        Drawing "route/jump-$jump" {
+            param($doc,$page)
+            $count=if ($jump -eq 'three-crossings') { 3 } else { 1 }
+            Route-Crossings $page $count
+            $style=switch ($jump) { 'gap' {2} 'square' {3} 'two-sides' {4} default {1} }
+            $code=if ($jump -eq 'code-2') { 2 } else { 1 }
+            # linejumpstyle-cell-page-layout-section.md, linejumpcode-cell-page-layout-section.md
+            # Numeric code 2 is requested; the reference labels it vertical, not horizontal.
+            Cell $page.PageSheet 'LineJumpStyle' "$style"; Cell $page.PageSheet 'LineJumpCode' "$code"
+            # linejumpfactorx-cell-page-layout-section.md
+            if ($jump -eq 'factor-x') { Cell $page.PageSheet 'LineJumpFactorX' '1.0' }
+            Route-Connectors $page
+        } | Out-Null
+    }
+    foreach ($preference in @('line-to-node','block-size','avoid-page-breaks')) {
+        Drawing "route/preference-$preference" {
+            param($doc,$page)
+            $pair=Pair $page
+            # plowcode-cell-page-layout-section.md: keep the authored obstacle positions.
+            Cell $page.PageSheet 'PlowCode' '0'
+            switch ($preference) {
+                'line-to-node' {
+                    Route-Obstacle $page 3 5 4 8 | Out-Null
+                    # linetonodex-cell-page-layout-section.md, linetonodey-cell-page-layout-section.md
+                    Cell $page.PageSheet 'LineToNodeX' '0.25 in'; Cell $page.PageSheet 'LineToNodeY' '0.25 in'
+                }
+                'block-size' {
+                    Route-Obstacle $page 3 5 4 8 | Out-Null
+                    # blocksizex-cell-page-layout-section.md, blocksizey-cell-page-layout-section.md
+                    Cell $page.PageSheet 'BlockSizeX' '0.5 in'; Cell $page.PageSheet 'BlockSizeY' '0.5 in'
+                }
+                'avoid-page-breaks' {
+                    # pagewidth-cell-page-properties-section.md, pageheight-cell-page-properties-section.md
+                    Cell $page.PageSheet 'PageWidth' '17 in'; Cell $page.PageSheet 'PageHeight' '11 in'
+                    # paperkind-cell-print-properties-section.md, printpageorientation-cell-print-properties-section.md
+                    Cell $page.PageSheet 'PaperKind' '1'; Cell $page.PageSheet 'PrintPageOrientation' '1'
+                    # pinx-cell-shape-transform-section.md, piny-cell-shape-transform-section.md
+                    Cell $pair[0] 'PinX' '6 in'; Cell $pair[1] 'PinX' '10 in'; Cell $pair[1] 'PinY' '9 in'
+                    # avoidpagebreaks-cell-page-layout-section.md
+                    Cell $page.PageSheet 'AvoidPageBreaks' 'TRUE'
+                }
+            }
+            Dynamic $page $pair[0] $pair[1] | Out-Null
+            Route-Connectors $page
+        } | Out-Null
+    }
+    # https://learn.microsoft.com/en-us/office/vba/api/visio.page.settheme
+    # https://learn.microsoft.com/en-us/office/vba/api/visio.page.setthemevariant
+    # A refused COM call is logged by Drawing; the route sweep is still retained.
+    Drawing 'theme/builtin-1' {
+        param($doc,$page)
+        Pair $page | Out-Null
+        $page.SetTheme(1)
+    } | Out-Null
+    Drawing 'theme/builtin-1-variant' {
+        param($doc,$page)
+        Pair $page | Out-Null
+        $page.SetTheme(1)
+        $page.SetThemeVariant(1,1,2)
+    } | Out-Null
+
     Log "SUMMARY made=$script:Made resumed=$script:Resumed failed=$script:Failed cells=$script:CellCount cell_errors=$script:CellErrors primary_cells=$($script:CellCount-$script:SupplementCells) supplemental_cells=$script:SupplementCells"
 } catch { "FAIL $($_.Exception.Message) $($_.ScriptStackTrace)" | Out-File $log -Append
 } finally {

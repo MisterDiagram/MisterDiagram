@@ -2256,3 +2256,11186 @@ over16 1.225363% remain within the unchanged ceiling; G8 retains ten outliers.
 M4 stays open until 4b. Its estimate remains 24 to 40 engineering hours before
 review; connector stroke rendering and small-image export mapping stay recorded
 as separate renderer work.
+
+## Observed, undocumented: P4b route witness sweep
+
+These tables are observations of synthetic drawings made by the P4b recipe,
+recorded before router implementation. They are not copied vendor artwork.
+All values are internal units; formulas are the live COM FormulaU values.
+Layout rows include the complete Page Layout and Shape Layout cell sets.
+Geometry includes the resolved cells and the saved local row types/deletions.
+Private originals retain their full document, master and style dumps.
+
+### route/jump-code-2
+
+Witness: `corpus/generated/route/jump-code-2.vsdx`, SHA-256 `a035a860c099b9d4b63dce07e165d69e4a900067615eeaccc6eaa7a4d40ced20`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 2 | 2 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 1 | 1 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1 in | 1 | 73 |
+| shape | 1 | 1,1,1 | PinY | 5 in | 5 | 73 |
+| shape | 1 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 1 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 7 in | 7 | 73 |
+| shape | 2 | 1,1,1 | PinY | 5 in | 5 | 73 |
+| shape | 2 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 2 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | 4 in | 4 | 73 |
+| shape | 3 | 1,1,1 | PinY | 2 in | 2 | 73 |
+| shape | 3 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 3 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 3 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 3 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 3 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 3 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 3 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 3 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 3 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,1,0 | PinX | 4 in | 4 | 73 |
+| shape | 4 | 1,1,1 | PinY | 8 in | 8 | 73 |
+| shape | 4 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 4 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 4 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 4 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 4 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 4 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 4 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 4 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 4 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 4 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 4 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 4 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 4 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 4 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 4 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 4 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 4 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 4 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 4 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 4 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 4 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 4 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 4 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 4 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 4 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 4 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 4 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 4 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 4 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 4 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 4 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 4 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 4 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 4 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 4 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 4 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 4 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 4 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 4 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 4 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 4 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 4 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 5 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 4 | 73 |
+| shape | 5 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 5 | 73 |
+| shape | 5 | 1,1,2 | Width | GUARD(EndX-BeginX) | 5 | 73 |
+| shape | 5 | 1,1,3 | Height | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 5 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 2.5 | 73 |
+| shape | 5 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.125 | 73 |
+| shape | 5 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 5 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 5 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 5 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 1.5 | 73 |
+| shape | 5 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 5 | 73 |
+| shape | 5 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 6.5 | 73 |
+| shape | 5 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 5 | 73 |
+| shape | 5 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 5 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 5 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 5 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 5 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 5 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 5 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 5 | 10,1,1 | Geometry1.Y1 | 0.125 in | 0.125 | 73 |
+| shape | 5 | 10,2,0 | Geometry1.X2 | 5 in | 5 | 73 |
+| shape | 5 | 10,2,1 | Geometry1.Y2 | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 5 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 5 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 5 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 5 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 5 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 5 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 5 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 5 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 5 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 5 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 5 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 5 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 5 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 5 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 5 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 5 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 5 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 5 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 5 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 5 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 5 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 5 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 5 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 5 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 5 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 5 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 5 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 5 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 5 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 5 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 5 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 5 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 5 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 5 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 5 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 5 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 5 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 6 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 4 | 73 |
+| shape | 6 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 5 | 73 |
+| shape | 6 | 1,1,2 | Width | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 6 | 1,1,3 | Height | GUARD(EndY-BeginY) | 5 | 73 |
+| shape | 6 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 0.125 | 73 |
+| shape | 6 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 2.5 | 73 |
+| shape | 6 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 6 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 6 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 6 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 4 | 73 |
+| shape | 6 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 2.5 | 73 |
+| shape | 6 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 4 | 73 |
+| shape | 6 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 7.5 | 73 |
+| shape | 6 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 6 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 6 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 6 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 6 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 6 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 6 | 10,1,0 | Geometry1.X1 | 0.125 in | 0.125 | 73 |
+| shape | 6 | 10,1,1 | Geometry1.Y1 | 0 in | 0 | 73 |
+| shape | 6 | 10,2,0 | Geometry1.X2 | 0.125 in | 0.125 | 73 |
+| shape | 6 | 10,2,1 | Geometry1.Y2 | 2.4583333333333 in | 2.458333333333333 | 73 |
+| shape | 6 | 10,3,0 | Geometry1.X3 | 0.125 in | 0.125 | 73 |
+| shape | 6 | 10,3,1 | Geometry1.Y3 | 2.5416666666667 in | 2.541666666666667 | 73 |
+| shape | 6 | 10,3,2 | Geometry1.A3 | -0.041666666666667 in | -0.041666666666666963 | 73 |
+| shape | 6 | 10,4,0 | Geometry1.X4 | 0.125 in | 0.125 | 73 |
+| shape | 6 | 10,4,1 | Geometry1.Y4 | 5 in | 5 | 73 |
+| shape | 6 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 6 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 6 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 6 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 6 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 6 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 6 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 6 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 6 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 6 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 6 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 6 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 6 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 6 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 6 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 6 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 6 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 6 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 6 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 6 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 6 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 6 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 6 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 6 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 6 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 6 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 6 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 6 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 6 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 6 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 6 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 6 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 6 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 6 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 6 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 6 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 6 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 6 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 6 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 6 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 6 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 6 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 6 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 6 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 6 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 6 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 6 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 6 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 6 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 6 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 1 | MoveTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 0 |
+| 3 | 0 | 4 | LineTo | 0 |
+| 3 | 0 | 5 | LineTo | 0 |
+| 4 | 0 | 1 | MoveTo | 0 |
+| 4 | 0 | 2 | LineTo | 0 |
+| 4 | 0 | 3 | LineTo | 0 |
+| 4 | 0 | 4 | LineTo | 0 |
+| 4 | 0 | 5 | LineTo | 0 |
+| 5 | 0 | 1 | MoveTo | 0 |
+| 5 | 0 | 2 | LineTo | 0 |
+| 5 | 0 | 3 | LineTo | 1 |
+| 6 | 0 | 1 | MoveTo | 0 |
+| 6 | 0 | 2 | LineTo | 0 |
+| 6 | 0 | 3 | ArcTo | 0 |
+| 6 | 0 | 4 | LineTo | 0 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 5 | BeginX | 9 | 1 | PinX | 3 |
+| 5 | EndX | 12 | 2 | PinX | 3 |
+| 6 | BeginX | 9 | 3 | PinX | 3 |
+| 6 | EndX | 12 | 4 | PinX | 3 |
+
+### route/jump-factor-x
+
+Witness: `corpus/generated/route/jump-factor-x.vsdx`, SHA-256 `c8ce0931f24cbdef0e6d1ddc89c4ed6e5c234f9bd8d603efd6f774aaae36248b`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 1 | 1 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 1 | 1 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1 in | 1 | 73 |
+| shape | 1 | 1,1,1 | PinY | 5 in | 5 | 73 |
+| shape | 1 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 1 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 7 in | 7 | 73 |
+| shape | 2 | 1,1,1 | PinY | 5 in | 5 | 73 |
+| shape | 2 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 2 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | 4 in | 4 | 73 |
+| shape | 3 | 1,1,1 | PinY | 2 in | 2 | 73 |
+| shape | 3 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 3 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 3 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 3 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 3 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 3 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 3 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 3 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 3 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,1,0 | PinX | 4 in | 4 | 73 |
+| shape | 4 | 1,1,1 | PinY | 8 in | 8 | 73 |
+| shape | 4 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 4 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 4 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 4 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 4 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 4 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 4 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 4 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 4 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 4 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 4 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 4 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 4 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 4 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 4 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 4 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 4 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 4 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 4 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 4 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 4 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 4 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 4 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 4 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 4 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 4 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 4 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 4 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 4 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 4 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 4 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 4 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 4 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 4 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 4 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 4 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 4 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 4 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 4 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 4 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 4 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 4 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 5 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 4 | 73 |
+| shape | 5 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 5 | 73 |
+| shape | 5 | 1,1,2 | Width | GUARD(EndX-BeginX) | 5 | 73 |
+| shape | 5 | 1,1,3 | Height | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 5 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 2.5 | 73 |
+| shape | 5 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.125 | 73 |
+| shape | 5 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 5 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 5 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 5 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 1.5 | 73 |
+| shape | 5 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 5 | 73 |
+| shape | 5 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 6.5 | 73 |
+| shape | 5 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 5 | 73 |
+| shape | 5 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 5 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 5 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 5 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 5 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 5 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 5 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 5 | 10,1,1 | Geometry1.Y1 | 0.125 in | 0.125 | 73 |
+| shape | 5 | 10,2,0 | Geometry1.X2 | 2.4375 in | 2.4375 | 73 |
+| shape | 5 | 10,2,1 | Geometry1.Y2 | 0.125 in | 0.125 | 73 |
+| shape | 5 | 10,3,0 | Geometry1.X3 | 2.5625 in | 2.5625 | 73 |
+| shape | 5 | 10,3,1 | Geometry1.Y3 | 0.125 in | 0.125 | 73 |
+| shape | 5 | 10,3,2 | Geometry1.A3 | -0.0625 in | -0.0625 | 73 |
+| shape | 5 | 10,4,0 | Geometry1.X4 | 5 in | 5 | 73 |
+| shape | 5 | 10,4,1 | Geometry1.Y4 | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 5 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 5 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 5 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 5 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 5 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 5 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 5 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 5 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 5 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 5 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 5 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 5 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 5 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 5 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 5 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 5 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 5 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 5 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 5 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 5 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 5 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 5 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 5 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 5 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 5 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 5 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 5 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 5 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 5 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 5 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 5 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 5 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 5 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 5 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 5 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 5 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 5 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 6 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 4 | 73 |
+| shape | 6 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 5 | 73 |
+| shape | 6 | 1,1,2 | Width | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 6 | 1,1,3 | Height | GUARD(EndY-BeginY) | 5 | 73 |
+| shape | 6 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 0.125 | 73 |
+| shape | 6 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 2.5 | 73 |
+| shape | 6 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 6 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 6 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 6 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 4 | 73 |
+| shape | 6 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 2.5 | 73 |
+| shape | 6 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 4 | 73 |
+| shape | 6 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 7.5 | 73 |
+| shape | 6 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 6 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 6 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 6 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 6 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 6 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 6 | 10,1,0 | Geometry1.X1 | 0.125 in | 0.125 | 73 |
+| shape | 6 | 10,1,1 | Geometry1.Y1 | 0 in | 0 | 73 |
+| shape | 6 | 10,2,0 | Geometry1.X2 | 0.125 in | 0.125 | 73 |
+| shape | 6 | 10,2,1 | Geometry1.Y2 | 5 in | 5 | 73 |
+| shape | 6 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 6 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 6 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 6 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 6 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 6 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 6 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 6 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 6 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 6 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 6 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 6 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 6 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 6 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 6 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 6 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 6 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 6 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 6 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 6 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 6 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 6 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 6 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 6 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 6 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 6 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 6 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 6 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 6 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 6 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 6 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 6 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 6 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 6 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 6 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 6 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 6 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 6 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 6 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 6 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 6 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 6 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 6 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 6 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 6 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 6 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 6 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 6 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 6 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 6 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 1 | MoveTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 0 |
+| 3 | 0 | 4 | LineTo | 0 |
+| 3 | 0 | 5 | LineTo | 0 |
+| 4 | 0 | 1 | MoveTo | 0 |
+| 4 | 0 | 2 | LineTo | 0 |
+| 4 | 0 | 3 | LineTo | 0 |
+| 4 | 0 | 4 | LineTo | 0 |
+| 4 | 0 | 5 | LineTo | 0 |
+| 5 | 0 | 1 | MoveTo | 0 |
+| 5 | 0 | 2 | LineTo | 0 |
+| 5 | 0 | 3 | ArcTo | 0 |
+| 5 | 0 | 4 | LineTo | 0 |
+| 6 | 0 | 1 | MoveTo | 0 |
+| 6 | 0 | 2 | LineTo | 0 |
+| 6 | 0 | 3 | LineTo | 1 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 5 | BeginX | 9 | 1 | PinX | 3 |
+| 5 | EndX | 12 | 2 | PinX | 3 |
+| 6 | BeginX | 9 | 3 | PinX | 3 |
+| 6 | EndX | 12 | 4 | PinX | 3 |
+
+### route/jump-gap
+
+Witness: `corpus/generated/route/jump-gap.vsdx`, SHA-256 `3d4c29ef073780b99022eedf954ea49379a4115c5a24f903edc25f55bc741142`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 2 | 2 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1 in | 1 | 73 |
+| shape | 1 | 1,1,1 | PinY | 5 in | 5 | 73 |
+| shape | 1 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 1 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 7 in | 7 | 73 |
+| shape | 2 | 1,1,1 | PinY | 5 in | 5 | 73 |
+| shape | 2 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 2 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | 4 in | 4 | 73 |
+| shape | 3 | 1,1,1 | PinY | 2 in | 2 | 73 |
+| shape | 3 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 3 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 3 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 3 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 3 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 3 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 3 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 3 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 3 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,1,0 | PinX | 4 in | 4 | 73 |
+| shape | 4 | 1,1,1 | PinY | 8 in | 8 | 73 |
+| shape | 4 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 4 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 4 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 4 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 4 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 4 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 4 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 4 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 4 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 4 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 4 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 4 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 4 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 4 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 4 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 4 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 4 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 4 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 4 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 4 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 4 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 4 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 4 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 4 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 4 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 4 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 4 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 4 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 4 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 4 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 4 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 4 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 4 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 4 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 4 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 4 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 4 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 4 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 4 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 4 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 4 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 4 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 5 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 4 | 73 |
+| shape | 5 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 5 | 73 |
+| shape | 5 | 1,1,2 | Width | GUARD(EndX-BeginX) | 5 | 73 |
+| shape | 5 | 1,1,3 | Height | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 5 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 2.5 | 73 |
+| shape | 5 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.125 | 73 |
+| shape | 5 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 5 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 5 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 5 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 1.5 | 73 |
+| shape | 5 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 5 | 73 |
+| shape | 5 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 6.5 | 73 |
+| shape | 5 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 5 | 73 |
+| shape | 5 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 5 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 5 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 5 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 5 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 5 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 5 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 5 | 10,1,1 | Geometry1.Y1 | 0.125 in | 0.125 | 73 |
+| shape | 5 | 10,2,0 | Geometry1.X2 | 2.4583333333333 in | 2.458333333333333 | 73 |
+| shape | 5 | 10,2,1 | Geometry1.Y2 | 0.125 in | 0.125 | 73 |
+| shape | 5 | 10,3,0 | Geometry1.X3 | 2.5416666666667 in | 2.541666666666667 | 73 |
+| shape | 5 | 10,3,1 | Geometry1.Y3 | 0.125 in | 0.125 | 73 |
+| shape | 5 | 10,4,0 | Geometry1.X4 | 5 in | 5 | 73 |
+| shape | 5 | 10,4,1 | Geometry1.Y4 | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 5 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 5 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 5 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 5 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 5 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 5 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 5 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 5 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 5 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 5 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 5 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 5 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 5 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 5 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 5 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 5 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 5 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 5 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 5 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 5 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 5 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 5 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 5 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 5 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 5 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 5 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 5 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 5 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 5 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 5 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 5 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 5 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 5 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 5 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 5 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 5 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 5 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 6 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 4 | 73 |
+| shape | 6 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 5 | 73 |
+| shape | 6 | 1,1,2 | Width | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 6 | 1,1,3 | Height | GUARD(EndY-BeginY) | 5 | 73 |
+| shape | 6 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 0.125 | 73 |
+| shape | 6 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 2.5 | 73 |
+| shape | 6 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 6 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 6 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 6 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 4 | 73 |
+| shape | 6 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 2.5 | 73 |
+| shape | 6 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 4 | 73 |
+| shape | 6 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 7.5 | 73 |
+| shape | 6 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 6 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 6 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 6 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 6 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 6 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 6 | 10,1,0 | Geometry1.X1 | 0.125 in | 0.125 | 73 |
+| shape | 6 | 10,1,1 | Geometry1.Y1 | 0 in | 0 | 73 |
+| shape | 6 | 10,2,0 | Geometry1.X2 | 0.125 in | 0.125 | 73 |
+| shape | 6 | 10,2,1 | Geometry1.Y2 | 5 in | 5 | 73 |
+| shape | 6 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 6 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 6 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 6 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 6 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 6 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 6 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 6 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 6 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 6 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 6 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 6 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 6 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 6 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 6 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 6 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 6 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 6 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 6 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 6 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 6 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 6 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 6 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 6 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 6 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 6 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 6 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 6 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 6 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 6 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 6 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 6 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 6 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 6 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 6 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 6 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 6 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 6 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 6 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 6 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 6 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 6 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 6 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 6 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 6 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 6 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 6 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 6 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 6 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 6 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 1 | MoveTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 0 |
+| 3 | 0 | 4 | LineTo | 0 |
+| 3 | 0 | 5 | LineTo | 0 |
+| 4 | 0 | 1 | MoveTo | 0 |
+| 4 | 0 | 2 | LineTo | 0 |
+| 4 | 0 | 3 | LineTo | 0 |
+| 4 | 0 | 4 | LineTo | 0 |
+| 4 | 0 | 5 | LineTo | 0 |
+| 5 | 0 | 1 | MoveTo | 0 |
+| 5 | 0 | 2 | LineTo | 0 |
+| 5 | 0 | 3 | MoveTo | 0 |
+| 5 | 0 | 4 | LineTo | 0 |
+| 6 | 0 | 1 | MoveTo | 0 |
+| 6 | 0 | 2 | LineTo | 0 |
+| 6 | 0 | 3 | LineTo | 1 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 5 | BeginX | 9 | 1 | PinX | 3 |
+| 5 | EndX | 12 | 2 | PinX | 3 |
+| 6 | BeginX | 9 | 3 | PinX | 3 |
+| 6 | EndX | 12 | 4 | PinX | 3 |
+
+### route/jump-square
+
+Witness: `corpus/generated/route/jump-square.vsdx`, SHA-256 `25ad46a27935e5cf83bbc630adb52e4f579a3e98dfd95e7f880a4a850b4296b0`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 3 | 3 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1 in | 1 | 73 |
+| shape | 1 | 1,1,1 | PinY | 5 in | 5 | 73 |
+| shape | 1 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 1 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 7 in | 7 | 73 |
+| shape | 2 | 1,1,1 | PinY | 5 in | 5 | 73 |
+| shape | 2 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 2 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | 4 in | 4 | 73 |
+| shape | 3 | 1,1,1 | PinY | 2 in | 2 | 73 |
+| shape | 3 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 3 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 3 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 3 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 3 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 3 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 3 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 3 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 3 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,1,0 | PinX | 4 in | 4 | 73 |
+| shape | 4 | 1,1,1 | PinY | 8 in | 8 | 73 |
+| shape | 4 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 4 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 4 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 4 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 4 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 4 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 4 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 4 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 4 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 4 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 4 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 4 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 4 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 4 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 4 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 4 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 4 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 4 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 4 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 4 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 4 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 4 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 4 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 4 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 4 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 4 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 4 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 4 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 4 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 4 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 4 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 4 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 4 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 4 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 4 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 4 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 4 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 4 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 4 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 4 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 4 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 4 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 5 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 4 | 73 |
+| shape | 5 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 5 | 73 |
+| shape | 5 | 1,1,2 | Width | GUARD(EndX-BeginX) | 5 | 73 |
+| shape | 5 | 1,1,3 | Height | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 5 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 2.5 | 73 |
+| shape | 5 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.125 | 73 |
+| shape | 5 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 5 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 5 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 5 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 1.5 | 73 |
+| shape | 5 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 5 | 73 |
+| shape | 5 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 6.5 | 73 |
+| shape | 5 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 5 | 73 |
+| shape | 5 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 5 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 5 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 5 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 5 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 5 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 5 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 5 | 10,1,1 | Geometry1.Y1 | 0.125 in | 0.125 | 73 |
+| shape | 5 | 10,2,0 | Geometry1.X2 | 2.4583333333333 in | 2.458333333333333 | 73 |
+| shape | 5 | 10,2,1 | Geometry1.Y2 | 0.125 in | 0.125 | 73 |
+| shape | 5 | 10,3,0 | Geometry1.X3 | 2.5416666666667 in | 2.541666666666667 | 73 |
+| shape | 5 | 10,3,1 | Geometry1.Y3 | 0.125 in | 0.125 | 73 |
+| shape | 5 | 10,3,2 | Geometry1.A3 | POLYLINE(0, 0, 0.49166666666667,0.66666666666667, 0.50833333333333,0.66666666666667) | 0 | 139 |
+| shape | 5 | 10,4,0 | Geometry1.X4 | 5 in | 5 | 73 |
+| shape | 5 | 10,4,1 | Geometry1.Y4 | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 5 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 5 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 5 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 5 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 5 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 5 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 5 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 5 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 5 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 5 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 5 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 5 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 5 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 5 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 5 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 5 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 5 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 5 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 5 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 5 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 5 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 5 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 5 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 5 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 5 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 5 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 5 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 5 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 5 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 5 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 5 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 5 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 5 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 5 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 5 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 5 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 5 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 6 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 4 | 73 |
+| shape | 6 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 5 | 73 |
+| shape | 6 | 1,1,2 | Width | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 6 | 1,1,3 | Height | GUARD(EndY-BeginY) | 5 | 73 |
+| shape | 6 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 0.125 | 73 |
+| shape | 6 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 2.5 | 73 |
+| shape | 6 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 6 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 6 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 6 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 4 | 73 |
+| shape | 6 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 2.5 | 73 |
+| shape | 6 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 4 | 73 |
+| shape | 6 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 7.5 | 73 |
+| shape | 6 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 6 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 6 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 6 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 6 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 6 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 6 | 10,1,0 | Geometry1.X1 | 0.125 in | 0.125 | 73 |
+| shape | 6 | 10,1,1 | Geometry1.Y1 | 0 in | 0 | 73 |
+| shape | 6 | 10,2,0 | Geometry1.X2 | 0.125 in | 0.125 | 73 |
+| shape | 6 | 10,2,1 | Geometry1.Y2 | 5 in | 5 | 73 |
+| shape | 6 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 6 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 6 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 6 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 6 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 6 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 6 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 6 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 6 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 6 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 6 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 6 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 6 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 6 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 6 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 6 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 6 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 6 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 6 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 6 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 6 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 6 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 6 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 6 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 6 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 6 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 6 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 6 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 6 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 6 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 6 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 6 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 6 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 6 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 6 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 6 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 6 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 6 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 6 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 6 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 6 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 6 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 6 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 6 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 6 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 6 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 6 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 6 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 6 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 6 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 1 | MoveTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 0 |
+| 3 | 0 | 4 | LineTo | 0 |
+| 3 | 0 | 5 | LineTo | 0 |
+| 4 | 0 | 1 | MoveTo | 0 |
+| 4 | 0 | 2 | LineTo | 0 |
+| 4 | 0 | 3 | LineTo | 0 |
+| 4 | 0 | 4 | LineTo | 0 |
+| 4 | 0 | 5 | LineTo | 0 |
+| 5 | 0 | 1 | MoveTo | 0 |
+| 5 | 0 | 2 | LineTo | 0 |
+| 5 | 0 | 3 | PolylineTo | 0 |
+| 5 | 0 | 4 | LineTo | 0 |
+| 6 | 0 | 1 | MoveTo | 0 |
+| 6 | 0 | 2 | LineTo | 0 |
+| 6 | 0 | 3 | LineTo | 1 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 5 | BeginX | 9 | 1 | PinX | 3 |
+| 5 | EndX | 12 | 2 | PinX | 3 |
+| 6 | BeginX | 9 | 3 | PinX | 3 |
+| 6 | EndX | 12 | 4 | PinX | 3 |
+
+### route/jump-three-crossings
+
+Witness: `corpus/generated/route/jump-three-crossings.vsdx`, SHA-256 `0b96e8113ad7cdb66381bd3cf3411c9513b41585bfa18e0fc326e3e509770888`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 1 | 1 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1 in | 1 | 73 |
+| shape | 1 | 1,1,1 | PinY | 5 in | 5 | 73 |
+| shape | 1 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 1 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 7 in | 7 | 73 |
+| shape | 2 | 1,1,1 | PinY | 5 in | 5 | 73 |
+| shape | 2 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 2 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | 2 in | 2 | 73 |
+| shape | 3 | 1,1,1 | PinY | 2 in | 2 | 73 |
+| shape | 3 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 3 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 3 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 3 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 3 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 3 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 3 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 3 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 3 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,1,0 | PinX | 2 in | 2 | 73 |
+| shape | 4 | 1,1,1 | PinY | 8 in | 8 | 73 |
+| shape | 4 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 4 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 4 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 4 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 4 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 4 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 4 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 4 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 4 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 4 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 4 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 4 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 4 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 4 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 4 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 4 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 4 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 4 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 4 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 4 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 4 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 4 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 4 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 4 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 4 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 4 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 4 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 4 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 4 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 4 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 4 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 4 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 4 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 4 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 4 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 4 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 4 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 4 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 4 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 4 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 4 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 4 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 5 | 1,1,0 | PinX | 4 in | 4 | 73 |
+| shape | 5 | 1,1,1 | PinY | 2 in | 2 | 73 |
+| shape | 5 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 5 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 5 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 5 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 5 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 5 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 5 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 5 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 5 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 5 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 5 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 5 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 5 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 5 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 5 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 5 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 5 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 5 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 5 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 5 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 5 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 5 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 5 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 5 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 5 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 5 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 5 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 5 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 5 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 5 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 5 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 5 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 5 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 5 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 5 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 5 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 5 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 5 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 5 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 5 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 5 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 5 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 5 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 5 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 5 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 5 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 5 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 5 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 5 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 5 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 5 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 5 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 5 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 5 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 5 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 5 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 5 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 5 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 5 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 5 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 6 | 1,1,0 | PinX | 4 in | 4 | 73 |
+| shape | 6 | 1,1,1 | PinY | 8 in | 8 | 73 |
+| shape | 6 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 6 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 6 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 6 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 6 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 6 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 6 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 6 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 6 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 6 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 6 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 6 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 6 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 6 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 6 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 6 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 6 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 6 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 6 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 6 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 6 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 6 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 6 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 6 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 6 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 6 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 6 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 6 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 6 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 6 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 6 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 6 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 6 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 6 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 6 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 6 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 6 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 6 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 6 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 6 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 6 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 6 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 6 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 6 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 6 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 6 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 6 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 6 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 6 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 6 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 6 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 6 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 6 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 6 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 6 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 6 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 6 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 6 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 6 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 6 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 6 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 6 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 6 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 6 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 6 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 6 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 6 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 6 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 6 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 6 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 6 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 6 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 6 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 7 | 1,1,0 | PinX | 6 in | 6 | 73 |
+| shape | 7 | 1,1,1 | PinY | 2 in | 2 | 73 |
+| shape | 7 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 7 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 7 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 7 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 7 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 7 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 7 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 7 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 7 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 7 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 7 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 7 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 7 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 7 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 7 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 7 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 7 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 7 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 7 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 7 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 7 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 7 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 7 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 7 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 7 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 7 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 7 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 7 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 7 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 7 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 7 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 7 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 7 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 7 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 7 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 7 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 7 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 7 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 7 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 7 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 7 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 7 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 7 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 7 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 7 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 7 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 7 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 7 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 7 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 7 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 7 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 7 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 7 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 7 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 7 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 7 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 7 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 7 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 7 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 7 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 7 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 7 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 7 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 7 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 7 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 7 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 7 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 7 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 7 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 7 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 7 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 7 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 7 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 7 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 7 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 7 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 7 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 7 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 7 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 7 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 7 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 8 | 1,1,0 | PinX | 6 in | 6 | 73 |
+| shape | 8 | 1,1,1 | PinY | 8 in | 8 | 73 |
+| shape | 8 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 8 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 8 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 8 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 8 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 8 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 8 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 8 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 8 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 8 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 8 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 8 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 8 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 8 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 8 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 8 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 8 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 8 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 8 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 8 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 8 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 8 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 8 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 8 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 8 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 8 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 8 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 8 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 8 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 8 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 8 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 8 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 8 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 8 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 8 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 8 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 8 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 8 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 8 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 8 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 8 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 8 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 8 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 8 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 8 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 8 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 8 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 8 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 8 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 8 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 8 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 8 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 8 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 8 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 8 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 8 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 8 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 8 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 8 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 8 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 8 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 8 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 8 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 8 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 8 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 8 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 8 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 8 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 8 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 8 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 8 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 8 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 8 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 8 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 8 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 8 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 8 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 8 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 8 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 8 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 8 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 9 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 4 | 73 |
+| shape | 9 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 5 | 73 |
+| shape | 9 | 1,1,2 | Width | GUARD(EndX-BeginX) | 5 | 73 |
+| shape | 9 | 1,1,3 | Height | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 9 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 2.5 | 73 |
+| shape | 9 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.125 | 73 |
+| shape | 9 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 9 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 9 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 9 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 1.5 | 73 |
+| shape | 9 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 5 | 73 |
+| shape | 9 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 6.5 | 73 |
+| shape | 9 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 5 | 73 |
+| shape | 9 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 9 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 9 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 9 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 9 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 9 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 9 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 9 | 10,1,1 | Geometry1.Y1 | 0.125 in | 0.125 | 73 |
+| shape | 9 | 10,2,0 | Geometry1.X2 | 0.47395833333333 in | 0.47395833333333304 | 73 |
+| shape | 9 | 10,2,1 | Geometry1.Y2 | 0.125 in | 0.125 | 73 |
+| shape | 9 | 10,3,0 | Geometry1.X3 | 0.55729166666667 in | 0.557291666666667 | 73 |
+| shape | 9 | 10,3,1 | Geometry1.Y3 | 0.125 in | 0.125 | 73 |
+| shape | 9 | 10,3,2 | Geometry1.A3 | -0.041666666666667 in | -0.041666666666666963 | 73 |
+| shape | 9 | 10,4,0 | Geometry1.X4 | 2.4583333333333 in | 2.458333333333333 | 73 |
+| shape | 9 | 10,4,1 | Geometry1.Y4 | 0.125 in | 0.125 | 73 |
+| shape | 9 | 10,5,0 | Geometry1.X5 | 2.5416666666667 in | 2.541666666666667 | 73 |
+| shape | 9 | 10,5,1 | Geometry1.Y5 | 0.125 in | 0.125 | 73 |
+| shape | 9 | 10,5,2 | Geometry1.A5 | -0.041666666666667 in | -0.041666666666666963 | 73 |
+| shape | 9 | 10,6,0 | Geometry1.X6 | 4.4427083333333 in | 4.442708333333333 | 73 |
+| shape | 9 | 10,6,1 | Geometry1.Y6 | 0.125 in | 0.125 | 73 |
+| shape | 9 | 10,7,0 | Geometry1.X7 | 4.5260416666667 in | 4.526041666666667 | 73 |
+| shape | 9 | 10,7,1 | Geometry1.Y7 | 0.125 in | 0.125 | 73 |
+| shape | 9 | 10,7,2 | Geometry1.A7 | -0.041666666666667 in | -0.041666666666666963 | 73 |
+| shape | 9 | 10,8,0 | Geometry1.X8 | 5 in | 5 | 73 |
+| shape | 9 | 10,8,1 | Geometry1.Y8 | 0.125 in | 0.125 | 73 |
+| shape | 9 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 9 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 9 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 9 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 9 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 9 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 9 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 9 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 9 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 9 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 9 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 9 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 9 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 9 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 9 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 9 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 9 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 9 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 9 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 9 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 9 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 9 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 9 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 9 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 9 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 9 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 9 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 9 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 9 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 9 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 9 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 9 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 9 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 9 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 9 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 9 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 9 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 9 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 9 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 9 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 9 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 9 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 9 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 9 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 9 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 9 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 9 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 9 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 9 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 9 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 9 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 9 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 9 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 9 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 9 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 9 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 9 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 9 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 10 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 2.015625 | 73 |
+| shape | 10 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 5 | 73 |
+| shape | 10 | 1,1,2 | Width | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 10 | 1,1,3 | Height | GUARD(EndY-BeginY) | 5 | 73 |
+| shape | 10 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 0.125 | 73 |
+| shape | 10 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 2.5 | 73 |
+| shape | 10 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 10 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 10 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 10 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 2.015625 | 73 |
+| shape | 10 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 2.5 | 73 |
+| shape | 10 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 2.015625 | 73 |
+| shape | 10 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 7.5 | 73 |
+| shape | 10 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 10 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 10 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 10 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 10 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 10 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 10 | 10,1,0 | Geometry1.X1 | 0.125 in | 0.125 | 73 |
+| shape | 10 | 10,1,1 | Geometry1.Y1 | 0 in | 0 | 73 |
+| shape | 10 | 10,2,0 | Geometry1.X2 | 0.125 in | 0.125 | 73 |
+| shape | 10 | 10,2,1 | Geometry1.Y2 | 5 in | 5 | 73 |
+| shape | 10 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 10 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 10 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 10 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 10 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 10 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 10 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 10 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 10 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 10 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 10 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 10 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 10 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 10 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 10 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 10 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 10 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 10 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 10 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 10 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 10 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 10 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 10 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 10 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 10 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 10 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 10 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 10 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 10 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 10 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 10 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 10 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 10 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 10 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 10 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 10 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 10 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 10 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 10 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 10 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 10 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 10 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 10 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 10 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 10 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 10 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 10 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 10 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 10 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 10 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 10 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 10 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 10 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 10 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 10 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 10 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 10 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 10 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 11 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 4 | 73 |
+| shape | 11 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 5 | 73 |
+| shape | 11 | 1,1,2 | Width | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 11 | 1,1,3 | Height | GUARD(EndY-BeginY) | 5 | 73 |
+| shape | 11 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 0.125 | 73 |
+| shape | 11 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 2.5 | 73 |
+| shape | 11 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 11 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 11 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 11 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 4 | 73 |
+| shape | 11 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 2.5 | 73 |
+| shape | 11 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 4 | 73 |
+| shape | 11 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 7.5 | 73 |
+| shape | 11 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 11 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 11 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 11 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 11 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 11 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 11 | 10,1,0 | Geometry1.X1 | 0.125 in | 0.125 | 73 |
+| shape | 11 | 10,1,1 | Geometry1.Y1 | 0 in | 0 | 73 |
+| shape | 11 | 10,2,0 | Geometry1.X2 | 0.125 in | 0.125 | 73 |
+| shape | 11 | 10,2,1 | Geometry1.Y2 | 5 in | 5 | 73 |
+| shape | 11 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 11 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 11 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 11 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 11 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 11 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 11 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 11 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 11 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 11 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 11 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 11 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 11 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 11 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 11 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 11 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 11 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 11 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 11 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 11 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 11 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 11 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 11 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 11 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 11 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 11 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 11 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 11 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 11 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 11 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 11 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 11 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 11 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 11 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 11 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 11 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 11 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 11 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 11 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 11 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 11 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 11 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 11 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 11 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 11 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 11 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 11 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 11 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 11 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 11 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 11 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 11 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 11 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 11 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 11 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 11 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 11 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 11 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 12 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 5.984375 | 73 |
+| shape | 12 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 5 | 73 |
+| shape | 12 | 1,1,2 | Width | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 12 | 1,1,3 | Height | GUARD(EndY-BeginY) | 5 | 73 |
+| shape | 12 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 0.125 | 73 |
+| shape | 12 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 2.5 | 73 |
+| shape | 12 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 12 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 12 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 12 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 5.984375 | 73 |
+| shape | 12 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 2.5 | 73 |
+| shape | 12 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 5.984375 | 73 |
+| shape | 12 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 7.5 | 73 |
+| shape | 12 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 12 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 12 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 12 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 12 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 12 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 12 | 10,1,0 | Geometry1.X1 | 0.125 in | 0.125 | 73 |
+| shape | 12 | 10,1,1 | Geometry1.Y1 | 0 in | 0 | 73 |
+| shape | 12 | 10,2,0 | Geometry1.X2 | 0.125 in | 0.125 | 73 |
+| shape | 12 | 10,2,1 | Geometry1.Y2 | 5 in | 5 | 73 |
+| shape | 12 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 12 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 12 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 12 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 12 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 12 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 12 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 12 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 12 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 12 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 12 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 12 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 12 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 12 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 12 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 12 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 12 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 12 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 12 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 12 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 12 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 12 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 12 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 12 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 12 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 12 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 12 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 12 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 12 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 12 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 12 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 12 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 12 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 12 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 12 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 12 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 12 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 12 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 12 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 12 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 12 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 12 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 12 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 12 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 12 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 12 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 12 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 12 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 12 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 12 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 12 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 12 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 12 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 12 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 12 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 12 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 12 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 12 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 1 | MoveTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 0 |
+| 3 | 0 | 4 | LineTo | 0 |
+| 3 | 0 | 5 | LineTo | 0 |
+| 4 | 0 | 1 | MoveTo | 0 |
+| 4 | 0 | 2 | LineTo | 0 |
+| 4 | 0 | 3 | LineTo | 0 |
+| 4 | 0 | 4 | LineTo | 0 |
+| 4 | 0 | 5 | LineTo | 0 |
+| 5 | 0 | 1 | MoveTo | 0 |
+| 5 | 0 | 2 | LineTo | 0 |
+| 5 | 0 | 3 | LineTo | 0 |
+| 5 | 0 | 4 | LineTo | 0 |
+| 5 | 0 | 5 | LineTo | 0 |
+| 6 | 0 | 1 | MoveTo | 0 |
+| 6 | 0 | 2 | LineTo | 0 |
+| 6 | 0 | 3 | LineTo | 0 |
+| 6 | 0 | 4 | LineTo | 0 |
+| 6 | 0 | 5 | LineTo | 0 |
+| 7 | 0 | 1 | MoveTo | 0 |
+| 7 | 0 | 2 | LineTo | 0 |
+| 7 | 0 | 3 | LineTo | 0 |
+| 7 | 0 | 4 | LineTo | 0 |
+| 7 | 0 | 5 | LineTo | 0 |
+| 8 | 0 | 1 | MoveTo | 0 |
+| 8 | 0 | 2 | LineTo | 0 |
+| 8 | 0 | 3 | LineTo | 0 |
+| 8 | 0 | 4 | LineTo | 0 |
+| 8 | 0 | 5 | LineTo | 0 |
+| 9 | 0 | 1 | MoveTo | 0 |
+| 9 | 0 | 2 | LineTo | 0 |
+| 9 | 0 | 3 | ArcTo | 0 |
+| 9 | 0 | 4 | LineTo | 0 |
+| 9 | 0 | 5 | ArcTo | 0 |
+| 9 | 0 | 6 | LineTo | 0 |
+| 9 | 0 | 7 | ArcTo | 0 |
+| 9 | 0 | 8 | LineTo | 0 |
+| 10 | 0 | 1 | MoveTo | 0 |
+| 10 | 0 | 2 | LineTo | 0 |
+| 10 | 0 | 3 | LineTo | 1 |
+| 11 | 0 | 1 | MoveTo | 0 |
+| 11 | 0 | 2 | LineTo | 0 |
+| 11 | 0 | 3 | LineTo | 1 |
+| 12 | 0 | 1 | MoveTo | 0 |
+| 12 | 0 | 2 | LineTo | 0 |
+| 12 | 0 | 3 | LineTo | 1 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 9 | BeginX | 9 | 1 | PinX | 3 |
+| 9 | EndX | 12 | 2 | PinX | 3 |
+| 10 | BeginX | 9 | 3 | PinX | 3 |
+| 10 | EndX | 12 | 4 | PinX | 3 |
+| 11 | BeginX | 9 | 5 | PinX | 3 |
+| 11 | EndX | 12 | 6 | PinX | 3 |
+| 12 | BeginX | 9 | 7 | PinX | 3 |
+| 12 | EndX | 12 | 8 | PinX | 3 |
+
+### route/jump-two-sides
+
+Witness: `corpus/generated/route/jump-two-sides.vsdx`, SHA-256 `f7c068752d38898780a7f2b17edfd2af9e8d7b7cff8a9ca2a1ddf2de85115b94`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 4 | 4 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1 in | 1 | 73 |
+| shape | 1 | 1,1,1 | PinY | 5 in | 5 | 73 |
+| shape | 1 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 1 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 7 in | 7 | 73 |
+| shape | 2 | 1,1,1 | PinY | 5 in | 5 | 73 |
+| shape | 2 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 2 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | 4 in | 4 | 73 |
+| shape | 3 | 1,1,1 | PinY | 2 in | 2 | 73 |
+| shape | 3 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 3 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 3 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 3 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 3 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 3 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 3 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 3 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 3 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,1,0 | PinX | 4 in | 4 | 73 |
+| shape | 4 | 1,1,1 | PinY | 8 in | 8 | 73 |
+| shape | 4 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 4 | 1,1,3 | Height | 1 in | 1 | 73 |
+| shape | 4 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 4 | 1,1,5 | LocPinY | Height*0.5 | 0.5 | 73 |
+| shape | 4 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 4 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 4 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 4 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 4 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 4 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 4 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 4 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 4 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 4 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 4 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 4 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 4 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 4 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 4 | 10,3,1 | Geometry1.Y3 | Height*1 | 1 | 73 |
+| shape | 4 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 4 | 10,4,1 | Geometry1.Y4 | Height*1 | 1 | 73 |
+| shape | 4 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 4 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 4 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 4 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 4 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 4 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 4 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 4 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 4 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 4 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 4 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 4 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 4 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 4 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 4 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 4 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 4 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 4 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 4 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 4 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 4 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 5 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 4 | 73 |
+| shape | 5 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 5 | 73 |
+| shape | 5 | 1,1,2 | Width | GUARD(EndX-BeginX) | 5 | 73 |
+| shape | 5 | 1,1,3 | Height | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 5 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 2.5 | 73 |
+| shape | 5 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.125 | 73 |
+| shape | 5 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 5 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 5 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 5 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 1.5 | 73 |
+| shape | 5 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 5 | 73 |
+| shape | 5 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 6.5 | 73 |
+| shape | 5 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 5 | 73 |
+| shape | 5 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 5 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 5 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 5 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 5 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 5 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 5 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 5 | 10,1,1 | Geometry1.Y1 | 0.125 in | 0.125 | 73 |
+| shape | 5 | 10,2,0 | Geometry1.X2 | 2.4583333333333 in | 2.458333333333333 | 73 |
+| shape | 5 | 10,2,1 | Geometry1.Y2 | 0.125 in | 0.125 | 73 |
+| shape | 5 | 10,3,0 | Geometry1.X3 | 2.5416666666667 in | 2.541666666666667 | 73 |
+| shape | 5 | 10,3,1 | Geometry1.Y3 | 0.125 in | 0.125 | 73 |
+| shape | 5 | 10,3,2 | Geometry1.A3 | POLYLINE(0, 0, 0.5,0.66666666666667) | 0 | 139 |
+| shape | 5 | 10,4,0 | Geometry1.X4 | 5 in | 5 | 73 |
+| shape | 5 | 10,4,1 | Geometry1.Y4 | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 5 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 5 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 5 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 5 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 5 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 5 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 5 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 5 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 5 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 5 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 5 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 5 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 5 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 5 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 5 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 5 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 5 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 5 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 5 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 5 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 5 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 5 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 5 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 5 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 5 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 5 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 5 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 5 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 5 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 5 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 5 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 5 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 5 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 5 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 5 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 5 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 5 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 6 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 4 | 73 |
+| shape | 6 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 5 | 73 |
+| shape | 6 | 1,1,2 | Width | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 6 | 1,1,3 | Height | GUARD(EndY-BeginY) | 5 | 73 |
+| shape | 6 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 0.125 | 73 |
+| shape | 6 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 2.5 | 73 |
+| shape | 6 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 6 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 6 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 6 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 4 | 73 |
+| shape | 6 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 2.5 | 73 |
+| shape | 6 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 4 | 73 |
+| shape | 6 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 7.5 | 73 |
+| shape | 6 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 6 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 6 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 6 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 6 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 6 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 6 | 10,1,0 | Geometry1.X1 | 0.125 in | 0.125 | 73 |
+| shape | 6 | 10,1,1 | Geometry1.Y1 | 0 in | 0 | 73 |
+| shape | 6 | 10,2,0 | Geometry1.X2 | 0.125 in | 0.125 | 73 |
+| shape | 6 | 10,2,1 | Geometry1.Y2 | 5 in | 5 | 73 |
+| shape | 6 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 6 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 6 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 6 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 6 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 6 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 6 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 6 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 6 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 6 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 6 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 6 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 6 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 6 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 6 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 6 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 6 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 6 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 6 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 6 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 6 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 6 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 6 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 6 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 6 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 6 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 6 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 6 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 6 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 6 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 6 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 6 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 6 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 6 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 6 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 6 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 6 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 6 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 6 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 6 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 6 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 6 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 6 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 6 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 6 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 6 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 6 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 6 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 6 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 6 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 6 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 6 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 1 | MoveTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 0 |
+| 3 | 0 | 4 | LineTo | 0 |
+| 3 | 0 | 5 | LineTo | 0 |
+| 4 | 0 | 1 | MoveTo | 0 |
+| 4 | 0 | 2 | LineTo | 0 |
+| 4 | 0 | 3 | LineTo | 0 |
+| 4 | 0 | 4 | LineTo | 0 |
+| 4 | 0 | 5 | LineTo | 0 |
+| 5 | 0 | 1 | MoveTo | 0 |
+| 5 | 0 | 2 | LineTo | 0 |
+| 5 | 0 | 3 | PolylineTo | 0 |
+| 5 | 0 | 4 | LineTo | 0 |
+| 6 | 0 | 1 | MoveTo | 0 |
+| 6 | 0 | 2 | LineTo | 0 |
+| 6 | 0 | 3 | LineTo | 1 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 5 | BeginX | 9 | 1 | PinX | 3 |
+| 5 | EndX | 12 | 2 | PinX | 3 |
+| 6 | BeginX | 9 | 3 | PinX | 3 |
+| 6 | EndX | 12 | 4 | PinX | 3 |
+
+### route/obstacle-below-centre
+
+Witness: `corpus/generated/route/obstacle-below-centre.vsdx`, SHA-256 `5f608d6bc2b2c2cb3a578454b1807c01623d508427d1fb362b080d1cba5226fd`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1.75 in | 1.75 | 73 |
+| shape | 1 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 1 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 5.75 in | 5.75 | 73 |
+| shape | 2 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 2 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | 3.5 in | 3.5 | 73 |
+| shape | 3 | 1,1,1 | PinY | 5.75 in | 5.75 | 73 |
+| shape | 3 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 3 | 1,1,3 | Height | 2.5 in | 2.5 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | Height*0.5 | 1.25 | 73 |
+| shape | 3 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 3 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 3 | 10,3,1 | Geometry1.Y3 | Height*1 | 2.5 | 73 |
+| shape | 3 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 3 | 10,4,1 | Geometry1.Y4 | Height*1 | 2.5 | 73 |
+| shape | 3 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 3 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 3.75 | 73 |
+| shape | 4 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 7.25 | 73 |
+| shape | 4 | 1,1,2 | Width | GUARD(EndX-BeginX) | 2.5 | 73 |
+| shape | 4 | 1,1,3 | Height | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 4 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 1.25 | 73 |
+| shape | 4 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.125 | 73 |
+| shape | 4 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 4 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 4 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 4 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 2.5 | 73 |
+| shape | 4 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 7.25 | 73 |
+| shape | 4 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 5 | 73 |
+| shape | 4 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 7.25 | 73 |
+| shape | 4 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 4 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 4 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 4 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 4 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 4 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 4 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 4 | 10,1,1 | Geometry1.Y1 | 0.125 in | 0.125 | 73 |
+| shape | 4 | 10,2,0 | Geometry1.X2 | 2.5 in | 2.5 | 73 |
+| shape | 4 | 10,2,1 | Geometry1.Y2 | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 4 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 4 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 4 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 4 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 4 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 4 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 4 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 4 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 4 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 4 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 4 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 4 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 4 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 4 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 4 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 4 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 4 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 4 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 4 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 1 | MoveTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 0 |
+| 3 | 0 | 4 | LineTo | 0 |
+| 3 | 0 | 5 | LineTo | 0 |
+| 4 | 0 | 1 | MoveTo | 0 |
+| 4 | 0 | 2 | LineTo | 0 |
+| 4 | 0 | 3 | LineTo | 1 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 4 | BeginX | 9 | 1 | PinX | 3 |
+| 4 | EndX | 12 | 2 | PinX | 3 |
+
+### route/obstacle-objtype-zero
+
+Witness: `corpus/generated/route/obstacle-objtype-zero.vsdx`, SHA-256 `f64a6dd1a4aabdfe2d5c7de9cbdbc4cc5182e4a95e25e26a5f397aca9c9deb69`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1.75 in | 1.75 | 73 |
+| shape | 1 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 1 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 5.75 in | 5.75 | 73 |
+| shape | 2 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 2 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | 3.5 in | 3.5 | 73 |
+| shape | 3 | 1,1,1 | PinY | 6.5 in | 6.5 | 73 |
+| shape | 3 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 3 | 1,1,3 | Height | 3 in | 3 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | Height*0.5 | 1.5 | 73 |
+| shape | 3 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 3 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 3 | 10,3,1 | Geometry1.Y3 | Height*1 | 3 | 73 |
+| shape | 3 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 3 | 10,4,1 | Geometry1.Y4 | Height*1 | 3 | 73 |
+| shape | 3 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 3 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 3.75 | 73 |
+| shape | 4 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 6.75 | 73 |
+| shape | 4 | 1,1,2 | Width | GUARD(EndX-BeginX) | 2.5 | 73 |
+| shape | 4 | 1,1,3 | Height | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 4 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 1.25 | 73 |
+| shape | 4 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.125 | 73 |
+| shape | 4 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 4 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 4 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 4 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 2.5 | 73 |
+| shape | 4 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 6.75 | 73 |
+| shape | 4 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 5 | 73 |
+| shape | 4 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 6.75 | 73 |
+| shape | 4 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 4 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 4 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 4 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 4 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 4 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 4 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 4 | 10,1,1 | Geometry1.Y1 | 0.125 in | 0.125 | 73 |
+| shape | 4 | 10,2,0 | Geometry1.X2 | 2.5 in | 2.5 | 73 |
+| shape | 4 | 10,2,1 | Geometry1.Y2 | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 4 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 4 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 4 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 4 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 4 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 4 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 4 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 4 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 4 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 4 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 4 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 4 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 4 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 4 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 4 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 4 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 4 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 4 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 4 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 1 | MoveTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 0 |
+| 3 | 0 | 4 | LineTo | 0 |
+| 3 | 0 | 5 | LineTo | 0 |
+| 4 | 0 | 1 | MoveTo | 0 |
+| 4 | 0 | 2 | LineTo | 0 |
+| 4 | 0 | 3 | LineTo | 1 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 4 | BeginX | 9 | 1 | PinX | 3 |
+| 4 | EndX | 12 | 2 | PinX | 3 |
+
+### route/obstacle-permeable
+
+Witness: `corpus/generated/route/obstacle-permeable.vsdx`, SHA-256 `8575fec88846ac92ee9f3825cd349f12e079b02cb382a257d855147f74f5b607`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1.75 in | 1.75 | 73 |
+| shape | 1 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 1 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 5.75 in | 5.75 | 73 |
+| shape | 2 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 2 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | 3.5 in | 3.5 | 73 |
+| shape | 3 | 1,1,1 | PinY | 6.5 in | 6.5 | 73 |
+| shape | 3 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 3 | 1,1,3 | Height | 3 in | 3 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | Height*0.5 | 1.5 | 73 |
+| shape | 3 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 3 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 3 | 10,3,1 | Geometry1.Y3 | Height*1 | 3 | 73 |
+| shape | 3 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 3 | 10,4,1 | Geometry1.Y4 | Height*1 | 3 | 73 |
+| shape | 3 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 3 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | TRUE | 1 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | TRUE | 1 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 3.75 | 73 |
+| shape | 4 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 6.75 | 73 |
+| shape | 4 | 1,1,2 | Width | GUARD(EndX-BeginX) | 2.5 | 73 |
+| shape | 4 | 1,1,3 | Height | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 4 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 1.25 | 73 |
+| shape | 4 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.125 | 73 |
+| shape | 4 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 4 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 4 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 4 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 2.5 | 73 |
+| shape | 4 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 6.75 | 73 |
+| shape | 4 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 5 | 73 |
+| shape | 4 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 6.75 | 73 |
+| shape | 4 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 4 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 4 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 4 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 4 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 4 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 4 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 4 | 10,1,1 | Geometry1.Y1 | 0.125 in | 0.125 | 73 |
+| shape | 4 | 10,2,0 | Geometry1.X2 | 2.5 in | 2.5 | 73 |
+| shape | 4 | 10,2,1 | Geometry1.Y2 | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 4 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 4 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 4 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 4 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 4 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 4 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 4 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 4 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 4 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 4 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 4 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 4 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 4 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 4 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 4 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 4 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 4 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 4 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 4 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 1 | MoveTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 0 |
+| 3 | 0 | 4 | LineTo | 0 |
+| 3 | 0 | 5 | LineTo | 0 |
+| 4 | 0 | 1 | MoveTo | 0 |
+| 4 | 0 | 2 | LineTo | 0 |
+| 4 | 0 | 3 | LineTo | 1 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 4 | BeginX | 9 | 1 | PinX | 3 |
+| 4 | EndX | 12 | 2 | PinX | 3 |
+
+### route/obstacle-stacked
+
+Witness: `corpus/generated/route/obstacle-stacked.vsdx`, SHA-256 `7f216329166ac31ab910bf6af181481c20035c9534699531d4ba20cbad50e0ba`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1.75 in | 1.75 | 73 |
+| shape | 1 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 1 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 5.75 in | 5.75 | 73 |
+| shape | 2 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 2 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | 3.5 in | 3.5 | 73 |
+| shape | 3 | 1,1,1 | PinY | 5.125 in | 5.125 | 73 |
+| shape | 3 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 3 | 1,1,3 | Height | 2.25 in | 2.25 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | Height*0.5 | 1.125 | 73 |
+| shape | 3 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 3 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 3 | 10,3,1 | Geometry1.Y3 | Height*1 | 2.25 | 73 |
+| shape | 3 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 3 | 10,4,1 | Geometry1.Y4 | Height*1 | 2.25 | 73 |
+| shape | 3 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 3 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,1,0 | PinX | 3.5 in | 3.5 | 73 |
+| shape | 4 | 1,1,1 | PinY | 8.125 in | 8.125 | 73 |
+| shape | 4 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 4 | 1,1,3 | Height | 1.75 in | 1.75 | 73 |
+| shape | 4 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 4 | 1,1,5 | LocPinY | Height*0.5 | 0.875 | 73 |
+| shape | 4 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 4 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 4 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 4 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 4 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 4 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 4 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 4 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 4 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 4 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 4 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 4 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 4 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 4 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 4 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.75 | 73 |
+| shape | 4 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 4 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.75 | 73 |
+| shape | 4 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 4 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 4 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 4 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 4 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 4 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 4 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 4 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 4 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 4 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 4 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 4 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 4 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 4 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 4 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 4 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 4 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 4 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 4 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 4 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 4 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 5 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 3.75 | 73 |
+| shape | 5 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 6.75 | 73 |
+| shape | 5 | 1,1,2 | Width | GUARD(EndX-BeginX) | 2.5 | 73 |
+| shape | 5 | 1,1,3 | Height | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 5 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 1.25 | 73 |
+| shape | 5 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.125 | 73 |
+| shape | 5 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 5 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 5 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 5 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 2.5 | 73 |
+| shape | 5 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 6.75 | 73 |
+| shape | 5 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 5 | 73 |
+| shape | 5 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 6.75 | 73 |
+| shape | 5 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 5 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 5 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 5 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 5 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 5 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 5 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 5 | 10,1,1 | Geometry1.Y1 | 0.125 in | 0.125 | 73 |
+| shape | 5 | 10,2,0 | Geometry1.X2 | 2.5 in | 2.5 | 73 |
+| shape | 5 | 10,2,1 | Geometry1.Y2 | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 5 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 5 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 5 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 5 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 5 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 5 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 5 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 5 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 5 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 5 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 5 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 5 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 5 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 5 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 5 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 5 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 5 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 5 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 5 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 5 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 5 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 5 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 5 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 5 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 5 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 5 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 5 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 5 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 5 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 5 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 5 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 5 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 5 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 5 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 5 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 5 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 5 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 5 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 5 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 5 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 5 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 5 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 5 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 1 | MoveTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 0 |
+| 3 | 0 | 4 | LineTo | 0 |
+| 3 | 0 | 5 | LineTo | 0 |
+| 4 | 0 | 1 | MoveTo | 0 |
+| 4 | 0 | 2 | LineTo | 0 |
+| 4 | 0 | 3 | LineTo | 0 |
+| 4 | 0 | 4 | LineTo | 0 |
+| 4 | 0 | 5 | LineTo | 0 |
+| 5 | 0 | 1 | MoveTo | 0 |
+| 5 | 0 | 2 | LineTo | 0 |
+| 5 | 0 | 3 | LineTo | 1 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 5 | BeginX | 9 | 1 | PinX | 3 |
+| 5 | EndX | 12 | 2 | PinX | 3 |
+
+### route/obstacle-touching
+
+Witness: `corpus/generated/route/obstacle-touching.vsdx`, SHA-256 `f30be4b40ff42c8cd2267d80ce31a855e282c7719950ae937bb9f9951d55a5b0`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1.75 in | 1.75 | 73 |
+| shape | 1 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 1 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 5.75 in | 5.75 | 73 |
+| shape | 2 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 2 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | 3.5 in | 3.5 | 73 |
+| shape | 3 | 1,1,1 | PinY | 5.875 in | 5.875 | 73 |
+| shape | 3 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 3 | 1,1,3 | Height | 1.75 in | 1.75 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | Height*0.5 | 0.875 | 73 |
+| shape | 3 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 3 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 3 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.75 | 73 |
+| shape | 3 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 3 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.75 | 73 |
+| shape | 3 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 3 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 3.75 | 73 |
+| shape | 4 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 7.125 | 73 |
+| shape | 4 | 1,1,2 | Width | GUARD(EndX-BeginX) | 2.5 | 73 |
+| shape | 4 | 1,1,3 | Height | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 4 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 1.25 | 73 |
+| shape | 4 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.125 | 73 |
+| shape | 4 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 4 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 4 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 4 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 2.5 | 73 |
+| shape | 4 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 7.125 | 73 |
+| shape | 4 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 5 | 73 |
+| shape | 4 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 7.125 | 73 |
+| shape | 4 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 4 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 4 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 4 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 4 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 4 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 4 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 4 | 10,1,1 | Geometry1.Y1 | 0.125 in | 0.125 | 73 |
+| shape | 4 | 10,2,0 | Geometry1.X2 | 2.5 in | 2.5 | 73 |
+| shape | 4 | 10,2,1 | Geometry1.Y2 | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 4 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 4 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 4 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 4 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 4 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 4 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 4 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 4 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 4 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 4 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 4 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 4 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 4 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 4 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 4 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 4 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 4 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 4 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 4 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 1 | MoveTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 0 |
+| 3 | 0 | 4 | LineTo | 0 |
+| 3 | 0 | 5 | LineTo | 0 |
+| 4 | 0 | 1 | MoveTo | 0 |
+| 4 | 0 | 2 | LineTo | 0 |
+| 4 | 0 | 3 | LineTo | 1 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 4 | BeginX | 9 | 1 | PinX | 3 |
+| 4 | EndX | 12 | 2 | PinX | 3 |
+
+### route/offset-above
+
+Witness: `corpus/generated/route/offset-above.vsdx`, SHA-256 `be8d09e2baa8df04c61558cfa7bd113ed153a8d547ba01a9544ddef010cf02cd`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1.75 in | 1.75 | 73 |
+| shape | 1 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 1 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 1.75 in | 1.75 | 65 |
+| shape | 2 | 1,1,1 | PinY | 9.75 in | 9.75 | 65 |
+| shape | 2 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 1.75 | 73 |
+| shape | 3 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 8.25 | 73 |
+| shape | 3 | 1,1,2 | Width | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 3 | 1,1,3 | Height | GUARD(EndY-BeginY) | 1.5 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 0.125 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.75 | 73 |
+| shape | 3 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 3 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 1.75 | 73 |
+| shape | 3 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 7.5 | 73 |
+| shape | 3 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 1.75 | 73 |
+| shape | 3 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 9 | 73 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | 0.125 in | 0.125 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | 0 in | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | 0.125 in | 0.125 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | 1.5 in | 1.5 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 1 | MoveTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 1 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 3 | BeginX | 9 | 1 | PinX | 3 |
+| 3 | EndX | 12 | 2 | PinX | 3 |
+
+### route/offset-below
+
+Witness: `corpus/generated/route/offset-below.vsdx`, SHA-256 `53f59f8873daf56b5544f28a0b71e81f3c166908188a34df10de315605ed7a50`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1.75 in | 1.75 | 73 |
+| shape | 1 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 1 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 1.75 in | 1.75 | 65 |
+| shape | 2 | 1,1,1 | PinY | 3.75 in | 3.75 | 65 |
+| shape | 2 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 1.75 | 73 |
+| shape | 3 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 5.25 | 73 |
+| shape | 3 | 1,1,2 | Width | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 3 | 1,1,3 | Height | GUARD(EndY-BeginY) | -1.5 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 0.125 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | GUARD(Height*0.5) | -0.75 | 73 |
+| shape | 3 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 3 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 1.75 | 73 |
+| shape | 3 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 6 | 73 |
+| shape | 3 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 1.75 | 73 |
+| shape | 3 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 4.5 | 73 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | 0.125 in | 0.125 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | 0 in | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | 0.125 in | 0.125 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | -1.5 in | -1.5 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 1 | MoveTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 1 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 3 | BeginX | 9 | 1 | PinX | 3 |
+| 3 | EndX | 12 | 2 | PinX | 3 |
+
+### route/offset-left
+
+Witness: `corpus/generated/route/offset-left.vsdx`, SHA-256 `30d36fc940ac6ff5efbef5ce5304259937bef7a99a1e6d9c66d3cf2b67968c50`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 6.75 in | 6.75 | 65 |
+| shape | 1 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 1 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 1.75 in | 1.75 | 65 |
+| shape | 2 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 2 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 4.25 | 73 |
+| shape | 3 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 6.75 | 73 |
+| shape | 3 | 1,1,2 | Width | GUARD(EndX-BeginX) | -3.5 | 73 |
+| shape | 3 | 1,1,3 | Height | GUARD(0.25 in) | 0.25 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | GUARD(Width*0.5) | -1.75 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.125 | 73 |
+| shape | 3 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 3 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 6 | 73 |
+| shape | 3 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 6.75 | 73 |
+| shape | 3 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 2.5 | 73 |
+| shape | 3 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 6.75 | 73 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | 0.125 in | 0.125 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | -3.5 in | -3.5 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 1 | MoveTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 1 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 3 | BeginX | 9 | 1 | PinX | 3 |
+| 3 | EndX | 12 | 2 | PinX | 3 |
+
+### route/offset-right-above
+
+Witness: `corpus/generated/route/offset-right-above.vsdx`, SHA-256 `dd4c2a469445a9e2a7f4dc9b266a7b8b9be493f4e6cc3ffce34c626fe993a9a2`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1.75 in | 1.75 | 73 |
+| shape | 1 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 1 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 5.75 in | 5.75 | 73 |
+| shape | 2 | 1,1,1 | PinY | 9 in | 9 | 65 |
+| shape | 2 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 3.375 | 73 |
+| shape | 3 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 8.25 | 73 |
+| shape | 3 | 1,1,2 | Width | GUARD(EndX-BeginX) | 3.25 | 73 |
+| shape | 3 | 1,1,3 | Height | GUARD(EndY-BeginY) | 1.5 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 1.625 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.75 | 73 |
+| shape | 3 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 3 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 1.75 | 73 |
+| shape | 3 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 7.5 | 73 |
+| shape | 3 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 5 | 73 |
+| shape | 3 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 9 | 73 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | 0 in | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | 0 in | 0 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | 1.5 in | 1.5 | 73 |
+| shape | 3 | 10,3,0 | Geometry1.X3 | 3.25 in | 3.25 | 73 |
+| shape | 3 | 10,3,1 | Geometry1.Y3 | 1.5 in | 1.5 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 0 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 3 | BeginX | 9 | 1 | PinX | 3 |
+| 3 | EndX | 12 | 2 | PinX | 3 |
+
+### route/offset-right-below
+
+Witness: `corpus/generated/route/offset-right-below.vsdx`, SHA-256 `fc08da7a029e6dedde4c2f727ab219ab21700da52dd97defb863bef45f9ce1e0`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1.75 in | 1.75 | 73 |
+| shape | 1 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 1 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 5.75 in | 5.75 | 73 |
+| shape | 2 | 1,1,1 | PinY | 3 in | 3 | 65 |
+| shape | 2 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 3.375 | 73 |
+| shape | 3 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 4.5 | 73 |
+| shape | 3 | 1,1,2 | Width | GUARD(EndX-BeginX) | 3.25 | 73 |
+| shape | 3 | 1,1,3 | Height | GUARD(EndY-BeginY) | -3 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 1.625 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | GUARD(Height*0.5) | -1.5 | 73 |
+| shape | 3 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 3 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 1.75 | 73 |
+| shape | 3 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 6 | 73 |
+| shape | 3 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 5 | 73 |
+| shape | 3 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 3 | 73 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | 0 in | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | 0 in | 0 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | -3 in | -3 | 73 |
+| shape | 3 | 10,3,0 | Geometry1.X3 | 3.25 in | 3.25 | 73 |
+| shape | 3 | 10,3,1 | Geometry1.Y3 | -3 in | -3 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 0 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 3 | BeginX | 9 | 1 | PinX | 3 |
+| 3 | EndX | 12 | 2 | PinX | 3 |
+
+### route/preference-avoid-page-breaks
+
+Witness: `corpus/generated/route/preference-avoid-page-breaks.vsdx`, SHA-256 `08066b8b120607bac3b039d5c5b41974a51a443745a45b26bab63c83ed871494`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | TRUE | 1 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 6 in | 6 | 65 |
+| shape | 1 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 1 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 10 in | 10 | 65 |
+| shape | 2 | 1,1,1 | PinY | 9 in | 9 | 65 |
+| shape | 2 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 7.625 | 73 |
+| shape | 3 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 8.25 | 73 |
+| shape | 3 | 1,1,2 | Width | GUARD(EndX-BeginX) | 3.25 | 73 |
+| shape | 3 | 1,1,3 | Height | GUARD(EndY-BeginY) | 1.5 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 1.625 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.75 | 73 |
+| shape | 3 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 3 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 6 | 73 |
+| shape | 3 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 7.5 | 73 |
+| shape | 3 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 9.25 | 73 |
+| shape | 3 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 9 | 73 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | 0 in | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | 0 in | 0 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | 1.5 in | 1.5 | 73 |
+| shape | 3 | 10,3,0 | Geometry1.X3 | 3.25 in | 3.25 | 73 |
+| shape | 3 | 10,3,1 | Geometry1.Y3 | 1.5 in | 1.5 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 0 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 3 | BeginX | 9 | 1 | PinX | 3 |
+| 3 | EndX | 12 | 2 | PinX | 3 |
+
+### route/preference-block-size
+
+Witness: `corpus/generated/route/preference-block-size.vsdx`, SHA-256 `27aa61f3451d829fd80b34a5223017aa4be8a8bba0801f3fc8a7dfa72bc9a450`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.5 in | 0.5 | 65 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.5 in | 0.5 | 65 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1.75 in | 1.75 | 73 |
+| shape | 1 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 1 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 5.75 in | 5.75 | 73 |
+| shape | 2 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 2 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | 3.5 in | 3.5 | 73 |
+| shape | 3 | 1,1,1 | PinY | 6.5 in | 6.5 | 73 |
+| shape | 3 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 3 | 1,1,3 | Height | 3 in | 3 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | Height*0.5 | 1.5 | 73 |
+| shape | 3 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 3 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 3 | 10,3,1 | Geometry1.Y3 | Height*1 | 3 | 73 |
+| shape | 3 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 3 | 10,4,1 | Geometry1.Y4 | Height*1 | 3 | 73 |
+| shape | 3 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 3 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 4.125 | 73 |
+| shape | 4 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 7.125 | 73 |
+| shape | 4 | 1,1,2 | Width | GUARD(EndX-BeginX) | 3.25 | 73 |
+| shape | 4 | 1,1,3 | Height | GUARD(EndY-BeginY) | 0.75 | 73 |
+| shape | 4 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 1.625 | 73 |
+| shape | 4 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.375 | 73 |
+| shape | 4 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 4 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 4 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 4 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 2.5 | 73 |
+| shape | 4 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 6.75 | 73 |
+| shape | 4 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 5.75 | 73 |
+| shape | 4 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 7.5 | 73 |
+| shape | 4 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 4 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 4 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 4 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 4 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 4 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 4 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 4 | 10,1,1 | Geometry1.Y1 | 0 in | 0 | 73 |
+| shape | 4 | 10,2,0 | Geometry1.X2 | 0.3125 in | 0.3125 | 73 |
+| shape | 4 | 10,2,1 | Geometry1.Y2 | 0 in | 0 | 73 |
+| shape | 4 | 10,3,0 | Geometry1.X3 | 0.3125 in | 0.3125 | 73 |
+| shape | 4 | 10,3,1 | Geometry1.Y3 | 1.4375 in | 1.4375 | 73 |
+| shape | 4 | 10,4,0 | Geometry1.X4 | 3.25 in | 3.25 | 73 |
+| shape | 4 | 10,4,1 | Geometry1.Y4 | 1.4375 in | 1.4375 | 73 |
+| shape | 4 | 10,5,0 | Geometry1.X5 | 3.25 in | 3.25 | 73 |
+| shape | 4 | 10,5,1 | Geometry1.Y5 | 0.75 in | 0.75 | 73 |
+| shape | 4 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 4 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 4 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 4 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 4 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 4 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 4 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 4 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 4 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 4 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 4 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 4 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 4 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 4 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 4 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 4 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 4 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 4 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 4 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 4 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 1 | MoveTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 0 |
+| 3 | 0 | 4 | LineTo | 0 |
+| 3 | 0 | 5 | LineTo | 0 |
+| 4 | 0 | 2 | LineTo | 0 |
+| 4 | 0 | 3 | LineTo | 0 |
+| 4 | 0 | 4 | LineTo | 0 |
+| 4 | 0 | 5 | LineTo | 0 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 4 | BeginX | 9 | 1 | PinX | 3 |
+| 4 | EndX | 12 | 2 | PinX | 3 |
+
+### route/preference-line-to-node
+
+Witness: `corpus/generated/route/preference-line-to-node.vsdx`, SHA-256 `71f34a3d3a61e0fad8e1fa81e5e028a7aba2ea4c6d8051bc0fcc0c2731d11d43`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.25 in | 0.25 | 65 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.25 in | 0.25 | 65 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1.75 in | 1.75 | 73 |
+| shape | 1 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 1 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 5.75 in | 5.75 | 73 |
+| shape | 2 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 2 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | 3.5 in | 3.5 | 73 |
+| shape | 3 | 1,1,1 | PinY | 6.5 in | 6.5 | 73 |
+| shape | 3 | 1,1,2 | Width | 1 in | 1 | 73 |
+| shape | 3 | 1,1,3 | Height | 3 in | 3 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | Width*0.5 | 0.5 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | Height*0.5 | 1.5 | 73 |
+| shape | 3 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | Width*1 | 1 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 3 | 10,3,0 | Geometry1.X3 | Width*1 | 1 | 73 |
+| shape | 3 | 10,3,1 | Geometry1.Y3 | Height*1 | 3 | 73 |
+| shape | 3 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 3 | 10,4,1 | Geometry1.Y4 | Height*1 | 3 | 73 |
+| shape | 3 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 3 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 4.125 | 73 |
+| shape | 4 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 7.125 | 73 |
+| shape | 4 | 1,1,2 | Width | GUARD(EndX-BeginX) | 3.25 | 73 |
+| shape | 4 | 1,1,3 | Height | GUARD(EndY-BeginY) | 0.75 | 73 |
+| shape | 4 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 1.625 | 73 |
+| shape | 4 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.375 | 73 |
+| shape | 4 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 4 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 4 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 4 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 2.5 | 73 |
+| shape | 4 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 6.75 | 73 |
+| shape | 4 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 5.75 | 73 |
+| shape | 4 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 7.5 | 73 |
+| shape | 4 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 4 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 4 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 4 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 4 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 4 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 4 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 4 | 10,1,1 | Geometry1.Y1 | 0 in | 0 | 73 |
+| shape | 4 | 10,2,0 | Geometry1.X2 | 0.3125 in | 0.3125 | 73 |
+| shape | 4 | 10,2,1 | Geometry1.Y2 | 0 in | 0 | 73 |
+| shape | 4 | 10,3,0 | Geometry1.X3 | 0.3125 in | 0.3125 | 73 |
+| shape | 4 | 10,3,1 | Geometry1.Y3 | 1.4375 in | 1.4375 | 73 |
+| shape | 4 | 10,4,0 | Geometry1.X4 | 3.25 in | 3.25 | 73 |
+| shape | 4 | 10,4,1 | Geometry1.Y4 | 1.4375 in | 1.4375 | 73 |
+| shape | 4 | 10,5,0 | Geometry1.X5 | 3.25 in | 3.25 | 73 |
+| shape | 4 | 10,5,1 | Geometry1.Y5 | 0.75 in | 0.75 | 73 |
+| shape | 4 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 4 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 4 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 4 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 4 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 4 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 4 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 4 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 4 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 4 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 4 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 4 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 4 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 4 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 4 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 4 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 4 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 4 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 4 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 4 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 4 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 4 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 4 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 4 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 4 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 4 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 4 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 4 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 4 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 4 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 4 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 4 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 4 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 4 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 4 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 1 | MoveTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 0 |
+| 3 | 0 | 4 | LineTo | 0 |
+| 3 | 0 | 5 | LineTo | 0 |
+| 4 | 0 | 2 | LineTo | 0 |
+| 4 | 0 | 3 | LineTo | 0 |
+| 4 | 0 | 4 | LineTo | 0 |
+| 4 | 0 | 5 | LineTo | 0 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 4 | BeginX | 9 | 1 | PinX | 3 |
+| 4 | EndX | 12 | 2 | PinX | 3 |
+
+### route/style-1
+
+Witness: `corpus/generated/route/style-1.vsdx`, SHA-256 `19f22f19e85b957241a255834651daceea795fb9ea95b862b44d0e1ddaf0b01a`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 1 | 1 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1.75 in | 1.75 | 73 |
+| shape | 1 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 1 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 5.75 in | 5.75 | 73 |
+| shape | 2 | 1,1,1 | PinY | 9 in | 9 | 65 |
+| shape | 2 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 3.375 | 73 |
+| shape | 3 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 8.25 | 73 |
+| shape | 3 | 1,1,2 | Width | GUARD(EndX-BeginX) | 3.25 | 73 |
+| shape | 3 | 1,1,3 | Height | GUARD(EndY-BeginY) | 1.5 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 1.625 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.75 | 73 |
+| shape | 3 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 3 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 1.75 | 73 |
+| shape | 3 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 7.5 | 73 |
+| shape | 3 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 5 | 73 |
+| shape | 3 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 9 | 73 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | 0 in | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | 0 in | 0 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | 1.5 in | 1.5 | 73 |
+| shape | 3 | 10,3,0 | Geometry1.X3 | 3.25 in | 3.25 | 73 |
+| shape | 3 | 10,3,1 | Geometry1.Y3 | 1.5 in | 1.5 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 0 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 3 | BeginX | 9 | 1 | PinX | 3 |
+| 3 | EndX | 12 | 2 | PinX | 3 |
+
+### route/style-16
+
+Witness: `corpus/generated/route/style-16.vsdx`, SHA-256 `977a33ebeaedf8dff78ecde289575b59c8479cbc58c9c9aa3084283469bc4bcd`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 16 | 16 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1.75 in | 1.75 | 73 |
+| shape | 1 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 1 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 5.75 in | 5.75 | 73 |
+| shape | 2 | 1,1,1 | PinY | 9 in | 9 | 65 |
+| shape | 2 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 3.75 | 73 |
+| shape | 3 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 7.875 | 73 |
+| shape | 3 | 1,1,2 | Width | GUARD(EndX-BeginX) | 2.5 | 73 |
+| shape | 3 | 1,1,3 | Height | GUARD(EndY-BeginY) | 1.40625 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 1.25 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.703125 | 73 |
+| shape | 3 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 3 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 2.5 | 73 |
+| shape | 3 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 7.171875 | 73 |
+| shape | 3 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 5 | 73 |
+| shape | 3 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 8.578125 | 73 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | 0 in | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | 2.5 in | 2.5 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | 1.40625 in | 1.40625 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 6 | 6 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 1 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 3 | BeginX | 9 | 1 | PinX | 3 |
+| 3 | EndX | 12 | 2 | PinX | 3 |
+
+### route/style-2
+
+Witness: `corpus/generated/route/style-2.vsdx`, SHA-256 `5ca6422be46551f6e688b97559be8dbed6b327682e510f743ab4f996876f4ca4`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 2 | 2 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1.75 in | 1.75 | 73 |
+| shape | 1 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 1 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 5.75 in | 5.75 | 73 |
+| shape | 2 | 1,1,1 | PinY | 9 in | 9 | 65 |
+| shape | 2 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 3.75 | 73 |
+| shape | 3 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 7.875 | 73 |
+| shape | 3 | 1,1,2 | Width | GUARD(EndX-BeginX) | 2.5 | 73 |
+| shape | 3 | 1,1,3 | Height | GUARD(EndY-BeginY) | 0.75 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 1.25 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.375 | 73 |
+| shape | 3 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 3 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 2.5 | 73 |
+| shape | 3 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 7.5 | 73 |
+| shape | 3 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 5 | 73 |
+| shape | 3 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 8.25 | 73 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | 0 in | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | 2.5 in | 2.5 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | 0.75 in | 0.75 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 1 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 3 | BeginX | 9 | 1 | PinX | 3 |
+| 3 | EndX | 12 | 2 | PinX | 3 |
+
+### route/style-override
+
+Witness: `corpus/generated/route/style-override.vsdx`, SHA-256 `9c4b51326a340b1fba658d259214ed301f4080b62a1b4ce767df57ba5a451b66`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 1 | 1 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| shape | 1 | 1,1,0 | PinX | 1.75 in | 1.75 | 73 |
+| shape | 1 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 1 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,1,0 | PinX | 5.75 in | 5.75 | 73 |
+| shape | 2 | 1,1,1 | PinY | 9 in | 9 | 65 |
+| shape | 2 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 1 | 1 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,1,0 | PinX | GUARD((BeginX+EndX)/2) | 3.75 | 73 |
+| shape | 3 | 1,1,1 | PinY | GUARD((BeginY+EndY)/2) | 7.875 | 73 |
+| shape | 3 | 1,1,2 | Width | GUARD(EndX-BeginX) | 2.5 | 73 |
+| shape | 3 | 1,1,3 | Height | GUARD(EndY-BeginY) | 0.75 | 73 |
+| shape | 3 | 1,1,4 | LocPinX | GUARD(Width*0.5) | 1.25 | 73 |
+| shape | 3 | 1,1,5 | LocPinY | GUARD(Height*0.5) | 0.375 | 73 |
+| shape | 3 | 1,1,6 | Angle | GUARD(0 deg) | 0 | 81 |
+| shape | 3 | 1,1,7 | FlipX | GUARD(FALSE) | 0 | 32 |
+| shape | 3 | 1,1,8 | FlipY | GUARD(FALSE) | 0 | 32 |
+| shape | 3 | 1,4,0 | BeginX | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 2.5 | 73 |
+| shape | 3 | 1,4,1 | BeginY | _WALKGLUE(BegTrigger,EndTrigger,WalkPreference) | 7.5 | 73 |
+| shape | 3 | 1,4,2 | EndX | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 5 | 73 |
+| shape | 3 | 1,4,3 | EndY | _WALKGLUE(EndTrigger,BegTrigger,WalkPreference) | 8.25 | 73 |
+| shape | 3 | 10,0,0 | Geometry1.NoFill | TRUE | 1 | 32 |
+| shape | 3 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 3 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 3 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 3 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 3 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 3 | 10,1,0 | Geometry1.X1 | 0 in | 0 | 73 |
+| shape | 3 | 10,1,1 | Geometry1.Y1 | 0 in | 0 | 73 |
+| shape | 3 | 10,2,0 | Geometry1.X2 | 2.5 in | 2.5 | 73 |
+| shape | 3 | 10,2,1 | Geometry1.Y2 | 0.75 in | 0.75 | 73 |
+| shape | 3 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 3 | 1,17,13 | ObjType | 2 | 2 | 32 |
+| shape | 3 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 3 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 3 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 3 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 3 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 3 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,10 | ShapeRouteStyle | 2 | 2 | 32 |
+| shape | 3 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 3 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 3 | 1,23,21 | ShapeSplittable | 1 | 1 | 32 |
+| shape | 3 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 3 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 3 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 3 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 3 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 3 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 3 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 3 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 3 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 3 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 3 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 3 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 3 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 3 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 3 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 3 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 3 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 3 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 3 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 3 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 3 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 3 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 3 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 3 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+| 3 | 0 | 2 | LineTo | 0 |
+| 3 | 0 | 3 | LineTo | 1 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| 3 | BeginX | 9 | 1 | PinX | 3 |
+| 3 | EndX | 12 | 2 | PinX | 3 |
+
+### theme/builtin-1
+
+Witness: `corpus/generated/theme/builtin-1.vsdx`, SHA-256 `1e4553da618bb3aadf78ce52b961778b63a38cb11aca7ce8cc668ddedb8b4397`.
+
+| Scope | Shape | SRC | Cell | FormulaU | ResultIU | Units |
+|---|---:|---|---|---|---|---:|
+| page | 0 | 1,1,0 | PinX |  | 0 | 32 |
+| page | 0 | 1,1,1 | PinY |  | 0 | 32 |
+| page | 0 | 1,1,2 | Width |  | 0 | 32 |
+| page | 0 | 1,1,3 | Height |  | 0 | 32 |
+| page | 0 | 1,1,4 | LocPinX |  | 0 | 32 |
+| page | 0 | 1,1,5 | LocPinY |  | 0 | 32 |
+| page | 0 | 1,1,6 | Angle |  | 0 | 32 |
+| page | 0 | 1,1,7 | FlipX |  | 0 | 32 |
+| page | 0 | 1,1,8 | FlipY |  | 0 | 32 |
+| page | 0 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| page | 0 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| page | 0 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| page | 0 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| page | 0 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| page | 0 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| page | 0 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| page | 0 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| page | 0 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| page | 0 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| page | 0 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| page | 0 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| page | 0 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| page | 0 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| page | 0 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| page | 0 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| page | 0 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| page | 0 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| page | 0 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| page | 0 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| page | 0 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| page | 0 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| page | 0 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| page | 0 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| page | 0 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| page | 0 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| page | 0 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| page | 0 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| page | 0 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| page | 0 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| page | 0 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| page | 0 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| page | 0 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| page | 0 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| page | 0 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| page | 0 | 1,24,30 | PageShapeSplit | 1 | 1 | 32 |
+| page | 0 | 1,30,0 | RotationXAngle | 0 deg | 0 | 81 |
+| page | 0 | 1,30,1 | RotationYAngle | 0 deg | 0 | 81 |
+| page | 0 | 1,30,2 | RotationZAngle | 0 deg | 0 | 81 |
+| page | 0 | 1,30,3 | RotationType | 0 | 0 | 32 |
+| page | 0 | 1,30,4 | Perspective | 0 deg | 0 | 81 |
+| page | 0 | 1,30,5 | DistanceFromGround | 0 pt | 0 | 50 |
+| page | 0 | 1,30,6 | KeepTextFlat | FALSE | 0 | 32 |
+| page | 0 | 1,30,7 | Sect1.F31 |  | 0 | 32 |
+| page | 0 | 1,30,8 | Sect1.G31 |  | 0 | 32 |
+| page | 0 | 1,30,9 | Sect1.H31 |  | 0 | 32 |
+| page | 0 | 1,30,10 | Sect1.I31 |  | 0 | 32 |
+| page | 0 | 1,30,11 | Sect1.J31 |  | 0 | 32 |
+| page | 0 | 1,30,12 | Sect1.K31 |  | 0 | 32 |
+| page | 0 | 1,30,13 | Sect1.L31 |  | 0 | 32 |
+| page | 0 | 1,31,0 | ColorSchemeIndex | 1 | 1 | 32 |
+| page | 0 | 1,31,1 | EffectSchemeIndex | 1 | 1 | 32 |
+| page | 0 | 1,31,2 | ConnectorSchemeIndex | 1 | 1 | 32 |
+| page | 0 | 1,31,3 | FontSchemeIndex | 1 | 1 | 32 |
+| page | 0 | 1,31,4 | ThemeIndex | 1 | 1 | 32 |
+| page | 0 | 1,31,5 | VariationColorIndex | 0 | 0 | 32 |
+| page | 0 | 1,31,6 | VariationStyleIndex | 0 | 0 | 32 |
+| page | 0 | 1,31,7 | EmbellishmentIndex | 0 | 0 | 32 |
+| shape | 1 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 1 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 1 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 1 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 1 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 1 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 1 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 1 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 1 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 1 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 1 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 1 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 1 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 1 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 1 | 1,1,0 | PinX | 1.75 in | 1.75 | 73 |
+| shape | 1 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 1 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 1 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 1 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 1 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 1 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 1 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 1 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| shape | 1 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 1 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 1 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 1 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 1 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 1 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 1 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 1 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 1 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 1 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 1 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 1 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 1 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 1 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 1 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 1 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 1 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 1 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 1 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 1 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 1 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 1 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 1 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 1 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 1 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 1 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 1 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 1 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 1 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 1 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 1 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 1 | 1,30,0 | RotationXAngle | 0 deg | 0 | 81 |
+| shape | 1 | 1,30,1 | RotationYAngle | 0 deg | 0 | 81 |
+| shape | 1 | 1,30,2 | RotationZAngle | 0 deg | 0 | 81 |
+| shape | 1 | 1,30,3 | RotationType | 0 | 0 | 32 |
+| shape | 1 | 1,30,4 | Perspective | 0 deg | 0 | 81 |
+| shape | 1 | 1,30,5 | DistanceFromGround | 0 pt | 0 | 50 |
+| shape | 1 | 1,30,6 | KeepTextFlat | FALSE | 0 | 32 |
+| shape | 1 | 1,30,7 | Sect1.F31 |  | 0 | 32 |
+| shape | 1 | 1,30,8 | Sect1.G31 |  | 0 | 32 |
+| shape | 1 | 1,30,9 | Sect1.H31 |  | 0 | 32 |
+| shape | 1 | 1,30,10 | Sect1.I31 |  | 0 | 32 |
+| shape | 1 | 1,30,11 | Sect1.J31 |  | 0 | 32 |
+| shape | 1 | 1,30,12 | Sect1.K31 |  | 0 | 32 |
+| shape | 1 | 1,30,13 | Sect1.L31 |  | 0 | 32 |
+| shape | 1 | 1,31,0 | ColorSchemeIndex | 65534 | 65534 | 32 |
+| shape | 1 | 1,31,1 | EffectSchemeIndex | 65534 | 65534 | 32 |
+| shape | 1 | 1,31,2 | ConnectorSchemeIndex | 65534 | 65534 | 32 |
+| shape | 1 | 1,31,3 | FontSchemeIndex | 65534 | 65534 | 32 |
+| shape | 1 | 1,31,4 | ThemeIndex | 65534 | 65534 | 32 |
+| shape | 1 | 1,31,5 | VariationColorIndex | 65534 | 65534 | 32 |
+| shape | 1 | 1,31,6 | VariationStyleIndex | 65534 | 65534 | 32 |
+| shape | 1 | 1,31,7 | EmbellishmentIndex | 65534 | 65534 | 32 |
+| shape | 2 | 10,0,0 | Geometry1.NoFill | FALSE | 0 | 32 |
+| shape | 2 | 10,0,1 | Geometry1.NoLine | FALSE | 0 | 32 |
+| shape | 2 | 10,0,2 | Geometry1.NoShow | FALSE | 0 | 32 |
+| shape | 2 | 10,0,3 | Geometry1.NoSnap | FALSE | 0 | 32 |
+| shape | 2 | 10,0,4 | Geometry1.Path |  | 0 | 32 |
+| shape | 2 | 10,0,5 | Geometry1.NoQuickDrag | FALSE | 0 | 32 |
+| shape | 2 | 10,1,0 | Geometry1.X1 | Width*0 | 0 | 73 |
+| shape | 2 | 10,1,1 | Geometry1.Y1 | Height*0 | 0 | 73 |
+| shape | 2 | 10,2,0 | Geometry1.X2 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,2,1 | Geometry1.Y2 | Height*0 | 0 | 73 |
+| shape | 2 | 10,3,0 | Geometry1.X3 | Width*1 | 1.5 | 73 |
+| shape | 2 | 10,3,1 | Geometry1.Y3 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,4,0 | Geometry1.X4 | Width*0 | 0 | 73 |
+| shape | 2 | 10,4,1 | Geometry1.Y4 | Height*1 | 1.5 | 73 |
+| shape | 2 | 10,5,0 | Geometry1.X5 | Geometry1.X1 | 0 | 73 |
+| shape | 2 | 10,5,1 | Geometry1.Y5 | Geometry1.Y1 | 0 | 73 |
+| shape | 2 | 1,1,0 | PinX | 5.75 in | 5.75 | 73 |
+| shape | 2 | 1,1,1 | PinY | 6.75 in | 6.75 | 73 |
+| shape | 2 | 1,1,2 | Width | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,3 | Height | 1.5 in | 1.5 | 73 |
+| shape | 2 | 1,1,4 | LocPinX | Width*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,5 | LocPinY | Height*0.5 | 0.75 | 73 |
+| shape | 2 | 1,1,6 | Angle | 0 deg | 0 | 81 |
+| shape | 2 | 1,1,7 | FlipX | FALSE | 0 | 32 |
+| shape | 2 | 1,1,8 | FlipY | FALSE | 0 | 32 |
+| shape | 2 | 1,17,10 | WalkPreference | 0 | 0 | 32 |
+| shape | 2 | 1,17,13 | ObjType | 0 | 0 | 32 |
+| shape | 2 | 1,23,0 | ShapePermeableX | FALSE | 0 | 32 |
+| shape | 2 | 1,23,1 | ShapePermeableY | FALSE | 0 | 32 |
+| shape | 2 | 1,23,2 | ShapePermeablePlace | FALSE | 0 | 32 |
+| shape | 2 | 1,23,3 | Relationships | FALSE | 0 | 32 |
+| shape | 2 | 1,23,4 | Sect1.C24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,5 | Sect1.D24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,6 | Sect1.E24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,7 | Sect1.F24 | FALSE | 0 | 32 |
+| shape | 2 | 1,23,8 | ShapeFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,9 | ShapePlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,10 | ShapeRouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,11 | ShapePlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,12 | ConFixedCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,13 | ConLineJumpCode | 0 | 0 | 32 |
+| shape | 2 | 1,23,14 | ConLineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,23,15 | ShapePlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,23,16 | ConLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,23,17 | ConLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,23,18 | ShapePlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,23,19 | ConLineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,23,20 | ShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,23,21 | ShapeSplittable | 0 | 0 | 32 |
+| shape | 2 | 1,23,22 | DisplayLevel | 0 | 0 | 32 |
+| shape | 2 | 1,23,23 | Sect1.V24 |  | 0 | 32 |
+| shape | 2 | 1,23,24 | Sect1.W24 |  | 0 | 32 |
+| shape | 2 | 1,24,0 | ResizePage | FALSE | 0 | 32 |
+| shape | 2 | 1,24,1 | EnableGrid | FALSE | 0 | 32 |
+| shape | 2 | 1,24,2 | DynamicsOff | FALSE | 0 | 32 |
+| shape | 2 | 1,24,3 | CtrlAsInput | FALSE | 0 | 32 |
+| shape | 2 | 1,24,4 | AvoidPageBreaks | FALSE | 0 | 32 |
+| shape | 2 | 1,24,5 | Sect1.D25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,6 | Sect1.E25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,7 | Sect1.F25 | FALSE | 0 | 32 |
+| shape | 2 | 1,24,8 | PlaceStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,9 | RouteStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,10 | PlaceDepth | 0 | 0 | 32 |
+| shape | 2 | 1,24,11 | PlowCode | 0 | 0 | 32 |
+| shape | 2 | 1,24,12 | LineJumpCode | 1 | 1 | 32 |
+| shape | 2 | 1,24,13 | LineJumpStyle | 0 | 0 | 32 |
+| shape | 2 | 1,24,14 | PageLineJumpDirX | 0 | 0 | 32 |
+| shape | 2 | 1,24,15 | PageLineJumpDirY | 0 | 0 | 32 |
+| shape | 2 | 1,24,16 | LineToNodeX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,17 | LineToNodeY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,18 | BlockSizeX | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,19 | BlockSizeY | 0.25 in | 0.25 | 73 |
+| shape | 2 | 1,24,20 | AvenueSizeX | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,21 | AvenueSizeY | 0.375 in | 0.375 | 73 |
+| shape | 2 | 1,24,22 | LineToLineX | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,23 | LineToLineY | 0.125 in | 0.125 | 73 |
+| shape | 2 | 1,24,24 | LineJumpFactorX | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,25 | LineJumpFactorY | 0.66666666666667 | 0.66666666666667 | 32 |
+| shape | 2 | 1,24,26 | LineAdjustFrom | 0 | 0 | 32 |
+| shape | 2 | 1,24,27 | LineAdjustTo | 0 | 0 | 32 |
+| shape | 2 | 1,24,28 | PlaceFlip | 0 | 0 | 32 |
+| shape | 2 | 1,24,29 | LineRouteExt | 0 | 0 | 32 |
+| shape | 2 | 1,24,30 | PageShapeSplit | 0 | 0 | 32 |
+| shape | 2 | 1,30,0 | RotationXAngle | 0 deg | 0 | 81 |
+| shape | 2 | 1,30,1 | RotationYAngle | 0 deg | 0 | 81 |
+| shape | 2 | 1,30,2 | RotationZAngle | 0 deg | 0 | 81 |
+| shape | 2 | 1,30,3 | RotationType | 0 | 0 | 32 |
+| shape | 2 | 1,30,4 | Perspective | 0 deg | 0 | 81 |
+| shape | 2 | 1,30,5 | DistanceFromGround | 0 pt | 0 | 50 |
+| shape | 2 | 1,30,6 | KeepTextFlat | FALSE | 0 | 32 |
+| shape | 2 | 1,30,7 | Sect1.F31 |  | 0 | 32 |
+| shape | 2 | 1,30,8 | Sect1.G31 |  | 0 | 32 |
+| shape | 2 | 1,30,9 | Sect1.H31 |  | 0 | 32 |
+| shape | 2 | 1,30,10 | Sect1.I31 |  | 0 | 32 |
+| shape | 2 | 1,30,11 | Sect1.J31 |  | 0 | 32 |
+| shape | 2 | 1,30,12 | Sect1.K31 |  | 0 | 32 |
+| shape | 2 | 1,30,13 | Sect1.L31 |  | 0 | 32 |
+| shape | 2 | 1,31,0 | ColorSchemeIndex | 65534 | 65534 | 32 |
+| shape | 2 | 1,31,1 | EffectSchemeIndex | 65534 | 65534 | 32 |
+| shape | 2 | 1,31,2 | ConnectorSchemeIndex | 65534 | 65534 | 32 |
+| shape | 2 | 1,31,3 | FontSchemeIndex | 65534 | 65534 | 32 |
+| shape | 2 | 1,31,4 | ThemeIndex | 65534 | 65534 | 32 |
+| shape | 2 | 1,31,5 | VariationColorIndex | 65534 | 65534 | 32 |
+| shape | 2 | 1,31,6 | VariationStyleIndex | 65534 | 65534 | 32 |
+| shape | 2 | 1,31,7 | EmbellishmentIndex | 65534 | 65534 | 32 |
+
+Saved local Geometry row structure:
+
+| Shape | Section IX | Row IX | Type | Del |
+|---:|---:|---:|---|---|
+| 1 | 0 | 1 | MoveTo | 0 |
+| 1 | 0 | 2 | LineTo | 0 |
+| 1 | 0 | 3 | LineTo | 0 |
+| 1 | 0 | 4 | LineTo | 0 |
+| 1 | 0 | 5 | LineTo | 0 |
+| 2 | 0 | 1 | MoveTo | 0 |
+| 2 | 0 | 2 | LineTo | 0 |
+| 2 | 0 | 3 | LineTo | 0 |
+| 2 | 0 | 4 | LineTo | 0 |
+| 2 | 0 | 5 | LineTo | 0 |
+
+Connects:
+
+| FromSheet | FromCell | FromPart | ToSheet | ToCell | ToPart |
+|---:|---|---:|---:|---|---:|
+| none | | | | | |
+
+
+### P4b interpretation of the sweep
+
+All 23 route cases and `theme/builtin-1` were opened, dumped and exported by
+Visio. `SetThemeVariant(1,1,2)` was refused with "Requested operation is presently
+disabled"; the failed attempt has no drawing and no synthesized oracle.
+
+The route frames remain unrotated: Width and Height are signed endpoint
+differences, with 0.25DL for a zero difference. The offset-above and offset-below
+witnesses use Width 0.25 and an X coordinate of 0.125 throughout the route.
+LineJumpCode 2 selects the vertical crossing connector. This agrees with the
+Microsoft cell reference, despite the brief's parenthetical description.
+Styles 3 and 4 write PolylineTo rows with normalized POLYLINE control points;
+style 2 writes a MoveTo across the gap. These are not ArcTo rows with a different
+A value. The full raw values and row types are retained in the tables above.
+
+`theme/builtin-1` has no variation style or color tables, but QuickStyle slot
+100 resolves to its first base style and accent1. The themed shadow adds its
+offset and blur extent to the painted bounds: Visio exports 540 by 156 pixels.
+Its SVG Gaussian standard deviation is two thirds of ShapeShdwBlur. The engine
+reads these parameters and colors from the input theme; it embeds no vendor
+visual design. The portrait route exports also witness isotropic rather than
+independent-axis canvas fitting. The existing compound-1 drawing witnesses the
+transparent central third of a double stroke.

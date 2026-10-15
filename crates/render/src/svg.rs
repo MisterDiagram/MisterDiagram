@@ -75,7 +75,28 @@ pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
                     out.push_str("</g>");
                 }
             },
-            Op::Stroke { path: p, stroke, color } => path(&mut out, &crate::scene::stroke_path(p, stroke, view, 96. * options.scale), *color),
+            Op::Stroke { path: p, stroke, color } => {
+                // Native SVG strokes avoid overlapping offset contours on narrow closed paths.
+                // Keep distinct marker-side caps through the shared outline fallback.
+                // https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section
+                if stroke.start_cap != stroke.end_cap {
+                    path(&mut out, &crate::scene::stroke_path(p, stroke, view, 96. * options.scale), *color);
+                } else {
+                    let cap = match stroke.start_cap {
+                        kurbo::Cap::Butt => "butt",
+                        kurbo::Cap::Round => "round",
+                        kurbo::Cap::Square => "square",
+                    };
+                    let join = match stroke.join {
+                        kurbo::Join::Miter => "miter",
+                        kurbo::Join::Round => "round",
+                        kurbo::Join::Bevel => "bevel",
+                    };
+                    let dpi = 96. * options.scale;
+                    let dashes = stroke.dash_pattern.iter().map(|v| (v * dpi).to_string()).collect::<Vec<_>>().join(" ");
+                    write!(out,"<path d=\"{}\" fill=\"none\" stroke=\"#{:02x}{:02x}{:02x}\" stroke-opacity=\"{}\" stroke-width=\"{}\" stroke-linecap=\"{cap}\" stroke-linejoin=\"{join}\" stroke-miterlimit=\"{}\" stroke-dasharray=\"{}\" stroke-dashoffset=\"{}\"/>",(view*p).to_svg(),color.r,color.g,color.b,f64::from(color.a)/255.,stroke.width*dpi,stroke.miter_limit,if dashes.is_empty(){"none"}else{&dashes},stroke.dash_offset*dpi).map_err(|e|e.to_string())?;
+                }
+            }
             Op::Image { pixels, transform } => image(&mut out, pixels, view * *transform, false)?,
             Op::Text { layout, transform } => {
                 for (p, c) in text_paths(layout, view * *transform) {

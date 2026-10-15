@@ -78,3 +78,28 @@ print(f'pypdf: {count} one-page PDFs, {text_count} extractable text drawings')
     println!("resvg: {count} files, worst MAD={worst:.6}");
     assert!(failures.is_empty(), "{}", failures.join("\n"));
 }
+
+#[test]
+fn svg_thin_closed_stroke_matches_the_raster_pen() {
+    use diagramcraft_render::scene::{Op, Scene};
+    use kurbo::Shape as _;
+    let scene = Scene {
+        warnings: vec![],
+        ops: vec![Op::Stroke {
+            path: kurbo::Rect::new(0.01, 0.16, 0.78, 0.17).to_path(1e-5),
+            stroke: kurbo::Stroke::new(1. / 96.),
+            color: diagramcraft_color::Rgba::BLACK,
+        }],
+        bounds: kurbo::Rect::new(0., 0., 0.8, 0.33),
+        page_size: (8.5, 11.),
+    };
+    let options = scene::Options::default();
+    let png = raster::render(&scene, options).unwrap();
+    let xml = svg::render(&scene, options).unwrap();
+    let tree = resvg::usvg::Tree::from_str(&xml, &resvg::usvg::Options::default()).unwrap();
+    let mut pixels = resvg::tiny_skia::Pixmap::new(png.width(), png.height()).unwrap();
+    resvg::render(&tree, resvg::tiny_skia::Transform::identity(), &mut pixels.as_mut());
+    let error: u64 = png.pixels().zip(pixels.pixels()).map(|(a, b)| u64::from(a.0[0].abs_diff(b.red()))).sum();
+    let mad = error as f64 / (f64::from(png.width()) * f64::from(png.height()));
+    assert!(mad < 1., "thin closed stroke backend MAD={mad}");
+}

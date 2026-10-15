@@ -8,4 +8,5 @@ mod metafile;
 pub mod pdf;
 pub mod raster;
 pub mod scene;
+mod shadow;
 pub mod svg;

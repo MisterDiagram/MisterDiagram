@@ -464,6 +464,11 @@ fn matrix_index(root: &El, index: u32, variant: u32, attr: &str) -> Result<u32, 
     if index > 103 || variant > 3 {
         return Err(Error::Value);
     }
+    // Legacy themes have no variant table: slot 100 selects their first style.
+    // Observed in theme/builtin-1.vsdx, SetTheme(1).
+    if index == 100 && root.find("variationStyleSchemeLst").is_none() {
+        return Ok(1);
+    }
     root.find("variationStyleSchemeLst")
         .and_then(|e| e.elements().nth(variant as usize))
         .and_then(|e| e.elements().nth((index - 100) as usize))
@@ -474,6 +479,7 @@ fn matrix_index(root: &El, index: u32, variant: u32, attr: &str) -> Result<u32, 
 /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/723529ce-4ac3-416d-b7be-362aa28be341
 fn quick_color(colors: &El, index: u32, variant: u32) -> Result<Rgba, Error> {
     let names = ["dk1", "lt1", "accent1", "accent2", "accent3", "accent4", "accent5", "accent6", "bkgnd"];
+    let index = if index == 100 && colors.find("variationClrSchemeLst").is_none() { 2 } else { index };
     let element = if let Some(name) = names.get(index as usize) {
         colors.child(name).or_else(|| colors.find(name))
     } else if (100..=106).contains(&index) && variant < 4 {
@@ -605,6 +611,13 @@ mod tests {
             theme.theme("THEMEVAL", &[Value::Text("LineWeight".into()), Value::Text("0.7 pt.".into())], &mut cx),
             Value::Text("0.7 pt.".into())
         );
+    }
+    #[test]
+    fn legacy_theme_without_variants_uses_base_style_and_accent() {
+        let root = xml::parse(b"<theme><clrScheme><accent1><srgbClr val='17395B'/></accent1></clrScheme></theme>").unwrap().root;
+        assert_eq!(matrix_index(&root, 100, 0, "fillIdx"), Ok(1));
+        assert_eq!(quick_color(root.child("clrScheme").unwrap(), 100, 0), Ok(Rgba::rgb(0x17, 0x39, 0x5b)));
+        assert_eq!(matrix_index(&root, 101, 0, "fillIdx"), Err(Error::Ref));
     }
     #[test]
     fn hostile_theme_xml_and_color_cycles_are_bounded() {

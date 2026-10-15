@@ -830,3 +830,34 @@ and does not reduce that estimate. The separate small-image export-mapping gap
 from M3 remains open.
 
 P4a closure completed 2026-10-15: three-platform CI green, two consecutive frozen passes with 21 YES/0 NO, seven empty diffs and unchanged four-file VM evidence. The renderer items above remain open and their per-pair checks reopen as required when those items close. No parity row moves; the 4b estimate remains 24 to 40 hours.
+
+### P4b M4.12: route sweep and renderer prerequisites
+
+The first P4b VM run produced 23 route witnesses and one theme witness, with
+143212 cells read and zero cell errors. The variant attempt failed with Visio's
+"Requested operation is presently disabled". `theme.apply` is deferred: no
+variant witness. The successful theme drawing remains in corpus measurement.
+
+The new portrait routes exposed independent X/Y canvas fitting. Export fitting
+now preserves aspect ratio, using the larger fitted scale about the canvas
+centre. The existing double-line witness exposed a solid stroke where the
+central third should be transparent. Legacy theme slot 100 now uses the base
+style and accent when variation tables are absent; an outer shadow mask uses
+only input document geometry and colors. No built-in theme asset is embedded.
+These fixes also exposed and corrected premultiplied raster samples being
+returned as straight-alpha PNG samples.
+
+The preview over all 228 drawings retains ten per-file outliers with the frozen
+ratchet unchanged. `line/compound-1` is resolved; `route/offset-left` is an
+outlier. The other nine remain `page/metric-scale`, `image/emf`,
+`line/compound-2`, `line/compound-3`, `line/compound-4`,
+`connector/dynamic-glue`, `connector/move-before`, `connector/static-glue`, and
+`text/multiline-wrap`. Connector stroke rendering remains open. The canvas
+change is not a claim that all small-image export mapping is solved.
+
+M4.12 full corpus check passes: route23 MAD0.495426, over16 0.613902%;
+theme1 MAD0.422183, over16 0.949668%; strict15104014/15104014 cells.
+Ordinary SVG strokes now use native stroke attributes, retaining the shared
+outline fallback for asymmetric caps. This corrects raster/SVG disagreement on
+the tiny metric-scale witness without changing its comparison ceiling. Shadow
+mask allocation and filter work both have explicit bounds and hostile tests.

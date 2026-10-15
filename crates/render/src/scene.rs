@@ -148,7 +148,17 @@ impl Scene {
         }
         let sx = if w > 2. && b.width() > 0. { (w - 2.) / b.width() } else { dpi };
         let sy = if h > 2. && b.height() > 0. { (h - 2.) / b.height() } else { dpi };
-        Ok((w as u16, h as u16, Affine::translate((1., 1.)) * Affine::scale_non_uniform(sx, -sy) * Affine::translate((-b.x0, -b.y1))))
+        // Keep geometry isotropic on the export canvas. Portrait route witnesses
+        // expose the distortion caused by fitting the axes independently.
+        // https://learn.microsoft.com/en-us/office/vba/api/visio.page.export
+        let fit = sx.max(sy);
+        Ok((
+            w as u16,
+            h as u16,
+            Affine::translate((w / 2., h / 2.))
+                * Affine::scale_non_uniform(fit, -fit)
+                * Affine::translate((-(b.x0 + b.x1) / 2., -(b.y0 + b.y1) / 2.)),
+        ))
     }
 }
 fn number(e: &mut Evaluator<'_>, scope: Scope, name: &str, default: f64) -> f64 {
@@ -460,6 +470,31 @@ fn shapes(
                 combined_fill.extend(style::round_rectangle(&geometry.path, line.rounding).elements().iter().copied());
             }
         }
+        if number(e, scope, "ShdwPattern", 0.) == 1. && number(e, scope, "ShapeShdwType", 1.) <= 1. {
+            let mut silhouette = BezPath::new();
+            for geometry in &geometries {
+                let path = style::round_rectangle(&geometry.path, line.rounding);
+                if geometry.filled() && fill.pattern != 0 {
+                    silhouette.extend((transform * &path).elements().iter().copied());
+                }
+                if geometry.stroked() && line.pattern != 0 {
+                    let mut stroke = line.stroke();
+                    stroke.width = nominal_weight;
+                    silhouette.extend(
+                        (transform * kurbo::stroke(path.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-5))
+                            .elements()
+                            .iter()
+                            .copied(),
+                    );
+                }
+            }
+            if !silhouette.elements().is_empty() {
+                let offset = (number(e, scope, "ShapeShdwOffsetX", 0.), number(e, scope, "ShapeShdwOffsetY", 0.));
+                let blur = number(e, scope, "ShapeShdwBlur", 0.).max(0.);
+                let shade = color(e, scope, "ShdwForegnd", "ShdwForegndTrans");
+                scene.ops.push(crate::shadow::outer(&silhouette, offset, blur, shade, 96. * options.scale)?);
+            }
+        }
         if fill.pattern != 0 && !combined_fill.elements().is_empty() {
             let gradient = gradient(e, scope);
             let paint = if fill.pattern == 1 && gradient.is_none() {
@@ -515,7 +550,18 @@ fn shapes(
                 for dash in &mut stroke.dash_pattern {
                     *dash *= physical_scale;
                 }
-                scene.ops.push(Op::Stroke { path: transform * shaft, stroke, color: line.color });
+                if line.compound == 1 {
+                    // Double lines have a transparent central third, not a white overpaint.
+                    // https://learn.microsoft.com/en-us/office/client-developer/visio/compoundtype-cell-line-format-section
+                    let shaft = transform * shaft;
+                    let mut outline = kurbo::stroke(shaft.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-5);
+                    stroke.width /= 3.;
+                    let inner = kurbo::stroke(shaft.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-5).reverse_subpaths();
+                    outline.extend(inner.elements().iter().copied());
+                    scene.ops.push(Op::Path { path: outline, paint: Paint::Solid(line.color) });
+                } else {
+                    scene.ops.push(Op::Stroke { path: transform * shaft, stroke, color: line.color });
+                }
                 let endpoints: Vec<Point> = path
                     .elements()
                     .iter()

@@ -157,6 +157,15 @@ pub fn render(scene: &Scene, options: Options) -> Result<image::RgbaImage, Strin
     let mut pixels = vec![0; len];
     let pm = PixmapMut::new(w, h, &mut pixels).ok_or("invalid pixmap")?;
     ctx.render(pm, &mut vello_cpu::Resources::new());
+    // Vello returns premultiplied samples; RgbaImage and PNG use straight alpha.
+    for [r, g, b, alpha] in pixels.as_chunks_mut::<4>().0 {
+        let alpha = *alpha;
+        if alpha > 0 && alpha < 255 {
+            for channel in [r, g, b] {
+                *channel = ((u16::from(*channel) * 255 + u16::from(alpha) / 2) / u16::from(alpha)).min(255) as u8;
+            }
+        }
+    }
     image::RgbaImage::from_raw(u32::from(w), u32::from(h), pixels).ok_or_else(|| "pixel dimensions disagree".into())
 }
 /// Eighth-pixel coverage lattice observed in the generated 96 dpi edge profiles.
@@ -196,6 +205,38 @@ mod tests {
         assert!(rendered.pixels().all(|p| p.0[0] == 255 && p.0[1] == p.0[2]), "transparent blue must not bleed into opaque red");
         assert!(rendered.pixels().any(|p| p.0[1] > 0 && p.0[1] < 255), "filter must retain the alpha fringe");
         assert!(transparent_border(&image::RgbaImage::new(0, 0)).is_err());
+    }
+    #[test]
+    fn portrait_export_preserves_angles() {
+        let scene = Scene { warnings: vec![], ops: vec![], bounds: Rect::new(0., 0., 1.5, 4.5), page_size: (8.5, 11.) };
+        let (_, _, view) = scene.canvas(Options::default()).unwrap();
+        let c = view.as_coeffs();
+        assert!((c[0].abs() - c[3].abs()).abs() < 1e-12);
+    }
+    #[test]
+    fn double_line_gap_shows_the_underlying_fill() {
+        use diagramcraft_model::skeleton;
+        let mut doc = skeleton::document(false);
+        let mut shape = skeleton::rectangle(1, 0., 0., 2., 1., "").unwrap();
+        for (name, value) in [("CompoundType", "1"), ("LineWeight", "0.12"), ("FillForegnd", "2")] {
+            if let Some(c) = shape.sheet.cells.iter_mut().find(|c| c.name == name) {
+                c.value = Some(value.into());
+                c.formula = None;
+            } else {
+                shape.sheet.cells.push(diagramcraft_model::Cell { name: name.into(), value: Some(value.into()), ..Default::default() });
+            }
+        }
+        doc.pages[0].shapes.push(shape);
+        let scene = crate::scene::page(&doc, 0, Options::default()).unwrap();
+        let image = render(&scene, Options::default()).unwrap();
+        let (_, _, view) = scene.canvas(Options::default()).unwrap();
+        let gap = view * kurbo::Point::new(1., 0.99);
+        let sample = image.get_pixel(gap.x.floor() as u32, gap.y.floor() as u32).0;
+        assert!(sample[0] > 200 && sample[1] < 80, "stroke centre must expose the red fill: {sample:?}");
+        let x = image.width() / 2;
+        let row = (0..15.min(image.height())).map(|y| image.get_pixel(x, y).0).collect::<Vec<_>>();
+        assert!(row.iter().any(|p| p[0] > 200 && p[1] < 80), "red fill must remain visible in the double-stroke gap");
+        assert!(row.iter().any(|p| p[0] < 80 && p[1] < 80), "double stroke must retain black bands");
     }
     #[test]
     fn hostile_images_and_canvas_limits() {
