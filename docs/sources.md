@@ -364,4 +364,5 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/c5e4da4b-c1d0-4cdd-a418-04fccbc098ae> | `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/f91b1356-cff1-4c71-8a04-247007cbe4c9> | `crates/sheet/src/language.rs`, `tools/oracle/accept_report.py` |
 | <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/> | `crates/render/src/metafile/mod.rs` |
+| <https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw> | `apps/diagramcraft-cli/tests/authoring.rs` |
 | <https://learn.microsoft.com/en-us/windows/win32/gdi/ternary-raster-operations> | `crates/render/src/metafile/mod.rs` |

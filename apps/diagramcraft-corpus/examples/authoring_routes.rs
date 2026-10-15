@@ -1,4 +1,5 @@
-//! Explicit P4a acceptance command, including the strict per-pair pixel requirement.
+//! P4a cells/geometry acceptance; per-pair pixels are informational under
+//! Charles's 2026-10-15 ruling until the connector stroke rendering gap closes.
 //! Run: cargo run -p diagramcraft-corpus --example authoring_routes
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 use diagramcraft_engine::Session;
@@ -74,7 +75,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             error: None,
         };
         println!(
-            "P4a route {name}: size={}x{} expected={}x{} MAD={mad:.6} over16={:.6}%",
+            "P4a route {name}: size={}x{} expected={}x{} MAD={mad:.6} over16={:.6}% informational=true",
             rendered.width(),
             rendered.height(),
             expected.width(),
@@ -86,7 +87,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
     if !over_ceiling.is_empty() {
-        return Err(format!("P4a per-pair connector ceilings exceeded: {over_ceiling:?}").into());
+        println!(
+            "P4a informational per-pair connector ceilings exceeded: {over_ceiling:?}; cells/geometry agree, corpus group ceiling remains required"
+        );
     }
     Ok(())
 }

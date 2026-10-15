@@ -800,3 +800,31 @@ corpus still fails. The two-boxes smoke test and corrupt-ZIP parser regression
 remain self-contained. Private acceptance on this Mac runs all witness checks.
 
 Closure record: all eight host CI gates pass, both privately and without the private corpus/fonts. The full corpus floor check passes. Two independent frozen verification passes each retain 17 YES and 3 NO; the required pixel failures prevent two clean passes. No P4a or M4 milestone closure is claimed.
+
+## Renderer: connector stroke rendering
+
+Charles's 2026-10-15 ruling accepts straight-route authoring on cell/geometry
+equality within1e-6 and the unchanged corpus connector group ceiling. These
+per-pair pixel measurements remain printed as informational until this renderer
+item closes, when they reopen as required checks. No numerical ceiling, floor
+or denominator changes. G8's maximum remains ten outliers; two-boxes is not
+added to that ratchet because it is not a corpus-check input.
+
+| Pair | Over16 | Status |
+|---|---:|---|
+| dynamic-glue | 3.190144% | informational |
+| move-before | 3.190144% | informational |
+| static-glue | 3.175803% | informational |
+| two-boxes | 2.976338% | informational |
+| move-after | 0.736069% | informational, within ceiling |
+
+Carry forward M3.23's dark-route observation: the scratch dynamic-glue witness
+had a dark route in Visio and two COM connects while its pixel comparison failed.
+The historical M3 table remains intact above. P4a now has matching route cells
+and geometry; this item concerns rendering the same content.
+
+4b estimate remains 24 to 40 engineering hours before review: obstacle paths,
+rerouting and walking choices, line jumps/page preferences, theme.apply, SAN
+generation and VM closure. This light closure brief adds no 4b implementation
+and does not reduce that estimate. The separate small-image export-mapping gap
+from M3 remains open.

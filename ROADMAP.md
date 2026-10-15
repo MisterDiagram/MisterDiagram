@@ -368,3 +368,9 @@ differences. The P4a reporter remains exit 1 because two-boxes pixels exceed
 the connector ceiling. M4.6 has three corresponding existing witness outliers.
 
 Full final-candidate CI passes all eight gates, including wasm; a separate public-style run without the private corpus or optional fonts also passes all eight. Standalone engine (42), route (2) and VSDX round-trip (2) tests pass. Both required production seeds fail their regression and pass after exact restoration. Independent frozen verification has two non-clean passes, each 17 YES and 3 NO: M4.6 pixels, the pixel acceptance gate, and the missing two clean closure passes. P4a is not closed.
+
+## P4a gate ruling, 2026-10-15
+
+Charles's P4a gate ruling, 2026-10-15: straight routes are accepted on M4.5/M4.6 cell and Geometry/XForm equality within1e-6 plus the unchanged connector group ceiling in corpus check. Per-pair pixels in authoring_routes and the P4a acceptance profile are informational, still measured and printed, until the connector stroke rendering gap closes. Identical cells make the remaining difference a Phase2 renderer comparison. The three corpus witnesses are already in G8's ten frozen outliers. No ceiling, floor or denominator changes; the ten-outlier ratchet is unchanged and two-boxes is not added because it is not a corpus-check input.
+
+Closure verification and three-platform CI remain pending. M4 stays open until4b.

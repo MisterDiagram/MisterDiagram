@@ -3,8 +3,26 @@ use std::{
     path::PathBuf,
     process::{Command, Output},
 };
-fn cli(args: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_diagramcraft-cli")).args(args).output().unwrap()
+fn cli(args: &[&str]) -> std::io::Result<Output> {
+    Command::new(env!("CARGO_BIN_EXE_diagramcraft-cli")).args(args).output()
+}
+/// CreateProcessW caps its UTF-16 command line at 32,767 characters including NUL.
+/// Only the known oversized cases may accept Windows ERROR_FILENAME_EXCED_RANGE
+/// (206) before launch; delivered arguments must receive the CLI's own rejection.
+/// https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw
+fn oversized_rejected(args: &[&str], diagnostic: &str) {
+    assert!(args.iter().map(|arg| arg.encode_utf16().count() + 1).sum::<usize>() > 32767);
+    match cli(args) {
+        Err(error) if cfg!(windows) && error.raw_os_error() == Some(206) => {}
+        Err(error) => panic!("unexpected CLI spawn failure: {error}"),
+        Ok(output) => {
+            assert_eq!(output.status.code(), Some(1));
+            let stderr = String::from_utf8(output.stderr).unwrap();
+            assert_eq!(stderr.lines().count(), 1, "{stderr}");
+            assert!(stderr.contains(diagnostic), "{stderr}");
+            assert!(!stderr.contains("panicked"));
+        }
+    }
 }
 fn dir() -> PathBuf {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/cli-authoring-tests");
@@ -13,7 +31,7 @@ fn dir() -> PathBuf {
 }
 #[test]
 fn commands_and_describe_publish_parseable_schemas() {
-    let output = cli(&["commands"]);
+    let output = cli(&["commands"]).unwrap();
     assert!(output.status.success());
     let commands: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(commands.as_array().unwrap().len(), diagramcraft_engine::cmd::command_specs().len());
@@ -21,7 +39,7 @@ fn commands_and_describe_publish_parseable_schemas() {
         let schema: serde_json::Value = serde_json::from_str(command["params"].as_str().unwrap()).unwrap();
         assert_eq!(schema["type"], "object");
     }
-    let output = cli(&["describe", "connect.dynamic"]);
+    let output = cli(&["describe", "connect.dynamic"]).unwrap();
     assert!(output.status.success());
     let info: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(info["id"], "connect.dynamic");
@@ -41,18 +59,19 @@ fn run_uses_one_session_and_convert_dispatches_by_extension() {
         r#"shape.move={"id":1,"x":4,"y":5}"#,
         "--save",
         drawing,
-    ]);
+    ])
+    .unwrap();
     assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
     let doc = diagramcraft_vsdx::read(drawing).unwrap();
     assert_eq!(doc.pages[0].shapes[0].sheet.cell("PinX").unwrap().value.as_deref(), Some("4"));
     for extension in ["vssx", "vstx", "svg", "png", "pdf"] {
         let path = directory.join(format!("converted.{extension}"));
-        let output = cli(&["convert", drawing, path.to_str().unwrap()]);
+        let output = cli(&["convert", drawing, path.to_str().unwrap()]).unwrap();
         assert!(output.status.success(), "{extension}: {}", String::from_utf8_lossy(&output.stderr));
         assert!(std::fs::metadata(path).unwrap().len() > 10);
     }
     let path = directory.join("opened.vsdx");
-    let output = cli(&["run", "--open", drawing, "--cmd", r#"shape.text={"id":1,"text":"New text"}"#, "--save", path.to_str().unwrap()]);
+    let output = cli(&["run", "--open", drawing, "--cmd", r#"shape.text={"id":1,"text":"New text"}"#, "--save", path.to_str().unwrap()]).unwrap();
     assert!(output.status.success());
     assert!(diagramcraft_vsdx::read(path).unwrap().pages[0].shapes[0].text.as_ref().unwrap().text().contains("New text"));
 }
@@ -79,20 +98,25 @@ fn hostile_arguments_fail_cleanly_for_each_new_subcommand() {
         vec!["convert", "missing.vsdx", "out.exe"],
         vec!["convert", "missing.vsdx", "out.png", "extra"],
     ] {
-        let output = cli(&args);
+        let output = cli(&args).unwrap();
         assert!(!output.status.success(), "{args:?}");
         let stderr = String::from_utf8(output.stderr).unwrap();
         assert_eq!(stderr.lines().count(), 1, "{args:?}: {stderr}");
         assert!(!stderr.contains("panicked"));
     }
     let args = vec!["commands"; 4097];
-    assert!(!cli(&args).status.success());
+    oversized_rejected(&args, "argument count or byte limit");
+}
+#[test]
+fn oversized_path_is_rejected_before_file_access() {
+    let path = format!("{}.vsdx", "x".repeat(32769));
+    oversized_rejected(&["run", "--open", &path], "path length is out of bounds");
 }
 #[test]
 fn failing_command_does_not_write_the_final_save() {
     let path = dir().join("preserved.vsdx");
     std::fs::write(&path, b"sentinel").unwrap();
-    let output = cli(&["run", "--cmd", r#"shape.move={"id":999,"x":1,"y":1}"#, "--save", path.to_str().unwrap()]);
+    let output = cli(&["run", "--cmd", r#"shape.move={"id":999,"x":1,"y":1}"#, "--save", path.to_str().unwrap()]).unwrap();
     assert!(!output.status.success());
     assert_eq!(std::fs::read(path).unwrap(), b"sentinel");
 }

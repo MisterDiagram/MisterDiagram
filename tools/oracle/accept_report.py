@@ -717,8 +717,12 @@ def verified_observation(path, actual, entry, manifest):
     return status
 
 
-def render_required(set_or_group):
-    """M3.22 shipped views and Charles's 2026-10-14 small-image ruling are informational."""
+def render_required(set_or_group, profile='m3'):
+    """Charles's dated rulings: small images (2026-10-14), P4a connector pairs (2026-10-15)."""
+    # The fixed four-file P4a profile has two-boxes in connector and move-after
+    # alone in generated-pages. Keep both populations and measurements intact.
+    if profile == 'm4' and set_or_group in {'connector', 'generated-pages'}:
+        return False
     return set_or_group not in {
         'generated-masters','from-scratch-masters','from-scratch-pages',
         'shipped-stencil','shipped-template',
@@ -910,7 +914,7 @@ def report(out, manifest, baseline=None):
         count = sum(i['pixels'] for i in scored)
         frac = sum(i['over'] for i in scored)/count if count else math.inf
         ok = len(valid) == len(items) and (not scored or (mad <= (8 if group == 'text' else 4) and frac <= (.05 if group == 'text' else .02)))
-        informational = not render_required(group)
+        informational = not render_required(group, profile)
         if not informational: success &= ok
         worst = sorted((i for i in items if not i.get('empty')), key=lambda i:i.get('mad',math.inf),reverse=True)[:3]
         summaries[group] = {'images':len(items),'empty':empty_count,'errors':len(items)-len(valid),'mad':mad if math.isfinite(mad) else None,'fraction':frac if math.isfinite(frac) else None,'passed':ok,'informational':informational,'worst':worst}

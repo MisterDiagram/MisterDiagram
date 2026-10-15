@@ -158,6 +158,17 @@ class Acceptance(unittest.TestCase):
         _, b = report.package_cells(self.package('<PageContents/>'))
         self.assertEqual(len(report.cell_diffs(a,b,set())),1)
 
+    def test_p4a_connector_pixels_are_informational_only_in_p4a(self):
+        self.assertFalse(report.render_required('connector', 'm4'))
+        self.assertFalse(report.render_required('generated-pages', 'm4'))
+        self.assertTrue(report.render_required('connector'))
+        self.assertTrue(report.render_required('connector', 'm3'))
+        self.assertTrue(report.render_required('generated-pages', 'm3'))
+        self.assertTrue(report.render_required('basic', 'm4'))
+        self.assertTrue(report.content_failed('from-scratch', 1, [], []))
+        self.assertTrue(report.content_failed('from-scratch', 0, ['COM mismatch'], []))
+        self.assertTrue(report.content_failed('from-scratch', 0, [], [{'group':'connector','error':'missing PNG'}]))
+
     def test_hostile_xml_and_duplicate_parts_rejected(self):
         for xml in ['<!DOCTYPE x [<!ENTITY x "boom">]><x>&x;</x>', '<x>'*130+'</x>'*130]:
             with self.assertRaises(ValueError):
