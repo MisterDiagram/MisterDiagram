@@ -41,6 +41,19 @@ class Acceptance(unittest.TestCase):
         with self.assertRaises(ValueError):
             report.validate_cohort({'files':[{'output':str(i)} for i in range(229)]})
 
+    def test_p4b_exact_cohort_and_required_san_pixels(self):
+        entries=[]
+        for name in ('obstacle','line-jumps','san-topology'):
+            source=None if name=='san-topology' else f'corpus/generated/connector/{name}.vsdx'
+            entries.append(dict(output=f'corpus/_state/m4b/accept-inputs/p4b__{name}.vsdx',source=source,
+                baseline_name=f'generated__connector__{name}' if source else 'blank__blank',set='generated' if source else 'from-scratch'))
+        self.assertEqual(report.validate_cohort(dict(brief='P4b',files=entries)), 'm4b')
+        with self.assertRaises(ValueError): report.validate_cohort(dict(brief='P4b',files=entries[:2]))
+        with self.assertRaises(ValueError): report.validate_cohort(dict(brief='P4a',files=entries))
+        self.assertTrue(report.render_required('san-topology','m4b'))
+        self.assertFalse(report.render_required('witness-connector','m4b'))
+        self.assertTrue(report.render_required('connector','m3'))
+
     def test_page_view_rewrites_are_exact_numeric_and_scratch_only(self):
         def records(path, value):
             return {(path,0):{'kind':'attribute','V':value,'F':None,'U':None,'E':None}}

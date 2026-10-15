@@ -87,7 +87,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::fs::write(out.join(format!("route-{name}.diff")), &diff)?;
         println!("{name}: {} differences", diff.lines().count());
         if !diff.is_empty() {
-            if name == "jump-three-crossings" {
+            if name == "jump-three-crossings" && known_packing_gap(&diff) {
                 println!("named gap: jump-three-crossings endpoint packing, see docs/gaps.md; diff retained");
             } else {
                 failed += 1;
@@ -129,5 +129,44 @@ fn equivalent(a: &diagramcraft_sheet::Value, b: &diagramcraft_sheet::Value) -> b
     match (a.numeric(), b.numeric()) {
         (Ok(a), Ok(b)) => (a - b).abs() <= 1e-6,
         _ => a == b,
+    }
+}
+
+/// The sole measured packing gap is ten coordinates displaced by 1/64 inch.
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.shape.reroute
+fn known_packing_gap(diff: &str) -> bool {
+    let expected = [
+        ("9", "Geometry1.X2", 0.458333333333333, 0.473958333333333),
+        ("9", "Geometry1.X3", 0.541666666666667, 0.557291666666667),
+        ("9", "Geometry1.X6", 4.458333333333333, 4.442708333333333),
+        ("9", "Geometry1.X7", 4.541666666666667, 4.526041666666667),
+        ("10", "BeginX", 2., 2.015625),
+        ("10", "EndX", 2., 2.015625),
+        ("10", "PinX", 2., 2.015625),
+        ("12", "BeginX", 6., 5.984375),
+        ("12", "EndX", 6., 5.984375),
+        ("12", "PinX", 6., 5.984375),
+    ];
+    let lines = diff.lines().collect::<Vec<_>>();
+    !lines.is_empty()
+        && lines.len() <= expected.len()
+        && lines.iter().all(|line| {
+            let fields = line.split('\t').collect::<Vec<_>>();
+            if let [id, name, a, b] = fields.as_slice()
+                && let (Ok(a), Ok(b)) = (a.parse::<f64>(), b.parse::<f64>())
+            {
+                return expected.iter().any(|(i, n, x, y)| id == i && name == n && (a - x).abs() <= 1e-6 && (b - y).abs() <= 1e-6);
+            }
+            false
+        })
+}
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn named_gap_rejects_unrelated_defects() {
+        assert!(super::known_packing_gap("10\tBeginX\t2\t2.015625\n"));
+        assert!(!super::known_packing_gap("9\tGeometry1.A3\t0.0416667\t-0.0416667\n"));
+        assert!(!super::known_packing_gap("reroute error: no path\n"));
+        assert!(!super::known_packing_gap("10\tBeginX\t3\t2.015625\n"));
     }
 }

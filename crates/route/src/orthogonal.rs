@@ -316,6 +316,56 @@ pub(crate) fn page_signature(e: &mut Evaluator<'_>, page: u32) -> Result<Vec<(u6
     Ok(signature)
 }
 
+/// Reduce clearance only where a neighboring obstacle would engulf an attachment.
+/// Actual obstacle interiors remain forbidden; tight layouts retain a traversable gap.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/linetolinex-cell-page-layout-section
+pub(crate) fn clearance(obstacles: &[Rect], distance: (f64, f64), ends: [Point; 2]) -> Vec<Rect> {
+    obstacles
+        .iter()
+        .map(|r| {
+            let (mut x, mut y) = distance;
+            for p in ends {
+                let dx = (r.x0 - p.x).max(p.x - r.x1).max(0.);
+                let dy = (r.y0 - p.y).max(p.y - r.y1).max(0.);
+                if dx < x && dy < y && (dx > 0. || dy > 0.) {
+                    if dx >= dy {
+                        x = x.min(dx);
+                    } else {
+                        y = y.min(dy);
+                    }
+                }
+            }
+            r.inflate(x, y)
+        })
+        .collect()
+}
+
+/// The Dynamic connector inherits its initial zero coordinates from its master.
+/// Only literal zero providers can be omitted safely across changes of frame size.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/moveto-row-geometry-section
+pub(crate) fn inherited_zero(e: &Evaluator<'_>, scope: Scope) -> [bool; 2] {
+    ["Geometry1.X1", "Geometry1.Y1"].map(|name| {
+        e.master_source(scope).and_then(|m| e.cell(m, name)).is_some_and(|c| {
+            c.value.as_deref().and_then(|v| v.parse::<f64>().ok()) == Some(0.)
+                && c.formula.as_deref().is_none_or(|f| matches!(f.trim(), "0" | "0 in"))
+        })
+    })
+}
+pub(crate) fn trim_inherited_start(rows: &mut Vec<diagramcraft_model::Row>, zero: [bool; 2]) {
+    if let Some(row) = rows.iter_mut().find(|r| r.index == Some(1) && r.row_type.as_deref() == Some("MoveTo")) {
+        row.cells.retain(|c| {
+            !(c.formula.is_none()
+                && c.value.as_deref().and_then(|v| v.parse::<f64>().ok()) == Some(0.)
+                && match c.name.as_str() {
+                    "X" => zero[0],
+                    "Y" => zero[1],
+                    _ => false,
+                })
+        });
+    }
+    rows.retain(|r| r.index != Some(1) || !r.cells.is_empty());
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

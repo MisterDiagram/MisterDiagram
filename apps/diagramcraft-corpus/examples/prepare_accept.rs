@@ -16,35 +16,57 @@ fn relative(value: &str, prefix: &str) -> Result<PathBuf, String> {
     Ok(p.to_path_buf())
 }
 fn run() -> Result<(), Box<dyn std::error::Error>> {
-    let args: Vec<_> = std::env::args().skip(1).collect();
+    let mut args: Vec<_> = std::env::args().skip(1).collect();
+    let p4b = args.as_slice() == ["--p4b"];
+    if p4b {
+        args = vec!["--p4a".into()];
+    }
     let (expected_only, baseline, scratch_only, p4a) = match args.as_slice() {
         [] => (false, false, false, false),
         [arg] if arg == "--expected-only" => (true, false, false, false),
         [arg] if arg == "--baseline" => (true, true, false, false),
         [arg] if arg == "--scratch-only" => (false, false, true, false),
         [arg] if arg == "--p4a" => (true, false, false, true),
-        _ => return Err("usage: prepare_accept [--expected-only|--baseline|--scratch-only|--p4a]".into()),
+        _ => return Err("usage: prepare_accept [--expected-only|--baseline|--scratch-only|--p4a|--p4b]".into()),
     };
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
     // A detached review worktree can share the repository's private corpus symlink.
     let root = if p4a { root.join("corpus").canonicalize()?.parent().ok_or("corpus parent missing")?.to_path_buf() } else { root };
-    let state = if p4a { "corpus/_state/m4" } else { "corpus/_state/m3" };
+    let state = if p4b {
+        "corpus/_state/m4b"
+    } else if p4a {
+        "corpus/_state/m4"
+    } else {
+        "corpus/_state/m3"
+    };
     let plan_path = root.join(state).join("accept-plan.json");
     if fs::metadata(&plan_path)?.len() > 1024 * 1024 {
         return Err("plan byte limit".into());
     }
     let plan: serde_json::Value = serde_json::from_slice(&fs::read(plan_path)?)?;
     let entries = plan.get("files").and_then(|v| v.as_array()).ok_or("plan files missing")?;
-    if entries.len() != if p4a { 4 } else { 230 } {
+    if entries.len()
+        != if p4b {
+            3
+        } else if p4a {
+            4
+        } else {
+            230
+        }
+    {
         return Err("unexpected acceptance file count".into());
     }
     if p4a {
-        let wanted = ["p4a__probe-rebuild", "p4a__two-boxes-glued", "p4a__ten-masters", "p4a__move-after"];
+        let wanted: &[&str] = if p4b {
+            &["p4b__obstacle", "p4b__line-jumps", "p4b__san-topology"]
+        } else {
+            &["p4a__probe-rebuild", "p4a__two-boxes-glued", "p4a__ten-masters", "p4a__move-after"]
+        };
         let actual = entries
             .iter()
             .filter_map(|e| e.get("output").and_then(|v| v.as_str()).and_then(|s| Path::new(s).file_stem()).and_then(|s| s.to_str()))
             .collect::<std::collections::BTreeSet<_>>();
-        if plan.get("brief").and_then(|v| v.as_str()) != Some("P4a") || actual != wanted.into_iter().collect() {
+        if plan.get("brief").and_then(|v| v.as_str()) != Some(if p4b { "P4b" } else { "P4a" }) || actual != wanted.iter().copied().collect() {
             return Err("P4a input identity mismatch".into());
         }
     }

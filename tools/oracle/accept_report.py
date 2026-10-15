@@ -496,6 +496,19 @@ P4A_FILES = {
 def validate_cohort(manifest):
     """P4a is a separate four-file brief; the original M3 denominator remains230."""
     entries = manifest['files']
+    if manifest.get('brief') == 'P4b':
+        expected = {
+            'p4b__obstacle': ('corpus/generated/connector/obstacle.vsdx', 'generated__connector__obstacle', 'generated'),
+            'p4b__line-jumps': ('corpus/generated/connector/line-jumps.vsdx', 'generated__connector__line-jumps', 'generated'),
+            'p4b__san-topology': (None, 'blank__blank', 'from-scratch'),
+        }
+        identities = {f'corpus/_state/m4b/accept-inputs/{name}.vsdx': value for name, value in expected.items()}
+        if len(entries) != 3 or {e['output'] for e in entries} != set(identities):
+            raise ValueError('P4b requires its three named inputs; theme deferred')
+        for entry in entries:
+            if (entry.get('source'), entry.get('baseline_name'), entry.get('set')) != identities[entry['output']]:
+                raise ValueError('P4b source or baseline identity mismatch')
+        return 'm4b'
     if manifest.get('brief') != 'P4a':
         if len(entries) != 230 or len({e['output'] for e in entries}) != 230:
             raise ValueError('expected exactly 230 unique acceptance files')
@@ -512,10 +525,10 @@ def validate_cohort(manifest):
     return 'm4'
 
 
-def prepare_manifest(p4a=False):
-    state = ROOT/'corpus/_state'/('m4' if p4a else 'm3')
+def prepare_manifest(p4a=False, p4b=False):
+    state = ROOT/'corpus/_state'/('m4b' if p4b else 'm4' if p4a else 'm3')
     plan = load_json(state/'accept-plan.json')
-    if validate_cohort(plan) != ('m4' if p4a else 'm3'):
+    if validate_cohort(plan) != ('m4b' if p4b else 'm4' if p4a else 'm3'):
         raise ValueError('acceptance profile mismatch')
     previous_path = state/'accept-manifest.json'
     previous = load_json(previous_path) if previous_path.exists() else {}
@@ -721,6 +734,8 @@ def render_required(set_or_group, profile='m3'):
     """Charles's dated rulings: small images (2026-10-14), P4a connector pairs (2026-10-15)."""
     # The fixed four-file P4a profile has two-boxes in connector and move-after
     # alone in generated-pages. Keep both populations and measurements intact.
+    if profile == 'm4b' and set_or_group == 'witness-connector':
+        return False
     if profile == 'm4' and set_or_group in {'connector', 'generated-pages'}:
         return False
     return set_or_group not in {
@@ -783,6 +798,8 @@ def report(out, manifest, baseline=None):
             if name in {'scratch__dynamic-glue', 'p4a__two-boxes-glued'} and Counter(connects) != Counter([
                 ('3','BeginX','1','PinX','9','3'), ('3','EndX','2','PinX','12','3')]):
                 raise ValueError('scratch dynamic glue must have its two observed Connects rows')
+            if name == 'p4b__san-topology' and (len(connects) != 80 or len({c[0] for c in connects}) != 40):
+                raise ValueError('SAN requires 40 connectors and 80 glue rows')
             old_parts, old_cells = package_cells(path)
             new_parts, new_cells = package_cells(actual/saved)
             if (actual/'parts.txt').read_text(encoding='utf-8-sig').splitlines() != new_parts:
@@ -790,7 +807,7 @@ def report(out, manifest, baseline=None):
             part_diff = {'added': sorted(set(new_parts)-set(old_parts)), 'removed': sorted(set(old_parts)-set(new_parts))}
             cells = cell_diffs(old_cells, new_cells, filters)
             ours = package_differences(old_parts,old_cells,new_parts,new_cells,filters)
-            base_name = entry['baseline_name'] if profile == 'm4' else (name if entry.get('source') else 'blank__blank')
+            base_name = entry['baseline_name'] if profile in {'m4', 'm4b'} else (name if entry.get('source') else 'blank__blank')
             base_entry = baseline_entries[base_name]
             base_path = ROOT/base_entry['output']
             base_actual = baseline/base_name
@@ -894,6 +911,8 @@ def report(out, manifest, baseline=None):
                 group = name.split('__')[1] if name.startswith('generated__') and stem.startswith('page-') else entry['set']+('-masters' if stem.startswith('master-') else '-pages')
                 if profile == 'm4' and name == 'p4a__two-boxes-glued' and stem.startswith('page-'):
                     group = 'connector'
+                if profile == 'm4b' and stem.startswith('page-'):
+                    group = 'san-topology' if name == 'p4b__san-topology' else 'witness-connector'
                 result['group'] = group
                 row['renders'].append(result)
                 groups[group].append(result)
@@ -935,6 +954,7 @@ def main():
     parser.add_argument('out',type=Path,nargs='?',default=ROOT/'corpus/_vm/out/accept')
     parser.add_argument('--prepare',action='store_true')
     parser.add_argument('--prepare-p4a',action='store_true')
+    parser.add_argument('--prepare-p4b',action='store_true')
     parser.add_argument('--prepare-baseline',action='store_true')
     parser.add_argument('--baseline',type=Path,default=ROOT/'corpus/_vm/out/baseline')
     parser.add_argument('--manifest',type=Path,default=ROOT/'corpus/_state/m3/accept-manifest.json')
@@ -942,6 +962,9 @@ def main():
     try:
         if args.prepare_baseline:
             prepare_baseline_manifest()
+            return 0
+        if args.prepare_p4b:
+            prepare_manifest(p4b=True)
             return 0
         if args.prepare_p4a:
             prepare_manifest(True)

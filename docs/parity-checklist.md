@@ -3,12 +3,12 @@
 > **Drafted:** 2026-10-11 from the observed app (visio-observed.md) and Microsoft's documentation · **Target:** Microsoft Visio Standard 2021 16.0.20430 (Professional rows marked Pro) · **Status:** M3 file acceptance met; authoring commands and remaining evaluation/rendering fidelity are in progress. Format follows the storytold apps' `docs/parity-checklist.md`: area, feature, priority, Core Y/N, status D/P/M.
 
 <!-- SUMMARY -->
-**Weighted breadth parity: 47%** over 45 Core=Y features.
+**Weighted breadth parity: 48%** over 45 Core=Y features.
 
 | Priority | Features | Done | Partial | Missing | Parity |
 |---|---|---|---|---|---|
 | P0 | 27 | 6 | 21 | 0 | 61% |
-| P1 | 15 | 1 | 2 | 12 | 13% |
+| P1 | 15 | 1 | 3 | 11 | 17% |
 | P2 | 3 | 0 | 0 | 3 | 0% |
 
 | Area | Parity |
@@ -17,7 +17,7 @@
 | Pages | 50% |
 | Shapes | 57% |
 | Stencils | 61% |
-| Connectors | 30% |
+| Connectors | 37% |
 | Text | 43% |
 | Format | 38% |
 | Arrange | 60% |
@@ -73,7 +73,7 @@ Core=N rows (excluded from milestone scoring):
 | Stencils | Master icons, master names and prompts, search index | P1 | Y | P |
 | Connectors | Dynamic connector: glue to connection points and to shapes (dynamic glue), _WALKGLUE behaviour | P0 | Y | P |
 | Connectors | Orthogonal routing with reroute on move; straight and curved styles | P0 | Y | P |
-| Connectors | Line jumps (style, code, size) and routing preferences per page | P1 | Y | M |
+| Connectors | Line jumps (style, code, size) and routing preferences per page | P1 | Y | P |
 | Connectors | Connector text that stays with the line; begin and end arrows; line ends per theme | P0 | Y | P |
 | Connectors | AutoConnect arrows and quick shapes | P1 | Y | M |
 | Connectors | Connect Shapes command, Re-Layout Page (flowchart, hierarchy, radial, circular) | P1 | Y | M |
@@ -267,3 +267,18 @@ stroke rendering gap closes. M4 still requires 4b.
   an open renderer item under the 2026-10-15 ruling.
 
 No row count, Core designation, priority or scoring weight changes in P4a.
+
+## P4b partial evidence
+
+- Orthogonal routing remains P:17 non-jump sweep cases, original obstacle and
+  four straight witnesses match within1e-6; obstacle and page-layout edits reroute
+  transactionally. Curved routes, general page/grid/plow semantics and dense
+  attachment packing remain open.
+- Line jumps M to P: original and five new jump cases match, including ArcTo A,
+  gap and PolylineTo rows. The sixth has the named1/64in attachment-packing gap.
+- Theme authoring remains P: SetThemeVariant refused COM; theme.apply deferred.
+- Script generation remains P: SAN has24 Switch instances,40ISLs and80Connects,
+  all-path ink and Visio re-save route equality. Required SAN serialization, font
+  and render-height gates fail, so M4 is not met.
+
+No row count, Core designation, priority, denominator or scoring weight changes.

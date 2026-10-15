@@ -29,13 +29,16 @@ fn shell_path(path: &std::path::Path) -> std::ffi::OsString {
         path.as_os_str().to_owned()
     }
 }
-fn run(script: &str, out: &std::path::Path) {
-    let result = Command::new(bash())
+fn run_output(script: &str, out: &std::path::Path) -> std::process::Output {
+    Command::new(bash())
         .arg(shell_path(&root().join("tools/examples").join(script)))
         .arg(shell_path(out))
         .env("DIAGRAMCRAFT_CLI", shell_path(std::path::Path::new(env!("CARGO_BIN_EXE_diagramcraft-cli"))))
         .output()
-        .unwrap();
+        .unwrap()
+}
+fn run(script: &str, out: &std::path::Path) {
+    let result = run_output(script, out);
     assert!(result.status.success(), "{script}: {} {}", String::from_utf8_lossy(&result.stdout), String::from_utf8_lossy(&result.stderr));
 }
 #[test]
@@ -94,4 +97,85 @@ fn acceptance_checker_rejects_corrupt_package_without_panic() {
         .unwrap();
     assert!(!result.status.success());
     assert!(!String::from_utf8_lossy(&result.stderr).contains("Traceback"));
+}
+
+/// A complete SAN has two glue rows and visible path ink for every ISL.
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.connects
+#[test]
+fn san_script_has_eighty_glues_and_ink_on_every_isl() {
+    let out = root().join("target/example-tests/san topology");
+    let result = run_output("san-topology.sh", &out);
+    let doc = diagramcraft_vsdx::read(out.join("san-topology.vsdx")).unwrap();
+    let page = &doc.pages[0];
+    assert_eq!(page.connects.len(), 80, "every ISL requires both glued ends");
+    assert!(result.status.success(), "SAN script: {}", String::from_utf8_lossy(&result.stderr));
+    let ids = page.connects.iter().map(|c| c.from_sheet).collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(ids.len(), 40);
+    for id in &ids {
+        let cells =
+            page.connects.iter().filter(|c| c.from_sheet == *id).map(|c| c.from_cell.as_deref().unwrap()).collect::<std::collections::BTreeSet<_>>();
+        assert_eq!(cells, ["BeginX", "EndX"].into_iter().collect());
+    }
+    let mut e = diagramcraft_vsdx::evaluate::Evaluator::new(&doc).unwrap();
+    let ps = diagramcraft_vsdx::evaluate::Scope::Page(page.id);
+    assert_eq!(e.evaluate(ps, "PageWidth").numeric().unwrap(), 17.);
+    assert_eq!(e.evaluate(ps, "PageHeight").numeric().unwrap(), 11.);
+    let switch = doc.masters.iter().find(|m| m.name == "Switch").unwrap();
+    let switches = page.shapes.iter().filter(|s| s.master == Some(switch.id)).collect::<Vec<_>>();
+    assert_eq!(switches.len(), 24);
+    for shape in switches {
+        let scope = diagramcraft_vsdx::evaluate::Scope::PageShape { page: page.id, shape: shape.id };
+        for prop in ["Name", "Fabric", "DomainID", "Model"] {
+            assert!(!e.evaluate(scope, &format!("Prop.{prop}")).text().is_empty(), "missing {prop}");
+        }
+    }
+    let options = diagramcraft_render::scene::Options { visio_export: true, ..Default::default() };
+    let scene = diagramcraft_render::scene::page(&doc, 0, options).unwrap();
+    let (_, _, transform) = scene.canvas(options).unwrap();
+    let png = diagramcraft_render::raster::decode(&std::fs::read(out.join("san-topology.png")).unwrap()).unwrap();
+    for id in ids {
+        let scope = diagramcraft_vsdx::evaluate::Scope::PageShape { page: page.id, shape: id };
+        let layers = e.evaluate(scope, "LayerMember").text();
+        let fabric = if id < 47 { "0" } else { "1" };
+        assert!(layers.split(';').any(|s| s == fabric), "ISL {id} lost fabric layer: {layers}");
+        let local = e.shape_to_page(scope).unwrap();
+        let mut rows = e
+            .resolved_named_cells(scope)
+            .into_iter()
+            .filter(|n| n.section.is_some_and(|s| s.name == "Geometry") && n.cell.name == "X")
+            .filter_map(|n| n.row.filter(|r| !r.deleted).map(|r| r.index.unwrap_or(0)))
+            .collect::<Vec<_>>();
+        rows.sort();
+        rows.dedup();
+        let mut points = Vec::new();
+        for row in rows {
+            let x = e.evaluate(scope, &format!("Geometry1.X{row}")).numeric().unwrap();
+            let y = e.evaluate(scope, &format!("Geometry1.Y{row}")).numeric().unwrap();
+            points.push(transform * (local * diagramcraft_geom::Point::new(x, y)));
+        }
+        let mut tested = 0;
+        for segment in points.windows(2) {
+            let a = segment[0];
+            let b = segment[1];
+            if (a.x - b.x).hypot(a.y - b.y) < 12. {
+                continue;
+            }
+            let p = diagramcraft_geom::Point::new((a.x + b.x) / 2., (a.y + b.y) / 2.);
+            let ink = (-2..=2).any(|dx| {
+                (-2..=2).any(|dy| {
+                    let x = p.x.round() as i64 + dx;
+                    let y = p.y.round() as i64 + dy;
+                    if x < 0 || y < 0 || x >= i64::from(png.width()) || y >= i64::from(png.height()) {
+                        return false;
+                    }
+                    let v = png.get_pixel(x as u32, y as u32).0;
+                    v[3] > 0 && v[0] < 180 && v[1] < 180 && v[2] < 180
+                })
+            });
+            assert!(ink, "ISL {id} has no ink at segment midpoint {p:?}");
+            tested += 1;
+        }
+        assert!(tested > 0, "ISL {id} has no testable path");
+    }
+    assert!(std::fs::metadata(out.join("san-topology.svg")).unwrap().len() > 100);
 }

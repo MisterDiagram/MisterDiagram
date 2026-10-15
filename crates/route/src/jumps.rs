@@ -24,6 +24,7 @@ struct Connector {
     directions: [f64; 2],
     order: usize,
     had_jumps: bool,
+    inherited_zero: [bool; 2],
 }
 fn row(index: u32, kind: &str, p: Point, a: Option<diagramcraft_model::Cell>) -> Row {
     let mut cells = vec![cell("X", p.x, None), cell("Y", p.y, None)];
@@ -118,6 +119,7 @@ pub(crate) fn apply(doc: &mut Document, host: &mut GlueHost, pages: &BTreeSet<us
                 factors,
                 directions,
                 had_jumps,
+                inherited_zero: crate::orthogonal::inherited_zero(&e, scope),
                 order: page.shapes.iter().position(|s| s.id == id).unwrap_or(0),
             });
         }
@@ -214,7 +216,14 @@ pub(crate) fn apply(doc: &mut Document, host: &mut GlueHost, pages: &BTreeSet<us
                     }
                     _ => {
                         let sign = if axis == 0 { unit.x.signum() } else { unit.y.signum() };
-                        ("ArcTo", Some(cell("A", -radius * direction * sign, None)))
+                        (
+                            "ArcTo",
+                            Some({
+                                let mut a = cell("A", -radius * direction * sign, None);
+                                a.units = Some("DL".into());
+                                a
+                            }),
+                        )
                     }
                 };
                 rows.push(row(u32::try_from(rows.len() + 1).map_err(|_| "jump row index")?, kind, end, extra));
@@ -223,6 +232,7 @@ pub(crate) fn apply(doc: &mut Document, host: &mut GlueHost, pages: &BTreeSet<us
             rows.push(row(u32::try_from(rows.len() + 1).map_err(|_| "jump row index")?, "LineTo", inv * *b, None));
         }
         if decorated || c.had_jumps {
+            crate::orthogonal::trim_inherited_start(&mut rows, c.inherited_zero);
             changes.push((c.page, c.id, rows));
         }
     }

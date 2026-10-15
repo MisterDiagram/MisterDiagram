@@ -176,3 +176,11 @@ has the disclosed attachment-packing gap. No oracle or threshold was changed.
 M4.15 session invalidation is tested against the original obstacle drawing and
 its observed unobstructed pair, with explicit page-style and permeability edits.
 No additional Visio behavior is inferred for unwitnessed WalkPreference values.
+
+M4.17 SAN layout, names, Switch master and data values are contributor-original
+code. Geometry and glue use the independently observed routing rules above.
+Tight clearances never admit an actual obstacle interior. The final Visio
+observation is retained privately, including the failed SAN Property/text/master
+serialization, font identity and export-height comparisons. No vendor artwork,
+font binary or theme asset is committed with the generator. The named packing
+gap is checked against only its measured coordinate differences.

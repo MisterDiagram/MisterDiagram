@@ -405,3 +405,5 @@ as separate renderer work.
 
 - 2026-10-15: P4b witness sweep: 23 route drawings and one theme drawing, 144 new artifacts pinned privately. Theme variant COM refused; theme.apply deferred. Corpus check passes 1411 packages and 15104014/15104014 strict cells, with 1181 shipped dumps and the unchanged ten-outlier ratchet. New route/theme groups pass the frozen non-text ceilings. M4 remains open for router and SAN acceptance.
 - 2026-10-15: M4.16 theme.apply deferred under the brief's witness rule: SetTheme succeeds but SetThemeVariant is refused by COM. Theme parity remains partial. No new VM run or guessed theme authoring.
+
+- 2026-10-15: P4b partial acceptance:28/29 route drawings match within1e-6; one named1/64in packing gap. SAN has24 Switch instances,40ISLs,80Connects, all-path ink and40 unchanged routes across1344 cells after Visio re-save. All3 acceptance files open; rebuilt obstacle/line-jumps have residual repairs0/COM0. SAN fails with1336 residual serialization differences,3 font COM differences and1612x747 versus1612x757 export size. M4 remains open. Breadth parity47% to48%: line jumps M toP; routing/theme remainP. Phase5 awaits SAN closure.

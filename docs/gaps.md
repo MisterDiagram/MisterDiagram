@@ -884,3 +884,55 @@ Page.SetTheme(1) succeeds; Page.SetThemeVariant(1,1,2) returns "Requested operat
 is presently disabled". Part A explicitly permits deferral on either refusal.
 No command is implemented from the single successful theme drawing. Witness:
 private `_state/p4b/witness-probe-log.txt`, theme/builtin-1-variant failure.
+
+### P4b routing and SAN acceptance, 2026-10-15
+
+The route sweep matches 28 of 29 drawings within 1e-6. Named gap
+`jump-three-crossings endpoint packing`: Visio places vertical connectors10/12
+at x2.015625/5.984375, ours at2/6. Their BeginX, EndX and PinX differ by0.015625in;
+horizontal connector9 Geometry1.X2/X3/X6/X7 have the same displacement at the
+first and third crossings. Ten differences are retained privately. The named-gap
+check admits only those coordinates and values, so other defects still fail.
+
+The observed route uses 1.5 times LineToLine spacing around alignment-box
+obstacles and a bounded visibility grid. BlockSize, LineToNode, PlowCode and
+AvoidPageBreaks values are preserved and observed, but these witnesses did not
+isolate an additional grid-snapping, plowing or page-break avoidance rule. Those
+semantics remain partial, as do curved styles, one-axis permeability and dense
+connector packing. Limits are60 obstacles,16384 grid nodes and2000 crossing
+segments; requests beyond those bounds fail transactionally.
+
+WalkPreference0 is the route sweep's observed value. Values1 and2 have the
+existing P4a synthetic direction regressions, not new Visio route witnesses;
+combined3 and all other nonzero values remain unwitnessed by this sweep. No new
+walking choices are claimed. `theme.apply` remains deferred because SetThemeVariant
+was refused; one successful SetTheme drawing does not establish variant authoring.
+
+The SAN script meets the structural and ink checks:24 Switch instances,40 ISLs,
+80 Connects, two layers/labels and four data properties per switch. Visio opens it
+and preserves every route across1344 Geometry/XForm cells. Required closure fails:
+1336 residual serialization differences,3 font COM differences, and PNG dimensions
+1612x747 versus Visio1612x757. Witness rebuilds have zero residual repairs/COM.
+
+Named SAN gaps: `san-property-row-serialization` (Visio adds Calendar, DataLinked,
+LangID, Prompt and Verify, and removes literal string formulas/units),
+`san-master-text-serialization` (master type541 becomes2, paragraph and text-run
+normalization), `san-font-identity` (Liberation Sans face1 is coalesced into face0,
+three local Char.Font values change), and `san-export-height` (10pixels).
+These are failures, not newly allowed rewrite classes. The exact input and output
+are retained in the private P4b acceptance record. The two VM runs specified by this brief are complete. A changed input would
+require a fresh observation; this record preserves the accepted route evidence
+and the failed SAN evidence unchanged.
+
+Phase5 remains blocked on the M4 SAN gate. Planning estimate:12 to24 engineering
+hours for the observed SAN serialization/render gaps and closure, then32 to48
+hours for Phase5 export/MCP work and its acceptance. The connector-stroke and
+small-image renderer items remain open under the standing rulings.
+
+The full SAN residual inventory is retained privately as
+`_state/m4b/san-residual-diffs.json`:1128 Property changes,6 Character,9 Paragraph,
+3 Text,2 FaceName,1 MasterType and187 other records. The latter include authored
+floating-point decimal spellings, inherited-zero Geometry cells, label ObjType
+elision and the page LineJumpCode rewrite. Named follow-up
+`san-authored-cell-canonicalization` covers those187 records. Numerical route
+equality does not waive these serialization differences in the repair gate.

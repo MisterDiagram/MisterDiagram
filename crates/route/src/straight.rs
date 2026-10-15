@@ -55,9 +55,9 @@ fn row(index: u32, kind: &str, cells: Vec<diagramcraft_model::Cell>, deleted: bo
         ..Default::default()
     }
 }
-/// Recompute a straight route when its endpoint or glue target changes, or when explicitly requested.
+/// Recompute connector Geometry after endpoint, obstacle or page-layout edits.
 /// Four horizontal witnesses retain signed Width=EndX-BeginX, Height=0.25DL, and the deleted third row.
-/// Other slopes use a rotated length-based frame so the rendered endpoint remains glued.
+/// Offset and vertical witnesses use an unrotated signed frame, with a 0.25DL zero axis.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/width-cell-shape-transform-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/angle-cell-shape-transform-section
@@ -109,9 +109,9 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
         let style = crate::orthogonal::style(&mut e, scope, page);
         let cx = crate::orthogonal::number(&mut e, Scope::Page(page), "LineToLineX", 0.125) * 1.5;
         let cy = crate::orthogonal::number(&mut e, Scope::Page(page), "LineToLineY", 0.125) * 1.5;
-        let obstacles = obstacles.into_iter().map(|b| b.inflate(cx, cy)).collect::<Vec<_>>();
         let begin = diagramcraft_geom::Point::new(bx, by);
         let end = diagramcraft_geom::Point::new(ex, ey);
+        let obstacles = crate::orthogonal::clearance(&obstacles, (cx, cy), [begin, end]);
         let direction = |e: &mut Evaluator<'_>, point: diagramcraft_geom::Point, side: &str| -> Result<Option<usize>, String> {
             let link = doc.pages.get(index).ok_or("route page")?.connects.iter().find(|c| c.from_sheet == id && c.from_cell.as_deref() == Some(side));
             if let Some(link) = link {
@@ -128,7 +128,7 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
         };
         let dirs = (direction(&mut e, begin, "BeginX")?, direction(&mut e, end, "EndX")?);
         let points = if style == 2. || style == 16. { vec![begin, end] } else { crate::orthogonal::path(begin, end, &obstacles, dirs.0, dirs.1)? };
-        routes.push((index, id, bx, by, ex, ey, style, points));
+        routes.push((index, id, bx, by, ex, ey, style, points, crate::orthogonal::inherited_zero(&e, scope)));
         if routes.len() > 100000 {
             return Err("route count limit".into());
         }
@@ -136,7 +136,7 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
     drop(e);
     let count = routes.len();
     let pages = routes.iter().map(|r| r.0).collect();
-    for (index, id, bx, by, ex, ey, style, points) in routes {
+    for (index, id, bx, by, ex, ey, style, points, inherited_zero) in routes {
         let page = doc.pages.get_mut(index).ok_or("route page missing")?;
         let dynamic = page.connects.iter().any(|c| c.from_sheet == id && matches!(c.to_cell.as_deref(), Some("PinX" | "PinY")));
         let layer = connector_layer(page)?;
@@ -169,7 +169,20 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             let formula = shape.sheet.cell(name).and_then(|c| c.formula.clone());
             set(&mut shape.sheet, cell(name, value, formula.or_else(|| Some("Inh".into()))))?;
         }
-        set(&mut shape.sheet, cell("LayerMember", layer, None))?;
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/layermember-cell-layer-membership-section
+        let mut memberships = shape
+            .sheet
+            .cell("LayerMember")
+            .and_then(|c| c.value.as_deref())
+            .unwrap_or("")
+            .split(';')
+            .filter(|s| !s.is_empty())
+            .map(str::to_owned)
+            .collect::<Vec<_>>();
+        if !memberships.iter().any(|s| s == &layer.to_string()) {
+            memberships.push(layer.to_string());
+        }
+        set(&mut shape.sheet, cell("LayerMember", memberships.join(";"), None))?;
         let geometry = Section {
             name: "Geometry".into(),
             index: Some(0),
@@ -187,6 +200,7 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
                 if rows.len() == 2 {
                     rows.push(row(3, "LineTo", vec![], true));
                 }
+                crate::orthogonal::trim_inherited_start(&mut rows, inherited_zero);
                 rows
             },
             ..Default::default()

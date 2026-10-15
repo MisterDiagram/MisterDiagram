@@ -13458,3 +13458,40 @@ M4.15: moving connector/obstacle.vsdx shape3 to3.5,2 yields the unobstructed
 straight route; restoring3.5,6.5 restores the original Geometry/XForm. Both
 transitions are session regressions. Routing evaluation uses the existing text
 and theme hosts so master dimensions depending on text remain evaluable.
+
+### Observed, undocumented: P4b route frames and acceptance
+
+Sources: the23 route witnesses tabulated above, plus generated/connector/obstacle
+and line-jumps. Coordinates are page inches. Right-angle frames are unrotated:
+Width and Height are signed endpoint differences, with a0.25DL extent on a zero
+axis. Geometry points subtract Begin and add half that fallback extent. The
+unused third master row is deleted only when the route has two points.
+Static connection-point glue keeps its own cell set; dynamic connectors carry
+ConFixedCode6 (straight style2 carries0). Overlapping alignment boxes choose a
+free common band; offset boxes choose perpendicular attachment segments. The
+observed obstacle clearance is1.5 times LineToLineX/Y. Tight SAN adjacency reduces
+inflated clearance only when the actual obstacle does not contain the endpoint.
+
+Jump radius is half LineToLine times LineJumpFactor. Page code1 selects horizontal
+crossings, code2 selects vertical crossings in the actual sweep, despite the
+brief's parenthetical description. ArcTo A is negative for the positive-direction
+horizontal witness, with DL units. Gap uses MoveTo; square and two-side styles
+use PolylineTo controls. Local connector jump selectors override page values.
+The three-crossing endpoint-packing discrepancy is retained as a named gap in
+docs/gaps.md, not explained by a guessed rule.
+
+The second authorized VM run opens rebuilt obstacle, rebuilt line-jumps and SAN.
+The first two have zero residual repairs and COM differences. SAN keeps all40
+routes across1344 Geometry/XForm cells, but has1336 residual serialization changes,
+three Char.Font COM differences and a10pixel export-height difference. Visio adds
+missing Property row cells and normalizes string formulas/units, text runs,
+paragraph rows and the new master's type. It coalesces Liberation Sans face1 into
+face0. Witnesses: private `_state/m4b/accept-inputs/p4b__san-topology.vsdx` and
+`_vm/out/accept/p4b__san-topology/saved.vsdx`. These remain failures pending code
+fixes and fresh acceptance; no oracle output or rewrite allowance was changed.
+
+SAN residual inventory:1128 Property,6 Character,9 Paragraph,3 Text,2 FaceName,
+1 MasterType and187 other differences. Visio shortens authored decimal spellings
+(e.g.0.8500000000000001 to0.85), removes redundant inherited-zero Geometry cells
+and label ObjType0, and rewrites the page LineJumpCode. These remain residual
+repair records; the separate1e-6 route comparison does not suppress them.
