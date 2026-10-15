@@ -1,2 +1,2 @@
 //! Permanently private, script-generated Visio oracle corpus revision.
-pub const CORPUS_COMMIT: &str = "e51552a4a1552f608d2fc937988876cde8558ecb";
+pub const CORPUS_COMMIT: &str = "6a204a822f244fafd25dd2bb63fb4f1c916f43fa";

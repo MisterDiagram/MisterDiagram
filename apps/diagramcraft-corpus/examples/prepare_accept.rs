@@ -17,7 +17,8 @@ fn relative(value: &str, prefix: &str) -> Result<PathBuf, String> {
 }
 fn run() -> Result<(), Box<dyn std::error::Error>> {
     let mut args: Vec<_> = std::env::args().skip(1).collect();
-    let p4b = args.as_slice() == ["--p4b"];
+    let closure = args.as_slice() == ["--p4b-closure"];
+    let p4b = closure || args.as_slice() == ["--p4b"];
     if p4b {
         args = vec!["--p4a".into()];
     }
@@ -27,12 +28,14 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         [arg] if arg == "--baseline" => (true, true, false, false),
         [arg] if arg == "--scratch-only" => (false, false, true, false),
         [arg] if arg == "--p4a" => (true, false, false, true),
-        _ => return Err("usage: prepare_accept [--expected-only|--baseline|--scratch-only|--p4a|--p4b]".into()),
+        _ => return Err("usage: prepare_accept [--expected-only|--baseline|--scratch-only|--p4a|--p4b|--p4b-closure]".into()),
     };
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
     // A detached review worktree can share the repository's private corpus symlink.
     let root = if p4a { root.join("corpus").canonicalize()?.parent().ok_or("corpus parent missing")?.to_path_buf() } else { root };
-    let state = if p4b {
+    let state = if closure {
+        "corpus/_state/m4b-closure"
+    } else if p4b {
         "corpus/_state/m4b"
     } else if p4a {
         "corpus/_state/m4"
@@ -57,7 +60,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         return Err("unexpected acceptance file count".into());
     }
     if p4a {
-        let wanted: &[&str] = if p4b {
+        let wanted: &[&str] = if closure {
+            &["p4bc__san-topology", "p4bc__property-rows", "p4bc__from-shape"]
+        } else if p4b {
             &["p4b__obstacle", "p4b__line-jumps", "p4b__san-topology"]
         } else {
             &["p4a__probe-rebuild", "p4a__two-boxes-glued", "p4a__ten-masters", "p4a__move-after"]
@@ -66,7 +71,16 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             .iter()
             .filter_map(|e| e.get("output").and_then(|v| v.as_str()).and_then(|s| Path::new(s).file_stem()).and_then(|s| s.to_str()))
             .collect::<std::collections::BTreeSet<_>>();
-        if plan.get("brief").and_then(|v| v.as_str()) != Some(if p4b { "P4b" } else { "P4a" }) || actual != wanted.iter().copied().collect() {
+        if plan.get("brief").and_then(|v| v.as_str())
+            != Some(if closure {
+                "P4b-closure"
+            } else if p4b {
+                "P4b"
+            } else {
+                "P4a"
+            })
+            || actual != wanted.iter().copied().collect()
+        {
             return Err("P4a input identity mismatch".into());
         }
     }

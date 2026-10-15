@@ -54,6 +54,25 @@ class Acceptance(unittest.TestCase):
         self.assertFalse(report.render_required('witness-connector','m4b'))
         self.assertTrue(report.render_required('connector','m3'))
 
+    def test_p4b_closure_exact_cohort_and_required_page_pixels(self):
+        import copy
+        entries = [dict(output=f'corpus/_state/m4b-closure/accept-inputs/p4bc__{name}.vsdx',
+                        source=None, baseline_name='blank__blank', set='from-scratch')
+                   for name in ('san-topology', 'property-rows', 'from-shape')]
+        valid = dict(brief='P4b-closure', files=entries)
+        self.assertEqual(report.validate_cohort(valid), 'm4b-closure')
+        for changed in [dict(valid, files=entries[:2]), dict(valid, files=entries+entries[:1]), dict(valid, brief='P4b')]:
+            with self.assertRaises(ValueError): report.validate_cohort(changed)
+        for key, value in [('output', '../../bad'), ('source', 'corpus/blank/blank.vsdx'),
+                           ('baseline_name', 'generated__connector__obstacle'), ('set', 'generated')]:
+            changed = copy.deepcopy(valid)
+            changed['files'][0][key] = value
+            with self.assertRaises(ValueError): report.validate_cohort(changed)
+        self.assertFalse(report.render_required('property-rows', 'm4b-closure'))
+        self.assertTrue(report.render_required('property-rows', 'm3'))
+        for group in ('san-topology', 'from-shape'):
+            self.assertTrue(report.render_required(group, 'm4b-closure'))
+
     def test_page_view_rewrites_are_exact_numeric_and_scratch_only(self):
         def records(path, value):
             return {(path,0):{'kind':'attribute','V':value,'F':None,'U':None,'E':None}}

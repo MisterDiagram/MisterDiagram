@@ -5,8 +5,14 @@ use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
 use std::collections::{BTreeMap, BTreeSet};
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
-    let before = diagramcraft_vsdx::read(root.join("_state/m4b/accept-inputs/p4b__san-topology.vsdx"))?;
-    let after = diagramcraft_vsdx::read(root.join("_vm/out/accept/p4b__san-topology/saved.vsdx"))?;
+    let args: Vec<_> = std::env::args().skip(1).collect();
+    let (state, name) = match args.as_slice() {
+        [] => ("m4b", "p4b__san-topology"),
+        [arg] if arg == "--p4b-closure" => ("m4b-closure", "p4bc__san-topology"),
+        _ => return Err("usage: route_resave [--p4b-closure]".into()),
+    };
+    let before = diagramcraft_vsdx::read(root.join(format!("_state/{state}/accept-inputs/{name}.vsdx")))?;
+    let after = diagramcraft_vsdx::read(root.join(format!("_vm/out/accept/{name}/saved.vsdx")))?;
     let page = before.pages.first().ok_or("missing SAN page")?;
     let ids = page.connects.iter().map(|c| c.from_sheet).collect::<BTreeSet<_>>();
     if ids.len() != 40 || page.connects.len() != 80 {
@@ -68,7 +74,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     }
-    std::fs::write(root.join("_state/m4b/san-resave.diff"), &diff)?;
+    std::fs::write(root.join(format!("_state/{state}/san-resave.diff")), &diff)?;
     println!("SAN re-save: {} connectors, {cells} cells, {} differences", ids.len(), diff.lines().count());
     if !diff.is_empty() {
         return Err("Visio changed SAN routes".into());

@@ -70,10 +70,40 @@ impl Group {
 }
 impl Report {
     pub fn outlier_count(&self) -> usize {
-        self.groups.iter().map(|(name, group)| group.files.iter().filter(|file| file.over_ceiling(name == "text")).count()).sum()
+        self.count_outliers(true)
+    }
+    pub fn witness_outlier_count(&self) -> usize {
+        self.count_outliers(false)
+    }
+    fn count_outliers(&self, pinned: bool) -> usize {
+        self.groups
+            .iter()
+            .map(|(name, group)| {
+                group
+                    .files
+                    .iter()
+                    .filter(|file| {
+                        crate::render_population::MEMBERS.lines().any(|member| member == file.file) == pinned && file.over_ceiling(name == "text")
+                    })
+                    .count()
+            })
+            .sum()
     }
     pub fn passed(&self) -> bool {
-        !self.groups.is_empty() && self.outlier_count() <= MAX_FILE_OUTLIERS && self.groups.iter().all(|(name, group)| group.passed(name == "text"))
+        let Ok(population) = crate::render_population::frozen() else { return false };
+        let files: Vec<_> = self.groups.values().flat_map(|g| &g.files).collect();
+        population.iter().all(|member| files.iter().filter(|f| f.file == **member).count() == 1)
+            && self.outlier_count() <= MAX_FILE_OUTLIERS
+            && self.groups.iter().all(|(name, group)| {
+                if name == "data" {
+                    !group.files.is_empty()
+                        && group.files.iter().all(|f| {
+                            f.error.is_none() && f.actual.is_some_and(|a| compatible_size(f.expected, a)) && f.mad.is_some() && f.differing.is_some()
+                        })
+                } else {
+                    group.passed(name == "text")
+                }
+            })
     }
 }
 impl fmt::Display for Report {
@@ -88,6 +118,7 @@ impl fmt::Display for Report {
             self.outlier_count(),
             if self.outlier_count() <= MAX_FILE_OUTLIERS { "PASS" } else { "FAIL" }
         )?;
+        writeln!(f, "Phase 4 witness outliers: count={} informational=true", self.witness_outlier_count())?;
         for (name, g) in &self.groups {
             let mismatches = g.files.iter().filter(|r| r.actual.is_some_and(|a| a != r.expected)).count();
             let tolerated = g.files.iter().filter(|r| r.actual.is_some_and(|a| a != r.expected && compatible_size(r.expected, a))).count();
@@ -101,11 +132,12 @@ impl fmt::Display for Report {
             worst.sort_by(|a, b| b.mad.unwrap_or(f64::INFINITY).total_cmp(&a.mad.unwrap_or(f64::INFINITY)).then(a.file.cmp(&b.file)));
             writeln!(
                 f,
-                "render {name}: files={} size_mismatches={mismatches} tolerated_sizes={tolerated} hard_size_failures={hard} errors={errors} compared={compared} individually_over_ceiling={individually_over} mean_MAD={} fraction_over_16={} within_ceiling={}",
+                "render {name}: files={} size_mismatches={mismatches} tolerated_sizes={tolerated} hard_size_failures={hard} errors={errors} compared={compared} individually_over_ceiling={individually_over} mean_MAD={} fraction_over_16={} within_ceiling={} informational={}",
                 g.files.len(),
                 mean.map_or("n/a".into(), |v| format!("{v:.6}")),
                 fraction.map_or("n/a".into(), |v| format!("{:.6}%", v * 100.)),
-                g.passed(name == "text")
+                g.passed(name == "text"),
+                name == "data"
             )?;
             writeln!(f, "render per-file {name}: file | Visio | ours | RGB MAD | pixels over16 | over pixel ceiling | size accepted | error")?;
             for r in &g.files {
@@ -172,6 +204,12 @@ pub fn compare(a: &image::RgbaImage, b: &image::RgbaImage) -> Result<(f64, f64),
     Ok((sum as f64 / (n * 3.), different as f64 / n))
 }
 pub fn run(root: &Path) -> Result<Report, String> {
+    let population = crate::render_population::frozen()?;
+    for member in &population {
+        if !root.join(member).is_file() {
+            return Err(format!("missing pinned render input: {member}"));
+        }
+    }
     let mut report = Report::default();
     let mut files: Vec<PathBuf> = super::walk(&root.join("generated"))?.into_iter().filter(|p| p.extension().is_some_and(|s| s == "vsdx")).collect();
     files.sort();
@@ -179,7 +217,7 @@ pub fn run(root: &Path) -> Result<Report, String> {
         let name = file.parent().and_then(|p| p.file_name()).and_then(|s| s.to_str()).ok_or("invalid render group")?.to_string();
         let expected = diagramcraft_render::raster::decode(&std::fs::read(file.with_extension("png")).map_err(|e| e.to_string())?)?;
         let mut r = FileResult {
-            file: file.strip_prefix(root).unwrap_or(&file).display().to_string(),
+            file: file.strip_prefix(root).unwrap_or(&file).display().to_string().replace('\\', "/"),
             expected: expected.dimensions(),
             actual: None,
             mad: None,
@@ -214,24 +252,60 @@ mod tests {
     use super::*;
     #[test]
     fn per_file_outlier_ratchet_rejects_eleven_even_when_groups_pass() {
-        let file = |mad| FileResult {
-            file: "fixture".into(),
-            expected: (100, 100),
-            actual: Some((100, 100)),
-            mad: Some(mad),
-            differing: Some(0.),
-            error: None,
-        };
-        let mut report =
-            Report { groups: BTreeMap::from([("fixture".into(), Group { files: (0..20).map(|i| file(if i < 10 { 5. } else { 0. })).collect() })]) };
+        let files = crate::render_population::MEMBERS
+            .lines()
+            .enumerate()
+            .map(|(i, name)| FileResult {
+                file: name.into(),
+                expected: (100, 100),
+                actual: Some((100, 100)),
+                mad: Some(if i < 10 { 5. } else { 0. }),
+                differing: Some(0.),
+                error: None,
+            })
+            .collect();
+        let mut report = Report { groups: BTreeMap::from([("fixture".into(), Group { files })]) };
         assert_eq!(report.outlier_count(), 10);
         assert!(report.passed());
-        assert!(report.to_string().contains("render per-file outliers: count=10 maximum=10 ratchet=PASS"));
-        report.groups.get_mut("fixture").unwrap().files.push(file(5.));
+        report.groups.get_mut("fixture").unwrap().files[10].mad = Some(5.);
         assert!(report.groups["fixture"].passed(false));
         assert_eq!(report.outlier_count(), 11);
         assert!(!report.passed());
         assert!(report.to_string().contains("count=11 maximum=10 ratchet=FAIL"));
+        report.groups.get_mut("fixture").unwrap().files[10].mad = Some(0.);
+        report.groups.insert(
+            "data".into(),
+            Group {
+                files: vec![FileResult {
+                    file: "generated/data/property-rows.vsdx".into(),
+                    expected: (529, 145),
+                    actual: Some((529, 145)),
+                    mad: Some(6.),
+                    differing: Some(0.04),
+                    error: None,
+                }],
+            },
+        );
+        assert!(report.passed());
+        assert_eq!(report.witness_outlier_count(), 1);
+        assert!(report.to_string().contains("Phase 4 witness outliers: count=1 informational=true"));
+        report.groups.insert(
+            "route".into(),
+            Group {
+                files: vec![FileResult {
+                    file: "generated/route/offset-left.vsdx".into(),
+                    expected: (625, 145),
+                    actual: Some((625, 145)),
+                    mad: Some(6.),
+                    differing: Some(0.04),
+                    error: None,
+                }],
+            },
+        );
+        assert!(!report.passed(), "route group remains required");
+        report.groups.remove("route");
+        report.groups.get_mut("fixture").unwrap().files.pop();
+        assert!(!report.passed(), "missing pinned members fail");
     }
     #[test]
     fn per_file_disclosure_does_not_change_group_aggregation() {

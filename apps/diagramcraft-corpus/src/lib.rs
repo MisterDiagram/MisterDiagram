@@ -3,6 +3,7 @@
 pub mod coverage;
 mod population;
 pub mod render;
+mod render_population;
 pub mod roundtrip;
 use diagramcraft_sheet::Value;
 use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
