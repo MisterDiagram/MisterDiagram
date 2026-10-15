@@ -1,0 +1,44 @@
+name: ci
+
+# Quality gates for every push to master and every pull request: rustfmt, clippy (-D warnings),
+# tests, asset attribution, crate layering, source citations and the wasm32 check, which is
+# `cargo xtask ci`. Corpus-dependent gates skip on the runners because the private corpus is
+# absent; they run locally and in the acceptance records (docs/development.md).
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  gates:
+    name: gates (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        # Headless core, no GUI libraries: all three desktop platforms so testers get a build
+        # signal everywhere the CLI is meant to run.
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f # v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          key: ci-${{ matrix.os }}
+      - name: cargo xtask ci
+        run: cargo xtask ci
