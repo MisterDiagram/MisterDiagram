@@ -87,7 +87,9 @@ fn walk(root: &Path, relative: &Path, depth: usize, visited: &mut usize, result:
             walk(root, &relative.join(entry.file_name()), depth + 1, visited, result)?;
         }
     } else {
-        let name = relative.to_str().ok_or("non-UTF-8 corpus path")?;
+        // Manifest keys use forward slashes on every platform; the walk joins with the native separator.
+        let name = relative.to_str().ok_or("non-UTF-8 corpus path")?.replace('\\', "/");
+        let name = name.as_str();
         if !safe_name(name) || result.len() >= MAX_FILES {
             return Err("unsafe path or corpus file cap exceeded".into());
         }
