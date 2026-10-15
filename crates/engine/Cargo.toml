@@ -21,3 +21,4 @@ diagramcraft-text.workspace = true
 diagramcraft-render.workspace = true
 image.workspace = true
 diagramcraft-geom.workspace = true
+diagramcraft-route.workspace = true

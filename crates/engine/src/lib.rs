@@ -7,6 +7,7 @@ pub mod cmd;
 mod content;
 mod edit;
 mod files;
+mod glue;
 pub mod guard;
 mod masters;
 mod pages;

@@ -250,6 +250,7 @@ dependencies = [
  "diagramcraft-geom",
  "diagramcraft-model",
  "diagramcraft-render",
+ "diagramcraft-route",
  "diagramcraft-sheet",
  "diagramcraft-text",
  "diagramcraft-theme",
@@ -349,6 +350,7 @@ dependencies = [
  "diagramcraft-geom",
  "diagramcraft-model",
  "diagramcraft-sheet",
+ "diagramcraft-vsdx",
 ]
 
 [[package]]

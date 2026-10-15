@@ -2103,3 +2103,7 @@ when possible, otherwise remap collision-free IDs from5, including nested
 MasterShape references. UniqueID follows the M3.20 form. New instances contain
 only overrides, while the writer supplies the observed M3.13 inherited set.
 Ten-master VM acceptance remains pending; this is host-side evidence only.
+
+### M4.4: author connection points and static glue
+
+Static glue targets Connection rows by universal name and records FromPart9/12 and ToPart100+row index. Witness: generated/connector/static-glue.vsdx and its immutable Connects dump.

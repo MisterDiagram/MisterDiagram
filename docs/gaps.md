@@ -749,3 +749,7 @@ unit and Inh marker of the private basic-rect witness within1e-6. Ten drops from
 BASFLO_U and NETSME_U are generated for the later four-file VM acceptance.
 Nested MasterShape IDs, deduplication, styles, fonts and related resources are
 mapped with bounded traversal. VM repair acceptance remains pending.
+
+### P4a M4.4
+
+Connection rows and static glue use the observed PAR/PNT formulas and Connects parts. Target movement and undo are tested; the exact static rebuild is exercised in M4.8.

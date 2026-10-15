@@ -339,3 +339,5 @@ observation artifact hashes. M3 is met; stop before Phase 4.
 - 2026-10-15: P4a M4.2 adds 37 page, layer, shape, ShapeSheet, formatting and arrange commands. Focused tests pass (4 unit, 8 authoring, 11 session). Full CI passed all eight gates; exact probe rebuild is covered by the queued glue and CLI steps.
 
 - 2026-10-15: P4a M4.3 adds stencil search/list, master import/drop and master creation. Exact BASIC_U cell-set and nested-ID regressions pass. Full CI passes all eight gates; the later acceptance record carries the ten-master VM result.
+
+- 2026-10-15: M4.4 author connection points and static glue. Full CI is the precommit gate; P4a closure remains pending the full acceptance record.

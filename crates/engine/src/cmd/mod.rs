@@ -428,6 +428,24 @@ pub fn command_specs() -> &'static [CommandSpec] {
             always,
             crate::masters::new_from_shape
         ),
+        cmd!(
+            "shape.connection.add",
+            "shape.connection.add",
+            ["Glue"],
+            None,
+            r#"{"type":"object","properties":{"page":{"type":"integer","minimum":1},"id":{"type":"integer","minimum":0,"maximum":4294967294},"x":{"type":["number","string"]},"y":{"type":["number","string"]},"dir_x":{"type":"number","minimum":-1000000,"maximum":1000000},"dir_y":{"type":"number","minimum":-1000000,"maximum":1000000},"type":{"type":"integer","minimum":0,"maximum":2},"name":{"type":"string","minLength":1,"maxLength":65536},"auto_gen":{"type":"boolean"},"prompt":{"type":"string","maxLength":65536}},"required":["id","x","y"],"additionalProperties":false}"#,
+            always,
+            crate::glue::connection
+        ),
+        cmd!(
+            "connect.static",
+            "connect.static",
+            ["Glue"],
+            None,
+            r#"{"type":"object","properties":{"page":{"type":"integer","minimum":1},"id":{"type":"integer","minimum":0,"maximum":4294967294},"target":{"type":"integer","minimum":0,"maximum":4294967294},"point":{"type":"string","minLength":1,"maxLength":65536},"end":{"type":"string","enum":["begin","end"]}},"required":["id","target","point","end"],"additionalProperties":false}"#,
+            always,
+            crate::glue::static_glue
+        ),
     ]
 }
 
