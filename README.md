@@ -2,9 +2,10 @@
 
 A clean-room, headless Rust core of Microsoft Visio. It opens .vsdx, .vssx and .vstx files, and their macro-enabled .vsdm, .vssm and .vstm variants with the VBA payload dropped,
 evaluates the ShapeSheet the way Visio does, renders pages and stencils to PNG, SVG and
-PDF, and writes files that Visio opens without repair. Authoring commands, master drops and straight glued connectors are available in the
-Phase 4a implementation. Orthogonal routing and an MCP server for AI agents are in progress. It is built in the mould of the Craft apps (deckcraft, vectorcraft
-and their siblings) and is offered to that project.
+PDF, writes files that Visio opens without repair, and authors drawings from commands: shapes,
+masters, shape data, glued connectors with orthogonal routing and line jumps. An MCP server for
+AI agents and pptx export are next. It is built in the mould of the Craft apps (deckcraft,
+vectorcraft and their siblings) and is offered to that project.
 
 ![Four drawings made by this repo's scripts, rendered by DiagramCraft](docs/images/diagramcraft-renders.png)
 
@@ -26,7 +27,15 @@ export of the same file, measured by the test harness; Visio's exports stay out 
 - **Write** .vsdx, .vssx and .vstx, and build documents from scratch. Visio 2021 opened all
   230 files of the acceptance set, five of them built from scratch, with no repair beyond a
   few disclosed metadata rewrites, and its COM dumps of the reopened files show zero
-  differences. Read, write, read preserves all 15.1 million cells across 1,387 packages.
+  differences. Read, write, read preserves all 15.1 million cells across 1,413 packages.
+- **Author** through 52 schema-described commands in a transactional session: pages, layers,
+  shapes, text, shape data, hyperlinks, formatting, stencils and master drops, connection
+  points, static and dynamic glue, and connector routing. Routes match Visio's own on 28 of
+  29 witness drawings (obstacles, route styles, page preferences and line jumps) within one
+  millionth of an inch; the one gap is a 1/64 in packing shift where three connectors cross.
+  A 24-switch, 40-connector topology built by a script opens in Visio 2021 unrepaired, keeps
+  every route when Visio re-saves it, and Visio's export of it matches ours inside the pixel
+  ceilings. CI runs the full gate set on Linux, Windows and macOS for every push.
 
 Known gaps are listed in [docs/gaps.md](docs/gaps.md). Text wrapping is the weakest area,
 EMF+ images are not drawn, and compound line patterns are approximate.
@@ -63,17 +72,19 @@ shape IDs are the document's IDs. Lengths use internal inches and angles use rad
 VSDX and PNG using the document's own connector master. The private probe rebuild
 script also checks its result against the local Visio corpus.
 
-Straight routes can cross obstacles. P4a was accepted on 2026-10-15 under
-Charles's ruling: cells and geometry equal Visio, and the unchanged corpus
-connector group ceiling passes. Individual connector pixel comparisons remain
-measured and informational until the connector stroke rendering gap closes.
-M4 remains open for Phase 4b.
+Individual connector pixel comparisons are measured and reported as informational
+until the connector stroke rendering gap closes; route acceptance is cell and geometry
+equality with Visio plus the unchanged group ceilings. The rulings behind each gate are
+dated in [ROADMAP.md](ROADMAP.md).
 
 ## What is coming
 
-- Phase 4b: orthogonal obstacle routing, line jumps, route preferences and the SAN topology acceptance.
 - Phase 5: an MCP server and pptx export, so an AI agent can build a diagram from a
-  description and hand over a file Visio opens.
+  description and hand over a file Visio opens, with a layout layer so the result reads
+  like a drawing a person made (side connection points, spacing, fan-out).
+- Carried gaps, named in [docs/gaps.md](docs/gaps.md): the three-crossing packing shift,
+  unwitnessed WalkPreference values, theme.apply (Visio refused the variant call under
+  COM), connector stroke rendering, and export mapping for small images.
 
 See [ROADMAP.md](ROADMAP.md) for the milestones and the numbers each one has to reach.
 
@@ -93,8 +104,9 @@ Code reused from the Craft apps is MIT OR Apache-2.0 and is listed per file in
 
 ## Status and handover
 
-Pre-alpha. Milestones M0 to M3 (reading, evaluation, rendering, writing) are met and
-independently reviewed; Phase 4a authoring is implemented with acceptance limitations recorded in the roadmap. M4 remains open until Phase 4b. The name follows the Craft apps' convention and belongs to that project: if they
+Pre-alpha. Milestones M0 to M4 (reading, evaluation, rendering, writing, authoring and
+routing) are met and independently reviewed, each under dated gate rulings recorded in the
+roadmap; Phase 5 has not started. The name follows the Craft apps' convention and belongs to that project: if they
 adopt this work, it transfers with the name; if not, the name changes. The project lives at
 [github.com/charles-hood/DiagramCraft](https://github.com/charles-hood/DiagramCraft) until
 that transfer happens; any other copy, including forks in community or incubator
