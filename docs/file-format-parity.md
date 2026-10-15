@@ -13495,3 +13495,11 @@ SAN residual inventory:1128 Property,6 Character,9 Paragraph,3 Text,2 FaceName,
 (e.g.0.8500000000000001 to0.85), removes redundant inherited-zero Geometry cells
 and label ObjType0, and rewrites the page LineJumpCode. These remain residual
 repair records; the separate1e-6 route comparison does not suppress them.
+
+P4b verification record (2026-10-15): final local CI passes all eight gates;
+main route_sweep exits0 with28 empty diffs and the named10-coordinate packing gap;
+route_resave exits0 for40 SAN connectors/1344 cells/0 differences. The acceptance
+report exits1 for the disclosed SAN failures. Independent frozen passes are
+9 YES/6 NO and12 YES/3 NO, neither clean. M4 is not met. All three source seeds
+are detected and pass after exact restoration. Final GitHub run metadata and
+ordered commit hashes are retained in the private P4b report.
