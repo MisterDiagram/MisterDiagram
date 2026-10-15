@@ -625,6 +625,21 @@ fn shapes(
                         let x = block.width * drawing_scale * 0.5;
                         scene.ops.push(Op::Bounds(text_transform.transform_rect_bbox(Rect::new(x, 0., x, height))));
                     }
+                    if line.pattern == 0 && fill.pattern == 0 {
+                        // Text-only shapes reserve a full line advance on both sides
+                        // of the baseline, rather than the face's typographic ascent.
+                        // Witnesses: master/from-shape label and the SAN fabric labels.
+                        // https://learn.microsoft.com/en-us/office/vba/api/visio.page.export
+                        for line in &layout.lines {
+                            let advance = line.bottom - line.top;
+                            scene.ops.push(Op::Bounds(text_transform.transform_rect_bbox(Rect::new(
+                                line.extent.0,
+                                line.baseline - advance,
+                                line.extent.1,
+                                line.baseline + advance,
+                            ))));
+                        }
+                    }
                     scene.ops.push(Op::Text { layout, transform: text_transform });
                 }
             }

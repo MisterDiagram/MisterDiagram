@@ -544,3 +544,24 @@ fn acceptance_extent_matches_hidden_line_and_obstacle_witnesses() {
         assert_eq!(image.dimensions(), size, "{file}");
     }
 }
+
+/// Unpainted labels contribute the logical line advance to export bounds.
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.page.export
+#[test]
+fn text_only_label_extent_matches_visio_original_and_san_save() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    for (input, oracle) in [
+        ("corpus/generated/master/from-shape.vsdx", "corpus/generated/master/from-shape.png"),
+        ("corpus/_state/m4b/accept-inputs/p4b__san-topology.vsdx", "corpus/_vm/out/accept/p4b__san-topology/page-0.png"),
+    ] {
+        if !root.join(input).is_file() || !root.join(oracle).is_file() {
+            continue;
+        }
+        let doc = diagramcraft_vsdx::read(root.join(input)).unwrap();
+        let options = diagramcraft_render::scene::Options::default();
+        let scene = diagramcraft_render::scene::page(&doc, 0, options).unwrap();
+        let (w, h, _) = scene.canvas(options).unwrap();
+        let expected = diagramcraft_render::raster::decode(&std::fs::read(root.join(oracle)).unwrap()).unwrap();
+        assert_eq!((u32::from(w), u32::from(h)), expected.dimensions(), "{input}");
+    }
+}
