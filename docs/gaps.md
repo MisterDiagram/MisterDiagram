@@ -1058,3 +1058,13 @@ rule requires `visio/media/`. Existing Visio-generated PNG/JPEG/EMF witnesses
 use `visio/media/image1.*`. The imported path remains unchanged.
 Sources: [OPC Parts Overview](https://learn.microsoft.com/en-us/previous-versions/windows/desktop/opc/parts-overview),
 [Master XML Part](https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/10b28d2f-d32d-4b8c-96f5-dad13d32dd11).
+
+## ISS-38: retained stencil source capacity
+
+Resolved: the session retains up to 128 MiB of uncompressed stencil source-part
+bytes and reports the requested and already-open sizes on refusal. Generated,
+highly compressed zero-media fixtures verify admission above 32 MiB, refusal
+above 128 MiB, aggregate accounting across separate sources, canonical-path
+reuse and session preservation after refusal. Loading remains eager and bounded.
+The existing stencil-open parity classification is unchanged.
+Reference: [Documents.OpenEx](https://learn.microsoft.com/en-us/office/vba/api/visio.documents.openex).

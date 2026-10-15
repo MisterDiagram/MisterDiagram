@@ -9,7 +9,7 @@ pub(crate) struct Stencil {
     pub path: PathBuf,
     pub document: Arc<Document>,
 }
-const MAX_SOURCE_BYTES: usize = 32 * 1024 * 1024;
+const MAX_SOURCE_BYTES: usize = 128 * 1024 * 1024;
 fn source_size(doc: &Document) -> usize {
     doc.parts.values().fold(0usize, |n, p| n.saturating_add(p.bytes.len()))
 }
@@ -26,9 +26,16 @@ pub(crate) fn open(s: &mut Session, p: &Value) -> Result<Value> {
     if !document.parts.get(&document.main_part).and_then(|p| p.content_type.as_deref()).is_some_and(|v| v.contains("stencil")) {
         return Err(operation("file is not a stencil"));
     }
-    let total = s.stencils.iter().fold(source_size(&document), |n, s| n.saturating_add(source_size(&s.document)));
-    if total > MAX_SOURCE_BYTES {
-        return Err(operation("retained stencil source byte limit"));
+    let needed = source_size(&document);
+    let already_open = s.stencils.iter().fold(0usize, |n, s| n.saturating_add(source_size(&s.document)));
+    if needed.saturating_add(already_open) > MAX_SOURCE_BYTES {
+        let name = path.file_name().unwrap_or(path.as_os_str()).to_string_lossy();
+        return Err(operation(format!(
+            "retained stencil source byte limit: {name} needs {:.1} MiB, {:.1} MiB already open, limit {} MiB",
+            needed as f64 / (1024. * 1024.),
+            already_open as f64 / (1024. * 1024.),
+            MAX_SOURCE_BYTES / (1024 * 1024),
+        )));
     }
     let count = document.masters.len();
     s.stencils.push(Stencil { path, document: Arc::new(document) });

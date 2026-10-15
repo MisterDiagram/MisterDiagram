@@ -109,6 +109,11 @@ File outputs publish from a sibling temporary file after successful serializatio
 Exports share a retained-scene budget across PDF pages; EMF operations are charged
 while records are interpreted, before the enclosing scene retains the result.
 
+`stencil.open` retains at most 128 MiB of uncompressed source-part bytes across
+all open stencils in a session, with the existing 64-stencil count limit.
+Reopening the same canonical path reuses its source. A source-byte refusal names
+the stencil, its required MiB, the MiB already open and the 128 MiB limit.
+
 
 
 Phase 4 glue is a route-owned HostHooks implementation injected into the VSDX
