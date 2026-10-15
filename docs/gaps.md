@@ -710,3 +710,23 @@ Strict literal roundtrip is now an exact integer equality gate at 100%,
 ratcheted from the M3 result 15080738/15080738. A one-cell loss fails even
 when floating-point percentage rounding could print 100%. Other floors,
 populations, denominators, hook lists and volatile lists are unchanged.
+
+### P4a M4.1: document session and file commands
+
+The engine now owns a Document, current page and selection, bounded snapshot
+undo/redo history and journal. Failed edits restore the complete session. Dirty
+model edits use the existing dependency-aware writer and reader before publication,
+so unchanged imported V/F/U stay intact and dependent edited caches are refreshed.
+The six registered commands are file.new, file.open, file.save, file.export,
+edit.undo and edit.redo. Save covers vsdx/vssx/vstx; export covers PNG/SVG/PDF.
+
+Focused tests preserve all 998 strict literal cells of the private probe after
+open/save/reopen and preserve identical saved bytes after a failed edit. Parameter
+bounds, history eviction, dependent-cache undo/redo, hostile command inputs and
+output permissions have regressions. Independent draft review found aggregate
+export-memory retention: scene construction and EMF record emission now charge
+image, geometry and text storage, with small-budget regression fixtures.
+
+CLI authoring, master drop, glue and generator acceptance remain open in the later
+P4a steps. Breadth parity remains 27%; existing file and export rows retain their
+current D/P scores. M4.1 does not establish P4a or M4 acceptance.

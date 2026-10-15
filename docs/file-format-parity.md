@@ -2071,3 +2071,15 @@ Strict literal roundtrip is now an exact integer equality gate at 100%,
 ratcheted from the M3 result 15080738/15080738. A one-cell loss fails even
 when floating-point percentage rounding could print 100%. Other floors,
 populations, denominators, hook lists and volatile lists are unchanged.
+
+### M4.1: session save and transactional cache updates
+
+The session's file.open/file.save round-trip retains 998/998 strict literal cells
+of generated/basic/0001-probe.vsdx. A failed model edit restores the document and
+produces byte-identical saved output. Successful edits reuse the writer's existing
+source/dependency comparison before re-importing the validated result. A Width
+edit updates LocPinX; undo and redo restore the respective cached states.
+
+This is host-side session evidence. No new Visio acceptance run or oracle change
+is part of M4.1. Page parameters exposed by file.export are one-based ordinals;
+the session's internal page selection is zero-based.

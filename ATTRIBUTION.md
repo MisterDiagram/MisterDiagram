@@ -110,3 +110,5 @@ The pinned Tinos directory has no OFL.txt. Its font name table supplies its copy
 | krilla `icc/sRGB-v4.icc`, `icc/sRGB-v2-magic.icc`, `icc/sGrey-v4.icc`, `icc/sGrey-v2-magic.icc` | Clinton Ingram (saucecontrol) | https://github.com/saucecontrol/Compact-ICC-Profiles, bytes distributed by krilla 0.8.2 | CC0-1.0, krilla `icc/LICENSE` | PDF colour profiles |
 | vello_common `assets/probe.rgba` | Vello Authors | https://github.com/linebender/vello, vello_common 0.2.0 | MIT OR Apache-2.0 | Dependency render capability probe, not document art |
 | `docs/images/diagramcraft-renders.png` | This repository | DiagramCraft renders of four drawings made by `tools/oracle/make-corpus.ps1`, composed with labels in Arimo (OFL-1.1) | MIT OR Apache-2.0 | `6dc5d295549d227d0ba94bd42054b4d42a5426f60b11c3c32cb71e037a95e91f` |
+
+| `crates/engine/tests/session.rs` (hostile parameter loop) | deckcraft | `crates/engine/src/tests.rs` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |

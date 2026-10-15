@@ -98,3 +98,13 @@ P2-followup embeds the pinned OFL Latin faces in the fonts crate for both native
 The named P3 `model/tests/from_scratch.rs` integration test has a dev-only
 model -> vsdx dependency to assert serialization and re-reading of its five typed
 constructions. Production model dependencies remain at L0/L1.
+
+| `crates/engine/tests/session.rs` (hostile parameter loop) | deckcraft | `crates/engine/src/tests.rs` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
+
+The Phase 4 session owns an Arc<Document>, a page/shape selection, bounded snapshot
+history and a bounded JSON command journal. Session::edit restores all session
+state on error or panic. Dirty edits serialize through the dependency-aware VSDX
+writer and re-import before publication, reusing the established cache contract.
+File outputs publish from a sibling temporary file after successful serialization.
+Exports share a retained-scene budget across PDF pages; EMF operations are charged
+while records are interpreted, before the enclosing scene retains the result.

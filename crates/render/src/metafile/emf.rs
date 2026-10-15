@@ -158,8 +158,12 @@ pub(super) fn frame(bytes: &[u8]) -> Option<(Affine, f64, Rect)> {
 }
 
 pub(super) fn play(bytes: &[u8]) -> Result<Imported, String> {
+    play_budgeted(bytes, super::SceneBudget::default())
+}
+fn play_budgeted(bytes: &[u8], budget: super::SceneBudget) -> Result<Imported, String> {
     let (dev_to_doc, mm_per_px, artboard) = frame(bytes).ok_or("the EMF header is damaged")?;
     let mut p = Player::new(Kind::Emf, dev_to_doc, mm_per_px, artboard);
+    p.budget = budget;
     let mut at = 0usize;
     let mut ended = false;
     while let Some(head) = bytes.get(at..at + 8) {
@@ -176,10 +180,17 @@ pub(super) fn play(bytes: &[u8]) -> Result<Imported, String> {
         if record(&mut p, kind, rec).is_none() {
             p.skip();
         }
+        if let Some(error) = p.failure.take() {
+            return Err(error);
+        }
         at += size;
     }
     if !ended {
         p.warn("the file ends early: what it held was imported");
+    }
+    p.flush();
+    if let Some(error) = p.failure.take() {
+        return Err(error);
     }
     Ok(p.finish())
 }
@@ -371,4 +382,60 @@ fn record(p: &mut Player, kind: u32, rec: &[u8]) -> Option<()> {
         _ => return None,
     }
     Some(())
+}
+
+#[cfg(test)]
+mod budget_tests {
+    use super::*;
+    use crate::scene::{Op, SceneBudget};
+
+    #[test]
+    fn repeated_compressed_bitmap_records_fail_the_retained_memory_budget() {
+        // Contributor-original 16x16 PNG, repeated in EMR_STRETCHDIBITS records.
+        // https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/
+        let pixels = image::RgbaImage::from_pixel(16, 16, image::Rgba([10, 20, 30, 255]));
+        let mut png = std::io::Cursor::new(Vec::new());
+        pixels.write_to(&mut png, image::ImageFormat::Png).unwrap();
+        let png = png.into_inner();
+        let mut record = vec![0u8; 120];
+        let fields = [
+            (0, 81),
+            (4, 120 + png.len() as u32),
+            (40, 16),
+            (44, 16),
+            (48, 80),
+            (52, 40),
+            (56, 120),
+            (60, png.len() as u32),
+            (68, super::super::SRCCOPY),
+            (72, 16),
+            (76, 16),
+            (80, 40),
+            (84, 16),
+            (88, 16),
+            (96, 5),
+        ];
+        for (offset, value) in fields {
+            record[offset..offset + 4].copy_from_slice(&value.to_le_bytes());
+        }
+        record[92..94].copy_from_slice(&1u16.to_le_bytes());
+        record[94..96].copy_from_slice(&32u16.to_le_bytes());
+        record.extend_from_slice(&png);
+        let mut emf = vec![0u8; 88];
+        for (offset, value) in
+            [(0, 1u32), (4, 88), (16, 16), (20, 16), (32, 2540), (36, 2540), (40, 0x464d4520), (72, 96), (76, 96), (80, 25), (84, 25)]
+        {
+            emf[offset..offset + 4].copy_from_slice(&value.to_le_bytes());
+        }
+        emf.extend_from_slice(&record);
+        emf.extend_from_slice(&record);
+        emf.extend_from_slice(&14u32.to_le_bytes());
+        emf.extend_from_slice(&8u32.to_le_bytes());
+        let imported = play(&emf).unwrap();
+        assert_eq!(imported.ops.iter().filter(|op| matches!(op, Op::Image { .. })).count(), 2);
+        let one_image = std::mem::size_of::<Op>() * 2 + 16 * 16 * 4;
+        assert!(play_budgeted(&emf, SceneBudget::new(one_image * 2)).is_ok());
+        let error = play_budgeted(&emf, SceneBudget::new(one_image * 2 - 1)).err().unwrap();
+        assert!(error.contains("memory limit"), "{error}");
+    }
 }

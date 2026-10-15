@@ -9,6 +9,9 @@ use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
 use kurbo::Shape as _;
 use std::sync::Arc;
 
+mod budget;
+pub use budget::SceneBudget;
+
 pub const MAX_PIXELS: usize = 32 * 1024 * 1024;
 #[derive(Clone, Debug)]
 pub enum Paint {
@@ -196,13 +199,20 @@ pub fn default_page_index(document: &Document) -> Result<usize, String> {
         .ok_or_else(|| "no foreground pages".into())
 }
 pub fn page(document: &Document, index: usize, options: Options) -> Result<Scene, String> {
+    page_budgeted(document, index, options, &mut SceneBudget::default())
+}
+/// Share a retained-scene allocation budget across pages of one export.
+pub fn page_budgeted(document: &Document, index: usize, options: Options, budget: &mut SceneBudget) -> Result<Scene, String> {
     let themes = diagramcraft_theme::Themes::from_document(document).map_err(|e| e.to_string())?;
     let host = diagramcraft_text::Host;
     let mut evaluator = Evaluator::new(document).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&host);
-    page_prepared(&mut evaluator, index, options)
+    page_prepared_budgeted(&mut evaluator, index, options, budget)
 }
 /// Render a page using a reusable index; evaluation effects are reset at the boundary.
 pub fn page_prepared(evaluator: &mut Evaluator<'_>, index: usize, options: Options) -> Result<Scene, String> {
+    page_prepared_budgeted(evaluator, index, options, &mut SceneBudget::default())
+}
+fn page_prepared_budgeted(evaluator: &mut Evaluator<'_>, index: usize, options: Options, budget: &mut SceneBudget) -> Result<Scene, String> {
     if evaluator.text_metrics_deferred() {
         return Err("deferred text metrics cannot render".into());
     }
@@ -233,8 +243,9 @@ pub fn page_prepared(evaluator: &mut Evaluator<'_>, index: usize, options: Optio
         let p = document.pages.iter().find(|p| p.id == id).ok_or("missing page")?;
         let scope = Scope::Page(id);
         let ratio = number(evaluator, scope, "PageScale", 1.) / number(evaluator, scope, "DrawingScale", 1.).max(1e-12);
-        shapes(evaluator, &p.shapes, scope, &p.part, Affine::scale(ratio), options, &mut scene, 0)?;
+        shapes(evaluator, &p.shapes, scope, &p.part, Affine::scale(ratio), options, &mut scene, 0, budget)?;
     }
+    budget.charge(std::mem::size_of::<Scene>().saturating_add(scene.warnings.iter().map(String::capacity).sum::<usize>()))?;
     finish_bounds(&mut scene, options.crop);
     if options.visio_export && p.shapes.is_empty() && !p.attributes.contains_key("BackPage") {
         scene.bounds = Rect::new(0., 0., 5., 3.);
@@ -259,7 +270,7 @@ pub fn master_prepared(evaluator: &mut Evaluator<'_>, index: usize, options: Opt
     let mut scene = Scene { warnings: vec![], ops: vec![], bounds: Rect::ZERO, page_size: (1., 1.) };
     let scope = Scope::Master(m.id);
     let ratio = number(evaluator, scope, "PageScale", 1.) / number(evaluator, scope, "DrawingScale", 1.).max(1e-12);
-    shapes(evaluator, &m.shapes, scope, &m.part, Affine::scale(ratio), options, &mut scene, 0)?;
+    shapes(evaluator, &m.shapes, scope, &m.part, Affine::scale(ratio), options, &mut scene, 0, &mut SceneBudget::default())?;
     finish_bounds(&mut scene, true);
     if options.visio_export && m.shapes.is_empty() {
         scene.bounds = Rect::new(0., 0., 5., 3.);
@@ -385,6 +396,7 @@ fn shapes(
     options: Options,
     scene: &mut Scene,
     depth: usize,
+    budget: &mut SceneBudget,
 ) -> Result<(), String> {
     if depth > 128 {
         return Err("shape depth limit".into());
@@ -411,11 +423,12 @@ fn shapes(
         // and mode2 paints it in front. Leaf shapes ignore this group property.
         let mode = if shape.shapes.is_empty() { 1. } else { number(e, scope, "DisplayMode", 1.) };
         if mode == 0. || mode == 2. {
-            shapes(e, &shape.shapes, parent, part, scale, options, scene, depth + 1)?;
+            shapes(e, &shape.shapes, parent, part, scale, options, scene, depth + 1, budget)?;
         }
         if mode == 0. {
             continue;
         }
+        let first_op = scene.ops.len();
         let transform = scale * e.shape_to_page(scope).map_err(|e| format!("shape {} transform: {e}", shape.id))?;
         let width = number(e, scope, "Width", 1.);
         let height = number(e, scope, "Height", 1.);
@@ -570,8 +583,9 @@ fn shapes(
                 }
             }
         }
+        budget.charge_ops(scene.ops.get(first_op..).ok_or("scene operation range")?)?;
         if mode == 1. {
-            shapes(e, &shape.shapes, parent, part, scale, options, scene, depth + 1)?;
+            shapes(e, &shape.shapes, parent, part, scale, options, scene, depth + 1, budget)?;
         }
     }
     Ok(())

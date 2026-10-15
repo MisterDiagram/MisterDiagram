@@ -248,6 +248,12 @@ name = "diagramcraft-engine"
 version = "0.0.1"
 dependencies = [
  "diagramcraft-model",
+ "diagramcraft-render",
+ "diagramcraft-sheet",
+ "diagramcraft-text",
+ "diagramcraft-theme",
+ "diagramcraft-vsdx",
+ "image",
  "log",
  "serde",
  "serde_json",

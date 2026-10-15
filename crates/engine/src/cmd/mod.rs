@@ -1,4 +1,4 @@
-//! The command registry. Phase 0 has no registered authoring commands.
+//! The headless document command registry.
 
 use diagramcraft_model::ShapeId;
 use diagramcraft_model::Xfrm;
@@ -68,7 +68,20 @@ macro_rules! cmd {
 pub use cmd;
 
 pub fn command_specs() -> &'static [CommandSpec] {
-    &[]
+    &[
+        cmd!(noundo "file.new", "New drawing", ["File"], None,
+            r#"{"type":"object","properties":{"metric":{"type":"boolean"}},"additionalProperties":false}"#, always, crate::files::new),
+        cmd!(noundo "file.open", "Open drawing", ["File"], None,
+            r#"{"type":"object","properties":{"path":{"type":"string","minLength":1,"maxLength":32768}},"required":["path"],"additionalProperties":false}"#, always, crate::files::open),
+        cmd!(noundo "file.save", "Save drawing", ["File"], None,
+            r#"{"type":"object","properties":{"path":{"type":"string","minLength":1,"maxLength":32768}},"required":["path"],"additionalProperties":false}"#, always, crate::files::save),
+        cmd!(noundo "file.export", "Export drawing", ["File"], None,
+            r#"{"type":"object","properties":{"path":{"type":"string","minLength":1,"maxLength":32768},"page":{"type":"integer","minimum":1,"description":"One-based page ordinal"},"scale":{"type":"number","exclusiveMinimum":0,"maximum":100}},"required":["path"],"additionalProperties":false}"#, always, crate::files::export),
+        cmd!(noundo "edit.undo", "Undo", ["Edit"], None,
+            r#"{"type":"object","additionalProperties":false}"#, always, Session::undo),
+        cmd!(noundo "edit.redo", "Redo", ["Edit"], None,
+            r#"{"type":"object","additionalProperties":false}"#, always, Session::redo),
+    ]
 }
 
 pub fn find_command(id: &str) -> Option<&'static CommandSpec> {

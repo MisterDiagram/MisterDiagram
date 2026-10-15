@@ -333,3 +333,5 @@ The final pass verified all 230 input hashes, 1664 baseline files and 5029
 observation artifact hashes. M3 is met; stop before Phase 4.
 
 - 2026-10-14: P4a M4.0 started after a green eight-gate baseline. The strict literal roundtrip ratchet is 100%; compressed-DIB upstream drift is already covered. Authoring and glue acceptance remain pending; M4 closes in 4b.
+
+- 2026-10-14: P4a M4.1 implements a transactional Document session, bounded undo/redo and journal, and six file/history commands. Focused probe round-trip 998/998; rollback preserves saved bytes. Full CI pending at this entry; authoring and glue follow in the remaining P4a steps.

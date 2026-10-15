@@ -12,7 +12,7 @@
 mod bytes;
 mod dib;
 mod emf;
-use crate::scene::{Op, Paint};
+use crate::scene::{Op, Paint, SceneBudget};
 use diagramcraft_color::Rgba as Color;
 use dib::Rgba;
 use kurbo::{Affine, BezPath, PathEl, Point, Rect, Shape as _, Vec2};
@@ -206,6 +206,8 @@ pub(crate) struct Player {
     /// Lines drawn one after another outside a path bracket, not drawn yet.
     pending: BezPath,
     out: Vec<Op>,
+    budget: SceneBudget,
+    failure: Option<String>,
     warnings: Vec<String>,
     skipped: usize,
     /// The file holds EMF+ records (which aren't read).
@@ -282,6 +284,8 @@ impl Player {
             pos: Point::ZERO,
             pending: BezPath::new(),
             out: vec![],
+            budget: SceneBudget::default(),
+            failure: None,
             warnings: vec![],
             skipped: 0,
             emf_plus: false,
@@ -459,14 +463,32 @@ impl Player {
     // ---------- output ----------
 
     fn push(&mut self, op: Op) {
-        if self.out.len() >= MAX_NODES {
+        if self.failure.is_some() {
+            return;
+        }
+        let count = self.dc.clips.len().saturating_mul(2).saturating_add(1);
+        if self.out.len().saturating_add(count) > MAX_NODES {
+            self.failure = Some("metafile operation limit".into());
+            return;
+        }
+        if let Err(error) = self.budget.charge_ops(std::slice::from_ref(&op)) {
+            self.failure = Some(error);
             return;
         }
         for clip in &self.dc.clips {
-            self.out.push(Op::Clip { path: clip.path.clone(), even_odd: clip.rule == FillRule::EvenOdd });
+            let operation = Op::Clip { path: clip.path.clone(), even_odd: clip.rule == FillRule::EvenOdd };
+            if let Err(error) = self.budget.charge_ops(std::slice::from_ref(&operation)) {
+                self.failure = Some(error);
+                return;
+            }
+            self.out.push(operation);
         }
         self.out.push(op);
         for _ in &self.dc.clips {
+            if let Err(error) = self.budget.charge_ops(&[Op::Pop]) {
+                self.failure = Some(error);
+                return;
+            }
             self.out.push(Op::Pop);
         }
     }

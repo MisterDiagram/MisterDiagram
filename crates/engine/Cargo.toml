@@ -13,3 +13,10 @@ serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 log.workspace = true
+
+diagramcraft-vsdx.workspace = true
+diagramcraft-sheet.workspace = true
+diagramcraft-theme.workspace = true
+diagramcraft-text.workspace = true
+diagramcraft-render.workspace = true
+image.workspace = true
