@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# The orthogonal router creates Geometry row 3 before the explicit cell overrides.
 # Contributor-original recreation of the synthetic probe using engine commands.
 set -euo pipefail
 repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -37,7 +38,6 @@ fi
   --cmd 'sheet.set={"id":5,"name":"Geometry1.Y1","value":0}' \
   --cmd 'sheet.set={"id":5,"name":"Geometry1.X2","value":0}' \
   --cmd 'sheet.set={"id":5,"name":"Geometry1.Y2","value":-3.25}' \
-  --cmd 'sheet.row.add={"id":5,"section":"Geometry","section_index":0,"index":3,"type":"LineTo"}' \
   --cmd 'sheet.set={"id":5,"name":"Geometry1.X3","value":-1}' \
   --cmd 'sheet.set={"id":5,"name":"Geometry1.Y3","value":-3.25}' \
   --cmd 'sheet.set={"id":5,"name":"Controls.TextPosition","value":0}' \

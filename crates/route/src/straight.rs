@@ -63,6 +63,14 @@ fn row(index: u32, kind: &str, cells: Vec<diagramcraft_model::Cell>, deleted: bo
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/angle-cell-shape-transform-section
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.shape.reroute
 pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force: Option<(usize, Option<u32>)>) -> Result<usize, String> {
+    if let Some((index, shape)) = force {
+        let page = doc.pages.get(index).ok_or("route page missing")?;
+        for id in page.connects.iter().map(|c| c.from_sheet) {
+            if shape.is_none_or(|s| s == id) {
+                host.activate(page.id, id);
+            }
+        }
+    }
     let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_glue_host(host);
     let mut old = Evaluator::new(before).map_err(|e| e.to_string())?;
     let mut routes = vec![];
@@ -88,31 +96,57 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             .collect::<Result<Vec<_>, _>>()?
             .try_into()
             .map_err(|_| "endpoint count")?;
-        let dx = ex - bx;
-        let dy = ey - by;
-        let horizontal = dy.abs() < 1e-12;
-        let width = if horizontal { dx } else { dx.hypot(dy) };
-        if !width.is_finite() || width.abs() > 1e6 {
-            return Err("route length limit".into());
-        }
-        routes.push((index, id, bx, by, ex, ey, width, horizontal));
+        let excluded =
+            doc.pages.get(index).ok_or("route page missing")?.connects.iter().filter(|c| c.from_sheet == id).map(|c| c.to_sheet).collect::<Vec<_>>();
+        let parent = e.parent_to_page(scope).map_err(|v| v.to_string())?;
+        let inverse = parent.inverse();
+        let obstacles =
+            crate::orthogonal::obstacles(&mut e, page, &excluded)?.into_iter().map(|b| inverse.transform_rect_bbox(b)).collect::<Vec<_>>();
+        let style = crate::orthogonal::style(&mut e, scope, page);
+        let cx = crate::orthogonal::number(&mut e, Scope::Page(page), "LineToLineX", 0.125) * 1.5;
+        let cy = crate::orthogonal::number(&mut e, Scope::Page(page), "LineToLineY", 0.125) * 1.5;
+        let obstacles = obstacles.into_iter().map(|b| b.inflate(cx, cy)).collect::<Vec<_>>();
+        let begin = diagramcraft_geom::Point::new(bx, by);
+        let end = diagramcraft_geom::Point::new(ex, ey);
+        let direction = |e: &mut Evaluator<'_>, point: diagramcraft_geom::Point, side: &str| -> Result<Option<usize>, String> {
+            let link = doc.pages.get(index).ok_or("route page")?.connects.iter().find(|c| c.from_sheet == id && c.from_cell.as_deref() == Some(side));
+            if let Some(link) = link {
+                if !matches!(link.to_cell.as_deref(), Some("PinX" | "PinY")) {
+                    return Ok(None);
+                }
+                let b = inverse.transform_rect_bbox(crate::orthogonal::bounds(e, Scope::PageShape { page, shape: link.to_sheet })?);
+                let dx = (point.x - b.x0).abs().min((point.x - b.x1).abs());
+                let dy = (point.y - b.y0).abs().min((point.y - b.y1).abs());
+                Ok(Some(if dx < dy { 0 } else { 1 }))
+            } else {
+                Ok(None)
+            }
+        };
+        let dirs = (direction(&mut e, begin, "BeginX")?, direction(&mut e, end, "EndX")?);
+        let points = if style == 2. || style == 16. { vec![begin, end] } else { crate::orthogonal::path(begin, end, &obstacles, dirs.0, dirs.1)? };
+        routes.push((index, id, bx, by, ex, ey, style, points));
         if routes.len() > 100000 {
             return Err("route count limit".into());
         }
     }
     drop(e);
     let count = routes.len();
-    for (index, id, bx, by, ex, ey, width, horizontal) in routes {
+    for (index, id, bx, by, ex, ey, style, points) in routes {
         let page = doc.pages.get_mut(index).ok_or("route page missing")?;
+        let dynamic = page.connects.iter().any(|c| c.from_sheet == id && matches!(c.to_cell.as_deref(), Some("PinX" | "PinY")));
         let layer = connector_layer(page)?;
         let shape = shape_mut(&mut page.shapes, id, 0).ok_or("route shape missing")?;
-        let height = 0.25;
-        let width_formula = if horizontal { "GUARD(EndX-BeginX)" } else { "GUARD(SQRT((EndX-BeginX)^2+(EndY-BeginY)^2))" };
+        let dx = ex - bx;
+        let dy = ey - by;
+        let width = if dx.abs() < 1e-12 { 0.25 } else { dx };
+        let height = if dy.abs() < 1e-12 { 0.25 } else { dy };
+        let width_formula = if dx.abs() < 1e-12 { "GUARD(0.25DL)" } else { "GUARD(EndX-BeginX)" };
+        let height_formula = if dy.abs() < 1e-12 { "GUARD(0.25DL)" } else { "GUARD(EndY-BeginY)" };
         for (name, value, formula) in [
             ("PinX", (bx + ex) * 0.5, "Inh"),
             ("PinY", (by + ey) * 0.5, "Inh"),
             ("Width", width, width_formula),
-            ("Height", height, "GUARD(0.25DL)"),
+            ("Height", height, height_formula),
             ("LocPinX", width * 0.5, "Inh"),
             ("LocPinY", height * 0.5, "Inh"),
             ("TxtPinX", width * 0.5, "Inh"),
@@ -120,20 +154,36 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
         ] {
             set(&mut shape.sheet, cell(name, value, Some(formula.into())))?;
         }
-        if !horizontal {
-            set(&mut shape.sheet, cell("Angle", (ey - by).atan2(ex - bx), Some("GUARD(ATAN2(EndY-BeginY,EndX-BeginX))".into())))?;
-        } else if shape.sheet.cell("Angle").is_some_and(|c| c.formula.as_deref() == Some("GUARD(ATAN2(EndY-BeginY,EndX-BeginX))")) {
+        if shape.sheet.cell("Angle").is_some_and(|c| c.formula.as_deref() == Some("GUARD(ATAN2(EndY-BeginY,EndX-BeginX))")) {
             shape.sheet.cells.retain(|c| c.name != "Angle");
+        }
+        if dynamic {
+            set(&mut shape.sheet, cell("ConFixedCode", if style == 2. { 0 } else { 6 }, None))?;
+        }
+        for (name, value) in [("BeginX", bx), ("BeginY", by), ("EndX", ex), ("EndY", ey)] {
+            let formula = shape.sheet.cell(name).and_then(|c| c.formula.clone());
+            set(&mut shape.sheet, cell(name, value, formula.or_else(|| Some("Inh".into()))))?;
         }
         set(&mut shape.sheet, cell("LayerMember", layer, None))?;
         let geometry = Section {
             name: "Geometry".into(),
             index: Some(0),
-            rows: vec![
-                row(1, "MoveTo", vec![cell("Y", height / 2., None)], false),
-                row(2, "LineTo", vec![cell("X", width, None), cell("Y", height / 2., None)], false),
-                row(3, "LineTo", vec![], true),
-            ],
+            rows: {
+                let mut rows = Vec::new();
+                for (i, p) in points.iter().enumerate() {
+                    let x = p.x - bx + if dx.abs() < 1e-12 { 0.125 } else { 0. };
+                    let y = p.y - by + if dy.abs() < 1e-12 { 0.125 } else { 0. };
+                    let mut cells = vec![cell("Y", y, None)];
+                    if i != 0 || x.abs() > 1e-12 {
+                        cells.insert(0, cell("X", x, None));
+                    }
+                    rows.push(row(u32::try_from(i + 1).map_err(|_| "route row count")?, if i == 0 { "MoveTo" } else { "LineTo" }, cells, false));
+                }
+                if rows.len() == 2 {
+                    rows.push(row(3, "LineTo", vec![], true));
+                }
+                rows
+            },
             ..Default::default()
         };
         if let Some(old) = shape.sheet.sections.iter_mut().find(|s| s.name == "Geometry" && s.index.unwrap_or(0) == 0) {

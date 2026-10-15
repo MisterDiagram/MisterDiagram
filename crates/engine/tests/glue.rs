@@ -166,6 +166,9 @@ fn reroute_preserves_four_straight_witnesses_geometry_and_xform() {
 #[test]
 fn straight_route_tracks_a_diagonal_endpoint_in_page_space() {
     let mut s = Session::new();
+    // The straight style remains a two-row route after right-angle routing is implemented.
+    // https://learn.microsoft.com/en-us/office/client-developer/visio/routestyle-cell-page-layout-section
+    run(&mut s, "sheet.set", json!({"scope":"page","name":"RouteStyle","value":2}));
     for (x, y) in [(1., 1.), (5., 5.)] {
         run(&mut s, "shape.draw.rect", json!({"x":x,"y":y,"width":1,"height":1}));
     }

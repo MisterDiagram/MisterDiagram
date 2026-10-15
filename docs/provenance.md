@@ -163,3 +163,8 @@ legacy theme slot/shadow interpretation come from those outputs, with the
 Microsoft reference pages cited in the recipe and source. No implementation
 from Visio or another renderer was read or copied. No theme asset enters this
 repository. Existing `line/compound-1` supplies the double-stroke observation.
+
+M4.13 route authoring derives alignment-box attachment, obstacle clearance,
+signed frames and Geometry rows from the private P4b sweep table above and
+connector/obstacle. The implementation uses original bounded visibility-grid
+code, not third-party router code. All comparisons retain1e-6 tolerance.

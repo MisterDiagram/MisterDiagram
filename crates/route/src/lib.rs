@@ -7,5 +7,6 @@ pub use static_glue::{ConnectionPoint, End, add_connection, connect_dynamic, con
 mod glue_host;
 pub use glue_host::GlueHost;
 
+mod orthogonal;
 mod straight;
 pub use straight::reroute;

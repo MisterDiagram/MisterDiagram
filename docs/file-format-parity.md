@@ -13439,3 +13439,10 @@ reads these parameters and colors from the input theme; it embeds no vendor
 visual design. The portrait route exports also witness isotropic rather than
 independent-axis canvas fitting. The existing compound-1 drawing witnesses the
 transparent central third of a double stroke.
+
+M4.13 implementation: route offsets use signed, unrotated endpoint-difference
+frames, with0.25DL on a zero axis. MoveTo/LineTo Geometry is expressed in that
+frame. Dynamic right-angle connectors carry ConFixedCode6; straight style2 uses0.
+Observed clearance is1.5 times LineToLineX/Y. ObjType1 alignment boxes block
+routes unless both ShapePermeableX/Y are true. All17 non-jump sweep cases,
+connector/obstacle and four P4a straight witnesses compare within1e-6.

@@ -861,3 +861,8 @@ Ordinary SVG strokes now use native stroke attributes, retaining the shared
 outline fallback for asymmetric caps. This corrects raster/SVG disagreement on
 the tiny metric-scale witness without changing its comparison ceiling. Shadow
 mask allocation and filter work both have explicit bounds and hostile tests.
+
+M4.13: bounded orthogonal routing now matches the17 non-jump route sweep cases,
+the original obstacle witness and all four P4a straight witnesses within1e-6.
+Grid, plow, page-break and dense-connector behavior remain partial beyond the
+observed cases. Line jumps follow in M4.14.

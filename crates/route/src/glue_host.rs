@@ -127,6 +127,7 @@ fn endpoint(b: &BoxShape, other: &BoxShape, vertical: bool) -> Result<Point, Str
 pub struct GlueHost {
     points: BTreeMap<Key, Point>,
     triggers: BTreeMap<Key, f64>,
+    active: std::collections::BTreeSet<(u32, u32)>,
 }
 impl HostHooks for GlueHost {
     fn supports(&self, name: &str) -> bool {
@@ -136,13 +137,18 @@ impl HostHooks for GlueHost {
         let (Some(page), Some(shape)) = (page, shape) else { return cached.clone() };
         let key = (page, shape, cell.to_ascii_lowercase());
         match name {
-            "_WALKGLUE" => self.points.get(&key).map_or_else(|| cached.clone(), |p| Value::Point(p.x, p.y)),
+            "_WALKGLUE" => {
+                self.points.get(&key).filter(|_| self.active.contains(&(page, shape))).map_or_else(|| cached.clone(), |p| Value::Point(p.x, p.y))
+            }
             "_XFTRIGGER" => self.triggers.get(&key).map_or_else(|| cached.clone(), |v| Value::Number(*v)),
             _ => cached.clone(),
         }
     }
 }
 impl GlueHost {
+    pub(crate) fn activate(&mut self, page: u32, shape: u32) {
+        self.active.insert((page, shape));
+    }
     /// Compare transforms against the transaction snapshot and invalidate only affected glue triggers.
     /// Endpoint caches are not filled here: evaluation must call `_WALKGLUE` to obtain the new point.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/eventxfmod-cell-events-section
@@ -176,6 +182,28 @@ impl GlueHost {
                 let dynamic = |c: Option<&diagramcraft_model::Connect>| c.is_some_and(|c| matches!(c.to_cell.as_deref(), Some("PinX" | "PinY")));
                 let boxes = links.map(|c| c.map(|c| bounds(&mut e, page.id, c.to_sheet)).transpose()).into_iter().collect::<Result<Vec<_>, _>>()?;
                 let preference = number(&mut e, scope, "WalkPreference")?;
+                let planned = if preference == 0. && links.iter().all(|c| dynamic(*c)) && boxes.iter().flatten().all(|b| b.points.is_empty()) {
+                    if let (Some(a), Some(b)) = (boxes.first().and_then(Option::as_ref), boxes.get(1).and_then(Option::as_ref)) {
+                        let excluded = links.iter().flatten().map(|c| c.to_sheet).collect::<Vec<_>>();
+                        let obstacles = crate::orthogonal::obstacles(&mut e, page.id, &excluded)?;
+                        let style = crate::orthogonal::style(&mut e, scope, page.id);
+                        let clearance = (
+                            crate::orthogonal::number(&mut e, Scope::Page(page.id), "LineToLineX", 0.125) * 1.5,
+                            crate::orthogonal::number(&mut e, Scope::Page(page.id), "LineToLineY", 0.125) * 1.5,
+                        );
+                        Some(crate::orthogonal::endpoints(
+                            diagramcraft_geom::Rect::new(a.min.x, a.min.y, a.max.x, a.max.y),
+                            diagramcraft_geom::Rect::new(b.min.x, b.min.y, b.max.x, b.max.y),
+                            &obstacles,
+                            style,
+                            clearance,
+                        )?)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
                 let parent = e.parent_to_page(scope).map_err(|e| e.to_string())?;
                 if !parent.determinant().is_finite() || parent.determinant().abs() < 1e-15 {
                     return Err("singular connector parent transform".into());
@@ -229,7 +257,8 @@ impl GlueHost {
                         };
                         let vertical = link.to_cell.as_deref() == Some("PinY")
                             || if side == 0 { preference == 1. || preference == 3. } else { preference == 2. || preference == 3. };
-                        let point = parent.inverse() * endpoint(target, other, vertical)?;
+                        let point = parent.inverse()
+                            * if let Some(point) = planned.as_ref().and_then(|p| p.get(side)) { *point } else { endpoint(target, other, vertical)? };
                         for axis in ["x", "y"] {
                             host.points.insert((page.id, id, format!("{}{axis}", end.prefix().to_ascii_lowercase())), point);
                         }
@@ -240,7 +269,7 @@ impl GlueHost {
         drop(e);
         let active: std::collections::BTreeSet<_> =
             affected.iter().filter_map(|(index, id)| doc.pages.get(*index).map(|page| (page.id, *id))).collect();
-        host.points.retain(|(page, shape, _), _| active.contains(&(*page, *shape)));
+        host.active = active;
         for (page, id, name, value) in changes {
             let page = doc.pages.get_mut(page).ok_or("glue page missing")?;
             let shape = shape_mut(&mut page.shapes, id, 0).ok_or("glue shape missing")?;
