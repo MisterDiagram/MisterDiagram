@@ -408,3 +408,21 @@ as separate renderer work.
 
 - 2026-10-15: P4b partial acceptance:28/29 route drawings match within1e-6; one named1/64in packing gap. SAN has24 Switch instances,40ISLs,80Connects, all-path ink and40 unchanged routes across1344 cells after Visio re-save. All3 acceptance files open; rebuilt obstacle/line-jumps have residual repairs0/COM0. SAN fails with1336 residual serialization differences,3 font COM differences and1612x747 versus1612x757 export size. M4 remains open. Breadth parity47% to48%: line jumps M toP; routing/theme remainP. Phase5 awaits SAN closure.
 - 2026-10-15: M4.18 partial acceptance record: all eight local CI gates pass for the final source candidate. Independent frozen passes are9 YES/6 NO and12 YES/3 NO, neither clean. Required SAN acceptance keeps M4 open despite route equality. Final three-platform push verification is recorded privately after the record commit.
+
+2026-10-15, P4b-closure candidate: two new originals, Property rebuild3970 cells
+and master rebuild4948 cells with empty diffs. Fresh VM opens3/3, COM0 for all.
+Property repairs0, SAN3 Text residuals, master rebuild2 residuals. SAN40 routes/
+1344 cells unchanged,80 Connects; PNG1612x757 equals Visio and passes required
+ceilings at MAD0.897575/over16 1.282242%. M4 remains open. The new Property Pair
+fails the frozen data render group. The new master original also exceeds its
+individual ceiling; outliers12 versus the unchanged maximum10. No numeric gate changed.
+Rust candidates remain uncommitted until CI passes. Endpoint packing and theme
+remain named gaps. Phase5 estimate32to48 hours after8to20 hours of closure work.
+M4.19 published only the witness recipe and observation tables asd0badbd.
+The Rust implementation and pin are retained as an uncommitted candidate, with
+private patch and source hashes, because a failed local CI cannot authorize
+Rust commits. M4.20 through M4.23 are not claimed as landed. The record commit
+and its GitHub checks cover documentation and observation code only.
+Independent frozen passes3 and4 each record16YES/4NO: Visio repairs, aggregate
+gates, closure records and M4.21 remain NO. Both preserve the original-first
+rule and failed render evidence. There are no two consecutive clean passes.

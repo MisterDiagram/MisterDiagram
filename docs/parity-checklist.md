@@ -282,3 +282,10 @@ No row count, Core designation, priority or scoring weight changes in P4a.
   and render-height gates fail, so M4 is not met.
 
 No row count, Core designation, priority, denominator or scoring weight changes.
+
+P4b-closure candidate: the original-backed Property implementation matches all
+11 local cells in four row types and3970 live COM cells; fresh Property repair
+and COM residuals are0. The shape data row stays P while the candidate is blocked
+from landing by full CI. No breadth point is claimed for an uncommitted change.
+Master/text serialization still has redundant-marker residuals; font identity
+and SAN extent focused checks pass. Routing/theme rows are unchanged.

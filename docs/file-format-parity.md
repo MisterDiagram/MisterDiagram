@@ -15689,3 +15689,66 @@ Icon: present; MasterShortcut: absent.
 
 Text visio/pages/page1.xml shape 4: markers `[]`; content `'Single run\n'`.
 Text visio/masters/master1.xml shape 5: markers `[["pp", {"IX": "0"}]]`; content `'Switch\nOriginal\n'`.
+
+M4.20: the original Property COM dump exposes five reserved columns9..13,
+named Prop.NameH7 through Prop.NameL7 in row0, then H8..L8 in row1 and so on.
+They return0 with unit32 and have no serialized cells. The dump adapter exposes
+these live slots, just as it already does for Connection and Actions slots.
+No oracle row or comparison denominator was removed. Full Property local-cell
+comparison checks the eleven XML cells separately, including LangID.
+
+M4.21: Masters.Drop reserves master ID1 and creates the first master as2.
+The original rectangle master page is1.510416666666667 by0.7604166666666661in:
+shape dimensions1.5 by0.75 plus its0.0104166666666667in stroke. Its pin is half
+that complete extent. DrawingResizeType=1, no inherited Connector layer, empty
+Prompt and MatchByName=0 distinguish it from the Dynamic connector template.
+The engine retains fresh identities and omits Icon for Visio to generate.
+The original's default centered alignment produces a pp marker but no redundant
+Paragraph section. The admissible SAN re-save gives the character-format case:
+cp then pp, and a literal Size without its former constant formula. Imported
+text and cells remain preserved by the writer's existing source-state contract.
+
+M4.22: the SAN recipe had explicitly named Liberation Sans, a renderer fallback,
+creating a FaceNames entry that Visio coalesced on save. The recipe now inherits
+the blank document's face identity and only sets size/style/alignment. Rendering
+resolves the document name to an open font at draw time. Explicit user font
+choices still add their named document face. Regression checks both paths and
+asserts that text authoring, rendering and saving add no fallback face.
+
+M4.23 retained PNG row analysis: SAN labels begin at our row1 and Visio row12;
+the bottom switch edge is our746 and Visio755/756. Aligning our image ten rows
+down reduces MAD from7.086011 to1.288038. The missing extent is at the top,
+not extra bottom canvas padding. The text-only labels were bounded using a
+0.75em typographic ascent. Visio's observed export uses the full line advance
+around the baseline:12pt label advance14.4pt,16pt fabric label advance19.2pt.
+Using the existing layout's line advance gives master/from-shape433x272 and
+SAN1612x757, exactly the observed sizes. This is a logical text extent rule,
+not a per-file pixel offset. The retained SAN pair with the existing canvas
+mapping measures MAD0.897567, over16 1.282161%, within frozen non-text ceilings.
+The new data Pair separately exposes the existing small-image mapping gap.
+
+### M4.21 closure re-save disagreement: redundant paragraph markers
+
+The original `generated/master/from-shape.vsdx` master shape5 has `pp IX=0`
+with no local Paragraph section. The matching rebuild has the same marker and
+local cell set. Visio opens the rebuild and removes that marker on save:
+`p4bc__from-shape/saved.vsdx`, master1 shape5. It likewise removes pp from the
+SAN Switch master and fabric labels when their Paragraph format is inherited,
+leaving the local cp marker. The earlier SAN save retained pp while its local
+Paragraph rows were present. Thus pp is not an unconditional consequence of
+requesting alignment equal to an inherited default.
+
+The original takes precedence under Charles's ruling. This closure retains its
+marker form and reports the re-save differences instead of silently changing
+the original comparison or adding a repair allowance. The three SAN Text
+residuals and one master Text residual remain. The master rebuild additionally
+has one opaque docProps/app.xml byte residual: Visio expands empty elements
+such as Template and Manager. None is a COM value difference. These are named
+serialization gaps, with exact input, saved package and diff retained privately.
+
+Fresh closure acceptance: all three files open, COM residual0. Property has0
+residual repairs; SAN3 and master rebuild2. SAN re-save preserves40 connectors
+and1344 Geometry/XForm cells within1e-6, with80 Connects. Fresh SAN PNG sizes
+are1612x757 on both sides, MAD0.897574663, over16 1.282242%; required non-text
+ceilings pass. Property remains529x145, MAD5.592103948, over16 3.929340%, failing
+the unchanged ceiling. Master page433x272 passes at1.297346941/1.932482%.

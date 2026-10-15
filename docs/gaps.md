@@ -936,3 +936,51 @@ floating-point decimal spellings, inherited-zero Geometry cells, label ObjType
 elision and the page LineJumpCode rewrite. Named follow-up
 `san-authored-cell-canonicalization` covers those187 records. Numerical route
 equality does not waive these serialization differences in the repair gate.
+
+### P4b-closure candidate, 2026-10-15
+
+The two original-based rebuilds have empty sheet diffs: Property3970 cells and
+master4948 cells. Fresh Visio acceptance removes the Property and font COM
+gaps: Property repair residual0 and all three files COM residual0. Authored text
+leaves the document FaceNames unchanged unless a face is explicitly requested.
+The SAN generator no longer writes its renderer substitute as a document face.
+These changes remain uncommitted candidates until full CI passes.
+
+`san-export-height` has a witnessed candidate fix: text-only label bounds reserve
+a full line advance around the baseline. The retained discrepancy is at the top,
+not ten rows of arbitrary padding. Fresh SAN1612x757 equals Visio1612x757;
+MAD0.897574663 and over16 1.282242% pass the frozen ceilings. All40 routes and
+1344 Geometry/XForm cells survive the fresh save unchanged, with80 Connects.
+
+`san-master-text-serialization` remains open: Visio removes three redundant pp
+markers from SAN and one from the master rebuild. The original Masters.Drop
+witness retains pp with inherited Paragraph formatting, so its original form is
+preserved under Charles's original-first ruling. A separate master-rebuild
+opaque app.xml residual expands empty tags. No repair allowance is added.
+Property full-row and font identity candidate fixes are not milestone closure.
+
+G8 small-image mapping now blocks the new `data` corpus group: Property Pair
+529x145, MAD5.592104/over16 3.929340%, and an additional individual outlier. The new master original adds a second
+outlier at2.060690%; its group still passes. The count is12 against maximum10.
+Height fit improves that Pair to0.404033/0.928229% but fails SAN at3.900% and
+master at3.047%. Existing maximum fit passes SAN and the rebuilt master page.
+No general mapping was derived by implementation or independent review, and no
+size/aspect/per-file conditional or changed ratchet is introduced. The new
+originals remain measured. The three standing informational groups retain their
+status; this new data group is not added to them.
+
+Phase5 remains blocked on M4. Estimate:8 to20 hours for the remaining marker/
+metadata canonicalization and a general small-image mapping with corpus evidence,
+then32 to48 hours for Phase5 and acceptance. `jump-three-crossings endpoint
+packing`, unwitnessed WalkPreference behavior and `theme.apply` remain carried
+as previously named. Connector stroke rendering also remains open.
+
+Landing status: M4.19's public commit contains the recipe and observation record;
+the Rust pin and M4.20..23 implementation remain uncommitted under the full-CI
+rule. The private corpus preserves the candidate patch and source hashes. A
+passing GitHub run of the record commit cannot validate the dirty candidate.
+
+Candidate full CI exits1 at quick corpus: strict609674/609674 remains100%,
+pinned COM98.431411% remains above98.426041%, and text gate passes. The failure
+is the new data render group and12outliers against maximum10. Separate asset,
+layer, source-inventory and wasm checks pass. No numerical contract is relaxed.
