@@ -753,3 +753,7 @@ mapped with bounded traversal. VM repair acceptance remains pending.
 ### P4a M4.4
 
 Connection rows and static glue use the observed PAR/PNT formulas and Connects parts. Target movement and undo are tested; the exact static rebuild is exercised in M4.8.
+
+### P4a M4.5
+
+Dynamic glue and transform triggers are route-owned evaluator hooks. The move-before session command matches all ten required move-after cells within1e-6. The full CLI diff is retained in M4.8.

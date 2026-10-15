@@ -341,3 +341,5 @@ observation artifact hashes. M3 is met; stop before Phase 4.
 - 2026-10-15: P4a M4.3 adds stencil search/list, master import/drop and master creation. Exact BASIC_U cell-set and nested-ID regressions pass. Full CI passes all eight gates; the later acceptance record carries the ten-master VM result.
 
 - 2026-10-15: M4.4 author connection points and static glue. Full CI is the precommit gate; P4a closure remains pending the full acceptance record.
+
+- 2026-10-15: M4.5 evaluate dynamic glue through route host hooks. Its isolated full CI gate must pass and match this tree before commit. P4a pixel acceptance remains partial.

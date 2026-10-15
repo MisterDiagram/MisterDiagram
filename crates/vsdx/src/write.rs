@@ -39,6 +39,16 @@ pub fn write_with_hosts(
     theme: Option<&dyn diagramcraft_sheet::host::ThemeHost>,
     text: Option<&dyn diagramcraft_model::text::TextHost>,
 ) -> Result<Written, WriteError> {
+    write_with_glue_host(doc, theme, text, None)
+}
+/// Application-injected glue hooks preserve layer direction and ordinary save cache behavior.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/begtrigger-cell-glue-info-section
+pub fn write_with_glue_host<'a>(
+    doc: &'a Document,
+    theme: Option<&'a dyn diagramcraft_sheet::host::ThemeHost>,
+    text: Option<&'a dyn diagramcraft_model::text::TextHost>,
+    glue: Option<&'a mut dyn diagramcraft_sheet::HostHooks>,
+) -> Result<Written, WriteError> {
     validate::document(doc)?;
     let mut evaluator = Evaluator::new(doc).map_err(|e| error(e.to_string()))?.with_internal_cache_units();
     if let Some(h) = theme {
@@ -46,6 +56,9 @@ pub fn write_with_hosts(
     }
     if let Some(h) = text {
         evaluator = evaluator.with_text_host(h);
+    }
+    if let Some(host) = glue {
+        evaluator = evaluator.with_glue_host(host);
     }
     let source_state = source::SourceState::new(doc, &evaluator)?;
     let mut w = model::Writer { evaluator, source_state, warnings: vec![], warning_count: 0 };

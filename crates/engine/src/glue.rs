@@ -42,3 +42,18 @@ pub(crate) fn static_glue(s: &mut Session, p: &Value) -> Result<Value> {
         Ok(json!({"id":id}))
     })
 }
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.cell.glueto
+pub(crate) fn dynamic_glue(s: &mut Session, p: &Value) -> Result<Value> {
+    let (index, id, _) = shape_scope(s, p)?;
+    let target = uint(p, "target")?;
+    let end = match name(p, "end")? {
+        "begin" => diagramcraft_route::End::Begin,
+        "end" => diagramcraft_route::End::End,
+        _ => return Err(operation("endpoint must be begin or end")),
+    };
+    let vertical = p.get("preference").and_then(Value::as_str) == Some("vertical");
+    s.edit_document(|doc, _| {
+        diagramcraft_route::connect_dynamic(doc, index, id, end, target, vertical).map_err(operation)?;
+        Ok(json!({"id":id}))
+    })
+}

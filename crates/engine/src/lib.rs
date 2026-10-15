@@ -152,8 +152,10 @@ impl Session {
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let result = f(self)?;
             if self.dirty {
+                let mut glue = diagramcraft_route::GlueHost::prepare(&before.document, Arc::make_mut(&mut self.document)).map_err(operation)?;
                 let theme = diagramcraft_theme::Themes::from_document(&self.document).map_err(operation)?;
-                let written = diagramcraft_vsdx::write_with_hosts(&self.document, Some(&theme), Some(&diagramcraft_text::Host)).map_err(operation)?;
+                let written = diagramcraft_vsdx::write_with_glue_host(&self.document, Some(&theme), Some(&diagramcraft_text::Host), Some(&mut glue))
+                    .map_err(operation)?;
                 self.document = Arc::new(diagramcraft_vsdx::import(&written.bytes).map_err(operation)?);
                 self.dirty = false;
             }

@@ -2107,3 +2107,7 @@ Ten-master VM acceptance remains pending; this is host-side evidence only.
 ### M4.4: author connection points and static glue
 
 Static glue targets Connection rows by universal name and records FromPart9/12 and ToPart100+row index. Witness: generated/connector/static-glue.vsdx and its immutable Connects dump.
+
+### M4.5: evaluate dynamic glue through route host hooks
+
+Target-transform changes invalidate _XFTRIGGER and _WALKGLUE through HostHooks. The four supplied straight drawings use overlap-facing box endpoints. The move-after witness changes BeginY to6.25 and EndX to7; Width becomes4.5.

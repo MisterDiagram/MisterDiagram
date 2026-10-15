@@ -60,3 +60,48 @@ fn named_points_and_hostile_connection_params_are_bounded() {
         assert_eq!(s.document(), &before);
     }
 }
+#[test]
+fn dynamic_glue_recomputes_move_after_endpoints_through_host() {
+    if !std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus").exists() {
+        eprintln!("skip: private corpus absent");
+        return;
+    }
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus/generated/connector");
+    let mut s = Session::new();
+    run(&mut s, "file.open", json!({"path":root.join("move-before.vsdx")}));
+    let before = number(&s, 3, "EndTrigger");
+    run(&mut s, "shape.move", json!({"id":2,"x":7.75,"y":5.75}));
+    let expected = diagramcraft_vsdx::read(root.join("move-after.vsdx")).unwrap();
+    let mut oracle = Evaluator::new(&expected).unwrap();
+    let scope = Scope::PageShape { page: expected.pages[0].id, shape: 3 };
+    let mut differences = vec![];
+    for name in ["BeginX", "BeginY", "EndX", "EndY", "PinX", "PinY", "Width", "Height", "Controls.TextPosition", "Controls.TextPosition.Y"] {
+        let expected = oracle.evaluate(scope, name).numeric().unwrap();
+        let actual = number(&s, 3, name);
+        if (actual - expected).abs() > 1e-6 {
+            differences.push(format!("{name}: {actual} != {expected}"));
+        }
+    }
+    assert!(differences.is_empty(), "{}", differences.join("\n"));
+    assert_eq!(number(&s, 3, "EndTrigger"), before + 1.);
+    run(&mut s, "edit.undo", json!({}));
+    assert_eq!(number(&s, 3, "EndX"), 5.);
+    run(&mut s, "edit.redo", json!({}));
+    assert_eq!(number(&s, 3, "EndX"), 7.);
+}
+#[test]
+fn dynamic_glue_new_drawing_recomputes_both_ends() {
+    let mut s = Session::new();
+    for x in [1., 5.] {
+        run(&mut s, "shape.draw.rect", json!({"x":x,"y":6,"width":1.5,"height":1.5}));
+    }
+    run(&mut s, "master.drop", json!({"master":2,"x":4,"y":6.75}));
+    for (end, target) in [("begin", 1), ("end", 2)] {
+        run(&mut s, "connect.dynamic", json!({"id":3,"end":end,"target":target}));
+    }
+    assert_eq!(number(&s, 3, "BeginX"), 2.5);
+    assert_eq!(number(&s, 3, "EndX"), 5.);
+    run(&mut s, "shape.move", json!({"id":2,"x":7.75,"y":5.75}));
+    assert_eq!(number(&s, 3, "BeginY"), 6.25);
+    assert_eq!(number(&s, 3, "EndX"), 7.);
+}

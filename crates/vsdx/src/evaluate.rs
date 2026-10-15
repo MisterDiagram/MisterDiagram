@@ -50,6 +50,7 @@ struct Snapshot {
 pub struct Evaluator<'a> {
     defer_text_metrics: bool,
     internal_cache_units: bool,
+    glue_host: Option<&'a mut dyn diagramcraft_sheet::HostHooks>,
     text_host: Option<&'a dyn diagramcraft_model::text::TextHost>,
     theme_host: Option<&'a dyn diagramcraft_sheet::host::ThemeHost>,
     inheritance: inherit::Inheritance<'a>,
@@ -106,6 +107,7 @@ impl<'a> Evaluator<'a> {
         let mut result = Self {
             theme_host: None,
             text_host: None,
+            glue_host: None,
             defer_text_metrics: false,
             internal_cache_units: false,
             document,
@@ -268,6 +270,13 @@ impl<'a> Evaluator<'a> {
     }
     pub fn with_text_host(mut self, host: &'a dyn diagramcraft_model::text::TextHost) -> Self {
         self.text_host = Some(host);
+        self.values.clear();
+        self
+    }
+    /// Inject runtime glue hooks while unimplemented hooks retain their source caches.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/begtrigger-cell-glue-info-section
+    pub fn with_glue_host(mut self, host: &'a mut dyn diagramcraft_sheet::HostHooks) -> Self {
+        self.glue_host = Some(host);
         self.values.clear();
         self
     }
@@ -889,7 +898,7 @@ impl<'a> Evaluator<'a> {
             Ok(expr) => expr,
             Err(e) => return Value::Error(Error::Parse(e.to_string())),
         };
-        match hook_references(&expr, self.defer_text_metrics) {
+        match hook_references_with_host(&expr, self.defer_text_metrics, self.glue_host.as_deref()) {
             Ok(Some(references)) => {
                 for reference in references {
                     if let Ok(reference) = self.remap_master_reference(scope, origin, reference) {
@@ -1249,6 +1258,13 @@ fn split_reference(s: &str) -> Result<Vec<&str>, Error> {
 }
 // Only parsed call nodes select the frozen host fallback. Quoted strings and reference names do not.
 fn hook_references(expr: &diagramcraft_sheet::Expr, defer_text: bool) -> Result<Option<Vec<&str>>, Error> {
+    hook_references_with_host(expr, defer_text, None)
+}
+fn hook_references_with_host<'e>(
+    expr: &'e diagramcraft_sheet::Expr,
+    defer_text: bool,
+    host: Option<&dyn diagramcraft_sheet::HostHooks>,
+) -> Result<Option<Vec<&'e str>>, Error> {
     use diagramcraft_sheet::Expr;
     let mut pending = vec![(expr, 0usize)];
     let mut references = Vec::new();
@@ -1269,7 +1285,7 @@ fn hook_references(expr: &diagramcraft_sheet::Expr, defer_text: bool) -> Result<
             }
             Expr::Call { name, args } => {
                 let hook = diagramcraft_sheet::is_hook(name) || defer_text && diagramcraft_sheet::is_text_metric(name);
-                has_hook |= hook;
+                has_hook |= hook && !host.is_some_and(|host| host.supports(name));
                 if !hook && !diagramcraft_sheet::functions::IMPLEMENTED.contains(&name.as_str()) {
                     unsupported.get_or_insert_with(|| name.clone());
                 }
@@ -1295,6 +1311,18 @@ impl BoundContext<'_, '_> {
     }
 }
 impl Context for BoundContext<'_, '_> {
+    fn hook(&mut self, name: &str, args: &[Value]) -> Value {
+        let cell = self.host_cell();
+        let (page, shape) = match self.scope {
+            Scope::PageShape { page, shape } => (Some(page), Some(shape)),
+            _ => (None, None),
+        };
+        match self.evaluator.glue_host.as_deref_mut() {
+            Some(host) => host.hook_at(page, shape, &cell, name, args, &self.cached),
+            None => self.cached.clone(),
+        }
+    }
+
     fn host_cell(&self) -> String {
         self.evaluator.stack.last().map(|k| k.name.clone()).unwrap_or_default()
     }

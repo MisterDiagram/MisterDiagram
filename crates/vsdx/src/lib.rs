@@ -11,7 +11,7 @@ use std::{
     io::Read,
     path::Path,
 };
-pub use write::{SaveKind, WriteError, Written, write, write_as, write_as_with_hosts, write_with_hosts};
+pub use write::{SaveKind, WriteError, Written, write, write_as, write_as_with_hosts, write_with_glue_host, write_with_hosts};
 const REL_NS: &str = "http://schemas.openxmlformats.org/package/2006/relationships";
 const ATTR_REL_NS: &str = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 const VIS_REL: &str = "http://schemas.microsoft.com/visio/2010/relationships/";

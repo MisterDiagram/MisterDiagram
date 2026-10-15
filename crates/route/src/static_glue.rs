@@ -193,3 +193,54 @@ pub fn connect_static(doc: &mut Document, page_index: usize, id: u32, end: End, 
     });
     Ok(())
 }
+
+/// Dynamic glue records the target pin and the paired trigger formulas used by Visio.
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.cell.glueto
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/walkpreference-cell-glue-info-section
+pub fn connect_dynamic(doc: &mut Document, page_index: usize, id: u32, end: End, target: u32, vertical: bool) -> Result<(), String> {
+    if id == target {
+        return Err("cannot glue an endpoint to itself".into());
+    }
+    let page = doc.pages.get(page_index).ok_or("page missing")?;
+    let e = Evaluator::new(doc).map_err(|e| e.to_string())?;
+    let from = Scope::PageShape { page: page.id, shape: id };
+    let to = Scope::PageShape { page: page.id, shape: target };
+    let from_cells = e.resolved_named_cells(from);
+    let to_cells = e.resolved_named_cells(to);
+    if !["BeginX", "BeginY", "EndX", "EndY"].iter().all(|name| from_cells.iter().any(|n| n.name == *name)) {
+        return Err("dynamic glue source is not one-dimensional".into());
+    }
+    if e.shape(to).is_none() || to_cells.iter().any(|n| n.name == "BeginX") {
+        return Err("dynamic glue target must be two-dimensional".into());
+    }
+    let page = doc.pages.get_mut(page_index).ok_or("page missing")?;
+    if page.connects.len() >= 100000 {
+        return Err("connect count limit".into());
+    }
+    let shape = shape_mut(&mut page.shapes, id, 0).ok_or("connector missing")?;
+    let formula = match end {
+        End::Begin => "_WALKGLUE(BegTrigger,EndTrigger,WalkPreference)",
+        End::End => "_WALKGLUE(EndTrigger,BegTrigger,WalkPreference)",
+    };
+    for axis in ["X", "Y"] {
+        let name = format!("{}{axis}", end.prefix());
+        let cached = shape.sheet.cell(&name).and_then(|c| c.value.clone()).unwrap_or_else(|| "0".into());
+        set(&mut shape.sheet, cell(&name, cached, Some(formula.into())))?;
+    }
+    set(&mut shape.sheet, cell(end.trigger(), 2, Some(format!("_XFTRIGGER(Sheet.{target}!EventXFMod)"))))?;
+    set(&mut shape.sheet, cell("ConFixedCode", 6, None))?;
+    let from_cell = format!("{}X", end.prefix());
+    page.connects.retain(|c| !(c.from_sheet == id && c.from_cell.as_deref() == Some(&from_cell)));
+    page.connects.push(Connect {
+        from_sheet: id,
+        from_cell: Some(from_cell),
+        from_part: Some(end.part()),
+        to_sheet: target,
+        to_cell: Some(if vertical { "PinY" } else { "PinX" }.into()),
+        to_part: Some(3),
+        ..Default::default()
+    });
+    let target = shape_mut(&mut page.shapes, target, 0).ok_or("target missing")?;
+    set(&mut target.sheet, cell("ObjType", 1, None))?;
+    Ok(())
+}

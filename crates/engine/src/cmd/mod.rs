@@ -446,6 +446,15 @@ pub fn command_specs() -> &'static [CommandSpec] {
             always,
             crate::glue::static_glue
         ),
+        cmd!(
+            "connect.dynamic",
+            "connect.dynamic",
+            ["Glue"],
+            None,
+            r#"{"type":"object","properties":{"page":{"type":"integer","minimum":1},"id":{"type":"integer","minimum":0,"maximum":4294967294},"target":{"type":"integer","minimum":0,"maximum":4294967294},"end":{"type":"string","enum":["begin","end"]},"preference":{"type":"string","enum":["horizontal","vertical"]}},"required":["id","target","end"],"additionalProperties":false}"#,
+            always,
+            crate::glue::dynamic_glue
+        ),
     ]
 }
 

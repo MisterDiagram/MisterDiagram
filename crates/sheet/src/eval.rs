@@ -8,6 +8,16 @@ use crate::{
 /// Host hooks retain the cached value until their host subsystem is implemented.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function
 pub trait HostHooks {
+    /// Whether this host implements the function instead of retaining the entire cell cache.
+    fn supports(&self, _name: &str) -> bool {
+        false
+    }
+    /// Page/shape IDs and universal cell name identify the calling sheet without a model dependency.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/begtrigger-cell-glue-info-section
+    fn hook_at(&mut self, _page: Option<u32>, _shape: Option<u32>, _cell: &str, name: &str, arguments: &[Value], cached: &Value) -> Value {
+        self.hook(name, arguments, cached)
+    }
+
     fn hook(&mut self, _name: &str, _arguments: &[Value], cached: &Value) -> Value {
         cached.clone()
     }
