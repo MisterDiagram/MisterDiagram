@@ -201,7 +201,7 @@ fn character(doc: &mut Document, p: &Value, old_style: u32) -> Result<Vec<Cell>>
         if !(0. ..=10000.).contains(&size) || size == 0. {
             return Err(operation("font size must be in (0,10000] points"));
         }
-        cells.push(cell("Size", &(size / 72.).to_string(), Some(&format!("{size} pt"))));
+        cells.push(cell("Size", &(size / 72.).to_string(), None));
     }
     if let Some(v) = p.get("color") {
         cells.push(color(v.as_str().ok_or_else(|| operation("invalid color"))?, "Color")?);
@@ -228,6 +228,18 @@ fn element(name: &str, attributes: BTreeMap<String, String>, children: Vec<XmlNo
         attributes,
         children,
         ..Default::default()
+    }
+}
+/// Formatting markers are recorded even when the format equals the inherited value.
+/// Originals: master/from-shape; formatted character marker: SAN Visio re-save.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/text-element-shapesheet_type-complextypevisio-xml
+fn text_marker(shape: &mut diagramcraft_model::Shape, name: &str) {
+    if let Some(text) = &mut shape.text {
+        if text.children.iter().any(|n| matches!(n, XmlNode::Element(e) if e.name == name)) {
+            return;
+        }
+        let at = if name == "pp" && matches!(text.children.first(), Some(XmlNode::Element(e)) if e.name == "cp") { 1 } else { 0 };
+        text.children.insert(at, XmlNode::Element(element(name, BTreeMap::from([("IX".into(), "0".into())]), vec![])));
     }
 }
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.shape.text
@@ -358,6 +370,10 @@ fn format_paint(s: &mut Session, p: &Value, line: bool) -> Result<Value> {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/horzalign-cell-paragraph-section
 pub(crate) fn format_text(s: &mut Session, p: &Value) -> Result<Value> {
     let (index, id, scope) = shape_scope(s, p)?;
+    if p.get("align").is_some() && uint(p, "align")? > 4 {
+        return Err(operation("invalid paragraph alignment"));
+    }
+    let old_align = evaluated(&s.document, scope, "Para.HorzAlign")?;
     let old = evaluated(&s.document, scope, "Char.Style")?;
     if !(0. ..=u32::MAX as f64).contains(&old) {
         return Err(operation("invalid character style"));
@@ -418,7 +434,8 @@ pub(crate) fn format_text(s: &mut Session, p: &Value) -> Result<Value> {
             }
         }
 
-        if p.get("align").is_some() {
+        if p.get("align").is_some() && (f64::from(uint(p, "align")?) != old_align || sheet.sections.iter().any(|section| section.name == "Paragraph"))
+        {
             let align = uint(p, "align")?;
             if align > 4 {
                 return Err(operation("invalid paragraph alignment"));
@@ -435,8 +452,15 @@ pub(crate) fn format_text(s: &mut Session, p: &Value) -> Result<Value> {
                     row.cells.push(c);
                 }
             }
-        } else if cells.is_empty() {
+        } else if cells.is_empty() && p.get("align").is_none() {
             return Err(operation("no text format properties supplied"));
+        }
+        let shape = shape_mut(&mut page_mut(doc, index)?.shapes, id)?;
+        if !cells.is_empty() {
+            text_marker(shape, "cp");
+        }
+        if p.get("align").is_some() {
+            text_marker(shape, "pp");
         }
         Ok(json!({}))
     })

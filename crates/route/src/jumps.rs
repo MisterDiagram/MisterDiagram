@@ -24,7 +24,7 @@ struct Connector {
     directions: [f64; 2],
     order: usize,
     had_jumps: bool,
-    inherited_zero: [bool; 2],
+    inherited_zero: [[bool; 2]; 2],
 }
 fn row(index: u32, kind: &str, p: Point, a: Option<diagramcraft_model::Cell>) -> Row {
     let mut cells = vec![cell("X", p.x, None), cell("Y", p.y, None)];

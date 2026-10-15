@@ -27,7 +27,7 @@ def main():
     command('page.size', width=17, height=11)
     command('sheet.set', scope='page', name='RouteStyle', value=1)
     command('sheet.set', scope='page', name='LineJumpStyle', value=1)
-    command('sheet.set', scope='page', name='LineJumpCode', value=1)
+    # The blank page already inherits LineJumpCode=1; Visio omits that local default.
     for fabric in ('A', 'B'):
         command('layer.add', name='Fabric ' + fabric)
     command('shape.draw.rect', x=0, y=0, width=1.5, height=0.75)
@@ -62,7 +62,7 @@ def main():
         command('format.text', id=shape_id, font='Liberation Sans', size=16, align=1, bold=True)
         command('layer.assign', id=shape_id, layers=[fabric_index])
         # Labels do not block routes.
-        command('sheet.set', id=shape_id, name='ObjType', value=0)
+        # ObjType=0 is inherited; no redundant local cell is serialized.
         shape_id += 1
     for fabric_index, ids in enumerate(fabrics):
         for edge in ids[2:]:

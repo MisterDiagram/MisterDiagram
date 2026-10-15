@@ -13,7 +13,7 @@ fn next_master(doc: &Document) -> Result<u32> {
         .iter()
         .map(|m| m.id)
         .max()
-        .map_or(Some(1), |v| v.checked_add(1))
+        .map_or(Some(2), |v| v.max(1).checked_add(1))
         .filter(|v| *v != u32::MAX)
         .ok_or_else(|| operation("master ID limit"))
 }
@@ -457,7 +457,7 @@ pub(crate) fn drop_master(s: &mut Session, p: &Value) -> Result<Value> {
         Ok(json!({"id":id,"master":master_id}))
     })
 }
-/// https://learn.microsoft.com/en-us/office/vba/api/visio.masters.add
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.masters.drop
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
 pub(crate) fn new_from_shape(s: &mut Session, p: &Value) -> Result<Value> {
     let selected;
@@ -480,6 +480,14 @@ pub(crate) fn new_from_shape(s: &mut Session, p: &Value) -> Result<Value> {
     let shape = e.shape(scope).ok_or_else(|| operation("shape missing"))?.clone();
     let width = e.evaluate(scope, "Width").numeric().map_err(operation)?;
     let height = e.evaluate(scope, "Height").numeric().map_err(operation)?;
+    let stroke = if e.evaluate(scope, "LinePattern").numeric().map_err(operation)? == 0. {
+        0.
+    } else {
+        e.evaluate(scope, "LineWeight").numeric().map_err(operation)?
+    };
+    if !stroke.is_finite() || !(0. ..=1000.).contains(&stroke) {
+        return Err(operation("master stroke extent limit"));
+    }
     s.edit_document(|doc, _| {
         let mut master = diagramcraft_model::skeleton::dynamic_connector();
         master.id = next_master(doc)?;
@@ -487,6 +495,11 @@ pub(crate) fn new_from_shape(s: &mut Session, p: &Value) -> Result<Value> {
         master.name = title.clone();
         master.name_u = title;
         master.icon = None;
+        master.attributes.insert("MasterType".into(), "2".into());
+        master.attributes.insert("Prompt".into(), String::new());
+        master.attributes.insert("MatchByName".into(), "0".into());
+        master.sheet.sections.clear();
+        set_number(&mut master.sheet, "DrawingResizeType", 1.)?;
         master.shapes = vec![shape];
         master.connects.clear();
         let ids = map_shape_ids(&master.shapes, 5)?;
@@ -520,10 +533,10 @@ pub(crate) fn new_from_shape(s: &mut Session, p: &Value) -> Result<Value> {
         let styles = doc.styles.iter().map(|s| (s.id, s.id)).collect();
         rewrite_shapes(&mut master.shapes, &ids, &styles, &BTreeMap::new(), 0)?;
         let root = master.shapes.first_mut().ok_or_else(|| operation("master shape missing"))?;
-        set_number(&mut root.sheet, "PinX", width / 2.)?;
-        set_number(&mut root.sheet, "PinY", height / 2.)?;
-        set_number(&mut master.sheet, "PageWidth", width.max(1e-9))?;
-        set_number(&mut master.sheet, "PageHeight", height.max(1e-9))?;
+        set_number(&mut root.sheet, "PinX", (width + stroke) / 2.)?;
+        set_number(&mut root.sheet, "PinY", (height + stroke) / 2.)?;
+        set_number(&mut master.sheet, "PageWidth", (width + stroke).max(1e-9))?;
+        set_number(&mut master.sheet, "PageHeight", (height + stroke).max(1e-9))?;
         let id = master.id;
         doc.masters.push(master);
         Ok(json!({"master":id}))

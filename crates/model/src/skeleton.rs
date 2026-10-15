@@ -16,6 +16,15 @@ pub fn number_text(value: f64) -> Option<String> {
     if value == 0. {
         return Some("0".into());
     }
+    // Visio removes arithmetic noise around short decimal coordinates when saving
+    // authored routes. Preserve longer constants (for example 10/72 font sizes).
+    // Witness: p4b__san-topology/saved.vsdx, Width 0.8500000000000001 -> 0.85.
+    for digits in 0..=12 {
+        let short = format!("{value:.digits$}").parse::<f64>().ok()?;
+        if (short - value).abs() <= value.abs() * f64::EPSILON * 8. {
+            return Some(short.to_string());
+        }
+    }
     format!("{value:.15e}").parse::<f64>().ok().map(|n| n.to_string())
 }
 
@@ -689,5 +698,22 @@ mod glue_byte_regression {
         let before = page.clone();
         assert!(glue_dynamic(&mut page, 3, 2, [1, 2], [[1., 0.5], [2., 0.5]]).is_err());
         assert_eq!(page, before);
+    }
+}
+
+#[cfg(test)]
+mod authored_decimal_regression {
+    /// Visio's SAN re-save removes arithmetic tails but retains long constants.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+    #[test]
+    fn short_decimal_coordinates_and_long_constants_are_distinct() {
+        for (input, expected) in
+            [(0.8500000000000001, "0.85"), (5.700000000000001, "5.7"), (-0.4249999999999998, "-0.425"), (10. / 72., "0.1388888888888889")]
+        {
+            assert_eq!(super::number_text(input).as_deref(), Some(expected));
+        }
+        assert!(super::number_text(f64::NAN).is_none());
+        assert!(super::number_text(f64::INFINITY).is_none());
+        assert_ne!(super::number_text(0.85000001).as_deref(), Some("0.85"));
     }
 }

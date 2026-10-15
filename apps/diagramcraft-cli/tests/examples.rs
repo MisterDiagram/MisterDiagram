@@ -192,3 +192,29 @@ fn property_rows_script_matches_original_dump() {
     run("property-rows.sh", &out);
     assert_eq!(std::fs::metadata(out.join("property-rows.diff")).unwrap().len(), 0);
 }
+
+/// Original Masters.Drop cells and authored text follow the dated canonical-form ruling.
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.masters.drop
+#[test]
+fn from_shape_script_matches_original_dump_and_master_type() {
+    let witness = root().join("corpus/generated/master/from-shape.vsdx");
+    if !witness.is_file() {
+        eprintln!("skip: private master witness absent");
+        return;
+    }
+    let out = root().join("target/example-tests/from shape");
+    run("from-shape.sh", &out);
+    assert_eq!(std::fs::metadata(out.join("from-shape.diff")).unwrap().len(), 0);
+    let actual = diagramcraft_vsdx::read(out.join("from-shape.vsdx")).unwrap();
+    let expected = diagramcraft_vsdx::read(witness).unwrap();
+    let (a, b) = (&actual.masters[0], &expected.masters[0]);
+    for name in ["MasterType", "Prompt", "MatchByName", "IconSize", "IconUpdate", "AlignName", "PatternFlags", "Hidden"] {
+        assert_eq!(a.attributes.get(name), b.attributes.get(name), "master attribute {name}");
+    }
+    assert!(a.icon.is_none(), "generated vendor Icon must not be copied");
+    assert_eq!(a.shapes[0].text, b.shapes[0].text, "original master text run form");
+    // An unchanged original keeps its original pp and opaque metadata under M3.12.
+    let round = diagramcraft_vsdx::import(&diagramcraft_vsdx::write(&expected).unwrap().bytes).unwrap();
+    assert_eq!(round.masters[0].shapes[0].text, b.shapes[0].text);
+    assert_eq!(round.parts["docProps/app.xml"].bytes, expected.parts["docProps/app.xml"].bytes);
+}
