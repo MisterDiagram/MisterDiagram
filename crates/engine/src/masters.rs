@@ -372,6 +372,39 @@ fn instance(source: &Shape, ids: &BTreeMap<u32, u32>, master: u32, root: bool, d
     }
     Ok(shape)
 }
+/// A new master omits inherited-only pp IX=0; the source shape is untouched.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/pp-element-text_type-complextypevisio-xml
+fn canonical_master_text(shapes: &mut [Shape], depth: usize) -> Result<()> {
+    if depth > 128 {
+        return Err(operation("master text nesting limit"));
+    }
+    for shape in shapes {
+        let local = shape
+            .sheet
+            .sections
+            .iter()
+            .filter(|section| section.name == "Paragraph")
+            .flat_map(|section| &section.rows)
+            .any(|row| row.index.unwrap_or(0) == 0 && row.cells.iter().any(|c| c.formula.as_deref() != Some("Inh")));
+        if !local && let Some(text) = &mut shape.text {
+            let mut default_active = true;
+            text.children.retain(|child| {
+                if let diagramcraft_model::XmlNode::Element(e) = child
+                    && e.is_visio("pp")
+                {
+                    let default = e.attr("IX") == Some("0");
+                    let redundant = default && default_active && e.attributes.len() == 1;
+                    default_active = default;
+                    !redundant
+                } else {
+                    true
+                }
+            });
+        }
+        canonical_master_text(&mut shape.shapes, depth + 1)?;
+    }
+    Ok(())
+}
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.page.drop
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.master.matchbyname
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
@@ -501,6 +534,7 @@ pub(crate) fn new_from_shape(s: &mut Session, p: &Value) -> Result<Value> {
         master.sheet.sections.clear();
         set_number(&mut master.sheet, "DrawingResizeType", 1.)?;
         master.shapes = vec![shape];
+        canonical_master_text(&mut master.shapes, 0)?;
         master.connects.clear();
         let ids = map_shape_ids(&master.shapes, 5)?;
         let page = doc.pages.get(index).ok_or_else(|| operation("source page missing"))?;
@@ -546,6 +580,27 @@ pub(crate) fn new_from_shape(s: &mut Session, p: &Value) -> Result<Value> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    /// Returning from a local paragraph run to inherited row0 needs its pp marker.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/pp-element-text_type-complextypevisio-xml
+    #[test]
+    fn authored_master_keeps_paragraph_reset_to_inherited_formatting() {
+        use diagramcraft_model::{XmlElement, XmlNode};
+        let namespace = "http://schemas.microsoft.com/office/visio/2012/main";
+        let mut text = XmlElement { name: "Text".into(), namespace: namespace.into(), ..Default::default() };
+        for ix in [0, 1, 0] {
+            text.children.push(XmlNode::Element(XmlElement {
+                name: "pp".into(),
+                namespace: namespace.into(),
+                attributes: BTreeMap::from([("IX".into(), ix.to_string())]),
+                ..Default::default()
+            }));
+            text.children.push(XmlNode::Text("paragraph\n".into()));
+        }
+        let mut shapes = vec![Shape { text: Some(text), ..Default::default() }];
+        canonical_master_text(&mut shapes, 0).unwrap();
+        let indices = shapes[0].text.as_ref().unwrap().elements().map(|e| e.attr("IX").unwrap()).collect::<Vec<_>>();
+        assert_eq!(indices, vec!["1", "0"]);
+    }
     #[test]
     fn nested_mastershape_ids_follow_reserved_id_remapping() {
         let mut source = diagramcraft_model::skeleton::document(false);

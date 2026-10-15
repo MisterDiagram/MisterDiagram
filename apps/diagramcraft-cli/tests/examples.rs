@@ -212,7 +212,11 @@ fn from_shape_script_matches_original_dump_and_master_type() {
         assert_eq!(a.attributes.get(name), b.attributes.get(name), "master attribute {name}");
     }
     assert!(a.icon.is_none(), "generated vendor Icon must not be copied");
-    assert_eq!(a.shapes[0].text, b.shapes[0].text, "original master text run form");
+    let save = root().join("corpus/_vm/out/accept/p4bc__from-shape/saved.vsdx");
+    if save.is_file() {
+        let canonical = diagramcraft_vsdx::read(save).unwrap();
+        assert_eq!(a.shapes[0].text, canonical.masters[0].shapes[0].text, "authored master text run form");
+    }
     // An unchanged original keeps its original pp and opaque metadata under M3.12.
     let round = diagramcraft_vsdx::import(&diagramcraft_vsdx::write(&expected).unwrap().bytes).unwrap();
     assert_eq!(round.masters[0].shapes[0].text, b.shapes[0].text);

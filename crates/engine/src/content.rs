@@ -459,7 +459,7 @@ pub(crate) fn format_text(s: &mut Session, p: &Value) -> Result<Value> {
         if !cells.is_empty() {
             text_marker(shape, "cp");
         }
-        if p.get("align").is_some() {
+        if p.get("align").is_some() && shape.sheet.sections.iter().any(|section| section.name == "Paragraph") {
             text_marker(shape, "pp");
         }
         Ok(json!({}))

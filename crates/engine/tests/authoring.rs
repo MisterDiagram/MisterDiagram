@@ -315,3 +315,25 @@ fn authoring_and_rendering_text_add_no_substitute_face() {
     assert_eq!(s.document().face_names.len(), original.len() + 1, "explicit font remains supported");
     assert!(s.document().face_names.values().any(|name| name == "Example Explicit Face"));
 }
+
+/// Inherited paragraph formatting needs no authored pp marker, including in a new master.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/pp-element-text_type-complextypevisio-xml
+#[test]
+fn authored_inherited_paragraph_has_no_redundant_pp() {
+    let mut s = Session::new();
+    run(&mut s, "shape.draw.rect", json!({"x":1,"y":1,"width":2,"height":1}));
+    run(&mut s, "shape.text", json!({"id":1,"text":"Switch\nOriginal"}));
+    let align = number(&s, 1, "Para.HorzAlign") as u32;
+    run(&mut s, "format.text", json!({"id":1,"align":align}));
+    run(&mut s, "master.new_from_shape", json!({"id":1,"name":"Switch"}));
+    let bytes = diagramcraft_vsdx::write(s.document()).unwrap().bytes;
+    let round = diagramcraft_vsdx::import(&bytes).unwrap();
+    let master = round.masters.iter().find(|m| m.name == "Switch").unwrap();
+    for shape in [&round.pages[0].shapes[0], &master.shapes[0]] {
+        assert!(!shape.sheet.sections.iter().any(|section| section.name == "Paragraph"));
+        assert!(!shape.text.as_ref().unwrap().elements().any(|e| e.is_visio("pp")), "inherited-only pp must be absent");
+    }
+    run(&mut s, "format.text", json!({"id":1,"align":if align == 0 {1} else {0}}));
+    let round = diagramcraft_vsdx::import(&diagramcraft_vsdx::write(s.document()).unwrap().bytes).unwrap();
+    assert!(round.pages[0].shapes[0].text.as_ref().unwrap().elements().any(|e| e.is_visio("pp")), "local paragraph formatting retains its marker");
+}
