@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: pre-alpha, M0 through M3 met. M3 closed on 2026-10-14 under Charles's small-image ruling and two clean independent frozen passes. Phase 4a implementation is landed with partial acceptance: exact cells and four-file Visio acceptance pass, individual connector pixels fail. M4 closes after 4b and the remaining gates. Target: Visio Standard 2021.
+Status: pre-alpha, M0 through M3 met. M3 closed on 2026-10-14 under Charles's small-image ruling and two clean independent frozen passes. P4a met on 2026-10-15 under Charles's straight-route ruling and two clean frozen verification passes. M4 remains open until 4b. Target: Visio Standard 2021.
 
 Phase 0 establishes the workspace, conventions, oracle scripts and private corpus. Phases 1
 through 5 add reading and ShapeSheet evaluation, rendering, writing, authoring, and exports.
@@ -350,7 +350,7 @@ observation artifact hashes. M3 is met; stop before Phase 4.
 
 - 2026-10-15: M4.8 add generator scripts and command composition regressions. Its isolated full CI gate must pass and match this tree before commit. P4a pixel acceptance remains partial.
 
-## P4a authoring, 2026-10-15
+## P4a authoring, initial partial record, 2026-10-15
 
 P4a remains partial: the authoring engine, master drop, static/dynamic glue,
 straight routes, CLI and generator scripts are implemented. Individual connector
@@ -373,4 +373,32 @@ Full final-candidate CI passes all eight gates, including wasm; a separate publi
 
 Charles's P4a gate ruling, 2026-10-15: straight routes are accepted on M4.5/M4.6 cell and Geometry/XForm equality within1e-6 plus the unchanged connector group ceiling in corpus check. Per-pair pixels in authoring_routes and the P4a acceptance profile are informational, still measured and printed, until the connector stroke rendering gap closes. Identical cells make the remaining difference a Phase2 renderer comparison. The three corpus witnesses are already in G8's ten frozen outliers. No ceiling, floor or denominator changes; the ten-outlier ratchet is unchanged and two-boxes is not added because it is not a corpus-check input.
 
-Closure verification and three-platform CI remain pending. M4 stays open until4b.
+Closure verification and three-platform CI are complete. M4 stays open until 4b.
+
+## P4a closure, 2026-10-15
+
+P4a is met under Charles's dated straight-route ruling. Cell and Geometry/XForm
+diffs agree within 1e-6; all three required and four route diff files are empty.
+The existing four VM files opened with zero residual repairs and COM differences.
+No input changed and no VM run was repeated. The route example and P4a reporter
+now exit 0 while printing the same informational per-pair pixel measurements.
+No ceiling, floor, denominator, volatile list or ten-outlier ratchet changed.
+
+M4.10 (741b7cf) fixed Windows oversized-argument handling. Its first GitHub run,
+38720669993, passed Linux and macOS but exposed a separate Windows test launcher
+failure: the two-boxes test selected the WSL Bash stub. M4.10.1 (e4ec160) selects
+Git for Windows Bash without skipping the script or ink assertion. Its full
+`cargo xtask ci` passed on Linux, Windows and macOS in
+[run 38721761383](https://github.com/charles-hood/DiagramCraft/actions/runs/38721761383).
+Local acceptance used the prescribed light fmt/Clippy/CLI gates, with 15 CLI and
+38 reporter tests passing. Three source seeds each failed with exit 101 and
+passed with exit 0 after exact restoration. Frozen passes 3 and 4 each have
+21 YES and 0 NO. Parity remains 47% over 45 Core=Y rows, with no row moves.
+
+The M4.9 corpus figures stand without a new sweep: strict 15080738/15080738,
+main COM 98.429121%, text COM 93.143692%, shipped cached 97.778240%, cached
+text 91.077776%, shipped dumps 1181/1181. Connector group MAD 2.142340 and
+over16 1.225363% remain within the unchanged ceiling; G8 retains ten outliers.
+M4 stays open until 4b. Its estimate remains 24 to 40 engineering hours before
+review; connector stroke rendering and small-image export mapping stay recorded
+as separate renderer work.

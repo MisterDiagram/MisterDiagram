@@ -234,8 +234,10 @@ The engine owns a transactional Document session with bounded undo and journal.
 Every registered command has a JSON schema and hostile-parameter coverage.
 `session::probe_session_open_save_reopen_is_strictly_identical` and the session
 suite exercise save/reopen and rollback. The four-file Visio acceptance record
-is in `file-format-parity.md`. P4a remains partial because individual connector
-render pairs exceed their unchanged ceilings; M4 also requires 4b.
+is in `file-format-parity.md`. P4a met on 2026-10-15 under Charles's ruling:
+cell/geometry equality and the unchanged corpus connector group ceiling govern
+straight routes. Individual pair pixels remain informational until the connector
+stroke rendering gap closes. M4 still requires 4b.
 
 - Page tabs M to P: add, delete, rename, reorder, size, scale and background commands
   have authoring tests; page duplication remains open.
@@ -261,6 +263,7 @@ render pairs exceed their unchanged ceilings; M4 also requires 4b.
 - CLI automation M to P: commands, describe, run and convert share Session and
   pass hostile-argument tests. MCP authoring remains Phase 5.
 - Script generation M to P: probe and two-boxes scripts run in CI; both local and
-  Visio two-boxes PNGs have ink between boxes. Pixel acceptance remains open.
+  Visio two-boxes PNGs have ink between boxes. Per-pair pixel fidelity remains
+  an open renderer item under the 2026-10-15 ruling.
 
 No row count, Core designation, priority or scoring weight changes in P4a.

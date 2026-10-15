@@ -21,7 +21,7 @@ export of the same file, measured by the test harness; Visio's exports stay out 
   cells match Visio's live COM dumps, theme and text-metric cells included.
 - **Render** PNG, SVG and vector PDF. All aggregate feature groups of the test corpus pass their fixed
   pixel ceilings against Visio's own 96 dpi export. Individual connector comparisons
-  remain above their ceilings, so P4a acceptance is partial. All 1,108 masters in the
+  remain above their ceilings and are tracked as a renderer gap. All 1,108 masters in the
   review stencil set render. PDF text extracts with ligatures and combining marks intact.
 - **Write** .vsdx, .vssx and .vstx, and build documents from scratch. Visio 2021 opened all
   230 files of the acceptance set, five of them built from scratch, with no repair beyond a
@@ -63,9 +63,11 @@ shape IDs are the document's IDs. Lengths use internal inches and angles use rad
 VSDX and PNG using the document's own connector master. The private probe rebuild
 script also checks its result against the local Visio corpus.
 
-Straight routes can cross obstacles. Phase 4a acceptance remains partial while
-individual connector pixel comparisons exceed the frozen ceilings; passing the
-existing aggregate render gate does not establish those per-file results.
+Straight routes can cross obstacles. P4a was accepted on 2026-10-15 under
+Charles's ruling: cells and geometry equal Visio, and the unchanged corpus
+connector group ceiling passes. Individual connector pixel comparisons remain
+measured and informational until the connector stroke rendering gap closes.
+M4 remains open for Phase 4b.
 
 ## What is coming
 

@@ -1,6 +1,6 @@
 # Gaps
 
-Status: pre-alpha, M0 through M3 met under the recorded gates. Phase 4a implementation is landed with partial acceptance: exact authoring/glue cells pass, but individual connector pixels fail. M4 remains open for those gates and 4b.
+Status: pre-alpha, M0 through M3 met under the recorded gates. P4a met on 2026-10-15 under the straight-route ruling. Connector stroke rendering remains an open measured gap; M4 remains open until 4b.
 
 ## G0: Contributed fixes
 
@@ -770,7 +770,7 @@ commands, describe, run and convert share the engine Session. JSON schemas are l
 
 Probe, static and move diffs are empty:6381,5349 and10 eligible cells respectively, using existing exclusions. Both generator scripts run in CI, including connector ink detection. Seven independent discovery findings have regression fixes. VM serialization refinements follow in M4.9; P4a pixel acceptance remains partial.
 
-## P4a acceptance and 4b inputs
+## P4a initial partial acceptance and 4b inputs (historical)
 
 P4a is partial. Engine authoring, stencil drop, live static/dynamic glue and straight
 routing are implemented. Probe/static/move cell diffs are empty. The individual
@@ -828,3 +828,5 @@ rerouting and walking choices, line jumps/page preferences, theme.apply, SAN
 generation and VM closure. This light closure brief adds no 4b implementation
 and does not reduce that estimate. The separate small-image export-mapping gap
 from M3 remains open.
+
+P4a closure completed 2026-10-15: three-platform CI green, two consecutive frozen passes with 21 YES/0 NO, seven empty diffs and unchanged four-file VM evidence. The renderer items above remain open and their per-pair checks reopen as required when those items close. No parity row moves; the 4b estimate remains 24 to 40 hours.
