@@ -22,6 +22,25 @@ class Acceptance(unittest.TestCase):
         return path
 
 
+    def test_p4a_cohort_is_exact_and_does_not_reduce_m3(self):
+        import copy
+        entries = [{'output': f'corpus/_state/m4/accept-inputs/{name}.vsdx',
+                    'source': source, 'baseline_name': baseline, 'set': kind}
+                   for name, (source, baseline, kind) in report.P4A_FILES.items()]
+        valid = {'brief': 'P4a', 'files': entries}
+        self.assertEqual(report.validate_cohort(valid), 'm4')
+        for changed in [dict(valid, files=entries[:3]), dict(valid, brief='M3'),
+                        dict(valid, files=entries + entries[:1])]:
+            with self.assertRaises(ValueError): report.validate_cohort(changed)
+        for key, value in [('output','../../outside'), ('source','corpus/other.vsdx'),
+                           ('baseline_name','blank__blank'), ('set','shipped-stencil')]:
+            changed = copy.deepcopy(valid)
+            changed['files'][-1][key] = value
+            with self.assertRaises(ValueError): report.validate_cohort(changed)
+        self.assertEqual(report.validate_cohort({'files':[{'output':str(i)} for i in range(230)]}), 'm3')
+        with self.assertRaises(ValueError):
+            report.validate_cohort({'files':[{'output':str(i)} for i in range(229)]})
+
     def test_page_view_rewrites_are_exact_numeric_and_scratch_only(self):
         def records(path, value):
             return {(path,0):{'kind':'attribute','V':value,'F':None,'U':None,'E':None}}

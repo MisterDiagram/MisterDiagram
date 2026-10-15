@@ -32,7 +32,7 @@ fi
   --cmd 'sheet.set={"id":5,"name":"EndY","formula":"_WALKGLUE(EndTrigger,BegTrigger,WalkPreference)","value":4.75}' \
   --cmd 'sheet.set={"id":5,"name":"Width","formula":"GUARD(EndX-BeginX)","force":true}' \
   --cmd 'sheet.set={"id":5,"name":"Height","formula":"GUARD(EndY-BeginY)","force":true}' \
-  --cmd 'sheet.set={"id":5,"name":"Angle","formula":"GUARD(0 deg)","force":true}' \
+  --cmd 'sheet.set={"id":5,"name":"Angle","formula":"GUARD(0DA)","force":true}' \
   --cmd 'sheet.set={"id":5,"name":"Geometry1.X1","value":0}' \
   --cmd 'sheet.set={"id":5,"name":"Geometry1.Y1","value":0}' \
   --cmd 'sheet.set={"id":5,"name":"Geometry1.X2","value":0}' \

@@ -95,3 +95,34 @@ fn deleting_earlier_page_preserves_current_page_identity() {
     assert_eq!(s.document().pages[0].shapes.len(), 2);
     assert!(s.document().pages[1].shapes.is_empty());
 }
+
+/// Replacing an inherited theme sentinel must produce a persistent explicit color.
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.cell.formulau
+#[test]
+fn explicit_color_replaces_theme_sentinel_and_registers_palette() {
+    let mut s = Session::new();
+    run(&mut s, "shape.draw.rect", json!({"x":1,"y":1,"width":2,"height":1}));
+    run(&mut s, "sheet.set", json!({"id":1,"name":"FillForegnd","formula":"RGB(204,0,0)"}));
+    let color = s.document().pages[0].shapes[0].sheet.cell("FillForegnd").unwrap();
+    assert_eq!(color.value.as_deref(), Some("#cc0000"));
+    assert_eq!(color.formula, None);
+    assert_eq!(s.document().colors.get(&26).map(String::as_str), Some("#CC0000"));
+    run(&mut s, "edit.undo", json!({}));
+    assert!(!s.document().colors.values().any(|v| v.eq_ignore_ascii_case("#cc0000")));
+}
+
+/// The imported app.xml part must track later page and master commands too.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
+#[test]
+fn incremental_authoring_refreshes_summary_names() {
+    let mut s = Session::new();
+    run(&mut s, "shape.draw.rect", json!({"x":1,"y":1,"width":2,"height":1}));
+    run(&mut s, "master.new_from_shape", json!({"name":"Original block"}));
+    run(&mut s, "page.add", json!({"name":"Second page"}));
+    let xml = s.document().parts["docProps/app.xml"].xml.as_ref().unwrap();
+    let titles = xml.elements().find(|e| e.name == "TitlesOfParts").unwrap();
+    let vector = titles.elements().next().unwrap();
+    assert_eq!(vector.attributes.get("size").map(String::as_str), Some("4"));
+    let names = vector.elements().map(|e| e.text()).collect::<Vec<_>>();
+    assert_eq!(names, vec!["Page-1", "Second page", "Dynamic connector", "Original block"]);
+}

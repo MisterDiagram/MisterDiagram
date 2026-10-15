@@ -156,7 +156,12 @@ pub(crate) fn set_cell(s: &mut Session, p: &Value) -> Result<Value> {
     match p.get("value") {
         Some(Value::String(value)) if value.len() <= 65536 => address.cell.value = Some(value.clone()),
         Some(Value::Number(value)) => address.cell.value = Some(value.to_string()),
-        None if formula.is_some() => {}
+        None if formula.is_some() => {
+            // An explicit formula replaces an inherited theme sentinel.
+            if address.cell.value.as_deref() == Some("Themed") {
+                address.cell.value = None;
+            }
+        }
         _ => return Err(operation("value must be a bounded string or number, or supply a formula")),
     }
     if let Some(units) = p.get("units") {
@@ -164,9 +169,49 @@ pub(crate) fn set_cell(s: &mut Session, p: &Value) -> Result<Value> {
     }
     address.cell.error = None;
     s.edit_document(|doc, _| {
-        install(sheet_mut(doc, scope)?, address)?;
+        install(sheet_mut(doc, scope)?, address.clone())?;
+        // Setting an override back to the master's own formula/value removes it.
+        // Witness: probe connector5 zero Geometry/Control cells after Visio SaveAs.
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+        let mut evaluator = Evaluator::new(doc).map_err(operation)?;
+        let redundant = evaluator
+            .master_source(scope)
+            .and_then(|master| {
+                let provider = evaluator.cell(master, name)?.clone();
+                if address.cell.units != provider.units || address.cell.formula != provider.formula {
+                    return None;
+                }
+                let local = evaluator.evaluate(scope, name);
+                let inherited = evaluator.evaluate(master, name);
+                Some(match (local.numeric(), inherited.numeric()) {
+                    (Ok(a), Ok(b)) => a.is_finite() && b.is_finite() && (a - b).abs() < 1e-12,
+                    _ => local == inherited && !matches!(local, diagramcraft_sheet::Value::Error(_)),
+                })
+            })
+            .unwrap_or(false);
+        drop(evaluator);
+        if redundant {
+            remove_override(sheet_mut(doc, scope)?, &address);
+        }
         Ok(json!({}))
     })
+}
+fn remove_override(sheet: &mut Sheet, address: &Address) {
+    if let Some(header) = &address.section {
+        if let Some(section) = sheet.sections.iter_mut().find(|s| s.name == header.name && s.index == header.index) {
+            if let Some(row_header) = &address.row {
+                if let Some(row) = section.rows.iter_mut().find(|r| r.name == row_header.name && r.index == row_header.index) {
+                    row.cells.retain(|c| c.name != address.cell.name);
+                }
+                section.rows.retain(|r| r.deleted || !r.cells.is_empty());
+            } else {
+                section.cells.retain(|c| c.name != address.cell.name);
+            }
+        }
+        sheet.sections.retain(|s| s.deleted || !s.cells.is_empty() || !s.rows.is_empty());
+    } else {
+        sheet.cells.retain(|c| c.name != address.cell.name);
+    }
 }
 fn section_name(p: &Value) -> Result<(&str, Option<u32>)> {
     let name = name(p, "section")?;

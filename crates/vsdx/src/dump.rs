@@ -386,7 +386,7 @@ fn metadata(evaluator: &Evaluator<'_>, scope: Scope, n: &NamedCell<'_>) -> Optio
         (n.name.as_str(), None)
     };
     if let Some((s, r, c, u)) = Evaluator::baseline_metadata(scope, base) {
-        return Some((s, index.unwrap_or(r), c, unit_code(n.cell, u)));
+        return Some((s, index.unwrap_or(r), c, unit_code(n.cell, geometry_unit(n).unwrap_or(u))));
     }
     if n.section.is_none() {
         if let Some(index) = n
@@ -514,9 +514,33 @@ fn metadata(evaluator: &Evaluator<'_>, scope: Scope, n: &NamedCell<'_>) -> Optio
         244 => 231,
         _ => 32,
     };
-    Some((s, r, c, unit_code(n.cell, default)))
+    Some((s, r, c, unit_code(n.cell, geometry_unit(n).unwrap_or(default))))
 }
+/// Relative vertices are dimensionless; elliptical C is an angle and D a ratio.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/relmoveto-row-geometry-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/relellipticalarcto-row-geometry-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/c-cell-geometry-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/d-cell-geometry-section
+fn geometry_unit(n: &NamedCell<'_>) -> Option<u16> {
+    if n.section?.name != "Geometry" {
+        return None;
+    }
+    let kind = n.row?.row_type.as_deref()?;
+    if matches!(kind, "EllipticalArcTo" | "RelEllipticalArcTo") {
+        match n.cell.name.as_str() {
+            "C" => return Some(81),
+            "D" => return Some(32),
+            _ => {}
+        }
+    }
+    kind.starts_with("Rel").then_some(32)
+}
+/// XML Verify is the universal name of the Shape Data Ask cell, SRC243,row,7.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/ask-cell-shape-data-section
 fn column(section: u16, name: &str, section_cell: bool) -> Option<u16> {
+    if section == 243 && name == "Verify" {
+        return Some(7);
+    }
     let names: &[&str] = match section {
         6 => &["X", "Y", "A", "B", "C", "D"],
         7 => &["X", "Y", "DirX", "DirY", "Type", "AutoGen", "Prompt", "F", "G", "H", "I", "J", "K", "L"],
@@ -590,7 +614,7 @@ fn unit_code(cell: &Cell, fallback: u16) -> u16 {
         Some("FT") => 66,
         Some("IN") => 65,
         Some("DL") => 73,
-        Some("DEG") => 81,
+        Some("DEG" | "DA") => 81,
         Some("RAD") => 83,
         Some("DATE") => 40,
         Some("GUID") => 95,

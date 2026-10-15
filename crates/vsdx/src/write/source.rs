@@ -87,7 +87,18 @@ impl SourceState {
                                 section.name.clone(),
                                 section.index,
                                 section.deleted,
-                                section.rows.iter().map(|r| (r.name.clone(), r.index, r.row_type.clone(), r.deleted)).collect::<Vec<_>>(),
+                                section
+                                    .rows
+                                    .iter()
+                                    .map(|r| {
+                                        (
+                                            r.name.clone(),
+                                            r.index,
+                                            r.row_type.clone().or_else(|| (section.name == "Connection").then(|| "Connection".into())),
+                                            r.deleted,
+                                        )
+                                    })
+                                    .collect::<Vec<_>>(),
                             )
                         })
                         .collect::<Vec<_>>()

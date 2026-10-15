@@ -1,6 +1,6 @@
 # Gaps
 
-Status: pre-alpha, M0 through M3 met under the recorded gates. Phase 4a is in progress; authoring and glue acceptance is pending. M4 closes after 4b.
+Status: pre-alpha, M0 through M3 met under the recorded gates. Phase 4a implementation is landed with partial acceptance: exact authoring/glue cells pass, but individual connector pixels fail. M4 remains open for those gates and 4b.
 
 ## G0: Contributed fixes
 
@@ -769,3 +769,34 @@ commands, describe, run and convert share the engine Session. JSON schemas are l
 ### P4a M4.8
 
 Probe, static and move diffs are empty:6381,5349 and10 eligible cells respectively, using existing exclusions. Both generator scripts run in CI, including connector ink detection. Seven independent discovery findings have regression fixes. VM serialization refinements follow in M4.9; P4a pixel acceptance remains partial.
+
+## P4a acceptance and 4b inputs
+
+P4a is partial. Engine authoring, stencil drop, live static/dynamic glue and straight
+routing are implemented. Probe/static/move cell diffs are empty. The individual
+connector image checks remain failures: dynamic-glue and move-before over16
+3.190144%, static-glue 3.175803%, against the unchanged 2% ceiling. Move-after is
+0.736069%. The newly authored two-boxes pair also fails at 2.976338%, although
+both exports contain ink between the boxes. The existing aggregate connector
+gate still passes. No threshold, oracle output, exclusion or denominator is changed.
+The export-mapping gap remains outside this brief under Charles's dated ruling.
+
+The four-file acceptance profile pins each filename, source and baseline identity.
+It does not replace the default M3 230-file profile or its 225-file baseline.
+Generated vendor masters and all VM artifacts remain in private, ignored corpus
+storage. The three exact diffs also remain private under the standing no-corpus-
+commit rule, despite the brief's use of the word committed.
+
+4b estimate: seven work items, roughly 24 to 40 engineering hours before review:
+orthogonal obstacle paths; reroute after edits; walking preferences beyond the
+four straight witnesses; line jumps and page routing preferences; theme.apply;
+the SAN topology generator; and Visio acceptance plus closure verification.
+This is an estimate, not a measured completion promise. Small-image export mapping
+remains a separately scoped prerequisite for the outstanding pixel checks.
+
+Public CI continues to run without the private corpus. The new private witness
+tests skip only when the whole corpus root is absent; an incomplete present
+corpus still fails. The two-boxes smoke test and corrupt-ZIP parser regression
+remain self-contained. Private acceptance on this Mac runs all witness checks.
+
+Closure record: all eight host CI gates pass, both privately and without the private corpus/fonts. The full corpus floor check passes. Two independent frozen verification passes each retain 17 YES and 3 NO; the required pixel failures prevent two clean passes. No P4a or M4 milestone closure is claimed.

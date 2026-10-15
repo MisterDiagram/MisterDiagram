@@ -80,6 +80,18 @@ fn copy_styles(doc: &mut Document, source: &Document, fonts: &BTreeMap<u32, u32>
             }
         }
         map_fonts(&mut style.sheet, fonts);
+        for cell in cells_mut(&mut style.sheet) {
+            if let Some(rgb) =
+                cell.value.as_deref().and_then(|v| v.strip_prefix('#')).filter(|v| v.len() == 6).and_then(|v| u32::from_str_radix(v, 16).ok())
+            {
+                let rgb = [(rgb >> 16) as u8, (rgb >> 8) as u8, rgb as u8];
+                if cell.formula.is_none()
+                    && let Some(index) = (0..24).find(|i| diagramcraft_sheet::functions::default_color(*i) == Some(rgb))
+                {
+                    cell.value = Some(index.to_string());
+                }
+            }
+        }
         doc.styles.push(style);
     }
     Ok(map)
@@ -127,6 +139,24 @@ fn rewrite_shapes(
             }
         }
         map_fonts(&mut shape.sheet, fonts);
+        // Newly imported master rows follow the first-save form in the ten-master witness.
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-connection-sectionvisio-xml
+        for section in &mut shape.sheet.sections {
+            if section.name == "Connection" {
+                for row in &mut section.rows {
+                    if !row.deleted && row.row_type.is_none() {
+                        row.row_type = Some("Connection".into());
+                    }
+                }
+            }
+            if section.name == "User" {
+                for cell in section.rows.iter_mut().flat_map(|r| &mut r.cells) {
+                    if cell.units.as_deref() == Some("COLOR") {
+                        cell.units = None;
+                    }
+                }
+            }
+        }
         for c in cells_mut(&mut shape.sheet) {
             c.ref_by.clear();
             if let Some(f) = &mut c.formula {
@@ -228,6 +258,16 @@ fn foreign_relationship_ids(shapes: &[Shape]) -> Result<BTreeSet<String>> {
     }
     Ok(ids)
 }
+/// Literal custom RGB colors need document table identities on first save.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/colors-element-visiodocument_type-complextypevisio-xml
+fn collect_colors(sheet: &Sheet, colors: &mut BTreeSet<String>) {
+    for cell in sheet.cells.iter().chain(sheet.sections.iter().flat_map(|s| s.cells.iter().chain(s.rows.iter().flat_map(|r| &r.cells)))) {
+        if let Some(value) = cell.value.as_deref().filter(|v| v.len() == 7 && v.starts_with('#') && v.bytes().skip(1).all(|b| b.is_ascii_hexdigit()))
+        {
+            colors.insert(value.to_ascii_uppercase());
+        }
+    }
+}
 fn import_master(doc: &mut Document, source: &Document, source_id: u32, visiting: &mut BTreeSet<u32>) -> Result<u32> {
     let master = source.masters.iter().find(|m| m.id == source_id).ok_or_else(|| operation("master missing"))?;
     if let Some(existing) = doc.masters.iter().find(|m| {
@@ -263,6 +303,7 @@ fn import_master(doc: &mut Document, source: &Document, source_id: u32, visiting
     let part = part_name(doc)?;
     let mut copy = master.clone();
     copy.id = id;
+    copy.icon = None;
     copy.part = part.clone();
     let ids = imported_ids(&copy.shapes)?;
     rewrite_shapes(&mut copy.shapes, &ids, &styles, &fonts, 0)?;
@@ -280,6 +321,34 @@ fn import_master(doc: &mut Document, source: &Document, source_id: u32, visiting
         copy.unique_id = diagramcraft_model::skeleton::dynamic_connector().unique_id;
     }
     doc.masters.push(copy);
+    let mut colors = BTreeSet::new();
+    for style in &doc.styles {
+        collect_colors(&style.sheet, &mut colors);
+    }
+    let mut shapes = doc.masters.iter().flat_map(|m| &m.shapes).collect::<Vec<_>>();
+    let mut count = 0usize;
+    while let Some(shape) = shapes.pop() {
+        count += 1;
+        if count > 100000 {
+            return Err(operation("master palette traversal limit"));
+        }
+        collect_colors(&shape.sheet, &mut colors);
+        shapes.extend(&shape.shapes);
+    }
+    for color in colors {
+        if !doc.colors.values().any(|v| v.eq_ignore_ascii_case(&color)) {
+            let index = doc
+                .colors
+                .keys()
+                .copied()
+                .max()
+                .unwrap_or(23)
+                .checked_add(1)
+                .filter(|v| *v < 65536)
+                .ok_or_else(|| operation("palette count limit"))?;
+            doc.colors.insert(index, color);
+        }
+    }
     visiting.remove(&source_id);
     Ok(id)
 }
@@ -359,6 +428,11 @@ pub(crate) fn drop_master(s: &mut Session, p: &Value) -> Result<Value> {
         }
         let scope = Scope::MasterShape { master: master_id, shape: root.id };
         let mut e = Evaluator::new(doc).map_err(operation)?;
+        // A source master layer is not a layer assignment in the destination page.
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/layermember-cell-layer-membership-section
+        if e.cell(scope, "LayerMember").is_some_and(|c| c.value.as_deref().is_some_and(|v| !v.is_empty())) {
+            set(&mut shape.sheet, "LayerMember", "", None)?;
+        }
         if e.cell(scope, "BeginX").is_some() {
             let px = e.evaluate(scope, "PinX").numeric().map_err(operation)?;
             let py = e.evaluate(scope, "PinY").numeric().map_err(operation)?;

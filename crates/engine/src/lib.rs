@@ -152,12 +152,27 @@ impl Session {
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let result = f(self)?;
             if self.dirty {
+                let identities = |d: &Document| {
+                    (
+                        d.pages.iter().map(|p| (p.id, p.name.clone())).collect::<Vec<_>>(),
+                        d.masters.iter().map(|m| (m.id, m.name.clone())).collect::<Vec<_>>(),
+                    )
+                };
+                if identities(&before.document) != identities(&self.document)
+                    && let Some(mut part) = self.document.parts.get("docProps/app.xml").cloned()
+                    && let Some(app) = &mut part.xml
+                {
+                    diagramcraft_model::skeleton::update_summary(&self.document, app).map_err(operation)?;
+                    part.bytes.clear();
+                    Arc::make_mut(&mut self.document).parts.insert("docProps/app.xml".into(), part);
+                }
                 let mut glue = diagramcraft_route::GlueHost::prepare(&before.document, Arc::make_mut(&mut self.document)).map_err(operation)?;
                 diagramcraft_route::reroute(&before.document, Arc::make_mut(&mut self.document), &mut glue, None).map_err(operation)?;
                 let theme = diagramcraft_theme::Themes::from_document(&self.document).map_err(operation)?;
                 let written = diagramcraft_vsdx::write_with_glue_host(&self.document, Some(&theme), Some(&diagramcraft_text::Host), Some(&mut glue))
                     .map_err(operation)?;
                 self.document = Arc::new(diagramcraft_vsdx::import(&written.bytes).map_err(operation)?);
+                files::update_palette(Arc::make_mut(&mut self.document))?;
                 self.dirty = false;
             }
             if self.selection.page >= self.document.pages.len() {

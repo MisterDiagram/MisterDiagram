@@ -492,7 +492,7 @@ impl<'a> Evaluator<'a> {
     }
     /// The master content scope supplying an instance's inherited cells.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
-    pub(crate) fn master_source(&self, scope: Scope) -> Option<Scope> {
+    pub fn master_source(&self, scope: Scope) -> Option<Scope> {
         self.inheritance.masters.get(&scope).copied()
     }
     /// Local cache, including Inh, before resolving the formula provider.

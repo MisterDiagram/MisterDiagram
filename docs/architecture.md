@@ -108,3 +108,14 @@ writer and re-import before publication, reusing the established cache contract.
 File outputs publish from a sibling temporary file after successful serialization.
 Exports share a retained-scene budget across PDF pages; EMF operations are charged
 while records are interpreted, before the enclosing scene retains the result.
+
+
+
+Phase 4 glue is a route-owned HostHooks implementation injected into the VSDX
+evaluator. The sheet crate stays model-independent. Session edits compare target
+transforms, free endpoints, walking preferences and parent frames with their
+snapshot, invalidate glue triggers, evaluate endpoints and regenerate straight
+Geometry rows before publishing. Existing imported endpoint caches survive
+unrelated edits. Grouped connector endpoints are in parent coordinates, as the
+BeginX/BeginY contract requires. The CLI command registry and generator scripts
+use this same session path.

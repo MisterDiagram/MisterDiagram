@@ -28,6 +28,59 @@ pub(crate) fn blank_document(metric: bool) -> diagramcraft_model::Document {
     document.colors = [(24, "#7F7F7F".into()), (25, "#FFFFFF".into())].into_iter().collect();
     document
 }
+/// Newly authored RGB literals receive the custom palette entries Visio writes.
+/// This runs only after an edit, never merely while opening an existing file.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/colors-element-visiodocument_type-complextypevisio-xml
+pub(crate) fn update_palette(doc: &mut diagramcraft_model::Document) -> Result<()> {
+    let mut colors = std::collections::BTreeSet::new();
+    let mut cells = 0usize;
+    let mut collect = |sheet: &diagramcraft_model::Sheet| -> Result<()> {
+        for cell in sheet.cells.iter().chain(sheet.sections.iter().flat_map(|s| s.cells.iter().chain(s.rows.iter().flat_map(|r| &r.cells)))) {
+            cells += 1;
+            if cells > 2_000_000 {
+                return Err(operation("palette cell traversal limit"));
+            }
+            if let Some(value) =
+                cell.value.as_deref().filter(|v| v.len() == 7 && v.starts_with('#') && v.bytes().skip(1).all(|b| b.is_ascii_hexdigit()))
+            {
+                colors.insert(value.to_ascii_uppercase());
+                if colors.len() > 65536 {
+                    return Err(operation("palette count limit"));
+                }
+            }
+        }
+        Ok(())
+    };
+    collect(&doc.document_sheet)?;
+    for page in &doc.pages {
+        collect(&page.sheet)?;
+    }
+    let mut pending = doc.pages.iter().flat_map(|p| &p.shapes).map(|s| (s, 0)).collect::<Vec<_>>();
+    let mut count = 0usize;
+    while let Some((shape, depth)) = pending.pop() {
+        count += 1;
+        if count > 100000 || depth > 128 {
+            return Err(operation("palette shape traversal limit"));
+        }
+        collect(&shape.sheet)?;
+        pending.extend(shape.shapes.iter().map(|s| (s, depth + 1)));
+    }
+    for color in colors {
+        if !doc.colors.values().any(|v| v.eq_ignore_ascii_case(&color)) {
+            let index = doc
+                .colors
+                .keys()
+                .copied()
+                .max()
+                .unwrap_or(23)
+                .checked_add(1)
+                .filter(|v| *v < 65536)
+                .ok_or_else(|| operation("palette count limit"))?;
+            doc.colors.insert(index, color);
+        }
+    }
+    Ok(())
+}
 /// Create an empty drawing, corresponding to Documents.Add("").
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.documents.add
 pub(crate) fn new(s: &mut Session, p: &Value) -> Result<Value> {

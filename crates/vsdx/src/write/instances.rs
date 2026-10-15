@@ -173,6 +173,48 @@ impl model::Writer<'_> {
                 result.cells.push(cell);
             }
         }
+        // Existing imported locals remain untouched unless this edit changed their dependencies.
+        // Visio removes inherited caches once they again equal the master's cache.
+        // Witness: P4a probe connector5 TxtPinX and Controls.TextPosition.XDyn.
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+        if has_changes {
+            let mut redundant = BTreeSet::new();
+            for n in self.evaluator.source_named_cells(scope).map_err(|e| error(e.to_string()))? {
+                if n.cell.formula.as_deref() != Some("Inh") {
+                    continue;
+                }
+                let Some(provider) = self.evaluator.cell(master, &n.name).cloned() else { continue };
+                if n.cell.units != provider.units {
+                    continue;
+                }
+                let value = self.evaluator.evaluate_snapshot(scope, &n.name);
+                if !self.evaluator.depends_on_changed(scope, &n.name, &self.source_state.changed, &self.source_state.contexts) {
+                    continue;
+                }
+                let cached = self.evaluator.cached_cell(&provider);
+                let equal = match (value.numeric(), cached.numeric()) {
+                    (Ok(a), Ok(b)) => a.is_finite() && b.is_finite() && (a - b).abs() < 1e-12,
+                    _ => value == cached && !matches!(value, Value::Error(_)),
+                };
+                if equal {
+                    redundant.insert(n.name);
+                }
+            }
+            result.cells.retain(|c| !redundant.contains(&c.name));
+            result.sections.retain_mut(|section| {
+                let originally_empty = section.cells.is_empty() && section.rows.is_empty();
+                let header = Section { name: section.name.clone(), index: section.index, ..Default::default() };
+                let mut position = 0;
+                section.rows.retain_mut(|row| {
+                    let originally_empty = row.cells.is_empty();
+                    let header_row = Row { name: row.name.clone(), index: row.index, ..Default::default() };
+                    row.cells.retain(|c| crate::evaluate::cell_name(&header, &header_row, position, c).is_ok_and(|n| !redundant.contains(&n)));
+                    position += 1;
+                    row.deleted || originally_empty || !row.cells.is_empty()
+                });
+                section.deleted || originally_empty || !section.cells.is_empty() || !section.rows.is_empty()
+            });
+        }
         super::validate::sheet(&result)?;
         Ok(result)
     }

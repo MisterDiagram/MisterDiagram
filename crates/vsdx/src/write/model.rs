@@ -65,9 +65,22 @@ impl Writer<'_> {
             let evaluated = self.evaluator.evaluate_snapshot(scope, name);
             if self.evaluator.depends_on_changed(scope, name, &self.source_state.changed, &self.source_state.contexts) {
                 match evaluated {
-                    Value::Number(n) if n.is_finite() => match self.evaluator.serialized_number(scope, name, c, n) {
+                    Value::Number(n) if n.is_finite() => match if c.name != "TextBkgnd"
+                        && !constant_rgb(c.formula.as_deref().unwrap_or(""))
+                        && c.value.as_deref().and_then(|v| v.parse::<f64>().ok()) == Some(n)
+                        && (0. ..24.).contains(&n)
+                        && n.fract() == 0.
+                        && Evaluator::baseline_metadata(scope, name).is_some_and(|m| m.3 == 251)
+                    {
+                        Ok(n.to_string())
+                    } else {
+                        self.evaluator.serialized_number(scope, name, c, n)
+                    } {
                         Ok(v) => {
                             value = Some(v);
+                            if constant_rgb(c.formula.as_deref().unwrap_or("")) {
+                                formula = None;
+                            }
                             err = None;
                         }
                         Err(e) => self.warn(scope, name, e),
@@ -100,7 +113,7 @@ impl Writer<'_> {
         // https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
         if c.formula.as_deref().is_none_or(|f| f.is_empty() || f.eq_ignore_ascii_case("No Formula"))
             && self.source_state.changed.contains(&(scope, name.to_ascii_lowercase()))
-            && c.value.as_deref().is_some_and(|v| v != "Themed")
+            && c.value.as_deref().is_some_and(|v| !v.is_empty() && v != "Themed")
             && c.error.is_none()
             && c.units.as_deref() != Some("STR")
             && c.name != "Font"

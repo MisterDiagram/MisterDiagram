@@ -1,6 +1,6 @@
 # File format parity
 
-Status: pre-alpha, M1 met. M2 human gate accepted on 2026-10-12 at 16:45; independent closure verification has two consecutive clean passes.
+Status: pre-alpha, M0 through M3 met. P4a is partial: 100% strict round-trip, empty authoring/glue diffs, and four Visio opens with zero residual repairs and COM differences; required individual connector pixel checks fail. Current P4a measurements are at the end; earlier entries retain their dated results.
 
 ## Measured
 
@@ -2123,3 +2123,108 @@ The CLI authoring path uses the same dependency-aware edit transaction and write
 ### M4.8: add generator scripts and command composition regressions
 
 Engine blank documents use the initial gray24/white25 palette observed in the probe; the lower-level skeleton retains its existing post-save palette contract. Standard authored palette literals remain indices. Layer defaults, first master names and revived Geometry rows match the supplied files. The probe elbow is authored through explicit ShapeSheet values, without implementing4b routing.
+
+## P4a: authored package observations and remaining pixel differences
+
+P4a remains partial. Exact authored comparisons retain the existing M1 exclusions:
+probe rebuild 6381 eligible cells (12 excluded), static glue 5349 (2 excluded) plus
+Connects, and move-after 10 endpoint/transform/control cells within 1e-6. All three
+private diff files are empty. Four reroute Geometry/XForm diffs are also empty.
+
+### Observed, undocumented: incremental authoring and imported masters
+
+Witnesses: the private P4a probe, two-boxes and ten-master acceptance inputs and
+Visio resaves under corpus/_vm/out/accept. These were generated from the supplied
+basic/connector witnesses and BASFLO_U/NETSME_U, never committed as assets.
+
+- A first explicit RGB edit replaces a Themed sentinel, registers its palette
+  entry, and persists its RGB literal. Standard palette numbers 0 through 23 remain
+  numbers when their existing numeric cache matches evaluation through Inh or a THEMEVAL fallback. Newly authored uncached formulas still use typed RGB serialization. The ten-master
+  StyleSheet8 FillBkgnd fallback 15 is the witness for the latter rule.
+- A copied master has no local Icon payload. Visio generates its Icon on save,
+  counted in the existing generated-Icon class. Connection row type defaults to
+  Connection; making it explicit does not invalidate unrelated cached geometry.
+- Imported Connection Prompt and cleared LayerMember may have an empty literal;
+  converting the empty value to numeric zero causes a save repair. Imported User
+  row COLOR unit attributes are removed because these User.Value cells report
+  numeric unit 32 in the supplied master dumps.
+- A dropped master does not inherit a foreign document's layer membership. Page
+  and master name edits refresh the app.xml heading/name vectors. Unchanged source
+  packages keep their existing summary bytes.
+- Redundant Inh overrides are pruned only after a dependency changes, and only if
+  provider units and evaluated caches match. An explicit formula edit can similarly
+  disappear when its formula, units and value equal the master. Unrelated local
+  caches and originally empty/deleted rows remain preserved.
+- Prop Verify retains its universal cell name but uses Ask's COM SRC 243,row,7.
+  Relative Geometry coordinates and RelEllipticalArcTo D use unit 32; its C uses
+  angle unit 81. The published relative elliptical-arc example is a regression.
+
+These fixes address our serialization and COM metadata errors. They do not claim
+that Visio contradicts a published reference; no oracle values were changed.
+
+### 4b observations only
+
+In generated/connector/obstacle.vsdx, connector 4 has Begin (2.5,6.75), End (5.75,7.5),
+Width 3.25, Height 0.75 and Angle 0. Its local path is (0,0), (0.3125,0),
+(0.3125,1.4375), (3.25,1.4375), (3.25,0.75). The obstacle rectangle occupies
+page x 3..4 and y 5..8, so Visio's path passes above its top edge at y 8.1875.
+
+In generated/connector/line-jumps.vsdx, horizontal connector 5 runs from
+(1.5,5) to (6.5,5). Its local path is MoveTo(0,0.125),
+LineTo(2.458333333333333,0.125), ArcTo(2.541666666666667,0.125)
+with A = -0.041666666666666963, then LineTo(5,0.125). Vertical connector 6
+runs x 4 from y 2.5 to 7.5 with Width 0.25, Height 5 and a straight path
+(0.125,0) to(0.125,5), plus the unused deleted row. Both pages have
+LineJumpCode 1 and RouteStyle 0; LineJumpStyle is 0 for obstacle and 1 for
+line-jumps. AvoidPageBreaks is 0 and jump factors are 2/3. These are observations,
+not an implementation of obstacle routing or line jumps.
+
+### Four-file Visio acceptance, 2026-10-15
+
+The final scheduled-task run observed three regenerated inputs and resumed the
+unchanged move-after input. It exited 0, with 47,329 cells and 0 cell-read errors.
+All four input hashes have opened observations. Baseline subtraction and the
+existing first-save classes give the following result.
+
+| File | Opened | Residual repairs | COM residual | Thumbnail | Generated Icon | First-save stamps | Page views |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| p4a__probe-rebuild | 1 | 0 | 0 | 1 | 1 | 2 | 2 |
+| p4a__two-boxes-glued | 1 | 0 | 0 | 1 | 1 | 2 | 2 |
+| p4a__ten-masters | 1 | 0 | 0 | 1 | 11 | 2 | 2 |
+| p4a__move-after | 1 | 0 | 0 | 0 | 0 | 0 | 2 |
+
+The move-after MasterType record also occurs in its baseline. Each scratch file
+has four byte-only OPC relationship changes; these are not keyed repairs. COM
+eligible counts are 659, 609, 4,210 and 611 respectively. Unobserved style-local
+metadata remains disclosed by the existing reporter.
+
+The P4a reporter exits 1: two-boxes at 529 x 145 has MAD 3.453986 and over16
+2.976338%, above the connector 2% ceiling. Both exports have ink between the
+boxes. Move-after at 721 x 241 passes with MAD 0.632085 and over16 0.736069%.
+No image ceiling or comparison rule changes.
+
+| Informational group | Images | MAD | Over16 |
+|---|---:|---:|---:|
+| P4a generated-masters | 1 | 0.644702 | 2.008715% |
+| P4a from-scratch-masters | 13 | 5.326534 | 7.577710% |
+| P4a from-scratch-pages | 2 | 0.632586 | 1.279545% |
+| M3 generated-masters | 9 | 1.202102 | 2.648070% |
+| M3 from-scratch-masters | 8 | 2.823616 | 4.452799% |
+| M3 from-scratch-pages | 5 | 4.609743 | 3.019190% |
+
+The unchanged default M3 profile was also rerun in this session: exit0,
+230 opened, zero residual repairs and COM differences, ten required page-size
+groups passing. The new four-file profile is an additional acceptance cohort.
+
+### Final host measurements
+
+The full corpus command exits 0: 15,080,738/15,080,738 strict cells (100%)
+across 1,387 packages, with zero writer errors and warnings. Coverage remains
+1,181/1,181 shipped dumps and 1,394 pinned dumps. Main COM improves to
+74,956,810/76,153,083 (98.429121%); text COM remains 54,191/58,180
+(93.143692%). Shipped cached improves to 4,677,579/4,783,865
+(97.778240%); cached text remains 61,748/67,797 (91.077776%). Existing
+floors and denominators are unchanged. The aggregate connector group passes
+(MAD 2.142340, over16 1.225363%), while its three per-file outliers remain
+in the unchanged total of 10. Equal-error renderer limitations remain: 568
+master scenes and 74 shipped pages fail identically before and after rewrite.

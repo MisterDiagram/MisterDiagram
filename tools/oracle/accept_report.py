@@ -485,14 +485,42 @@ def prepare_baseline_manifest():
     print('baseline manifest: 225 original inputs and source COM metadata pinned')
 
 
-def prepare_manifest():
-    plan = load_json(ROOT/'corpus/_state/m3/accept-plan.json')
-    previous_path = ROOT/'corpus/_state/m3/accept-manifest.json'
+P4A_FILES = {
+    'p4a__probe-rebuild': (None, 'blank__blank', 'from-scratch'),
+    'p4a__two-boxes-glued': (None, 'blank__blank', 'from-scratch'),
+    'p4a__ten-masters': (None, 'blank__blank', 'from-scratch'),
+    'p4a__move-after': ('corpus/generated/connector/move-after.vsdx', 'generated__connector__move-after', 'generated'),
+}
+
+
+def validate_cohort(manifest):
+    """P4a is a separate four-file brief; the original M3 denominator remains230."""
+    entries = manifest['files']
+    if manifest.get('brief') != 'P4a':
+        if len(entries) != 230 or len({e['output'] for e in entries}) != 230:
+            raise ValueError('expected exactly 230 unique acceptance files')
+        return 'm3'
+    if len(entries) != 4:
+        raise ValueError('P4a requires its four named inputs')
+    expected = {f'corpus/_state/m4/accept-inputs/{name}.vsdx': values for name, values in P4A_FILES.items()}
+    if {e['output'] for e in entries} != set(expected):
+        raise ValueError('P4a input identity mismatch')
+    for entry in entries:
+        source, baseline, kind = expected[entry['output']]
+        if entry.get('source') != source or entry.get('baseline_name') != baseline or entry.get('set') != kind:
+            raise ValueError('P4a source or baseline identity mismatch')
+    return 'm4'
+
+
+def prepare_manifest(p4a=False):
+    state = ROOT/'corpus/_state'/('m4' if p4a else 'm3')
+    plan = load_json(state/'accept-plan.json')
+    if validate_cohort(plan) != ('m4' if p4a else 'm3'):
+        raise ValueError('acceptance profile mismatch')
+    previous_path = state/'accept-manifest.json'
     previous = load_json(previous_path) if previous_path.exists() else {}
     previous_entries = {e['output']: e for e in previous.get('files',[])}
-    if len(plan['files']) != 230:
-        raise ValueError('acceptance set must contain 230 files')
-    expected = ROOT/'corpus/_state/m3/accept-expected'
+    expected = state/'accept-expected'
     for entry in plan['files']:
         path = ROOT/entry['output']
         entry['sha256'] = digest(path)
@@ -511,9 +539,9 @@ def prepare_manifest():
     plan['script_sha256'] = digest(ROOT/'tools/oracle/accept.ps1')
     plan['common_sha256'] = digest(ROOT/'tools/oracle/common.ps1')
     plan['status'] = 'materialized writer outputs, not Visio acceptance'
-    target = ROOT/'corpus/_state/m3/accept-manifest.json'
+    target = state/'accept-manifest.json'
     target.write_text(json.dumps(plan, indent=2)+'\n')
-    print(f'{target}: 230 hashed inputs')
+    print(f'{target}: {len(plan["files"])} hashed inputs')
 
 
 def computed_diagnostic(observed, computed, old_cells, new_cells, filters):
@@ -546,7 +574,7 @@ def scratch_render_assertion(name, stem, result, image):
         expected = {'master-1':(97,97),'master-2':(145,97),'master-3':(193,97)}.get(stem)
     if expected and any(tuple(size) != expected for size in result['sizes']):
         raise ValueError(f'from-scratch required size {expected}, measured {result["sizes"]}')
-    if name == 'scratch__dynamic-glue' and stem == 'page-0':
+    if name in {'scratch__dynamic-glue', 'p4a__two-boxes-glued'} and stem == 'page-0':
         from PIL import Image
         with Image.open(image) as source:
             rgb=source.convert('RGB')
@@ -705,13 +733,13 @@ def content_failed(set_name, repairs, com_failures, renders):
 
 def report(out, manifest, baseline=None):
     m = load_json(manifest)
+    profile = validate_cohort(m)
+    state = ROOT/'corpus/_state'/profile
     baseline = baseline or ROOT/'corpus/_vm/out/baseline'
     bm = load_json(ROOT/'corpus/_state/m3/baseline-manifest.json')
     baseline_entries = {Path(e['output']).stem:e for e in bm['files']}
     if len(baseline_entries) != 225 or not (baseline/'DONE').is_file():
         raise ValueError('225-file completed original baseline required')
-    if len(m['files']) != 230 or len({e['output'] for e in m['files']}) != 230:
-        raise ValueError('expected exactly 230 unique acceptance files')
     filters = read_filters([ROOT/'crates/sheet/tests/hooks.txt', ROOT/'crates/sheet/tests/volatile.txt'])
     sets, groups = defaultdict(Counter), defaultdict(list)
     all_rows = []
@@ -721,7 +749,7 @@ def report(out, manifest, baseline=None):
         counter = sets[entry['set']]
         counter['files'] += 1
         row = {'file': name, 'errors': [], 'repair_count': 0, 'com_failures': 0, 'renders': []}
-        expected = ROOT/'corpus/_state/m3/accept-expected'/name
+        expected = state/'accept-expected'/name
         actual = out/name
         try:
             if digest(path) != entry['sha256']:
@@ -734,6 +762,7 @@ def report(out, manifest, baseline=None):
                 raise ValueError('stale VM observation')
             if type(status.get('opened')) is not bool or type(status.get('saved')) is not bool:
                 raise ValueError('invalid VM status flags')
+            row['opened'] = status['opened']
             if status['opened']:
                 counter['opened'] += 1
             if status['error'] or not status['saved']:
@@ -747,7 +776,7 @@ def report(out, manifest, baseline=None):
                 raise ValueError('incomplete VM artifact inventory')
             connects = read_connects(actual/'connects.tsv')
             row['connects'] = len(connects)
-            if name == 'scratch__dynamic-glue' and Counter(connects) != Counter([
+            if name in {'scratch__dynamic-glue', 'p4a__two-boxes-glued'} and Counter(connects) != Counter([
                 ('3','BeginX','1','PinX','9','3'), ('3','EndX','2','PinX','12','3')]):
                 raise ValueError('scratch dynamic glue must have its two observed Connects rows')
             old_parts, old_cells = package_cells(path)
@@ -757,7 +786,7 @@ def report(out, manifest, baseline=None):
             part_diff = {'added': sorted(set(new_parts)-set(old_parts)), 'removed': sorted(set(old_parts)-set(new_parts))}
             cells = cell_diffs(old_cells, new_cells, filters)
             ours = package_differences(old_parts,old_cells,new_parts,new_cells,filters)
-            base_name = name if entry.get('source') else 'blank__blank'
+            base_name = entry['baseline_name'] if profile == 'm4' else (name if entry.get('source') else 'blank__blank')
             base_entry = baseline_entries[base_name]
             base_path = ROOT/base_entry['output']
             base_actual = baseline/base_name
@@ -859,6 +888,8 @@ def report(out, manifest, baseline=None):
                     result = {'error': str(error)}
                 result['file'] = name+'#'+stem
                 group = name.split('__')[1] if name.startswith('generated__') and stem.startswith('page-') else entry['set']+('-masters' if stem.startswith('master-') else '-pages')
+                if profile == 'm4' and name == 'p4a__two-boxes-glued' and stem.startswith('page-'):
+                    group = 'connector'
                 result['group'] = group
                 row['renders'].append(result)
                 groups[group].append(result)
@@ -890,7 +921,7 @@ def report(out, manifest, baseline=None):
         print(f"accept set {name}: files={c['files']} opened={c['opened']} repaired={c['repaired']} failed={c['failed']} thumbnail_added={c['thumbnail_added']} master_type={c['master_type']} master_uniqueid={c['master_uniqueid']} icon_added={c['icon_added']} first_save_stamps={c['first_save_stamps']} page_view_rewrites={c['page_view_rewrites']} opc_byte_only={c['opc_byte_only']}")
         success &= c['opened'] == c['files'] and c['repaired'] == c['failed'] == 0
     success &= bool(groups)
-    target = ROOT/'corpus/_state/m3/accept-report.json'
+    target = state/'accept-report.json'
     target.write_text(json.dumps({'sets':sets,'groups':summaries,'files':all_rows,'passed':success},indent=2)+'\n')
     return 0 if success else 1
 
@@ -899,6 +930,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('out',type=Path,nargs='?',default=ROOT/'corpus/_vm/out/accept')
     parser.add_argument('--prepare',action='store_true')
+    parser.add_argument('--prepare-p4a',action='store_true')
     parser.add_argument('--prepare-baseline',action='store_true')
     parser.add_argument('--baseline',type=Path,default=ROOT/'corpus/_vm/out/baseline')
     parser.add_argument('--manifest',type=Path,default=ROOT/'corpus/_state/m3/accept-manifest.json')
@@ -906,6 +938,9 @@ def main():
     try:
         if args.prepare_baseline:
             prepare_baseline_manifest()
+            return 0
+        if args.prepare_p4a:
+            prepare_manifest(True)
             return 0
         if args.prepare:
             prepare_manifest()

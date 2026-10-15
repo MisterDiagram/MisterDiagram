@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: pre-alpha, M0 through M3 met. M3 closed on 2026-10-14 under Charles's small-image ruling and two clean independent frozen passes. Phase 4a is in progress; M4 closes after 4b. Target: Visio Standard 2021.
+Status: pre-alpha, M0 through M3 met. M3 closed on 2026-10-14 under Charles's small-image ruling and two clean independent frozen passes. Phase 4a implementation is landed with partial acceptance: exact cells and four-file Visio acceptance pass, individual connector pixels fail. M4 closes after 4b and the remaining gates. Target: Visio Standard 2021.
 
 Phase 0 establishes the workspace, conventions, oracle scripts and private corpus. Phases 1
 through 5 add reading and ShapeSheet evaluation, rendering, writing, authoring, and exports.
@@ -349,3 +349,22 @@ observation artifact hashes. M3 is met; stop before Phase 4.
 - 2026-10-15: M4.7 expose session commands through the CLI. Its isolated full CI gate must pass and match this tree before commit. P4a pixel acceptance remains partial.
 
 - 2026-10-15: M4.8 add generator scripts and command composition regressions. Its isolated full CI gate must pass and match this tree before commit. P4a pixel acceptance remains partial.
+
+## P4a authoring, 2026-10-15
+
+P4a remains partial: the authoring engine, master drop, static/dynamic glue,
+straight routes, CLI and generator scripts are implemented. Individual connector
+pixel comparisons exceed the unchanged ceilings. M4 also requires 4b's obstacle
+router, line jumps, theme application and SAN topology acceptance. Acceptance numbers are below; the two independent frozen verification passes each have 17 YES and 3 NO, so closure is not claimed.
+
+Final full corpus check passes: 1,387 packages, 15,080,738 of 15,080,738 strict
+literal cells (100%), 1,181 of 1,181 shipped dumps and 1,394 pinned dumps.
+Main COM is 74,956,810/76,153,083 (98.429121%); text COM is
+54,191/58,180 (93.143692%). Shipped cached is 4,677,579/4,783,865
+(97.778240%); cached text is 61,748/67,797 (91.077776%). No floor
+moved down. Weighted breadth parity rises from 27% to 47% over the same 45
+Core features. The four P4a VM files open with zero residual repairs and COM
+differences. The P4a reporter remains exit 1 because two-boxes pixels exceed
+the connector ceiling. M4.6 has three corresponding existing witness outliers.
+
+Full final-candidate CI passes all eight gates, including wasm; a separate public-style run without the private corpus or optional fonts also passes all eight. Standalone engine (42), route (2) and VSDX round-trip (2) tests pass. Both required production seeds fail their regression and pass after exact restoration. Independent frozen verification has two non-clean passes, each 17 YES and 3 NO: M4.6 pixels, the pixel acceptance gate, and the missing two clean closure passes. P4a is not closed.
