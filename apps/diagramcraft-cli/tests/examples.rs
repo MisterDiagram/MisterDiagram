@@ -3,11 +3,37 @@ use std::{path::PathBuf, process::Command};
 fn root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
+/// Find Bash in the installed Git tree rather than the Windows WSL launcher.
+/// Git reports its installation's helper directory via --exec-path.
+/// https://git-scm.com/docs/git#Documentation/git.txt---exec-pathltpathgt
+fn bash() -> PathBuf {
+    #[cfg(windows)]
+    {
+        let result = Command::new("git").arg("--exec-path").output().unwrap();
+        assert!(result.status.success(), "git --exec-path failed");
+        let directory = PathBuf::from(String::from_utf8(result.stdout).unwrap().trim());
+        directory.ancestors().map(|dir| dir.join("bin/bash.exe")).find(|path| path.is_file()).expect("Git for Windows Bash is required")
+    }
+    #[cfg(not(windows))]
+    {
+        PathBuf::from("bash")
+    }
+}
+fn shell_path(path: &std::path::Path) -> std::ffi::OsString {
+    #[cfg(windows)]
+    {
+        path.to_str().unwrap().replace('\\', "/").into()
+    }
+    #[cfg(not(windows))]
+    {
+        path.as_os_str().to_owned()
+    }
+}
 fn run(script: &str, out: &std::path::Path) {
-    let result = Command::new("bash")
-        .arg(root().join("tools/examples").join(script))
-        .arg(out)
-        .env("DIAGRAMCRAFT_CLI", env!("CARGO_BIN_EXE_diagramcraft-cli"))
+    let result = Command::new(bash())
+        .arg(shell_path(&root().join("tools/examples").join(script)))
+        .arg(shell_path(out))
+        .env("DIAGRAMCRAFT_CLI", shell_path(std::path::Path::new(env!("CARGO_BIN_EXE_diagramcraft-cli"))))
         .output()
         .unwrap();
     assert!(result.status.success(), "{script}: {} {}", String::from_utf8_lossy(&result.stdout), String::from_utf8_lossy(&result.stderr));

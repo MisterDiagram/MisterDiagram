@@ -11,6 +11,7 @@ that the page was consulted during this session.
 | <http://schemas.openxmlformats.org/package/2006/content-types> | `tools/oracle/accept_report.py`, `tools/oracle/test_accept_report.py` |
 | <http://schemas.openxmlformats.org/package/2006/metadata/core-properties> | `tools/oracle/accept_report.py`, `tools/oracle/test_accept_report.py` |
 | <http://schemas.openxmlformats.org/package/2006/relationships> | `tools/oracle/accept_report.py`, `tools/oracle/test_accept_report.py` |
+| <https://git-scm.com/docs/git#Documentation/git.txt---exec-pathltpathgt> | `apps/diagramcraft-cli/tests/examples.rs` |
 | <https://github.com/storytold/craft-fonts> | `crates/fonts/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references> | `crates/engine/src/arrange.rs`, `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-date-time-and-duration-values> | `crates/sheet/src/functions/text.rs`, `crates/sheet/src/units.rs` |
