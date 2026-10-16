@@ -28,6 +28,7 @@ reader sheet limits after XML escaping, and preserves opaque part payloads exact
 |---|---|---|---|---|
 | `crates/vsdx/tests/authored_strings.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/1b/vsdx_review_1b.rs` (selected synthetic test) | `3ce1a4740bf3e44463f1e35babc42ff46562f4e5` | MIT OR Apache-2.0, user-authorized port |
 | `crates/engine/tests/route_ownership.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/3a/engine_review_3a.rs` (selected synthetic tests) | `3ce1a4740bf3e44463f1e35babc42ff46562f4e5` | MIT OR Apache-2.0, user-authorized port |
+| `crates/engine/tests/endpoint_obstacles.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/3a/engine_review_3a.rs` (selected tests), `scope/visio/review/repros/2b/2b-6-connector-endpoint-in-obstacle.sh` (recipes) | `3ce1a4740bf3e44463f1e35babc42ff46562f4e5` | MIT OR Apache-2.0, user-authorized port |
 | `clippy.toml` | deckcraft | `clippy.toml` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
 | `rustfmt.toml` | deckcraft | `rustfmt.toml` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
 | `.cargo/config.toml` | deckcraft | `.cargo/config.toml` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |

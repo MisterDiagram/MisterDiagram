@@ -119,9 +119,9 @@ pub(crate) fn endpoints(a: Rect, b: Rect, obs: &[Rect], style: f64, clearance: (
     }
     let start = Point::new(if bc.x >= ac.x { a.x1 } else { a.x0 }, ac.y);
     let candidates = [Point::new(if bc.x >= ac.x { b.x0 } else { b.x1 }, bc.y), Point::new(bc.x, b.y1), Point::new(bc.x, b.y0)];
-    let inflated = obs.iter().map(|r| r.inflate(clearance.0, clearance.1)).collect::<Vec<_>>();
     let mut best = None;
     for (side, end) in candidates.into_iter().enumerate() {
+        let inflated = self::clearance(obs, clearance, [start, end]);
         if let Ok(path) = path(start, end, &inflated, Some(0), Some(if side == 0 { 0 } else { 1 })) {
             let cost =
                 path.windows(2).map(|s| s.first().zip(s.get(1)).map_or(0., |(a, b)| (*b - *a).hypot())).sum::<f64>() + path.len() as f64 * 0.01;
@@ -317,14 +317,23 @@ pub(crate) fn page_signature(e: &mut Evaluator<'_>, page: u32) -> Result<Vec<(u6
 }
 
 /// Reduce clearance only where a neighboring obstacle would engulf an attachment.
-/// Actual obstacle interiors remain forbidden; tight layouts retain a traversable gap.
+/// An endpoint already inside an obstacle can leave it; other obstacles retain clearance.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/linetolinex-cell-page-layout-section
 pub(crate) fn clearance(obstacles: &[Rect], distance: (f64, f64), ends: [Point; 2]) -> Vec<Rect> {
     obstacles
         .iter()
+        .filter(|r| !ends.iter().any(|p| p.x > r.x0 + 1e-9 && p.x < r.x1 - 1e-9 && p.y > r.y0 + 1e-9 && p.y < r.y1 - 1e-9))
         .map(|r| {
             let (mut x, mut y) = distance;
             for p in ends {
+                // A boundary attachment may leave along or away from that edge.
+                // Keep the obstacle interior, but do not inflate across the attachment.
+                if p.y >= r.y0 - 1e-9 && p.y <= r.y1 + 1e-9 && ((p.x - r.x0).abs() <= 1e-9 || (p.x - r.x1).abs() <= 1e-9) {
+                    x = 0.;
+                }
+                if p.x >= r.x0 - 1e-9 && p.x <= r.x1 + 1e-9 && ((p.y - r.y0).abs() <= 1e-9 || (p.y - r.y1).abs() <= 1e-9) {
+                    y = 0.;
+                }
                 let dx = (r.x0 - p.x).max(p.x - r.x1).max(0.);
                 let dy = (r.y0 - p.y).max(p.y - r.y1).max(0.);
                 if dx < x && dy < y && (dx > 0. || dy > 0.) {
@@ -375,6 +384,24 @@ pub(crate) fn trim_inherited_start(rows: &mut Vec<diagramcraft_model::Row>, zero
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn covered_endpoints_leave_other_obstacles_and_boundary_interiors_enforced() {
+        let start = Point::ORIGIN;
+        let end = Point::new(6., 0.);
+        let barrier = Rect::new(3., -1., 4., 1.);
+        for host in [Rect::new(-1., -1., 1., 1.), Rect::new(-2., -1., 0., 1.)] {
+            let obstacles = clearance(&[host, barrier], (0.25, 0.25), [start, end]);
+            let inflated = barrier.inflate(0.25, 0.25);
+            assert!(obstacles.contains(&inflated), "unrelated barrier lost its clearance");
+            let route = path(start, end, &obstacles, Some(0), Some(0)).unwrap();
+            assert!(route.len() > 2);
+            assert!(route.windows(2).all(|s| !blocked(s[0], s[1], &[inflated])));
+            if host.x1 == start.x {
+                assert_eq!(obstacles.len(), 2);
+                assert!(route.windows(2).all(|s| !blocked(s[0], s[1], &[host])));
+            }
+        }
+    }
     #[test]
     fn obstacle_clearance_is_geometric_and_bounded() {
         let obstacle = Rect::new(2., -1., 3., 1.);

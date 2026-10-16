@@ -1105,3 +1105,14 @@ The orthogonal alignment case also needs the endpoint obstacle correction in A4.
 References: [Cell references](https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references),
 [Masters.Drop](https://learn.microsoft.com/en-us/office/vba/api/visio.masters.drop),
 [Ungroup](https://learn.microsoft.com/en-us/office/vba/api/visio.shape.ungroup).
+
+## Brief A4: endpoints inside obstacles (#44)
+
+Resolved: routing exempts an obstacle containing an endpoint so the route can
+leave it. At an obstacle boundary, only clearance normal to the attachment edge
+is removed; the interior remains forbidden. Dynamic endpoint selection uses the
+same clearance calculation. Other obstacles retain their clearance, verified by
+a mixed-obstacle route test. Master drop, duplicate, move over a glued end,
+background glue and A3's orthogonal alignment case succeed without swallowing a
+routing error.
+Reference: [LineToLineX](https://learn.microsoft.com/en-us/office/client-developer/visio/linetolinex-cell-page-layout-section).
