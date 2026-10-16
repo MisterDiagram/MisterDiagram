@@ -156,3 +156,18 @@ use this same session path.
 Attribute parsing disables quick-xml's quadratic duplicate scan and checks raw qualified names in a hash set before retaining values. Duplicates remain errors. No new cap is needed; the corpus maximum remains 44 attributes on one element.
 
 Copied from siblings: `crates/opc/tests/attribute_bounds.rs` adapts the review 1a attribute regression from craft-apps at `107ee4c3423dd4154bd3c59f60362801f638eabf`, MIT OR Apache-2.0.
+
+Brief B relationship accounting: each relationship part is parsed once into an
+ID index, then its entries move into the retained part. Package validation uses
+the same parsed root relationships and document tree. Repeated pages/masters
+collection targets and repeated Page/Master content targets are read once;
+the first occurrence supplies the model entry. Empty entries without a Rel
+remain distinct because each is represented explicitly in the input. This keeps
+work proportional to input parts and elements without a new page/master cap.
+The scan of all 1,413 strict packages plus 850 other stencil paths (including six
+B1 synthetic probes) found zero duplicate collection or content targets, zero
+parse errors, at most 3 pages and 292 masters in a collection.
+
+Copied from siblings: `crates/vsdx/src/relationship_tests.rs` adapts the review 1a
+relationship regressions and synthetic package recipe from craft-apps at
+`107ee4c3423dd4154bd3c59f60362801f638eabf`, MIT OR Apache-2.0.

@@ -7,7 +7,7 @@ pub mod write;
 use diagramcraft_model::*;
 use diagramcraft_opc::{Package, xml};
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::{BTreeMap, BTreeSet, HashMap, HashSet},
     io::Read,
     path::Path,
 };
@@ -49,7 +49,12 @@ pub fn import(bytes: &[u8]) -> Result<Document, ReadError> {
         return Err(bad("compressed file exceeds cap"));
     }
     let package = Package::open(bytes)?;
-    package.validate_visio()?;
+    // Validate the same package contract using trees already needed by this import.
+    // Avoid reparsing root relationships through Package::validate_visio.
+    let types = part_xml(&package, "[Content_Types].xml")?;
+    if types.name != "Types" || types.namespace != "http://schemas.openxmlformats.org/package/2006/content-types" {
+        return Err(bad("invalid content types root"));
+    }
     let root_rels = relationships(&package, "")?;
     let main = root_rels
         .iter()
@@ -57,6 +62,18 @@ pub fn import(bytes: &[u8]) -> Result<Document, ReadError> {
         .ok_or_else(|| bad("missing document relationship"))?
         .target
         .clone();
+    let kind = package.content_type(&main).ok_or_else(|| bad("missing main content type"))?;
+    if !matches!(
+        kind.as_str(),
+        "application/vnd.ms-visio.drawing.main+xml"
+            | "application/vnd.ms-visio.stencil.main+xml"
+            | "application/vnd.ms-visio.template.main+xml"
+            | "application/vnd.ms-visio.drawing.macroEnabled.main+xml"
+            | "application/vnd.ms-visio.stencil.macroEnabled.main+xml"
+            | "application/vnd.ms-visio.template.macroEnabled.main+xml"
+    ) {
+        return Err(bad("not a supported Visio package"));
+    }
     let mut doc = Document { main_part: main.clone(), root_relationships: root_rels, ..Default::default() };
     for (name, _) in package.parts() {
         let content_type = package.content_type(name);
@@ -67,6 +84,10 @@ pub fn import(bytes: &[u8]) -> Result<Document, ReadError> {
             continue;
         }
         doc.parts.insert(name.to_string(), Part { content_type, ..Default::default() });
+    }
+    let mut tables = HashMap::new();
+    for name in doc.parts.keys().filter(|n| !n.ends_with(".rels")) {
+        tables.insert(diagramcraft_opc::norm(name), RelationshipTable::new(relationships(&package, name)?));
     }
     doc.macros_removed |= package.content_type(&main).is_some_and(|s| s.contains("macroEnabled"));
     let root = part_xml(&package, &main)?;
@@ -101,12 +122,18 @@ pub fn import(bytes: &[u8]) -> Result<Document, ReadError> {
         }
     }
     retain_xml(&package, &mut doc, &main, root)?;
-    let rels = relationships(&package, &main)?;
-    for r in rels.iter().filter(|r| !r.external) {
+    let rels = tables.get(&diagramcraft_opc::norm(&main)).ok_or_else(|| bad("missing document relationship table"))?;
+    let mut collections = HashSet::new();
+    let mut pages = HashSet::new();
+    let mut masters = HashSet::new();
+    for r in rels.entries.iter().filter(|r| !r.external) {
+        if !collections.insert((r.type_uri.as_str(), diagramcraft_opc::norm(&r.target))) {
+            continue;
+        }
         if r.type_uri == format!("{VIS_REL}pages") {
-            parse_pages(&package, &mut doc, &r.target)?;
+            parse_pages(&package, &mut doc, &r.target, &tables, &mut pages)?;
         } else if r.type_uri == format!("{VIS_REL}masters") {
-            parse_masters(&package, &mut doc, &r.target)?;
+            parse_masters(&package, &mut doc, &r.target, &tables, &mut masters)?;
         } else if r.type_uri == format!("{VIS_REL}windows") {
             let root = part_xml(&package, &r.target)?;
             retain_xml(&package, &mut doc, &r.target, root)?;
@@ -128,11 +155,9 @@ pub fn import(bytes: &[u8]) -> Result<Document, ReadError> {
         let root = part_xml(&package, &name)?;
         retain_xml(&package, &mut doc, &name, root)?;
     }
-    let names: Vec<String> = doc.parts.keys().filter(|n| !n.ends_with(".rels")).cloned().collect();
-    for name in names {
-        let rels = relationships(&package, &name)?;
-        if let Some(p) = doc.parts.get_mut(&name) {
-            p.relationships = rels;
+    for (name, table) in tables {
+        if let Some(p) = package.original_name(&name).and_then(|original| doc.parts.get_mut(original)) {
+            p.relationships = table.entries;
         }
     }
     for (name, bytes) in package.into_parts() {
@@ -237,6 +262,8 @@ fn retain_xml(p: &Package, d: &mut Document, name: &str, root: XmlElement) -> Re
 }
 fn relationships(p: &Package, name: &str) -> Result<Vec<Relationship>, ReadError> {
     let Some(bytes) = p.get(&diagramcraft_opc::rels_path(name)) else { return Ok(vec![]) };
+    #[cfg(test)]
+    RELATIONSHIP_PARSES.with(|n| n.set(n.get() + 1));
     let root = parse_xml(bytes)?;
     if root.name != "Relationships" || root.namespace != REL_NS {
         return Err(bad("invalid relationship root"));
@@ -250,7 +277,7 @@ fn relationships(p: &Package, name: &str) -> Result<Vec<Relationship>, ReadError
         }
         let ty = r.attr("Type").ok_or_else(|| bad("relationship missing Type"))?;
         let target = r.attr("Target").ok_or_else(|| bad("relationship missing Target"))?;
-        let external = r.attr("TargetMode") == Some("External");
+        let external = r.attr("TargetMode").is_some_and(|mode| mode.eq_ignore_ascii_case("external"));
         out.push(Relationship {
             id: id.into(),
             type_uri: ty.into(),
@@ -260,7 +287,21 @@ fn relationships(p: &Package, name: &str) -> Result<Vec<Relationship>, ReadError
     }
     Ok(out)
 }
-fn related(p: &Package, part: &str, e: &XmlElement, kind: &str) -> Result<String, ReadError> {
+/// One indexed table per relationship part, retained for the duration of import.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/rel-element-page_type-complextypevisio-xml
+struct RelationshipTable {
+    entries: Vec<Relationship>,
+    by_id: HashMap<String, usize>,
+}
+impl RelationshipTable {
+    fn new(entries: Vec<Relationship>) -> Self {
+        let by_id = entries.iter().enumerate().map(|(i, r)| (r.id.clone(), i)).collect();
+        Self { entries, by_id }
+    }
+}
+#[cfg(test)]
+std::thread_local! { static RELATIONSHIP_PARSES: std::cell::Cell<usize> = const { std::cell::Cell::new(0) }; }
+fn related(tables: &HashMap<String, RelationshipTable>, part: &str, e: &XmlElement, kind: &str) -> Result<String, ReadError> {
     let rel = e.child("Rel").ok_or_else(|| bad("missing Rel element"))?;
     let id = rel
         .attributes
@@ -268,10 +309,11 @@ fn related(p: &Package, part: &str, e: &XmlElement, kind: &str) -> Result<String
         .find(|(k, _)| k.rsplit(':').next() == Some("id") && rel.attribute_namespaces.get(*k).is_some_and(|ns| ns == ATTR_REL_NS))
         .map(|(_, v)| v)
         .ok_or_else(|| bad("missing relationship id"))?;
-    relationships(p, part)?
-        .into_iter()
-        .find(|r| r.id == *id && !r.external && r.type_uri == format!("{VIS_REL}{kind}"))
-        .map(|r| r.target)
+    tables
+        .get(&diagramcraft_opc::norm(part))
+        .and_then(|t| t.by_id.get(id).and_then(|i| t.entries.get(*i)))
+        .filter(|r| !r.external && r.type_uri == format!("{VIS_REL}{kind}"))
+        .map(|r| r.target.clone())
         .ok_or_else(|| bad(format!("missing {kind} relationship {id}")))
 }
 /// Preserve cells, deletion markers and arbitrary named sections without filtering cell names.
@@ -421,13 +463,22 @@ fn connects(e: &XmlElement) -> Result<Vec<Connect>, ReadError> {
         })
         .collect()
 }
-fn parse_pages(p: &Package, d: &mut Document, part: &str) -> Result<(), ReadError> {
+fn parse_pages(
+    p: &Package,
+    d: &mut Document,
+    part: &str,
+    tables: &HashMap<String, RelationshipTable>,
+    seen: &mut HashSet<String>,
+) -> Result<(), ReadError> {
     let root = part_xml(p, part)?;
     if !root.is_visio("Pages") {
         return Err(bad("invalid Pages root"));
     }
     for e in root.elements().filter(|e| e.is_visio("Page")) {
-        let target = if e.child("Rel").is_some() { related(p, part, e, "page")? } else { String::new() };
+        let target = if e.child("Rel").is_some() { related(tables, part, e, "page")? } else { String::new() };
+        if !target.is_empty() && !seen.insert(diagramcraft_opc::norm(&target)) {
+            continue;
+        }
         let content = if target.is_empty() {
             XmlElement { name: "PageContents".into(), namespace: e.namespace.clone(), ..Default::default() }
         } else {
@@ -453,7 +504,13 @@ fn parse_pages(p: &Package, d: &mut Document, part: &str) -> Result<(), ReadErro
     retain_xml(p, d, part, root)?;
     Ok(())
 }
-fn parse_masters(p: &Package, d: &mut Document, part: &str) -> Result<(), ReadError> {
+fn parse_masters(
+    p: &Package,
+    d: &mut Document,
+    part: &str,
+    tables: &HashMap<String, RelationshipTable>,
+    seen: &mut HashSet<String>,
+) -> Result<(), ReadError> {
     let root = part_xml(p, part)?;
     if !root.is_visio("Masters") {
         return Err(bad("invalid Masters root"));
@@ -462,7 +519,10 @@ fn parse_masters(p: &Package, d: &mut Document, part: &str) -> Result<(), ReadEr
         if e.is_visio("MasterShortcut") {
             d.master_shortcuts.push(e.clone());
         } else if e.is_visio("Master") {
-            let target = if e.child("Rel").is_some() { related(p, part, e, "master")? } else { String::new() };
+            let target = if e.child("Rel").is_some() { related(tables, part, e, "master")? } else { String::new() };
+            if !target.is_empty() && !seen.insert(diagramcraft_opc::norm(&target)) {
+                continue;
+            }
             let content = if target.is_empty() {
                 XmlElement { name: "MasterContents".into(), namespace: e.namespace.clone(), ..Default::default() }
             } else {
@@ -492,3 +552,6 @@ fn parse_masters(p: &Package, d: &mut Document, part: &str) -> Result<(), ReadEr
     retain_xml(p, d, part, root)?;
     Ok(())
 }
+
+#[cfg(test)]
+mod relationship_tests;
