@@ -510,7 +510,9 @@ pub(crate) fn new_from_shape(s: &mut Session, p: &Value) -> Result<Value> {
         return Err(operation("master name already exists"));
     }
     let mut e = Evaluator::new(&s.document).map_err(operation)?;
-    let shape = e.shape(scope).ok_or_else(|| operation("shape missing"))?.clone();
+    let mut shape = e.shape(scope).ok_or_else(|| operation("shape missing"))?.clone();
+    let page_id = s.document.pages.get(index).ok_or_else(|| operation("page not found"))?.id;
+    crate::reference_cleanup::isolate(&s.document, page_id, &mut shape)?;
     let width = e.evaluate(scope, "Width").numeric().map_err(operation)?;
     let height = e.evaluate(scope, "Height").numeric().map_err(operation)?;
     let stroke = if e.evaluate(scope, "LinePattern").numeric().map_err(operation)? == 0. {

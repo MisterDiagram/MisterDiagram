@@ -167,7 +167,7 @@ impl<'a> Evaluator<'a> {
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/textbkgnd-cell-text-block-format-section
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/langid-cell-character-section
-    pub(crate) fn serialized_number(&self, scope: Scope, name: &str, cell: &Cell, number: f64) -> Result<String, Error> {
+    pub fn serialized_number(&self, scope: Scope, name: &str, cell: &Cell, number: f64) -> Result<String, Error> {
         if !number.is_finite() {
             return Err(Error::Num);
         }

@@ -142,19 +142,21 @@ pub(crate) fn move_shape(s: &mut Session, p: &Value) -> Result<Value> {
     } else {
         None
     };
+    let dx = x - old_x;
+    let dy = y - old_y;
     s.edit_document(|doc, _| {
-        let sheet = &mut shape_mut(&mut page_mut(doc, index)?.shapes, id)?.sheet;
+        let page = page_mut(doc, index)?;
         if let Some([bx, by, ex, ey]) = ends {
-            for (name, v) in [("BeginX", bx + x - old_x), ("BeginY", by + y - old_y), ("EndX", ex + x - old_x), ("EndY", ey + y - old_y)] {
-                set_number(sheet, name, v)?;
-            }
+            crate::reference_cleanup::move_ends(page, id, [bx, by, ex, ey], [bx + dx, by + dy, ex + dx, ey + dy])?;
         } else {
+            let sheet = &mut shape_mut(&mut page.shapes, id)?.sheet;
             set_number(sheet, "PinX", x)?;
             set_number(sheet, "PinY", y)?;
         }
         Ok(json!({}))
     })
 }
+
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/width-cell-shape-transform-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/height-cell-shape-transform-section
 pub(crate) fn resize(s: &mut Session, p: &Value) -> Result<Value> {

@@ -82,6 +82,16 @@ fn translate(sheet: &mut Sheet, f: &Frame, dx: f64, dy: f64) -> Result<()> {
     }
     Ok(())
 }
+fn translate_detached(page: &mut diagramcraft_model::Page, id: u32, f: &Frame, dx: f64, dy: f64) -> Result<()> {
+    if dx == 0. && dy == 0. {
+        return Ok(());
+    }
+    if let Some([a, b]) = f.ends {
+        crate::reference_cleanup::move_ends(page, id, [a.x, a.y, b.x, b.y], [a.x + dx, a.y + dy, b.x + dx, b.y + dy])
+    } else {
+        translate(&mut shape_mut(&mut page.shapes, id)?.sheet, f, dx, dy)
+    }
+}
 fn frames(s: &Session, index: usize, ids: &[u32]) -> Result<(Option<u32>, BTreeMap<u32, Frame>)> {
     let page = s.document.pages.get(index).ok_or_else(|| operation("page not found"))?;
     let first = *ids.first().ok_or_else(|| operation("empty selection"))?;
@@ -195,8 +205,13 @@ pub(crate) fn ungroup(s: &mut Session, p: &Value) -> Result<Value> {
     for child in &children {
         child_frames.insert(*child, frame(&mut evaluator, Scope::PageShape { page: page.id, shape: *child })?);
     }
+    let detached = crate::reference_cleanup::removing(&s.document, page.id, id)?;
     s.edit_document(|doc, selection| {
+        for (scope, cell) in detached {
+            crate::reference_cleanup::apply(crate::sheet::sheet_mut(doc, scope)?, cell)?;
+        }
         let page = page_mut(doc, index)?;
+        page.connects.retain(|c| c.from_sheet != id && c.to_sheet != id);
         let glued = page
             .connects
             .iter()
@@ -324,6 +339,7 @@ pub(crate) fn duplicate(s: &mut Session, p: &Value) -> Result<Value> {
         next = next.checked_add(1).filter(|v| *v != u32::MAX).ok_or_else(|| operation("shape ID limit"))?;
         pending.extend(shape.shapes.iter().map(|s| (s, depth + 1)));
     }
+    crate::reference_cleanup::isolate(&s.document, page.id, &mut copy)?;
     visit(&mut copy, &map, 0)?;
     translate(&mut copy.sheet, &f, dx, dy)?;
     let new_id = copy.id;
@@ -372,12 +388,7 @@ pub(crate) fn align(s: &mut Session, p: &Value) -> Result<Value> {
     }
     s.edit_document(|doc, _| {
         for (id, (dx, dy)) in shifts {
-            translate(
-                &mut shape_mut(&mut page_mut(doc, index)?.shapes, id)?.sheet,
-                frames.get(&id).ok_or_else(|| operation("frame missing"))?,
-                dx,
-                dy,
-            )?;
+            translate_detached(page_mut(doc, index)?, id, frames.get(&id).ok_or_else(|| operation("frame missing"))?, dx, dy)?;
         }
         Ok(json!({}))
     })
@@ -408,8 +419,9 @@ pub(crate) fn distribute(s: &mut Session, p: &Value) -> Result<Value> {
     s.edit_document(|doc, _| {
         for (i, (id, old)) in centers.iter().enumerate() {
             let delta = start + step * i as f64 - old;
-            translate(
-                &mut shape_mut(&mut page_mut(doc, index)?.shapes, *id)?.sheet,
+            translate_detached(
+                page_mut(doc, index)?,
+                *id,
                 frames.get(id).ok_or_else(|| operation("frame missing"))?,
                 if axis == "x" { delta } else { 0. },
                 if axis == "y" { delta } else { 0. },
@@ -431,28 +443,32 @@ pub(crate) fn same_size(s: &mut Session, p: &Value) -> Result<Value> {
     let reference = frames.get(ids.first().ok_or_else(|| operation("empty selection"))?).ok_or_else(|| operation("frame missing"))?;
     s.edit_document(|doc, _| {
         for id in &ids {
-            let sheet = &mut shape_mut(&mut page_mut(doc, index)?.shapes, *id)?.sheet;
-            if axis != "height" {
-                let f = frames.get(id).ok_or_else(|| operation("frame missing"))?;
+            let f = frames.get(id).ok_or_else(|| operation("frame missing"))?;
+            let page = page_mut(doc, index)?;
+            if axis != "height" && f.width != reference.width {
                 if let Some([a, b]) = f.ends {
                     let angle = (b.y - a.y).atan2(b.x - a.x);
                     let center = Point::new((a.x + b.x) / 2., (a.y + b.y) / 2.);
                     let dx = reference.width * angle.cos() / 2.;
                     let dy = reference.width * angle.sin() / 2.;
-                    for (name, value) in [("BeginX", center.x - dx), ("BeginY", center.y - dy), ("EndX", center.x + dx), ("EndY", center.y + dy)] {
-                        set_number(sheet, name, value)?;
-                    }
+                    crate::reference_cleanup::move_ends(
+                        page,
+                        *id,
+                        [a.x, a.y, b.x, b.y],
+                        [center.x - dx, center.y - dy, center.x + dx, center.y + dy],
+                    )?;
                 } else {
-                    set_number(sheet, "Width", reference.width)?;
+                    set_number(&mut shape_mut(&mut page.shapes, *id)?.sheet, "Width", reference.width)?;
                 }
             }
-            if axis != "width" {
-                set_number(sheet, "Height", reference.height)?;
+            if axis != "width" && f.height != reference.height {
+                set_number(&mut shape_mut(&mut page.shapes, *id)?.sheet, "Height", reference.height)?;
             }
         }
         Ok(json!({}))
     })
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;

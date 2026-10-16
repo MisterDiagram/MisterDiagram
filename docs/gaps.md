@@ -1091,3 +1091,17 @@ follow targets, including relative row coordinates (W4 and reference examples).
 References: [ConFixedCode](https://learn.microsoft.com/en-us/office/client-developer/visio/confixedcode-cell-shape-layout-section),
 [ObjType](https://learn.microsoft.com/en-us/office/client-developer/visio/objtype-cell-miscellaneous-section),
 [ConLineJumpCode](https://learn.microsoft.com/en-us/office/client-developer/visio/conlinejumpcode-cell-shape-layout-section).
+
+## Brief A3: glue bookkeeping (#43)
+
+Copied members and connectors materialize references outside their subtree in
+its original evaluation context (W2). Internal named references become numeric
+references before IDs are remapped. Captured Boolean, font, color and language
+values retain their serialized types. Deleted rows keep their deletion markers
+and cached values when an external reference is removed. Ungroup captures values
+before removing the group. Moving or arranging an end detaches its Connect rows
+and resets its trigger (W1); unchanged ends retain their glue.
+The orthogonal alignment case also needs the endpoint obstacle correction in A4.
+References: [Cell references](https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references),
+[Masters.Drop](https://learn.microsoft.com/en-us/office/vba/api/visio.masters.drop),
+[Ungroup](https://learn.microsoft.com/en-us/office/vba/api/visio.shape.ungroup).

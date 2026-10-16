@@ -11,6 +11,7 @@ mod glue;
 pub mod guard;
 mod masters;
 mod pages;
+mod reference_cleanup;
 mod shapes;
 mod sheet;
 mod stencils;
