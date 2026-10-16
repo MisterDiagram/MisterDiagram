@@ -337,3 +337,11 @@ fn authored_inherited_paragraph_has_no_redundant_pp() {
     let round = diagramcraft_vsdx::import(&diagramcraft_vsdx::write(s.document()).unwrap().bytes).unwrap();
     assert!(round.pages[0].shapes[0].text.as_ref().unwrap().elements().any(|e| e.is_visio("pp")), "local paragraph formatting retains its marker");
 }
+
+#[test]
+fn sheet_set_names_a_missing_shape() {
+    let mut s = Session::new();
+    assert!(
+        matches!(s.execute("sheet.set", &json!({"id":999,"name":"Width","value":2})), Err(diagramcraft_engine::EngineError::Operation(message)) if message == "shape not found")
+    );
+}

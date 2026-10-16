@@ -53,6 +53,9 @@ fn prefix(value: &str) -> &str {
 }
 pub(crate) fn address(doc: &Document, scope: Scope, name: &str) -> Result<Address> {
     let e = Evaluator::new(doc).map_err(operation)?;
+    if matches!(scope, Scope::PageShape { .. }) && e.shape(scope).is_none() {
+        return Err(operation("shape not found"));
+    }
     let named = e
         .resolved_named_cells(scope)
         .into_iter()

@@ -1125,3 +1125,9 @@ corrected text transform. Regression tests compare all three flip combinations
 with unflipped text, including rasterized SVG and emitted PDF scene transforms.
 References: [FlipX](https://learn.microsoft.com/en-us/office/client-developer/visio/flipx-cell-shape-transform-section)
 and [FlipY](https://learn.microsoft.com/en-us/office/client-developer/visio/flipy-cell-shape-transform-section).
+
+## Brief A X-1: missing-shape sheet errors
+
+Resolved: sheet lookup checks shape existence before looking up a cell. A
+sheet.set request for a missing shape now reports `shape not found`, consistent
+with shape.resize. A regression asserts the exact operation error.
