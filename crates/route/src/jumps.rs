@@ -50,18 +50,22 @@ fn row(index: u32, kind: &str, p: Point, a: Option<diagramcraft_model::Cell>) ->
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/conlinejumpdiry-cell-shape-layout-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/pagelinejumpdirx-cell-page-layout-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/pagelinejumpdiry-cell-page-layout-section
-pub(crate) fn apply(doc: &mut Document, host: &mut GlueHost, pages: &BTreeSet<usize>) -> Result<(), String> {
+pub(crate) fn apply(doc: &mut Document, host: &mut GlueHost, routed: &BTreeSet<(usize, u32)>) -> Result<(), String> {
     let themes = diagramcraft_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
     let text = diagramcraft_text::Host;
     let mut e = Evaluator::new(doc).map_err(|v| v.to_string())?.with_theme_host(&themes).with_text_host(&text).with_glue_host(host);
     let mut connectors = Vec::new();
     let mut segments = 0usize;
-    for index in pages {
+    let pages = routed.iter().map(|(page, _)| *page).collect::<BTreeSet<_>>();
+    for index in &pages {
         let page = doc.pages.get(*index).ok_or("jump page")?;
         let ps = Scope::Page(page.id);
         let ids = page.connects.iter().map(|c| c.from_sheet).collect::<BTreeSet<_>>();
         for id in ids {
             let scope = Scope::PageShape { page: page.id, shape: id };
+            if number(&mut e, scope, "ObjType", 0.) != 2. {
+                continue;
+            }
             let transform = e.shape_to_page(scope).map_err(|v| v.to_string())?;
             if !transform.determinant().is_finite() || transform.determinant().abs() < 1e-15 {
                 return Err("jump transform limit".into());
@@ -127,6 +131,9 @@ pub(crate) fn apply(doc: &mut Document, host: &mut GlueHost, pages: &BTreeSet<us
     drop(e);
     let mut changes = Vec::new();
     for c in &connectors {
+        if !routed.contains(&(c.page, c.id)) {
+            continue;
+        }
         let Some(first) = c.points.first() else { continue };
         let inv = c.transform.inverse();
         let mut rows = vec![row(1, "MoveTo", inv * *first, None)];
@@ -241,7 +248,7 @@ pub(crate) fn apply(doc: &mut Document, host: &mut GlueHost, pages: &BTreeSet<us
         let shape = shape_mut(&mut page.shapes, id, 0).ok_or("jump connector missing")?;
         let section = Section { name: "Geometry".into(), index: Some(0), rows, ..Default::default() };
         if let Some(old) = shape.sheet.sections.iter_mut().find(|s| s.name == "Geometry" && s.index.unwrap_or(0) == 0) {
-            *old = section;
+            old.rows = section.rows;
         } else {
             shape.sheet.sections.push(section);
         }

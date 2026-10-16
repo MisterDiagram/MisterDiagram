@@ -154,7 +154,7 @@ pub fn connect_static(doc: &mut Document, page_index: usize, id: u32, end: End, 
         return Err("cannot glue an endpoint to itself".into());
     }
     let page = doc.pages.get(page_index).ok_or("page missing")?;
-    let e = Evaluator::new(doc).map_err(|e| e.to_string())?;
+    let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?;
     let scope = Scope::PageShape { page: page.id, shape: id };
     if !["BeginX", "BeginY", "EndX", "EndY"].iter().all(|name| e.resolved_named_cells(scope).iter().any(|c| c.name == *name)) {
         return Err("glue source is not one-dimensional".into());
@@ -167,6 +167,7 @@ pub fn connect_static(doc: &mut Document, page_index: usize, id: u32, end: End, 
         .ok_or("connection X cell missing")?;
     let index = named.row.and_then(|r| r.index).unwrap_or(0);
     let point = named.name;
+    let promote_target = e.evaluate(scope, "ObjType").numeric() == Ok(0.);
     let y = if let Some(prefix) = point.strip_suffix(".X") { format!("{prefix}.Y") } else { point.replacen("Connections.X", "Connections.Y", 1) };
     let formula = format!("PAR(PNT(Sheet.{target}!{point},Sheet.{target}!{y}))");
     let page = doc.pages.get_mut(page_index).ok_or("page missing")?;
@@ -192,7 +193,11 @@ pub fn connect_static(doc: &mut Document, page_index: usize, id: u32, end: End, 
         ..Default::default()
     });
     let target = shape_mut(&mut page.shapes, target, 0).ok_or("target missing")?;
-    set(&mut target.sheet, cell("ObjType", 1, None))?;
+    // Explicit ObjType flags, including the overriding &H4 bit, belong to the user.
+    // https://learn.microsoft.com/en-us/office/client-developer/visio/objtype-cell-miscellaneous-section
+    if promote_target {
+        set(&mut target.sheet, cell("ObjType", 1, None))?;
+    }
     Ok(())
 }
 
@@ -204,9 +209,13 @@ pub fn connect_dynamic(doc: &mut Document, page_index: usize, id: u32, end: End,
         return Err("cannot glue an endpoint to itself".into());
     }
     let page = doc.pages.get(page_index).ok_or("page missing")?;
-    let e = Evaluator::new(doc).map_err(|e| e.to_string())?;
+    let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?;
     let from = Scope::PageShape { page: page.id, shape: id };
     let to = Scope::PageShape { page: page.id, shape: target };
+    let promote_target = e.evaluate(to, "ObjType").numeric() == Ok(0.);
+    let default_policy = e.evaluate(from, "ConFixedCode").numeric() == Ok(0.)
+        && e.shape(from).is_some_and(|s| s.sheet.cell("ConFixedCode").is_none_or(|c| c.formula.as_deref() == Some("Inh")));
+    let initial_policy = if crate::orthogonal::style(&mut e, from, page.id) == 2. { 0 } else { 6 };
     let from_cells = e.resolved_named_cells(from);
     let to_cells = e.resolved_named_cells(to);
     if !["BeginX", "BeginY", "EndX", "EndY"].iter().all(|name| from_cells.iter().any(|n| n.name == *name)) {
@@ -230,7 +239,9 @@ pub fn connect_dynamic(doc: &mut Document, page_index: usize, id: u32, end: End,
         set(&mut shape.sheet, cell(&name, cached, Some(formula.into())))?;
     }
     set(&mut shape.sheet, cell(end.trigger(), 2, Some(format!("_XFTRIGGER(Sheet.{target}!EventXFMod)"))))?;
-    set(&mut shape.sheet, cell("ConFixedCode", 6, None))?;
+    if default_policy {
+        set(&mut shape.sheet, cell("ConFixedCode", initial_policy, None))?;
+    }
     let from_cell = format!("{}X", end.prefix());
     page.connects.retain(|c| !(c.from_sheet == id && c.from_cell.as_deref() == Some(&from_cell)));
     page.connects.push(Connect {
@@ -243,6 +254,10 @@ pub fn connect_dynamic(doc: &mut Document, page_index: usize, id: u32, end: End,
         ..Default::default()
     });
     let target = shape_mut(&mut page.shapes, target, 0).ok_or("target missing")?;
-    set(&mut target.sheet, cell("ObjType", 1, None))?;
+    // Explicit ObjType flags, including the overriding &H4 bit, belong to the user.
+    // https://learn.microsoft.com/en-us/office/client-developer/visio/objtype-cell-miscellaneous-section
+    if promote_target {
+        set(&mut target.sheet, cell("ObjType", 1, None))?;
+    }
     Ok(())
 }

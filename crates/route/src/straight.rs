@@ -78,6 +78,7 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
     let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&text).with_glue_host(host);
     let mut old = Evaluator::new(before).map_err(|e| e.to_string())?.with_theme_host(&old_themes).with_text_host(&text);
     let mut routes = vec![];
+    let mut fixed = vec![];
     for scope in e.scopes().collect::<Vec<_>>() {
         let Scope::PageShape { page, shape: id } = scope else { continue };
         if e.evaluate(scope, "ObjType").numeric() != Ok(2.) || e.cell(scope, "BeginX").is_none() {
@@ -100,6 +101,15 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             .collect::<Result<Vec<_>, _>>()?
             .try_into()
             .map_err(|_| "endpoint count")?;
+        if number(&mut e, scope, "ConFixedCode")? == 2. {
+            if changed {
+                fixed.extend(crate::fixed::end_updates(&mut e, index, scope, [bx, by, ex, ey])?);
+                if fixed.len() > 200000 {
+                    return Err("fixed connector update limit".into());
+                }
+            }
+            continue;
+        }
         let excluded =
             doc.pages.get(index).ok_or("route page missing")?.connects.iter().filter(|c| c.from_sheet == id).map(|c| c.to_sheet).collect::<Vec<_>>();
         let parent = e.parent_to_page(scope).map_err(|v| v.to_string())?;
@@ -135,10 +145,10 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
     }
     drop(e);
     let count = routes.len();
-    let pages = routes.iter().map(|r| r.0).collect();
-    for (index, id, bx, by, ex, ey, style, points, inherited_zero) in routes {
+    let routed = routes.iter().map(|r| (r.0, r.1)).collect();
+    crate::fixed::apply(doc, fixed)?;
+    for (index, id, bx, by, ex, ey, _style, points, inherited_zero) in routes {
         let page = doc.pages.get_mut(index).ok_or("route page missing")?;
-        let dynamic = page.connects.iter().any(|c| c.from_sheet == id && matches!(c.to_cell.as_deref(), Some("PinX" | "PinY")));
         let layer = connector_layer(page)?;
         let shape = shape_mut(&mut page.shapes, id, 0).ok_or("route shape missing")?;
         let dx = ex - bx;
@@ -161,9 +171,6 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
         }
         if shape.sheet.cell("Angle").is_some_and(|c| c.formula.as_deref() == Some("GUARD(ATAN2(EndY-BeginY,EndX-BeginX))")) {
             shape.sheet.cells.retain(|c| c.name != "Angle");
-        }
-        if dynamic {
-            set(&mut shape.sheet, cell("ConFixedCode", if style == 2. { 0 } else { 6 }, None))?;
         }
         for (name, value) in [("BeginX", bx), ("BeginY", by), ("EndX", ex), ("EndY", ey)] {
             // A local literal is an override too. Inh would restore the master's
@@ -209,7 +216,7 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             ..Default::default()
         };
         if let Some(old) = shape.sheet.sections.iter_mut().find(|s| s.name == "Geometry" && s.index.unwrap_or(0) == 0) {
-            *old = geometry;
+            old.rows = geometry.rows;
         } else {
             shape.sheet.sections.push(geometry);
         }
@@ -233,6 +240,6 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             shape.sheet.sections.push(Section { name: "Control".into(), rows: vec![control], ..Default::default() });
         }
     }
-    crate::jumps::apply(doc, host, &pages)?;
+    crate::jumps::apply(doc, host, &routed)?;
     Ok(count)
 }

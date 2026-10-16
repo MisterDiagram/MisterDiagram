@@ -154,6 +154,7 @@ impl GlueHost {
         self.active.insert((page, shape));
     }
     /// Compare transforms against the transaction snapshot and invalidate only affected glue triggers.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/confixedcode-cell-shape-layout-section
     /// Endpoint caches are not filled here: evaluation must call `_WALKGLUE` to obtain the new point.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/eventxfmod-cell-events-section
     pub fn prepare(before: &Document, doc: &mut Document) -> Result<Self, String> {
@@ -193,7 +194,11 @@ impl GlueHost {
                 let dynamic = |c: Option<&diagramcraft_model::Connect>| c.is_some_and(|c| matches!(c.to_cell.as_deref(), Some("PinX" | "PinY")));
                 let boxes = links.map(|c| c.map(|c| bounds(&mut e, page.id, c.to_sheet)).transpose()).into_iter().collect::<Result<Vec<_>, _>>()?;
                 let preference = number(&mut e, scope, "WalkPreference")?;
-                let planned = if preference == 0. && links.iter().all(|c| dynamic(*c)) && boxes.iter().flatten().all(|b| b.points.is_empty()) {
+                let planned = if number(&mut e, scope, "ConFixedCode")? != 2.
+                    && preference == 0.
+                    && links.iter().all(|c| dynamic(*c))
+                    && boxes.iter().flatten().all(|b| b.points.is_empty())
+                {
                     if let (Some(a), Some(b)) = (boxes.first().and_then(Option::as_ref), boxes.get(1).and_then(Option::as_ref)) {
                         let excluded = links.iter().flatten().map(|c| c.to_sheet).collect::<Vec<_>>();
                         let obstacles = crate::orthogonal::obstacles(&mut e, page.id, &excluded)?;

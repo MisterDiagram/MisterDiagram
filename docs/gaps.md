@@ -1079,3 +1079,15 @@ existing font, palette and language cache tests remain green. String-related
 parity classifications are unchanged.
 Reference: [Cell](https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml)
 and [Label](https://learn.microsoft.com/en-us/office/client-developer/visio/label-cell-shape-data-section).
+
+## Brief A2: route ownership (#42)
+
+Resolved: the jump pass only rewrites connectors actually routed, and plain
+ObjType0 lines are neither jump recipients nor crossing candidates (W3).
+Route and jump updates retain Geometry section cells. Glue preserves explicit
+ObjType flags and routing policy; an explicit default policy remains a local
+override. ConFixedCode2 routes retain their path while glued terminal coordinates
+follow targets, including relative row coordinates (W4 and reference examples).
+References: [ConFixedCode](https://learn.microsoft.com/en-us/office/client-developer/visio/confixedcode-cell-shape-layout-section),
+[ObjType](https://learn.microsoft.com/en-us/office/client-developer/visio/objtype-cell-miscellaneous-section),
+[ConLineJumpCode](https://learn.microsoft.com/en-us/office/client-developer/visio/conlinejumpcode-cell-shape-layout-section).

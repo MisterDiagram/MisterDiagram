@@ -59,6 +59,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/colors-element-visiodocument_type-complextypevisio-xml> | `crates/engine/src/files.rs`, `crates/engine/src/masters.rs`, `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs`, `crates/render/tests/authored.rs`, `crates/sheet/src/eval.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/write.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/colorschemeindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/compoundtype-cell-line-format-section> | `crates/render/src/style.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/confixedcode-cell-shape-layout-section> | `crates/route/src/fixed.rs`, `crates/route/src/glue_host.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/conlinejumpcode-cell-shape-layout-section> | `crates/route/src/jumps.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/conlinejumpdirx-cell-shape-layout-section> | `crates/route/src/jumps.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/conlinejumpdiry-cell-shape-layout-section> | `crates/route/src/jumps.rs` |
@@ -148,7 +149,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/linejumpfactory-cell-page-layout-section> | `crates/route/src/jumps.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/linejumpstyle-cell-page-layout-section> | `crates/route/src/jumps.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/linepattern-cell-line-format-section> | `crates/render/src/style.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/lineto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/vsdx/src/evaluate/path.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/lineto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/route/src/fixed.rs`, `crates/vsdx/src/evaluate/path.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/linetolinex-cell-page-layout-section> | `crates/route/src/orthogonal.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/linetonodex-cell-page-layout-section> | `crates/route/src/orthogonal.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section> | `crates/engine/src/content.rs`, `crates/render/src/scene.rs` |
@@ -170,7 +171,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/mid-function-visioshapesheet> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/min-function> | `crates/sheet/src/functions/numeric.rs`, `crates/vsdx/src/evaluate/interval.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/modulus-function> | `crates/sheet/src/functions/numeric.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/moveto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/route/src/orthogonal.rs`, `crates/vsdx/src/evaluate/path.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/moveto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/route/src/fixed.rs`, `crates/route/src/orthogonal.rs`, `crates/vsdx/src/evaluate/path.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/msoshade-function> | `crates/sheet/src/functions/color_adjust.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/msotint-function> | `crates/sheet/src/functions/color_adjust.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/na-function> | `crates/sheet/src/functions/extras.rs` |
@@ -217,11 +218,11 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rel-element-foreigndata_type-complextypevisio-xml> | `crates/engine/tests/foreign_master.rs`, `crates/render/src/scene.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rel-element-page_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/relationships-cell-shape-layout-section> | `crates/vsdx/src/evaluate/relationships.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/relcubbezto-row-geometry-section> | `crates/geom/src/rows.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/relellipticalarcto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/vsdx/src/dump.rs`, `crates/vsdx/tests/authoring_metadata.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/rellineto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/vsdx/src/evaluate/path.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/relmoveto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/vsdx/src/dump.rs`, `crates/vsdx/src/evaluate/path.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/relquadbezto-row-geometry-section> | `crates/geom/src/rows.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/relcubbezto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/route/src/fixed.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/relellipticalarcto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/route/src/fixed.rs`, `crates/vsdx/src/dump.rs`, `crates/vsdx/tests/authoring_metadata.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/rellineto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/route/src/fixed.rs`, `crates/vsdx/src/evaluate/path.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/relmoveto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/route/src/fixed.rs`, `crates/vsdx/src/dump.rs`, `crates/vsdx/src/evaluate/path.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/relquadbezto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/route/src/fixed.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rgb-function> | `crates/vsdx/src/write/model.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rgb-function-visioshapesheet> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/right-function-visioshapesheet> | `crates/sheet/src/functions/text.rs` |

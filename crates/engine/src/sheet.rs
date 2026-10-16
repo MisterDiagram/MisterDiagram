@@ -190,7 +190,10 @@ pub(crate) fn set_cell(s: &mut Session, p: &Value) -> Result<Value> {
             })
             .unwrap_or(false);
         drop(evaluator);
-        if redundant {
+        // Keep an explicit routing policy even when it equals the inherited default.
+        // Glue initialization may otherwise replace the lost user choice.
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/confixedcode-cell-shape-layout-section
+        if redundant && !name.eq_ignore_ascii_case("ConFixedCode") {
             remove_override(sheet_mut(doc, scope)?, &address);
         }
         Ok(json!({}))
