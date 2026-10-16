@@ -1160,3 +1160,5 @@ Brief B3 (#48): imports index each relationship part once and read repeated page
 Brief B4 (#49): EMF text decoding/shaping and dash outline expansion are checked against the existing operation budget first. Scaled portable regressions assert refusal before retained outlines; ordinary text/dashes still draw. No numerical cap or render population changes.
 
 Brief B5 (#50): shared cell caching remains enabled in EVALCELL for argument-independent results. Runtime ARG reads prevent dependent cells from becoming cross-frame cache entries. Cold and warm15-step chains return32768; frame-specific arguments and outside defaults are retained. Context-dependent entries preserve their existing outside-frame cache, and cache-hit metadata propagates to cold callers. No cap changes.
+
+Brief B6 (#51): master contact sheets prepare one theme host and evaluator for the complete stencil. A portable structural regression counts one evaluator for eight masters, preserving the existing blank/error report semantics. No limit changes.
