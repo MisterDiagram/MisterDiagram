@@ -166,5 +166,6 @@ fn authored_numeric_looking_strings_survive_cli_save_and_readback() {
         assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
         let result: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
         assert_eq!(result["result"]["cached"], expected, "{name}: {result}");
+        assert_eq!(result["result"]["value"], expected, "{name}: {result}");
     }
 }

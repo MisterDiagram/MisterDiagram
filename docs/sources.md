@@ -50,14 +50,24 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/blue-function> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/bound-function> | `crates/sheet/src/functions/spatial.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/bullet-cell-paragraph-section> | `crates/vsdx/src/evaluate/text.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/bulletstring-cell-paragraph-section> | `crates/vsdx/src/evaluate/string_cells.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/buttonface-cell-action-tags-section> | `crates/vsdx/src/evaluate/string_cells.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/buttonface-cell-actions-section> | `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/c-cell-geometry-section> | `crates/vsdx/src/dump.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/case-cell-character-section> | `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/ceiling-function> | `crates/sheet/src/functions/numeric.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml> | `crates/engine/src/lib.rs`, `crates/engine/tests/glue.rs`, `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs`, `crates/model/src/skeleton_defaults.rs`, `crates/render/tests/authored.rs`, `crates/sheet/src/eval.rs`, `crates/sheet/src/units.rs`, `crates/vsdx/src/dump.rs`, `crates/vsdx/src/dump/serialized.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/defaults.rs`, `crates/vsdx/src/evaluate/inherit.rs`, `crates/vsdx/src/roundtrip.rs`, `crates/vsdx/src/write.rs`, `crates/vsdx/src/write/instances.rs`, `crates/vsdx/src/write/model.rs`, `crates/vsdx/src/write/source.rs`, `crates/vsdx/src/write/validate.rs`, `crates/vsdx/tests/writer.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/cell-element-action-tag-sectionvisio-xml> | `crates/vsdx/src/evaluate/string_cells.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/cell-element-controls-rowvisio-xml> | `crates/vsdx/src/evaluate/string_cells.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/cell-element-hyperlink-rowvisio-xml> | `crates/vsdx/src/evaluate/string_cells.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/cell-element-layer-sectionvisio-xml> | `crates/vsdx/src/evaluate/string_cells.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/cell-element-user-defined-cells-sectionvisio-xml> | `crates/vsdx/src/evaluate/string_cells.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml> | `crates/engine/src/lib.rs`, `crates/engine/tests/glue.rs`, `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs`, `crates/model/src/skeleton_defaults.rs`, `crates/render/tests/authored.rs`, `crates/sheet/src/eval.rs`, `crates/sheet/src/units.rs`, `crates/vsdx/src/dump.rs`, `crates/vsdx/src/dump/serialized.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/defaults.rs`, `crates/vsdx/src/evaluate/inherit.rs`, `crates/vsdx/src/evaluate/string_cells.rs`, `crates/vsdx/src/roundtrip.rs`, `crates/vsdx/src/write.rs`, `crates/vsdx/src/write/instances.rs`, `crates/vsdx/src/write/model.rs`, `crates/vsdx/src/write/source.rs`, `crates/vsdx/src/write/validate.rs`, `crates/vsdx/tests/writer.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/color-cell-character-section> | `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/colorentry-element-colors_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/colors-element-visiodocument_type-complextypevisio-xml> | `crates/engine/src/files.rs`, `crates/engine/src/masters.rs`, `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs`, `crates/render/tests/authored.rs`, `crates/sheet/src/eval.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/write.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/colorschemeindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/comment-cell-annotation-section> | `crates/vsdx/src/evaluate/string_cells.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/comment-cell-miscellaneous-section> | `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/compoundtype-cell-line-format-section> | `crates/render/src/style.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/confixedcode-cell-shape-layout-section> | `crates/route/src/fixed.rs`, `crates/route/src/glue_host.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/conlinejumpcode-cell-shape-layout-section> | `crates/route/src/jumps.rs` |
@@ -106,7 +116,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fontschemeindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fonttoid-function> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml> | `crates/engine/tests/foreign_master.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/lib.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-shape-data-section> | `crates/engine/src/content.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-shape-data-section> | `crates/engine/src/content.rs`, `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-text-fields-section> | `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-function> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/formatex-function> | `crates/sheet/src/functions/text.rs` |
@@ -128,6 +138,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/indleft-cell-paragraph-section> | `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/indright-cell-paragraph-section> | `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/infiniteline-row-geometry-section> | `crates/geom/src/rows.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/initials-cell-reviewer-section> | `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/int-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx> | `crates/engine/tests/composition.rs`, `crates/model/src/lib.rs`, `crates/model/src/skeleton_properties.rs`, `crates/opc/src/opc.rs`, `crates/vsdx/src/lib.rs`, `crates/vsdx/src/write.rs`, `crates/vsdx/src/write/format.rs`, `crates/vsdx/src/write/xml.rs`, `crates/vsdx/tests/writer.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/invisible-cell-shape-data-section> | `crates/engine/src/content.rs` |
@@ -136,7 +147,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/iserror-function-visioshapesheet> | `crates/sheet/src/functions/extras.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/iserrvalue-function> | `crates/sheet/src/functions/extras.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/isthemed-function> | `crates/sheet/src/functions/theme.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/label-cell-shape-data-section> | `crates/engine/src/content.rs`, `crates/vsdx/src/write/model.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/label-cell-shape-data-section> | `crates/engine/src/content.rs`, `crates/vsdx/src/evaluate/string_cells.rs`, `crates/vsdx/src/write/model.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/langid-cell-character-section> | `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/langid-cell-shape-data-section> | `crates/engine/src/content.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/language-function> | `crates/sheet/src/functions/mod.rs`, `crates/sheet/src/language.rs` |
@@ -169,6 +180,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/masters-elementvisio-xml> | `crates/vsdx/src/write/format.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/mastershortcut-element-masters_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/max-function> | `crates/sheet/src/functions/numeric.rs`, `crates/vsdx/src/evaluate/interval.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/menu-cell-actions-section> | `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/mid-function-visioshapesheet> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/min-function> | `crates/sheet/src/functions/numeric.rs`, `crates/vsdx/src/evaluate/interval.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/modulus-function> | `crates/sheet/src/functions/numeric.rs` |
@@ -176,6 +188,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/msoshade-function> | `crates/sheet/src/functions/color_adjust.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/msotint-function> | `crates/sheet/src/functions/color_adjust.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/na-function> | `crates/sheet/src/functions/extras.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/name-cell-reviewer-section> | `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/nearestpointonpath-function> | `crates/vsdx/src/evaluate/path.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/nofill-cell-geometry-section> | `crates/geom/src/rows.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/noline-cell-geometry-section> | `crates/geom/src/rows.rs` |
@@ -211,6 +224,8 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pow-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pp-element-text_type-complextypevisio-xml> | `crates/engine/src/content.rs`, `crates/engine/src/masters.rs`, `crates/engine/tests/authoring.rs`, `crates/vsdx/src/evaluate/text.rs`, `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/print-cell-layer-properties-section> | `crates/render/src/scene.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/prompt-cell-actions-section> | `crates/vsdx/src/evaluate/string_cells.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/prompt-cell-shape-data-section> | `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/quickstylefillcolor-cell-quick-style-section> | `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rad-function> | `crates/sheet/src/functions/extras.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rectsect-function> | `crates/sheet/src/functions/spatial.rs` |
@@ -252,7 +267,8 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/sin-function-visioshapesheet> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/sinh-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/size-cell-character-section> | `crates/engine/src/content.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/text.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/sortkey-cell-shape-data-section> | `crates/engine/src/content.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/sortkey-cell-actions-section> | `crates/vsdx/src/evaluate/string_cells.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/sortkey-cell-shape-data-section> | `crates/engine/src/content.rs`, `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/spacing-cell-character-section> | `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/spafter-cell-paragraph-section> | `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/spbefore-cell-paragraph-section> | `crates/vsdx/src/evaluate/text.rs` |
@@ -264,6 +280,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/style-cell-character-section> | `crates/engine/src/content.rs`, `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/stylesheet-element-stylesheets_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/sum-function> | `crates/sheet/src/functions/numeric.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/tagname-cell-actions-section> | `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/tan-function-visioshapesheet> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/tanh-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/text-element-shapesheet_type-complextypevisio-xml> | `crates/engine/src/content.rs`, `crates/vsdx/src/evaluate/text.rs`, `crates/vsdx/src/lib.rs` |
@@ -288,7 +305,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/txtpinx-cell-text-transform-section> | `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/txtpiny-cell-text-transform-section> | `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/txtwidth-cell-text-transform-section> | `crates/vsdx/src/evaluate/text.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/type-cell-shape-data-section> | `crates/engine/src/content.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/type-cell-shape-data-section> | `crates/engine/src/content.rs`, `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/typec-cell-connection-points-section> | `crates/route/src/static_glue.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/use-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/value-cell-shape-data-section> | `crates/engine/src/content.rs`, `tools/oracle/make-corpus.ps1` |

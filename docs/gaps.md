@@ -1131,3 +1131,16 @@ and [FlipY](https://learn.microsoft.com/en-us/office/client-developer/visio/flip
 Resolved: sheet lookup checks shape existence before looking up a cell. A
 sheet.set request for a missing shape now reports `shape not found`, consistent
 with shape.resize. A regression asserts the exact operation error.
+
+## Brief B0: evaluated string spelling (#41)
+
+Resolved: section-aware cached-value interpretation preserves text in declared
+string columns even without U=STR. Shape Data Label, Prompt, Format and SortKey,
+layer names, and the other text columns retain numeric-looking spelling through
+`sheet.get`. Numeric columns and Property.Value keep their existing interpretation.
+The five-value CLI repro asserts both value and cached. String column, error,
+length, inheritance, alias and EVALCELL regressions cover evaluation. No cap or
+parity score changes.
+References: [Label](https://learn.microsoft.com/en-us/office/client-developer/visio/label-cell-shape-data-section),
+[Layer cells](https://learn.microsoft.com/en-us/office/client-developer/visio/cell-element-layer-sectionvisio-xml),
+[Type](https://learn.microsoft.com/en-us/office/client-developer/visio/type-cell-shape-data-section).

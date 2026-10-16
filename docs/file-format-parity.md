@@ -13493,7 +13493,7 @@ fixes and fresh acceptance; no oracle output or rewrite allowance was changed.
 SAN residual inventory:1128 Property,6 Character,9 Paragraph,3 Text,2 FaceName,
 1 MasterType and187 other differences. Visio shortens authored decimal spellings
 (e.g.0.8500000000000001 to0.85), removes redundant inherited-zero Geometry cells
-and label ObjType0, and rewrites the page LineJumpCode. These remain residual
+and label ObjType 0, and rewrites the page LineJumpCode. These remain residual
 repair records; the separate1e-6 route comparison does not suppress them.
 
 P4b verification record (2026-10-15): final local CI passes all eight gates;

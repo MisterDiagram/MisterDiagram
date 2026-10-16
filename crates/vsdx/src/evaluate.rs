@@ -8,6 +8,7 @@ mod inherit;
 mod interval;
 mod path;
 mod relationships;
+mod string_cells;
 mod text;
 mod transform;
 pub use text::TextBlock;
@@ -560,9 +561,10 @@ impl<'a> Evaluator<'a> {
         let origin = self.formula_origin(scope, &key.name).or_else(|| self.baseline_provider(scope, &key.name)).unwrap_or(scope);
         self.overrides.get(&key).or_else(|| self.overrides.get(&Key { scope: origin, name: key.name.clone() })).cloned().or_else(|| {
             let cell = self.cell(scope, name)?;
-            cell.formula
-                .clone()
-                .or_else(|| (cell.value.as_deref() == Some("Themed") && cell.units.as_deref() != Some("STR")).then(|| "THEMEVAL()".into()))
+            cell.formula.clone().or_else(|| {
+                (cell.value.as_deref() == Some("Themed") && cell.units.as_deref() != Some("STR") && !string_cells::is_string(&key.name, cell))
+                    .then(|| "THEMEVAL()".into())
+            })
         })
     }
     pub fn display_reference(&self, scope: Scope, name: &str, reference: &str) -> Result<String, Error> {
@@ -691,7 +693,7 @@ impl<'a> Evaluator<'a> {
             return self
                 .local_inh_cell(scope, &key.name)
                 .or_else(|| self.cell(scope, &key.name))
-                .map_or(Value::Error(Error::Ref), |c| self.cached_cell(c));
+                .map_or(Value::Error(Error::Ref), |c| self.cached_named_cell(scope, &key.name, c));
         }
         if !self.active.insert(key.clone()) {
             return self.prove_clamped_cycle(&key);
@@ -699,7 +701,7 @@ impl<'a> Evaluator<'a> {
         let revision = self.revision;
         self.stack.push(key.clone());
         let value = if let Some(cell) = self.cell(scope, &key.name) {
-            let cached = self.cached_cell(self.local_inh_cell(scope, &key.name).unwrap_or(cell));
+            let cached = self.cached_named_cell(scope, &key.name, self.local_inh_cell(scope, &key.name).unwrap_or(cell));
             let origin = if self.overrides.contains_key(&key) {
                 scope
             } else {
@@ -711,10 +713,13 @@ impl<'a> Evaluator<'a> {
             }
             let formula = self.overrides.get(&key).or_else(|| self.overrides.get(&provider)).cloned().or_else(|| cell.formula.clone());
             match formula.as_deref() {
-                None if cell.value.as_deref() == Some("Themed") && cell.units.as_deref() != Some("STR") => {
+                None if cell.value.as_deref() == Some("Themed")
+                    && cell.units.as_deref() != Some("STR")
+                    && !string_cells::is_string(&key.name, cell) =>
+                {
                     self.compute_formula(scope, origin, cached, "THEMEVAL()")
                 }
-                None | Some("No Formula") => self.cached_cell(cell),
+                None | Some("No Formula") => self.cached_named_cell(scope, &key.name, cell),
                 Some("Inh") => Value::Error(Error::Ref),
                 Some(formula) => self.compute_formula(scope, origin, cached, formula),
             }
@@ -841,7 +846,7 @@ impl<'a> Evaluator<'a> {
             self.add_dependency_key(provider.clone());
         }
         let formula = self.overrides.get(&key).or_else(|| self.overrides.get(&provider)).cloned().or_else(|| cell.formula.clone());
-        let cached = self.cached_cell(self.local_inh_cell(target, &key.name).unwrap_or(cell));
+        let cached = self.cached_named_cell(target, &key.name, self.local_inh_cell(target, &key.name).unwrap_or(cell));
         let mut bytes = 0usize;
         for (name, value) in args {
             if name.len() > 65536 {
@@ -858,12 +863,25 @@ impl<'a> Evaluator<'a> {
         self.argument_bytes += bytes;
         self.arguments.push(args.iter().map(|(n, v)| (n.to_ascii_lowercase(), v.clone())).collect());
         let result = match formula.as_deref() {
-            None | Some("No Formula") => self.cached_cell(cell),
+            None | Some("No Formula") => self.cached_named_cell(target, &key.name, cell),
             Some(f) => self.compute_formula(target, origin, cached, f),
         };
         self.arguments.pop();
         self.argument_bytes -= bytes;
         self.coerce_numeric_cell(target, &key.name, result)
+    }
+    /// Apply the cell's declared string type before interpreting its cached spelling.
+    /// Shape Data Value remains a variant governed by Type and the stored unit.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/type-cell-shape-data-section
+    pub(crate) fn cached_named_cell(&self, scope: Scope, name: &str, cell: &Cell) -> Value {
+        if string_cells::is_string(name, cell) {
+            // Preserve the observed COM baseline's synthetic empty-string convention.
+            if self.internal_cache_units && defaults::cell(scope, name).is_some_and(|c| std::ptr::eq(c, cell)) {
+                return self.cached_cell(cell);
+            }
+            return diagramcraft_sheet::units::cached(cell.value.as_deref(), Some("STR"), cell.error.as_deref());
+        }
+        self.cached_cell(cell)
     }
     /// Numeric cell types coerce numeric text returned by INDEX and other string functions.
     /// The scoped baseline's COM type supplies classification; User/Property variant cells remain variants.
@@ -1014,6 +1032,7 @@ impl<'a> Evaluator<'a> {
                 // https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
                 if value.error().is_some()
                     && let Some(c) = self.cell(scope, &name).filter(|c| c.error.is_some())
+                    && !string_cells::is_string(&name.to_ascii_lowercase(), c)
                 {
                     let saved = diagramcraft_sheet::units::cached(c.value.as_deref(), c.units.as_deref(), None);
                     if matches!(saved, Value::Number(_)) {
@@ -2124,9 +2143,10 @@ mod tests {
         }
         let mut e = Evaluator::new(&doc).unwrap();
         let scope = Scope::PageShape { page: 7, shape: 1 };
-        for name in ["User.x", "User.x.Value", "Prop.x.Format", "Prop.y", "Geometry1.X1", "Scratch.A1", "Char.Size", "Char.Size[1]", "Char.Size[2]"] {
+        for name in ["User.x", "User.x.Value", "Prop.y", "Geometry1.X1", "Scratch.A1", "Char.Size", "Char.Size[1]", "Char.Size[2]"] {
             assert_eq!(e.evaluate(scope, name), Value::Number(12.0), "{name}");
         }
+        assert_eq!(e.evaluate(scope, "Prop.x.Format"), Value::Text("12".into()));
         assert_eq!(e.named_cells(scope).len(), 9);
     }
     #[test]

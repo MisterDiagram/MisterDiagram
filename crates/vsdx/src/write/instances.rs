@@ -17,6 +17,7 @@ impl model::Writer<'_> {
                     return true;
                 }
                 let value = self.evaluator.evaluate_snapshot(scope, &cell.name);
+                let text_value = matches!(value, Value::Text(_));
                 let value = match value {
                     Value::Number(n) => self.evaluator.serialized_number(scope, &cell.name, cell, n).ok(),
                     Value::Text(t) => Some(t),
@@ -29,10 +30,11 @@ impl model::Writer<'_> {
                     return true;
                 };
                 let same = value == cached
-                    || match (value.parse::<f64>(), cached.parse::<f64>()) {
-                        (Ok(a), Ok(b)) => a.is_finite() && b.is_finite() && (a - b).abs() <= 1e-6,
-                        _ => false,
-                    };
+                    || !text_value
+                        && match (value.parse::<f64>(), cached.parse::<f64>()) {
+                            (Ok(a), Ok(b)) => a.is_finite() && b.is_finite() && (a - b).abs() <= 1e-6,
+                            _ => false,
+                        };
                 !same
             });
         }
@@ -77,7 +79,7 @@ impl model::Writer<'_> {
             };
             let raw = source.value.as_deref().unwrap_or("");
             let cached = if source.name != "Font" || raw.parse::<u32>().is_err() {
-                match self.evaluator.cached_cell(source) {
+                match self.evaluator.cached_named_cell(master, &n.name.to_ascii_lowercase(), source) {
                     Value::Number(v) => self.evaluator.serialized_number(master, &n.name, source, v).unwrap_or_else(|_| raw.into()),
                     _ => raw.into(),
                 }
@@ -191,11 +193,8 @@ impl model::Writer<'_> {
                 if !self.evaluator.depends_on_changed(scope, &n.name, &self.source_state.changed, &self.source_state.contexts) {
                     continue;
                 }
-                let cached = self.evaluator.cached_cell(&provider);
-                let equal = match (value.numeric(), cached.numeric()) {
-                    (Ok(a), Ok(b)) => a.is_finite() && b.is_finite() && (a - b).abs() < 1e-12,
-                    _ => value == cached && !matches!(value, Value::Error(_)),
-                };
+                let cached = self.evaluator.cached_named_cell(master, &n.name.to_ascii_lowercase(), &provider);
+                let equal = same_cached_value(&value, &cached);
                 if equal {
                     redundant.insert(n.name);
                 }
@@ -217,5 +216,28 @@ impl model::Writer<'_> {
         }
         super::validate::sheet(&result)?;
         Ok(result)
+    }
+}
+
+fn same_cached_value(value: &Value, cached: &Value) -> bool {
+    match (value, cached) {
+        (Value::Text(a), Value::Text(b)) => a == b,
+        (Value::Text(_), _) | (_, Value::Text(_)) => false,
+        _ => match (value.numeric(), cached.numeric()) {
+            (Ok(a), Ok(b)) => a.is_finite() && b.is_finite() && (a - b).abs() < 1e-12,
+            _ => value == cached && !matches!(value, Value::Error(_)),
+        },
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn inherited_string_cache_comparison_preserves_spelling() {
+        assert!(!same_cached_value(&Value::Text("01".into()), &Value::Text("1".into())));
+        assert!(!same_cached_value(&Value::Text("left".into()), &Value::Text("right".into())));
+        assert!(!same_cached_value(&Value::Text("1".into()), &Value::Number(1.)));
+        assert!(same_cached_value(&Value::Text("007".into()), &Value::Text("007".into())));
+        assert!(same_cached_value(&Value::Number(1.), &Value::Number(1.)));
     }
 }
