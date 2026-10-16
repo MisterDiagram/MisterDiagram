@@ -134,7 +134,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/iserror-function-visioshapesheet> | `crates/sheet/src/functions/extras.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/iserrvalue-function> | `crates/sheet/src/functions/extras.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/isthemed-function> | `crates/sheet/src/functions/theme.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/label-cell-shape-data-section> | `crates/engine/src/content.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/label-cell-shape-data-section> | `crates/engine/src/content.rs`, `crates/vsdx/src/write/model.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/langid-cell-character-section> | `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/langid-cell-shape-data-section> | `crates/engine/src/content.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/language-function> | `crates/sheet/src/functions/mod.rs`, `crates/sheet/src/language.rs` |

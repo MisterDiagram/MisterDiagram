@@ -1068,3 +1068,14 @@ above 128 MiB, aggregate accounting across separate sources, canonical-path
 reuse and session preservation after refusal. Loading remains eager and bounded.
 The existing stencil-open parity classification is unchanged.
 Reference: [Documents.OpenEx](https://learn.microsoft.com/en-us/office/vba/api/visio.documents.openex).
+
+## Brief A1: authored string spelling (#41)
+
+Resolved: the writer preserves authored and edited literal spelling unless the
+cell needs color or language identity encoding. This covers string cells without
+U=STR and avoids a partial list of Shape Data and layer names. The reviewer
+regression, broader edited-string cases, and CLI save/readback cover the fix;
+existing font, palette and language cache tests remain green. String-related
+parity classifications are unchanged.
+Reference: [Cell](https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml)
+and [Label](https://learn.microsoft.com/en-us/office/client-developer/visio/label-cell-shape-data-section).

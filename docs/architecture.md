@@ -26,6 +26,7 @@ reader sheet limits after XML escaping, and preserves opaque part payloads exact
 
 | Local path | Source repo | Source path | Commit | Licence |
 |---|---|---|---|---|
+| `crates/vsdx/tests/authored_strings.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/1b/vsdx_review_1b.rs` (selected synthetic test) | `3ce1a4740bf3e44463f1e35babc42ff46562f4e5` | MIT OR Apache-2.0, user-authorized port |
 | `clippy.toml` | deckcraft | `clippy.toml` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
 | `rustfmt.toml` | deckcraft | `rustfmt.toml` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
 | `.cargo/config.toml` | deckcraft | `.cargo/config.toml` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |

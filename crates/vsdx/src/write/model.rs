@@ -50,6 +50,8 @@ impl Writer<'_> {
     }
     /// Preserve Themed sentinels; recalculate concrete formula caches with injected hosts.
     /// An unsupported evaluator result is not proof that Visio's formula has an error.
+    /// String literals retain their spelling even when they look like numbers.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/label-cell-shape-data-section
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
     fn cell(&mut self, c: &Cell, name: &str, scope: Scope, old: Option<&XmlElement>) -> XmlElement {
         let mut e = base(old, "Cell");
@@ -107,6 +109,9 @@ impl Writer<'_> {
                 }
             }
         }
+        // Literal spelling is already valid V data. Only color and language identities
+        // require conversion; parsing other literals destroys numeric-looking strings.
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/label-cell-shape-data-section
         // Authored/edited literals also carry a type. Font literals retain their
         // supplied name or numeric identity; neither is an evaluated FONT result.
         // Witness: generated/basic/0001-probe stores Font V="Calibri".
@@ -117,6 +122,7 @@ impl Writer<'_> {
             && c.error.is_none()
             && c.units.as_deref() != Some("STR")
             && c.name != "Font"
+            && (Evaluator::baseline_metadata(scope, name).is_some_and(|m| m.3 == 251) || matches!(c.name.as_str(), "LangID" | "DocLangID"))
         {
             match self.evaluator.cached_cell(c) {
                 // Preserve explicit standard palette indexes. Converting 0/1 to RGB changes

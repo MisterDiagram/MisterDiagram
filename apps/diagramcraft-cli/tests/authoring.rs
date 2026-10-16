@@ -131,3 +131,40 @@ fn non_utf8_authoring_argument_returns_an_error() {
     assert!(!output.status.success());
     assert!(!String::from_utf8_lossy(&output.stderr).contains("panicked"));
 }
+#[test]
+fn authored_numeric_looking_strings_survive_cli_save_and_readback() {
+    let path = dir().join("numeric-looking-strings.vsdx");
+    let path = path.to_str().unwrap();
+    let output = cli(&[
+        "run",
+        "--cmd",
+        "file.new={}",
+        "--cmd",
+        r#"shape.draw.rect={"x":1,"y":1,"width":1,"height":1}"#,
+        "--cmd",
+        r#"shape.data.define={"id":1,"name":"Part","label":"007","prompt":"1e3","format":"0.00","sort_key":"01"}"#,
+        "--cmd",
+        r#"layer.add={"name":"0042"}"#,
+        "--save",
+        path,
+    ])
+    .unwrap();
+    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+    for (scope, id, name, expected) in [
+        ("shape", Some(1), "Prop.Part.Label", "007"),
+        ("shape", Some(1), "Prop.Part.Prompt", "1e3"),
+        ("shape", Some(1), "Prop.Part.Format", "0.00"),
+        ("shape", Some(1), "Prop.Part.SortKey", "01"),
+        ("page", None, "Layers.Name", "0042"),
+    ] {
+        let mut params = serde_json::json!({"scope":scope,"name":name});
+        if let Some(id) = id {
+            params["id"] = serde_json::json!(id);
+        }
+        let command = format!("sheet.get={params}");
+        let output = cli(&["run", "--open", path, "--cmd", &command]).unwrap();
+        assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+        let result: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(result["result"]["cached"], expected, "{name}: {result}");
+    }
+}
