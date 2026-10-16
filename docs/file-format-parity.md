@@ -15779,3 +15779,112 @@ zero/zero. SAN keeps all 40 routes across 1,344 Geometry/XForm cells, with 80
 Connects rows. Both renders are 1612x757, MAD 0.897574663 and over16 1.282242494%,
 inside the frozen required ceilings. From-shape app.xml is byte-equal to its
 fresh Visio save. No new repair class or per-file extent adjustment is used.
+
+
+## Observed, undocumented: Brief A witnesses (2026-10-15)
+
+The initial authorized make-corpus VM sweep ran through the interactive scheduled-task
+runner on Visio 16.0 build 20430 (file version 16.0.20430.20146). The executed
+addition is retained in `plan/brief-a/make-corpus.ps1`, with the immutable run
+log under `corpus/_vm/history/brief-a-first-run/probe-log.txt`. The private corpus retains
+the script, shared dump helper, log and SHA256 receipt under
+`_state/brief-a-partial/`. There are seven complete drawings (42 artifacts),
+34,617 dumped cells, zero cell-read errors and two drawing failures. Runner exit
+0 means script completion; it does not make those two failed drawings successful.
+No existing witness, threshold, population or manifest pin was changed.
+
+### W1: move and PinX assignment
+
+Files: `generated/review-a/w1-before.vsdx` and
+`generated/review-a/w1-after-move.vsdx`, with `.sheet.tsv` and `.connects.tsv`.
+The Dynamic connector was statically glued at each end to a rectangle connection
+point. Before the move, BeginX was
+`PAR(PNT(Sheet.1!Connections.X1,Sheet.1!Connections.Y1))`.
+COM refused `Shape.Move` because that method is not exposed. The documented
+single-shape `Selection.Move(0,1)` succeeded: `Shape.Connects.Count=0`, BeginX
+FormulaU `1.75 in`, and BeginY changed from 6.75 to 7.75 internal inches. Both
+endpoint formulas became literals and the saved Connects table is empty.
+
+After the script restored both GlueTo attachments, assigning PinX FormulaU `4`
+raised `Cell is guarded.` No after-PinX drawing or post-refusal count was captured;
+these are unmeasured. This is not evidence that an accepted PinX edit drops glue.
+The movement result supports detaching both endpoints and removing Connect rows
+for shape.move and equivalent arrangement operations.
+References: [Selection.Move](https://learn.microsoft.com/en-us/office/vba/api/visio.selection.move),
+[Cell.FormulaU](https://learn.microsoft.com/en-us/office/vba/api/visio.cell.formulau).
+
+### W2: master from a group member
+
+File: `generated/review-a/w2-member-master.vsdx` and its sheet dump.
+The right member had Width `Sheet.3!Width*0.5` and Height `Sheet.3!Height*1`.
+`Document.Masters.Drop(member,0,0)` succeeded. The new master's shape has
+Width FormulaU `2 in` and Height FormulaU `1 in`. External group references were
+materialized as literal dimensions.
+Reference: [Masters.Drop](https://learn.microsoft.com/en-us/office/vba/api/visio.masters.drop).
+
+### W3: jumps exclude the plain glued line
+
+The authorized W3-only recovery selected only the Dynamic connector and called
+`Selection.Layout`, without Shape.Reroute. Files:
+`generated/review-a/w3-horizontal-jumps.vsdx` (LineJumpCode 1) and
+`generated/review-a/w3-plain-line-crossing.vsdx` (LineJumpCode 2).
+Both were saved, exported and dumped by the existing path: 13,824 cells,
+zero cell-read errors, zero failed drawings, runner exit 0. The exact recipe
+and log are preserved privately under `_state/brief-a-w3/`.
+
+In both drawings, shape 3 is the static-glued plain line (ObjType 0):
+Geometry1 row 1 MoveTo `(0,0)`, row 2 LineTo `(5,0)`, with X formulas
+`Width*0` and `Width*1`. It receives no jump. Shape 6 is the crossing Dynamic
+connector: row 1 MoveTo `(0.125,0)`, row 2 LineTo `(0.125,6.5)`, deleted
+LineTo row 3. It also receives no jump across the plain line. Begin/End are
+`(4,1.5)` and `(4,8)`, crossing the plain line at `(4,4.5)`.
+Thus the plain line neither receives a jump nor participates as a connector
+crossing candidate. This agrees with the connector scope of the references.
+References: [Selection.Layout](https://learn.microsoft.com/en-us/office/vba/api/visio.selection.layout),
+[LineJumpCode](https://learn.microsoft.com/en-us/office/client-developer/visio/linejumpcode-cell-page-layout-section),
+[ConLineJumpCode](https://learn.microsoft.com/en-us/office/client-developer/visio/conlinejumpcode-cell-shape-layout-section).
+
+### W4: ConFixedCode 2 after moving the target
+
+Files: `generated/review-a/w4-never-reroute-before.vsdx` and
+`generated/review-a/w4-never-reroute-after.vsdx`, with full sheet dumps.
+The right target moved by (1,0). ConFixedCode FormulaU and ResultIU remain `2`.
+Geometry1 has MoveTo row 1 `(0,0.125)` and LineTo row 2; row 2 changes from
+`(2.5,0.125)` to `(3.5,0.125)`. Deleted LineTo row 3 remains deleted in XML.
+The coordinate formulas are literals with `in` units. NoFill remains TRUE;
+NoLine, NoShow, NoSnap and NoQuickDrag remain FALSE. Width changes 2.5 to 3.5;
+BeginX remains 2.5 and EndX changes 5 to 6. Thus never-reroute does not mean
+freezing the last geometry endpoint while its glued target moves.
+Reference: [ConFixedCode](https://learn.microsoft.com/en-us/office/client-developer/visio/confixedcode-cell-shape-layout-section).
+
+### W5: all flip combinations keep centred text readable
+
+Files: `generated/review-a/w5-text-flips.vsdx`, `.png`, `.svg` and `.sheet.tsv`.
+Shapes 1 through 4 are unflipped, FlipX, FlipY and both, respectively. The PNG
+was visually inspected: every label reads `Readable` upright and left-to-right.
+SVG shape 2 has scale(-1,1) and its text applies scale(-1,1); shape 3 and its
+text similarly apply scale(1,-1). Shape 4 and its text both apply rotate(180).
+The text counter-transform cancels every observed shape flip.
+References: [FlipX](https://learn.microsoft.com/en-us/office/client-developer/visio/flipx-cell-shape-transform-section),
+[FlipY](https://learn.microsoft.com/en-us/office/client-developer/visio/flipy-cell-shape-transform-section).
+
+### W6: bare FormulaU numbers, record only
+
+File: `generated/review-a/w6-default-units.vsdx` and its sheet dump.
+The document was created with Documents.AddEx('',visMSMetric=1,0), and its
+DrawingScale is `1 mm`. Setting Angle FormulaU to bare `30` yields ResultIU
+`4.8672587712816`, FormulaU `278.87338539247 deg`, Units 81. This is 30 radians
+normalized modulo 2*pi. Setting Width FormulaU to bare `20` yields ResultIU
+`20`, FormulaU `508 mm`, Units 70. These observations use internal radians
+and inches rather than the displayed cell defaults of degrees and millimetres.
+These results match Diagramcraft. No unit behavior change or new issue is required.
+References: [Documents.AddEx](https://learn.microsoft.com/en-us/office/vba/api/visio.documents.addex),
+[Cell.FormulaU](https://learn.microsoft.com/en-us/office/vba/api/visio.cell.formulau).
+
+The follow-up rulings use W1 to detach moved connector ends and reset triggers,
+W2 to literalize references outside a copied master, and W4 to preserve code 2
+without rerouting while updating glued ends. W5 requires readable text for all
+three flip combinations. The two W3 recovery originals add 12 artifacts to the
+seven first-run originals. They are observations, not additions to the frozen
+regression cohort. Private paths above remain `generated/review-a`; the local
+measurement copy is `corpus/observations/review-a` during frozen gate runs.
