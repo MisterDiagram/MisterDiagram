@@ -171,3 +171,21 @@ parse errors, at most 3 pages and 292 masters in a collection.
 Copied from siblings: `crates/vsdx/src/relationship_tests.rs` adapts the review 1a
 relationship regressions and synthetic package recipe from craft-apps at
 `107ee4c3423dd4154bd3c59f60362801f638eabf`, MIT OR Apache-2.0.
+
+Brief B EMF work accounting: the existing 100,000-operation limit now checks
+prospective text characters before UTF-16 decoding and shaping, and dash pieces
+before kurbo constructs a stroked outline. The dash estimate uses a control-polygon
+upper bound on path length, the pattern period and the number of path elements.
+No numeric ceiling changes. The scan covered all 1,413 strict packages and all
+850 additional stencil paths, finding 2,661 EMF occurrences, 979 unique payloads,
+and no import errors. Largest text record: 34 UTF-16 units in generated/text/margins.vsdx,
+docProps/thumbnail.emf. Largest prospective dash expansion: 45 pieces in
+CISCONETWORKSHAPES_M.VSSX, visio/media/image276.emf. Both are less than one tenth
+of the unchanged operation limit. Largest retained EMF output was 19,816 operations;
+that existing aggregate ceiling is unchanged. The two hostile repros are refused
+with the metafile operation-limit error before expansion. Tests lower the player
+budget to32 and assert no outlined operations were retained before refusal.
+
+Copied from siblings: `crates/render/src/metafile/emf_bounds_tests.rs` adapts the
+review 3b synthetic EMF records and regressions from craft-apps at
+`107ee4c3423dd4154bd3c59f60362801f638eabf`, MIT OR Apache-2.0.

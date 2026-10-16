@@ -341,6 +341,11 @@ fn record(p: &mut Player, kind: u32, rec: &[u8]) -> Option<()> {
             let at = point32(&mut r)?;
             let n = r.u32()? as usize;
             let off = r.u32()?;
+            // EmrText.nChars is charged before decoding or allocating the record string.
+            // https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/
+            if !p.check_expansion(n) {
+                return Some(());
+            }
             let s = if kind == 84 {
                 let raw = slice(rec, off, u32::try_from(n.checked_mul(2)?).ok()?)?;
                 String::from_utf16_lossy(&raw.as_chunks::<2>().0.iter().map(|c| u16::from_le_bytes(*c)).collect::<Vec<_>>())
@@ -439,3 +444,7 @@ mod budget_tests {
         assert!(error.contains("memory limit"), "{error}");
     }
 }
+
+#[cfg(test)]
+#[path = "emf_bounds_tests.rs"]
+mod work_tests;

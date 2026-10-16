@@ -1156,3 +1156,5 @@ Reference: [Visio file format](https://learn.microsoft.com/en-us/office/client-d
 Brief B2 (#47): quadratic attribute duplicate checking removed; distinct names use one hash lookup each. Duplicate attributes still fail, with a portable growth-ratio regression. No per-element cap.
 
 Brief B3 (#48): imports index each relationship part once and read repeated page/master targets once. Portable tests assert three relationship parses for 64 distinct parts, and unchanged model counts under duplicate collection/content links. No count cap added; no duplicates found in the strict corpus or local stencils.
+
+Brief B4 (#49): EMF text decoding/shaping and dash outline expansion are checked against the existing operation budget first. Scaled portable regressions assert refusal before retained outlines; ordinary text/dashes still draw. No numerical cap or render population changes.

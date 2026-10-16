@@ -208,6 +208,7 @@ pub(crate) struct Player {
     out: Vec<Op>,
     budget: SceneBudget,
     failure: Option<String>,
+    operation_limit: usize,
     warnings: Vec<String>,
     skipped: usize,
     /// The file holds EMF+ records (which aren't read).
@@ -286,6 +287,7 @@ impl Player {
             out: vec![],
             budget: SceneBudget::default(),
             failure: None,
+            operation_limit: MAX_NODES,
             warnings: vec![],
             skipped: 0,
             emf_plus: false,
@@ -467,7 +469,7 @@ impl Player {
             return;
         }
         let count = self.dc.clips.len().saturating_mul(2).saturating_add(1);
-        if self.out.len().saturating_add(count) > MAX_NODES {
+        if self.out.len().saturating_add(count) > self.operation_limit {
             self.failure = Some("metafile operation limit".into());
             return;
         }
@@ -544,6 +546,42 @@ impl Player {
         Some(st)
     }
 
+    /// Bound expanded dash and text work before stroke construction or glyph shaping.
+    /// https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/
+    fn check_expansion(&mut self, count: usize) -> bool {
+        if self.failure.is_some() {
+            return false;
+        }
+        let found = count.saturating_mul(self.dc.clips.len().saturating_mul(2).saturating_add(1)).saturating_add(self.out.len());
+        if found > self.operation_limit {
+            self.failure = Some(format!("metafile operation limit: found {found}, limit {}", self.operation_limit));
+            return false;
+        }
+        true
+    }
+
+    fn check_dashes(&mut self, path: &BezPath, stroke: &kurbo::Stroke) -> bool {
+        if stroke.dash_pattern.is_empty() {
+            return true;
+        }
+        let period: f64 = stroke.dash_pattern.iter().sum();
+        // The control polygon bounds curve length and does not require subdivision.
+        let length: f64 = path
+            .segments()
+            .map(|segment| match segment {
+                kurbo::PathSeg::Line(s) => (s.p1 - s.p0).hypot(),
+                kurbo::PathSeg::Quad(s) => (s.p1 - s.p0).hypot() + (s.p2 - s.p1).hypot(),
+                kurbo::PathSeg::Cubic(s) => (s.p1 - s.p0).hypot() + (s.p2 - s.p1).hypot() + (s.p3 - s.p2).hypot(),
+            })
+            .sum();
+        let count = (length / period).ceil() * stroke.dash_pattern.len().div_ceil(2) as f64 + path.elements().len() as f64;
+        if !count.is_finite() || count < 0. || count > self.operation_limit as f64 {
+            self.failure = Some(format!("metafile operation limit: found {count} dash pieces, limit {}", self.operation_limit));
+            return false;
+        }
+        self.check_expansion(count as usize)
+    }
+
     /// Paint `bp` (document space) with the brush and the pen.
     fn draw(&mut self, bp: BezPath, fill: bool, stroke: bool) {
         if bp.elements().is_empty() {
@@ -560,6 +598,9 @@ impl Player {
             self.dc.clips.pop();
         }
         if stroke && let Some(st) = self.stroke_layer() {
+            if !self.check_dashes(&bp, &st) {
+                return;
+            }
             let outline = kurbo::stroke(bp.elements().iter().copied(), &st, &kurbo::StrokeOpts::default(), 0.01);
             self.push(Op::Path { path: outline, paint: Paint::Solid(rgb(self.dc.pen.color)) });
         }
@@ -808,6 +849,9 @@ impl Player {
 
     /// Text at `at` (logical; the current position with TA_UPDATECP) in the current font.
     pub fn text(&mut self, at: Point, s: &str) {
+        if !self.check_expansion(s.chars().count()) {
+            return;
+        }
         let s: String = s.chars().filter(|c| *c != '\0').collect();
         if s.trim().is_empty() {
             return;
@@ -849,6 +893,9 @@ impl Player {
             * Affine::scale(size / face.upem.max(1.));
         let mut x = 0.;
         for glyph in glyphs {
+            if self.failure.is_some() {
+                break;
+            }
             let path = m * Affine::translate((x + f64::from(glyph.x_offset), -f64::from(glyph.y_offset))) * db.outline(&face, glyph.gid).as_ref();
             self.push(Op::Path { path, paint: Paint::Solid(rgb(self.dc.text_color)) });
             x += f64::from(glyph.x_advance);
