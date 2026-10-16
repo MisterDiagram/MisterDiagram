@@ -396,6 +396,9 @@ fn visible(e: &mut Evaluator<'_>, scope: Scope, parent: Scope, print: bool) -> b
     !print || number(e, scope, "NonPrinting", 0.) == 0.
 }
 /// Group DisplayMode controls whether group geometry/text is hidden, behind, or in front of members.
+/// Text stays readable when its shape is flipped about either axis (W5).
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/flipx-cell-shape-transform-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/flipy-cell-shape-transform-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/displaymode-cell-group-properties-section
 fn shapes(
     e: &mut Evaluator<'_>,
@@ -620,7 +623,15 @@ fn shapes(
                     diagramcraft_model::text::Anchor::Bottom => height - original_height,
                     _ => (height - original_height) * 0.5,
                 };
-                let text_transform = scale * block.to_page * Affine::scale(1. / drawing_scale) * Affine::translate((0., -shift));
+                // W5: text counter-flips about its block center for X, Y and both axes.
+                // https://learn.microsoft.com/en-us/office/client-developer/visio/flipx-cell-shape-transform-section
+                // https://learn.microsoft.com/en-us/office/client-developer/visio/flipy-cell-shape-transform-section
+                let flip_x = if number(e, scope, "FlipX", 0.) == 0. { 1. } else { -1. };
+                let flip_y = if number(e, scope, "FlipY", 0.) == 0. { 1. } else { -1. };
+                let counter_flip = Affine::translate((block.width * 0.5, block.height * 0.5))
+                    * Affine::scale_non_uniform(flip_x, flip_y)
+                    * Affine::translate((-block.width * 0.5, -block.height * 0.5));
+                let text_transform = scale * block.to_page * counter_flip * Affine::scale(1. / drawing_scale) * Affine::translate((0., -shift));
                 let layout = diagramcraft_text::layout_for_export(
                     &block.body,
                     &Opts { rect: Rect::new(0., 0., block.width * drawing_scale, height), fields: &NoFields, prompt_color: None, no_shrink: false },

@@ -98,8 +98,8 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fillpattern-cell-fill-format-section> | `crates/engine/src/content.rs`, `crates/render/src/style.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/find-function> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fld-element-text_type-complextypevisio-xml> | `crates/vsdx/src/evaluate/text.rs`, `crates/vsdx/src/lib.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/flipx-cell-shape-transform-section> | `crates/engine/src/shapes.rs`, `crates/vsdx/src/evaluate/transform.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/flipy-cell-shape-transform-section> | `crates/engine/src/shapes.rs`, `crates/vsdx/src/evaluate/transform.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/flipx-cell-shape-transform-section> | `crates/engine/src/shapes.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/evaluate/transform.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/flipy-cell-shape-transform-section> | `crates/engine/src/shapes.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/evaluate/transform.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/floor-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section> | `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/font-function> | `crates/sheet/src/functions/color.rs`, `crates/vsdx/src/evaluate.rs` |

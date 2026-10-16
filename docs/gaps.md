@@ -1116,3 +1116,12 @@ a mixed-obstacle route test. Master drop, duplicate, move over a glued end,
 background glue and A3's orthogonal alignment case succeed without swallowing a
 routing error.
 Reference: [LineToLineX](https://learn.microsoft.com/en-us/office/client-developer/visio/linetolinex-cell-page-layout-section).
+
+## Brief A5: readable text in flipped shapes (#45)
+
+Resolved: the shared scene text transform counter-flips about the text block's
+center for FlipX, FlipY and both, matching W5. PNG, SVG and PDF consume the same
+corrected text transform. Regression tests compare all three flip combinations
+with unflipped text, including rasterized SVG and emitted PDF scene transforms.
+References: [FlipX](https://learn.microsoft.com/en-us/office/client-developer/visio/flipx-cell-shape-transform-section)
+and [FlipY](https://learn.microsoft.com/en-us/office/client-developer/visio/flipy-cell-shape-transform-section).
