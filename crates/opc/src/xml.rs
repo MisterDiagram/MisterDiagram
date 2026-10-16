@@ -404,9 +404,13 @@ fn check_chars(s: &str) -> Result<(), OpcError> {
 fn start_el(b: &quick_xml::events::BytesStart, reader: &quick_xml::Reader<&[u8]>, nodes: &mut NodeBudget) -> Result<El, OpcError> {
     let name = std::str::from_utf8(b.name().as_ref()).map_err(xml_error)?.to_string();
     let mut attrs = vec![];
-    for a in b.attributes() {
+    let mut names = std::collections::HashSet::new();
+    for a in b.attributes().with_checks(false) {
         let a = a.map_err(xml_error)?;
         nodes.charge()?;
+        if !names.insert(a.key.0) {
+            return Err(xml_error("duplicate XML attribute"));
+        }
         let k = std::str::from_utf8(a.key.as_ref()).map_err(xml_error)?.to_string();
         // Normalize literal attribute whitespace before expanding character references.
         // https://www.w3.org/TR/xml/#AVNormalize

@@ -152,3 +152,7 @@ Geometry rows before publishing. Existing imported endpoint caches survive
 unrelated edits. Grouped connector endpoints are in parent coordinates, as the
 BeginX/BeginY contract requires. The CLI command registry and generator scripts
 use this same session path.
+
+Attribute parsing disables quick-xml's quadratic duplicate scan and checks raw qualified names in a hash set before retaining values. Duplicates remain errors. No new cap is needed; the corpus maximum remains 44 attributes on one element.
+
+Copied from siblings: `crates/opc/tests/attribute_bounds.rs` adapts the review 1a attribute regression from craft-apps at `107ee4c3423dd4154bd3c59f60362801f638eabf`, MIT OR Apache-2.0.

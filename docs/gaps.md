@@ -1152,3 +1152,5 @@ and transfers completed trees and part buffers without full copies. The node
 budget includes attributes and text. Dense XML, media-copy and six-stencil
 regressions cover the memory contracts; the stencil source budget is unchanged.
 Reference: [Visio file format](https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx).
+
+Brief B2 (#47): quadratic attribute duplicate checking removed; distinct names use one hash lookup each. Duplicate attributes still fail, with a portable growth-ratio regression. No per-element cap.
