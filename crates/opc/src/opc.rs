@@ -80,6 +80,10 @@ impl Package {
         p.sort_unstable_by_key(|(n, _)| *n);
         p
     }
+    /// Transfer decompressed buffers without duplicating their allocations.
+    pub fn into_parts(self) -> impl Iterator<Item = (String, Vec<u8>)> {
+        self.parts.into_values()
+    }
     /// Validate the Visio document relationship and main part content type.
     /// Reference: <https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx>.
     pub fn validate_visio(&self) -> Result<(), OpcError> {

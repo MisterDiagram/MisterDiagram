@@ -12,8 +12,8 @@ use crate::OpcError;
 
 /// Maximum element nesting accepted when parsing.
 pub const MAX_DEPTH: usize = 256;
-/// Maximum number of elements in one part.
-pub const MAX_NODES: usize = 4_000_000;
+/// Maximum retained elements, attributes and coalesced text nodes in one part.
+pub const MAX_NODES: usize = 5_000_000;
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct El {
@@ -224,10 +224,47 @@ impl Doc {
     }
 }
 
+/// Build a DOM directly from validated XML events, without an intermediate tree.
+pub trait TreeBuilder {
+    type Element;
+    type Error: From<OpcError>;
+    fn start(&mut self, element: El) -> Result<Self::Element, Self::Error>;
+    fn end(&mut self);
+    fn element(parent: &mut Self::Element, child: Self::Element);
+    fn last_text(parent: &mut Self::Element) -> Option<&mut String>;
+    fn text(parent: &mut Self::Element, text: String);
+}
+struct RawTree;
+impl TreeBuilder for RawTree {
+    type Element = El;
+    type Error = OpcError;
+    fn start(&mut self, element: El) -> Result<El, OpcError> {
+        Ok(element)
+    }
+    fn end(&mut self) {}
+    fn element(parent: &mut El, child: El) {
+        parent.children.push(Node::El(child));
+    }
+    fn last_text(parent: &mut El) -> Option<&mut String> {
+        if let Some(Node::Text(text)) = parent.children.last_mut() { Some(text) } else { None }
+    }
+    fn text(parent: &mut El, text: String) {
+        parent.children.push(Node::Text(text));
+    }
+}
+
 /// Parse XML bytes into a DOM. Bounded depth and node count; entity references are resolved.
 pub fn parse(bytes: &[u8]) -> Result<Doc, OpcError> {
+    parse_with_builder(bytes, &mut RawTree).map(|root| Doc { root })
+}
+
+/// Parse directly into the consumer's retained representation, under the same XML limits.
+pub fn parse_with_builder<B: TreeBuilder>(bytes: &[u8], builder: &mut B) -> Result<B::Element, B::Error> {
+    parse_with_node_limit(bytes, MAX_NODES, builder)
+}
+fn parse_with_node_limit<B: TreeBuilder>(bytes: &[u8], limit: usize, builder: &mut B) -> Result<B::Element, B::Error> {
     if bytes.len() > crate::MAX_XML_PART {
-        return Err(OpcError::Xml("XML byte cap exceeded".into()));
+        return Err(OpcError::Xml("XML byte cap exceeded".into()).into());
     }
     // Skip a UTF-8 BOM; UTF-16 parts (rare) are decoded first.
     let owned;
@@ -245,35 +282,37 @@ pub fn parse(bytes: &[u8]) -> Result<Doc, OpcError> {
         c.allow_unmatched_ends = false;
         c.expand_empty_elements = false;
     }
-    let mut stack: Vec<El> = vec![];
-    let mut root: Option<El> = None;
-    let mut nodes = 0usize;
+    let mut stack: Vec<B::Element> = vec![];
+    let mut root: Option<B::Element> = None;
+    let mut nodes = NodeBudget { used: 0, limit };
     let mut buf = Vec::new();
     loop {
         let ev = reader.read_event_into(&mut buf).map_err(|e| OpcError::Xml(format!("{e}")))?;
         match ev {
             Event::Start(_) | Event::Empty(_) if root.is_some() => {
-                return Err(OpcError::Xml("multiple root elements".into()));
+                return Err(OpcError::Xml("multiple root elements".into()).into());
             }
             Event::Start(ref b) | Event::Empty(ref b) => {
-                nodes += 1;
-                if nodes > MAX_NODES || stack.len() >= MAX_DEPTH {
-                    return Err(OpcError::Xml("document too large or too deeply nested".into()));
+                nodes.charge()?;
+                if stack.len() >= MAX_DEPTH {
+                    return Err(OpcError::Xml("document too large or too deeply nested".into()).into());
                 }
-                let el = start_el(b, &reader)?;
+                let el = builder.start(start_el(b, &reader, &mut nodes)?)?;
                 if matches!(ev, Event::Start(_)) {
                     stack.push(el);
                 } else {
+                    builder.end();
                     match stack.last_mut() {
-                        Some(p) => p.children.push(Node::El(el)),
+                        Some(p) => B::element(p, el),
                         None => root = Some(el),
                     }
                 }
             }
             Event::End(_) => {
                 if let Some(el) = stack.pop() {
+                    builder.end();
                     match stack.last_mut() {
-                        Some(p) => p.children.push(Node::El(el)),
+                        Some(p) => B::element(p, el),
                         None => root = Some(el),
                     }
                 }
@@ -284,9 +323,9 @@ pub fn parse(bytes: &[u8]) -> Result<Doc, OpcError> {
                 let text = t.xml10_content().map_err(xml_error)?;
                 check_chars(&text)?;
                 if let Some(p) = stack.last_mut() {
-                    push_text(p, &text);
+                    push_text::<B>(p, &text, &mut nodes)?;
                 } else if !text.trim().is_empty() {
-                    return Err(xml_error("text outside root"));
+                    return Err(xml_error("text outside root").into());
                 }
             }
             Event::CData(t) => {
@@ -295,7 +334,7 @@ pub fn parse(bytes: &[u8]) -> Result<Doc, OpcError> {
                 let text = t.xml10_content().map_err(xml_error)?;
                 check_chars(&text)?;
                 let p = stack.last_mut().ok_or_else(|| xml_error("CDATA outside root"))?;
-                push_text(p, &text);
+                push_text::<B>(p, &text, &mut nodes)?;
             }
             Event::GeneralRef(r) => {
                 let p = stack.last_mut().ok_or_else(|| xml_error("entity outside root"))?;
@@ -308,35 +347,50 @@ pub fn parse(bytes: &[u8]) -> Result<Doc, OpcError> {
                         "gt" => ">",
                         "quot" => "\"",
                         "apos" => "'",
-                        _ => return Err(xml_error("undeclared entity")),
+                        _ => return Err(xml_error("undeclared entity").into()),
                     }
                     .to_string()
                 };
                 check_chars(&text)?;
-                push_text(p, &text);
+                push_text::<B>(p, &text, &mut nodes)?;
             }
-            Event::DocType(_) => return Err(xml_error("DOCTYPE is not supported")),
+            Event::DocType(_) => return Err(xml_error("DOCTYPE is not supported").into()),
             Event::Eof => break,
             _ => {}
         }
         buf.clear();
     }
     if !stack.is_empty() {
-        return Err(OpcError::Xml("unclosed element".into()));
+        return Err(OpcError::Xml("unclosed element".into()).into());
     }
     let root = root.ok_or_else(|| OpcError::Xml("no root element".into()))?;
-    Ok(Doc { root })
+    Ok(root)
 }
 
-fn push_text(p: &mut El, s: &str) {
-    if s.is_empty() {
-        return;
+struct NodeBudget {
+    used: usize,
+    limit: usize,
+}
+impl NodeBudget {
+    fn charge(&mut self) -> Result<(), OpcError> {
+        self.used = self.used.saturating_add(1);
+        if self.used > self.limit {
+            return Err(xml_error(format!("XML node limit: found {}, limit {}", self.used, self.limit)));
+        }
+        Ok(())
     }
-    if let Some(Node::Text(t)) = p.children.last_mut() {
+}
+fn push_text<B: TreeBuilder>(p: &mut B::Element, s: &str, nodes: &mut NodeBudget) -> Result<(), OpcError> {
+    if s.is_empty() {
+        return Ok(());
+    }
+    if let Some(t) = B::last_text(p) {
         t.push_str(s);
     } else {
-        p.children.push(Node::Text(s.to_string()));
+        nodes.charge()?;
+        B::text(p, s.to_string());
     }
+    Ok(())
 }
 
 fn xml_error(e: impl std::fmt::Display) -> OpcError {
@@ -347,11 +401,12 @@ fn check_chars(s: &str) -> Result<(), OpcError> {
     if s.chars().all(xml_char) { Ok(()) } else { Err(xml_error("invalid XML character")) }
 }
 
-fn start_el(b: &quick_xml::events::BytesStart, reader: &quick_xml::Reader<&[u8]>) -> Result<El, OpcError> {
+fn start_el(b: &quick_xml::events::BytesStart, reader: &quick_xml::Reader<&[u8]>, nodes: &mut NodeBudget) -> Result<El, OpcError> {
     let name = std::str::from_utf8(b.name().as_ref()).map_err(xml_error)?.to_string();
     let mut attrs = vec![];
     for a in b.attributes() {
         let a = a.map_err(xml_error)?;
+        nodes.charge()?;
         let k = std::str::from_utf8(a.key.as_ref()).map_err(xml_error)?.to_string();
         // Normalize literal attribute whitespace before expanding character references.
         // https://www.w3.org/TR/xml/#AVNormalize
@@ -524,6 +579,15 @@ impl W {
 mod tests {
     use super::*;
 
+    #[test]
+    fn node_budget_counts_attributes_and_coalesced_text_before_retaining_them() {
+        // Root, attribute, one coalesced text node and child: exactly four.
+        let xml = b"<r a='1'>x&amp;y<c/></r>";
+        assert!(parse_with_node_limit(xml, 4, &mut RawTree).is_ok());
+        let error = parse_with_node_limit(xml, 3, &mut RawTree).unwrap_err().to_string();
+        assert!(error.contains("XML node limit: found 4, limit 3"), "{error}");
+        assert!(parse_with_node_limit(b"<r a='1' b='2'/>", 2, &mut RawTree).unwrap_err().to_string().contains("found 3, limit 2"));
+    }
     #[test]
     fn parse_basic_and_entities() {
         let d = parse(b"<?xml version=\"1.0\"?><a:p xmlns:a=\"x\"><a:r><a:t>A &amp; B &#x41; &lt;</a:t></a:r><a:x r:id=\"rId1\" id=\"5\"/></a:p>")

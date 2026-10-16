@@ -790,7 +790,7 @@ fn extension_xml_cannot_authorize_a_reserved_master_shape_id() {
     unrelated.children.push(XmlNode::Element(XmlElement {
         name: "Shape".into(),
         namespace: skeleton::VISIO_NS.into(),
-        attributes: std::collections::BTreeMap::from([("ID".into(), "4".into())]),
+        attributes: [("ID".into(), "4".into())].into(),
         ..Default::default()
     }));
     part.xml.as_mut().unwrap().children.push(XmlNode::Element(unrelated));
@@ -998,7 +998,7 @@ fn shipped_acceptance_shapes_preserve_local_structure_and_literal_attributes() {
             let path =
                 format!("{parent}/{}:{:?}:{:?}:{:?}:{:?}", node.name, node.attr("ID"), node.attr("N"), node.attr("IX"), node.attr("MasterShape"));
             if in_shape && ["Shape", "Section", "Row", "Cell"].iter().any(|n| node.is_visio(n)) {
-                assert!(result.insert(path.clone(), node.attributes.clone()).is_none(), "duplicate key {path}");
+                assert!(result.insert(path.clone(), node.attributes.clone().into_iter().collect()).is_none(), "duplicate key {path}");
             }
             stack.extend(node.elements().map(|c| (path.clone(), c, in_shape)));
         }

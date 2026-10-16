@@ -63,7 +63,7 @@ fn attributes(values: &[(&str, &str)]) -> BTreeMap<String, String> {
     values.iter().map(|(k, v)| ((*k).into(), (*v).into())).collect()
 }
 fn element_ns(name: &str, ns: &str, attrs: &[(&str, &str)], children: Vec<XmlNode>) -> XmlElement {
-    XmlElement { name: name.into(), namespace: ns.into(), attributes: attributes(attrs), children, ..Default::default() }
+    XmlElement { name: name.into(), namespace: ns.into(), attributes: attributes(attrs).into_iter().collect(), children, ..Default::default() }
 }
 fn element(name: &str, attrs: &[(&str, &str)], children: Vec<XmlNode>) -> XmlElement {
     element_ns(name, VISIO_NS, attrs, children)
@@ -620,8 +620,8 @@ fn glue_sheet_capacity(sheet: &Sheet, extra: usize) -> Result<(), String> {
 
 // Preflight metadata bytes before adding a small fixed set of glue cells.
 fn glue_metadata_bytes(sheet: &Sheet) -> Result<usize, String> {
-    fn attrs(a: &std::collections::BTreeMap<String, String>) -> usize {
-        a.iter().fold(0usize, |n, (k, v)| n.saturating_add(k.len()).saturating_add(v.len()))
+    fn attrs<'a>(a: impl IntoIterator<Item = (&'a String, &'a String)>) -> usize {
+        a.into_iter().fold(0usize, |n, (k, v)| n.saturating_add(k.len()).saturating_add(v.len()))
     }
     fn xml(e: &XmlElement, depth: usize, nodes: &mut usize) -> Result<usize, String> {
         *nodes = nodes.saturating_add(1);

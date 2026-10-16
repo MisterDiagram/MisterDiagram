@@ -55,7 +55,7 @@ impl Writer<'_> {
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
     fn cell(&mut self, c: &Cell, name: &str, scope: Scope, old: Option<&XmlElement>) -> XmlElement {
         let mut e = base(old, "Cell");
-        e.attributes = c.attributes.clone();
+        e.attributes = c.attributes.clone().into_iter().collect();
         let mut value = c.value.clone();
         let mut formula = c.formula.clone();
         let mut err = c.error.clone();
@@ -153,7 +153,7 @@ impl Writer<'_> {
     }
     pub(super) fn sheet(&mut self, s: &Sheet, scope: Scope, name: &str, old: Option<&XmlElement>) -> Result<XmlElement, WriteError> {
         let mut e = base(old, name);
-        e.attributes = s.attributes.clone();
+        e.attributes = s.attributes.clone().into_iter().collect();
         let cells = s
             .cells
             .iter()
@@ -170,7 +170,7 @@ impl Writer<'_> {
                 })
             });
             let mut section = base(old, "Section");
-            section.attributes = s.attributes.clone();
+            section.attributes = s.attributes.clone().into_iter().collect();
             set(&mut section, "N", Some(s.name.clone()));
             set(&mut section, "IX", s.index.map(|i| i.to_string()));
             if s.deleted || section.attributes.contains_key("Del") {
@@ -199,7 +199,7 @@ impl Writer<'_> {
                     })
                 });
                 let mut row = base(old, "Row");
-                row.attributes = r.attributes.clone();
+                row.attributes = r.attributes.clone().into_iter().collect();
                 set(&mut row, "N", r.name.clone());
                 set(&mut row, "IX", r.index.map(|i| i.to_string()));
                 set(&mut row, "T", r.row_type.clone());
@@ -297,7 +297,7 @@ impl Writer<'_> {
         let mut nodes = vec![];
         for c in connects {
             let mut e = node("Connect");
-            e.attributes = c.attributes.clone();
+            e.attributes = c.attributes.clone().into_iter().collect();
             for (k, v) in [
                 ("FromSheet", Some(c.from_sheet.to_string())),
                 ("ToSheet", Some(c.to_sheet.to_string())),

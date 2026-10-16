@@ -1144,3 +1144,11 @@ parity score changes.
 References: [Label](https://learn.microsoft.com/en-us/office/client-developer/visio/label-cell-shape-data-section),
 [Layer cells](https://learn.microsoft.com/en-us/office/client-developer/visio/cell-element-layer-sectionvisio-xml),
 [Type](https://learn.microsoft.com/en-us/office/client-developer/visio/type-cell-shape-data-section).
+
+## Brief B1: reader memory (#46)
+
+Reader XML now streams into the retained tree, uses compact attribute storage,
+and transfers completed trees and part buffers without full copies. The node
+budget includes attributes and text. Dense XML, media-copy and six-stencil
+regressions cover the memory contracts; the stencil source budget is unchanged.
+Reference: [Visio file format](https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx).

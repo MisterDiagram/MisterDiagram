@@ -23,7 +23,7 @@ impl Xfrm {
 pub struct XmlElement {
     pub name: String,
     pub namespace: String,
-    pub attributes: BTreeMap<String, String>,
+    pub attributes: std::collections::HashMap<String, String>,
     pub attribute_namespaces: BTreeMap<String, String>,
     pub children: Vec<XmlNode>,
 }

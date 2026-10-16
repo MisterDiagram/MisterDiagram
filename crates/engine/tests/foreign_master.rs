@@ -19,11 +19,11 @@ fn foreign() -> XmlElement {
     XmlElement {
         name: "ForeignData".into(),
         namespace: VIS.into(),
-        attributes: BTreeMap::from([("ForeignType".into(), "Bitmap".into())]),
+        attributes: std::collections::HashMap::from([("ForeignType".into(), "Bitmap".into())]),
         children: vec![XmlNode::Element(XmlElement {
             name: "Rel".into(),
             namespace: VIS.into(),
-            attributes: BTreeMap::from([("r:id".into(), "rImage".into()), ("xmlns:r".into(), REL.into())]),
+            attributes: std::collections::HashMap::from([("r:id".into(), "rImage".into()), ("xmlns:r".into(), REL.into())]),
             attribute_namespaces: BTreeMap::from([("r:id".into(), REL.into())]),
             ..Default::default()
         })],

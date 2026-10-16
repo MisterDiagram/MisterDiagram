@@ -593,7 +593,7 @@ mod tests {
             text.children.push(XmlNode::Element(XmlElement {
                 name: "pp".into(),
                 namespace: namespace.into(),
-                attributes: BTreeMap::from([("IX".into(), ix.to_string())]),
+                attributes: [("IX".into(), ix.to_string())].into(),
                 ..Default::default()
             }));
             text.children.push(XmlNode::Text("paragraph\n".into()));

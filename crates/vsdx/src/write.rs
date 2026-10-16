@@ -135,7 +135,7 @@ pub fn write_with_glue_host<'a>(
             let path = if p.part.is_empty() { format!("visio/pages/page{}.xml", i + 1) } else { p.part.clone() };
             let old = root.elements().find(|e| e.is_visio("Page") && e.attr("ID").and_then(|s| s.parse::<u32>().ok()) == Some(p.id));
             let mut e = old.cloned().unwrap_or_else(|| node("Page"));
-            e.attributes = p.attributes.clone();
+            e.attributes = p.attributes.clone().into_iter().collect();
             set(&mut e, "ID", Some(p.id.to_string()));
             set(&mut e, "Name", Some(p.name.clone()));
             set(&mut e, "NameU", Some(p.name_u.clone()));
@@ -170,7 +170,7 @@ pub fn write_with_glue_host<'a>(
             let path = if m.part.is_empty() { format!("visio/masters/master{}.xml", i + 1) } else { m.part.clone() };
             let old = root.elements().find(|e| e.is_visio("Master") && e.attr("ID").and_then(|s| s.parse::<u32>().ok()) == Some(m.id));
             let mut e = old.cloned().unwrap_or_else(|| node("Master"));
-            e.attributes = m.attributes.clone();
+            e.attributes = m.attributes.clone().into_iter().collect();
             for (k, v) in [
                 ("ID", Some(m.id.to_string())),
                 ("Name", Some(m.name.clone())),
@@ -325,7 +325,7 @@ fn relationships(path: &str, rels: &[Relationship]) -> Result<Vec<u8>, WriteErro
     }
     for r in ordered {
         let mut x = XmlElement { name: "Relationship".into(), namespace: crate::REL_NS.into(), ..Default::default() };
-        x.attributes = BTreeMap::from([
+        x.attributes = std::collections::HashMap::from([
             ("Id".into(), r.id.clone()),
             ("Type".into(), r.type_uri.clone()),
             ("Target".into(), if r.external { r.target.clone() } else { diagramcraft_opc::relative(path, &r.target) }),
@@ -452,7 +452,7 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
         ct.children.push(XmlNode::Element(XmlElement {
             name: "Default".into(),
             namespace: ns.into(),
-            attributes: BTreeMap::from([
+            attributes: std::collections::HashMap::from([
                 ("Extension".into(), "rels".into()),
                 ("ContentType".into(), "application/vnd.openxmlformats-package.relationships+xml".into()),
             ]),
@@ -463,7 +463,7 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
         ct.children.push(XmlNode::Element(XmlElement {
             name: "Default".into(),
             namespace: ns.into(),
-            attributes: BTreeMap::from([("Extension".into(), "xml".into()), ("ContentType".into(), "application/xml".into())]),
+            attributes: std::collections::HashMap::from([("Extension".into(), "xml".into()), ("ContentType".into(), "application/xml".into())]),
             ..Default::default()
         }));
     }
@@ -498,7 +498,7 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
         ct.children.push(XmlNode::Element(XmlElement {
             name: "Override".into(),
             namespace: ns.into(),
-            attributes: BTreeMap::from([("PartName".into(), format!("/{name}")), ("ContentType".into(), ty)]),
+            attributes: std::collections::HashMap::from([("PartName".into(), format!("/{name}")), ("ContentType".into(), ty)]),
             ..Default::default()
         }));
     }

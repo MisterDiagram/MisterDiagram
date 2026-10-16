@@ -58,7 +58,7 @@ pub fn import(bytes: &[u8]) -> Result<Document, ReadError> {
         .target
         .clone();
     let mut doc = Document { main_part: main.clone(), root_relationships: root_rels, ..Default::default() };
-    for (name, bytes) in package.parts() {
+    for (name, _) in package.parts() {
         let content_type = package.content_type(name);
         if content_type.as_deref() == Some("application/vnd.ms-office.vbaProject")
             || name.rsplit('/').next().is_some_and(|s| s.eq_ignore_ascii_case("vbaProject.bin"))
@@ -66,10 +66,10 @@ pub fn import(bytes: &[u8]) -> Result<Document, ReadError> {
             doc.macros_removed = true;
             continue;
         }
-        doc.parts.insert(name.to_string(), Part { bytes: bytes.to_vec(), content_type, ..Default::default() });
+        doc.parts.insert(name.to_string(), Part { content_type, ..Default::default() });
     }
     doc.macros_removed |= package.content_type(&main).is_some_and(|s| s.contains("macroEnabled"));
-    let root = part_xml(&package, &mut doc, &main)?;
+    let root = part_xml(&package, &main)?;
     if !root.is_visio("VisioDocument") {
         return Err(bad("invalid document namespace"));
     }
@@ -100,6 +100,7 @@ pub fn import(bytes: &[u8]) -> Result<Document, ReadError> {
             doc.face_names.insert(index, string(f, "NameU"));
         }
     }
+    retain_xml(&package, &mut doc, &main, root)?;
     let rels = relationships(&package, &main)?;
     for r in rels.iter().filter(|r| !r.external) {
         if r.type_uri == format!("{VIS_REL}pages") {
@@ -107,7 +108,8 @@ pub fn import(bytes: &[u8]) -> Result<Document, ReadError> {
         } else if r.type_uri == format!("{VIS_REL}masters") {
             parse_masters(&package, &mut doc, &r.target)?;
         } else if r.type_uri == format!("{VIS_REL}windows") {
-            let _ = part_xml(&package, &mut doc, &r.target)?;
+            let root = part_xml(&package, &r.target)?;
+            retain_xml(&package, &mut doc, &r.target, root)?;
         }
     }
     // All relationship tables are parsed, so media/thumbnail and unknown links remain inspectable.
@@ -123,13 +125,19 @@ pub fn import(bytes: &[u8]) -> Result<Document, ReadError> {
         .map(|(name, _)| name.clone())
         .collect();
     for name in metadata {
-        let _ = part_xml(&package, &mut doc, &name)?;
+        let root = part_xml(&package, &name)?;
+        retain_xml(&package, &mut doc, &name, root)?;
     }
     let names: Vec<String> = doc.parts.keys().filter(|n| !n.ends_with(".rels")).cloned().collect();
     for name in names {
         let rels = relationships(&package, &name)?;
         if let Some(p) = doc.parts.get_mut(&name) {
             p.relationships = rels;
+        }
+    }
+    for (name, bytes) in package.into_parts() {
+        if let Some(part) = doc.parts.get_mut(&name) {
+            part.bytes = bytes;
         }
     }
     Ok(doc)
@@ -150,63 +158,82 @@ fn boolean(e: &XmlElement, k: &str) -> Result<bool, ReadError> {
         _ => Err(bad(format!("invalid {}.{k}", e.name))),
     }
 }
-fn normalize_xml(e: xml::El, parent: &BTreeMap<String, String>) -> Result<XmlElement, ReadError> {
-    let mut ns = parent.clone();
-    for (k, v) in &e.attrs {
-        if k == "xmlns" {
-            ns.insert(String::new(), v.clone());
-        } else if let Some(p) = k.strip_prefix("xmlns:") {
-            ns.insert(p.to_string(), v.clone());
+#[derive(Default)]
+struct VisioTree {
+    namespaces: Vec<BTreeMap<String, String>>,
+}
+impl xml::TreeBuilder for VisioTree {
+    type Element = XmlElement;
+    type Error = ReadError;
+    fn start(&mut self, e: xml::El) -> Result<XmlElement, ReadError> {
+        let mut ns = self.namespaces.last().cloned().unwrap_or_default();
+        for (k, v) in &e.attrs {
+            if k == "xmlns" {
+                ns.insert(String::new(), v.clone());
+            } else if let Some(p) = k.strip_prefix("xmlns:") {
+                ns.insert(p.to_string(), v.clone());
+            }
         }
-    }
-    let (prefix, name) = e.name.split_once(':').unwrap_or(("", &e.name));
-    let namespace = ns.get(prefix).cloned().unwrap_or_default();
-    if !prefix.is_empty() && namespace.is_empty() {
-        return Err(bad("unbound XML namespace prefix"));
-    }
-    let mut out = XmlElement { name: name.to_string(), namespace, ..Default::default() };
-    let mut expanded = BTreeSet::new();
-    for (k, v) in e.attrs {
-        if k == "xmlns" || k.starts_with("xmlns:") {
+        let (prefix, name) = e.name.split_once(':').unwrap_or(("", &e.name));
+        let namespace = ns.get(prefix).cloned().unwrap_or_default();
+        if !prefix.is_empty() && namespace.is_empty() {
+            return Err(bad("unbound XML namespace prefix"));
+        }
+        let mut out = XmlElement { name: name.to_string(), namespace, children: Vec::with_capacity(e.children.len()), ..Default::default() };
+        let mut expanded = BTreeSet::new();
+        for (k, v) in e.attrs {
+            if k == "xmlns" || k.starts_with("xmlns:") {
+                out.attributes.insert(k, v);
+                continue;
+            }
+            let (prefix, local) = k.split_once(':').unwrap_or(("", &k));
+            let uri = if prefix == "xml" {
+                "http://www.w3.org/XML/1998/namespace".to_string()
+            } else if prefix.is_empty() {
+                String::new()
+            } else {
+                ns.get(prefix).cloned().ok_or_else(|| bad("unbound attribute namespace"))?
+            };
+            if !expanded.insert((uri.clone(), local.to_string())) {
+                return Err(bad("duplicate expanded attribute"));
+            }
+            if !uri.is_empty() {
+                out.attribute_namespaces.insert(k.clone(), uri);
+            }
             out.attributes.insert(k, v);
-            continue;
         }
-        let (prefix, local) = k.split_once(':').unwrap_or(("", &k));
-        let uri = if prefix == "xml" {
-            "http://www.w3.org/XML/1998/namespace".to_string()
-        } else if prefix.is_empty() {
-            String::new()
-        } else {
-            ns.get(prefix).cloned().ok_or_else(|| bad("unbound attribute namespace"))?
-        };
-        if !expanded.insert((uri.clone(), local.to_string())) {
-            return Err(bad("duplicate expanded attribute"));
-        }
-        out.attribute_namespaces.insert(k.clone(), uri);
-        out.attributes.insert(k, v);
+        self.namespaces.push(ns);
+        Ok(out)
     }
-    for n in e.children {
-        out.children.push(match n {
-            xml::Node::Text(t) => XmlNode::Text(t),
-            xml::Node::El(e) => XmlNode::Element(normalize_xml(e, &ns)?),
-        });
+    fn end(&mut self) {
+        self.namespaces.pop();
     }
-    Ok(out)
+    fn element(parent: &mut XmlElement, child: XmlElement) {
+        parent.children.push(XmlNode::Element(child));
+    }
+    fn last_text(parent: &mut XmlElement) -> Option<&mut String> {
+        if let Some(XmlNode::Text(text)) = parent.children.last_mut() { Some(text) } else { None }
+    }
+    fn text(parent: &mut XmlElement, text: String) {
+        parent.children.push(XmlNode::Text(text));
+    }
 }
 /// Parse one XML part with bounded nesting, strict namespaces and preserved text order.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml
 pub fn parse_xml(bytes: &[u8]) -> Result<XmlElement, ReadError> {
     limits::preflight(bytes)?;
-    normalize_xml(xml::parse(bytes)?.root, &BTreeMap::new())
+    xml::parse_with_builder(bytes, &mut VisioTree::default())
 }
-fn part_xml(p: &Package, d: &mut Document, name: &str) -> Result<XmlElement, ReadError> {
+fn part_xml(p: &Package, name: &str) -> Result<XmlElement, ReadError> {
     let data = p.get(name).ok_or_else(|| bad(format!("missing part {name}")))?;
-    let root = parse_xml(data)?;
+    parse_xml(data)
+}
+fn retain_xml(p: &Package, d: &mut Document, name: &str, root: XmlElement) -> Result<(), ReadError> {
     let original = p.original_name(name).ok_or_else(|| bad("part name missing"))?;
     if let Some(part) = d.parts.get_mut(original) {
-        part.xml = Some(root.clone());
+        part.xml = Some(root);
     }
-    Ok(root)
+    Ok(())
 }
 fn relationships(p: &Package, name: &str) -> Result<Vec<Relationship>, ReadError> {
     let Some(bytes) = p.get(&diagramcraft_opc::rels_path(name)) else { return Ok(vec![]) };
@@ -295,7 +322,7 @@ pub fn parse_sheet(e: &XmlElement) -> Result<Sheet, ReadError> {
             return Err(bad("sheet cell limit"));
         }
     }
-    let mut sheet = Sheet { attributes: e.attributes.clone(), ..Default::default() };
+    let mut sheet = Sheet { attributes: e.attributes.clone().into_iter().collect(), ..Default::default() };
     for c in e.elements() {
         if c.is_visio("Cell") {
             sheet.cells.push(cell(c)?);
@@ -306,7 +333,7 @@ pub fn parse_sheet(e: &XmlElement) -> Result<Sheet, ReadError> {
                 name: string(c, "N"),
                 index: uint(c, "IX")?,
                 deleted: boolean(c, "Del")?,
-                attributes: c.attributes.clone(),
+                attributes: c.attributes.clone().into_iter().collect(),
                 ..Default::default()
             };
             for r in c.elements() {
@@ -318,7 +345,7 @@ pub fn parse_sheet(e: &XmlElement) -> Result<Sheet, ReadError> {
                         index: uint(r, "IX")?,
                         row_type: r.attr("T").map(str::to_string),
                         deleted: boolean(r, "Del")?,
-                        attributes: r.attributes.clone(),
+                        attributes: r.attributes.clone().into_iter().collect(),
                         ..Default::default()
                     };
                     for c in r.elements().filter(|e| e.is_visio("Cell")) {
@@ -339,7 +366,7 @@ fn cell(e: &XmlElement) -> Result<Cell, ReadError> {
         formula: e.attr("F").map(str::to_string),
         units: e.attr("U").map(str::to_string),
         error: e.attr("E").map(str::to_string),
-        attributes: e.attributes.clone(),
+        attributes: e.attributes.clone().into_iter().collect(),
         ref_by: e.elements().filter(|e| e.is_visio("RefBy")).cloned().collect(),
     })
 }
@@ -389,13 +416,13 @@ fn connects(e: &XmlElement) -> Result<Vec<Connect>, ReadError> {
                 to_cell: c.attr("ToCell").map(str::to_string),
                 from_part: c.attr("FromPart").map(|s| s.parse().map_err(|_| bad("invalid FromPart"))).transpose()?,
                 to_part: c.attr("ToPart").map(|s| s.parse().map_err(|_| bad("invalid ToPart"))).transpose()?,
-                attributes: c.attributes.clone(),
+                attributes: c.attributes.clone().into_iter().collect(),
             })
         })
         .collect()
 }
 fn parse_pages(p: &Package, d: &mut Document, part: &str) -> Result<(), ReadError> {
-    let root = part_xml(p, d, part)?;
+    let root = part_xml(p, part)?;
     if !root.is_visio("Pages") {
         return Err(bad("invalid Pages root"));
     }
@@ -404,7 +431,7 @@ fn parse_pages(p: &Package, d: &mut Document, part: &str) -> Result<(), ReadErro
         let content = if target.is_empty() {
             XmlElement { name: "PageContents".into(), namespace: e.namespace.clone(), ..Default::default() }
         } else {
-            part_xml(p, d, &target)?
+            part_xml(p, &target)?
         };
         if !content.is_visio("PageContents") {
             return Err(bad("invalid PageContents root"));
@@ -416,14 +443,18 @@ fn parse_pages(p: &Package, d: &mut Document, part: &str) -> Result<(), ReadErro
             sheet: e.child("PageSheet").map(parse_sheet).transpose()?.unwrap_or_default(),
             shapes: shapes(&content, 0)?,
             connects: connects(&content)?,
-            part: target,
-            attributes: e.attributes.clone(),
+            part: target.clone(),
+            attributes: e.attributes.clone().into_iter().collect(),
         });
+        if !target.is_empty() {
+            retain_xml(p, d, &target, content)?;
+        }
     }
+    retain_xml(p, d, part, root)?;
     Ok(())
 }
 fn parse_masters(p: &Package, d: &mut Document, part: &str) -> Result<(), ReadError> {
-    let root = part_xml(p, d, part)?;
+    let root = part_xml(p, part)?;
     if !root.is_visio("Masters") {
         return Err(bad("invalid Masters root"));
     }
@@ -435,7 +466,7 @@ fn parse_masters(p: &Package, d: &mut Document, part: &str) -> Result<(), ReadEr
             let content = if target.is_empty() {
                 XmlElement { name: "MasterContents".into(), namespace: e.namespace.clone(), ..Default::default() }
             } else {
-                part_xml(p, d, &target)?
+                part_xml(p, &target)?
             };
             if !content.is_visio("MasterContents") {
                 return Err(bad("invalid MasterContents root"));
@@ -450,10 +481,14 @@ fn parse_masters(p: &Package, d: &mut Document, part: &str) -> Result<(), ReadEr
                 sheet: e.child("PageSheet").map(parse_sheet).transpose()?.unwrap_or_default(),
                 shapes: shapes(&content, 0)?,
                 connects: connects(&content)?,
-                part: target,
-                attributes: e.attributes.clone(),
+                part: target.clone(),
+                attributes: e.attributes.clone().into_iter().collect(),
             });
+            if !target.is_empty() {
+                retain_xml(p, d, &target, content)?;
+            }
         }
     }
+    retain_xml(p, d, part, root)?;
     Ok(())
 }

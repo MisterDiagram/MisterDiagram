@@ -225,7 +225,7 @@ fn element(name: &str, attributes: BTreeMap<String, String>, children: Vec<XmlNo
     XmlElement {
         name: name.into(),
         namespace: "http://schemas.microsoft.com/office/visio/2012/main".into(),
-        attributes,
+        attributes: attributes.into_iter().collect(),
         children,
         ..Default::default()
     }

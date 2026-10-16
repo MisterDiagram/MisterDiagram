@@ -88,6 +88,7 @@ fn node(e: &XmlElement, parent: &BTreeMap<String, String>, depth: usize, count: 
     }
     let mut expanded = std::collections::BTreeSet::new();
     let mut attributes: Vec<_> = e.attributes.iter().collect();
+    attributes.sort_unstable_by(|a, b| a.0.cmp(b.0));
     if app && e.name == "vector" {
         attributes.sort_by_key(|(k, _)| if k.as_str() == "size" { 0 } else { 1 });
     }

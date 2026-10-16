@@ -26,6 +26,7 @@ reader sheet limits after XML escaping, and preserves opaque part payloads exact
 
 | Local path | Source repo | Source path | Commit | Licence |
 |---|---|---|---|---|
+| `crates/vsdx/tests/reader_memory.rs`, `crates/vsdx/tests/support/hostile_package.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/1a/vsdx_review_1a.rs` (selected memory tests and synthetic package recipe) | `107ee4c3423dd4154bd3c59f60362801f638eabf` | MIT OR Apache-2.0, user-authorized port |
 | `crates/vsdx/tests/authored_strings.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/1b/vsdx_review_1b.rs` (selected synthetic test) | `3ce1a4740bf3e44463f1e35babc42ff46562f4e5` | MIT OR Apache-2.0, user-authorized port |
 | `crates/engine/tests/route_ownership.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/3a/engine_review_3a.rs` (selected synthetic tests) | `3ce1a4740bf3e44463f1e35babc42ff46562f4e5` | MIT OR Apache-2.0, user-authorized port |
 | `crates/engine/tests/endpoint_obstacles.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/3a/engine_review_3a.rs` (selected tests), `scope/visio/review/repros/2b/2b-6-connector-endpoint-in-obstacle.sh` (recipes) | `3ce1a4740bf3e44463f1e35babc42ff46562f4e5` | MIT OR Apache-2.0, user-authorized port |
@@ -117,6 +118,29 @@ while records are interpreted, before the enclosing scene retains the result.
 all open stencils in a session, with the existing 64-stencil count limit.
 Reopening the same canonical path reuses its source. A source-byte refusal names
 the stencil, its required MiB, the MiB already open and the 128 MiB limit.
+
+Brief B reader accounting (2026-10-16): scanned all 1,413 strict-corpus packages
+and all 844 additional stencil paths under corpus (2,257 paths, 26,497 distinct
+XML payloads, zero parse errors). The largest XML part has 467,889 retained
+elements, attributes and coalesced text nodes: statistical_infographic_m.vssx,
+visio/masters/master10.xml (155,798 elements and 312,091 attributes). The reader's
+node budget now counts all three kinds before retaining them, at 5,000,000,
+more than ten times that maximum. This replaces the old 4,000,000-element-only
+budget; it bounds retained storage, not traversal time. The largest attribute
+count on one element is 44, in PRSSTS_M.vstx, visio/data/recordset2.xml.
+No per-element attribute cap is introduced.
+
+The XML parser builds the namespace-aware retained tree directly. Small XML
+attribute tables use hash maps instead of minimally eleven-slot B-tree leaves;
+unqualified attributes need no stored namespace entry. XML emission explicitly
+sorts attributes, preserving deterministic output. Typed sheets retain their
+ordered maps. Completed part trees and decompressed buffers move into the model,
+so the reader retains one source buffer and one XML view per part.
+The stencil budget continues to count source bytes at its unchanged 128 MiB:
+the six dense-stencil repro opens below 1 GiB after the DOM reduction, so another
+cap is unnecessary. Largest uncompressed package input in the scan: 33,815,410
+bytes, SOCIAL_DISTANCING_M.vstx. No existing source-byte or sheet cap changes.
+
 
 
 

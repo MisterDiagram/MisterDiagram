@@ -57,3 +57,61 @@ fn retained_stencil_source_accepts_over_32_mib_and_bounds_single_and_combined_so
     assert_eq!(session.execute("stencil.open", &json!({"path":small})).unwrap()["stencil"], 1, "refusal must leave the session usable");
     std::fs::remove_dir_all(&directory).unwrap();
 }
+
+/// Six dense XML sources remain within the existing source-byte stencil budget.
+/// The macOS child isolates RSS from other tests and from the test runner.
+#[test]
+fn six_dense_stencil_sources_stay_bounded() {
+    #[cfg(target_os = "macos")]
+    if std::env::var_os("DIAGRAMCRAFT_STENCIL_DOM_CHILD").is_none() {
+        let output = std::process::Command::new("/usr/bin/time")
+            .arg("-l")
+            .arg(std::env::current_exe().unwrap())
+            .args(["--exact", "six_dense_stencil_sources_stay_bounded", "--nocapture"])
+            .env("DIAGRAMCRAFT_STENCIL_DOM_CHILD", "1")
+            .output()
+            .unwrap();
+        let stderr = String::from_utf8(output.stderr).unwrap();
+        assert!(output.status.success(), "{stderr}");
+        let rss: u64 = stderr.lines().find(|l| l.contains("maximum resident set size")).unwrap().split_whitespace().next().unwrap().parse().unwrap();
+        eprintln!("six 25000-element stencils peak RSS: {rss} bytes (limit 130 MiB)");
+        assert!(rss < 130 * 1024 * 1024, "{stderr}");
+        return;
+    }
+    let directory = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(format!("../../target/engine-tests/stencil-dom-{}", std::process::id()));
+    std::fs::create_dir_all(&directory).unwrap();
+    let mut document = skeleton::document(false);
+    document.masters.clear();
+    let part = "visio/masters/master1.xml";
+    let xml = format!(
+        "<MasterContents xmlns='http://schemas.microsoft.com/office/visio/2012/main'><Shapes/>{}</MasterContents>",
+        "<a b='1'/>".repeat(25_000)
+    );
+    document.parts.insert(
+        part.into(),
+        Part {
+            bytes: xml.as_bytes().to_vec(),
+            xml: Some(diagramcraft_vsdx::parse_xml(xml.as_bytes()).unwrap()),
+            content_type: Some("application/vnd.ms-visio.master+xml".into()),
+            ..Default::default()
+        },
+    );
+    document.masters.push(diagramcraft_model::Master {
+        id: 1,
+        name: "Dense".into(),
+        name_u: "Dense".into(),
+        part: part.into(),
+        ..Default::default()
+    });
+    let bytes = diagramcraft_vsdx::write_as(&document, diagramcraft_vsdx::SaveKind::Stencil).unwrap().bytes;
+    drop(document);
+    let mut session = Session::new();
+    for index in 1..=6 {
+        let path = directory.join(format!("dense-{index}.vssx"));
+        std::fs::write(&path, &bytes).unwrap();
+        let opened = session.execute("stencil.open", &json!({"path":path})).unwrap();
+        assert_eq!(opened["stencil"], index);
+        assert_eq!(opened["masters"], 1);
+    }
+    std::fs::remove_dir_all(directory).unwrap();
+}

@@ -19,9 +19,9 @@ impl Budget {
         }
         Ok(())
     }
-    fn attrs(&mut self, a: &BTreeMap<String, String>) -> Result<(), WriteError> {
-        self.nodes(a.len())?;
+    fn attrs<'a>(&mut self, a: impl IntoIterator<Item = (&'a String, &'a String)>) -> Result<(), WriteError> {
         for (k, v) in a {
+            self.nodes(1)?;
             self.string(k)?;
             self.string(v)?;
         }

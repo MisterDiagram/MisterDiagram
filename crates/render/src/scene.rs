@@ -695,10 +695,7 @@ fn foreign_image(
     height: f64,
     scene: &mut Scene,
 ) -> Result<(), String> {
-    let rel = foreign
-        .child("Rel")
-        .and_then(|r| r.attributes.iter().find(|(k, _)| k.rsplit(':').next() == Some("id")).map(|(_, v)| v))
-        .ok_or("foreign object lacks relationship")?;
+    let rel = foreign.child("Rel").and_then(foreign_relationship).ok_or("foreign object lacks relationship")?;
     let target = e
         .document
         .parts
@@ -749,4 +746,28 @@ fn foreign_image(
 
 fn filled_marker(kind: u32) -> bool {
     matches!(kind, 2 | 4 | 5 | 6 | 8 | 10 | 11 | 13 | 35..=39 | 42)
+}
+
+/// Relationship attributes are identified by expanded name, independent of prefix or storage order.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/rel-element-foreigndata_type-complextypevisio-xml
+fn foreign_relationship(rel: &diagramcraft_model::XmlElement) -> Option<&String> {
+    rel.attributes
+        .iter()
+        .find(|(name, _)| {
+            name.rsplit(':').next() == Some("id")
+                && rel.attribute_namespaces.get(*name).is_some_and(|ns| ns == "http://schemas.openxmlformats.org/officeDocument/2006/relationships")
+        })
+        .map(|(_, value)| value)
+}
+
+#[cfg(test)]
+mod relationship_tests {
+    #[test]
+    fn foreign_relationship_ignores_extension_ids() {
+        let rel = diagramcraft_vsdx::parse_xml(br#"<Rel xmlns='http://schemas.microsoft.com/office/visio/2012/main' xmlns:r='http://schemas.openxmlformats.org/officeDocument/2006/relationships' xmlns:x='urn:extension' r:id='correct' x:id='wrong' id='unqualified'/>"#).unwrap();
+        assert_eq!(super::foreign_relationship(&rel).map(String::as_str), Some("correct"));
+        let mut extension_only = rel;
+        extension_only.attributes.remove("r:id");
+        assert_eq!(super::foreign_relationship(&extension_only), None);
+    }
 }
