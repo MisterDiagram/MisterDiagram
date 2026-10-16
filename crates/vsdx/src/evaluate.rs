@@ -40,6 +40,10 @@ struct Key {
     scope: Scope,
     name: String,
 }
+struct CachedValue {
+    value: Value,
+    shared: bool,
+}
 #[derive(Default)]
 struct Snapshot {
     formulas: BTreeMap<Key, Option<String>>,
@@ -62,7 +66,7 @@ pub struct Evaluator<'a> {
     cells: BTreeMap<Key, &'a Cell>,
     canonical: BTreeMap<Key, Key>,
     names: BTreeMap<Scope, Vec<NamedCell<'a>>>,
-    values: BTreeMap<Key, Value>,
+    values: BTreeMap<Key, CachedValue>,
     active: BTreeSet<Key>,
     resolving_cycle: bool,
     work: usize,
@@ -75,6 +79,7 @@ pub struct Evaluator<'a> {
     override_bytes: usize,
     arguments: Vec<BTreeMap<String, Value>>,
     argument_bytes: usize,
+    context_epoch: std::cell::Cell<u64>,
     assignments: usize,
     revision: usize,
     dependencies: BTreeMap<Key, BTreeSet<Key>>,
@@ -130,6 +135,7 @@ impl<'a> Evaluator<'a> {
             override_bytes: 0,
             arguments: Vec::new(),
             argument_bytes: 0,
+            context_epoch: std::cell::Cell::new(0),
             assignments: 0,
             revision: 0,
             dependencies: BTreeMap::new(),
@@ -669,8 +675,12 @@ impl<'a> Evaluator<'a> {
         false
     }
 
+    fn mark_context_dependent(&self) {
+        self.context_epoch.set(self.context_epoch.get().saturating_add(1));
+    }
     fn evaluate_inner(&mut self, scope: Scope, name: &str) -> Value {
         if self.graph_limited || name.len() > 65536 || self.active.len() >= 128 || self.work >= 100_000 {
+            self.mark_context_dependent();
             return Value::Error(Error::Limit);
         }
         self.work += 1;
@@ -678,10 +688,13 @@ impl<'a> Evaluator<'a> {
             return Value::Error(e);
         }
         let Some(key) = self.canonical_key(scope, name) else { return Value::Error(Error::Ref) };
-        if self.arguments.is_empty()
-            && let Some(value) = self.values.get(&key)
+        if let Some(cached) = self.values.get(&key)
+            && (cached.shared || self.arguments.is_empty())
         {
-            return value.clone();
+            if !cached.shared {
+                self.mark_context_dependent();
+            }
+            return cached.value.clone();
         }
         // Action formulas run on user invocation, not passive cell recalculation.
         // ANNOT_U master26 uses a toggle referencing its own previous Action result.
@@ -696,9 +709,14 @@ impl<'a> Evaluator<'a> {
                 .map_or(Value::Error(Error::Ref), |c| self.cached_named_cell(scope, &key.name, c));
         }
         if !self.active.insert(key.clone()) {
-            return self.prove_clamped_cycle(&key);
+            let value = self.prove_clamped_cycle(&key);
+            if value == Value::Error(Error::Cycle) {
+                self.mark_context_dependent();
+            }
+            return value;
         }
         let revision = self.revision;
+        let context_epoch = self.context_epoch.get();
         self.stack.push(key.clone());
         let value = if let Some(cell) = self.cell(scope, &key.name) {
             let cached = self.cached_named_cell(scope, &key.name, self.local_inh_cell(scope, &key.name).unwrap_or(cell));
@@ -731,9 +749,15 @@ impl<'a> Evaluator<'a> {
         self.stack.pop();
         self.active.remove(&key);
         let value = if self.graph_limited { Value::Error(Error::Limit) } else { value };
-        if self.arguments.is_empty() && revision == self.revision {
+        // ARG reads and transient depth/work refusals taint enclosing evaluations,
+        // including IFERROR fallbacks. Preserve their historical outside-frame cache,
+        // but share only context-independent entries with EVALCELL frames.
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/evalcell-function
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/arg-function
+        let shared = context_epoch != u64::MAX && context_epoch == self.context_epoch.get();
+        if (shared || self.arguments.is_empty()) && revision == self.revision {
             self.dirty.remove(&key);
-            self.values.insert(key, value.clone());
+            self.values.insert(key, CachedValue { value: value.clone(), shared });
         }
         value
     }
@@ -817,7 +841,7 @@ impl<'a> Evaluator<'a> {
             .cloned()
             .or_else(|| self.baseline_cell(scope, name).map(|_| Key { scope, name: name.to_ascii_lowercase() }))
     }
-    /// Custom function arguments live only during the invocation, and bypass ordinary memoization.
+    /// Custom arguments live only during invocation; argument-free dependencies share the cell cache.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/evalcell-function
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/arg-function
     pub fn eval_cell(&mut self, scope: Scope, reference: &str, args: &[(String, Value)]) -> Value {
@@ -826,6 +850,7 @@ impl<'a> Evaluator<'a> {
             self.eval_work = 0;
         }
         if args.len() > 256 || self.arguments.len() >= 64 || self.work >= 100000 {
+            self.mark_context_dependent();
             return Value::Error(Error::Limit);
         }
         self.work += 1;
@@ -850,6 +875,7 @@ impl<'a> Evaluator<'a> {
         let mut bytes = 0usize;
         for (name, value) in args {
             if name.len() > 65536 {
+                self.mark_context_dependent();
                 return Value::Error(Error::Limit);
             }
             bytes = bytes.saturating_add(name.len()).saturating_add(match value {
@@ -858,6 +884,7 @@ impl<'a> Evaluator<'a> {
             });
         }
         if self.argument_bytes.saturating_add(bytes) > 8 * 1024 * 1024 {
+            self.mark_context_dependent();
             return Value::Error(Error::Limit);
         }
         self.argument_bytes += bytes;
@@ -1388,6 +1415,7 @@ impl Context for BoundContext<'_, '_> {
     }
     fn enter_eval(&mut self) -> bool {
         if self.evaluator.eval_depth >= 128 || self.evaluator.eval_work >= 100000 {
+            self.evaluator.mark_context_dependent();
             return false;
         }
         self.evaluator.eval_depth += 1;
@@ -1504,6 +1532,7 @@ impl Context for BoundContext<'_, '_> {
         }
     }
     fn argument(&self, name: &str) -> Option<Value> {
+        self.evaluator.mark_context_dependent();
         self.evaluator.arguments.last()?.get(&name.to_ascii_lowercase()).cloned()
     }
     fn dependency(&mut self, reference: &str) {
@@ -1900,7 +1929,7 @@ mod tests {
         assert_eq!(e.evaluate(scope, "Other"), Value::Number(11.));
         e.set_formula(scope, "Width", "7").unwrap();
         assert_eq!(e.dirty_count(), 3);
-        assert_eq!(e.values.get(&Key { scope, name: "other".into() }), Some(&Value::Number(11.)));
+        assert_eq!(e.values.get(&Key { scope, name: "other".into() }).map(|cached| &cached.value), Some(&Value::Number(11.)));
         let changed = e.recalculate_dirty();
         assert_eq!(changed.iter().map(|r| r.1.as_str()).collect::<Vec<_>>(), vec!["width", "dependent", "downstream"]);
         assert_eq!(changed.last().unwrap().2, Value::Number(15.));

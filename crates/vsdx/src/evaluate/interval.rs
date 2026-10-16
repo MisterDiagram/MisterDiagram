@@ -22,7 +22,7 @@ impl Range {
 }
 impl Evaluator<'_> {
     pub(super) fn prove_clamped_cycle(&mut self, key: &Key) -> Value {
-        if self.resolving_cycle || !self.arguments.is_empty() {
+        if self.resolving_cycle {
             return Value::Error(Error::Cycle);
         }
         self.resolving_cycle = true;

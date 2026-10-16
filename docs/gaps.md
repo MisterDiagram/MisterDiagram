@@ -1158,3 +1158,5 @@ Brief B2 (#47): quadratic attribute duplicate checking removed; distinct names u
 Brief B3 (#48): imports index each relationship part once and read repeated page/master targets once. Portable tests assert three relationship parses for 64 distinct parts, and unchanged model counts under duplicate collection/content links. No count cap added; no duplicates found in the strict corpus or local stencils.
 
 Brief B4 (#49): EMF text decoding/shaping and dash outline expansion are checked against the existing operation budget first. Scaled portable regressions assert refusal before retained outlines; ordinary text/dashes still draw. No numerical cap or render population changes.
+
+Brief B5 (#50): shared cell caching remains enabled in EVALCELL for argument-independent results. Runtime ARG reads prevent dependent cells from becoming cross-frame cache entries. Cold and warm15-step chains return32768; frame-specific arguments and outside defaults are retained. Context-dependent entries preserve their existing outside-frame cache, and cache-hit metadata propagates to cold callers. No cap changes.

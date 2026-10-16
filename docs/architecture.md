@@ -189,3 +189,20 @@ budget to32 and assert no outlined operations were retained before refusal.
 Copied from siblings: `crates/render/src/metafile/emf_bounds_tests.rs` adapts the
 review 3b synthetic EMF records and regressions from craft-apps at
 `107ee4c3423dd4154bd3c59f60362801f638eabf`, MIT OR Apache-2.0.
+
+Brief B EVALCELL caching: each cached value records whether it can be shared
+with argument frames. A monotonic context counter marks every enclosing
+cell evaluation that consulted an argument, including default/missing arguments,
+or encountered a transient depth/work refusal or unresolved cycle. Unchanged
+counter and revision permit a shared entry. Context-dependent values retain
+their historical cache outside frames, but frames ignore those entries and
+never write a context-dependent result. An outside cache hit propagates its
+context flag to callers. Metadata lives with each value, so invalidation and
+cache clearing cannot leave stale flags. Bounded clamped-cycle proof also runs
+inside frames; its restricted grammar does not speculatively evaluate ARG or
+EVALCELL. Counter saturation disables new shared entries. No cap changes or
+additional dependency walk are needed.
+
+Copied from siblings: `crates/vsdx/tests/evalcell_cache.rs` adapts the review 2a
+doubling-chain regression from craft-apps at
+`107ee4c3423dd4154bd3c59f60362801f638eabf`, MIT OR Apache-2.0.
