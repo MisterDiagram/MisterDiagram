@@ -675,3 +675,91 @@ mod referenced_whitespace_regression {
         assert_eq!(original.root, reread.root);
     }
 }
+
+/// Count elements, attributes and adjacent text runs without constructing a tree.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
+pub fn charge_retained_nodes(bytes: &[u8], used: &mut usize, limit: usize, already_open: usize) -> Result<(), OpcError> {
+    if bytes.len() > crate::MAX_XML_PART {
+        return Err(xml_error("XML part byte limit"));
+    }
+    let owned;
+    let bytes = if bytes.starts_with(&[0xff, 0xfe]) || bytes.starts_with(&[0xfe, 0xff]) {
+        owned = decode_utf16(bytes)?;
+        owned.as_bytes()
+    } else {
+        bytes.strip_prefix(&[0xef, 0xbb, 0xbf]).unwrap_or(bytes)
+    };
+    let mut reader = quick_xml::Reader::from_reader(bytes);
+    let mut stack: Vec<bool> = Vec::new();
+    let mut charge = || -> Result<(), OpcError> {
+        *used = used.saturating_add(1);
+        if *used > limit {
+            return Err(xml_error(format!("retained XML node limit: found {}, limit {limit}, already open {already_open}", *used)));
+        }
+        Ok(())
+    };
+    loop {
+        match reader.read_event().map_err(xml_error)? {
+            event @ (Event::Start(_) | Event::Empty(_)) => {
+                charge()?;
+                if stack.len() >= MAX_DEPTH {
+                    return Err(xml_error("XML depth limit"));
+                }
+                if let Some(last) = stack.last_mut() {
+                    *last = false;
+                }
+                let empty = matches!(&event, Event::Empty(_));
+                if let Event::Start(e) | Event::Empty(e) = event {
+                    for attr in e.attributes().with_checks(false) {
+                        attr.map_err(xml_error)?;
+                        charge()?;
+                    }
+                }
+                if !empty {
+                    stack.push(false);
+                }
+            }
+            Event::End(_) => {
+                stack.pop();
+            }
+            Event::Text(t) if !t.is_empty() => {
+                if let Some(last) = stack.last_mut()
+                    && !*last
+                {
+                    charge()?;
+                    *last = true;
+                }
+            }
+            Event::CData(t) if !t.is_empty() => {
+                if let Some(last) = stack.last_mut()
+                    && !*last
+                {
+                    charge()?;
+                    *last = true;
+                }
+            }
+            Event::GeneralRef(_) => {
+                if let Some(last) = stack.last_mut()
+                    && !*last
+                {
+                    charge()?;
+                    *last = true;
+                }
+            }
+            Event::DocType(_) => return Err(xml_error("DOCTYPE is not supported")),
+            Event::Eof => break,
+            _ => {}
+        }
+    }
+    Ok(())
+}
+
+/// Normalize the byte encoding before the reader's bounded streaming passes.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
+pub fn decoded_xml(bytes: &[u8]) -> Result<std::borrow::Cow<'_, [u8]>, OpcError> {
+    if bytes.starts_with(&[0xff, 0xfe]) || bytes.starts_with(&[0xfe, 0xff]) {
+        Ok(std::borrow::Cow::Owned(decode_utf16(bytes)?.into_bytes()))
+    } else {
+        Ok(std::borrow::Cow::Borrowed(bytes.strip_prefix(&[0xef, 0xbb, 0xbf]).unwrap_or(bytes)))
+    }
+}

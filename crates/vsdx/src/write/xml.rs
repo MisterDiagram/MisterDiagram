@@ -70,13 +70,13 @@ fn node(e: &XmlElement, parent: &BTreeMap<String, String>, depth: usize, count: 
             ns.insert(p.into(), v.clone());
         }
     }
-    let found = ns.iter().find(|(_, v)| **v == e.namespace).map(|(k, _)| k.clone());
+    let found = ns.iter().find(|(_, v)| v.as_str() == e.namespace.as_str()).map(|(k, _)| k.clone());
     let (name, declare) = match found {
-        Some(p) if p.is_empty() => (e.name.clone(), false),
+        Some(p) if p.is_empty() => (e.name.to_string(), false),
         Some(p) => (format!("{p}:{}", e.name), false),
         None => {
-            ns.insert(String::new(), e.namespace.clone());
-            (e.name.clone(), true)
+            ns.insert(String::new(), e.namespace.to_string());
+            (e.name.to_string(), true)
         }
     };
     append(out, "<")?;

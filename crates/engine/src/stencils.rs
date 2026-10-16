@@ -22,7 +22,7 @@ pub(crate) fn open(s: &mut Session, p: &Value) -> Result<Value> {
     if s.stencils.len() >= 64 {
         return Err(operation("stencil count limit"));
     }
-    let document = diagramcraft_vsdx::read(&path).map_err(operation)?;
+    let document = diagramcraft_vsdx::read_with_open_nodes(&path, s.retained_xml_nodes()).map_err(operation)?;
     if !document.parts.get(&document.main_part).and_then(|p| p.content_type.as_deref()).is_some_and(|v| v.contains("stencil")) {
         return Err(operation("file is not a stencil"));
     }
@@ -93,4 +93,55 @@ pub(crate) fn search(s: &mut Session, p: &Value) -> Result<Value> {
     let query = name(p, "query")?;
     let limit = p.get("limit").map(|_| uint(p, "limit")).transpose()?.unwrap_or(1000).min(1000) as usize;
     entries(document(s, p)?.as_ref(), Some(query), limit)
+}
+
+#[cfg(test)]
+mod retained_tests {
+    use super::*;
+    #[test]
+    fn document_and_stencils_share_admission_and_refusal_rolls_back() {
+        let directory =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(format!("../../target/engine-tests/retained-session-{}", std::process::id()));
+        std::fs::create_dir_all(&directory).unwrap();
+        let bytes = diagramcraft_vsdx::write_as(&crate::files::blank_document(false), diagramcraft_vsdx::SaveKind::Stencil).unwrap().bytes;
+        let nodes = diagramcraft_vsdx::import(&bytes).unwrap().retained_xml_nodes;
+        let first = directory.join("first.vssx");
+        let second = directory.join("second.vssx");
+        std::fs::write(&first, &bytes).unwrap();
+        std::fs::write(&second, &bytes).unwrap();
+        let mut s = Session::new();
+        // Model an already-admitted population without allocating millions of test
+        // nodes. The full-size CLI session edge is measured separately.
+        Arc::make_mut(&mut s.document).retained_xml_nodes = diagramcraft_vsdx::MAX_RETAINED_XML_NODES - (2 * nodes - 1);
+        s.execute("stencil.open", &json!({"path":first})).unwrap();
+        let already = s.retained_xml_nodes();
+        s.execute("stencil.open", &json!({"path":first})).unwrap();
+        assert_eq!(s.retained_xml_nodes(), already, "reopening reuses the reservation");
+        let error = s.execute("stencil.open", &json!({"path":second})).unwrap_err().to_string();
+        assert!(error.contains("retained XML node limit: found 4000001, limit 4000000"), "{error}");
+        assert!(error.contains(&format!("already open {already}")), "{error}");
+        assert_eq!(s.stencils.len(), 1);
+        assert_eq!(s.retained_xml_nodes(), already);
+        s.execute("file.new", &json!({})).unwrap();
+        assert_eq!(s.retained_xml_nodes(), nodes, "new document releases the old document reservation");
+        s.execute("stencil.open", &json!({"path":second})).unwrap();
+        assert_eq!(s.retained_xml_nodes(), 2 * nodes, "distinct paths retain distinct documents");
+
+        let drawing = directory.join("drawing.vsdx");
+        let drawing_bytes = diagramcraft_vsdx::write(&crate::files::blank_document(false)).unwrap().bytes;
+        let drawing_nodes = diagramcraft_vsdx::import(&drawing_bytes).unwrap().retained_xml_nodes;
+        std::fs::write(&drawing, drawing_bytes).unwrap();
+        let mut reverse = Session::new();
+        reverse.execute("stencil.open", &json!({"path":first})).unwrap();
+        Arc::make_mut(&mut reverse.stencils[0].document).retained_xml_nodes = diagramcraft_vsdx::MAX_RETAINED_XML_NODES - drawing_nodes + 1;
+        let before = reverse.retained_xml_nodes();
+        let error = reverse.execute("file.open", &json!({"path":drawing})).unwrap_err().to_string();
+        assert!(error.contains(&format!("already open {before}")), "{error}");
+        assert_eq!(reverse.retained_xml_nodes(), before);
+        assert!(reverse.path.is_none());
+        Arc::make_mut(&mut reverse.stencils[0].document).retained_xml_nodes -= 1;
+        reverse.execute("file.open", &json!({"path":drawing})).unwrap();
+        assert_eq!(reverse.retained_xml_nodes(), diagramcraft_vsdx::MAX_RETAINED_XML_NODES);
+        std::fs::remove_dir_all(directory).unwrap();
+    }
 }

@@ -755,7 +755,7 @@ fn foreign_relationship(rel: &diagramcraft_model::XmlElement) -> Option<&String>
         .iter()
         .find(|(name, _)| {
             name.rsplit(':').next() == Some("id")
-                && rel.attribute_namespaces.get(*name).is_some_and(|ns| ns == "http://schemas.openxmlformats.org/officeDocument/2006/relationships")
+                && rel.attribute_namespaces.get(name).is_some_and(|ns| ns == "http://schemas.openxmlformats.org/officeDocument/2006/relationships")
         })
         .map(|(_, value)| value)
 }

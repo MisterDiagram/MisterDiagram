@@ -5,7 +5,6 @@ use crate::{
 };
 use diagramcraft_model::{Document, Page, Row, Section};
 use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
-use std::collections::BTreeMap;
 fn number(e: &mut Evaluator<'_>, scope: Scope, name: &str) -> Result<f64, String> {
     let value = e.evaluate(scope, name).numeric().map_err(|e| e.to_string())?;
     if value.is_finite() && value.abs() <= 1e6 { Ok(value) } else { Err("route coordinate limit".into()) }
@@ -50,7 +49,7 @@ fn row(index: u32, kind: &str, cells: Vec<diagramcraft_model::Cell>, deleted: bo
         index: Some(index),
         row_type: Some(kind.into()),
         deleted,
-        attributes: BTreeMap::from([("IX".into(), index.to_string()), ("T".into(), kind.into())]),
+        attributes: diagramcraft_model::Attributes::from([("IX".into(), index.to_string()), ("T".into(), kind.into())]),
         cells,
         ..Default::default()
     }

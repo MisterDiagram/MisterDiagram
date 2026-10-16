@@ -119,30 +119,52 @@ all open stencils in a session, with the existing 64-stencil count limit.
 Reopening the same canonical path reuses its source. A source-byte refusal names
 the stencil, its required MiB, the MiB already open and the 128 MiB limit.
 
-Brief B reader accounting (2026-10-16): scanned all 1,413 strict-corpus packages
-and all 844 additional stencil paths under corpus (2,257 paths, 26,497 distinct
-XML payloads, zero parse errors). The largest XML part has 467,889 retained
-elements, attributes and coalesced text nodes: statistical_infographic_m.vssx,
-visio/masters/master10.xml (155,798 elements and 312,091 attributes). The reader's
-node budget now counts all three kinds before retaining them, at 5,000,000,
-more than ten times that maximum. This replaces the old 4,000,000-element-only
-budget; it bounds retained storage, not traversal time. The largest attribute
-count on one element is 44, in PRSSTS_M.vstx, visio/data/recordset2.xml.
+### Shared retained XML budget (2026-10-16)
+
+The reader admits at most **4,000,000 logical XML nodes** across the open document
+and all open stencils together. Elements, attributes (including namespace
+declarations) and coalesced text count. Each unique parsed package part, including
+relationships and metadata, is charged by a bounded streaming pass before its DOM
+or typed model is allocated. A refusal reports the retained XML node limit, the
+value found and the already-open node count. Reopening a canonical stencil path
+reuses its document and reservation. Session snapshots and rollback-only documents
+also reserve nodes, deduplicated by document identity, while they remain live.
+A failed admission preserves the original session. Counts describe reader-admitted
+source nodes. Model-created blank skeletons are fixed application overhead, included
+in CLI RSS measurements; authored edits reserve their source snapshots and charge
+the serialized replacement before reimporting it.
+
+The scan covered all **1,413** strict packages plus **850** additional stencil
+paths (2,263 paths, 26,510 distinct XML payloads, zero parse errors). The largest
+whole-package count is **608,318**, in WFDEP_M.VSSX. The budget is **6.6 times**
+that maximum rather than ten, by **Charles's ruling of 2026-10-16**. The original
+exception targeted room for the reader and evaluator under 1 GiB. His subsequent
+Brief B follow-up 5 ruling accepts B1 against **2 GiB**, retaining this node-only
+budget and the compact representation. Distinct strings carry no additional units.
+The existing 128 MiB stencil source budget, 64-stencil count and all other caps
+remain unchanged.
+Largest source package: 33,815,410 bytes, SOCIAL_DISTANCING_M.vstx. Largest part
+including synthetic stencil probes: 500,191 nodes, brief-b/st1.vssx,
+visio/masters/master1.xml. Largest ordinary corpus part: 467,889 nodes,
+statistical_infographic_m.vssx, visio/masters/master10.xml.
+Largest element attribute count: 44, PRSSTS_M.vstx, visio/data/recordset2.xml.
 No per-element attribute cap is introduced.
 
-The XML parser builds the namespace-aware retained tree directly. Small XML
-attribute tables use hash maps instead of minimally eleven-slot B-tree leaves;
-unqualified attributes need no stored namespace entry. XML emission explicitly
-sorts attributes, preserving deterministic output. Typed sheets retain their
-ordered maps. Completed part trees and decompressed buffers move into the model,
-so the reader retains one source buffer and one XML view per part.
-The stencil budget continues to count source bytes at its unchanged 128 MiB:
-the six dense-stencil repro opens below 1 GiB after the DOM reduction, so another
-cap is unnecessary. Largest uncompressed package input in the scan: 33,815,410
-bytes, SOCIAL_DISTANCING_M.vstx. No existing source-byte or sheet cap changes.
+The retained XML node is 88 bytes on the native 64-bit target. Element names,
+namespace URIs and attribute strings are interned per part. Sorted compact
+attribute vectors share immutable strings with the typed model and use
+copy-on-write for edits. Child vectors reserve exactly the coalesced retained
+child count; typed vectors reserve their actual entry count. Namespace scope
+uses an undo stack rather than cloning inherited maps. Content-type lookup uses
+the admitted compact tree without constructing a second DOM. Completed trees
+and decompressed buffers move into the model. These changes reduce retained
+cost without discarding extension attributes, unknown XML or text ordering.
 
-
-
+All required hostile rows use `guard.sh 20 2048` under Charles's Brief B
+follow-up 5 ruling. The three-500-MiB media package also retains its B1(c) ratio:
+`sheet` peak RSS must be at most 1.2 times `info`. It is legitimately inside the
+unchanged MAX_TOTAL source cap. A measured memory overage is reported as an open
+note under that ruling. The node limit is not a replacement for source-byte caps.
 
 Phase 4 glue is a route-owned HostHooks implementation injected into the VSDX
 evaluator. The sheet crate stays model-independent. Session edits compare target
@@ -206,3 +228,22 @@ additional dependency walk are needed.
 Copied from siblings: `crates/vsdx/tests/evalcell_cache.rs` adapts the review 2a
 doubling-chain regression from craft-apps at
 `107ee4c3423dd4154bd3c59f60362801f638eabf`, MIT OR Apache-2.0.
+
+### Historical 1 GiB observation (2026-10-16)
+
+Before the follow-up 5 ruling, the compact candidate stopped at the 1 GiB guard.
+A variant of the 3,999,999-node Social boundary package replaces 3,544,068
+repeated empty element names with distinct names, without adding logical nodes.
+It contains 71,689,055 uncompressed source bytes; its largest XML part is
+38,036,241 bytes, below the unchanged 96 MiB limit. The release CLI under
+`guard.sh 20 1024` exits 137 with `GUARD: killed (memory > 1024 MB)`.
+The guard's monitored process tree exceeded 1 GiB. Exact CLI peak RSS and timer
+elapsed time are unavailable because the guard also killed `/usr/bin/time`.
+
+The repeated-name boundary case had passed, but distinct-name storage removes
+that interning benefit. This establishes that the current representation and
+4,000,000-node budget did not enforce that earlier 1 GiB rail. Work stopped under
+Charles's then-current rule. Follow-up 5 supersedes that stop, requests the same
+node-only candidate and existing tests, and measures the frozen fixtures at
+2 GiB. The local historical evidence remains in the Brief B follow-up 3 report;
+no vendor-derived package is committed.

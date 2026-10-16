@@ -32,7 +32,7 @@ fn unknown_parts_and_extensions_survive_modelled_edits() {
         Part { bytes: vec![0, 255, 128, 1, 2], content_type: Some("application/octet-stream".into()), ..Default::default() },
     );
     let mut e = XmlElement { name: "Extra".into(), namespace: "urn:diagramcraft:fixture".into(), ..Default::default() };
-    e.attributes.insert("xmlns".into(), e.namespace.clone());
+    e.attributes.insert("xmlns".into(), e.namespace.to_string());
     e.children.push(XmlNode::Text("opaque extension".into()));
     d.parts.get_mut("visio/document.xml").unwrap().xml.as_mut().unwrap().children.push(XmlNode::Element(e));
     let bytes = write(&d).unwrap().bytes;

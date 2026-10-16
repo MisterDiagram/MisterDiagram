@@ -67,6 +67,7 @@ pub struct Session {
     journal_bytes: usize,
     dirty: bool,
     editing: bool,
+    read_reservations: Vec<Arc<Document>>,
 }
 impl Default for Session {
     fn default() -> Self {
@@ -81,6 +82,7 @@ impl Default for Session {
             journal_bytes: 0,
             dirty: false,
             editing: false,
+            read_reservations: Vec::new(),
         }
     }
 }
@@ -88,6 +90,14 @@ impl Session {
     pub fn new() -> Self {
         guard::install_panic_hook();
         Self::default()
+    }
+    pub(crate) fn retained_xml_nodes(&self) -> usize {
+        let mut seen = std::collections::HashSet::new();
+        let documents = std::iter::once(&self.document)
+            .chain(self.stencils.iter().map(|s| &s.document))
+            .chain(&self.read_reservations)
+            .chain(self.undo.iter().chain(&self.redo).map(|s| &s.document));
+        documents.filter(|d| seen.insert(Arc::as_ptr(d))).fold(0usize, |n, d| n.saturating_add(d.retained_xml_nodes))
     }
     pub fn document(&self) -> &Document {
         &self.document
@@ -149,6 +159,14 @@ impl Session {
             return Err(operation("nested session edits are not supported"));
         }
         let before = self.clone();
+        // Rollback documents can leave the active census after copy-on-write or
+        // history eviction, but the transaction snapshot keeps them alive.
+        self.read_reservations.extend(
+            std::iter::once(&before.document)
+                .chain(before.stencils.iter().map(|s| &s.document))
+                .chain(before.undo.iter().chain(&before.redo).map(|s| &s.document))
+                .cloned(),
+        );
         self.editing = true;
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let result = f(self)?;
@@ -172,7 +190,7 @@ impl Session {
                 let theme = diagramcraft_theme::Themes::from_document(&self.document).map_err(operation)?;
                 let written = diagramcraft_vsdx::write_with_glue_host(&self.document, Some(&theme), Some(&diagramcraft_text::Host), Some(&mut glue))
                     .map_err(operation)?;
-                self.document = Arc::new(diagramcraft_vsdx::import(&written.bytes).map_err(operation)?);
+                self.document = Arc::new(diagramcraft_vsdx::import_with_open_nodes(&written.bytes, self.retained_xml_nodes()).map_err(operation)?);
                 files::update_palette(Arc::make_mut(&mut self.document))?;
                 self.dirty = false;
             }
@@ -180,6 +198,7 @@ impl Session {
                 self.selection.page = 0;
                 self.selection.shapes.clear();
             }
+            self.read_reservations.clear();
             self.editing = false;
             Ok(result)
         }));
@@ -406,5 +425,37 @@ mod tests {
         assert_eq!(s.journal.front().unwrap().params["index"], 1);
         assert!(s.journal_bytes <= 8 * 1024 * 1024);
         assert_eq!(s.journal_bytes, s.journal.iter().map(|e| e.bytes).sum::<usize>());
+    }
+    #[test]
+    fn reader_reservation_includes_rollback_only_document() {
+        let mut s = Session::new();
+        Arc::make_mut(&mut s.document).retained_xml_nodes = 10;
+        for nodes in [40, 50] {
+            let mut d = s.document.as_ref().clone();
+            d.retained_xml_nodes = nodes;
+            let snapshot = Snapshot { document: Arc::new(d), selection: Selection::default(), path: None };
+            if nodes == 40 {
+                s.undo.push_back(snapshot);
+            } else {
+                s.redo.push_back(snapshot);
+            }
+        }
+        let error = s
+            .edit::<()>(|s| {
+                s.undo.clear();
+                s.redo.clear();
+                s.edit_document(|d, _| {
+                    d.retained_xml_nodes = 20;
+                    Ok(())
+                })?;
+                assert_eq!(s.retained_xml_nodes(), 120);
+                Err(operation("abort test transaction"))
+            })
+            .unwrap_err();
+        assert!(error.to_string().contains("abort test transaction"));
+        assert_eq!(s.retained_xml_nodes(), 100);
+        assert_eq!(s.undo.len(), 1);
+        assert_eq!(s.redo.len(), 1);
+        assert!(s.read_reservations.is_empty());
     }
 }

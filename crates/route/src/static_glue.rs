@@ -129,7 +129,7 @@ pub fn add_connection(doc: &mut Document, page_index: usize, id: u32, mut point:
         name: point.name,
         index: Some(next),
         row_type: Some("Connection".into()),
-        attributes,
+        attributes: attributes.into_iter().collect(),
         cells: vec![
             point.x,
             point.y,

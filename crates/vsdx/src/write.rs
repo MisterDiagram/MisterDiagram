@@ -325,7 +325,7 @@ fn relationships(path: &str, rels: &[Relationship]) -> Result<Vec<u8>, WriteErro
     }
     for r in ordered {
         let mut x = XmlElement { name: "Relationship".into(), namespace: crate::REL_NS.into(), ..Default::default() };
-        x.attributes = std::collections::HashMap::from([
+        x.attributes = diagramcraft_model::Attributes::from([
             ("Id".into(), r.id.clone()),
             ("Type".into(), r.type_uri.clone()),
             ("Target".into(), if r.external { r.target.clone() } else { diagramcraft_opc::relative(path, &r.target) }),
@@ -452,7 +452,7 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
         ct.children.push(XmlNode::Element(XmlElement {
             name: "Default".into(),
             namespace: ns.into(),
-            attributes: std::collections::HashMap::from([
+            attributes: diagramcraft_model::Attributes::from([
                 ("Extension".into(), "rels".into()),
                 ("ContentType".into(), "application/vnd.openxmlformats-package.relationships+xml".into()),
             ]),
@@ -463,7 +463,7 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
         ct.children.push(XmlNode::Element(XmlElement {
             name: "Default".into(),
             namespace: ns.into(),
-            attributes: std::collections::HashMap::from([("Extension".into(), "xml".into()), ("ContentType".into(), "application/xml".into())]),
+            attributes: diagramcraft_model::Attributes::from([("Extension".into(), "xml".into()), ("ContentType".into(), "application/xml".into())]),
             ..Default::default()
         }));
     }
@@ -498,7 +498,7 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
         ct.children.push(XmlNode::Element(XmlElement {
             name: "Override".into(),
             namespace: ns.into(),
-            attributes: std::collections::HashMap::from([("PartName".into(), format!("/{name}")), ("ContentType".into(), ty)]),
+            attributes: diagramcraft_model::Attributes::from([("PartName".into(), format!("/{name}")), ("ContentType".into(), ty)]),
             ..Default::default()
         }));
     }
@@ -590,6 +590,6 @@ fn page_relation_id(page: &XmlElement) -> Option<&str> {
     let rel = page.child("Rel")?;
     rel.attributes
         .iter()
-        .find(|(key, _)| key.rsplit(':').next() == Some("id") && rel.attribute_namespaces.get(*key).is_some_and(|ns| ns == crate::ATTR_REL_NS))
+        .find(|(key, _)| key.rsplit(':').next() == Some("id") && rel.attribute_namespaces.get(key).is_some_and(|ns| ns == crate::ATTR_REL_NS))
         .map(|(_, value)| value.as_str())
 }

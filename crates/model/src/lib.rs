@@ -1,6 +1,8 @@
 //! Lossless Visio package data and typed ShapeSheet records. Page coordinates are inches, y-up.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 use std::collections::BTreeMap;
+mod compact;
+pub use compact::{Attributes, XmlString};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct ShapeId(pub u32);
@@ -17,14 +19,14 @@ impl Xfrm {
     }
 }
 
-/// Namespace-expanded XML retained alongside original part bytes for future lossless writing.
+/// XmlString-expanded XML retained alongside original part bytes for future lossless writing.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct XmlElement {
-    pub name: String,
-    pub namespace: String,
-    pub attributes: std::collections::HashMap<String, String>,
-    pub attribute_namespaces: BTreeMap<String, String>,
+    pub name: XmlString,
+    pub namespace: XmlString,
+    pub attributes: Attributes,
+    pub attribute_namespaces: Attributes,
     pub children: Vec<XmlNode>,
 }
 #[derive(Clone, Debug, PartialEq)]
@@ -116,7 +118,7 @@ pub struct Cell {
     pub error: Option<String>,
     /// All remaining XML attributes, preserved by name.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
-    pub attributes: BTreeMap<String, String>,
+    pub attributes: Attributes,
     /// RefBy child elements.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
     pub ref_by: Vec<XmlElement>,
@@ -142,7 +144,7 @@ pub struct Section {
     pub rows: Vec<Row>,
     /// All remaining XML attributes, preserved by name.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/section-element-sheet_type-complextypevisio-xml
-    pub attributes: BTreeMap<String, String>,
+    pub attributes: Attributes,
 }
 /// Row N, IX, T, Del and LocalName are retained, including local deletion markers.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml
@@ -165,7 +167,7 @@ pub struct Row {
     pub cells: Vec<Cell>,
     /// All remaining XML attributes, preserved by name.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml
-    pub attributes: BTreeMap<String, String>,
+    pub attributes: Attributes,
 }
 /// Generic sheet used by document, page, style, master and shape records.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/documentsheet-element-visiodocument_type-complextypevisio-xml
@@ -184,7 +186,7 @@ pub struct Sheet {
     pub triggers: Vec<XmlElement>,
     /// All remaining XML attributes, preserved by name.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/documentsheet-element-visiodocument_type-complextypevisio-xml
-    pub attributes: BTreeMap<String, String>,
+    pub attributes: Attributes,
 }
 impl Sheet {
     pub fn cell(&self, name: &str) -> Option<&Cell> {
@@ -285,7 +287,7 @@ pub struct Connect {
     pub to_part: Option<i32>,
     /// All remaining XML attributes, preserved by name.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/connect-element-connects_type-complextypevisio-xml
-    pub attributes: BTreeMap<String, String>,
+    pub attributes: Attributes,
 }
 /// Page ID, Name, NameU, background and view attributes, plus the related contents.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
@@ -315,7 +317,7 @@ pub struct Page {
     pub part: String,
     /// All remaining XML attributes, preserved by name.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
-    pub attributes: BTreeMap<String, String>,
+    pub attributes: Attributes,
 }
 /// Master ID, UniqueID, BaseID, Icon and master contents; all metadata attributes retained.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
@@ -354,7 +356,7 @@ pub struct Master {
     pub part: String,
     /// All remaining XML attributes, preserved by name.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
-    pub attributes: BTreeMap<String, String>,
+    pub attributes: Attributes,
 }
 /// Visio document, stencil or template; package metadata and unknown content remain in `parts`.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml
@@ -368,6 +370,8 @@ pub struct Master {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/mastershortcut-element-masters_type-complextypevisio-xml
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Document {
+    /// Logical XML nodes charged by the reader, including package metadata.
+    pub retained_xml_nodes: usize,
     /// OPC part containing VisioDocument.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml
     pub main_part: String,

@@ -34,7 +34,7 @@ fn row(index: u32, kind: &str, p: Point, a: Option<diagramcraft_model::Cell>) ->
     Row {
         index: Some(index),
         row_type: Some(kind.into()),
-        attributes: BTreeMap::from([("IX".into(), index.to_string()), ("T".into(), kind.into())]),
+        attributes: diagramcraft_model::Attributes::from([("IX".into(), index.to_string()), ("T".into(), kind.into())]),
         cells,
         ..Default::default()
     }

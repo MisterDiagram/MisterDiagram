@@ -8,7 +8,7 @@ use diagramcraft_render::{pdf, raster, scene, svg};
 use hayro_syntax::{Pdf, content::ops::TypedInstruction, object::Name};
 use image::{ImageFormat, Rgb, RgbImage};
 use serde_json::json;
-use std::{collections::BTreeMap, io::Cursor, path::PathBuf};
+use std::{io::Cursor, path::PathBuf};
 
 const VIS: &str = "http://schemas.microsoft.com/office/visio/2012/main";
 const REL: &str = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
@@ -19,12 +19,12 @@ fn foreign() -> XmlElement {
     XmlElement {
         name: "ForeignData".into(),
         namespace: VIS.into(),
-        attributes: std::collections::HashMap::from([("ForeignType".into(), "Bitmap".into())]),
+        attributes: diagramcraft_model::Attributes::from([("ForeignType".into(), "Bitmap".into())]),
         children: vec![XmlNode::Element(XmlElement {
             name: "Rel".into(),
             namespace: VIS.into(),
-            attributes: std::collections::HashMap::from([("r:id".into(), "rImage".into()), ("xmlns:r".into(), REL.into())]),
-            attribute_namespaces: BTreeMap::from([("r:id".into(), REL.into())]),
+            attributes: diagramcraft_model::Attributes::from([("r:id".into(), "rImage".into()), ("xmlns:r".into(), REL.into())]),
+            attribute_namespaces: diagramcraft_model::Attributes::from([("r:id".into(), REL.into())]),
             ..Default::default()
         })],
         ..Default::default()

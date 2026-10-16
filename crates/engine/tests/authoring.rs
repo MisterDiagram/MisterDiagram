@@ -14,7 +14,7 @@ fn pages_background_scale_and_layers_are_transactional() {
     let mut s = Session::new();
     run(&mut s, "page.add", json!({"name":"Background"}));
     run(&mut s, "page.background", json!({"page":1,"background":2}));
-    assert_eq!(s.document().pages[0].attributes["BackPage"], "1");
+    assert_eq!(s.document().pages[0].attributes.get("BackPage").unwrap(), "1");
     let written = diagramcraft_vsdx::write(s.document()).unwrap();
     let round = diagramcraft_vsdx::import(&written.bytes).unwrap();
     assert!(round.parts.values().flat_map(|p| &p.relationships).any(|r| r.type_uri.ends_with("/page") && r.target.ends_with("page2.xml")));

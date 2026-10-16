@@ -188,7 +188,7 @@ fn every_named_section_is_retained() {
     for (section, name) in s.sections.iter().zip(names) {
         assert_eq!(section.name, name);
         assert_eq!(section.rows[0].cells.len(), 5);
-        assert_eq!(section.rows[0].attributes["LocalName"], "local");
+        assert_eq!(section.rows[0].attributes.get("LocalName").unwrap(), "local");
     }
 }
 #[test]

@@ -100,7 +100,7 @@ pub(crate) fn new(s: &mut Session, p: &Value) -> Result<Value> {
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.documents.open
 pub(crate) fn open(s: &mut Session, p: &Value) -> Result<Value> {
     let path = path(p, "path")?;
-    let document = diagramcraft_vsdx::read(path).map_err(operation)?;
+    let document = diagramcraft_vsdx::read_with_open_nodes(path, s.retained_xml_nodes()).map_err(operation)?;
     let pages = document.pages.len();
     s.document = Arc::new(document);
     s.selection = Selection::default();

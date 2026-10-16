@@ -1144,7 +1144,7 @@ static PATH_CELL: std::sync::LazyLock<Cell> = std::sync::LazyLock::new(|| Cell {
     name: "Path".into(),
     value: Some("0".into()),
     units: Some("NUM".into()),
-    attributes: BTreeMap::from([("VirtualPath".into(), "1".into())]),
+    attributes: diagramcraft_model::Attributes::from([("VirtualPath".into(), "1".into())]),
     ..Default::default()
 });
 fn path_index(name: &str) -> Option<u32> {
@@ -1943,7 +1943,7 @@ mod tests {
         let deleted = Shape {
             id: u32::MAX,
             master_shape: Some(7),
-            sheet: Sheet { attributes: BTreeMap::from([("Del".into(), "1".into())]), ..Default::default() },
+            sheet: Sheet { attributes: diagramcraft_model::Attributes::from([("Del".into(), "1".into())]), ..Default::default() },
             ..Default::default()
         };
         doc.pages[0].shapes.extend([deleted.clone(), deleted]);

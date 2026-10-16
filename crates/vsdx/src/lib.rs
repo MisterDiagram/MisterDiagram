@@ -17,6 +17,43 @@ const ATTR_REL_NS: &str = "http://schemas.openxmlformats.org/officeDocument/2006
 const VIS_REL: &str = "http://schemas.microsoft.com/visio/2010/relationships/";
 mod limits;
 
+/// Shared logical-node admission limit, authorized by Charles on 2026-10-16.
+pub const MAX_RETAINED_XML_NODES: usize = 4_000_000;
+struct ReadPackage {
+    package: Package,
+    content_overrides: HashMap<String, String>,
+    content_defaults: HashMap<String, String>,
+    used: std::cell::Cell<usize>,
+    already_open: usize,
+    counted: std::cell::RefCell<HashSet<String>>,
+}
+impl std::ops::Deref for ReadPackage {
+    type Target = Package;
+    fn deref(&self) -> &Package {
+        &self.package
+    }
+}
+impl ReadPackage {
+    fn content_type(&self, part: &str) -> Option<String> {
+        self.content_overrides
+            .get(&diagramcraft_opc::norm(part))
+            .or_else(|| self.content_defaults.get(&part.rsplit('.').next().unwrap_or("").to_ascii_lowercase()))
+            .cloned()
+    }
+    fn charge(&self, name: &str) -> Result<(), ReadError> {
+        let name = diagramcraft_opc::norm(name);
+        let mut counted = self.counted.try_borrow_mut().map_err(|_| bad("recursive XML budget access"))?;
+        if counted.contains(&name) {
+            return Ok(());
+        }
+        let bytes = self.get(&name).ok_or_else(|| bad(format!("missing part {name}")))?;
+        let mut used = self.used.get();
+        xml::charge_retained_nodes(bytes, &mut used, MAX_RETAINED_XML_NODES, self.already_open)?;
+        self.used.set(used);
+        counted.insert(name);
+        Ok(())
+    }
+}
 const MAX_FILE: u64 = 512 * 1024 * 1024;
 #[derive(Debug, thiserror::Error)]
 pub enum ReadError {
@@ -33,28 +70,59 @@ fn bad(s: impl Into<String>) -> ReadError {
 /// Read a bounded package from disk. Extensions do not override its content types.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
 pub fn read(path: impl AsRef<Path>) -> Result<Document, ReadError> {
+    read_with_open_nodes(path, 0)
+}
+/// Import while reserving the nodes already retained by a session.
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.documents.open
+pub fn read_with_open_nodes(path: impl AsRef<Path>, already_open: usize) -> Result<Document, ReadError> {
     let f = std::fs::File::open(path)?;
     if f.metadata()?.len() > MAX_FILE {
         return Err(bad("compressed file exceeds cap"));
     }
     let mut b = Vec::new();
     f.take(MAX_FILE + 1).read_to_end(&mut b)?;
-    import(&b)
+    import_with_open_nodes(&b, already_open)
 }
 /// Import drawings, stencils and templates through their OPC relationships.
 /// Macro payloads are discarded and `macros_removed` marks the document.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
 pub fn import(bytes: &[u8]) -> Result<Document, ReadError> {
+    import_with_open_nodes(bytes, 0)
+}
+/// Import against the session's remaining logical-node reservation.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
+pub fn import_with_open_nodes(bytes: &[u8], already_open: usize) -> Result<Document, ReadError> {
     if bytes.len() as u64 > MAX_FILE {
         return Err(bad("compressed file exceeds cap"));
     }
-    let package = Package::open(bytes)?;
+    let mut package = ReadPackage {
+        package: Package::open(bytes)?,
+        content_overrides: HashMap::new(),
+        content_defaults: HashMap::new(),
+        used: std::cell::Cell::new(already_open),
+        already_open,
+        counted: Default::default(),
+    };
     // Validate the same package contract using trees already needed by this import.
     // Avoid reparsing root relationships through Package::validate_visio.
     let types = part_xml(&package, "[Content_Types].xml")?;
     if types.name != "Types" || types.namespace != "http://schemas.openxmlformats.org/package/2006/content-types" {
         return Err(bad("invalid content types root"));
     }
+    // Populate the lookup from the admitted compact tree. Package::content_type
+    // would construct another, noncompact DOM for the same part.
+    for element in types.elements() {
+        if element.name == "Override" {
+            if let (Some(name), Some(kind)) = (element.attr("PartName"), element.attr("ContentType")) {
+                package.content_overrides.insert(diagramcraft_opc::norm(name), kind.to_string());
+            }
+        } else if element.name == "Default"
+            && let (Some(extension), Some(kind)) = (element.attr("Extension"), element.attr("ContentType"))
+        {
+            package.content_defaults.insert(extension.to_ascii_lowercase(), kind.to_string());
+        }
+    }
+    drop(types);
     let root_rels = relationships(&package, "")?;
     let main = root_rels
         .iter()
@@ -160,7 +228,8 @@ pub fn import(bytes: &[u8]) -> Result<Document, ReadError> {
             p.relationships = table.entries;
         }
     }
-    for (name, bytes) in package.into_parts() {
+    doc.retained_xml_nodes = package.used.get().saturating_sub(already_open);
+    for (name, bytes) in package.package.into_parts() {
         if let Some(part) = doc.parts.get_mut(&name) {
             part.bytes = bytes;
         }
@@ -185,55 +254,91 @@ fn boolean(e: &XmlElement, k: &str) -> Result<bool, ReadError> {
 }
 #[derive(Default)]
 struct VisioTree {
-    namespaces: Vec<BTreeMap<String, String>>,
+    namespaces: BTreeMap<String, XmlString>,
+    namespace_frames: Vec<Vec<(String, Option<XmlString>)>>,
+    strings: HashSet<std::sync::Arc<String>>,
+    child_counts: std::vec::IntoIter<usize>,
+}
+impl VisioTree {
+    fn intern(&mut self, s: String) -> std::sync::Arc<String> {
+        if let Some(v) = self.strings.get(&s) {
+            v.clone()
+        } else {
+            let v = std::sync::Arc::new(s);
+            self.strings.insert(v.clone());
+            v
+        }
+    }
 }
 impl xml::TreeBuilder for VisioTree {
     type Element = XmlElement;
     type Error = ReadError;
     fn start(&mut self, e: xml::El) -> Result<XmlElement, ReadError> {
-        let mut ns = self.namespaces.last().cloned().unwrap_or_default();
+        let mut changes = Vec::new();
         for (k, v) in &e.attrs {
             if k == "xmlns" {
-                ns.insert(String::new(), v.clone());
+                let value = self.intern(v.clone()).into();
+                changes.push((String::new(), self.namespaces.insert(String::new(), value)));
             } else if let Some(p) = k.strip_prefix("xmlns:") {
-                ns.insert(p.to_string(), v.clone());
+                let value = self.intern(v.clone()).into();
+                changes.push((p.to_string(), self.namespaces.insert(p.to_string(), value)));
             }
         }
         let (prefix, name) = e.name.split_once(':').unwrap_or(("", &e.name));
-        let namespace = ns.get(prefix).cloned().unwrap_or_default();
+        let namespace = self.namespaces.get(prefix).cloned().unwrap_or_default();
         if !prefix.is_empty() && namespace.is_empty() {
             return Err(bad("unbound XML namespace prefix"));
         }
-        let mut out = XmlElement { name: name.to_string(), namespace, children: Vec::with_capacity(e.children.len()), ..Default::default() };
-        let mut expanded = BTreeSet::new();
+        let mut out = XmlElement {
+            name: self.intern(name.to_string()).into(),
+            namespace,
+            children: Vec::with_capacity(self.child_counts.next().ok_or_else(|| bad("missing preflight child count"))?),
+            ..Default::default()
+        };
+        let mut expanded = HashSet::new();
+        let mut attributes = Vec::with_capacity(e.attrs.len());
+        let mut attribute_namespaces = Vec::new();
         for (k, v) in e.attrs {
             if k == "xmlns" || k.starts_with("xmlns:") {
-                out.attributes.insert(k, v);
+                attributes.push((self.intern(k), self.intern(v)));
                 continue;
             }
             let (prefix, local) = k.split_once(':').unwrap_or(("", &k));
             let uri = if prefix == "xml" {
-                "http://www.w3.org/XML/1998/namespace".to_string()
+                self.intern("http://www.w3.org/XML/1998/namespace".to_string())
             } else if prefix.is_empty() {
-                String::new()
+                self.intern(String::new())
             } else {
-                ns.get(prefix).cloned().ok_or_else(|| bad("unbound attribute namespace"))?
+                self.namespaces.get(prefix).map(XmlString::shared).ok_or_else(|| bad("unbound attribute namespace"))?
             };
-            if !expanded.insert((uri.clone(), local.to_string())) {
+            // URI handles come from this interner, so pointer identity also avoids
+            // repeatedly hashing a long inherited namespace for every attribute.
+            if !expanded.insert((std::sync::Arc::as_ptr(&uri), local.to_string())) {
                 return Err(bad("duplicate expanded attribute"));
             }
             if !uri.is_empty() {
-                out.attribute_namespaces.insert(k.clone(), uri);
+                attribute_namespaces.push((self.intern(k.clone()), uri));
             }
-            out.attributes.insert(k, v);
+            attributes.push((self.intern(k), self.intern(v)));
         }
-        self.namespaces.push(ns);
+        out.attributes = Attributes::shared(attributes);
+        out.attribute_namespaces = Attributes::shared(attribute_namespaces);
+        self.namespace_frames.push(changes);
         Ok(out)
     }
     fn end(&mut self) {
-        self.namespaces.pop();
+        if let Some(changes) = self.namespace_frames.pop() {
+            for (prefix, previous) in changes.into_iter().rev() {
+                if let Some(uri) = previous {
+                    self.namespaces.insert(prefix, uri);
+                } else {
+                    self.namespaces.remove(&prefix);
+                }
+            }
+        }
     }
-    fn element(parent: &mut XmlElement, child: XmlElement) {
+    fn element(parent: &mut XmlElement, mut child: XmlElement) {
+        child.children.shrink_to_fit();
         parent.children.push(XmlNode::Element(child));
     }
     fn last_text(parent: &mut XmlElement) -> Option<&mut String> {
@@ -246,22 +351,83 @@ impl xml::TreeBuilder for VisioTree {
 /// Parse one XML part with bounded nesting, strict namespaces and preserved text order.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml
 pub fn parse_xml(bytes: &[u8]) -> Result<XmlElement, ReadError> {
+    if bytes.len() > diagramcraft_opc::MAX_XML_PART {
+        return Err(bad("XML part byte limit"));
+    }
+    let decoded = xml::decoded_xml(bytes)?;
+    let bytes = decoded.as_ref();
     limits::preflight(bytes)?;
-    xml::parse_with_builder(bytes, &mut VisioTree::default())
+    xml::parse_with_builder(bytes, &mut VisioTree { child_counts: child_counts(bytes)?.into_iter(), ..Default::default() })
 }
-fn part_xml(p: &Package, name: &str) -> Result<XmlElement, ReadError> {
+
+// Match TreeBuilder::last_text coalescing exactly, including entity, CDATA and
+// comment boundaries. An event count is not a safe allocation size for text.
+fn child_counts(bytes: &[u8]) -> Result<Vec<usize>, ReadError> {
+    use quick_xml::{Reader, events::Event};
+    let mut reader = Reader::from_reader(bytes);
+    let mut counts: Vec<usize> = Vec::new();
+    let mut stack: Vec<(usize, bool)> = Vec::new();
+    loop {
+        let event = reader.read_event().map_err(|e| bad(e.to_string()))?;
+        let text = match &event {
+            Event::Text(t) => !t.is_empty(),
+            Event::CData(t) => !t.is_empty(),
+            Event::GeneralRef(_) => true,
+            _ => false,
+        };
+        if text
+            && let Some((i, last_text)) = stack.last_mut()
+            && !*last_text
+        {
+            let n = counts.get_mut(*i).ok_or_else(|| bad("invalid child count index"))?;
+            *n = n.checked_add(1).ok_or_else(|| bad("child count overflow"))?;
+            *last_text = true;
+        }
+        match event {
+            event @ (Event::Start(_) | Event::Empty(_)) => {
+                if stack.len() >= xml::MAX_DEPTH {
+                    return Err(bad("XML depth limit"));
+                }
+                if let Some((i, last_text)) = stack.last_mut() {
+                    let n = counts.get_mut(*i).ok_or_else(|| bad("invalid child count index"))?;
+                    *n = n.checked_add(1).ok_or_else(|| bad("child count overflow"))?;
+                    *last_text = false;
+                }
+                if counts.len() >= xml::MAX_NODES {
+                    return Err(bad("XML node limit"));
+                }
+                let i = counts.len();
+                counts.push(0);
+                if matches!(event, Event::Start(_)) {
+                    stack.push((i, false));
+                }
+            }
+            Event::End(_) => {
+                stack.pop();
+            }
+            Event::Eof => break,
+            _ => {}
+        }
+    }
+    Ok(counts)
+}
+
+fn part_xml(p: &ReadPackage, name: &str) -> Result<XmlElement, ReadError> {
+    p.charge(name)?;
     let data = p.get(name).ok_or_else(|| bad(format!("missing part {name}")))?;
     parse_xml(data)
 }
-fn retain_xml(p: &Package, d: &mut Document, name: &str, root: XmlElement) -> Result<(), ReadError> {
+fn retain_xml(p: &ReadPackage, d: &mut Document, name: &str, root: XmlElement) -> Result<(), ReadError> {
     let original = p.original_name(name).ok_or_else(|| bad("part name missing"))?;
     if let Some(part) = d.parts.get_mut(original) {
         part.xml = Some(root);
     }
     Ok(())
 }
-fn relationships(p: &Package, name: &str) -> Result<Vec<Relationship>, ReadError> {
-    let Some(bytes) = p.get(&diagramcraft_opc::rels_path(name)) else { return Ok(vec![]) };
+fn relationships(p: &ReadPackage, name: &str) -> Result<Vec<Relationship>, ReadError> {
+    let rel_part = diagramcraft_opc::rels_path(name);
+    let Some(bytes) = p.get(&rel_part) else { return Ok(vec![]) };
+    p.charge(&rel_part)?;
     #[cfg(test)]
     RELATIONSHIP_PARSES.with(|n| n.set(n.get() + 1));
     let root = parse_xml(bytes)?;
@@ -306,7 +472,7 @@ fn related(tables: &HashMap<String, RelationshipTable>, part: &str, e: &XmlEleme
     let id = rel
         .attributes
         .iter()
-        .find(|(k, _)| k.rsplit(':').next() == Some("id") && rel.attribute_namespaces.get(*k).is_some_and(|ns| ns == ATTR_REL_NS))
+        .find(|(k, _)| k.rsplit(':').next() == Some("id") && rel.attribute_namespaces.get(k).is_some_and(|ns| ns == ATTR_REL_NS))
         .map(|(_, v)| v)
         .ok_or_else(|| bad("missing relationship id"))?;
     tables
@@ -364,7 +530,12 @@ pub fn parse_sheet(e: &XmlElement) -> Result<Sheet, ReadError> {
             return Err(bad("sheet cell limit"));
         }
     }
-    let mut sheet = Sheet { attributes: e.attributes.clone().into_iter().collect(), ..Default::default() };
+    let mut sheet = Sheet {
+        attributes: e.attributes.clone(),
+        cells: Vec::with_capacity(e.elements().filter(|x| x.is_visio("Cell")).count()),
+        sections: Vec::with_capacity(e.elements().filter(|x| x.is_visio("Section")).count()),
+        ..Default::default()
+    };
     for c in e.elements() {
         if c.is_visio("Cell") {
             sheet.cells.push(cell(c)?);
@@ -375,8 +546,9 @@ pub fn parse_sheet(e: &XmlElement) -> Result<Sheet, ReadError> {
                 name: string(c, "N"),
                 index: uint(c, "IX")?,
                 deleted: boolean(c, "Del")?,
-                attributes: c.attributes.clone().into_iter().collect(),
-                ..Default::default()
+                attributes: c.attributes.clone(),
+                cells: Vec::with_capacity(c.elements().filter(|x| x.is_visio("Cell")).count()),
+                rows: Vec::with_capacity(c.elements().filter(|x| x.is_visio("Row")).count()),
             };
             for r in c.elements() {
                 if r.is_visio("Cell") {
@@ -387,18 +559,23 @@ pub fn parse_sheet(e: &XmlElement) -> Result<Sheet, ReadError> {
                         index: uint(r, "IX")?,
                         row_type: r.attr("T").map(str::to_string),
                         deleted: boolean(r, "Del")?,
-                        attributes: r.attributes.clone().into_iter().collect(),
-                        ..Default::default()
+                        attributes: r.attributes.clone(),
+                        cells: Vec::with_capacity(r.elements().filter(|x| x.is_visio("Cell")).count()),
                     };
                     for c in r.elements().filter(|e| e.is_visio("Cell")) {
                         row.cells.push(cell(c)?);
                     }
+                    row.cells.shrink_to_fit();
                     s.rows.push(row);
                 }
             }
+            s.cells.shrink_to_fit();
+            s.rows.shrink_to_fit();
             sheet.sections.push(s);
         }
     }
+    sheet.cells.shrink_to_fit();
+    sheet.sections.shrink_to_fit();
     Ok(sheet)
 }
 fn cell(e: &XmlElement) -> Result<Cell, ReadError> {
@@ -408,7 +585,12 @@ fn cell(e: &XmlElement) -> Result<Cell, ReadError> {
         formula: e.attr("F").map(str::to_string),
         units: e.attr("U").map(str::to_string),
         error: e.attr("E").map(str::to_string),
-        attributes: e.attributes.clone().into_iter().collect(),
+        attributes: e
+            .attributes
+            .iter()
+            .filter(|(k, _)| !matches!(k.as_str(), "N" | "V" | "F" | "U" | "E"))
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect(),
         ref_by: e.elements().filter(|e| e.is_visio("RefBy")).cloned().collect(),
     })
 }
@@ -458,13 +640,13 @@ fn connects(e: &XmlElement) -> Result<Vec<Connect>, ReadError> {
                 to_cell: c.attr("ToCell").map(str::to_string),
                 from_part: c.attr("FromPart").map(|s| s.parse().map_err(|_| bad("invalid FromPart"))).transpose()?,
                 to_part: c.attr("ToPart").map(|s| s.parse().map_err(|_| bad("invalid ToPart"))).transpose()?,
-                attributes: c.attributes.clone().into_iter().collect(),
+                attributes: c.attributes.clone(),
             })
         })
         .collect()
 }
 fn parse_pages(
-    p: &Package,
+    p: &ReadPackage,
     d: &mut Document,
     part: &str,
     tables: &HashMap<String, RelationshipTable>,
@@ -495,7 +677,7 @@ fn parse_pages(
             shapes: shapes(&content, 0)?,
             connects: connects(&content)?,
             part: target.clone(),
-            attributes: e.attributes.clone().into_iter().collect(),
+            attributes: e.attributes.clone(),
         });
         if !target.is_empty() {
             retain_xml(p, d, &target, content)?;
@@ -505,7 +687,7 @@ fn parse_pages(
     Ok(())
 }
 fn parse_masters(
-    p: &Package,
+    p: &ReadPackage,
     d: &mut Document,
     part: &str,
     tables: &HashMap<String, RelationshipTable>,
@@ -542,7 +724,7 @@ fn parse_masters(
                 shapes: shapes(&content, 0)?,
                 connects: connects(&content)?,
                 part: target.clone(),
-                attributes: e.attributes.clone().into_iter().collect(),
+                attributes: e.attributes.clone(),
             });
             if !target.is_empty() {
                 retain_xml(p, d, &target, content)?;

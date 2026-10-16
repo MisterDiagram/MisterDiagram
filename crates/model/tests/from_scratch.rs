@@ -305,7 +305,7 @@ fn authored_page_view_is_centred() {
             assert_eq!(stencil.pages[0].attributes.get(attribute).map(String::as_str), Some("0"));
         }
         for (attribute, cell) in [("ViewCenterX", "PageWidth"), ("ViewCenterY", "PageHeight")] {
-            let centre: f64 = page.attributes[attribute].parse().unwrap();
+            let centre: f64 = page.attributes.get(attribute).unwrap().parse().unwrap();
             let size: f64 = page.sheet.cell(cell).unwrap().value.as_ref().unwrap().parse().unwrap();
             assert!((centre - size / 2.).abs() < 1e-12, "{attribute}: {centre}, page size {size}");
         }

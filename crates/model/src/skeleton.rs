@@ -59,7 +59,7 @@ pub fn layer(index: u32, name: &str, visible: bool) -> Result<Row, String> {
 pub const VISIO_NS: &str = "http://schemas.microsoft.com/office/visio/2012/main";
 const VIS_REL: &str = "http://schemas.microsoft.com/visio/2010/relationships/";
 const OFFICE_REL: &str = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/";
-fn attributes(values: &[(&str, &str)]) -> BTreeMap<String, String> {
+fn attributes(values: &[(&str, &str)]) -> Attributes {
     values.iter().map(|(k, v)| ((*k).into(), (*v).into())).collect()
 }
 fn element_ns(name: &str, ns: &str, attrs: &[(&str, &str)], children: Vec<XmlNode>) -> XmlElement {
