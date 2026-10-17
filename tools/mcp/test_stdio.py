@@ -11,11 +11,24 @@ ROOT = Path(__file__).resolve().parents[2]
 CLI = Path(os.environ.get('MISTERDIAGRAM_CLI', default_binary())).resolve()
 
 
+def bash():
+    """Use Git for Windows Bash, not the Windows WSL launcher."""
+    if os.name != 'nt':
+        return 'bash'
+    directory = Path(subprocess.check_output(['git', '--exec-path'], text=True).strip())
+    for parent in (directory, *directory.parents):
+        candidate = parent / 'bin/bash.exe'
+        if candidate.is_file():
+            return str(candidate)
+    raise RuntimeError('Git for Windows Bash is required')
+
+
 class Stdio(unittest.TestCase):
     def test_two_boxes_equals_cli_script(self):
         out = ROOT / 'target' / 'mcp-stdio' / str(os.getpid())
-        env = dict(os.environ, MISTERDIAGRAM_CLI=str(CLI))
-        subprocess.run(['bash', str(ROOT / 'tools/examples/two-boxes-glued.sh'), str(out / 'cli')], env=env, check=True)
+        env = dict(os.environ, MISTERDIAGRAM_CLI=CLI.as_posix())
+        subprocess.run([bash(), (ROOT / 'tools/examples/two-boxes-glued.sh').as_posix(), (out / 'cli').as_posix()],
+                       cwd=ROOT, env=env, check=True)
         subprocess.run([sys.executable, str(ROOT / 'tools/mcp/two-boxes.py'), str(out / 'mcp'), '--cli', str(CLI)], check=True)
         subprocess.run([sys.executable, str(ROOT / 'tools/bench/compare.py'),
                         str(out / 'cli/two-boxes-glued.vsdx'), str(out / 'mcp/two-boxes-glued.vsdx')], check=True)

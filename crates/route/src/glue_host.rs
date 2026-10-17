@@ -295,7 +295,7 @@ impl GlueHost {
         }
         let mut centers = Vec::new();
         {
-            let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_glue_host(&mut host);
+            let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&text).with_glue_host(&mut host);
             for (index, id) in affected {
                 let page = doc.pages.get(index).ok_or("glue page missing")?;
                 let scope = Scope::PageShape { page: page.id, shape: id };

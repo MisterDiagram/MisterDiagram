@@ -179,3 +179,50 @@ fn fan_assigns_distinct_hub_points_in_spoke_order_and_routes_clear() {
         assert_eq!(s.document(), &before);
     }
 }
+
+#[test]
+fn rows_reject_position_dependent_bounds_and_restore_the_session() {
+    let mut s = Session::new();
+    run(&mut s, "shape.draw.rect", json!({"x":0.5,"y":1,"width":1,"height":1}));
+    run(&mut s, "sheet.set", json!({"id":1,"name":"Width","formula":"PinX"}));
+    let before = s.document().clone();
+    let error = s.execute("layout.rows", &json!({"ids":[1],"counts":[1],"region":{"x":0,"y":0,"width":10,"height":10}})).unwrap_err();
+    assert!(error.to_string().contains("position-dependent shape bounds"), "{error}");
+    assert_eq!(s.document(), &before);
+}
+#[test]
+fn tiny_hub_fan_points_remain_distinct_and_at_the_requested_fractions() {
+    let mut s = Session::new();
+    run(&mut s, "shape.draw.rect", json!({"x":0,"y":6,"width":1e-10,"height":1}));
+    for y in [0, 2] {
+        run(&mut s, "shape.draw.rect", json!({"x":-0.5+5e-11,"y":y,"width":1,"height":1}));
+    }
+    for spoke in 2..=3 {
+        let id = run(&mut s, "master.drop", json!({"master":2,"x":0,"y":0}))["id"].clone();
+        run(&mut s, "connect.sides", json!({"id":id,"source":1,"target":spoke}));
+    }
+    let result = run(&mut s, "layout.fan", json!({"hub":1,"spokes":[2,3]}));
+    assert_ne!(result["assignments"][0]["point"], result["assignments"][1]["point"], "tiny hub points must remain distinct");
+    for (index, assignment) in result["assignments"].as_array().unwrap().iter().enumerate() {
+        let x = run(&mut s, "sheet.get", json!({"id":1,"name":assignment["point"]}))["value"].as_str().unwrap().parse::<f64>().unwrap();
+        assert!((x / 1e-10 - (index + 1) as f64 / 3.).abs() < 1e-9, "tiny hub fraction: {x}");
+    }
+}
+
+/// Text-metric geometry uses the same hosts as normal command evaluation.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/textwidth-function
+#[test]
+fn rows_and_side_points_support_text_sized_shapes() {
+    let mut s = Session::new();
+    for text in ["Cedar Grove", "Maple"] {
+        let id = run(&mut s, "shape.draw.rect", json!({"x":0,"y":0,"width":2,"height":1}))["id"].clone();
+        run(&mut s, "shape.text", json!({"id":id,"text":text}));
+        run(&mut s, "sheet.set", json!({"id":id,"name":"Width","formula":"TEXTWIDTH(TheText)"}));
+    }
+    let placed = run(&mut s, "layout.rows", json!({"ids":[1,2],"counts":[2]}));
+    assert!(placed["placed"][0]["bounds"]["width"].as_f64().unwrap() > 0.);
+    run(&mut s, "master.drop", json!({"master":2,"x":0,"y":0}));
+    run(&mut s, "connect.sides", json!({"id":3,"source":1,"target":2}));
+    let fan = run(&mut s, "layout.fan", json!({"hub":1,"spokes":[2]}));
+    assert_eq!(fan["crossings"], json!([]));
+}

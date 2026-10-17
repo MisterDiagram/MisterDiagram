@@ -246,3 +246,30 @@ fn from_shape_script_matches_original_dump_and_master_type() {
     assert_eq!(round.masters[0].shapes[0].text, b.shapes[0].text);
     assert_eq!(round.parts["docProps/app.xml"].bytes, expected.parts["docProps/app.xml"].bytes);
 }
+
+/// The published CLI recipe is exact text and its decoded pixels are portable.
+#[test]
+fn readme_office_network_matches_script_and_pixels() {
+    let script = std::fs::read_to_string(root().join("tools/examples/office-network.sh")).unwrap().replace("\r\n", "\n");
+    let readme = std::fs::read_to_string(root().join("README.md")).unwrap().replace("\r\n", "\n");
+    let block = readme.split("<!-- office-network:start -->\n```bash\n").nth(1).unwrap().split("```\n<!-- office-network:end -->").next().unwrap();
+    assert_eq!(block, script, "README office-network block must equal the script");
+    let out = root().join("target/example-tests/office network");
+    let output = Command::new(bash())
+        .current_dir(root())
+        .arg(shell_path(&root().join("tools/examples/office-network.sh")))
+        .arg(shell_path(&out))
+        .arg(shell_path(&out.join("office-network.png")))
+        .env("MISTERDIAGRAM_CLI", shell_path(std::path::Path::new(env!("CARGO_BIN_EXE_misterdiagram"))))
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "office network: {} {}", String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr));
+    let actual = misterdiagram_render::raster::decode(&std::fs::read(out.join("office-network.png")).unwrap()).unwrap();
+    let expected = misterdiagram_render::raster::decode(&std::fs::read(root().join("docs/images/office-network.png")).unwrap()).unwrap();
+    assert_eq!(actual.dimensions(), expected.dimensions(), "office PNG dimensions on {}", std::env::consts::OS);
+    let differences = actual.pixels().zip(expected.pixels()).filter(|(a, b)| a != b).count();
+    assert_eq!(differences, 0, "office PNG differing pixels on {} {}", std::env::consts::OS, std::env::consts::ARCH);
+    let doc = misterdiagram_vsdx::read(out.join("office-network.vsdx")).unwrap();
+    assert_eq!(doc.pages[0].shapes.len(), 19);
+    assert_eq!(doc.pages[0].connects.len(), 18);
+}

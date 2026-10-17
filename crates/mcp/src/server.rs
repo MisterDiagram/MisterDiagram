@@ -40,6 +40,24 @@ fn error(id: Value, code: i64, message: impl Into<String>) -> Value {
     json!({"jsonrpc": "2.0", "id": id, "error": {"code": code, "message": message.into()}})
 }
 
+fn response_limit() -> String {
+    error(Value::Null, INTERNAL_ERROR, "MCP response exceeds cap").to_string()
+}
+struct ReplyBuffer(Vec<u8>);
+impl Write for ReplyBuffer {
+    fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+        // Reserve one byte for the newline framing emitted by serve.
+        if self.0.len().saturating_add(bytes.len()) >= MAX_MESSAGE as usize {
+            return Err(std::io::Error::other("MCP response exceeds cap"));
+        }
+        self.0.extend_from_slice(bytes);
+        Ok(bytes.len())
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
 impl Server {
     pub fn new(backend: Box<dyn Backend>) -> Self {
         Self { backend, initialized: false }
@@ -83,20 +101,45 @@ impl Server {
         if line.is_empty() {
             return None;
         }
-        let reply = match serde_json::from_str::<Value>(line) {
+        match serde_json::from_str::<Value>(line) {
             Ok(Value::Array(batch)) => {
-                // Batches were removed in 2025-06-18; still answer older clients sensibly.
+                // Legacy JSON-RPC batches share the same whole-message response cap.
                 if batch.is_empty() {
-                    Some(error(Value::Null, INVALID_REQUEST, "empty batch"))
-                } else {
-                    let replies: Vec<Value> = batch.into_iter().filter_map(|m| self.handle(m)).collect();
-                    (!replies.is_empty()).then_some(Value::Array(replies))
+                    return Some(error(Value::Null, INVALID_REQUEST, "empty batch").to_string());
                 }
+                let mut replies = ReplyBuffer(Vec::new());
+                if replies.write_all(b"[").is_err() {
+                    return Some(response_limit());
+                }
+                let mut count = 0usize;
+                for message in batch {
+                    if let Some(reply) = self.handle(message) {
+                        if count > 0 && replies.write_all(b",").is_err() {
+                            return Some(response_limit());
+                        }
+                        if serde_json::to_writer(&mut replies, &reply).is_err() {
+                            return Some(response_limit());
+                        }
+                        count += 1;
+                    }
+                }
+                if count == 0 {
+                    return None;
+                }
+                if replies.write_all(b"]").is_err() {
+                    return Some(response_limit());
+                }
+                Some(String::from_utf8(replies.0).unwrap_or_else(|_| response_limit()))
             }
-            Ok(msg) => self.handle(msg),
-            Err(e) => Some(error(Value::Null, PARSE_ERROR, format!("parse error: {e}"))),
-        };
-        reply.map(|r| r.to_string())
+            Ok(msg) => self.handle(msg).map(|reply| {
+                let mut bytes = ReplyBuffer(Vec::new());
+                if serde_json::to_writer(&mut bytes, &reply).is_err() {
+                    return response_limit();
+                }
+                String::from_utf8(bytes.0).unwrap_or_else(|_| response_limit())
+            }),
+            Err(e) => Some(error(Value::Null, PARSE_ERROR, format!("parse error: {e}")).to_string()),
+        }
     }
 
     /// Handle one JSON-RPC message; `None` for notifications and responses.
@@ -183,6 +226,21 @@ mod tests {
         }
         assert!(s.handle_line(&"[".repeat(200)).is_some());
         assert!(s.serve(std::io::Cursor::new(vec![b'x'; MAX_MESSAGE as usize + 1]), Vec::new()).is_err());
+    }
+    #[test]
+    fn aggregate_and_escaped_responses_obey_the_framing_cap() {
+        let mut s = Server::new(Box::new(Headless::new()));
+        let requests = (0..200)
+            .map(|id| json!({"jsonrpc":"2.0","id":id,"method":"tools/call","params":{"name":"list_commands","arguments":{}}}))
+            .collect::<Vec<_>>();
+        let reply = s.handle_line(&serde_json::to_string(&requests).unwrap()).unwrap();
+        assert!(reply.len() < MAX_MESSAGE as usize);
+        assert!(reply.contains("MCP response exceeds cap"));
+        // Escaped IDs can make the response larger than its already bounded input.
+        let request = json!({"id":"x".repeat(MAX_MESSAGE as usize-100),"method":"tools/list"});
+        let reply = s.handle_line(&request.to_string()).unwrap();
+        assert!(reply.len() < MAX_MESSAGE as usize);
+        assert!(reply.contains("MCP response exceeds cap"));
     }
     #[test]
     fn fourteen_headless_tools() {

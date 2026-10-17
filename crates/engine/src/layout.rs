@@ -17,7 +17,8 @@ fn number(e: &mut Evaluator<'_>, scope: Scope, name: &str) -> Result<f64> {
 }
 fn facing(doc: &misterdiagram_model::Document, page: usize, id: u32, target: u32) -> Result<Side> {
     let page = doc.pages.get(page).ok_or_else(|| operation("page missing"))?;
-    let mut e = Evaluator::new(doc).map_err(operation)?;
+    let themes = misterdiagram_theme::Themes::from_document(doc).map_err(operation)?;
+    let mut e = Evaluator::new(doc).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
     let scope = Scope::PageShape { page: page.id, shape: id };
     let other = Scope::PageShape { page: page.id, shape: target };
     for scope in [scope, other] {
@@ -44,10 +45,18 @@ fn facing(doc: &misterdiagram_model::Document, page: usize, id: u32, target: u32
 /// canonical cells observed in P5a route/side-glue and connector/static-glue.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/x-cell-connection-points-section
-fn point(doc: &mut misterdiagram_model::Document, page: usize, id: u32, side: Side, fraction: f64) -> Result<String> {
+fn point(
+    doc: &mut misterdiagram_model::Document,
+    page: usize,
+    id: u32,
+    side: Side,
+    fraction: f64,
+    used: &std::collections::BTreeSet<String>,
+) -> Result<String> {
     let page_id = doc.pages.get(page).ok_or_else(|| operation("page missing"))?.id;
     let scope = Scope::PageShape { page: page_id, shape: id };
-    let mut e = Evaluator::new(doc).map_err(operation)?;
+    let themes = misterdiagram_theme::Themes::from_document(doc).map_err(operation)?;
+    let mut e = Evaluator::new(doc).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
     let w = number(&mut e, scope, "Width")?;
     let h = number(&mut e, scope, "Height")?;
     let (x, y, xf, yf) = match side {
@@ -76,10 +85,10 @@ fn point(doc: &mut misterdiagram_model::Document, page: usize, id: u32, side: Si
         .collect::<Result<Vec<_>>>()?;
     for (name, y_name, type_name) in points {
         let kind = e.evaluate(scope, &type_name).numeric().map_err(operation)?;
-        if kind != 0. && kind != 2. {
+        if used.contains(&name) || (kind != 0. && kind != 2.) {
             continue;
         }
-        if (number(&mut e, scope, &name)? - x).abs() < 1e-9 && (number(&mut e, scope, &y_name)? - y).abs() < 1e-9 {
+        if (number(&mut e, scope, &name)? - x).abs() <= w.abs() * 1e-12 && (number(&mut e, scope, &y_name)? - y).abs() <= h.abs() * 1e-12 {
             return Ok(name);
         }
     }
@@ -114,8 +123,8 @@ pub(crate) fn sides(s: &mut Session, p: &Value) -> Result<Value> {
     let begin = facing(&s.document, index, source, target)?;
     let end = facing(&s.document, index, target, source)?;
     s.edit_document(|doc, _| {
-        let a = point(doc, index, source, begin, 0.5)?;
-        let b = point(doc, index, target, end, 0.5)?;
+        let a = point(doc, index, source, begin, 0.5, &Default::default())?;
+        let b = point(doc, index, target, end, 0.5, &Default::default())?;
         misterdiagram_route::connect_static(doc, index, id, misterdiagram_route::End::Begin, source, &a).map_err(operation)?;
         misterdiagram_route::connect_static(doc, index, id, misterdiagram_route::End::End, target, &b).map_err(operation)?;
         Ok(json!({"id":id,"begin":{"shape":source,"point":a},"end":{"shape":target,"point":b}}))
@@ -164,7 +173,8 @@ pub(crate) fn rows(s: &mut Session, p: &Value) -> Result<Value> {
         return Err(operation("row counts must sum to the shape count"));
     }
     let page = s.document.pages.get(index).ok_or_else(|| operation("page missing"))?;
-    let mut e = Evaluator::new(&s.document).map_err(operation)?;
+    let themes = misterdiagram_theme::Themes::from_document(&s.document).map_err(operation)?;
+    let mut e = Evaluator::new(&s.document).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
     let ps = Scope::Page(page.id);
     let region = if let Some(region) = p.get("region") {
         if region.as_object().is_none_or(|v| v.keys().any(|k| !matches!(k.as_str(), "x" | "y" | "width" | "height"))) {
@@ -251,6 +261,17 @@ pub(crate) fn rows(s: &mut Session, p: &Value) -> Result<Value> {
             let shape=shape_mut(&mut page.shapes,*id)?;
             set_number(&mut shape.sheet,"PinX",pin.x)?;set_number(&mut shape.sheet,"PinY",pin.y)?;
         }
+        // Moving a shape may change formula-driven dimensions or parent transforms.
+        // Refuse the entire command if those dependencies invalidate the planned layout.
+        let page_id = page.id;
+        let themes = misterdiagram_theme::Themes::from_document(doc).map_err(operation)?;
+        let mut evaluated = Evaluator::new(doc).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
+        for (id, _, planned) in &placements {
+            let actual = crate::inspect::bounds(&mut evaluated, Scope::PageShape { page: page_id, shape: *id })?;
+            if [actual.x0-planned.x0, actual.y0-planned.y0, actual.x1-planned.x1, actual.y1-planned.y1].iter().any(|delta| delta.abs() > 1e-9) {
+                return Err(operation("position-dependent shape bounds invalidate row layout"));
+            }
+        }
         Ok(json!({"placed":placements.iter().map(|(id,_,r)|json!({"id":id,"bounds":rect_value(*r)})).collect::<Vec<_>>(),"gutter_x":gx,"gutter_y":gy}))
     })
 }
@@ -294,12 +315,14 @@ pub(crate) fn fan(s: &mut Session, p: &Value) -> Result<Value> {
     let placed = s.edit_document(|doc, _| {
         let mut positions = std::collections::BTreeMap::new();
         let mut placed = Vec::new();
+        let mut used = std::collections::BTreeSet::new();
         for (spoke, side, connector, end) in &assignments {
             let position = positions.entry(*side).or_insert(0usize);
             *position += 1;
             let total = totals.get(side).copied().ok_or_else(|| operation("missing side count"))?;
             let fraction = (*position as f64) / ((total + 1) as f64);
-            let name = point(doc, index, hub, *side, fraction)?;
+            let name = point(doc, index, hub, *side, fraction, &used)?;
+            used.insert(name.clone());
             misterdiagram_route::connect_static(doc, index, *connector, *end, hub, &name).map_err(operation)?;
             placed.push(json!({"spoke":spoke,"connector":connector,"point":name,"fraction":fraction}));
         }
@@ -317,7 +340,8 @@ pub(crate) fn fan(s: &mut Session, p: &Value) -> Result<Value> {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section
 fn crossings(doc: &misterdiagram_model::Document, index: usize, connectors: &[u32], selected: &[u32]) -> Result<Value> {
     let page = doc.pages.get(index).ok_or_else(|| operation("page missing"))?;
-    let mut e = Evaluator::new(doc).map_err(operation)?;
+    let themes = misterdiagram_theme::Themes::from_document(doc).map_err(operation)?;
+    let mut e = Evaluator::new(doc).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
     let bounds = selected
         .iter()
         .map(|id| Ok((*id, crate::inspect::bounds(&mut e, Scope::PageShape { page: page.id, shape: *id })?)))
@@ -328,32 +352,56 @@ fn crossings(doc: &misterdiagram_model::Document, index: usize, connectors: &[u3
         let scope = Scope::PageShape { page: page.id, shape: *connector };
         let transform = e.shape_to_page(scope).map_err(operation)?;
         for path in e.geometry_paths(scope, misterdiagram_geom::Rect::new(-1e6, -1e6, 1e6, 1e6)).map_err(operation)? {
-            let mut last = None;
-            kurbo::flatten(path.path.iter(), 1e-6, |element| match element {
-                kurbo::PathEl::MoveTo(p) => last = Some(transform * p),
-                kurbo::PathEl::LineTo(p) => {
-                    let p = transform * p;
-                    if let Some(a) = last {
-                        segments = segments.saturating_add(1);
-                        if segments <= 100000 && segments.saturating_mul(bounds.len()) <= 2_000_000 {
-                            for (id, bounds) in &bounds {
-                                if crosses(a, p, *bounds) {
-                                    found.insert((*connector, *id));
-                                }
-                            }
+            use kurbo::ParamCurve;
+            for segment in path.path.segments() {
+                let segment = transform * segment;
+                let steps = curve_steps(segment)?;
+                segments = segments.checked_add(steps).ok_or_else(|| operation("route inspection segment limit"))?;
+                if segments > 100000 || segments.saturating_mul(bounds.len()) > 2_000_000 {
+                    return Err(operation("route inspection segment limit"));
+                }
+                let mut start = segment.eval(0.);
+                for step in 1..=steps {
+                    let end = segment.eval(step as f64 / steps as f64);
+                    for (id, bounds) in &bounds {
+                        if crosses(start, end, *bounds) {
+                            found.insert((*connector, *id));
                         }
                     }
-                    last = Some(p);
+                    start = end;
                 }
-                _ => last = None,
-            });
-            if segments > 100000 || segments.saturating_mul(bounds.len()) > 2_000_000 {
-                return Err(operation("route inspection segment limit"));
             }
         }
     }
     Ok(json!(found.into_iter().map(|(connector, shape)| json!({"connector":connector,"shape":shape})).collect::<Vec<_>>()))
 }
+/// Uniform interpolation error is at most max(|B''|)/(8*n*n). Bound the
+/// subdivision count before iteration, including hostile imported control points.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section
+fn curve_steps(segment: kurbo::PathSeg) -> Result<usize> {
+    use kurbo::PathSeg;
+    let (points, error) = match segment {
+        PathSeg::Line(line) => ([line.p0, line.p1, line.p0, line.p1], 0.),
+        PathSeg::Quad(q) => {
+            let second = q.p0.to_vec2() - 2. * q.p1.to_vec2() + q.p2.to_vec2();
+            ([q.p0, q.p1, q.p2, q.p2], second.hypot() / 4.)
+        }
+        PathSeg::Cubic(c) => {
+            let a = c.p0.to_vec2() - 2. * c.p1.to_vec2() + c.p2.to_vec2();
+            let b = c.p1.to_vec2() - 2. * c.p2.to_vec2() + c.p3.to_vec2();
+            ([c.p0, c.p1, c.p2, c.p3], 0.75 * a.hypot().max(b.hypot()))
+        }
+    };
+    if points.iter().any(|p| !p.is_finite() || p.x.abs() > 1e9 || p.y.abs() > 1e9) {
+        return Err(operation("route inspection coordinate limit"));
+    }
+    let steps = (error / 1e-6).sqrt().ceil().max(1.);
+    if !steps.is_finite() || steps > 100000. {
+        return Err(operation("route inspection segment limit"));
+    }
+    Ok(steps as usize)
+}
+
 fn crosses(a: Point, b: Point, r: misterdiagram_geom::Rect) -> bool {
     let mut low = 0f64;
     let mut high = 1f64;
@@ -377,6 +425,24 @@ fn crosses(a: Point, b: Point, r: misterdiagram_geom::Rect) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn hostile_curve_work_is_rejected_before_subdivision() {
+        let huge = kurbo::CubicBez::new((0., 0.), (1e9, 1e9), (-1e9, 1e9), (0., 0.));
+        assert!(curve_steps(huge.into()).unwrap_err().to_string().contains("segment limit"));
+        let nonfinite = kurbo::Line::new((f64::INFINITY, 0.), (0., 0.));
+        assert!(curve_steps(nonfinite.into()).is_err());
+        let normal = kurbo::CubicBez::new((0., 0.), (0., 1.), (1., 1.), (1., 0.));
+        let steps = curve_steps(normal.into()).unwrap();
+        assert!((2..100000).contains(&steps));
+        use kurbo::ParamCurve;
+        // The maximum interpolation error on every sampled chord stays below tolerance.
+        for i in 0..steps {
+            let a = normal.eval(i as f64 / steps as f64);
+            let b = normal.eval((i + 1) as f64 / steps as f64);
+            let middle = normal.eval((i as f64 + 0.5) / steps as f64);
+            assert!(middle.distance(a.midpoint(b)) <= 1e-6);
+        }
+    }
     #[test]
     fn crossings_detect_interiors_but_allow_glued_boundary_contacts() {
         let r = misterdiagram_geom::Rect::new(1., 1., 3., 3.);

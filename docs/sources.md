@@ -288,7 +288,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/text-element-shapesheet_type-complextypevisio-xml> | `crates/engine/src/content.rs`, `crates/engine/src/inspect.rs`, `crates/vsdx/src/evaluate/text.rs`, `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/textbkgnd-cell-text-block-format-section> | `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/textheight-function> | `crates/sheet/src/functions/text_metrics.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/textwidth-function> | `crates/sheet/src/functions/text_metrics.rs`, `crates/sheet/src/lib.rs`, `crates/text/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/textwidth-function> | `crates/engine/tests/layout.rs`, `crates/sheet/src/functions/text_metrics.rs`, `crates/sheet/src/lib.rs`, `crates/text/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function> | `crates/sheet/src/functions/theme.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/themecbv-function> | `crates/sheet/src/functions/theme.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/themeguard-function> | `crates/sheet/src/functions/theme.rs` |

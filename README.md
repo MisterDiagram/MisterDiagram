@@ -11,8 +11,7 @@ editor with that name.
 A clean-room, headless Rust core of Microsoft Visio. It opens .vsdx, .vssx and .vstx files, and their macro-enabled .vsdm, .vssm and .vstm variants with the VBA payload dropped,
 evaluates the ShapeSheet the way Visio does, renders pages and stencils to PNG, SVG and
 PDF, writes files that Visio opens without repair, and authors drawings from commands: shapes,
-masters, shape data, glued connectors with orthogonal routing and line jumps. An MCP server for
-AI agents and pptx export are next. It is built in the mould of the Craft apps (deckcraft,
+masters, shape data, glued connectors with orthogonal routing and line jumps. AI agents can use the same commands through the MCP stdio server. PowerPoint export is next. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and is offered to that project.
 
 ![Four drawings made by this repo's scripts, rendered by MisterDiagram](docs/images/misterdiagram-renders.png)
@@ -36,14 +35,15 @@ export of the same file, measured by the test harness; Visio's exports stay out 
   230 files of the acceptance set, five of them built from scratch, with no repair beyond a
   few disclosed metadata rewrites, and its COM dumps of the reopened files show zero
   differences. Read, write, read preserves all 15.1 million cells across 1,413 packages.
-- **Author** through 52 schema-described commands in a transactional session: pages, layers,
+- **Author** through schema-described commands in a transactional session: pages, layers,
   shapes, text, shape data, hyperlinks, formatting, stencils and master drops, connection
   points, static and dynamic glue, and connector routing. Routes match Visio's own on 28 of
   29 witness drawings (obstacles, route styles, page preferences and line jumps) within one
   millionth of an inch; the one gap is a 1/64 in packing shift where three connectors cross.
-  A 24-switch, 40-connector topology built by a script opens in Visio 2021 unrepaired, keeps
-  every route when Visio re-saves it, and Visio's export of it matches ours inside the pixel
-  ceilings. CI runs the full gate set on Linux, Windows and macOS for every push.
+  The 24-switch, 40-connector topology keeps every route when Visio re-saves it,
+  and its equal-size export matches ours inside the pixel ceilings. The current SAN and
+  office examples still have serialization changes on Visio save, tracked in the
+  gaps below. CI runs the full gate set on Linux, Windows and macOS for every push.
 
 Known gaps are listed in [docs/gaps.md](docs/gaps.md). Text wrapping is the weakest area,
 EMF+ images are not drawn, and compound line patterns are approximate.
@@ -64,23 +64,43 @@ Rust stable with edition 2024 is required. There is no GUI and none is planned i
 
 ### Generate a drawing
 
-```sh
-cargo run --release -p misterdiagram-cli -- commands
-cargo run --release -p misterdiagram-cli -- describe shape.draw.rect
-cargo run --release -p misterdiagram-cli -- run \
-  --cmd 'shape.draw.rect={"x":1,"y":1,"width":2,"height":1}' \
-  --cmd 'shape.text={"id":1,"text":"Example"}' --save example.vsdx
-cargo run --release -p misterdiagram-cli -- convert example.vsdx example.svg
-bash tools/examples/two-boxes-glued.sh corpus/_state/example
-```
+Build the CLI with `cargo build -p misterdiagram-cli`, then run this script from the
+repository root. It creates its own master from a rectangle and needs no stencils.
 
-`run` executes commands in one session, committing each command separately. Page numbers are one-based;
-shape IDs are the document's IDs. Lengths use internal inches and angles use radians.
-Each `run` invocation starts a new session. Scripts split across invocations must
-open their stencils again before using `master.drop` with a stencil.
-`commands` and `describe` print the parameter schemas. The two-boxes script saves
-VSDX and PNG using the document's own connector master. The private probe rebuild
-script also checks its result against the local Visio corpus.
+<!-- office-network:start -->
+```bash
+#!/usr/bin/env bash
+# Contributor-original office network, MIT OR Apache-2.0. Run from the repository root.
+set -euo pipefail
+cli="${MISTERDIAGRAM_CLI:-target/debug/misterdiagram}"
+out="${1:-target/office-network}"; image="${2:-docs/images/office-network.png}"
+mkdir -p "$out" "$(dirname "$image")"
+args=(--cmd 'page.size={"width":10,"height":11}' --cmd 'shape.draw.rect={"x":0,"y":0,"width":1.7,"height":0.6}' --cmd 'format.text={"id":1,"size":10,"align":1}' --cmd 'format.fill={"id":1,"color":"#E8F2F0"}' --cmd 'master.new_from_shape={"id":1,"name":"Office node"}' --cmd 'shape.delete={"id":1}')
+names=('Sky Internet' 'Alder Firewall' 'Birch Router' 'Cedar Core' 'Elm Access' 'Fir Access' 'Grove Server' 'Hazel Wi-Fi' 'Iris PC' 'Juniper PC')
+for i in "${!names[@]}"; do
+  args+=(--cmd 'master.drop={"master":"Office node","x":0,"y":0}' --cmd "shape.text={\"id\":$((i+1)),\"text\":\"${names[$i]}\"}")
+done
+args+=(--cmd 'layout.rows={"ids":[1,2,3,4,7,5,6,8,9,10],"counts":[1,1,1,1,4,2],"region":{"x":0,"y":0.5,"width":10,"height":10},"gutter_x":0.5,"gutter_y":0.75}')
+links=('1 2' '2 3' '3 4' '4 5' '4 6' '4 7' '6 8' '5 9' '6 10'); id=11
+for link in "${links[@]}"; do
+  read -r source target <<< "$link"
+  args+=(--cmd 'master.drop={"master":2,"x":0,"y":0}' --cmd "connect.sides={\"id\":$id,\"source\":$source,\"target\":$target}")
+  ((id+=1))
+done
+args+=(--cmd 'layout.fan={"hub":4,"spokes":[7,5,6]}')
+"$cli" run "${args[@]}" --save "$out/office-network.vsdx"
+"$cli" convert "$out/office-network.vsdx" "$image"
+```
+<!-- office-network:end -->
+
+![An invented office network made by the CLI](docs/images/office-network.png)
+
+The same script is [tools/examples/office-network.sh](tools/examples/office-network.sh).
+It saves `target/office-network/office-network.vsdx` and renders the image above.
+`run` commits each command separately. Page numbers are one-based, shape IDs are
+document IDs, lengths use inches and angles use radians. `commands` and `describe`
+print the command schemas. `misterdiagram mcp` serves the same engine over stdio;
+see [the tools and examples](docs/mcp.md).
 
 Individual connector pixel comparisons are measured and reported as informational
 until the connector stroke rendering gap closes; route acceptance is cell and geometry
@@ -89,9 +109,8 @@ dated in [ROADMAP.md](ROADMAP.md).
 
 ## What is coming
 
-- Phase 5: an MCP server and pptx export, so an AI agent can build a diagram from a
-  description and hand over a file Visio opens, with a layout layer so the result reads
-  like a drawing a person made (side connection points, spacing, fan-out).
+- Phase 5b: PowerPoint export. The MCP server and layout commands are available;
+  the SAN and office-network drawings await human review and their serialization acceptance remains open.
 - Carried gaps, named in [docs/gaps.md](docs/gaps.md): the three-crossing packing shift,
   unwitnessed WalkPreference values, theme.apply (Visio refused the variant call under
   COM), connector stroke rendering, and export mapping for small images.
@@ -116,7 +135,7 @@ Code reused from the Craft apps is MIT OR Apache-2.0 and is listed per file in
 
 Pre-alpha. Milestones M0 to M4 (reading, evaluation, rendering, writing, authoring and
 routing) are met and independently reviewed, each under dated gate rulings recorded in the
-roadmap; Phase 5 has not started. The canonical repository is
+roadmap. Phase 5 adds MCP and layout; its visual review gates are pending. The canonical repository is
 [github.com/MisterDiagram/MisterDiagram](https://github.com/MisterDiagram/MisterDiagram).
 Issues, discussion and pull requests go to this repository.
 

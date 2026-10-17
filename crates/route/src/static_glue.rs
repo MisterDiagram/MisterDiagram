@@ -154,7 +154,8 @@ pub fn connect_static(doc: &mut Document, page_index: usize, id: u32, end: End, 
         return Err("cannot glue an endpoint to itself".into());
     }
     let page = doc.pages.get(page_index).ok_or("page missing")?;
-    let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?;
+    let themes = misterdiagram_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
+    let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
     let scope = Scope::PageShape { page: page.id, shape: id };
     if !["BeginX", "BeginY", "EndX", "EndY"].iter().all(|name| e.resolved_named_cells(scope).iter().any(|c| c.name == *name)) {
         return Err("glue source is not one-dimensional".into());
@@ -209,7 +210,8 @@ pub fn connect_dynamic(doc: &mut Document, page_index: usize, id: u32, end: End,
         return Err("cannot glue an endpoint to itself".into());
     }
     let page = doc.pages.get(page_index).ok_or("page missing")?;
-    let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?;
+    let themes = misterdiagram_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
+    let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
     let from = Scope::PageShape { page: page.id, shape: id };
     let to = Scope::PageShape { page: page.id, shape: target };
     let promote_target = e.evaluate(to, "ObjType").numeric() == Ok(0.);
