@@ -56,19 +56,23 @@ Brief 22 (2026-10-16): the MisterDiagram rename changes no parity score or featu
 
 Status: pre-alpha, M0 through M3 met under the recorded gates. P4a met on 2026-10-15 under the straight-route ruling. M4 plan gates are met on 2026-10-15 under the closure-2 rulings and two clean frozen passes. The carried rendering and routing gaps remain measured below.
 
-## P5a acceptance still open (2026-10-17)
+## P5a acceptance under the route-geometry ruling (2026-10-17)
 
-The MCP SAN recipe produces 24 switches, 40 ISLs and 80 Connects. The CLI office
-recipe creates 10 original devices and 9 links. Fresh Visio opens and saves both,
-retains every route (40/40 and 9/9), and equal-size page renders pass the frozen
-ceilings: SAN MAD 0.494972/over16 0.747340%, office 0.549791/1.071101%.
-The stricter unrepaired gate is **not met**: Visio rewrites 170 SAN and 9 office
-serialized records: SAN has 32 rounded fan formulas, 118 floating-point value
-spellings and 20 removed local Controls.TextPosition.Y cells; office has nine
-floating-point value spellings.
-The original inputs and saves are retained privately under the P5a acceptance
-state. No oracle mask or threshold was changed. Human review of both drawings
-is pending. P5a is partial until these acceptance gaps and closure are resolved.
+Fresh MCP SAN and CLI office drawings open and save with **zero repair
+differences** under Charles's narrow router-owned Geometry ruling. SAN retains
+80 Connects and all 40 routes; office retains 18 Connects and all nine routes.
+The named rule numerically judges 296 SAN and 28 office Geometry cells within
+absolute 1e-6. Eight SAN values change within that bound; zero office values
+change. All formulas, other cells and structural presence remain exact.
+Equal-size renders pass unchanged ceilings: SAN 1575x759, MAD 0.868280 and
+1.564631% over16; office 795x723, MAD 0.598729 and 1.246372% over16.
+
+Binary-grid layout and narrowly omitting inherited TextPosition literals resolve
+the remaining authored-input differences. The original 170/9 and intermediate
+8/0 failures remain preserved privately, along with the fresh inputs and saves.
+The ruling and eight witnesses are in docs/file-format-parity.md. Arithmetic
+cancellation stays deferred. Closure gates and both human visual verdicts are
+pending; no human acceptance is claimed.
 
 ## P5a / M5.1: headless inspection
 
@@ -78,7 +82,7 @@ M5.2 supplies fourteen stdio tools; the Automation control-channel row is D.
 Strict transactional batches preserve every per-command publication, restore
 all session state on failure, and retain one undo step on success. Exact saved
 packages and the Python stdio two-boxes recipe match strict CLI execution.
-Layout and MCP topology are implemented; the unrepaired P5a VM acceptance remains open.
+Layout and MCP topology pass fresh P5a VM acceptance under the named route-geometry rule.
 Inspection has a bounded response and reports alignment bounds in page inches.
 Reference: [Shape](https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml).
 
@@ -1265,3 +1269,22 @@ Brief B4 (#49): EMF text decoding/shaping and dash outline expansion are checked
 Brief B5 (#50): shared cell caching remains enabled in EVALCELL for argument-independent results. Runtime ARG reads prevent dependent cells from becoming cross-frame cache entries. Cold and warm15-step chains return32768; frame-specific arguments and outside defaults are retained. Context-dependent entries preserve their existing outside-frame cache, and cache-hit metadata propagates to cold callers. No cap changes.
 
 Brief B6 (#51): master contact sheets prepare one theme host and evaluator for the complete stencil. A portable structural regression counts one evaluator for eight masters, preserving the existing blank/error report semantics. No limit changes.
+
+## P5a follow-up: arithmetic cancellation parity (deferred)
+
+Visio's arithmetic and serialized caches can remove binary cancellation noise.
+The original P5a SAN shape 49 Width is `GUARD(EndX-BeginX)`: EndX 11.7 minus
+BeginX 11.15 evaluates here to 0.5499999999999989; Visio saves 0.55. Its LocPinX
+cache changes 0.2749999999999995 to 0.275. Office shape 11 Controls.TextPosition.Y
+changes -0.37499999999999956 to -0.375. The two private saves contain 127 changed
+V fields, plus 32 formula spellings and 20 redundant literal controls. A universal
+precision formatter did not fit these observations and is not implemented.
+Witnesses: `corpus/_state/p5a/accept-inputs/p5a-san-topology.vsdx` and
+`p5a-office-network.vsdx`, with their original accept.ps1 saved.vsdx observations.
+Arithmetic cleanup is explicitly deferred by Charles's follow-up 2 ruling.
+The binary-grid candidate first reduced fresh exact repairs to 8 SAN and 0 office.
+The remaining eight are Geometry 0, rows 3 and 4, X literals on SAN shapes 48,
+55, 58 and 65, at line-jump boundaries. Full values and unchanged-gate results:
+`corpus/_state/p5a-followup2/accept-report.json`. That run stopped at its required gate. Charles subsequently ruled these router-owned numeric Geometry values subject to the existing route bound; the fresh follow-up 3 run passes with 0 repairs for both drawings.
+No evaluator arithmetic, imported cells, masks, repair classifier or threshold changed.
+Reference: https://learn.microsoft.com/en-us/office/client-developer/visio/width-cell-shape-transform-section

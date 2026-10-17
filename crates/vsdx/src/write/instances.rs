@@ -182,6 +182,26 @@ impl model::Writer<'_> {
         if has_changes {
             let mut redundant = BTreeSet::new();
             for n in self.evaluator.source_named_cells(scope).map_err(|e| error(e.to_string()))? {
+                // P5a SAN: all 20 authored TextPosition.Y=-1 literals matching
+                // the master disappear on Visio save; the 20 different Y=1 remain.
+                // A pure import has no changed cell and must retain its source bytes.
+                // https://learn.microsoft.com/en-us/office/client-developer/visio/y-cell-controls-section
+                if n.name == "Controls.TextPosition.Y"
+                    && n.cell.formula.is_none()
+                    && self.source_state.changed.contains(&(scope, n.name.to_ascii_lowercase()))
+                    && let Some(provider) = self.evaluator.cell(master, &n.name)
+                    && provider.formula.is_none()
+                    && provider.units == n.cell.units
+                    && provider.error.is_none()
+                    && n.cell.error.is_none()
+                    && let (Some(a), Some(b)) =
+                        (n.cell.value.as_deref().and_then(|v| v.parse::<f64>().ok()), provider.value.as_deref().and_then(|v| v.parse::<f64>().ok()))
+                    && a.is_finite()
+                    && a == b
+                {
+                    redundant.insert(n.name);
+                    continue;
+                }
                 if n.cell.formula.as_deref() != Some("Inh") {
                     continue;
                 }

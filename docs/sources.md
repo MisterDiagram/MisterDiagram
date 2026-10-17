@@ -7,10 +7,12 @@ that the page was consulted during this session.
 | URL | Citing files |
 |---|---|
 | <http://schemas.microsoft.com/office/visio/2011/1/core> | `tools/oracle/accept_report.py` |
-| <http://schemas.microsoft.com/office/visio/2012/main> | `tools/oracle/accept_report.py`, `tools/oracle/test_accept_report.py` |
+| <http://schemas.microsoft.com/office/visio/2012/main> | `tools/oracle/accept_report.py`, `tools/oracle/route_geometry.py`, `tools/oracle/test_accept_report.py` |
+| <http://schemas.microsoft.com/visio/2010/relationships/master> | `tools/oracle/route_geometry.py`, `tools/oracle/test_route_geometry.py` |
+| <http://schemas.openxmlformats.org/officeDocument/2006/relationships> | `tools/oracle/route_geometry.py` |
 | <http://schemas.openxmlformats.org/package/2006/content-types> | `tools/oracle/accept_report.py`, `tools/oracle/test_accept_report.py` |
 | <http://schemas.openxmlformats.org/package/2006/metadata/core-properties> | `tools/oracle/accept_report.py`, `tools/oracle/test_accept_report.py` |
-| <http://schemas.openxmlformats.org/package/2006/relationships> | `tools/oracle/accept_report.py`, `tools/oracle/test_accept_report.py` |
+| <http://schemas.openxmlformats.org/package/2006/relationships> | `tools/oracle/accept_report.py`, `tools/oracle/route_geometry.py`, `tools/oracle/test_accept_report.py` |
 | <https://git-scm.com/docs/git#Documentation/git.txt---exec-pathltpathgt> | `apps/misterdiagram-cli/tests/examples.rs` |
 | <https://github.com/storytold/craft-fonts> | `crates/fonts/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references> | `crates/engine/src/arrange.rs`, `crates/engine/src/reference_cleanup.rs`, `crates/vsdx/src/evaluate.rs` |
@@ -77,7 +79,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/conlinejumpstyle-cell-shape-layout-section> | `crates/route/src/jumps.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/connect-element-connects_type-complextypevisio-xml> | `crates/engine/src/inspect.rs`, `crates/engine/src/reference_cleanup.rs`, `crates/model/src/lib.rs`, `crates/model/tests/from_scratch.rs`, `crates/route/src/static_glue.rs`, `crates/vsdx/src/write/model.rs`, `crates/vsdx/src/write/validate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-row-connection-points-section> | `crates/vsdx/src/evaluate.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section> | `crates/engine/src/glue.rs`, `crates/engine/src/layout.rs`, `crates/route/src/static_glue.rs`, `tools/oracle/p5a/make-corpus.ps1` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section> | `crates/engine/src/glue.rs`, `crates/engine/src/layout.rs`, `crates/engine/tests/layout.rs`, `crates/route/src/static_glue.rs`, `tools/oracle/p5a/make-corpus.ps1` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/connectorschemeindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/cos-function-visioshapesheet> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/cosh-function> | `crates/sheet/src/functions/numeric.rs` |
@@ -212,7 +214,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/par-function> | `crates/route/src/static_glue.rs`, `crates/sheet/src/functions/points.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pathlength-function> | `crates/sheet/src/eval.rs`, `crates/sheet/src/functions/path_queries.rs`, `crates/vsdx/src/evaluate/path.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pi-function> | `crates/sheet/src/functions/numeric.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/pinx-cell-shape-transform-section> | `crates/engine/src/shapes.rs`, `crates/vsdx/src/evaluate/transform.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/pinx-cell-shape-transform-section> | `crates/engine/src/layout.rs`, `crates/engine/src/shapes.rs`, `crates/vsdx/src/evaluate/transform.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/piny-cell-shape-transform-section> | `crates/engine/src/shapes.rs`, `crates/vsdx/src/evaluate/transform.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/plowcode-cell-page-layout-section> | `crates/route/src/orthogonal.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pnt-function> | `crates/route/src/static_glue.rs`, `crates/sheet/src/functions/points.rs`, `crates/sheet/src/units.rs`, `crates/vsdx/src/evaluate.rs` |
@@ -244,6 +246,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rgb-function> | `crates/vsdx/src/write/model.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rgb-function-visioshapesheet> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/right-function-visioshapesheet> | `crates/sheet/src/functions/text.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/round-function> | `crates/engine/src/layout.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/round-function-visioshapesheet> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rounding-cell-line-format-section> | `crates/render/src/style.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/routestyle-cell-page-layout-section> | `crates/route/src/orthogonal.rs` |
@@ -322,6 +325,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/window-element-windows_type-complextypevisio-xml> | `crates/model/src/skeleton.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/windows-elementvisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/x-cell-connection-points-section> | `crates/engine/src/layout.rs`, `crates/route/src/static_glue.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/y-cell-controls-section> | `crates/engine/tests/layout.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.application.beginundoscope> | `apps/misterdiagram-cli/src/author.rs`, `crates/engine/src/batch.rs`, `crates/engine/src/inspect.rs`, `crates/engine/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.application.endundoscope> | `crates/engine/src/batch.rs`, `crates/engine/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.application.redo> | `crates/engine/src/lib.rs` |

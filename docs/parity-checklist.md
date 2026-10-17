@@ -338,7 +338,9 @@ The script-authoring row remains P. The MCP SAN recipe produces 24 switches,
 passes the frozen pixel ceilings. The CLI-only office recipe produces ten
 original device instances and nine links. `readme_office_network_matches_script_and_pixels`
 checks exact README text and decoded image equality on each CI platform.
-The strict unrepaired package checks remain open (170 SAN and 9 office serialized
-changes), and both human visual gates are pending. No score increase for these
+Fresh package checks pass with 0 SAN and 0 office repairs under Charles's
+router-owned numeric Geometry ruling (296/28 judged cells, eight/zero changed
+within 1e-6). Every other cell, formula and structure stays exact. Both human
+visual gates are pending. No score increase for these
 examples. Discovery regressions cover dependent bounds, tiny fan points,
 text-sized layout and bounded aggregate MCP replies.

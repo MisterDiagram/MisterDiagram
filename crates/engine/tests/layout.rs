@@ -205,7 +205,7 @@ fn tiny_hub_fan_points_remain_distinct_and_at_the_requested_fractions() {
     assert_ne!(result["assignments"][0]["point"], result["assignments"][1]["point"], "tiny hub points must remain distinct");
     for (index, assignment) in result["assignments"].as_array().unwrap().iter().enumerate() {
         let x = run(&mut s, "sheet.get", json!({"id":1,"name":assignment["point"]}))["value"].as_str().unwrap().parse::<f64>().unwrap();
-        assert!((x / 1e-10 - (index + 1) as f64 / 3.).abs() < 1e-9, "tiny hub fraction: {x}");
+        assert!((x / (1. / 64.) - [0.25, 0.75][index]).abs() < 1e-9, "tiny hub fraction: {x}");
     }
 }
 
@@ -225,4 +225,118 @@ fn rows_and_side_points_support_text_sized_shapes() {
     run(&mut s, "connect.sides", json!({"id":3,"source":1,"target":2}));
     let fan = run(&mut s, "layout.fan", json!({"hub":1,"spokes":[2]}));
     assert_eq!(fan["crossings"], json!([]));
+}
+
+/// Original binary-grid layout policy; source cells use public XForm and Connection fields.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section
+#[test]
+fn layout_authors_binary_grid_and_short_ordered_fractions() {
+    let mut s = Session::new();
+    run(&mut s, "shape.draw.rect", json!({"x":4.13,"y":6.21,"width":1.7,"height":0.6}));
+    for x in [0.1, 2.1, 4.1, 6.1, 8.1] {
+        run(&mut s, "shape.draw.rect", json!({"x":x,"y":1.1,"width":1.1,"height":0.7}));
+    }
+    run(&mut s, "layout.rows", json!({"ids":[2,3,4,5,6],"counts":[5],"region":{"x":0,"y":0,"width":10,"height":3},"gutter_x":0.1}));
+    for spoke in 2..=6 {
+        let id = run(&mut s, "master.drop", json!({"master":2,"x":0,"y":0}))["id"].clone();
+        run(&mut s, "connect.sides", json!({"id":id,"source":1,"target":spoke}));
+    }
+    let result = run(&mut s, "layout.fan", json!({"hub":1,"spokes":[2,3,4,5,6]}));
+    // All spokes must face the bottom to test the five-point, non-power-of-two count.
+    let expected = [0.125, 0.375, 0.5, 0.625, 0.875];
+    for (i, a) in result["assignments"].as_array().unwrap().iter().enumerate() {
+        assert_eq!(a["fraction"], expected[i], "layout must write a short binary fraction");
+        let cell = run(&mut s, "sheet.get", json!({"id":1,"name":a["point"]}));
+        assert_eq!(cell["formula"], format!("Width*{}", expected[i]), "layout must write a short binary fraction");
+    }
+    for id in 1..=6 {
+        for name in ["Width", "Height", "PinX", "PinY"] {
+            let value = run(&mut s, "sheet.get", json!({"id":id,"name":name}))["value"].as_str().unwrap().parse::<f64>().unwrap();
+            assert_eq!((value * 64.).fract(), 0., "layout {id} {name} must be on the binary grid");
+        }
+    }
+}
+
+/// The original master Y=-1 and P5a saves show that equal literal overrides disappear.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/y-cell-controls-section
+#[test]
+fn text_position_omits_only_the_matching_inherited_literal() {
+    let mut s = Session::new();
+    for (x, y) in [(1., 6.), (5., 4.)] {
+        run(&mut s, "shape.draw.rect", json!({"x":x,"y":y,"width":1.5,"height":1.5}));
+    }
+    run(&mut s, "master.drop", json!({"master":2,"x":0,"y":0}));
+    run(&mut s, "connect.sides", json!({"id":3,"source":1,"target":2}));
+    let local_y = |s: &Session| {
+        s.document().pages[0]
+            .shapes
+            .iter()
+            .find(|s| s.id == 3)
+            .unwrap()
+            .sheet
+            .sections
+            .iter()
+            .find(|s| s.name == "Control")
+            .unwrap()
+            .rows
+            .iter()
+            .find(|r| r.name.as_deref() == Some("TextPosition"))
+            .unwrap()
+            .cells
+            .iter()
+            .find(|c| c.name == "Y")
+            .cloned()
+    };
+    assert!(local_y(&s).is_none(), "matching inherited TextPosition.Y=-1 must not be written");
+    // A different master literal must not cause blanket removal of all local -1 values.
+    s.edit_document(|doc, _| {
+        let master = doc.masters.iter_mut().find(|m| m.id == 2).unwrap();
+        let y = master.shapes[0]
+            .sheet
+            .sections
+            .iter_mut()
+            .find(|s| s.name == "Control")
+            .unwrap()
+            .rows
+            .iter_mut()
+            .find(|r| r.name.as_deref() == Some("TextPosition"))
+            .unwrap()
+            .cells
+            .iter_mut()
+            .find(|c| c.name == "Y")
+            .unwrap();
+        y.value = Some("-2".into());
+        Ok(())
+    })
+    .unwrap();
+    run(&mut s, "route.reroute", json!({}));
+    assert_eq!(local_y(&s).unwrap().value.as_deref(), Some("-1"));
+}
+
+#[test]
+fn snapping_pins_keeps_dependent_dimensions_on_grid() {
+    let mut s = Session::new();
+    run(&mut s, "shape.draw.rect", json!({"x":0.1,"y":1,"width":1,"height":1}));
+    run(&mut s, "sheet.set", json!({"id":1,"name":"PinX","value":0.1}));
+    run(&mut s, "sheet.set", json!({"id":1,"name":"Width","formula":"PinX+0.9"}));
+    run(&mut s, "shape.draw.rect", json!({"x":4,"y":1,"width":1,"height":1}));
+    run(&mut s, "master.drop", json!({"master":2,"x":0,"y":0}));
+    for command in ["connect.sides", "layout.fan"] {
+        let params = if command == "connect.sides" { json!({"id":3,"source":1,"target":2}) } else { json!({"hub":1,"spokes":[2]}) };
+        run(&mut s, command, params);
+        let value = run(&mut s, "sheet.get", json!({"id":1,"name":"Width"}))["value"].as_str().unwrap().parse::<f64>().unwrap();
+        assert_eq!((value * 64.).fract(), 0., "dependent dimensions must stay on the binary grid");
+    }
+}
+
+#[test]
+fn zero_gutter_rows_do_not_overlap_after_pin_snapping() {
+    let mut s = Session::new();
+    for width in [0.03125, 0.015625] {
+        run(&mut s, "shape.draw.rect", json!({"x":0,"y":0,"width":width,"height":0.03125}));
+    }
+    let r = run(&mut s, "layout.rows", json!({"ids":[1,2],"counts":[2],"region":{"x":0,"y":0,"width":1,"height":1},"gutter_x":0,"gutter_y":0}));
+    let a = &r["placed"][0]["bounds"];
+    let b = &r["placed"][1]["bounds"];
+    assert!(a["x"].as_f64().unwrap() + a["width"].as_f64().unwrap() <= b["x"].as_f64().unwrap(), "grid rows must not overlap");
 }

@@ -15,6 +15,84 @@ fn number(e: &mut Evaluator<'_>, scope: Scope, name: &str) -> Result<f64> {
     let value = e.evaluate(scope, name).numeric().map_err(operation)?;
     if value.is_finite() && value.abs() <= 1e6 { Ok(value) } else { Err(operation(format!("invalid {name}"))) }
 }
+/// Authored layout coordinates use a 1/64 inch grid. Ties round away from zero.
+/// This is an original layout policy, not an evaluator arithmetic tolerance.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/pinx-cell-shape-transform-section
+fn grid(value: f64) -> f64 {
+    (value * 64.).round() / 64.
+}
+/// Use the smallest binary denominator admitting ordered interior points.
+/// With at most 10,000 spokes all integer arithmetic is bounded and exact.
+fn fraction(position: usize, total: usize) -> Result<f64> {
+    let count = total.checked_add(1).ok_or_else(|| operation("fan point count"))?;
+    let denominator = count.checked_next_power_of_two().ok_or_else(|| operation("fan point denominator"))?;
+    let numerator = position.checked_mul(denominator).and_then(|v| v.checked_add(count / 2)).ok_or_else(|| operation("fan point numerator"))? / count;
+    Ok(numerator as f64 / denominator as f64)
+}
+/// Normalize only shapes explicitly selected by a layout command. Formula-driven
+/// dimensions retain their expression, quantized with ROUND, so dependency changes
+/// are still caught by the placement validation. Imported, unselected cells stay intact.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/round-function
+fn grid_shapes(doc: &mut misterdiagram_model::Document, index: usize, ids: &[u32]) -> Result<()> {
+    let page_id = doc.pages.get(index).ok_or_else(|| operation("page missing"))?.id;
+    let themes = misterdiagram_theme::Themes::from_document(doc).map_err(operation)?;
+    let mut e = Evaluator::new(doc).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
+    let mut edits = Vec::new();
+    for id in ids {
+        let scope = Scope::PageShape { page: page_id, shape: *id };
+        if e.shape(scope).is_none() || e.cell(scope, "BeginX").is_some() {
+            return Err(operation("layout requires two-dimensional shapes"));
+        }
+        for name in ["Width", "Height", "PinX", "PinY"] {
+            let value = number(&mut e, scope, name)?;
+            let dimension = matches!(name, "Width" | "Height");
+            if dimension && value <= 0. {
+                return Err(operation("layout endpoint must have positive bounds"));
+            }
+            let snapped = if dimension { grid(value).max(1. / 64.) } else { grid(value) };
+            let original = e.effective_formula(scope, name);
+            let formula = if dimension {
+                original.clone().filter(|f| !f.eq_ignore_ascii_case("No Formula") && f != "Inh").map(|f| {
+                    if f.starts_with("MAX(0.015625,ROUND((") && f.ends_with(")*64,0)/64)") {
+                        f
+                    } else {
+                        format!("MAX(0.015625,ROUND(({f})*64,0)/64)")
+                    }
+                })
+            } else {
+                None
+            };
+            if snapped == value && formula == original {
+                continue;
+            }
+            if formula.as_ref().is_some_and(|f| f.len() > 65536) {
+                return Err(operation("layout dimension formula limit"));
+            }
+            edits.push((*id, name, snapped, formula));
+        }
+    }
+    drop(e);
+    let page = page_mut(doc, index)?;
+    for (id, name, value, formula) in edits {
+        set(&mut shape_mut(&mut page.shapes, id)?.sheet, name, &value.to_string(), formula.as_deref())?;
+    }
+    Ok(())
+}
+fn check_grid(e: &mut Evaluator<'_>, page: u32, ids: &[u32]) -> Result<()> {
+    for id in ids {
+        for name in ["Width", "Height", "PinX", "PinY"] {
+            let value = number(e, Scope::PageShape { page, shape: *id }, name)?;
+            if (value * 64.).fract() != 0. {
+                return Err(operation("dependent shape values invalidate binary layout grid"));
+            }
+        }
+    }
+    Ok(())
+}
+// Even-grid slots keep centered shapes clear when their pins snap to 1/64.
+fn slot(size: f64) -> f64 {
+    (size * 32.).ceil() / 32.
+}
 fn facing(doc: &misterdiagram_model::Document, page: usize, id: u32, target: u32) -> Result<Side> {
     let page = doc.pages.get(page).ok_or_else(|| operation("page missing"))?;
     let themes = misterdiagram_theme::Themes::from_document(doc).map_err(operation)?;
@@ -88,7 +166,7 @@ fn point(
         if used.contains(&name) || (kind != 0. && kind != 2.) {
             continue;
         }
-        if (number(&mut e, scope, &name)? - x).abs() <= w.abs() * 1e-12 && (number(&mut e, scope, &y_name)? - y).abs() <= h.abs() * 1e-12 {
+        if number(&mut e, scope, &name)? == x && number(&mut e, scope, &y_name)? == y {
             return Ok(name);
         }
     }
@@ -120,13 +198,19 @@ pub(crate) fn sides(s: &mut Session, p: &Value) -> Result<Value> {
     if source == target || id == source || id == target {
         return Err(operation("connector and endpoint shapes must be distinct"));
     }
-    let begin = facing(&s.document, index, source, target)?;
-    let end = facing(&s.document, index, target, source)?;
+    let mut normalized = s.document().clone();
+    grid_shapes(&mut normalized, index, &[source, target])?;
+    let begin = facing(&normalized, index, source, target)?;
+    let end = facing(&normalized, index, target, source)?;
     s.edit_document(|doc, _| {
+        *doc = normalized;
         let a = point(doc, index, source, begin, 0.5, &Default::default())?;
         let b = point(doc, index, target, end, 0.5, &Default::default())?;
         misterdiagram_route::connect_static(doc, index, id, misterdiagram_route::End::Begin, source, &a).map_err(operation)?;
         misterdiagram_route::connect_static(doc, index, id, misterdiagram_route::End::End, target, &b).map_err(operation)?;
+        let themes = misterdiagram_theme::Themes::from_document(doc).map_err(operation)?;
+        let mut e = Evaluator::new(doc).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
+        check_grid(&mut e, doc.pages.get(index).ok_or_else(|| operation("page missing"))?.id, &[source, target])?;
         Ok(json!({"id":id,"begin":{"shape":source,"point":a},"end":{"shape":target,"point":b}}))
     })
 }
@@ -172,9 +256,11 @@ pub(crate) fn rows(s: &mut Session, p: &Value) -> Result<Value> {
     if counts.iter().try_fold(0usize, |n, v| n.checked_add(*v)) != Some(selected.len()) {
         return Err(operation("row counts must sum to the shape count"));
     }
-    let page = s.document.pages.get(index).ok_or_else(|| operation("page missing"))?;
-    let themes = misterdiagram_theme::Themes::from_document(&s.document).map_err(operation)?;
-    let mut e = Evaluator::new(&s.document).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
+    let mut normalized = s.document().clone();
+    grid_shapes(&mut normalized, index, &selected)?;
+    let page = normalized.pages.get(index).ok_or_else(|| operation("page missing"))?;
+    let themes = misterdiagram_theme::Themes::from_document(&normalized).map_err(operation)?;
+    let mut e = Evaluator::new(&normalized).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
     let ps = Scope::Page(page.id);
     let region = if let Some(region) = p.get("region") {
         if region.as_object().is_none_or(|v| v.keys().any(|k| !matches!(k.as_str(), "x" | "y" | "width" | "height"))) {
@@ -193,7 +279,7 @@ pub(crate) fn rows(s: &mut Session, p: &Value) -> Result<Value> {
     }
     let mut gutter = |key: &str, block: &str, line: &str| -> Result<f64> {
         let v = if p.get(key).is_some() { crate::edit::number(p, key)? } else { number(&mut e, ps, block)?.max(2. * number(&mut e, ps, line)?) };
-        if v < 0. || v > 1e6 { Err(operation("invalid gutter")) } else { Ok(v) }
+        if v < 0. || v > 1e6 { Err(operation("invalid gutter")) } else { Ok(grid(v)) }
     };
     let gx = gutter("gutter_x", "BlockSizeX", "LineToNodeX")?;
     let gy = gutter("gutter_y", "BlockSizeY", "LineToNodeY")?;
@@ -228,8 +314,8 @@ pub(crate) fn rows(s: &mut Session, p: &Value) -> Result<Value> {
     let mut offset = 0usize;
     for count in &counts {
         let row = frames.get(offset..offset + count).ok_or_else(|| operation("row range"))?;
-        let width = row.iter().map(|(_, b, _, _)| b.width()).sum::<f64>() + gx * ((*count - 1) as f64);
-        let height = row.iter().map(|(_, b, _, _)| b.height()).fold(0., f64::max);
+        let width = row.iter().map(|(_, b, _, _)| slot(b.width())).sum::<f64>() + gx * ((*count - 1) as f64);
+        let height = row.iter().map(|(_, b, _, _)| slot(b.height())).fold(0., f64::max);
         if width > region.width() + 1e-9 {
             return Err(operation("row exceeds region width"));
         }
@@ -245,17 +331,44 @@ pub(crate) fn rows(s: &mut Session, p: &Value) -> Result<Value> {
     let mut placements = Vec::new();
     for (count, (width, height)) in counts.iter().zip(sizes) {
         let mut x = (region.x0 + region.x1 - width) / 2.;
+        let mut previous_right = None;
         for (id, bounds, pin, inverse) in frames.get(offset..offset + count).ok_or_else(|| operation("row range"))? {
             let y = top - height / 2. - bounds.height() / 2.;
-            let delta = (*inverse * Point::new(x, y)) - (*inverse * Point::new(bounds.x0, bounds.y0));
-            let placed = Rect::new(x, y, x + bounds.width(), y + bounds.height());
-            placements.push((*id, *pin + delta, placed));
-            x += bounds.width() + gx;
+            let left = x + (slot(bounds.width()) - bounds.width()) / 2.;
+            let delta = (*inverse * Point::new(left, y)) - (*inverse * Point::new(bounds.x0, bounds.y0));
+            let raw_pin = *pin + delta;
+            let placed_pin = Point::new(grid(raw_pin.x), grid(raw_pin.y));
+            let parent = inverse.inverse();
+            let correction = (parent * placed_pin) - (parent * raw_pin);
+            let placed = Rect::new(left + correction.x, y + correction.y, left + correction.x + bounds.width(), y + correction.y + bounds.height());
+            if placed.x0 < region.x0 || placed.y0 < region.y0 || placed.x1 > region.x1 || placed.y1 > region.y1 {
+                return Err(operation("grid placement exceeds region"));
+            }
+            if previous_right.is_some_and(|right| placed.x0 < right + gx) {
+                return Err(operation("grid placement overlaps row gutter"));
+            }
+            previous_right = Some(placed.x1);
+            placements.push((*id, placed_pin, placed));
+            x += slot(bounds.width()) + gx;
         }
         offset += count;
         top -= height + gy;
     }
+    let mut offset = 0;
+    let mut previous_bottom = None;
+    for count in &counts {
+        let row = placements.get(offset..offset + count).ok_or_else(|| operation("row range"))?;
+        let bottom = row.iter().map(|(_, _, r)| r.y0).fold(f64::INFINITY, f64::min);
+        let top = row.iter().map(|(_, _, r)| r.y1).fold(f64::NEG_INFINITY, f64::max);
+        if previous_bottom.is_some_and(|previous| top + gy > previous) {
+            return Err(operation("grid placement overlaps row gutter"));
+        }
+        previous_bottom = Some(bottom);
+        offset += count;
+    }
+    drop(e);
     s.edit_document(|doc,_| {
+        *doc = normalized;
         let page=page_mut(doc,index)?;
         for (id,pin,_) in &placements {
             let shape=shape_mut(&mut page.shapes,*id)?;
@@ -266,6 +379,7 @@ pub(crate) fn rows(s: &mut Session, p: &Value) -> Result<Value> {
         let page_id = page.id;
         let themes = misterdiagram_theme::Themes::from_document(doc).map_err(operation)?;
         let mut evaluated = Evaluator::new(doc).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
+        check_grid(&mut evaluated,page_id,&selected)?;
         for (id, _, planned) in &placements {
             let actual = crate::inspect::bounds(&mut evaluated, Scope::PageShape { page: page_id, shape: *id })?;
             if [actual.x0-planned.x0, actual.y0-planned.y0, actual.x1-planned.x1, actual.y1-planned.y1].iter().any(|delta| delta.abs() > 1e-9) {
@@ -288,11 +402,13 @@ pub(crate) fn fan(s: &mut Session, p: &Value) -> Result<Value> {
     if spokes.contains(&hub) {
         return Err(operation("hub cannot be a spoke"));
     }
-    let page = s.document.pages.get(index).ok_or_else(|| operation("page missing"))?;
+    let mut normalized = s.document().clone();
+    grid_shapes(&mut normalized, index, &std::iter::once(hub).chain(spokes.iter().copied()).collect::<Vec<_>>())?;
+    let page = normalized.pages.get(index).ok_or_else(|| operation("page missing"))?;
     let mut assignments = Vec::new();
     let mut totals = std::collections::BTreeMap::new();
     for spoke in &spokes {
-        let side = facing(&s.document, index, hub, *spoke)?;
+        let side = facing(&normalized, index, hub, *spoke)?;
         let candidates = page
             .connects
             .iter()
@@ -313,6 +429,7 @@ pub(crate) fn fan(s: &mut Session, p: &Value) -> Result<Value> {
         assignments.push((*spoke, side, connection.from_sheet, end));
     }
     let placed = s.edit_document(|doc, _| {
+        *doc = normalized;
         let mut positions = std::collections::BTreeMap::new();
         let mut placed = Vec::new();
         let mut used = std::collections::BTreeSet::new();
@@ -320,7 +437,7 @@ pub(crate) fn fan(s: &mut Session, p: &Value) -> Result<Value> {
             let position = positions.entry(*side).or_insert(0usize);
             *position += 1;
             let total = totals.get(side).copied().ok_or_else(|| operation("missing side count"))?;
-            let fraction = (*position as f64) / ((total + 1) as f64);
+            let fraction = fraction(*position, total)?;
             let name = point(doc, index, hub, *side, fraction, &used)?;
             used.insert(name.clone());
             misterdiagram_route::connect_static(doc, index, *connector, *end, hub, &name).map_err(operation)?;
@@ -331,6 +448,9 @@ pub(crate) fn fan(s: &mut Session, p: &Value) -> Result<Value> {
     crate::glue::reroute(s, &json!({"page":index+1}))?;
     let selected = std::iter::once(hub).chain(spokes.iter().copied()).collect::<Vec<_>>();
     let connectors = assignments.iter().map(|(_, _, id, _)| *id).collect::<Vec<_>>();
+    let themes = misterdiagram_theme::Themes::from_document(&s.document).map_err(operation)?;
+    let mut e = Evaluator::new(&s.document).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
+    check_grid(&mut e, s.document.pages.get(index).ok_or_else(|| operation("page missing"))?.id, &selected)?;
     let crossings = crossings(&s.document, index, &connectors, &selected)?;
     Ok(json!({"assignments":placed,"crossings":crossings}))
 }

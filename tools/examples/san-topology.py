@@ -31,6 +31,7 @@ def recipe():
     command('shape.text', id=1, text='Switch')
     # Inherit the document face. Renderer fallback names are not authored fonts.
     command('format.text', id=1, size=10, align=1)
+    command('format.line', id=1, weight=0.03125)
     command('master.new_from_shape', id=1, name='Switch')
     command('shape.delete', id=1)
 
@@ -38,8 +39,8 @@ def recipe():
     shape_id = 1
     for fabric_index, fabric in enumerate(('A', 'B')):
         left = fabric_index * 8.5
-        positions = [(2.5, 8.75), (5.7, 8.75)]
-        positions += [(0.9 + column * 1.6, y) for y in (5.75, 2.75) for column in range(5)]
+        positions = [(2.5, 8.75), (5.703125, 8.75)]
+        positions += [(0.90625 + column * 1.59375, y) for y in (5.75, 2.75) for column in range(5)]
         ids = []
         for index, (x, y) in enumerate(positions):
             name = f'{fabric}-Core-{index + 1}' if index < 2 else f'{fabric}-Edge-{index - 1:02}'
@@ -54,9 +55,9 @@ def recipe():
             shape_id += 1
         fabrics.append(ids)
         command('layout.rows', ids=ids[2:7] + ids[:2] + ids[7:], counts=[5, 2, 5],
-                region={'x': left + 0.3, 'y': 1.5, 'width': 7.9, 'height': 8}, gutter_x=0.1, gutter_y=2)
+                region={'x': left + 0.3125, 'y': 1.5, 'width': 7.875, 'height': 8}, gutter_x=0.09375, gutter_y=2)
     for fabric_index, fabric in enumerate(('A', 'B')):
-        command('shape.draw.rect', x=fabric_index * 8.5 + 2.5, y=9.75, width=3.2, height=0.6)
+        command('shape.draw.rect', x=fabric_index * 8.5 + 2.5, y=9.75, width=3.1875, height=0.625)
         command('shape.text', id=shape_id, text='Fabric ' + fabric)
         command('format.fill', id=shape_id, pattern=0)
         command('format.line', id=shape_id, pattern=0)

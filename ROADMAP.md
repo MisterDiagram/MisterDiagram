@@ -9,7 +9,7 @@ clean independent frozen verification passes.
 
 ## Progress
 
-- 2026-10-17: P5a implementation is available: MCP topology, reproducible office example, performance contribution workflow and CI archives. Fresh VM routes and equal-size renders pass; unrepaired package checks fail 170 SAN/9 office serialized changes. Both human gates remain pending, so P5a is partial.
+- 2026-10-17: P5a implementation is available: MCP topology, reproducible office example, performance contribution workflow and CI archives. Fresh VM routes and equal-size renders pass; repairs are 0 SAN/0 office under Charles's router-owned Geometry ruling, with 296/28 cells judged within 1e-6. Technical closure is in progress; both human gates remain pending.
 
 - 2026-10-17: M5.4 adds centered row layout and distinct hub fan points. The SAN example uses both, retains 80 Connects and passes connector ink and switch-interior checks. Fresh Visio acceptance follows in M5.5.
 

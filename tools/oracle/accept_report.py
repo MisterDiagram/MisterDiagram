@@ -17,6 +17,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 from urllib.parse import quote
 from diff_dump import compare, excluded, read_dump, read_filters
+from route_geometry import judge as judge_router_geometry
 
 ROOT = Path(__file__).resolve().parents[2]
 MAX_XML = 96 * 1024 * 1024
@@ -843,6 +844,7 @@ def report(out, manifest, baseline=None):
                 retained = {(d[0],d[1]) for d in retained_cells}
                 retained.update(('part:'+p,k) for k in ('added','removed') for p in retained_parts[k])
                 remaining = [d for d in remaining if (d[0],d[1]) in retained]
+            remaining, row['router_geometry'] = judge_router_geometry(path, actual/('saved'+path.suffix), old_cells, new_cells, remaining)
             row['opc_byte_only'] = opc_byte_differences(old_cells,new_cells)
             row['baseline_opc_byte_only'] = opc_byte_differences(base_cells,saved_base_cells)
             counter['opc_byte_only'] += len(row['opc_byte_only'])
@@ -935,7 +937,7 @@ def report(out, manifest, baseline=None):
             row['errors'].append(str(error))
             counter['failed'] += 1
         all_rows.append(row)
-        print(f"accept file {name}: D_ours={row.get('d_ours')} D_base={row.get('d_base')} subtracted={row.get('baseline_subtracted')} repair_diffs={row['repair_count']} COM_failures={row['com_failures']} OPC_byte_only={len(row.get('opc_byte_only',[]))} unobserved_style_local={len(row.get('unobserved_style_local',[]))} errors={row['errors']}")
+        print(f"accept file {name}: D_ours={row.get('d_ours')} D_base={row.get('d_base')} subtracted={row.get('baseline_subtracted')} repair_diffs={row['repair_count']} route_judged={row.get('router_geometry',{}).get('cells_judged',0)} COM_failures={row['com_failures']} OPC_byte_only={len(row.get('opc_byte_only',[]))} unobserved_style_local={len(row.get('unobserved_style_local',[]))} errors={row['errors']}")
     success = (out/'DONE').exists()
     summaries = {}
     for group, items in sorted(groups.items()):

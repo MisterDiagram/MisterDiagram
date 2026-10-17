@@ -102,7 +102,11 @@ and descendants, and 1D shapes are rejected transactionally. Group-child positio
 are translated through their parent transforms.
 
 Fan requires exactly one existing connector from the hub to each listed spoke.
-Within each facing side, points are evenly spaced at i/(count+1) in spoke order.
+Within each facing side, points approximate even spacing in spoke order using
+the nearest distinct binary fractions. Five spokes use 1/8, 3/8, 1/2, 5/8 and 7/8.
+Layout normalizes selected sizes and pins to 1/64 inch; formula dimensions keep
+their dependencies inside a grid expression. Rows reserve 1/32-inch size slots
+to preserve gutters after pin snapping. Imported, unselected shapes stay unchanged.
 The response lists assignments and any route/shape crossings in the supplied set.
 Boundary contact is allowed; open alignment-box interiors are tested. Route
 inspection is bounded to 100,000 segments and two million segment/box checks.
@@ -116,8 +120,9 @@ python3 tools/mcp/san-topology.py target/mcp-san
 
 The client saves `p5a-san-topology.vsdx`, `.png` and `.svg`, verifies 80 Connects
 and rejects reported switch crossings. The recipe is shared with the CLI example.
-Fresh Visio keeps its routes and passes the render ceilings, but the unrepaired
-package gate remains open as recorded in [gaps](gaps.md#p5a-acceptance-still-open-2026-10-17).
+Fresh Visio keeps its routes and passes the unchanged render ceilings and
+unrepaired package gate under the narrow [route-geometry ruling](file-format-parity.md#ruling-router-owned-connector-geometry-charles-2026-10-17).
+Both human visual verdicts remain pending.
 Rows whose formula-driven bounds change when moved are rejected transactionally.
 Legacy JSON-RPC arrays share the 4 MiB response cap; oversized replies return an
 error without emitting an oversized frame. This is separate from the `batch` tool.

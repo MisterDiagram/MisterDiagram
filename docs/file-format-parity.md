@@ -15913,3 +15913,66 @@ and removal of 20 local Controls.TextPosition.Y cells with V=-1. Office changes
 are nine values (maximum delta 5.55e-16). All 40 SAN routes and 9 office routes
 remain within 1e-6. These observations explain
 the failed unrepaired gate; they do not authorize a new exclusion or tolerance.
+
+
+### Ruling: router-owned connector Geometry (Charles, 2026-10-17)
+
+Visio recomputes dynamic connector route geometry, including line jumps, on save
+with its own arithmetic. Under Charles's P5a follow-up 3 ruling, the named
+`router_owned_geometry_v` acceptance rule compares finite numeric cached V in
+router-owned Geometry 0 route/jump rows with the existing absolute 1e-6 route
+bound. Every formula, unit/error, row type, row/section/cell presence, other cell
+and non-connector shape remains exact. Render ceilings are unchanged.
+
+Ownership must independently qualify before and after save: ObjType=2, endpoints
+present, ConFixedCode not 2. The checker resolves unique master relationships and
+literal ownership cells, then document/default-sheet cells; arbitrary flag
+formulas or ambiguous metadata remain strict. Names and glue target types do
+not establish ownership. Only namespace-qualified route-row cells qualify;
+master geometry and additional geometry sections remain strict. The checker
+reports all numerically judged cells, their before/after values and deltas,
+including unchanged cells and failures beyond the bound.
+
+Eight witnesses from the private `p5a-f2-san.vsdx` and its accept.ps1 save,
+`visio/pages/page1.xml`, Geometry IX=0, Cell X. F is absent on both sides:
+
+| Shape | Row IX | Authored V | Visio saved V |
+|---:|---:|---|---|
+| 48 | 3 | 1.5520833333333321 | 1.552083333333332 |
+| 48 | 4 | 1.6354166666666679 | 1.635416666666668 |
+| 55 | 3 | -1.5520833333333321 | -1.552083333333332 |
+| 55 | 4 | -1.6354166666666679 | -1.635416666666668 |
+| 58 | 3 | 1.5520833333333321 | 1.552083333333332 |
+| 58 | 4 | 1.6354166666666679 | 1.635416666666668 |
+| 65 | 3 | -1.5520833333333321 | -1.552083333333332 |
+| 65 | 4 | -1.6354166666666679 | -1.635416666666668 |
+
+Rows 3 and 4 are LineTo and ArcTo boundaries. This ruling supersedes their exact
+repair classification; it does not change the route gate or waive any structure
+or formula difference. The preceding 170/9 and 8/0 reports remain historical
+receipts, not retrospectively rewritten acceptance runs.
+
+### Authored binary layout and inherited TextPosition (P5a follow-ups)
+
+The three layout commands normalize selected pins and sizes to 1/64 inch, with
+positive dimensions at least 1/64. Formula dimensions retain their dependency
+inside a grid expression. Fan points use the smallest power-of-two denominator
+at least count+1, nearest integer numerators with half ties upward: five spokes
+use 1/8, 3/8, 1/2, 5/8 and 7/8. Constants are short exact decimals. Rows reserve
+1/32-inch size slots so snapping centers cannot create overlapping neighbors.
+This is authoring policy, not an arithmetic change or imported-cell rewrite.
+
+The writer omits a changed local Controls.TextPosition.Y literal only when it
+exactly equals a finite inherited literal, with matching units and no formula or
+error. Original SAN saves removed 20 local -1 cells matching inherited -1 and
+retained 20 different +1 cells. An audit of 30 existing connector/route originals
+found 39 local TextPosition rows and no local Y=-1. Different inherited values
+retain a local -1; unmodified imported locals remain intact. Cached arithmetic
+cancellation is separately deferred in docs/gaps.md.
+
+Fresh follow-up 3 acceptance: both rebuilt inputs opened/saved, 56,625 observed
+cells and zero cell errors. Repairs 0/0; route differences 0/0 (40 SAN connectors,
+1,168 route cells; nine office connectors, 213 route cells). The numeric rule
+judged 296/28 local Geometry cells, eight/zero changed, zero outside 1e-6.
+SAN render1575x759 MAD0.868280 over16=18704/1195425; office795x723 MAD0.598729
+over16=7164/574785. Both equal-size frozen ceilings pass. Human verdicts pending.
