@@ -34,3 +34,27 @@ merged within a day of review. A few rules keep the project honest and keep revi
 AGENTS.md has the rules every agent and contributor works under, docs/architecture.md the
 layers, docs/development.md the build gates and the oracle VM workflow, ROADMAP.md the
 milestones and the numbers each one has to reach.
+
+## Performance pull requests
+
+Include `tools/bench` numbers before and after on the same machine with nothing
+else running. Build both revisions first, then measure all five workloads and
+attach the JSONL totals. From a clean checkout of your proposed change:
+
+```sh
+git fetch origin master
+python3 tools/bench/run.py --baseline origin/master --candidate HEAD
+```
+
+The command creates disposable checkouts below `target/performance-pr`, builds
+both harnesses, runs the same strict commands and calls
+`python3 tools/bench/compare.py BEFORE.vsdx AFTER.vsdx` for each saved package.
+Every uncompressed part must be byte-identical to master. Only fresh master
+GUIDs and docProps save times are masked. Use a new `--output target/NAME` for
+another run. The harness records wall time, command count and shape count.
+
+See [#39](https://github.com/MisterDiagram/MisterDiagram/issues/39) and the
+[measured cost breakdown](docs/gaps.md#m50--39-strict-authoring-cost-and-capacity-2026-10-17)
+for where time goes today. Deferred-publication batch mode remains shelved until
+saving is independent of command history. MCP batch preserves every strict
+write/import boundary and only groups rollback and undo.

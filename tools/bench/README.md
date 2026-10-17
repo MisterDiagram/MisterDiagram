@@ -53,8 +53,8 @@ reports the first differing part/cell position, and exits 1 on any other change.
 `PYTHONDONTWRITEBYTECODE=1 python3 tools/bench/test_compare.py` checks hostile ZIP
 inputs and verifies that both changed cell values and changed serialization fail.
 
-The shipped CLI remains strict. Batch mode is shelved pending history-independent
-saving. The comparison helper preserves the exact-byte diagnostic used to find
+The shipped CLI remains strict. Deferred-publication batch mode is shelved pending
+history-independent saving. MCP batch keeps each strict write/import boundary. The comparison helper preserves the exact-byte diagnostic used to find
 the fixed-connector intermediate-state dependency; it does not normalize XML.
 
 The uncontended 2026-10-17 strict baseline table and stage/slice totals are in
@@ -62,3 +62,7 @@ The uncontended 2026-10-17 strict baseline table and stage/slice totals are in
 Run `cargo test --release --manifest-path target/authoring-baseline/Cargo.toml
 -p misterdiagram-engine --example authoring-bench` with the same environment to
 check the benchmark JSON parser against malformed, deep and oversized input.
+
+For a performance pull request against current master, use the uninstrumented
+clean-checkout comparison in [CONTRIBUTING.md](../../CONTRIBUTING.md#performance-pull-requests).
+`run.py` builds both revisions before measuring and compares all five saved packages.
