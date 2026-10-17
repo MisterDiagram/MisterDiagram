@@ -330,3 +330,15 @@ Connect Shapes/Re-Layout row moves M to P for facing-side connections, ordered
 rows and fan point assignment. General flowchart/hierarchy/radial/circular
 algorithms remain missing. Four layout integration tests and the SAN ink/bounds
 test cover bounds, point order, hostile inputs, 80 Connects and no switch crossing.
+
+## M5.5 topology and README evidence
+
+The script-authoring row remains P. The MCP SAN recipe produces 24 switches,
+40 ISLs and 80 Connects; Visio retains all routes and its equal-size export
+passes the frozen pixel ceilings. The CLI-only office recipe produces ten
+original device instances and nine links. `readme_office_network_matches_script_and_pixels`
+checks exact README text and decoded image equality on each CI platform.
+The strict unrepaired package checks remain open (170 SAN and 9 office serialized
+changes), and both human visual gates are pending. No score increase for these
+examples. Discovery regressions cover dependent bounds, tiny fan points,
+text-sized layout and bounded aggregate MCP replies.

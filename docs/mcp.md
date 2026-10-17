@@ -106,3 +106,18 @@ Within each facing side, points are evenly spaced at i/(count+1) in spoke order.
 The response lists assignments and any route/shape crossings in the supplied set.
 Boundary contact is allowed; open alignment-box interiors are tested. Route
 inspection is bounded to 100,000 segments and two million segment/box checks.
+
+Run the full topology through stdio from the repository root:
+
+```sh
+cargo build -p misterdiagram-cli
+python3 tools/mcp/san-topology.py target/mcp-san
+```
+
+The client saves `p5a-san-topology.vsdx`, `.png` and `.svg`, verifies 80 Connects
+and rejects reported switch crossings. The recipe is shared with the CLI example.
+Fresh Visio keeps its routes and passes the render ceilings, but the unrepaired
+package gate remains open as recorded in [gaps](gaps.md#p5a-acceptance-still-open-2026-10-17).
+Rows whose formula-driven bounds change when moved are rejected transactionally.
+Legacy JSON-RPC arrays share the 4 MiB response cap; oversized replies return an
+error without emitting an oversized frame. This is separate from the `batch` tool.

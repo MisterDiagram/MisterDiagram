@@ -15898,3 +15898,18 @@ Connections.X1 with ToPart100; endpoints use PAR(PNT(...)). The fresh rebuilt
 dump has 5,349 eligible cells, two hook exclusions and zero differences; route
 coordinates match within1e-6. This is an additional witness outside the frozen
 route and strict round-trip populations. No oracle disagreement.
+
+### Observed, undocumented: P5a authored connection serialization (2026-10-17)
+
+Fresh `p5a-san-topology.vsdx` and `p5a-office-network.vsdx` in the private
+`corpus/_state/p5a/accept-inputs` were opened by the unchanged `accept.ps1` oracle.
+Their original saves are under `corpus/_vm/out/accept/<name>/saved.vsdx`.
+The existing repair classifier reports 170 and 9 remaining serialized changes.
+For example, SAN Shape1 Connections.X3 changes formula
+`Width*0.16666666666666666` to `Width*0.16666666666667`; office Shape11
+Controls.TextPosition.Y changes cached `-0.37499999999999956` to `-0.375`.
+SAN changes comprise 32 formulas, 118 values (maximum numeric delta 1.33e-15),
+and removal of 20 local Controls.TextPosition.Y cells with V=-1. Office changes
+are nine values (maximum delta 5.55e-16). All 40 SAN routes and 9 office routes
+remain within 1e-6. These observations explain
+the failed unrepaired gate; they do not authorize a new exclusion or tolerance.

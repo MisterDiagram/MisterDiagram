@@ -56,6 +56,20 @@ Brief 22 (2026-10-16): the MisterDiagram rename changes no parity score or featu
 
 Status: pre-alpha, M0 through M3 met under the recorded gates. P4a met on 2026-10-15 under the straight-route ruling. M4 plan gates are met on 2026-10-15 under the closure-2 rulings and two clean frozen passes. The carried rendering and routing gaps remain measured below.
 
+## P5a acceptance still open (2026-10-17)
+
+The MCP SAN recipe produces 24 switches, 40 ISLs and 80 Connects. The CLI office
+recipe creates 10 original devices and 9 links. Fresh Visio opens and saves both,
+retains every route (40/40 and 9/9), and equal-size page renders pass the frozen
+ceilings: SAN MAD 0.494972/over16 0.747340%, office 0.549791/1.071101%.
+The stricter unrepaired gate is **not met**: Visio rewrites 170 SAN and 9 office
+serialized records: SAN has 32 rounded fan formulas, 118 floating-point value
+spellings and 20 removed local Controls.TextPosition.Y cells; office has nine
+floating-point value spellings.
+The original inputs and saves are retained privately under the P5a acceptance
+state. No oracle mask or threshold was changed. Human review of both drawings
+is pending. P5a is partial until these acceptance gaps and closure are resolved.
+
 ## P5a / M5.1: headless inspection
 
 Control aliases and evaluated document/shape inspection are implemented with
@@ -64,7 +78,7 @@ M5.2 supplies fourteen stdio tools; the Automation control-channel row is D.
 Strict transactional batches preserve every per-command publication, restore
 all session state on failure, and retain one undo step on success. Exact saved
 packages and the Python stdio two-boxes recipe match strict CLI execution.
-Layout, MCP topology and fresh P5a VM acceptance remain open.
+Layout and MCP topology are implemented; the unrepaired P5a VM acceptance remains open.
 Inspection has a bounded response and reports alignment bounds in page inches.
 Reference: [Shape](https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml).
 
