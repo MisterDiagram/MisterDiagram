@@ -1,7 +1,7 @@
 //! Package admission across parts, before retaining XML trees.
 //! https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
 use diagramcraft_opc::{PackageOut, RelsOut};
-use diagramcraft_vsdx::{MAX_RETAINED_XML_NODES, import, import_with_open_nodes, parse_xml};
+use diagramcraft_vsdx::{MAX_RETAINED_XML_NODES, import_with_open_nodes, parse_xml};
 const NS: &str = "http://schemas.microsoft.com/office/visio/2012/main";
 const REL: &str = "http://schemas.microsoft.com/visio/2010/relationships/";
 
@@ -89,9 +89,9 @@ fn duplicate_expanded_attributes_and_hostile_preflight_are_rejected() {
 #[cfg(target_os = "macos")]
 fn retained_package_at_node_budget_edge_stays_under_1_gib() {
     if std::env::var_os("DIAGRAMCRAFT_RETAINED_EDGE_CHILD").is_some() {
-        let overhead = import(&package("", 1)).unwrap().retained_xml_nodes;
+        let overhead = diagramcraft_vsdx::import(&package("", 1)).unwrap().retained_xml_nodes;
         let bytes = package(&"<a/>".repeat(MAX_RETAINED_XML_NODES - overhead - 1), 1);
-        let d = import(&bytes).unwrap();
+        let d = diagramcraft_vsdx::import(&bytes).unwrap();
         assert_eq!(d.retained_xml_nodes, MAX_RETAINED_XML_NODES - 1);
         let evaluator = diagramcraft_vsdx::evaluate::Evaluator::new(&d).unwrap();
         assert!(evaluator.scopes().count() > 0);
