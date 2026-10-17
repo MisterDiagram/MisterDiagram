@@ -39,7 +39,7 @@ milestones and the numbers each one has to reach.
 
 Include `tools/bench` numbers before and after on the same machine with nothing
 else running. Build both revisions first, then measure all five workloads and
-attach the JSONL totals. From a clean checkout of your proposed change:
+attach the JSONL totals. With Python 3.11 or newer, from a clean checkout of your proposed change:
 
 ```sh
 git fetch origin master
@@ -47,7 +47,7 @@ python3 tools/bench/run.py --baseline origin/master --candidate HEAD
 ```
 
 The command creates disposable checkouts below `target/performance-pr`, builds
-both harnesses, runs the same strict commands and calls
+both harnesses using each revision's locked dependency versions, runs the same strict commands and calls
 `python3 tools/bench/compare.py BEFORE.vsdx AFTER.vsdx` for each saved package.
 Every uncompressed part must be byte-identical to master. Only fresh master
 GUIDs and docProps save times are masked. Use a new `--output target/NAME` for

@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import tomllib
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -34,8 +35,18 @@ def main():
         # An external harness leaves both source checkouts untouched. No timing probes.
         (harness / 'main.rs').write_bytes((ROOT / 'tools/bench/authoring.rs').read_bytes())
         (harness / 'Cargo.toml').write_text('[package]\nname="authoring-bench"\nversion="0.0.0"\nedition="2024"\n[workspace]\n[[bin]]\nname="authoring-bench"\npath="main.rs"\n[dependencies]\nserde_json="1"\nmisterdiagram-engine={path=' + json.dumps(str(checkout / 'crates/engine')) + '}\n')
+        # Keep the selected revision's dependency versions when adding the external harness.
+        (harness / 'Cargo.lock').write_bytes((checkout / 'Cargo.lock').read_bytes())
         env = dict(os.environ, CARGO_TARGET_DIR=str(output / f'{label}-build'))
         run('cargo', 'build', '--release', '--manifest-path', str(harness / 'Cargo.toml'), env=env)
+        locked = tomllib.loads((checkout / 'Cargo.lock').read_text())['package']
+        resolved = tomllib.loads((harness / 'Cargo.lock').read_text())['package']
+        identity = lambda package: tuple(package.get(key) for key in ('name', 'version', 'source', 'checksum'))
+        allowed = {identity(package) for package in locked}
+        changed = [identity(package) for package in resolved
+                   if package['name'] != 'authoring-bench' and identity(package) not in allowed]
+        if changed:
+            raise RuntimeError(f'{label} harness changed locked dependencies: {changed}')
         binaries[label] = output / f'{label}-build/release' / ('authoring-bench.exe' if os.name == 'nt' else 'authoring-bench')
     for case in ('rectangles-25', 'rectangles-50', 'rectangles-100', 'data-40', 'ports-1900'):
         for label in ('before', 'after'):
