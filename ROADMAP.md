@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-17: M5.2 exposes fourteen MCP tools over stdio, with strict per-command execution inside atomic session batches. Rollback, undo/redo, all-tool calls and exact CLI/stdio package equivalence have regression tests.
+
 - 2026-10-17: M5.1 adds headless command aliases and evaluated document/shape inspection, with JSON schemas and hostile-parameter coverage. MCP stdio and layout commands remain P5a work.
 
 - 2026-10-17: M5.0 / #39: strict baseline authoring measured at 666.76 seconds for 1,900 commands and 163 shapes. Straight connectors skip obstacle collection; orthogonal routes admit 256 obstacles with the grid still bounded at 16,384 vertices. History leaves node headroom after successful publication; the guarded large-document/stencil session completes 40 edits. Batch mode is shelved pending history-independent saving. CLI execution and argument limits remain unchanged.

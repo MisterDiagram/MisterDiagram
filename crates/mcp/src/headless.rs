@@ -1,41 +1,28 @@
-//! An in-process engine session that answers the engine-level control-channel methods itself.
-
-use misterdiagram_engine::Session;
-use serde_json::{Value, json};
-
+//! In-process engine control backend, shared with future thin clients.
 use crate::backend::Backend;
-
-/// Headless backend: a [`Session`] rendering slides on the CPU.
+use misterdiagram_engine::Session;
+use serde_json::Value;
 pub struct Headless {
     pub session: Session,
 }
-
 impl Default for Headless {
     fn default() -> Self {
         Self::new()
     }
 }
-
 impl Headless {
     pub fn new() -> Self {
         Self { session: Session::new() }
     }
 }
 impl Backend for Headless {
-    fn call(&mut self, method: &str, p: Value) -> Result<Value, String> {
-        match method {
-            "engine.execute" => {
-                let id = p.get("command").and_then(Value::as_str).ok_or("missing `command`")?;
-                self.session.execute(id, &p.get("params").cloned().unwrap_or(json!({}))).map_err(|e| e.to_string())
-            }
-            "engine.commands" => serde_json::to_value(self.session.commands()).map_err(|e| e.to_string()),
-            _ => Err(format!("not implemented in Phase 0: {method}")),
-        }
+    fn call(&mut self, method: &str, params: Value) -> Result<Value, String> {
+        if method == "engine.batch" { self.session.execute_batch(&params) } else { self.session.execute(method, &params) }.map_err(|e| e.to_string())
     }
     fn has_ui(&self) -> bool {
         false
     }
     fn describe(&self) -> String {
-        "headless Phase 0 scaffold".into()
+        "headless strict engine".into()
     }
 }

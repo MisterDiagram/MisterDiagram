@@ -659,6 +659,7 @@ dependencies = [
  "misterdiagram-corpus",
  "misterdiagram-engine",
  "misterdiagram-geom",
+ "misterdiagram-mcp",
  "misterdiagram-opc",
  "misterdiagram-render",
  "misterdiagram-text",

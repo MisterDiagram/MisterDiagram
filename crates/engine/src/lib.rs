@@ -3,6 +3,7 @@
 //! be14248577b92059eb2b8c0c9460cceffbc1f01d, MIT OR Apache-2.0.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 mod arrange;
+mod batch;
 pub mod cmd;
 mod content;
 mod edit;
@@ -46,6 +47,7 @@ pub struct Selection {
 }
 #[derive(Clone)]
 struct Snapshot {
+    stencils: Option<Vec<stencils::Stencil>>,
     document: Arc<Document>,
     selection: Selection,
     path: Option<PathBuf>,
@@ -92,13 +94,21 @@ impl Session {
         guard::install_panic_hook();
         Self::default()
     }
+    fn retained_documents(&self) -> Vec<&Arc<Document>> {
+        let mut documents = vec![&self.document];
+        documents.extend(self.stencils.iter().map(|s| &s.document));
+        documents.extend(&self.read_reservations);
+        for snapshot in self.undo.iter().chain(&self.redo) {
+            documents.push(&snapshot.document);
+            if let Some(stencils) = &snapshot.stencils {
+                documents.extend(stencils.iter().map(|s| &s.document));
+            }
+        }
+        documents
+    }
     pub(crate) fn retained_xml_nodes(&self) -> usize {
         let mut seen = std::collections::HashSet::new();
-        let documents = std::iter::once(&self.document)
-            .chain(self.stencils.iter().map(|s| &s.document))
-            .chain(&self.read_reservations)
-            .chain(self.undo.iter().chain(&self.redo).map(|s| &s.document));
-        documents.filter(|d| seen.insert(Arc::as_ptr(d))).fold(0usize, |n, d| n.saturating_add(d.retained_xml_nodes))
+        self.retained_documents().into_iter().filter(|d| seen.insert(Arc::as_ptr(d))).fold(0usize, |n, d| n.saturating_add(d.retained_xml_nodes))
     }
     pub fn document(&self) -> &Document {
         &self.document
@@ -113,9 +123,12 @@ impl Session {
         command_specs().iter().map(|c| c.info(self)).collect()
     }
     fn snapshot(&self) -> Snapshot {
-        Snapshot { document: self.document.clone(), selection: self.selection.clone(), path: self.path.clone() }
+        Snapshot { stencils: None, document: self.document.clone(), selection: self.selection.clone(), path: self.path.clone() }
     }
     fn restore(&mut self, snapshot: Snapshot) {
+        if let Some(stencils) = snapshot.stencils {
+            self.stencils = stencils;
+        }
         self.document = snapshot.document;
         self.selection = snapshot.selection;
         self.path = snapshot.path;
@@ -165,12 +178,7 @@ impl Session {
         let before = self.clone();
         // Rollback documents can leave the active census after copy-on-write or
         // history eviction, but the transaction snapshot keeps them alive.
-        self.read_reservations.extend(
-            std::iter::once(&before.document)
-                .chain(before.stencils.iter().map(|s| &s.document))
-                .chain(before.undo.iter().chain(&before.redo).map(|s| &s.document))
-                .cloned(),
-        );
+        self.read_reservations.extend(before.retained_documents().into_iter().cloned());
         self.editing = true;
         let mut published = false;
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -252,7 +260,11 @@ impl Session {
         // and the next reader admission. Active documents and stencils never yield.
         // During an edit, rollback reservations pin old history, so node eviction
         // happens after commit, ahead of the next transaction snapshot.
-        let cost = |s: &Snapshot| s.document.parts.values().fold(1024 * 1024usize, |n, p| n.saturating_add(p.bytes.len().saturating_mul(16)));
+        let cost = |s: &Snapshot| {
+            std::iter::once(&s.document).chain(s.stencils.iter().flatten().map(|stencil| &stencil.document)).fold(0usize, |total, doc| {
+                total.saturating_add(doc.parts.values().fold(1024 * 1024usize, |n, p| n.saturating_add(p.bytes.len().saturating_mul(16))))
+            })
+        };
         let mut bytes = self.undo.iter().chain(&self.redo).fold(0usize, |n, s| n.saturating_add(cost(s)));
         let admission = self.document.retained_xml_nodes.saturating_mul(2);
         while self.undo.len() + self.redo.len() > 32
@@ -273,7 +285,11 @@ impl Session {
         let Some(old) = self.undo.pop_back() else {
             return Ok(serde_json::json!({"changed":false}));
         };
-        self.redo.push_back(self.snapshot());
+        let mut next = self.snapshot();
+        if old.stencils.is_some() {
+            next.stencils = Some(self.stencils.clone());
+        }
+        self.redo.push_back(next);
         self.restore(old);
         self.trim_history();
         Ok(serde_json::json!({"changed":true}))
@@ -284,7 +300,11 @@ impl Session {
         let Some(next) = self.redo.pop_back() else {
             return Ok(serde_json::json!({"changed":false}));
         };
-        self.undo.push_back(self.snapshot());
+        let mut old = self.snapshot();
+        if next.stencils.is_some() {
+            old.stencils = Some(self.stencils.clone());
+        }
+        self.undo.push_back(old);
         self.restore(next);
         self.trim_history();
         Ok(serde_json::json!({"changed":true}))
@@ -431,7 +451,7 @@ mod tests {
         let mut doc = s.document.as_ref().clone();
         let part = doc.parts.values_mut().next().unwrap();
         part.bytes.resize(17 * 1024 * 1024, 0);
-        s.undo.push_back(Snapshot { document: Arc::new(doc), selection: Selection::default(), path: None });
+        s.undo.push_back(Snapshot { stencils: None, document: Arc::new(doc), selection: Selection::default(), path: None });
         s.trim_history();
         assert!(s.undo.is_empty());
     }
@@ -455,7 +475,7 @@ mod tests {
         for nodes in [40, 50] {
             let mut d = s.document.as_ref().clone();
             d.retained_xml_nodes = nodes;
-            let snapshot = Snapshot { document: Arc::new(d), selection: Selection::default(), path: None };
+            let snapshot = Snapshot { stencils: None, document: Arc::new(d), selection: Selection::default(), path: None };
             if nodes == 40 {
                 s.undo.push_back(snapshot);
             } else {

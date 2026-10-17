@@ -151,7 +151,13 @@ fn execute(args: &[std::ffi::OsString], out: &mut impl Write) -> Result<(), Stri
         Some("describe") => author::describe(args, out),
         Some("run") => author::run(args, out),
         Some("convert") => author::convert(args, out),
-        Some("mcp") => Err("not implemented in Phase 1".into()),
+        Some("mcp") => {
+            if args.len() != 1 {
+                return Err("usage: misterdiagram mcp".into());
+            }
+            let mut server = misterdiagram_mcp::server::Server::new(Box::new(misterdiagram_mcp::headless::Headless::new()));
+            server.serve(std::io::stdin().lock(), out).map_err(|e| e.to_string())
+        }
         _ => Err("usage: misterdiagram <info FILE|sheet FILE|corpus check|render|convert|run|commands|describe|mcp>".into()),
     }
 }

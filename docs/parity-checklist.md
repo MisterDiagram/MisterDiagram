@@ -3,11 +3,11 @@
 > **Drafted:** 2026-10-11 from the observed app (visio-observed.md) and Microsoft's documentation · **Target:** Microsoft Visio Standard 2021 16.0.20430 (Professional rows marked Pro) · **Status:** M4 authoring milestone met under the dated closure-2 rulings; remaining evaluation, routing and rendering gaps are recorded. Format follows the storytold apps' `docs/parity-checklist.md`: area, feature, priority, Core Y/N, status D/P/M.
 
 <!-- SUMMARY -->
-**Weighted breadth parity: 49%** over 45 Core=Y features.
+**Weighted breadth parity: 50%** over 45 Core=Y features.
 
 | Priority | Features | Done | Partial | Missing | Parity |
 |---|---|---|---|---|---|
-| P0 | 27 | 7 | 20 | 0 | 63% |
+| P0 | 27 | 8 | 19 | 0 | 65% |
 | P1 | 15 | 1 | 3 | 11 | 17% |
 | P2 | 3 | 0 | 0 | 3 | 0% |
 
@@ -24,9 +24,9 @@
 | Layers | 50% |
 | Containers | 0% |
 | Data | 0% |
-| Automation | 50% |
+| Automation | 75% |
 
-Open P0 items: Export SVG (with Visio extension namespace), PNG, JPEG, EMF/WMF, PDF (vector, text, links), Multiple pages, background pages, page size and orientation, drawing scale and units, Page tabs: add, rename, reorder, duplicate, delete, Draw tools: rectangle, ellipse, line, freeform, arc, pencil, Shape text with text block control handle; double-click to edit, Control handles, connection points (add, move, type in/out/both), Geometry sections with formulas (Width*0.5 style), guarded cells, Formula engine: cell references, cross-sheet references (Sheet.N!Cell), GUARD, Inh, THEMEVAL, SETATREF, dependency recalculation, New master from a shape; edit master; document stencil, Read vendor stencil packs (.vssx) and render their masters correctly, Dynamic connector: glue to connection points and to shapes (dynamic glue), _WALKGLUE behaviour, Orthogonal routing with reroute on move; straight and curved styles, Connector text that stays with the line; begin and end arrows; line ends per theme, Character and paragraph formatting, tabs, bullets, fields (date, page, shape data), Text block rotation, margins, vertical alignment, text resize behaviour, Fill, line, shadow, effects (glow, soft edge, bevel, 3-D) with the Format Shape pane, Themes, variants, theme colours and effects; THEMEVAL cells follow them, Layers per page: visible, print, lock, snap, glue, colour; layer membership, Every command on a CLI, a JSON control channel and MCP; headless render to PNG/SVG/PDF, Build a diagram from a script: drop, glue, route, lay out, export.
+Open P0 items: Export SVG (with Visio extension namespace), PNG, JPEG, EMF/WMF, PDF (vector, text, links), Multiple pages, background pages, page size and orientation, drawing scale and units, Page tabs: add, rename, reorder, duplicate, delete, Draw tools: rectangle, ellipse, line, freeform, arc, pencil, Shape text with text block control handle; double-click to edit, Control handles, connection points (add, move, type in/out/both), Geometry sections with formulas (Width*0.5 style), guarded cells, Formula engine: cell references, cross-sheet references (Sheet.N!Cell), GUARD, Inh, THEMEVAL, SETATREF, dependency recalculation, New master from a shape; edit master; document stencil, Read vendor stencil packs (.vssx) and render their masters correctly, Dynamic connector: glue to connection points and to shapes (dynamic glue), _WALKGLUE behaviour, Orthogonal routing with reroute on move; straight and curved styles, Connector text that stays with the line; begin and end arrows; line ends per theme, Character and paragraph formatting, tabs, bullets, fields (date, page, shape data), Text block rotation, margins, vertical alignment, text resize behaviour, Fill, line, shadow, effects (glow, soft edge, bevel, 3-D) with the Format Shape pane, Themes, variants, theme colours and effects; THEMEVAL cells follow them, Layers per page: visible, print, lock, snap, glue, colour; layer membership, Build a diagram from a script: drop, glue, route, lay out, export.
 
 Core=N rows (excluded from milestone scoring):
 
@@ -93,7 +93,7 @@ Core=N rows (excluded from milestone scoring):
 | Review | Comments, ink, compare drawings | P2 | N | M |
 | Review | Validation rules and the Issues window (Pro) | P2 | N | M |
 | View | Zoom, pan window, full screen, presentation mode, task panes | P0 | N | M |
-| Automation | Every command on a CLI, a JSON control channel and MCP; headless render to PNG/SVG/PDF | P0 | Y | P |
+| Automation | Every command on a CLI, a JSON control channel and MCP; headless render to PNG/SVG/PDF | P0 | Y | D |
 | Automation | Build a diagram from a script: drop, glue, route, lay out, export | P0 | Y | P |
 | Platforms | macOS, Windows, Linux, web from one workflow | P0 | N | M |
 
@@ -309,3 +309,11 @@ Automation control-channel row remains P: engine.execute, engine.commands,
 document.inspect and shape.inspect are available through the command registry.
 Inspection tests cover inherited data/text, static glue, group page-space bounds,
 read-only behavior and hostile parameters. The stdio server remains pending M5.2.
+
+## M5.2 stdio tools
+
+Automation command-channel row moves P to D: fourteen schema-described MCP tools
+serve through the CLI with the existing 4 MiB framing cap. Tests exercise every
+tool, full-session batch rollback, single undo/redo and exact saved-part equality
+with strict commands. Python stdio builds the same two-boxes package as the CLI.
+The script-building row remains P while P5a layout and topology are pending.

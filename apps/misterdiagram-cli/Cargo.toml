@@ -18,6 +18,7 @@ misterdiagram-vsdx.workspace = true
 misterdiagram-corpus = { path = "../misterdiagram-corpus" }
 misterdiagram-theme.workspace = true
 misterdiagram-engine.workspace = true
+misterdiagram-mcp.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 [dev-dependencies]

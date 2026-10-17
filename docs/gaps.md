@@ -60,7 +60,11 @@ Status: pre-alpha, M0 through M3 met under the recorded gates. P4a met on 2026-1
 
 Control aliases and evaluated document/shape inspection are implemented with
 schemas, hostile-parameter tests, inherited text/data and group-bounds coverage.
-The Automation control-channel row remains P until the stdio tools land.
+M5.2 supplies fourteen stdio tools; the Automation control-channel row is D.
+Strict transactional batches preserve every per-command publication, restore
+all session state on failure, and retain one undo step on success. Exact saved
+packages and the Python stdio two-boxes recipe match strict CLI execution.
+Layout, MCP topology and fresh P5a VM acceptance remain open.
 Inspection has a bounded response and reports alignment bounds in page inches.
 Reference: [Shape](https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml).
 

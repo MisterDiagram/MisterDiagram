@@ -19,7 +19,8 @@ const INVALID_PARAMS: i64 = -32602;
 const INTERNAL_ERROR: i64 = -32603;
 const RESOURCE_NOT_FOUND: i64 = -32002;
 
-const INSTRUCTIONS: &str = "MisterDiagram headless Visio core. Phase 0: command discovery scaffold. Page coordinates are inches, y-up.";
+const INSTRUCTIONS: &str =
+    "MisterDiagram headless Visio core. Strict transactional authoring, inspection and export. Page coordinates are inches, y-up.";
 
 /// Resource URIs.
 pub const DOC_URI: &str = "misterdiagram://document";
@@ -144,14 +145,14 @@ impl Server {
                 }))
             }
             "ping" => Ok(json!({})),
-            "tools/list" => Ok(json!({"tools": tool_definitions()})),
+            "tools/list" => Ok(json!({"tools": tool_definitions().map_err(|e| (INTERNAL_ERROR,e))?})),
             "tools/call" => {
                 let name = params.get("name").and_then(Value::as_str).ok_or((INVALID_PARAMS, "missing tool `name`".to_string()))?;
-                let args = params.get("arguments").cloned().unwrap_or(Value::Null);
+                let args = params.get("arguments").cloned().unwrap_or(json!({}));
                 Ok(call_tool(self.backend.as_mut(), name, &args).to_value())
             }
             "resources/list" => Ok(json!({"resources": [
-                {"uri": DOC_URI, "name": "document", "title": "Active document", "description": "Phase 0 document state placeholder; Visio authoring is not implemented", "mimeType": "application/json"},
+                {"uri": DOC_URI, "name": "document", "title": "Active document", "description": "Pages, layers, evaluated shapes and connections", "mimeType": "application/json"},
                 {"uri": COMMANDS_URI, "name": "commands", "title": "Commands", "description": "Every command: id, label, menu path, shortcut, params, enabled (engine.commands)", "mimeType": "application/json"},
             ]})),
             "resources/templates/list" => Ok(json!({"resourceTemplates": []})),
@@ -184,9 +185,9 @@ mod tests {
         assert!(s.serve(std::io::Cursor::new(vec![b'x'; MAX_MESSAGE as usize + 1]), Vec::new()).is_err());
     }
     #[test]
-    fn two_tools_and_no_authoring_commands_yet() {
+    fn fourteen_headless_tools() {
         let mut s = Server::new(Box::new(Headless::new()));
         let v = s.handle(json!({"id":1,"method":"tools/list"})).unwrap();
-        assert_eq!(v["result"]["tools"].as_array().unwrap().len(), 2);
+        assert_eq!(v["result"]["tools"].as_array().unwrap().len(), 14);
     }
 }

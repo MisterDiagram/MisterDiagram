@@ -172,3 +172,15 @@ fn authored_numeric_looking_strings_survive_cli_save_and_readback() {
         assert_eq!(result["result"]["value"], expected, "{name}: {result}");
     }
 }
+
+#[test]
+fn mcp_stdio_python_client_matches_cli_and_strict_batches() {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let result = Command::new(if cfg!(windows) { "python" } else { "python3" })
+        .arg(root.join("tools/mcp/test_stdio.py"))
+        .env("MISTERDIAGRAM_CLI", env!("CARGO_BIN_EXE_misterdiagram"))
+        .env("PYTHONDONTWRITEBYTECODE", "1")
+        .output()
+        .unwrap();
+    assert!(result.status.success(), "{}{}", String::from_utf8_lossy(&result.stdout), String::from_utf8_lossy(&result.stderr));
+}
