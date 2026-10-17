@@ -69,6 +69,14 @@ pub use cmd;
 
 pub fn command_specs() -> &'static [CommandSpec] {
     &[
+        cmd!(query "engine.execute", "Execute an engine command", ["Control"], None,
+            r#"{"type":"object","properties":{"command":{"type":"string","minLength":1,"maxLength":256},"params":{"type":"object"}},"required":["command"],"additionalProperties":false}"#, always, crate::inspect::execute),
+        cmd!(query "engine.commands", "List engine commands", ["Control"], None,
+            r#"{"type":"object","properties":{},"additionalProperties":false}"#, always, crate::inspect::commands),
+        cmd!(query "document.inspect", "Inspect document", ["Control"], None,
+            r#"{"type":"object","properties":{"page":{"type":"integer","minimum":1,"maximum":100000}},"additionalProperties":false}"#, always, crate::inspect::document),
+        cmd!(query "shape.inspect", "Inspect shape", ["Control"], None,
+            r#"{"type":"object","properties":{"page":{"type":"integer","minimum":1,"maximum":100000},"id":{"type":"integer","minimum":0,"maximum":4294967295},"cells":{"type":"array","maxItems":256,"items":{"type":"string","minLength":1,"maxLength":256}}},"required":["id"],"additionalProperties":false}"#, always, crate::inspect::shape),
         cmd!(noundo "file.new", "New drawing", ["File"], None,
             r#"{"type":"object","properties":{"metric":{"type":"boolean"}},"additionalProperties":false}"#, always, crate::files::new),
         cmd!(noundo "file.open", "Open drawing", ["File"], None,

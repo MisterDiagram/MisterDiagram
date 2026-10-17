@@ -39,10 +39,13 @@ fn commands_and_describe_publish_parseable_schemas() {
         let schema: serde_json::Value = serde_json::from_str(command["params"].as_str().unwrap()).unwrap();
         assert_eq!(schema["type"], "object");
     }
-    let output = cli(&["describe", "connect.dynamic"]).unwrap();
-    assert!(output.status.success());
-    let info: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
-    assert_eq!(info["id"], "connect.dynamic");
+    for id in ["connect.dynamic", "engine.execute", "engine.commands", "document.inspect", "shape.inspect"] {
+        assert!(commands.as_array().unwrap().iter().any(|c| c["id"] == id));
+        let output = cli(&["describe", id]).unwrap();
+        assert!(output.status.success());
+        let info: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(info["id"], id);
+    }
 }
 #[test]
 fn run_uses_one_session_and_convert_dispatches_by_extension() {

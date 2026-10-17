@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-17: M5.1 adds headless command aliases and evaluated document/shape inspection, with JSON schemas and hostile-parameter coverage. MCP stdio and layout commands remain P5a work.
+
 - 2026-10-17: M5.0 / #39: strict baseline authoring measured at 666.76 seconds for 1,900 commands and 163 shapes. Straight connectors skip obstacle collection; orthogonal routes admit 256 obstacles with the grid still bounded at 16,384 vertices. History leaves node headroom after successful publication; the guarded large-document/stencil session completes 40 edits. Batch mode is shelved pending history-independent saving. CLI execution and argument limits remain unchanged.
 
 - 2026-10-16: Brief 22 renames the project to MisterDiagram out of respect for the older open-source editor with its former name. Crates, CLI, MCP identifiers, environment variables and current documentation follow the new name. Numerical gates and oracle records are unchanged.

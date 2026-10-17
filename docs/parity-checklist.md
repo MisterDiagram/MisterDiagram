@@ -302,3 +302,10 @@ Master/text authoring preserves original cells while following Visio's authored
 canonical pp/app.xml form. Master editing remains partial, routing and line jumps
 remain partial for the named packing/unwitnessed preferences gaps, theme remains
 partial with theme.apply deferred. No other row changes.
+
+## M5.1 control inspection
+
+Automation control-channel row remains P: engine.execute, engine.commands,
+document.inspect and shape.inspect are available through the command registry.
+Inspection tests cover inherited data/text, static glue, group page-space bounds,
+read-only behavior and hostile parameters. The stdio server remains pending M5.2.

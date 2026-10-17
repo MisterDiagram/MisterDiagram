@@ -9,6 +9,7 @@ mod edit;
 mod files;
 mod glue;
 pub mod guard;
+mod inspect;
 mod masters;
 mod pages;
 mod reference_cleanup;
@@ -125,6 +126,9 @@ impl Session {
         let bytes = params_size(params)?;
         let spec = find_command(id).ok_or_else(|| EngineError::UnknownCommand(id.chars().take(256).collect()))?;
         validate_schema(spec.params, params)?;
+        if id == "engine.execute" {
+            return inspect::execute(self, params);
+        }
         self.edit(|s| {
             (spec.enabled)(s).map_err(operation)?;
             let before = s.snapshot();

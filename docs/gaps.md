@@ -56,6 +56,14 @@ Brief 22 (2026-10-16): the MisterDiagram rename changes no parity score or featu
 
 Status: pre-alpha, M0 through M3 met under the recorded gates. P4a met on 2026-10-15 under the straight-route ruling. M4 plan gates are met on 2026-10-15 under the closure-2 rulings and two clean frozen passes. The carried rendering and routing gaps remain measured below.
 
+## P5a / M5.1: headless inspection
+
+Control aliases and evaluated document/shape inspection are implemented with
+schemas, hostile-parameter tests, inherited text/data and group-bounds coverage.
+The Automation control-channel row remains P until the stdio tools land.
+Inspection has a bounded response and reports alignment bounds in page inches.
+Reference: [Shape](https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml).
+
 ## G0: Contributed fixes
 
 - PR #4 (Matheus Breguêz): a self-closing element no longer bypasses the OPC XML depth cap; `depth_boundary_is_independent_of_empty_element_syntax` and `public_xml_parser_enforces_depth_for_both_empty_element_forms` hold MAX_DEPTH for both element forms. Closes #1.
