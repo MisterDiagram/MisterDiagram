@@ -7,7 +7,7 @@ fn quick_corpus_meets_frozen_floors() {
         eprintln!("local corpus absent: quick oracle gate skipped");
         return;
     }
-    let report = diagramcraft_corpus::run(&root.join("corpus"), true).unwrap();
+    let report = misterdiagram_corpus::run(&root.join("corpus"), true).unwrap();
     println!("{report}");
     assert_eq!(report.shipped_packages, 50, "the CI sample must include exactly 50 shipped packages");
     assert!(report.cells_passed(), "{report}");

@@ -10,7 +10,7 @@ cargo build --workspace
 cargo test --workspace
 cargo xtask ci        # fmt, clippy, test, render, assets, layers, sources, wasm
 cargo xtask parity    # Core=Y checklist rows: D, P or M
-cargo run --release -p diagramcraft-cli -- corpus check
+cargo run --release -p misterdiagram-cli -- corpus check
 ```
 
 Use Rust stable, edition 2024, with rustfmt, clippy and the `wasm32-unknown-unknown` target
@@ -64,19 +64,19 @@ COM-launched automation instance hangs on `Documents.Open` in the reference VM.
 ## Private master comparisons
 
 Render a labelled contact sheet with
-`cargo run --release -p diagramcraft-cli -- render --masters STENCIL.vssx OUT.png`.
+`cargo run --release -p misterdiagram-cli -- render --masters STENCIL.vssx OUT.png`.
 Each master is scaled into its cell before rasterization. The pixel cap applies to the whole
 sheet; a failed master is marked and the command returns an error.
 
 For the human gate, `corpus/_state/m2-contact-inputs.txt` lists the stencil paths. Generate
 their `corpus/_state/contact-sheets/<stem>-ours.png` files, then run
-`cargo run --release -p diagramcraft-corpus --example contact_pairs`. This pairs each master
+`cargo run --release -p misterdiagram-corpus --example contact_pairs`. This pairs each master
 with its private Visio export from `export-masters.ps1`: ours on the left, Visio on the
 right. Neither the reference images nor the paired sheets ship with the public repository.
 
 ## Performance
 
-`cargo test --release -p diagramcraft-render --test perf -- --ignored --nocapture` runs the
+`cargo test --release -p misterdiagram-render --test perf -- --ignored --nocapture` runs the
 release measurement on the largest shipped stencil and a 500-shape page. The observations in
 `perf/budgets.toml` are measurements, not acceptance limits.
 

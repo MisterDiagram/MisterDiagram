@@ -19,7 +19,7 @@ struct Frame {
 
 /// Streaming events borrow the input. The only retained state is a bounded depth stack.
 pub(crate) fn preflight(bytes: &[u8]) -> Result<(), ReadError> {
-    if bytes.len() > diagramcraft_opc::MAX_XML_PART {
+    if bytes.len() > misterdiagram_opc::MAX_XML_PART {
         return Err(bad("XML part byte limit"));
     }
     let mut reader = Reader::from_reader(bytes);
@@ -30,7 +30,7 @@ pub(crate) fn preflight(bytes: &[u8]) -> Result<(), ReadError> {
         let close = matches!(&event, Event::End(_) | Event::Empty(_));
         match &event {
             Event::Start(e) | Event::Empty(e) => {
-                if stack.len() >= diagramcraft_opc::xml::MAX_DEPTH {
+                if stack.len() >= misterdiagram_opc::xml::MAX_DEPTH {
                     return Err(bad("sheet depth limit"));
                 }
                 let local = e.local_name();

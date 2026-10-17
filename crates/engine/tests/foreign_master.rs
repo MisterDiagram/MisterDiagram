@@ -1,12 +1,12 @@
 //! Contributor-original Foreign master bitmaps, built with the model writer.
 //! https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml
 //! https://learn.microsoft.com/en-us/office/client-developer/visio/rel-element-foreigndata_type-complextypevisio-xml
-use diagramcraft_engine::Session;
-use diagramcraft_geom::{Point, Rect};
-use diagramcraft_model::{Cell, Document, Part, Relationship, XmlElement, XmlNode, skeleton};
-use diagramcraft_render::{pdf, raster, scene, svg};
 use hayro_syntax::{Pdf, content::ops::TypedInstruction, object::Name};
 use image::{ImageFormat, Rgb, RgbImage};
+use misterdiagram_engine::Session;
+use misterdiagram_geom::{Point, Rect};
+use misterdiagram_model::{Cell, Document, Part, Relationship, XmlElement, XmlNode, skeleton};
+use misterdiagram_render::{pdf, raster, scene, svg};
 use serde_json::json;
 use std::{io::Cursor, path::PathBuf};
 
@@ -19,12 +19,12 @@ fn foreign() -> XmlElement {
     XmlElement {
         name: "ForeignData".into(),
         namespace: VIS.into(),
-        attributes: diagramcraft_model::Attributes::from([("ForeignType".into(), "Bitmap".into())]),
+        attributes: misterdiagram_model::Attributes::from([("ForeignType".into(), "Bitmap".into())]),
         children: vec![XmlNode::Element(XmlElement {
             name: "Rel".into(),
             namespace: VIS.into(),
-            attributes: diagramcraft_model::Attributes::from([("r:id".into(), "rImage".into()), ("xmlns:r".into(), REL.into())]),
-            attribute_namespaces: diagramcraft_model::Attributes::from([("r:id".into(), REL.into())]),
+            attributes: misterdiagram_model::Attributes::from([("r:id".into(), "rImage".into()), ("xmlns:r".into(), REL.into())]),
+            attribute_namespaces: misterdiagram_model::Attributes::from([("r:id".into(), REL.into())]),
             ..Default::default()
         })],
         ..Default::default()
@@ -65,8 +65,8 @@ fn fixture(format: ImageFormat) -> PathBuf {
     master.shapes = vec![shape];
     let part = master.part.clone();
     media(&mut doc, &part, &format!("visio/media/original.{format:?}"), format, RED);
-    let bytes = diagramcraft_vsdx::write_as(&doc, diagramcraft_vsdx::SaveKind::Stencil).unwrap().bytes;
-    let reopened = diagramcraft_vsdx::import(&bytes).unwrap();
+    let bytes = misterdiagram_vsdx::write_as(&doc, misterdiagram_vsdx::SaveKind::Stencil).unwrap().bytes;
+    let reopened = misterdiagram_vsdx::import(&bytes).unwrap();
     assert_eq!(reopened.masters.len(), 1);
     let scene = scene::master(&reopened, 0, scene::Options::default()).unwrap();
     assert_eq!(scene.ops.iter().filter(|op| matches!(op, scene::Op::Image { .. })).count(), 1, "master contact-sheet path works");

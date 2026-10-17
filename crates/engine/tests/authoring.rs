@@ -1,6 +1,6 @@
 //! Contributor-original command sequences and Microsoft reference examples.
-use diagramcraft_engine::Session;
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_engine::Session;
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use serde_json::{Value, json};
 fn run(s: &mut Session, id: &str, p: Value) -> Value {
     s.execute(id, &p).unwrap_or_else(|e| panic!("{id} {p}: {e}"))
@@ -15,8 +15,8 @@ fn pages_background_scale_and_layers_are_transactional() {
     run(&mut s, "page.add", json!({"name":"Background"}));
     run(&mut s, "page.background", json!({"page":1,"background":2}));
     assert_eq!(s.document().pages[0].attributes.get("BackPage").unwrap(), "1");
-    let written = diagramcraft_vsdx::write(s.document()).unwrap();
-    let round = diagramcraft_vsdx::import(&written.bytes).unwrap();
+    let written = misterdiagram_vsdx::write(s.document()).unwrap();
+    let round = misterdiagram_vsdx::import(&written.bytes).unwrap();
     assert!(round.parts.values().flat_map(|p| &p.relationships).any(|r| r.type_uri.ends_with("/page") && r.target.ends_with("page2.xml")));
     run(&mut s, "page.size", json!({"page":1,"width":20,"height":10}));
     run(&mut s, "page.scale", json!({"page":1,"page_scale":1,"drawing_scale":10}));
@@ -120,7 +120,7 @@ fn text_runs_properties_hyperlinks_and_formatting() {
         assert_eq!(e.evaluate(Scope::PageShape { page: 0, shape: 1 }, "Char.Style").numeric().unwrap(), 1.);
         assert_eq!(e.evaluate(Scope::PageShape { page: 0, shape: 1 }, "Char.Style[2]").numeric().unwrap(), 2.);
         assert_eq!(e.evaluate(Scope::PageShape { page: 0, shape: 1 }, "Para.HorzAlign[2]").numeric().unwrap(), 2.);
-        diagramcraft_model::text::TextHost::measure(&diagramcraft_text::Host, &body, Some(4.)).unwrap();
+        misterdiagram_model::text::TextHost::measure(&misterdiagram_text::Host, &body, Some(4.)).unwrap();
     }
     run(&mut s, "format.fill", json!({"id":1,"color":"#cc0000","pattern":1,"transparency":0.25}));
     run(&mut s, "format.line", json!({"id":1,"color":"#0000cc","weight":0.02,"pattern":2,"end_arrow":4}));
@@ -147,11 +147,11 @@ fn text_runs_properties_hyperlinks_and_formatting() {
     assert_eq!(run(&mut s, "sheet.get", json!({"id":1,"name":"Hyperlink.Reference.Address"}))["value"], "https://example.org/diagram");
 }
 
-fn world(s: &Session, id: u32) -> diagramcraft_geom::Affine {
+fn world(s: &Session, id: u32) -> misterdiagram_geom::Affine {
     let mut e = Evaluator::new(s.document()).unwrap();
     e.shape_to_page(Scope::PageShape { page: 0, shape: id }).unwrap()
 }
-fn assert_affine(a: diagramcraft_geom::Affine, b: diagramcraft_geom::Affine) {
+fn assert_affine(a: misterdiagram_geom::Affine, b: misterdiagram_geom::Affine) {
     for (a, b) in a.as_coeffs().into_iter().zip(b.as_coeffs()) {
         assert!((a - b).abs() < 1e-9, "{a} != {b}");
     }
@@ -215,7 +215,7 @@ fn group_transform_formulas_match_the_private_visio_witness() {
         eprintln!("skip: private group witness absent");
         return;
     }
-    let oracle = diagramcraft_vsdx::read(path).unwrap();
+    let oracle = misterdiagram_vsdx::read(path).unwrap();
     let mut s = Session::new();
     for x in [1, 3] {
         run(&mut s, "shape.draw.rect", json!({"x":x,"y":4,"width":2,"height":2}));
@@ -274,10 +274,10 @@ fn property_rows_match_visio_original_local_cells() {
         run(&mut s, "shape.data.define", json!({"id":1,"name":name,"type":kind,"format":format}));
         run(&mut s, "shape.data.set", json!({"id":1,"name":name,"value":value}));
     }
-    let bytes = diagramcraft_vsdx::write(s.document()).unwrap().bytes;
-    let actual = diagramcraft_vsdx::import(&bytes).unwrap();
-    let expected = diagramcraft_vsdx::read(witness).unwrap();
-    let cells = |doc: &diagramcraft_model::Document| {
+    let bytes = misterdiagram_vsdx::write(s.document()).unwrap().bytes;
+    let actual = misterdiagram_vsdx::import(&bytes).unwrap();
+    let expected = misterdiagram_vsdx::read(witness).unwrap();
+    let cells = |doc: &misterdiagram_model::Document| {
         doc.pages[0].shapes[0]
             .sheet
             .sections
@@ -305,10 +305,10 @@ fn authoring_and_rendering_text_add_no_substitute_face() {
     run(&mut s, "shape.draw.rect", json!({"x":1,"y":1,"width":2,"height":1}));
     run(&mut s, "shape.text", json!({"id":1,"text":"Inherited document face"}));
     run(&mut s, "format.text", json!({"id":1,"size":16,"bold":true,"align":1}));
-    let scene = diagramcraft_render::scene::page(s.document(), 0, Default::default()).unwrap();
+    let scene = misterdiagram_render::scene::page(s.document(), 0, Default::default()).unwrap();
     assert!(!scene.ops.is_empty());
-    let bytes = diagramcraft_vsdx::write(s.document()).unwrap().bytes;
-    let round = diagramcraft_vsdx::import(&bytes).unwrap();
+    let bytes = misterdiagram_vsdx::write(s.document()).unwrap().bytes;
+    let round = misterdiagram_vsdx::import(&bytes).unwrap();
     assert_eq!(round.face_names, original);
     assert_eq!(s.document().face_names, original);
     run(&mut s, "format.text", json!({"id":1,"font":"Example Explicit Face"}));
@@ -326,15 +326,15 @@ fn authored_inherited_paragraph_has_no_redundant_pp() {
     let align = number(&s, 1, "Para.HorzAlign") as u32;
     run(&mut s, "format.text", json!({"id":1,"align":align}));
     run(&mut s, "master.new_from_shape", json!({"id":1,"name":"Switch"}));
-    let bytes = diagramcraft_vsdx::write(s.document()).unwrap().bytes;
-    let round = diagramcraft_vsdx::import(&bytes).unwrap();
+    let bytes = misterdiagram_vsdx::write(s.document()).unwrap().bytes;
+    let round = misterdiagram_vsdx::import(&bytes).unwrap();
     let master = round.masters.iter().find(|m| m.name == "Switch").unwrap();
     for shape in [&round.pages[0].shapes[0], &master.shapes[0]] {
         assert!(!shape.sheet.sections.iter().any(|section| section.name == "Paragraph"));
         assert!(!shape.text.as_ref().unwrap().elements().any(|e| e.is_visio("pp")), "inherited-only pp must be absent");
     }
     run(&mut s, "format.text", json!({"id":1,"align":if align == 0 {1} else {0}}));
-    let round = diagramcraft_vsdx::import(&diagramcraft_vsdx::write(s.document()).unwrap().bytes).unwrap();
+    let round = misterdiagram_vsdx::import(&misterdiagram_vsdx::write(s.document()).unwrap().bytes).unwrap();
     assert!(round.pages[0].shapes[0].text.as_ref().unwrap().elements().any(|e| e.is_visio("pp")), "local paragraph formatting retains its marker");
 }
 
@@ -342,6 +342,6 @@ fn authored_inherited_paragraph_has_no_redundant_pp() {
 fn sheet_set_names_a_missing_shape() {
     let mut s = Session::new();
     assert!(
-        matches!(s.execute("sheet.set", &json!({"id":999,"name":"Width","value":2})), Err(diagramcraft_engine::EngineError::Operation(message)) if message == "shape not found")
+        matches!(s.execute("sheet.set", &json!({"id":999,"name":"Width","value":2})), Err(misterdiagram_engine::EngineError::Operation(message)) if message == "shape not found")
     );
 }

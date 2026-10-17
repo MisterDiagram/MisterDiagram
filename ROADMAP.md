@@ -1,4 +1,4 @@
-# Roadmap
+# MisterDiagram roadmap
 
 Status: pre-alpha, M0 through M3 met. M3 closed on 2026-10-14 under Charles's small-image ruling and two clean independent frozen passes. P4a met on 2026-10-15 under Charles's straight-route ruling and two clean frozen verification passes. M4 plan gates are met on 2026-10-15 under the recorded closure-2 rulings and two clean frozen verification passes. Final record push checks are retained privately. Target: Visio Standard 2021.
 
@@ -8,6 +8,8 @@ M0 closed at 1473b0d. M1 code closed at e7dfbd4 after all acceptance commands an
 clean independent frozen verification passes.
 
 ## Progress
+
+- 2026-10-16: Brief 22 renames the project to MisterDiagram out of respect for the older open-source editor with its former name. Crates, CLI, MCP identifiers, environment variables and current documentation follow the new name. Numerical gates and oracle records are unchanged.
 
 - 2026-10-14: PDF-1 (M4.0.1): PDF ToUnicode maps each glyph to its shaping cluster; ligatures and marks extract in full (ported from deckcraft#164). Next: Phase 4a, then CI through storytold/craft-common-actions (promised on artcraft#2121, open to a contributor PR).
 - 2026-10-15: CI on GitHub Actions: `cargo xtask ci` on Linux, Windows and macOS for every push and pull request (the promise on artcraft#2121). craft-common-actions has no lint or test workflow to call; its release pipeline waits for a binary worth shipping. Windows needed three portability fixes in corpus tooling only (LF-pinned hashes, forward-slash keys); the engine crates passed unchanged. First green run 02:02 UTC. Next: Phase 4a.

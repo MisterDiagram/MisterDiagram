@@ -1,7 +1,7 @@
 //! Selected synthetic tests from craft-apps review 3a, user-authorized MIT OR Apache-2.0.
 //! W3/W4 expectations and additional cases are contributor-original.
-use diagramcraft_engine::Session;
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_engine::Session;
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use serde_json::{Value, json};
 
 fn run(s: &mut Session, id: &str, p: Value) -> Value {
@@ -240,7 +240,7 @@ fn never_reroute_relative_terminal_rows_keep_fractional_coordinates() {
             row.row_type = Some(kind.into());
             row.cells = [("X", x), ("Y", "0.5")]
                 .into_iter()
-                .map(|(axis, value)| diagramcraft_model::Cell { name: axis.into(), value: Some(value.into()), ..Default::default() })
+                .map(|(axis, value)| misterdiagram_model::Cell { name: axis.into(), value: Some(value.into()), ..Default::default() })
                 .collect();
         }
         Ok(())

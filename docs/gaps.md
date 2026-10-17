@@ -1,5 +1,7 @@
 # Gaps
 
+Brief 22 (2026-10-16): the MisterDiagram rename changes no parity score or feature gap. Dated measurements below retain their original names and paths.
+
 Status: pre-alpha, M0 through M3 met under the recorded gates. P4a met on 2026-10-15 under the straight-route ruling. M4 plan gates are met on 2026-10-15 under the closure-2 rulings and two clean frozen passes. The carried rendering and routing gaps remain measured below.
 
 ## G0: Contributed fixes
@@ -472,7 +474,7 @@ log/m3-21-coverage.log. The sticky text floor is resolved under the pinned M3.21
 ### Phase 5: authored master icons
 
 The seven master entries across the five scratch documents have no authored Icon.
-Visio generates previews on save. Diagramcraft will author its own master icons
+Visio generates previews on save. MisterDiagram will author its own master icons
 in Phase 5; no vendor icon is copied into the skeleton. Baseline subtraction remains
 per file and path: an unmatched scratch Icon addition is disclosed as a residual
 repair rather than silently borrowing another master's baseline event.

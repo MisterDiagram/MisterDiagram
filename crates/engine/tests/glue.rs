@@ -1,6 +1,6 @@
 //! Contributor-original glue scripts, compared with private Visio observations.
-use diagramcraft_engine::Session;
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_engine::Session;
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use serde_json::{Value, json};
 fn run(s: &mut Session, id: &str, p: Value) -> Value {
     s.execute(id, &p).unwrap_or_else(|e| panic!("{id} {p}: {e}"))
@@ -71,7 +71,7 @@ fn dynamic_glue_recomputes_move_after_endpoints_through_host() {
     run(&mut s, "file.open", json!({"path":root.join("move-before.vsdx")}));
     let before = number(&s, 3, "EndTrigger");
     run(&mut s, "shape.move", json!({"id":2,"x":7.75,"y":5.75}));
-    let expected = diagramcraft_vsdx::read(root.join("move-after.vsdx")).unwrap();
+    let expected = misterdiagram_vsdx::read(root.join("move-after.vsdx")).unwrap();
     let mut oracle = Evaluator::new(&expected).unwrap();
     let scope = Scope::PageShape { page: expected.pages[0].id, shape: 3 };
     let mut differences = vec![];
@@ -114,7 +114,7 @@ fn reroute_preserves_four_straight_witnesses_geometry_and_xform() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus/generated/connector");
     for name in ["dynamic-glue", "move-before", "move-after", "static-glue"] {
         let path = root.join(format!("{name}.vsdx"));
-        let original = diagramcraft_vsdx::read(&path).unwrap();
+        let original = misterdiagram_vsdx::read(&path).unwrap();
         let mut s = Session::new();
         run(&mut s, "file.open", json!({"path":path}));
         assert_eq!(run(&mut s, "route.reroute", json!({"id":3}))["routed"], 1);
@@ -182,7 +182,7 @@ fn straight_route_tracks_a_diagonal_endpoint_in_page_space() {
     for (row, prefix) in [(1, "Begin"), (2, "End")] {
         let x = e.evaluate(scope, &format!("Geometry1.X{row}")).numeric().unwrap();
         let y = e.evaluate(scope, &format!("Geometry1.Y{row}")).numeric().unwrap();
-        let point = transform * diagramcraft_geom::Point::new(x, y);
+        let point = transform * misterdiagram_geom::Point::new(x, y);
         assert!((point.x - number(&s, 3, &format!("{prefix}X"))).abs() < 1e-6);
         assert!((point.y - number(&s, 3, &format!("{prefix}Y"))).abs() < 1e-6);
     }
@@ -214,14 +214,14 @@ fn parallel_row_connectors_keep_horizontal_routes_in_either_order() {
         let mut e = Evaluator::new(s.document()).unwrap();
         for (id, y) in [(5, first), (6, second)] {
             let scope = Scope::PageShape { page: s.document().pages[0].id, shape: id };
-            let paths = e.geometry_paths(scope, diagramcraft_geom::Rect::new(0., 0., 11., 8.5)).unwrap();
+            let paths = e.geometry_paths(scope, misterdiagram_geom::Rect::new(0., 0., 11., 8.5)).unwrap();
             assert_eq!(paths.len(), 1);
             assert_eq!(paths[0].path.elements().len(), 2, "rows {first}/{second}, connector {id}");
             let transform = e.shape_to_page(scope).unwrap();
             for (row, x) in [(1, 2.75), (2, 5.95)] {
                 let px = e.evaluate(scope, &format!("Geometry1.X{row}")).numeric().unwrap();
                 let py = e.evaluate(scope, &format!("Geometry1.Y{row}")).numeric().unwrap();
-                let point = transform * diagramcraft_geom::Point::new(px, py);
+                let point = transform * misterdiagram_geom::Point::new(px, py);
                 assert!(
                     (point.x - x).abs() <= 1e-9 && (point.y - y).abs() <= 1e-9,
                     "rows {first}/{second}, connector {id}, point {row}: {point:?}, expected ({x}, {y})"

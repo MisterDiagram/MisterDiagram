@@ -6,8 +6,8 @@ use crate::{
     operation,
     sheet::{Address, address, install},
 };
-use diagramcraft_model::{Cell, Document, Page, Shape, Sheet};
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_model::{Cell, Document, Page, Shape, Sheet};
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use std::collections::{BTreeMap, BTreeSet};
 
 /// Resolve references with the same bounded parser and scope rules as evaluation.
@@ -20,11 +20,11 @@ fn references(e: &Evaluator<'_>, scope: Scope, formula: &str) -> Result<BTreeMap
     if !formula.contains('!') {
         return Ok(BTreeMap::new());
     }
-    let expression = diagramcraft_sheet::parse(formula).map_err(operation)?;
+    let expression = misterdiagram_sheet::parse(formula).map_err(operation)?;
     let mut pending = vec![&expression];
     let mut shapes = BTreeMap::new();
     while let Some(expression) = pending.pop() {
-        use diagramcraft_sheet::Expr;
+        use misterdiagram_sheet::Expr;
         match expression {
             Expr::Reference(reference) => {
                 let (target, _) = e.reference_target(scope, reference).map_err(operation)?;
@@ -135,7 +135,7 @@ fn captures(doc: &Document, e: &mut Evaluator<'_>, scope: Scope, invalid: &impl 
         }
         let mut cell = address(doc, scope, &named.name)?;
         let value = if matches!(named.name.as_str(), "BegTrigger" | "EndTrigger") {
-            diagramcraft_sheet::Value::Number(0.)
+            misterdiagram_sheet::Value::Number(0.)
         } else {
             e.evaluate(scope, &named.name)
         };
@@ -143,9 +143,9 @@ fn captures(doc: &Document, e: &mut Evaluator<'_>, scope: Scope, invalid: &impl 
             return Err(operation(error));
         }
         cell.cell.value = Some(match value {
-            diagramcraft_sheet::Value::Color { rgb: [r, g, b], .. } => format!("#{r:02x}{g:02x}{b:02x}"),
-            diagramcraft_sheet::Value::Bool(value) => u8::from(value).to_string(),
-            diagramcraft_sheet::Value::Number(value) => {
+            misterdiagram_sheet::Value::Color { rgb: [r, g, b], .. } => format!("#{r:02x}{g:02x}{b:02x}"),
+            misterdiagram_sheet::Value::Bool(value) => u8::from(value).to_string(),
+            misterdiagram_sheet::Value::Number(value) => {
                 let serialized = e.serialized_number(scope, &named.name, &cell.cell, value).map_err(operation)?;
                 if cell.cell.name == "Font" {
                     let ordinal = serialized.parse::<usize>().map_err(operation)?;
@@ -178,8 +178,8 @@ pub(crate) fn isolate(doc: &Document, page: u32, copy: &mut Shape) -> Result<()>
         allowed.insert(shape.id);
         pending.extend(shape.shapes.iter().map(|s| (s, depth + 1)));
     }
-    let themes = diagramcraft_theme::Themes::from_document(doc).map_err(operation)?;
-    let mut e = Evaluator::new(doc).map_err(operation)?.with_theme_host(&themes).with_text_host(&diagramcraft_text::Host);
+    let themes = misterdiagram_theme::Themes::from_document(doc).map_err(operation)?;
+    let mut e = Evaluator::new(doc).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
     fn visit(doc: &Document, e: &mut Evaluator<'_>, page: u32, shape: &mut Shape, allowed: &BTreeSet<u32>, depth: usize) -> Result<()> {
         if depth > 128 {
             return Err(operation("copy nesting limit"));
@@ -227,8 +227,8 @@ pub(crate) fn isolate(doc: &Document, page: u32, copy: &mut Shape) -> Result<()>
 /// Capture before ungroup removes a referenced group, including cells outside Connect rows.
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.shape.ungroup
 pub(crate) fn removing(doc: &Document, page: u32, removed: u32) -> Result<Vec<(Scope, Capture)>> {
-    let themes = diagramcraft_theme::Themes::from_document(doc).map_err(operation)?;
-    let mut e = Evaluator::new(doc).map_err(operation)?.with_theme_host(&themes).with_text_host(&diagramcraft_text::Host);
+    let themes = misterdiagram_theme::Themes::from_document(doc).map_err(operation)?;
+    let mut e = Evaluator::new(doc).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
     let scopes = e
         .scopes()
         .filter(|scope| {
@@ -310,8 +310,8 @@ mod tests {
     use super::*;
     #[test]
     fn reference_scan_is_quoted_scoped_and_bounded() {
-        let mut doc = diagramcraft_model::skeleton::document(false);
-        doc.pages[0].shapes = [1, 3].map(|id| diagramcraft_model::skeleton::rectangle(id, 0., 0., 1., 1., "").unwrap()).to_vec();
+        let mut doc = misterdiagram_model::skeleton::document(false);
+        doc.pages[0].shapes = [1, 3].map(|id| misterdiagram_model::skeleton::rectangle(id, 0., 0., 1., 1., "").unwrap()).to_vec();
         let page = doc.pages[0].id;
         let scope = Scope::PageShape { page, shape: 1 };
         let e = Evaluator::new(&doc).unwrap();

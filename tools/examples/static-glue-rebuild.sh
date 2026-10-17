@@ -4,7 +4,7 @@ set -euo pipefail
 repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 output_dir="${1:-$repo_dir/corpus/_state/m4}"
 mkdir -p "$output_dir"
-if [[ -n "${DIAGRAMCRAFT_CLI:-}" ]]; then cli=("$DIAGRAMCRAFT_CLI"); else cli=(cargo run -q --manifest-path "$repo_dir/Cargo.toml" -p diagramcraft-cli --); fi
+if [[ -n "${MISTERDIAGRAM_CLI:-}" ]]; then cli=("$MISTERDIAGRAM_CLI"); else cli=(cargo run -q --manifest-path "$repo_dir/Cargo.toml" -p misterdiagram-cli --); fi
 "${cli[@]}" run \
   --cmd 'file.new={}' \
   --cmd 'shape.draw.rect={"x":1,"y":6,"width":1.5,"height":1.5}' \

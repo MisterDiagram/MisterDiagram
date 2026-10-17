@@ -19,11 +19,11 @@ const INVALID_PARAMS: i64 = -32602;
 const INTERNAL_ERROR: i64 = -32603;
 const RESOURCE_NOT_FOUND: i64 = -32002;
 
-const INSTRUCTIONS: &str = "Diagramcraft headless Visio core. Phase 0: command discovery scaffold. Page coordinates are inches, y-up.";
+const INSTRUCTIONS: &str = "MisterDiagram headless Visio core. Phase 0: command discovery scaffold. Page coordinates are inches, y-up.";
 
 /// Resource URIs.
-pub const DOC_URI: &str = "diagramcraft://document";
-pub const COMMANDS_URI: &str = "diagramcraft://commands";
+pub const DOC_URI: &str = "misterdiagram://document";
+pub const COMMANDS_URI: &str = "misterdiagram://commands";
 
 /// An MCP server bound to one backend.
 pub struct Server {
@@ -139,7 +139,7 @@ impl Server {
                 Ok(json!({
                     "protocolVersion": version,
                     "capabilities": {"tools": {}, "resources": {}},
-                    "serverInfo": {"name": "diagramcraft", "version": env!("CARGO_PKG_VERSION")},
+                    "serverInfo": {"name": "misterdiagram", "version": env!("CARGO_PKG_VERSION")},
                     "instructions": format!("{INSTRUCTIONS} Backend: {}", self.backend.describe()),
                 }))
             }

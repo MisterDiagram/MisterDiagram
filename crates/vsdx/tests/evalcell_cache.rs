@@ -1,8 +1,8 @@
 // Review 2a EVALCELL regression, adapted with Charles Hood's permission.
 // MIT OR Apache-2.0. Source recorded in ATTRIBUTION.md.
-use diagramcraft_opc::{PackageOut, RelsOut};
-use diagramcraft_sheet::Value;
-use diagramcraft_vsdx::{
+use misterdiagram_opc::{PackageOut, RelsOut};
+use misterdiagram_sheet::Value;
+use misterdiagram_vsdx::{
     evaluate::{Evaluator, Scope},
     import,
 };

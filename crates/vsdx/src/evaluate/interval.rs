@@ -2,7 +2,7 @@
 //! https://learn.microsoft.com/en-us/office/client-developer/visio/min-function
 //! https://learn.microsoft.com/en-us/office/client-developer/visio/max-function
 use super::{BoundContext, Error, Evaluator, Key, Scope, Value};
-use diagramcraft_sheet::parser::{BinaryOp, Expr, UnaryOp};
+use misterdiagram_sheet::parser::{BinaryOp, Expr, UnaryOp};
 use std::collections::BTreeSet;
 
 #[derive(Clone, Copy)]
@@ -44,7 +44,7 @@ impl Evaluator<'_> {
         self.add_dependency_key(key.clone());
         let result = if let Some(formula) = self.effective_formula(key.scope, &key.name).filter(|f| f != "No Formula") {
             let origin = self.formula_origin(key.scope, &key.name).unwrap_or(key.scope);
-            match diagramcraft_sheet::parse(&formula) {
+            match misterdiagram_sheet::parse(&formula) {
                 Ok(expr) => self.range_expr(key.scope, origin, &expr, visited, depth + 1),
                 Err(_) => Range::INVALID,
             }
@@ -131,7 +131,7 @@ impl Evaluator<'_> {
     }
     fn range_scalar(&mut self, scope: Scope, origin: Scope, expr: &Expr) -> Range {
         let mut context = BoundContext { evaluator: self, scope, origin, cached: Value::Error(Error::Cycle) };
-        match diagramcraft_sheet::evaluate(expr, &mut context).numeric() {
+        match misterdiagram_sheet::evaluate(expr, &mut context).numeric() {
             Ok(n) => Range::point(n),
             Err(Error::Cycle) => Range::UNKNOWN,
             Err(_) => Range::INVALID,

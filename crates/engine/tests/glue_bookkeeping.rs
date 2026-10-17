@@ -1,6 +1,6 @@
 //! Contributor-original reproductions of #43 and the W1/W2 observations.
-use diagramcraft_engine::Session;
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_engine::Session;
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use serde_json::{Value, json};
 use std::collections::BTreeSet;
 fn run(s: &mut Session, command: &str, params: Value) -> Value {
@@ -14,8 +14,8 @@ fn references(formula: &str) -> Vec<u32> {
     formula.split("Sheet.").skip(1).filter_map(|s| s.split_once('!').and_then(|(id, _)| id.parse().ok())).collect()
 }
 fn reachable(s: &Session) {
-    let bytes = diagramcraft_vsdx::write(s.document()).unwrap().bytes;
-    let doc = diagramcraft_vsdx::import(&bytes).unwrap();
+    let bytes = misterdiagram_vsdx::write(s.document()).unwrap().bytes;
+    let doc = misterdiagram_vsdx::import(&bytes).unwrap();
     for (part, shapes, sheet) in
         doc.pages.iter().map(|p| (&p.part, &p.shapes, &p.sheet)).chain(doc.masters.iter().map(|m| (&m.part, &m.shapes, &m.sheet)))
     {
@@ -249,7 +249,7 @@ fn ungroup_preserves_references_to_the_same_id_on_another_page() {
     assert_eq!(s.document().pages[0].shapes.iter().find(|s| s.id == 4).unwrap().sheet.cell("Width").unwrap().formula.as_deref(), Some(formula));
     run(&mut s, "shape.resize", json!({"page":2,"id":3,"width":9,"height":1}));
     assert_eq!(number(&s, 4, "Width"), 9.);
-    let round = diagramcraft_vsdx::import(&diagramcraft_vsdx::write(s.document()).unwrap().bytes).unwrap();
+    let round = misterdiagram_vsdx::import(&misterdiagram_vsdx::write(s.document()).unwrap().bytes).unwrap();
     assert_eq!(Evaluator::new(&round).unwrap().evaluate(Scope::PageShape { page: round.pages[0].id, shape: 4 }, "Width").numeric().unwrap(), 9.);
 }
 
@@ -264,8 +264,8 @@ fn copied_font_formulas_keep_serialized_face_identity() {
     let before = number(&s, 2, "Char.Font");
     run(&mut s, "shape.duplicate", json!({"id":2,"dx":0,"dy":2}));
     assert_eq!(number(&s, 3, "Char.Font"), before);
-    let bytes = diagramcraft_vsdx::write(s.document()).unwrap().bytes;
-    let doc = diagramcraft_vsdx::import(&bytes).unwrap();
+    let bytes = misterdiagram_vsdx::write(s.document()).unwrap().bytes;
+    let doc = misterdiagram_vsdx::import(&bytes).unwrap();
     let mut e = Evaluator::new(&doc).unwrap();
     let scope = Scope::PageShape { page: doc.pages[0].id, shape: 3 };
     assert_eq!(e.cell(scope, "Char.Font").unwrap().value.as_deref(), Some(face.as_str()));
@@ -324,11 +324,11 @@ fn inactive_rows_lose_external_references_without_being_resurrected() {
         s.edit_document(|doc, _| {
             let shape = doc.pages[0].shapes[0].shapes.iter_mut().find(|s| s.id == 2).unwrap();
             let geometry = shape.sheet.sections.iter_mut().find(|s| s.name == "Geometry").unwrap();
-            geometry.rows.push(diagramcraft_model::Row {
+            geometry.rows.push(misterdiagram_model::Row {
                 index: Some(99),
                 row_type: Some("LineTo".into()),
                 deleted: true,
-                cells: vec![diagramcraft_model::Cell {
+                cells: vec![misterdiagram_model::Cell {
                     name: "X".into(),
                     value: Some("7".into()),
                     formula: Some("Sheet.3!Width".into()),

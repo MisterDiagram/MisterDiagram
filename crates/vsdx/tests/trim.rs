@@ -1,6 +1,6 @@
-use diagramcraft_opc::{PackageOut, RelsOut};
-use diagramcraft_sheet::Value;
-use diagramcraft_vsdx::{
+use misterdiagram_opc::{PackageOut, RelsOut};
+use misterdiagram_sheet::Value;
+use misterdiagram_vsdx::{
     evaluate::{Evaluator, Scope},
     import,
 };

@@ -1,6 +1,6 @@
 //! Text, shape data, hyperlinks and formatting commands.
 use crate::{Result, Session, edit::*, operation};
-use diagramcraft_model::{Cell, Document, Row, Section, Sheet, XmlElement, XmlNode};
+use misterdiagram_model::{Cell, Document, Row, Section, Sheet, XmlElement, XmlNode};
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
 
@@ -93,7 +93,7 @@ pub(crate) fn set_data(s: &mut Session, p: &Value) -> Result<Value> {
     let value = p.get("value").ok_or_else(|| operation("missing value"))?;
     let cell_name = format!("Prop.{name}");
     let mut value_address = crate::sheet::address(&s.document, scope, &cell_name)?;
-    let mut e = diagramcraft_vsdx::evaluate::Evaluator::new(&s.document).map_err(operation)?;
+    let mut e = misterdiagram_vsdx::evaluate::Evaluator::new(&s.document).map_err(operation)?;
     let kind = e.evaluate(scope, &format!("{cell_name}.Type")).numeric().map_err(operation)?;
     if !(0. ..=7.).contains(&kind) || kind.fract() != 0. {
         return Err(operation("invalid property type"));
@@ -233,7 +233,7 @@ fn element(name: &str, attributes: BTreeMap<String, String>, children: Vec<XmlNo
 /// Formatting markers are recorded even when the format equals the inherited value.
 /// Originals: master/from-shape; formatted character marker: SAN Visio re-save.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/text-element-shapesheet_type-complextypevisio-xml
-fn text_marker(shape: &mut diagramcraft_model::Shape, name: &str) {
+fn text_marker(shape: &mut misterdiagram_model::Shape, name: &str) {
     if let Some(text) = &mut shape.text {
         if text.children.iter().any(|n| matches!(n, XmlNode::Element(e) if e.name == name)) {
             return;
@@ -308,9 +308,9 @@ pub(crate) fn shape_text(s: &mut Session, p: &Value) -> Result<Value> {
             shape.sheet.sections.push(Section { name: "Character".into(), rows: chars, ..Default::default() });
             shape.sheet.sections.push(Section { name: "Paragraph".into(), rows: paras, ..Default::default() });
         }
-        let mut evaluator = diagramcraft_vsdx::evaluate::Evaluator::new(doc).map_err(operation)?;
+        let mut evaluator = misterdiagram_vsdx::evaluate::Evaluator::new(doc).map_err(operation)?;
         let body = evaluator.text_body(scope).map_err(operation)?;
-        diagramcraft_model::text::TextHost::measure(&diagramcraft_text::Host, &body, None).map_err(operation)?;
+        misterdiagram_model::text::TextHost::measure(&misterdiagram_text::Host, &body, None).map_err(operation)?;
         Ok(json!({}))
     })
 }
@@ -378,7 +378,7 @@ pub(crate) fn format_text(s: &mut Session, p: &Value) -> Result<Value> {
     if !(0. ..=u32::MAX as f64).contains(&old) {
         return Err(operation("invalid character style"));
     }
-    let mut evaluator = diagramcraft_vsdx::evaluate::Evaluator::new(&s.document).map_err(operation)?;
+    let mut evaluator = misterdiagram_vsdx::evaluate::Evaluator::new(&s.document).map_err(operation)?;
     let indices = evaluator
         .resolved_named_cells(scope)
         .iter()

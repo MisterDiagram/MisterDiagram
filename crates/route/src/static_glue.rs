@@ -1,6 +1,6 @@
 //! Connection rows and fixed point glue, using the observed PAR(PNT(...)) formula.
-use diagramcraft_model::{Cell, Connect, Document, Row, Section, Shape, Sheet};
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_model::{Cell, Connect, Document, Row, Section, Shape, Sheet};
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use std::collections::BTreeMap;
 
 /// An endpoint of a one-dimensional shape.
@@ -84,7 +84,7 @@ pub fn add_connection(doc: &mut Document, page_index: usize, id: u32, mut point:
     }
     for c in [&mut point.x, &mut point.y] {
         if let Some(f) = &c.formula {
-            diagramcraft_sheet::parse(f).map_err(|e| e.to_string())?;
+            misterdiagram_sheet::parse(f).map_err(|e| e.to_string())?;
         }
         if !c.value.as_deref().and_then(|v| v.parse::<f64>().ok()).is_some_and(|v| v.is_finite() && v.abs() <= 1e6) {
             return Err("invalid connection coordinate".into());

@@ -1,5 +1,5 @@
 //! CLI commands share the engine's session, schema validation and rollback boundary.
-use diagramcraft_engine::Session;
+use misterdiagram_engine::Session;
 use serde_json::{Value, json};
 use std::{ffi::OsString, io::Write};
 fn output(out: &mut impl Write, value: &impl serde::Serialize) -> Result<(), String> {
@@ -23,7 +23,7 @@ pub fn describe(args: &[OsString], out: &mut impl Write) -> Result<(), String> {
     }
     let id = text(args.get(1).ok_or("missing command ID")?)?;
     let session = Session::new();
-    let spec = diagramcraft_engine::cmd::find_command(id).ok_or_else(|| format!("unknown command {id}"))?;
+    let spec = misterdiagram_engine::cmd::find_command(id).ok_or_else(|| format!("unknown command {id}"))?;
     output(out, &spec.info(&session))
 }
 /// Execute a bounded sequence in one session, with optional open and final save.
@@ -47,7 +47,7 @@ pub fn run(args: &[OsString], out: &mut impl Write) -> Result<(), String> {
                     return Err("command byte limit".into());
                 }
                 let (id, params) = command.split_once('=').ok_or("command must be ID=JSON")?;
-                if diagramcraft_engine::cmd::find_command(id).is_none() {
+                if misterdiagram_engine::cmd::find_command(id).is_none() {
                     return Err(format!("unknown command {id}"));
                 }
                 let params = serde_json::from_str(params).map_err(|e| format!("invalid command JSON: {e}"))?;

@@ -1,7 +1,7 @@
 //! PDF-1 regression: inspect the actual ToUnicode streams and shown glyph codes.
-use diagramcraft_model::skeleton;
-use diagramcraft_render::{pdf, scene};
 use hayro_syntax::{Pdf, content::ops::TypedInstruction, object::Object};
+use misterdiagram_model::skeleton;
+use misterdiagram_render::{pdf, scene};
 use std::collections::BTreeMap;
 use std::sync::OnceLock;
 
@@ -68,8 +68,8 @@ fn text_layer() -> &'static TextLayer {
     LAYER.get_or_init(|| {
         let mut doc = skeleton::document(false);
         doc.pages[0].shapes.push(skeleton::rectangle(1, 1., 1., 6., 1., PHRASE).unwrap());
-        let bytes = diagramcraft_vsdx::write(&doc).unwrap().bytes;
-        let doc = diagramcraft_vsdx::import(&bytes).unwrap();
+        let bytes = misterdiagram_vsdx::write(&doc).unwrap().bytes;
+        let doc = misterdiagram_vsdx::import(&bytes).unwrap();
         assert_eq!(doc.pages.len(), 1);
         assert_eq!(doc.pages[0].shapes.len(), 1);
         let options = scene::Options::default();

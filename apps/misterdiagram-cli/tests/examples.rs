@@ -33,7 +33,7 @@ fn run_output(script: &str, out: &std::path::Path) -> std::process::Output {
     Command::new(bash())
         .arg(shell_path(&root().join("tools/examples").join(script)))
         .arg(shell_path(out))
-        .env("DIAGRAMCRAFT_CLI", shell_path(std::path::Path::new(env!("CARGO_BIN_EXE_diagramcraft-cli"))))
+        .env("MISTERDIAGRAM_CLI", shell_path(std::path::Path::new(env!("CARGO_BIN_EXE_misterdiagram"))))
         .output()
         .unwrap()
 }
@@ -65,13 +65,13 @@ fn static_script_matches_sheet_and_connects() {
 fn two_boxes_script_has_ink_between_boxes_with_visio_extent() {
     let out = root().join("target/example-tests/two boxes");
     run("two-boxes-glued.sh", &out);
-    let doc = diagramcraft_vsdx::read(out.join("two-boxes-glued.vsdx")).unwrap();
-    let options = diagramcraft_render::scene::Options { visio_export: true, ..Default::default() };
-    let scene = diagramcraft_render::scene::page(&doc, 0, options).unwrap();
+    let doc = misterdiagram_vsdx::read(out.join("two-boxes-glued.vsdx")).unwrap();
+    let options = misterdiagram_render::scene::Options { visio_export: true, ..Default::default() };
+    let scene = misterdiagram_render::scene::page(&doc, 0, options).unwrap();
     let (width, height, transform) = scene.canvas(options).unwrap();
-    let png = diagramcraft_render::raster::decode(&std::fs::read(out.join("two-boxes-glued.png")).unwrap()).unwrap();
+    let png = misterdiagram_render::raster::decode(&std::fs::read(out.join("two-boxes-glued.png")).unwrap()).unwrap();
     assert_eq!(png.dimensions(), (u32::from(width), u32::from(height)));
-    let point = transform * diagramcraft_geom::Point::new(3.75, 6.75);
+    let point = transform * misterdiagram_geom::Point::new(3.75, 6.75);
     let x = point.x.round() as u32;
     let y = point.y.round() as u32;
     let ink = (x.saturating_sub(20)..x + 20)
@@ -105,7 +105,7 @@ fn acceptance_checker_rejects_corrupt_package_without_panic() {
 fn san_script_has_eighty_glues_and_ink_on_every_isl() {
     let out = root().join("target/example-tests/san topology");
     let result = run_output("san-topology.sh", &out);
-    let doc = diagramcraft_vsdx::read(out.join("san-topology.vsdx")).unwrap();
+    let doc = misterdiagram_vsdx::read(out.join("san-topology.vsdx")).unwrap();
     let page = &doc.pages[0];
     assert_eq!(page.connects.len(), 80, "every ISL requires both glued ends");
     assert!(result.status.success(), "SAN script: {}", String::from_utf8_lossy(&result.stderr));
@@ -116,25 +116,25 @@ fn san_script_has_eighty_glues_and_ink_on_every_isl() {
             page.connects.iter().filter(|c| c.from_sheet == *id).map(|c| c.from_cell.as_deref().unwrap()).collect::<std::collections::BTreeSet<_>>();
         assert_eq!(cells, ["BeginX", "EndX"].into_iter().collect());
     }
-    let mut e = diagramcraft_vsdx::evaluate::Evaluator::new(&doc).unwrap();
-    let ps = diagramcraft_vsdx::evaluate::Scope::Page(page.id);
+    let mut e = misterdiagram_vsdx::evaluate::Evaluator::new(&doc).unwrap();
+    let ps = misterdiagram_vsdx::evaluate::Scope::Page(page.id);
     assert_eq!(e.evaluate(ps, "PageWidth").numeric().unwrap(), 17.);
     assert_eq!(e.evaluate(ps, "PageHeight").numeric().unwrap(), 11.);
     let switch = doc.masters.iter().find(|m| m.name == "Switch").unwrap();
     let switches = page.shapes.iter().filter(|s| s.master == Some(switch.id)).collect::<Vec<_>>();
     assert_eq!(switches.len(), 24);
     for shape in switches {
-        let scope = diagramcraft_vsdx::evaluate::Scope::PageShape { page: page.id, shape: shape.id };
+        let scope = misterdiagram_vsdx::evaluate::Scope::PageShape { page: page.id, shape: shape.id };
         for prop in ["Name", "Fabric", "DomainID", "Model"] {
             assert!(!e.evaluate(scope, &format!("Prop.{prop}")).text().is_empty(), "missing {prop}");
         }
     }
-    let options = diagramcraft_render::scene::Options { visio_export: true, ..Default::default() };
-    let scene = diagramcraft_render::scene::page(&doc, 0, options).unwrap();
+    let options = misterdiagram_render::scene::Options { visio_export: true, ..Default::default() };
+    let scene = misterdiagram_render::scene::page(&doc, 0, options).unwrap();
     let (_, _, transform) = scene.canvas(options).unwrap();
-    let png = diagramcraft_render::raster::decode(&std::fs::read(out.join("san-topology.png")).unwrap()).unwrap();
+    let png = misterdiagram_render::raster::decode(&std::fs::read(out.join("san-topology.png")).unwrap()).unwrap();
     for id in ids {
-        let scope = diagramcraft_vsdx::evaluate::Scope::PageShape { page: page.id, shape: id };
+        let scope = misterdiagram_vsdx::evaluate::Scope::PageShape { page: page.id, shape: id };
         let layers = e.evaluate(scope, "LayerMember").text();
         let fabric = if id < 47 { "0" } else { "1" };
         assert!(layers.split(';').any(|s| s == fabric), "ISL {id} lost fabric layer: {layers}");
@@ -151,7 +151,7 @@ fn san_script_has_eighty_glues_and_ink_on_every_isl() {
         for row in rows {
             let x = e.evaluate(scope, &format!("Geometry1.X{row}")).numeric().unwrap();
             let y = e.evaluate(scope, &format!("Geometry1.Y{row}")).numeric().unwrap();
-            points.push(transform * (local * diagramcraft_geom::Point::new(x, y)));
+            points.push(transform * (local * misterdiagram_geom::Point::new(x, y)));
         }
         let mut tested = 0;
         for segment in points.windows(2) {
@@ -160,7 +160,7 @@ fn san_script_has_eighty_glues_and_ink_on_every_isl() {
             if (a.x - b.x).hypot(a.y - b.y) < 12. {
                 continue;
             }
-            let p = diagramcraft_geom::Point::new((a.x + b.x) / 2., (a.y + b.y) / 2.);
+            let p = misterdiagram_geom::Point::new((a.x + b.x) / 2., (a.y + b.y) / 2.);
             let ink = (-2..=2).any(|dx| {
                 (-2..=2).any(|dy| {
                     let x = p.x.round() as i64 + dx;
@@ -205,8 +205,8 @@ fn from_shape_script_matches_original_dump_and_master_type() {
     let out = root().join("target/example-tests/from shape");
     run("from-shape.sh", &out);
     assert_eq!(std::fs::metadata(out.join("from-shape.diff")).unwrap().len(), 0);
-    let actual = diagramcraft_vsdx::read(out.join("from-shape.vsdx")).unwrap();
-    let expected = diagramcraft_vsdx::read(witness).unwrap();
+    let actual = misterdiagram_vsdx::read(out.join("from-shape.vsdx")).unwrap();
+    let expected = misterdiagram_vsdx::read(witness).unwrap();
     let (a, b) = (&actual.masters[0], &expected.masters[0]);
     for name in ["MasterType", "Prompt", "MatchByName", "IconSize", "IconUpdate", "AlignName", "PatternFlags", "Hidden"] {
         assert_eq!(a.attributes.get(name), b.attributes.get(name), "master attribute {name}");
@@ -214,12 +214,12 @@ fn from_shape_script_matches_original_dump_and_master_type() {
     assert!(a.icon.is_none(), "generated vendor Icon must not be copied");
     let save = root().join("corpus/_vm/out/accept/p4bc__from-shape/saved.vsdx");
     if save.is_file() {
-        let canonical = diagramcraft_vsdx::read(save).unwrap();
+        let canonical = misterdiagram_vsdx::read(save).unwrap();
         assert_eq!(a.shapes[0].text, canonical.masters[0].shapes[0].text, "authored master text run form");
         assert_eq!(actual.parts["docProps/app.xml"].bytes, canonical.parts["docProps/app.xml"].bytes, "authored app.xml canonical bytes");
     }
     // An unchanged original keeps its original pp and opaque metadata under M3.12.
-    let round = diagramcraft_vsdx::import(&diagramcraft_vsdx::write(&expected).unwrap().bytes).unwrap();
+    let round = misterdiagram_vsdx::import(&misterdiagram_vsdx::write(&expected).unwrap().bytes).unwrap();
     assert_eq!(round.masters[0].shapes[0].text, b.shapes[0].text);
     assert_eq!(round.parts["docProps/app.xml"].bytes, expected.parts["docProps/app.xml"].bytes);
 }

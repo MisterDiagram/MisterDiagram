@@ -173,7 +173,7 @@ fn cmd_ci() -> Result<(), String> {
             "render",
             Box::new(|| {
                 let mut c = cargo();
-                c.args(["test", "-p", "diagramcraft-corpus", "--test", "render", "--", "--nocapture"]);
+                c.args(["test", "-p", "misterdiagram-corpus", "--test", "render", "--", "--nocapture"]);
                 run(c, "P2 render report")
             }),
         ),

@@ -3,8 +3,8 @@
 #[cfg(test)]
 #[allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 mod tests {
-    use diagramcraft_model::{Cell, Document, Page, Shape, Sheet};
-    use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+    use misterdiagram_model::{Cell, Document, Page, Shape, Sheet};
+    use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
     use std::{path::Path, time::Instant};
     #[test]
     #[ignore = "measurement only; run explicitly when recording perf/budgets.toml"]
@@ -17,7 +17,7 @@ mod tests {
         let path = root.join("corpus/ms-shipped/1033/WFDEP_M.vssx");
         assert!(path.exists(), "largest local stencil required");
         let start = Instant::now();
-        let doc = diagramcraft_vsdx::read(path).unwrap();
+        let doc = misterdiagram_vsdx::read(path).unwrap();
         let read = start.elapsed();
         let start = Instant::now();
         let mut evaluator = Evaluator::new(&doc).unwrap();

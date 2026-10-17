@@ -39,16 +39,16 @@ impl Matrix {
 impl Evaluator<'_> {
     /// Complete group-child transform in y-up page inches. The renderer flips Y once.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-transform-section
-    pub fn shape_to_page(&mut self, scope: Scope) -> Result<diagramcraft_geom::Affine, Error> {
+    pub fn shape_to_page(&mut self, scope: Scope) -> Result<misterdiagram_geom::Affine, Error> {
         let (m, _) = self.page_transform(scope)?;
-        Ok(diagramcraft_geom::Affine::new([m.a, m.b, m.c, m.d, m.x, m.y]))
+        Ok(misterdiagram_geom::Affine::new([m.a, m.b, m.c, m.d, m.x, m.y]))
     }
     /// Parent coordinates (including one-dimensional endpoints) to page inches.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/beginx-cell-1-d-endpoints-section
-    pub fn parent_to_page(&mut self, scope: Scope) -> Result<diagramcraft_geom::Affine, Error> {
+    pub fn parent_to_page(&mut self, scope: Scope) -> Result<misterdiagram_geom::Affine, Error> {
         match self.parents.get(&scope).copied() {
             Some(parent) => self.shape_to_page(parent),
-            None => Ok(diagramcraft_geom::Affine::IDENTITY),
+            None => Ok(misterdiagram_geom::Affine::IDENTITY),
         }
     }
     /// Local to page conversion uses each enclosing shape's pin, angle and flips.
@@ -156,7 +156,7 @@ impl Evaluator<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use diagramcraft_model::{Cell, Document, Page, Shape, Sheet};
+    use misterdiagram_model::{Cell, Document, Page, Shape, Sheet};
     fn shape(id: u32, x: f64, y: f64, angle: f64, flip: bool) -> Shape {
         Shape {
             id,

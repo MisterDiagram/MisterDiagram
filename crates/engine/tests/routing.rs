@@ -1,10 +1,10 @@
 //! Transactional route invalidation from obstacle and page layout edits.
-use diagramcraft_engine::Session;
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_engine::Session;
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use serde_json::json;
 use std::path::Path;
 fn compare(session: &Session, expected: &Path, expected_id: u32) {
-    let oracle = diagramcraft_vsdx::read(expected).unwrap();
+    let oracle = misterdiagram_vsdx::read(expected).unwrap();
     let mut a = Evaluator::new(session.document()).unwrap();
     let mut b = Evaluator::new(&oracle).unwrap();
     let actual = Scope::PageShape { page: session.document().pages[0].id, shape: 4 };

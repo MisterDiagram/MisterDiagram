@@ -1,7 +1,7 @@
 //! Bounded orthogonal paths from alignment boxes and visible obstacle edges.
 //! https://learn.microsoft.com/en-us/office/client-developer/visio/routestyle-cell-page-layout-section
-use diagramcraft_geom::{Point, Rect};
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_geom::{Point, Rect};
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 
@@ -363,7 +363,7 @@ pub(crate) fn inherited_zero(e: &Evaluator<'_>, scope: Scope) -> [[bool; 2]; 2] 
         })
     })
 }
-pub(crate) fn trim_inherited_start(rows: &mut Vec<diagramcraft_model::Row>, zero: [[bool; 2]; 2]) {
+pub(crate) fn trim_inherited_start(rows: &mut Vec<misterdiagram_model::Row>, zero: [[bool; 2]; 2]) {
     for (i, zero) in zero.into_iter().enumerate() {
         let index = u32::try_from(i + 1).unwrap_or(0);
         if let Some(row) = rows.iter_mut().find(|r| r.index == Some(index)) {

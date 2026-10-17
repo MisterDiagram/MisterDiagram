@@ -23,7 +23,7 @@ impl Class {
     }
 }
 
-/// The layering table. Names are package names without the `diagramcraft-`
+/// The layering table. Names are package names without the `misterdiagram-`
 /// prefix.
 pub const TABLE: &[(&str, Class)] = &[
     ("geom", Class::Layer(0)),
@@ -40,7 +40,7 @@ pub const TABLE: &[(&str, Class)] = &[
     ("export", Class::Layer(4)),
     ("engine", Class::Layer(5)),
     ("mcp", Class::Layer(6)),
-    ("diagramcraft", Class::Exempt),
+    ("misterdiagram", Class::Exempt),
     ("cli", Class::Exempt),
     ("corpus", Class::Exempt),
     ("web", Class::Exempt),
@@ -68,7 +68,7 @@ pub const UI_CRATES: &[&str] = &["egui*", "epaint*", "emath", "ecolor", "eframe"
 pub const UI_MIN_LAYER: u8 = 7;
 
 pub fn short_name(pkg: &str) -> &str {
-    pkg.strip_prefix("diagramcraft-").unwrap_or(pkg)
+    pkg.strip_prefix("misterdiagram-").unwrap_or(pkg)
 }
 
 pub fn classify(pkg: &str) -> Option<Class> {
@@ -291,65 +291,65 @@ mod tests {
     #[test]
     fn clean_downward_graph_passes() {
         let g = [
-            c("diagramcraft-geom", &[("kurbo", Normal, false)]),
-            c("diagramcraft-model", &[("diagramcraft-geom", Normal, true)]),
-            c("diagramcraft-engine", &[("diagramcraft-model", Normal, true)]),
-            c("diagramcraft-mcp", &[("diagramcraft-engine", Normal, true)]),
-            c("diagramcraft-cli", &[("diagramcraft-mcp", Normal, true)]),
+            c("misterdiagram-geom", &[("kurbo", Normal, false)]),
+            c("misterdiagram-model", &[("misterdiagram-geom", Normal, true)]),
+            c("misterdiagram-engine", &[("misterdiagram-model", Normal, true)]),
+            c("misterdiagram-mcp", &[("misterdiagram-engine", Normal, true)]),
+            c("misterdiagram-cli", &[("misterdiagram-mcp", Normal, true)]),
         ];
         assert!(check_graph(&g).is_empty(), "{:?}", check_graph(&g));
     }
 
     #[test]
     fn upward_dependency_flagged() {
-        let v = check_graph(&[c("diagramcraft-model", &[("diagramcraft-engine", Normal, true)])]);
+        let v = check_graph(&[c("misterdiagram-model", &[("misterdiagram-engine", Normal, true)])]);
         assert!(matches!(v[..], [Violation::Upward { from: 1, to: 5, .. }]));
     }
 
     #[test]
     fn sideways_dependency_flagged() {
-        let v = check_graph(&[c("diagramcraft-text", &[("diagramcraft-theme", Normal, true)])]);
+        let v = check_graph(&[c("misterdiagram-text", &[("misterdiagram-theme", Normal, true)])]);
         assert!(matches!(v[..], [Violation::Upward { from: 2, to: 2, .. }]));
     }
 
     #[test]
     fn l0_foundations_are_independent() {
-        let v = check_graph(&[c("diagramcraft-geom", &[("diagramcraft-color", Normal, true)])]);
+        let v = check_graph(&[c("misterdiagram-geom", &[("misterdiagram-color", Normal, true)])]);
         assert!(matches!(v[..], [Violation::Upward { from: 0, to: 0, .. }]));
     }
 
     #[test]
     fn self_dev_dependency_ignored() {
-        assert!(check_graph(&[c("diagramcraft-model", &[("diagramcraft-model", Dev, true)])]).is_empty());
+        assert!(check_graph(&[c("misterdiagram-model", &[("misterdiagram-model", Dev, true)])]).is_empty());
     }
 
     #[test]
     fn upward_dev_dependency_flagged() {
-        let v = check_graph(&[c("diagramcraft-geom", &[("diagramcraft-model", Dev, true)])]);
+        let v = check_graph(&[c("misterdiagram-geom", &[("misterdiagram-model", Dev, true)])]);
         assert!(matches!(v[..], [Violation::Upward { kind: Dev, .. }]));
     }
 
     #[test]
     fn ui_crates_below_apps_flagged() {
         for dep in ["egui", "eframe", "winit", "egui_kittest", "rfd", "bevy_ecs", "bevy"] {
-            let v = check_graph(&[c("diagramcraft-engine", &[(dep, Normal, false)])]);
+            let v = check_graph(&[c("misterdiagram-engine", &[(dep, Normal, false)])]);
             assert!(matches!(v[..], [Violation::UiBelowApps { layer: 5, .. }]), "{dep}");
         }
-        assert!(!check_graph(&[c("diagramcraft-engine", &[("egui_extras", Normal, false)])]).is_empty());
-        assert!(!check_graph(&[c("diagramcraft-mcp", &[("winit", Normal, false)])]).is_empty());
+        assert!(!check_graph(&[c("misterdiagram-engine", &[("egui_extras", Normal, false)])]).is_empty());
+        assert!(!check_graph(&[c("misterdiagram-mcp", &[("winit", Normal, false)])]).is_empty());
     }
 
     #[test]
     fn unregistered_crate_is_error() {
-        let v = check_graph(&[c("diagramcraft-mystery", &[])]);
-        assert!(matches!(&v[..], [Violation::Unregistered { krate }] if krate == "diagramcraft-mystery"));
+        let v = check_graph(&[c("misterdiagram-mystery", &[])]);
+        assert!(matches!(&v[..], [Violation::Unregistered { krate }] if krate == "misterdiagram-mystery"));
         assert!(v[0].to_string().contains("register"));
     }
 
     #[test]
     fn apps_and_xtask_exempt() {
-        for app in ["diagramcraft", "diagramcraft-cli", "diagramcraft-web", "xtask"] {
-            assert!(check_graph(&[c(app, &[("egui", Normal, false), ("diagramcraft-mcp", Normal, true)])]).is_empty());
+        for app in ["misterdiagram", "misterdiagram-cli", "misterdiagram-web", "xtask"] {
+            assert!(check_graph(&[c(app, &[("egui", Normal, false), ("misterdiagram-mcp", Normal, true)])]).is_empty());
         }
     }
 
@@ -357,17 +357,17 @@ mod tests {
     fn metadata_parsing() {
         let meta: Value = serde_json::from_str(
             r#"{"packages":[
-                {"name":"diagramcraft-model","dependencies":[
-                    {"name":"diagramcraft-geom","kind":null,"path":"/x/crates/geom"},
+                {"name":"misterdiagram-model","dependencies":[
+                    {"name":"misterdiagram-geom","kind":null,"path":"/x/crates/geom"},
                     {"name":"serde","kind":null},
                     {"name":"proptest","kind":"dev"}]},
-                {"name":"diagramcraft-geom","dependencies":[]}
+                {"name":"misterdiagram-geom","dependencies":[]}
             ]}"#,
         )
         .unwrap();
         let g = from_metadata(&meta).unwrap();
         assert_eq!(g.len(), 2);
-        let doc = g.iter().find(|c| c.name == "diagramcraft-model").unwrap();
+        let doc = g.iter().find(|c| c.name == "misterdiagram-model").unwrap();
         assert!(doc.deps[0].workspace && !doc.deps[1].workspace);
         assert_eq!(doc.deps[2].kind, Dev);
         assert!(check_graph(&g).is_empty());
@@ -375,7 +375,7 @@ mod tests {
     #[test]
     fn external_path_ui_and_transitive_lock_are_rejected() {
         // Metadata for the seeded L5 manifest dependency: egui = { path = "../x" }.
-        let meta = serde_json::json!({"packages":[{"name":"diagramcraft-engine",
+        let meta = serde_json::json!({"packages":[{"name":"misterdiagram-engine",
             "dependencies":[{"name":"egui","path":"../x","kind":null}]}]});
         let graph = from_metadata(&meta).unwrap();
         assert!(!graph[0].deps[0].workspace);

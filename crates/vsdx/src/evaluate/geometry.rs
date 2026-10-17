@@ -1,6 +1,6 @@
 //! Document binding for the L0 evaluated geometry converter.
 use super::{Error, Evaluator, Scope};
-use diagramcraft_geom::{GeometryFlags, GeometryPath, GeometryRow, Rect, RowKind};
+use misterdiagram_geom::{GeometryFlags, GeometryPath, GeometryRow, Rect, RowKind};
 
 impl Evaluator<'_> {
     /// Resolve inherited rows and formulas before building shape-local paths.
@@ -41,9 +41,9 @@ impl Evaluator<'_> {
                 };
                 rows.push(GeometryRow { kind, x, y, a, b, c, d, data });
             }
-            paths.push(diagramcraft_geom::geometry(&rows, width, height, clip, flags).map_err(|e| match e {
-                diagramcraft_geom::GeometryError::Limit => Error::Limit,
-                diagramcraft_geom::GeometryError::Invalid => Error::Value,
+            paths.push(misterdiagram_geom::geometry(&rows, width, height, clip, flags).map_err(|e| match e {
+                misterdiagram_geom::GeometryError::Limit => Error::Limit,
+                misterdiagram_geom::GeometryError::Invalid => Error::Value,
             })?);
         }
         Ok(paths)

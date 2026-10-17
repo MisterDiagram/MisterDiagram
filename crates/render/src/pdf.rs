@@ -4,7 +4,6 @@
 //! dd404af8b53029e80d1ff9a7ede02619fdc7ab8a, MarekSpodBiedry, MIT OR Apache-2.0.
 //! Scene paths remain vectors and glyphs remain extractable text.
 use crate::scene::{Op, Options, Paint, Scene};
-use diagramcraft_geom::Affine;
 use krilla::{
     geom::{PathBuilder, Point, Size, Transform},
     num::NormalizedF32,
@@ -12,12 +11,13 @@ use krilla::{
     surface::Surface,
     text::{Font, GlyphId, KrillaGlyph, Tag},
 };
+use misterdiagram_geom::Affine;
 use std::collections::HashMap;
 fn tf(a: Affine) -> Transform {
     let [a, b, c, d, e, f] = a.as_coeffs();
     Transform::from_row(a as f32, b as f32, c as f32, d as f32, e as f32, f as f32)
 }
-fn fill(c: diagramcraft_color::Rgba) -> Fill {
+fn fill(c: misterdiagram_color::Rgba) -> Fill {
     Fill {
         paint: krilla::color::rgb::Color::new(c.r, c.g, c.b).into(),
         opacity: NormalizedF32::new(f32::from(c.a) / 255.).unwrap_or(NormalizedF32::ONE),

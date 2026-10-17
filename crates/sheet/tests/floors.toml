@@ -243,16 +243,16 @@ rebased_floor = 0.984780121
 [m3_21_cohorts]
 # Both main COM and sticky text COM floors use these immutable membership pins.
 # The 702 snapshot is fixed; later dumps are ordinary coverage, not a new rebase.
-old_packages_path = "apps/diagramcraft-corpus/tests/cohorts/m3-old-package-paths.txt"
+old_packages_path = "apps/misterdiagram-corpus/tests/cohorts/m3-old-package-paths.txt"
 old_packages_sha256 = "05375146b6ef812251baa5f22a41266dd2d261a43469fc927bf85b71cdf9bc81"
 old_packages_count = 301
-combined_packages_path = "apps/diagramcraft-corpus/tests/cohorts/m3-702-package-paths.txt"
+combined_packages_path = "apps/misterdiagram-corpus/tests/cohorts/m3-702-package-paths.txt"
 combined_packages_sha256 = "401c0377fc272c2d3020ae69240ae7a59f3782d3d7461b965d8701a5647f0e9c"
 combined_packages_count = 702
-old_dumps_path = "apps/diagramcraft-corpus/tests/cohorts/m3-old-dumps.txt"
+old_dumps_path = "apps/misterdiagram-corpus/tests/cohorts/m3-old-dumps.txt"
 old_dumps_sha256 = "1376ced388a0d01baae3208e6a4907181cb61b170c7e96afc4dfde20db6cf3f0"
 old_dumps_count = 514
-combined_dumps_path = "apps/diagramcraft-corpus/tests/cohorts/m3-702-dumps.txt"
+combined_dumps_path = "apps/misterdiagram-corpus/tests/cohorts/m3-702-dumps.txt"
 combined_dumps_sha256 = "234b1e706bfee698ae66021f6a1f692b3ad6f5741e371dc2fa6410f2d61590ee"
 combined_dumps_count = 915
 
@@ -277,11 +277,11 @@ achieved = 0.986090901
 
 [m3_27_gate_population]
 authorization = "Charles, P3-closure-3 M3.27, 2026-10-14"
-dumps_path = "apps/diagramcraft-corpus/tests/cohorts/m3-872-dumps.txt"
+dumps_path = "apps/misterdiagram-corpus/tests/cohorts/m3-872-dumps.txt"
 dumps_sha256 = "c6e799b605821b38e35a3c3ad372af75344738364c4d23904736e6da4a390ff7"
 dumps_count = 1085
 shipped_count = 872
-packages_path = "apps/diagramcraft-corpus/tests/cohorts/m3-872-package-paths.txt"
+packages_path = "apps/misterdiagram-corpus/tests/cohorts/m3-872-package-paths.txt"
 packages_sha256 = "3fe68431102e8e8f46b154bafb7bac0d5c9e38cb872c325c114aa45c72a1a2b3"
 old_main_passed = 44046421
 old_main_eligible = 44727163
@@ -306,9 +306,9 @@ combined_text_rate = 0.924140392623
 # Charles, P3-closure-5: final coverage rebase after the pinned872 rates pass.
 # Main and sticky text share exactly this population. No later implicit rebase.
 authorization = "P3-closure-5 M3.36, 2026-10-14"
-dumps_path = "apps/diagramcraft-corpus/tests/cohorts/m3-1181-dumps.txt"
+dumps_path = "apps/misterdiagram-corpus/tests/cohorts/m3-1181-dumps.txt"
 dumps_sha256 = "d571c4e903ea24a08ed1b2190d6984f8aed0add91977b08e9429b360b0a75b44"
-packages_path = "apps/diagramcraft-corpus/tests/cohorts/m3-1181-package-paths.txt"
+packages_path = "apps/misterdiagram-corpus/tests/cohorts/m3-1181-package-paths.txt"
 packages_sha256 = "0370d8758e00ca1573c70d909e504bbade52acce674418f466a9b5d375f77a4a"
 dumps_count = 1394
 shipped_count = 1181

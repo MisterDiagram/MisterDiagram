@@ -7,22 +7,23 @@ version = "0.0.1"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 rust-version = "1.90"
+repository = "https://github.com/MisterDiagram/MisterDiagram"
 
 [workspace.dependencies]
-diagramcraft-geom = { path = "crates/geom" }
-diagramcraft-color = { path = "crates/color" }
-diagramcraft-opc = { path = "crates/opc" }
-diagramcraft-sheet = { path = "crates/sheet" }
-diagramcraft-model = { path = "crates/model" }
-diagramcraft-fonts = { path = "crates/fonts" }
-diagramcraft-text = { path = "crates/text" }
-diagramcraft-theme = { path = "crates/theme" }
-diagramcraft-vsdx = { path = "crates/vsdx" }
-diagramcraft-route = { path = "crates/route" }
-diagramcraft-render = { path = "crates/render" }
-diagramcraft-export = { path = "crates/export" }
-diagramcraft-engine = { path = "crates/engine" }
-diagramcraft-mcp = { path = "crates/mcp" }
+misterdiagram-geom = { path = "crates/geom" }
+misterdiagram-color = { path = "crates/color" }
+misterdiagram-opc = { path = "crates/opc" }
+misterdiagram-sheet = { path = "crates/sheet" }
+misterdiagram-model = { path = "crates/model" }
+misterdiagram-fonts = { path = "crates/fonts" }
+misterdiagram-text = { path = "crates/text" }
+misterdiagram-theme = { path = "crates/theme" }
+misterdiagram-vsdx = { path = "crates/vsdx" }
+misterdiagram-route = { path = "crates/route" }
+misterdiagram-render = { path = "crates/render" }
+misterdiagram-export = { path = "crates/export" }
+misterdiagram-engine = { path = "crates/engine" }
+misterdiagram-mcp = { path = "crates/mcp" }
 
 # foundation
 kurbo = { version = "0.13", features = ["serde"] }

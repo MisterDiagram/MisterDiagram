@@ -1,6 +1,6 @@
 //! Geometry witnesses stay in the private corpus, never copied into this repository.
-use diagramcraft_geom::{GeometryFlags, GeometryRow, Rect, RowKind};
-use diagramcraft_model::Shape;
+use misterdiagram_geom::{GeometryFlags, GeometryRow, Rect, RowKind};
+use misterdiagram_model::Shape;
 use std::{collections::BTreeSet, path::Path};
 
 #[test]
@@ -12,7 +12,7 @@ fn every_geometry_row_has_a_real_corpus_witness() {
     }
     let mut found = BTreeSet::new();
     for file in ["MATRIXDOT_U.vssx", "BLDCOR_M.vssx", "AZUREMENU2_U.vssx", "IDEF0_M.vssx", "HIERARCHICALORGCHART_U.vstx"] {
-        let document = diagramcraft_vsdx::import(&std::fs::read(root.join(file)).unwrap()).unwrap();
+        let document = misterdiagram_vsdx::import(&std::fs::read(root.join(file)).unwrap()).unwrap();
         let mut shapes: Vec<&Shape> = document.masters.iter().flat_map(|m| &m.shapes).chain(document.pages.iter().flat_map(|p| &p.shapes)).collect();
         while let Some(shape) = shapes.pop() {
             shapes.extend(&shape.shapes);
@@ -58,9 +58,13 @@ fn every_geometry_row_has_a_real_corpus_witness() {
                 }
                 // Only complete, valid local sections constitute a witness. Inherited
                 // partial sections are covered by the separate evaluator test below.
-                if let Ok(path) =
-                    diagramcraft_geom::geometry(&rows, num("Width"), num("Height"), Rect::new(-1000., -1000., 1000., 1000.), GeometryFlags::default())
-                {
+                if let Ok(path) = misterdiagram_geom::geometry(
+                    &rows,
+                    num("Width"),
+                    num("Height"),
+                    Rect::new(-1000., -1000., 1000., 1000.),
+                    GeometryFlags::default(),
+                ) {
                     assert!(!path.path.elements().is_empty(), "{file} shape{}", shape.id);
                     found.extend(kinds);
                 }
@@ -89,13 +93,13 @@ fn every_geometry_row_has_a_real_corpus_witness() {
 }
 #[test]
 fn evaluated_master_and_group_paths_use_inherited_rows() {
-    use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+    use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus/generated");
     if !Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus").exists() {
         eprintln!("local corpus absent: geometry witnesses skipped");
         return;
     }
-    let d = diagramcraft_vsdx::import(&std::fs::read(root.join("master/basic-rect.vsdx")).unwrap()).unwrap();
+    let d = misterdiagram_vsdx::import(&std::fs::read(root.join("master/basic-rect.vsdx")).unwrap()).unwrap();
     let mut e = Evaluator::new(&d).unwrap();
     let scope = Scope::PageShape { page: 0, shape: 1 };
     let paths = e.geometry_paths(scope, Rect::new(0., 0., 100., 100.)).unwrap();

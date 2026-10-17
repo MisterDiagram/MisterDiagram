@@ -1,7 +1,7 @@
 //! Host diagnostics for export bounds and pixel profiles, without changing oracle files.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
-use diagramcraft_render::{raster, scene};
 use kurbo::Shape as _;
+use misterdiagram_render::{raster, scene};
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<_> = std::env::args().skip(1).collect();
     let mut files = vec![];
@@ -23,7 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     files.sort();
     for file in files {
-        let doc = diagramcraft_vsdx::read(&file)?;
+        let doc = misterdiagram_vsdx::read(&file)?;
         let s = scene::page(&doc, 0, scene::Options::default())?;
         let expected = raster::decode(&std::fs::read(file.with_extension("png"))?)?;
         println!(

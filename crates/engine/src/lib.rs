@@ -16,7 +16,7 @@ mod shapes;
 mod sheet;
 mod stencils;
 pub use cmd::{command_specs, find_command};
-use diagramcraft_model::{Document, ShapeId};
+use misterdiagram_model::{Document, ShapeId};
 use serde_json::Value;
 use std::{collections::VecDeque, path::PathBuf, sync::Arc};
 
@@ -181,16 +181,17 @@ impl Session {
                     && let Some(mut part) = self.document.parts.get("docProps/app.xml").cloned()
                     && let Some(app) = &mut part.xml
                 {
-                    diagramcraft_model::skeleton::update_summary(&self.document, app).map_err(operation)?;
+                    misterdiagram_model::skeleton::update_summary(&self.document, app).map_err(operation)?;
                     part.bytes.clear();
                     Arc::make_mut(&mut self.document).parts.insert("docProps/app.xml".into(), part);
                 }
-                let mut glue = diagramcraft_route::GlueHost::prepare(&before.document, Arc::make_mut(&mut self.document)).map_err(operation)?;
-                diagramcraft_route::reroute(&before.document, Arc::make_mut(&mut self.document), &mut glue, None).map_err(operation)?;
-                let theme = diagramcraft_theme::Themes::from_document(&self.document).map_err(operation)?;
-                let written = diagramcraft_vsdx::write_with_glue_host(&self.document, Some(&theme), Some(&diagramcraft_text::Host), Some(&mut glue))
-                    .map_err(operation)?;
-                self.document = Arc::new(diagramcraft_vsdx::import_with_open_nodes(&written.bytes, self.retained_xml_nodes()).map_err(operation)?);
+                let mut glue = misterdiagram_route::GlueHost::prepare(&before.document, Arc::make_mut(&mut self.document)).map_err(operation)?;
+                misterdiagram_route::reroute(&before.document, Arc::make_mut(&mut self.document), &mut glue, None).map_err(operation)?;
+                let theme = misterdiagram_theme::Themes::from_document(&self.document).map_err(operation)?;
+                let written =
+                    misterdiagram_vsdx::write_with_glue_host(&self.document, Some(&theme), Some(&misterdiagram_text::Host), Some(&mut glue))
+                        .map_err(operation)?;
+                self.document = Arc::new(misterdiagram_vsdx::import_with_open_nodes(&written.bytes, self.retained_xml_nodes()).map_err(operation)?);
                 files::update_palette(Arc::make_mut(&mut self.document))?;
                 self.dirty = false;
             }

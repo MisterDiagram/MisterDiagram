@@ -1,7 +1,7 @@
-//! Headless Diagramcraft command line.
+//! Headless MisterDiagram command line.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 mod author;
-use diagramcraft_opc::{MAX_TOTAL, Package};
+use misterdiagram_opc::{MAX_TOTAL, Package};
 use std::io::{Read, Write};
 use std::path::Path;
 use std::process::ExitCode;
@@ -32,7 +32,7 @@ fn info(path: &Path, out: &mut impl Write) -> Result<(), String> {
     Ok(())
 }
 fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
-    use diagramcraft_render::{contact, pdf, raster, scene, svg};
+    use misterdiagram_render::{contact, pdf, raster, scene, svg};
     let mut positional = Vec::new();
     let mut page = None;
     let mut options = scene::Options::default();
@@ -58,7 +58,7 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
     let [input, output] = positional.as_slice() else {
         return Err("usage: render FILE [--page N] [--scale S] OUT.{png,svg,pdf}; render --masters STENCIL OUT.png".into());
     };
-    let doc = diagramcraft_vsdx::read(Path::new(input)).map_err(|e| e.to_string())?;
+    let doc = misterdiagram_vsdx::read(Path::new(input)).map_err(|e| e.to_string())?;
     let path = Path::new(output);
     let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("").to_ascii_lowercase();
     if let Some(parent) = path.parent().filter(|p| !p.as_os_str().is_empty()) {
@@ -118,7 +118,7 @@ fn execute(args: &[std::ffi::OsString], out: &mut impl Write) -> Result<(), Stri
     match args.first().and_then(|a| a.to_str()) {
         Some("info") if args.len() == 2 => info(Path::new(args.get(1).ok_or("missing file")?), out),
         Some("sheet") if matches!(args.len(), 2..=4) => {
-            use diagramcraft_vsdx::dump::Selection;
+            use misterdiagram_vsdx::dump::Selection;
             let selection = match args.get(2).and_then(|a| a.to_str()) {
                 None if args.len() == 2 => Selection::All,
                 Some("--document") if args.len() == 3 => Selection::Document,
@@ -137,12 +137,12 @@ fn execute(args: &[std::ffi::OsString], out: &mut impl Write) -> Result<(), Stri
                 }
                 _ => return Err("usage: sheet FILE [--shape N | --page N | --master N | --document]".into()),
             };
-            let doc = diagramcraft_vsdx::read(Path::new(args.get(1).ok_or("missing file")?)).map_err(|e| e.to_string())?;
-            let themes = diagramcraft_theme::Themes::from_document(&doc).map_err(|e| e.to_string())?;
-            diagramcraft_vsdx::dump::dump_with_hosts(&doc, selection, Some(&themes), Some(&diagramcraft_text::Host), out)
+            let doc = misterdiagram_vsdx::read(Path::new(args.get(1).ok_or("missing file")?)).map_err(|e| e.to_string())?;
+            let themes = misterdiagram_theme::Themes::from_document(&doc).map_err(|e| e.to_string())?;
+            misterdiagram_vsdx::dump::dump_with_hosts(&doc, selection, Some(&themes), Some(&misterdiagram_text::Host), out)
         }
         Some("corpus") if args.get(1).and_then(|a| a.to_str()) == Some("check") && args.len() == 2 => {
-            let report = diagramcraft_corpus::run(Path::new("corpus"), false)?;
+            let report = misterdiagram_corpus::run(Path::new("corpus"), false)?;
             writeln!(out, "{report}").map_err(|e| e.to_string())?;
             if report.passed() { Ok(()) } else { Err("corpus oracle gates failed".into()) }
         }
@@ -152,7 +152,7 @@ fn execute(args: &[std::ffi::OsString], out: &mut impl Write) -> Result<(), Stri
         Some("run") => author::run(args, out),
         Some("convert") => author::convert(args, out),
         Some("mcp") => Err("not implemented in Phase 1".into()),
-        _ => Err("usage: diagramcraft-cli <info FILE|sheet FILE|corpus check|render|convert|run|commands|describe|mcp>".into()),
+        _ => Err("usage: misterdiagram <info FILE|sheet FILE|corpus check|render|convert|run|commands|describe|mcp>".into()),
     }
 }
 fn main() -> ExitCode {

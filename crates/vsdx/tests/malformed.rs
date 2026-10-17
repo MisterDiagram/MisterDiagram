@@ -1,7 +1,7 @@
 //! Hostile input: retargeted from deckcraft crates/pptx/tests/malformed.rs, MIT OR Apache-2.0.
 //! Every local corpus package participates in deterministic XML and ZIP mutations.
 #![allow(clippy::unwrap_used, clippy::expect_used)]
-use diagramcraft_vsdx::import;
+use misterdiagram_vsdx::import;
 use std::{
     io::{Cursor, Read, Write},
     path::{Path, PathBuf},
@@ -54,7 +54,7 @@ fn corpus() -> Vec<PathBuf> {
 }
 fn exercise(bytes: &[u8]) {
     if let Ok(doc) = import(bytes)
-        && let Ok(written) = diagramcraft_vsdx::write(&doc)
+        && let Ok(written) = misterdiagram_vsdx::write(&doc)
     {
         import(&written.bytes).expect("writer output must re-read");
     }
@@ -92,7 +92,7 @@ fn all_corpus_parses_and_seeded_mutations_never_panic() {
     for file in &files {
         let bytes = std::fs::read(file).expect("read");
         let doc = import(&bytes).unwrap_or_else(|e| panic!("{}: {e}", file.display()));
-        let written = diagramcraft_vsdx::write(&doc).unwrap_or_else(|e| panic!("{}: {e}", file.display()));
+        let written = misterdiagram_vsdx::write(&doc).unwrap_or_else(|e| panic!("{}: {e}", file.display()));
         import(&written.bytes).unwrap_or_else(|e| panic!("written {}: {e}", file.display()));
         for cut in [bytes.len() / 2, bytes.len().saturating_sub(1)] {
             exercise(&bytes[..cut]);
@@ -138,8 +138,8 @@ fn hostile_xml_in_known_part() {
         format!("<VisioDocument xmlns='{ns}'><DocumentSheet><Section N='Geometry' IX='999999999999999999999'/></DocumentSheet></VisioDocument>"),
         format!("<VisioDocument xmlns='{ns}'>{}</VisioDocument>", "<a>".repeat(300)),
     ] {
-        let mut p = diagramcraft_opc::PackageOut::default();
-        let mut r = diagramcraft_opc::RelsOut::default();
+        let mut p = misterdiagram_opc::PackageOut::default();
+        let mut r = misterdiagram_opc::RelsOut::default();
         r.add("http://schemas.microsoft.com/visio/2010/relationships/document", "visio/document.xml", false);
         p.rels("", &r);
         p.xml_part("visio/document.xml", "application/vnd.ms-visio.drawing.main+xml", xml.into_bytes());

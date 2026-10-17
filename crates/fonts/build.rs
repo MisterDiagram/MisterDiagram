@@ -4,7 +4,7 @@
 use std::fmt::Write as _;
 use std::path::PathBuf;
 
-/// Families Diagramcraft never embeds (AGENTS.md §1: no Adobe-authored visual design).
+/// Families MisterDiagram never embeds (AGENTS.md §1: no Adobe-authored visual design).
 const EXCLUDED_FAMILIES: &[&str] = &["Source Sans 3", "Source Serif 4", "Source Han Sans", "Source Han Serif", "Noto Sans CJK SC"];
 
 fn main() {
@@ -13,7 +13,7 @@ fn main() {
     let local = PathBuf::from(std::env::var_os("CARGO_MANIFEST_DIR").unwrap_or_default()).join("assets");
     let fallback = local.join("carlito/Carlito-Regular.ttf");
     println!("cargo::rerun-if-changed={}", fallback.display());
-    println!("cargo::rustc-env=DIAGRAMCRAFT_FALLBACK_FONT={}", fallback.display());
+    println!("cargo::rustc-env=MISTERDIAGRAM_FALLBACK_FONT={}", fallback.display());
     let mut src = String::from("pub static CRAFT_FONTS: &[CraftFont] = &[\n");
     for (dir, family) in [("carlito", "Carlito"), ("caladea", "Caladea"), ("tinos", "Tinos"), ("cousine", "Cousine")] {
         for (suffix, style) in [("Regular", "Regular"), ("Bold", "Bold"), ("Italic", "Italic"), ("BoldItalic", "Bold Italic")] {
@@ -66,7 +66,7 @@ fn manifest(dir: &std::path::Path, manifest: &std::path::Path) -> Result<String,
         let [family, style, file, scripts, ..] = f.as_slice() else {
             return Err(format!("malformed manifest line: {line}"));
         };
-        // Diagramcraft's asset policy: no Adobe-authored typefaces, even openly licensed ones.
+        // MisterDiagram's asset policy: no Adobe-authored typefaces, even openly licensed ones.
         if EXCLUDED_FAMILIES.contains(family) {
             continue;
         }

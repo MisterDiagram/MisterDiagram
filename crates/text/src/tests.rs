@@ -1,5 +1,5 @@
 use super::*;
-use diagramcraft_model::text::{Paragraph, Run, TextHost};
+use misterdiagram_model::text::{Paragraph, Run, TextHost};
 #[test]
 fn finite_wrapping_bidi_and_autofit() {
     if FontDb::global().face("Calibri", "Regular").data().is_empty() {
@@ -42,7 +42,7 @@ fn report_default_font_substitutes() {
 
 #[test]
 fn visio_font_percentage_empty_line_and_aligned_tabs() {
-    use diagramcraft_model::text::TabStop;
+    use misterdiagram_model::text::TabStop;
     let mut body = TextBody {
         body: BodyProps {
             inset_l: Some(0.),

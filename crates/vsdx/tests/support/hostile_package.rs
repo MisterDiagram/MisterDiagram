@@ -39,7 +39,7 @@ pub fn peak(test: &str, mode: &str) -> u64 {
         .arg("-l")
         .arg(std::env::current_exe().unwrap())
         .args(["--exact", test, "--nocapture"])
-        .env("DIAGRAMCRAFT_READER_MEMORY_CHILD", mode)
+        .env("MISTERDIAGRAM_READER_MEMORY_CHILD", mode)
         .output()
         .unwrap();
     let stderr = String::from_utf8(output.stderr).unwrap();

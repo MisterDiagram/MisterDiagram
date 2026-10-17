@@ -1,12 +1,12 @@
 //! P3 round-trip cells and original-versus-rewritten rendering. Oracle inputs are read-only.
 use crate::render::{FileResult, Group};
-use diagramcraft_render::scene::{self, Options};
-use diagramcraft_vsdx::evaluate::Evaluator;
+use misterdiagram_render::scene::{self, Options};
+use misterdiagram_vsdx::evaluate::Evaluator;
 use std::{collections::BTreeMap, fmt, path::Path};
 #[derive(Debug, Default)]
 pub struct Report {
     pub packages: usize,
-    pub cells: diagramcraft_vsdx::roundtrip::Report,
+    pub cells: misterdiagram_vsdx::roundtrip::Report,
     pub groups: BTreeMap<String, Group>,
     pub equal_errors: BTreeMap<String, usize>,
     pub equal_error_witnesses: BTreeMap<String, Vec<String>>,
@@ -42,7 +42,7 @@ impl fmt::Display for Report {
             self.cells.matched,
             self.cells.total,
             self.cells.percent(),
-            diagramcraft_vsdx::roundtrip::FLOOR,
+            misterdiagram_vsdx::roundtrip::FLOOR,
             self.error_count,
             self.writer_warnings,
             self.scene_warnings
@@ -157,7 +157,7 @@ fn image_pair(report: &mut Report, before: &mut Evaluator<'_>, after: &mut Evalu
             return Err(format!("viewport origin changed: {:?} versus {:?}", a.bounds, b.bounds));
         }
         b.bounds = a.bounds;
-        let (a, b) = pair!(diagramcraft_render::raster::render(&a, options), diagramcraft_render::raster::render(&b, options), "raster");
+        let (a, b) = pair!(misterdiagram_render::raster::render(&a, options), misterdiagram_render::raster::render(&b, options), "raster");
         result.expected = a.dimensions();
         result.actual = Some(b.dimensions());
         let (mad, fraction) = crate::render::compare(&a, &b)?;
@@ -196,18 +196,18 @@ pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
         }
         let name = file.strip_prefix(root).unwrap_or(&file).display().to_string();
         let result = (|| -> Result<(), String> {
-            let before = diagramcraft_vsdx::read(&file).map_err(|e| e.to_string())?;
-            let theme = diagramcraft_theme::Themes::from_document(&before).map_err(|e| e.to_string())?;
-            let written = diagramcraft_vsdx::write_with_hosts(&before, Some(&theme), Some(&diagramcraft_text::Host)).map_err(|e| e.to_string())?;
+            let before = misterdiagram_vsdx::read(&file).map_err(|e| e.to_string())?;
+            let theme = misterdiagram_theme::Themes::from_document(&before).map_err(|e| e.to_string())?;
+            let written = misterdiagram_vsdx::write_with_hosts(&before, Some(&theme), Some(&misterdiagram_text::Host)).map_err(|e| e.to_string())?;
             report.writer_warnings += written.warning_count;
-            let after = diagramcraft_vsdx::import(&written.bytes).map_err(|e| e.to_string())?;
-            let after_theme = diagramcraft_theme::Themes::from_document(&after).map_err(|e| e.to_string())?;
-            report.cells.merge(diagramcraft_vsdx::roundtrip::compare(
+            let after = misterdiagram_vsdx::import(&written.bytes).map_err(|e| e.to_string())?;
+            let after_theme = misterdiagram_theme::Themes::from_document(&after).map_err(|e| e.to_string())?;
+            report.cells.merge(misterdiagram_vsdx::roundtrip::compare(
                 &before,
                 &after,
                 Some(&theme),
                 Some(&after_theme),
-                Some(&diagramcraft_text::Host),
+                Some(&misterdiagram_text::Host),
             )?);
             if before.pages.len() != after.pages.len() || before.masters.len() != after.masters.len() {
                 return Err("page/master count changed".into());
@@ -220,9 +220,9 @@ pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
                 "shipped-pages"
             };
             let mut before_eval =
-                Evaluator::new(&before).map_err(|e| e.to_string())?.with_theme_host(&theme).with_text_host(&diagramcraft_text::Host);
+                Evaluator::new(&before).map_err(|e| e.to_string())?.with_theme_host(&theme).with_text_host(&misterdiagram_text::Host);
             let mut after_eval =
-                Evaluator::new(&after).map_err(|e| e.to_string())?.with_theme_host(&after_theme).with_text_host(&diagramcraft_text::Host);
+                Evaluator::new(&after).map_err(|e| e.to_string())?.with_theme_host(&after_theme).with_text_host(&misterdiagram_text::Host);
             for (i, page) in before.pages.iter().enumerate() {
                 if !page.part.is_empty() {
                     image_pair(&mut report, &mut before_eval, &mut after_eval, &name, group, i, false);
@@ -245,23 +245,23 @@ mod tests {
     use super::*;
     fn image_pair(
         report: &mut Report,
-        before: &diagramcraft_model::Document,
-        after: &diagramcraft_model::Document,
+        before: &misterdiagram_model::Document,
+        after: &misterdiagram_model::Document,
         name: &str,
         group: &str,
         index: usize,
         master: bool,
     ) {
-        let a = diagramcraft_theme::Themes::from_document(before).unwrap();
-        let b = diagramcraft_theme::Themes::from_document(after).unwrap();
-        let mut ea = Evaluator::new(before).unwrap().with_theme_host(&a).with_text_host(&diagramcraft_text::Host);
-        let mut eb = Evaluator::new(after).unwrap().with_theme_host(&b).with_text_host(&diagramcraft_text::Host);
+        let a = misterdiagram_theme::Themes::from_document(before).unwrap();
+        let b = misterdiagram_theme::Themes::from_document(after).unwrap();
+        let mut ea = Evaluator::new(before).unwrap().with_theme_host(&a).with_text_host(&misterdiagram_text::Host);
+        let mut eb = Evaluator::new(after).unwrap().with_theme_host(&b).with_text_host(&misterdiagram_text::Host);
         super::image_pair(report, &mut ea, &mut eb, name, group, index, master);
     }
     #[test]
     fn rewritten_geometry_changes_are_visible_to_the_render_gate() {
-        let mut before = diagramcraft_model::skeleton::document(false);
-        before.pages[0].shapes.push(diagramcraft_model::skeleton::rectangle(1, 1., 1., 2., 1., "").unwrap());
+        let mut before = misterdiagram_model::skeleton::document(false);
+        before.pages[0].shapes.push(misterdiagram_model::skeleton::rectangle(1, 1., 1., 2., 1., "").unwrap());
         let mut after = before.clone();
         after.pages[0].shapes[0].sheet.cells.iter_mut().find(|c| c.name == "Width").unwrap().value = Some("4".into());
         let mut r = Report::default();
@@ -282,8 +282,8 @@ mod tests {
     }
     #[test]
     fn identical_errors_are_equal_but_one_sided_or_changed_errors_fail() {
-        let mut good = diagramcraft_model::skeleton::document(false);
-        good.pages[0].shapes.push(diagramcraft_model::skeleton::rectangle(1, 1., 1., 2., 1., "").unwrap());
+        let mut good = misterdiagram_model::skeleton::document(false);
+        good.pages[0].shapes.push(misterdiagram_model::skeleton::rectangle(1, 1., 1., 2., 1., "").unwrap());
         let mut bad = good.clone();
         bad.pages[0].shapes[0].sheet.cells.iter_mut().find(|c| c.name == "PinX").unwrap().formula = Some("SQRT(-1)".into());
         let mut different = good.clone();

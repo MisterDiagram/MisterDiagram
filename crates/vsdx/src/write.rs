@@ -1,7 +1,7 @@
 //! Model-driven Visio OPC writing, preserving opaque part payloads byte-for-byte.
 //! https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
 use crate::evaluate::{Evaluator, Scope};
-use diagramcraft_model::*;
+use misterdiagram_model::*;
 use std::{
     collections::{BTreeMap, BTreeSet},
     io::{Cursor, Write},
@@ -36,8 +36,8 @@ pub fn write(doc: &Document) -> Result<Written, WriteError> {
 }
 pub fn write_with_hosts(
     doc: &Document,
-    theme: Option<&dyn diagramcraft_sheet::host::ThemeHost>,
-    text: Option<&dyn diagramcraft_model::text::TextHost>,
+    theme: Option<&dyn misterdiagram_sheet::host::ThemeHost>,
+    text: Option<&dyn misterdiagram_model::text::TextHost>,
 ) -> Result<Written, WriteError> {
     write_with_glue_host(doc, theme, text, None)
 }
@@ -45,9 +45,9 @@ pub fn write_with_hosts(
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/begtrigger-cell-glue-info-section
 pub fn write_with_glue_host<'a>(
     doc: &'a Document,
-    theme: Option<&'a dyn diagramcraft_sheet::host::ThemeHost>,
-    text: Option<&'a dyn diagramcraft_model::text::TextHost>,
-    glue: Option<&'a mut dyn diagramcraft_sheet::HostHooks>,
+    theme: Option<&'a dyn misterdiagram_sheet::host::ThemeHost>,
+    text: Option<&'a dyn misterdiagram_model::text::TextHost>,
+    glue: Option<&'a mut dyn misterdiagram_sheet::HostHooks>,
 ) -> Result<Written, WriteError> {
     validate::document(doc)?;
     let mut evaluator = Evaluator::new(doc).map_err(|e| error(e.to_string()))?.with_internal_cache_units();
@@ -66,7 +66,7 @@ pub fn write_with_glue_host<'a>(
     if let Some(p) = parts.get_mut("docProps/app.xml").filter(|p| p.bytes.is_empty())
         && let Some(app) = &mut p.xml
     {
-        diagramcraft_model::skeleton::update_summary(doc, app).map_err(error)?;
+        misterdiagram_model::skeleton::update_summary(doc, app).map_err(error)?;
     }
     let mut main = source(doc, &doc.main_part).cloned().unwrap_or_else(|| node("VisioDocument"));
     replace(&mut main, "DocumentSettings", doc.document_settings.clone().into_iter().collect());
@@ -128,7 +128,7 @@ pub fn write_with_glue_host<'a>(
         relations.retain(|r| !removed.iter().any(|(id, _)| id == &r.id));
         for (_, path) in removed {
             parts.remove(&path);
-            parts.remove(&diagramcraft_opc::rels_path(&path));
+            parts.remove(&misterdiagram_opc::rels_path(&path));
         }
         let mut children = vec![];
         for (i, p) in doc.pages.iter().enumerate() {
@@ -155,7 +155,7 @@ pub fn write_with_glue_host<'a>(
         replace(&mut root, "Page", children);
         put(&mut parts, &pages_path, root, "application/vnd.ms-visio.pages+xml");
         if relations.is_empty() {
-            parts.remove(&diagramcraft_opc::rels_path(&pages_path));
+            parts.remove(&misterdiagram_opc::rels_path(&pages_path));
         }
         if let Some(p) = parts.get_mut(&pages_path) {
             p.relationships = relations;
@@ -325,10 +325,10 @@ fn relationships(path: &str, rels: &[Relationship]) -> Result<Vec<u8>, WriteErro
     }
     for r in ordered {
         let mut x = XmlElement { name: "Relationship".into(), namespace: crate::REL_NS.into(), ..Default::default() };
-        x.attributes = diagramcraft_model::Attributes::from([
+        x.attributes = misterdiagram_model::Attributes::from([
             ("Id".into(), r.id.clone()),
             ("Type".into(), r.type_uri.clone()),
-            ("Target".into(), if r.external { r.target.clone() } else { diagramcraft_opc::relative(path, &r.target) }),
+            ("Target".into(), if r.external { r.target.clone() } else { misterdiagram_opc::relative(path, &r.target) }),
         ]);
         if r.external {
             x.attributes.insert("TargetMode".into(), "External".into());
@@ -342,7 +342,7 @@ fn relationships(path: &str, rels: &[Relationship]) -> Result<Vec<u8>, WriteErro
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
 fn relationship_bytes(parts: &BTreeMap<String, Part>, path: &str, rels: &[Relationship]) -> Result<Vec<u8>, WriteError> {
     if source_relationships(parts, path)?.as_deref() == Some(rels)
-        && let Some(p) = parts.get(&diagramcraft_opc::rels_path(path))
+        && let Some(p) = parts.get(&misterdiagram_opc::rels_path(path))
     {
         return Ok(p.bytes.clone());
     }
@@ -352,7 +352,7 @@ fn relationship_bytes(parts: &BTreeMap<String, Part>, path: &str, rels: &[Relati
 /// Observed: AZURECOMPUTE_M.vssx root thumbnail relationship and its Visio save.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
 fn source_relationships(parts: &BTreeMap<String, Part>, path: &str) -> Result<Option<Vec<Relationship>>, WriteError> {
-    let Some(p) = parts.get(&diagramcraft_opc::rels_path(path)).filter(|p| !p.bytes.is_empty()) else {
+    let Some(p) = parts.get(&misterdiagram_opc::rels_path(path)).filter(|p| !p.bytes.is_empty()) else {
         return Ok(None);
     };
     let root = crate::parse_xml(&p.bytes).map_err(|e| error(e.to_string()))?;
@@ -368,7 +368,7 @@ fn source_relationships(parts: &BTreeMap<String, Part>, path: &str) -> Result<Op
             Ok(Relationship {
                 id: e.attr("Id").ok_or_else(|| error("source relationship ID missing"))?.into(),
                 type_uri: e.attr("Type").ok_or_else(|| error("source relationship type missing"))?.into(),
-                target: if external { target.into() } else { diagramcraft_opc::resolve(&diagramcraft_opc::dir_of(path), target) },
+                target: if external { target.into() } else { misterdiagram_opc::resolve(&misterdiagram_opc::dir_of(path), target) },
                 external,
             })
         })
@@ -403,12 +403,12 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
         } else {
             p.bytes.clone()
         };
-        if bytes.len() as u64 > diagramcraft_opc::MAX_PART {
+        if bytes.len() as u64 > misterdiagram_opc::MAX_PART {
             return Err(error("written part byte limit"));
         }
         types.insert(name.clone(), p.content_type.clone().ok_or_else(|| error(format!("missing content type {name}")))?);
         add_file(&mut files, &mut output_bytes, name.clone(), bytes)?;
-        let rel_path = diagramcraft_opc::rels_path(name);
+        let rel_path = misterdiagram_opc::rels_path(name);
         if !p.relationships.is_empty() || parts.contains_key(&rel_path) {
             add_file(&mut files, &mut output_bytes, rel_path, relationship_bytes(&parts, name, &p.relationships)?)?;
         }
@@ -452,7 +452,7 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
         ct.children.push(XmlNode::Element(XmlElement {
             name: "Default".into(),
             namespace: ns.into(),
-            attributes: diagramcraft_model::Attributes::from([
+            attributes: misterdiagram_model::Attributes::from([
                 ("Extension".into(), "rels".into()),
                 ("ContentType".into(), "application/vnd.openxmlformats-package.relationships+xml".into()),
             ]),
@@ -463,7 +463,7 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
         ct.children.push(XmlNode::Element(XmlElement {
             name: "Default".into(),
             namespace: ns.into(),
-            attributes: diagramcraft_model::Attributes::from([("Extension".into(), "xml".into()), ("ContentType".into(), "application/xml".into())]),
+            attributes: misterdiagram_model::Attributes::from([("Extension".into(), "xml".into()), ("ContentType".into(), "application/xml".into())]),
             ..Default::default()
         }));
     }
@@ -498,7 +498,7 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
         ct.children.push(XmlNode::Element(XmlElement {
             name: "Override".into(),
             namespace: ns.into(),
-            attributes: diagramcraft_model::Attributes::from([("PartName".into(), format!("/{name}")), ("ContentType".into(), ty)]),
+            attributes: misterdiagram_model::Attributes::from([("PartName".into(), format!("/{name}")), ("ContentType".into(), ty)]),
             ..Default::default()
         }));
     }
@@ -508,11 +508,11 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
         xml::tree(&ct)?
     };
     add_file(&mut files, &mut output_bytes, "[Content_Types].xml".into(), ct_bytes)?;
-    if files.len() > diagramcraft_opc::MAX_ENTRIES {
+    if files.len() > misterdiagram_opc::MAX_ENTRIES {
         return Err(error("written entry limit"));
     }
     let total = files.values().try_fold(0usize, |n, b| n.checked_add(b.len()).ok_or_else(|| error("written byte overflow")))?;
-    if total as u64 > diagramcraft_opc::MAX_TOTAL {
+    if total as u64 > misterdiagram_opc::MAX_TOTAL {
         return Err(error("written package byte limit"));
     }
     let mut zip = zip::ZipWriter::new(Cursor::new(Vec::new()));
@@ -530,7 +530,7 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
 
 fn add_file(files: &mut BTreeMap<String, Vec<u8>>, total: &mut usize, name: String, bytes: Vec<u8>) -> Result<(), WriteError> {
     let next = total.checked_add(bytes.len()).ok_or_else(|| error("written byte overflow"))?;
-    if next as u64 > diagramcraft_opc::MAX_TOTAL {
+    if next as u64 > misterdiagram_opc::MAX_TOTAL {
         return Err(error("written package byte limit"));
     }
     if files.contains_key(&name) {
@@ -580,7 +580,7 @@ fn page_background_link(parts: &mut BTreeMap<String, Part>, path: &str, page: &P
         link(&mut p.relationships, "page", &target)?;
     }
     if p.relationships.is_empty() {
-        parts.remove(&diagramcraft_opc::rels_path(path));
+        parts.remove(&misterdiagram_opc::rels_path(path));
     }
     Ok(())
 }

@@ -1,8 +1,8 @@
 //! Grouping and arrangement preserve local coordinates in their common parent.
 use crate::{Result, Session, edit::*, operation};
-use diagramcraft_geom::{Affine, Point, Rect};
-use diagramcraft_model::{Shape, ShapeId, Sheet};
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_geom::{Affine, Point, Rect};
+use misterdiagram_model::{Shape, ShapeId, Sheet};
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -60,7 +60,7 @@ fn frame(e: &mut Evaluator<'_>, scope: Scope) -> Result<Frame> {
     let local = Point::new(n("LocPinX")?, n("LocPinY")?);
     let width = n("Width")?;
     let height = n("Height")?;
-    let transform = diagramcraft_geom::shape_transform(pin, local, n("Angle")?, n("FlipX")? != 0., n("FlipY")? != 0.).map_err(operation)?;
+    let transform = misterdiagram_geom::shape_transform(pin, local, n("Angle")?, n("FlipX")? != 0., n("FlipY")? != 0.).map_err(operation)?;
     let ends = if e.cell(scope, "BeginX").is_some() {
         Some([
             Point::new(e.evaluate(scope, "BeginX").numeric().map_err(operation)?, e.evaluate(scope, "BeginY").numeric().map_err(operation)?),
@@ -82,7 +82,7 @@ fn translate(sheet: &mut Sheet, f: &Frame, dx: f64, dy: f64) -> Result<()> {
     }
     Ok(())
 }
-fn translate_detached(page: &mut diagramcraft_model::Page, id: u32, f: &Frame, dx: f64, dy: f64) -> Result<()> {
+fn translate_detached(page: &mut misterdiagram_model::Page, id: u32, f: &Frame, dx: f64, dy: f64) -> Result<()> {
     if dx == 0. && dy == 0. {
         return Ok(());
     }
@@ -123,7 +123,7 @@ pub(crate) fn group(s: &mut Session, p: &Value) -> Result<Value> {
     s.edit_document(|doc, selection| {
         let page = page_mut(doc, index)?;
         let id = next_id(page)?;
-        let mut group = diagramcraft_model::skeleton::rectangle(id, bounds.x0, bounds.y0, bounds.width().max(1e-9), bounds.height().max(1e-9), "")
+        let mut group = misterdiagram_model::skeleton::rectangle(id, bounds.x0, bounds.y0, bounds.width().max(1e-9), bounds.height().max(1e-9), "")
             .map_err(operation)?;
         group.shape_type = Some("Group".into());
         group.sheet.sections.clear();

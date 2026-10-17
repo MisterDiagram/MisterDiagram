@@ -1,11 +1,11 @@
 //! Stencil contact sheets use the same master renderer and embedded font outlines.
 use crate::scene::{self, Op, Options, Paint, Scene};
-use diagramcraft_color::Rgba;
-use diagramcraft_geom::{Affine, Rect};
-use diagramcraft_model::{Document, text::*};
-use diagramcraft_text::{NoFields, Opts};
-use diagramcraft_vsdx::evaluate::Evaluator;
 use kurbo::Shape as _;
+use misterdiagram_color::Rgba;
+use misterdiagram_geom::{Affine, Rect};
+use misterdiagram_model::{Document, text::*};
+use misterdiagram_text::{NoFields, Opts};
+use misterdiagram_vsdx::evaluate::Evaluator;
 const COLUMNS: usize = 6;
 const CELL_WIDTH: usize = 240;
 const CELL_HEIGHT: usize = 200;
@@ -35,8 +35,8 @@ fn dimensions(doc: &Document) -> Result<(usize, usize), String> {
 }
 pub fn render(doc: &Document) -> Result<(image::RgbaImage, Report), String> {
     let size = dimensions(doc)?;
-    let themes = diagramcraft_theme::Themes::from_document(doc).map_err(|e| e.to_string());
-    let host = diagramcraft_text::Host;
+    let themes = misterdiagram_theme::Themes::from_document(doc).map_err(|e| e.to_string());
+    let host = misterdiagram_text::Host;
     render_with(doc, size, || {
         let themes = themes.as_ref().map_err(Clone::clone)?;
         Ok(Evaluator::new(doc).map_err(|e| e.to_string())?.with_theme_host(themes).with_text_host(&host))
@@ -88,7 +88,7 @@ fn render_with<'a>(
             }],
             ..Default::default()
         };
-        let layout = diagramcraft_text::layout(
+        let layout = misterdiagram_text::layout(
             &body,
             &Opts { rect: Rect::new(0., 0., (cell_width - 12) as f64 * 0.75, 22.), fields: &NoFields, prompt_color: None, no_shrink: false },
         )
@@ -120,7 +120,7 @@ mod tests {
     #[test]
     fn labels_do_not_turn_blank_masters_into_rendered_masters() {
         let doc = Document {
-            masters: vec![diagramcraft_model::Master { id: 1, name_u: "Empty master".into(), ..Default::default() }],
+            masters: vec![misterdiagram_model::Master { id: 1, name_u: "Empty master".into(), ..Default::default() }],
             ..Default::default()
         };
         let (image, report) = render(&doc).unwrap();
@@ -132,10 +132,10 @@ mod tests {
     fn contact_sheet_builds_one_evaluator_for_all_masters() {
         let doc = Document {
             masters: (1..=8)
-                .map(|id| diagramcraft_model::Master {
+                .map(|id| misterdiagram_model::Master {
                     id,
                     name_u: format!("Master {id}"),
-                    shapes: vec![diagramcraft_model::skeleton::rectangle(1, 1., 1., 1., 1., "").unwrap()],
+                    shapes: vec![misterdiagram_model::skeleton::rectangle(1, 1., 1., 1., 1., "").unwrap()],
                     ..Default::default()
                 })
                 .collect(),
@@ -154,7 +154,7 @@ mod tests {
     #[test]
     fn preparation_failure_is_reported_in_every_contact_cell() {
         let doc = Document {
-            masters: (1..=2).map(|id| diagramcraft_model::Master { id, name_u: format!("M{id}"), ..Default::default() }).collect(),
+            masters: (1..=2).map(|id| misterdiagram_model::Master { id, name_u: format!("M{id}"), ..Default::default() }).collect(),
             ..Default::default()
         };
         let mut attempts = 0;
@@ -171,10 +171,10 @@ mod tests {
     #[test]
     fn invalid_theme_and_evaluator_limit_keep_per_master_failure_markers() {
         let mut doc = Document {
-            masters: (1..=2).map(|id| diagramcraft_model::Master { id, name_u: format!("M{id}"), ..Default::default() }).collect(),
+            masters: (1..=2).map(|id| misterdiagram_model::Master { id, name_u: format!("M{id}"), ..Default::default() }).collect(),
             ..Default::default()
         };
-        doc.parts.insert("visio/theme/theme1.xml".into(), diagramcraft_model::Part { bytes: b"<notTheme/>".to_vec(), ..Default::default() });
+        doc.parts.insert("visio/theme/theme1.xml".into(), misterdiagram_model::Part { bytes: b"<notTheme/>".to_vec(), ..Default::default() });
         for error in ["#VALUE!", "#LIMIT!"] {
             let (pixels, report) = render(&doc).unwrap();
             assert_eq!((report.rendered, report.blank, report.failed), (0, 0, 2));

@@ -627,7 +627,7 @@ fn row_matches(section: &str, row: &Row, position: usize, tail: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use diagramcraft_model::{Document, Master, Page, Shape, Sheet, Style};
+    use misterdiagram_model::{Document, Master, Page, Shape, Sheet, Style};
     fn c(name: &str, value: &str, formula: Option<&str>) -> Cell {
         Cell { name: name.into(), value: Some(value.into()), formula: formula.map(str::to_owned), ..Default::default() }
     }

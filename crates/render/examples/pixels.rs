@@ -2,7 +2,7 @@
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     for file in std::env::args().skip(1) {
-        let img = diagramcraft_render::raster::decode(&std::fs::read(&file)?)?;
+        let img = misterdiagram_render::raster::decode(&std::fs::read(&file)?)?;
         let (mut x0, mut y0, mut x1, mut y1) = (img.width(), img.height(), 0, 0);
         for (x, y, p) in img.enumerate_pixels() {
             if p.0.iter().take(3).any(|c| *c < 250) {

@@ -1,8 +1,8 @@
 //! Dynamic theme selectors and DrawingML style tables.
-use diagramcraft_color::{ColorTransform, Rgba, apply};
-use diagramcraft_model::Document;
-use diagramcraft_opc::xml::{self, El};
-use diagramcraft_sheet::{
+use misterdiagram_color::{ColorTransform, Rgba, apply};
+use misterdiagram_model::Document;
+use misterdiagram_opc::xml::{self, El};
+use misterdiagram_sheet::{
     Context, Error, Value,
     host::{ThemeHost, no_theme, theme_cell},
 };
@@ -514,7 +514,7 @@ fn color(el: &El, scheme: Option<&El>, ph: Rgba, depth: usize) -> Result<Rgba, E
                 color(scheme.child(name).ok_or(Error::Ref)?, Some(scheme), ph, depth + 1)?
             }
         }
-        "prstClr" => diagramcraft_color::preset(el.attr("val").ok_or(Error::Value)?).ok_or(Error::Value)?,
+        "prstClr" => misterdiagram_color::preset(el.attr("val").ok_or(Error::Value)?).ok_or(Error::Value)?,
         "noFill" => Rgba::TRANSPARENT,
         _ => {
             let child = el

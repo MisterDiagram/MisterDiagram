@@ -1,9 +1,9 @@
 //! Bounded outer-shadow masks from the input drawing's own colors and geometry.
 //! https://learn.microsoft.com/en-us/office/client-developer/visio/shapeshdwblur-cell-fill-format-section
 use crate::scene::{MAX_PIXELS, Op};
-use diagramcraft_color::Rgba;
-use diagramcraft_geom::{Affine, BezPath};
 use kurbo::Shape as _;
+use misterdiagram_color::Rgba;
+use misterdiagram_geom::{Affine, BezPath};
 use std::sync::Arc;
 use vello_common::peniko;
 use vello_cpu::{PixmapMut, RenderContext};
@@ -52,7 +52,7 @@ pub(crate) fn outer(path: &BezPath, offset: (f64, f64), blur: f64, color: Rgba, 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use diagramcraft_geom::Rect;
+    use misterdiagram_geom::Rect;
     #[test]
     fn shadow_retains_transparency_and_rejects_hostile_sizes() {
         let path = Rect::new(0., 0., 1., 1.).to_path(0.01);

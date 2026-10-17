@@ -1,9 +1,10 @@
 [package]
-name = "diagramcraft-fonts"
+name = "misterdiagram-fonts"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Diagramcraft fonts: font database (craft-fonts + system), substitutes for Office fonts, metrics, outlines, shaping"
+repository.workspace = true
+description = "MisterDiagram fonts: font database (craft-fonts + system), substitutes for Office fonts, metrics, outlines, shaping"
 
 [lints]
 workspace = true

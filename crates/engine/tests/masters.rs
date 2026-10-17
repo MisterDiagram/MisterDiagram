@@ -1,6 +1,6 @@
 //! Master-drop contracts against original synthetic and local Visio witnesses.
-use diagramcraft_engine::Session;
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_engine::Session;
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use serde_json::{Value, json};
 use std::{
     collections::BTreeMap,
@@ -12,7 +12,7 @@ fn root() -> PathBuf {
 fn run(s: &mut Session, id: &str, p: Value) -> Value {
     s.execute(id, &p).unwrap_or_else(|e| panic!("{id} {p}: {e}"))
 }
-fn cells(d: &diagramcraft_model::Document, id: u32) -> BTreeMap<String, (Option<String>, Option<String>, Option<String>)> {
+fn cells(d: &misterdiagram_model::Document, id: u32) -> BTreeMap<String, (Option<String>, Option<String>, Option<String>)> {
     Evaluator::new(d)
         .unwrap()
         .source_named_cells(Scope::PageShape { page: 0, shape: id })
@@ -29,7 +29,7 @@ fn basic_rectangle_drop_has_exact_local_and_inherited_cell_set() {
         eprintln!("skip: private BASIC_U witness absent");
         return;
     }
-    let expected = diagramcraft_vsdx::read(witness).unwrap();
+    let expected = misterdiagram_vsdx::read(witness).unwrap();
     let mut s = Session::new();
     run(&mut s, "stencil.open", json!({"path":stencil}));
     let search = run(&mut s, "stencil.search", json!({"stencil":1,"query":"rEcTaNgLe"}));
@@ -93,8 +93,8 @@ fn ten_masters_from_flowchart_and_network_stencils_roundtrip() {
         }
     }
     assert_eq!(s.document().pages[0].shapes.len(), 10);
-    let written = diagramcraft_vsdx::write(s.document()).unwrap();
-    let reopened = diagramcraft_vsdx::import(&written.bytes).unwrap();
+    let written = misterdiagram_vsdx::write(s.document()).unwrap();
+    let reopened = misterdiagram_vsdx::import(&written.bytes).unwrap();
     assert_eq!(reopened.pages[0].shapes.len(), 10);
     let out = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/engine-tests/ten-masters.vsdx");
     std::fs::create_dir_all(out.parent().unwrap()).unwrap();

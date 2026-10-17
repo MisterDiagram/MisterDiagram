@@ -1,27 +1,28 @@
 [package]
-name = "diagramcraft-engine"
+name = "misterdiagram-engine"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
 
 [lints]
 workspace = true
 
 [dependencies]
-diagramcraft-model.workspace = true
+misterdiagram-model.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 log.workspace = true
 
-diagramcraft-vsdx.workspace = true
-diagramcraft-sheet.workspace = true
-diagramcraft-theme.workspace = true
-diagramcraft-text.workspace = true
-diagramcraft-render.workspace = true
+misterdiagram-vsdx.workspace = true
+misterdiagram-sheet.workspace = true
+misterdiagram-theme.workspace = true
+misterdiagram-text.workspace = true
+misterdiagram-render.workspace = true
 image.workspace = true
-diagramcraft-geom.workspace = true
-diagramcraft-route.workspace = true
+misterdiagram-geom.workspace = true
+misterdiagram-route.workspace = true
 
 [dev-dependencies]
 hayro-syntax = { version = "0.7.2", default-features = false, features = ["std", "unsafe"] }

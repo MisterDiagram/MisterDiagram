@@ -1,15 +1,15 @@
 //! Read-only text-width diagnostics against private cached/COM observations.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
-use diagramcraft_fonts::{FontDb, feature, shape};
-use diagramcraft_model::text::TextHost;
-use diagramcraft_vsdx::evaluate::Evaluator;
+use misterdiagram_fonts::{FontDb, feature, shape};
+use misterdiagram_model::text::TextHost;
+use misterdiagram_vsdx::evaluate::Evaluator;
 fn main() -> Result<(), String> {
     let cell = std::env::var("AUDIT_CELL").unwrap_or_else(|_| "TxtWidth".into());
     let limit = std::env::var("AUDIT_LIMIT").ok().and_then(|s| s.parse::<usize>().ok()).unwrap_or(4).min(100);
     for file in std::env::args().skip(1).take(32) {
-        let doc = diagramcraft_vsdx::read(&file).map_err(|e| e.to_string())?;
-        let themes = diagramcraft_theme::Themes::from_document(&doc).map_err(|e| e.to_string())?;
-        let mut e = Evaluator::new(&doc).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&diagramcraft_text::Host);
+        let doc = misterdiagram_vsdx::read(&file).map_err(|e| e.to_string())?;
+        let themes = misterdiagram_theme::Themes::from_document(&doc).map_err(|e| e.to_string())?;
+        let mut e = Evaluator::new(&doc).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
         let scopes: Vec<_> = e.scopes().collect();
         let mut count = 0;
         for scope in scopes {
@@ -31,7 +31,7 @@ fn main() -> Result<(), String> {
             for name in ["LeftMargin", "RightMargin", "TxtPinX", "TxtWidth", "Width", "Height", "Char.Size", "Char.Font", "Para.SpLine"] {
                 println!("  {name}\t{:?}\t{:?}", e.effective_formula(scope, name), e.evaluate_snapshot(scope, name));
             }
-            println!("  HOST {:?} BODY {:?}", diagramcraft_text::Host.measure(&body, None), body.body);
+            println!("  HOST {:?} BODY {:?}", misterdiagram_text::Host.measure(&body, None), body.body);
             for p in &body.paragraphs {
                 for r in &p.runs {
                     let props = &r.props;

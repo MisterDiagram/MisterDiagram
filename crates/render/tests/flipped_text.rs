@@ -1,7 +1,7 @@
 //! Selected synthetic flip regression from craft-apps review 3b, user-authorized MIT OR Apache-2.0.
 //! Additional flip combinations follow W5.
-use diagramcraft_model::{Cell, Document, Shape, skeleton};
-use diagramcraft_render::{pdf, raster, scene, svg};
+use misterdiagram_model::{Cell, Document, Shape, skeleton};
+use misterdiagram_render::{pdf, raster, scene, svg};
 fn set(shape: &mut Shape, name: &str, value: &str) {
     if let Some(c) = shape.sheet.cells.iter_mut().find(|c| c.name == name) {
         c.value = Some(value.into());

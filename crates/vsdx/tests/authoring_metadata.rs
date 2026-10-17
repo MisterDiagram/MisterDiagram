@@ -1,5 +1,5 @@
 //! Contributor-original regressions for metadata exposed by the P4a master-drop oracle.
-use diagramcraft_model::{Cell, Row, Section, skeleton};
+use misterdiagram_model::{Cell, Row, Section, skeleton};
 fn cell(name: &str, value: &str) -> Cell {
     Cell { name: name.into(), value: Some(value.into()), ..Default::default() }
 }
@@ -46,7 +46,7 @@ fn relative_geometry_and_verify_have_com_units_and_slots() {
     ];
     doc.pages[0].shapes.push(shape);
     let mut dump = Vec::new();
-    diagramcraft_vsdx::dump::dump(&doc, diagramcraft_vsdx::dump::Selection::Shape(1), &mut dump).unwrap();
+    misterdiagram_vsdx::dump::dump(&doc, misterdiagram_vsdx::dump::Selection::Shape(1), &mut dump).unwrap();
     let text = String::from_utf8(dump).unwrap();
     for (name, units) in [
         ("Geometry1.X1", "32"),
@@ -81,8 +81,8 @@ fn palette_hits_drop_constant_rgb_formulas_and_preserve_inherited_standard_color
     let mut shape = skeleton::rectangle(1, 0., 0., 2., 1., "").unwrap();
     shape.sheet.cells.push(Cell { formula: Some("RGB(204,0,0)".into()), ..cell("FillForegnd", "1") });
     doc.pages[0].shapes.push(shape);
-    let written = diagramcraft_vsdx::write(&doc).unwrap();
-    let read = diagramcraft_vsdx::import(&written.bytes).unwrap();
+    let written = misterdiagram_vsdx::write(&doc).unwrap();
+    let read = misterdiagram_vsdx::import(&written.bytes).unwrap();
     let color = read.pages[0].shapes[0].sheet.cell("FillForegnd").unwrap();
     assert_eq!(color.formula, None);
     assert_eq!(color.value.as_deref(), Some("#cc0000"));

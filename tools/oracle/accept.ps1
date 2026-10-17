@@ -23,7 +23,7 @@ try {
     $used = @{}
     $scriptHash = (Get-FileHash -Algorithm SHA256 $PSCommandPath).Hash.ToLowerInvariant()
     $commonHash = (Get-FileHash -Algorithm SHA256 (Join-Path $PSScriptRoot 'common.ps1')).Hash.ToLowerInvariant()
-    $tempRoot = Join-Path $env:TEMP 'diagramcraft-accept'
+    $tempRoot = Join-Path $env:TEMP 'misterdiagram-accept'
     New-Item -ItemType Directory -Force $tempRoot | Out-Null
     foreach ($path in (Get-Content (Join-Path $PSScriptRoot 'accept-list.txt') -Encoding UTF8)) {
         if ([string]::IsNullOrWhiteSpace($path)) { continue }

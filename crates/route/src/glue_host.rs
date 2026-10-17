@@ -1,9 +1,9 @@
 //! Runtime glue from target transforms and Connects, never from a precomputed endpoint cache.
 use crate::static_glue::{End, cell, set, shape_mut};
-use diagramcraft_geom::{Affine, Point};
-use diagramcraft_model::Document;
-use diagramcraft_sheet::{HostHooks, Value};
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_geom::{Affine, Point};
+use misterdiagram_model::Document;
+use misterdiagram_sheet::{HostHooks, Value};
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use std::collections::BTreeMap;
 
 type Key = (u32, u32, String);
@@ -47,7 +47,7 @@ fn bounds(e: &mut Evaluator<'_>, page: u32, shape: u32) -> Result<BoxShape, Stri
         }
         let row = named.row.ok_or("connection row missing")?;
         let sec = named.section.ok_or("connection section missing")?;
-        let col = |name: &str| diagramcraft_vsdx::evaluate::cell_name(sec, row, 0, &cell(name, 0, None)).map_err(|e| e.to_string());
+        let col = |name: &str| misterdiagram_vsdx::evaluate::cell_name(sec, row, 0, &cell(name, 0, None)).map_err(|e| e.to_string());
         let x = number(e, scope, &named.name)?;
         let y = number(e, scope, &col("Y")?)?;
         let dx = number(e, scope, &col("DirX")?)?;
@@ -158,9 +158,9 @@ impl GlueHost {
     /// Endpoint caches are not filled here: evaluation must call `_WALKGLUE` to obtain the new point.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/eventxfmod-cell-events-section
     pub fn prepare(before: &Document, doc: &mut Document) -> Result<Self, String> {
-        let themes = diagramcraft_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
-        let old_themes = diagramcraft_theme::Themes::from_document(before).map_err(|e| e.to_string())?;
-        let text = diagramcraft_text::Host;
+        let themes = misterdiagram_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
+        let old_themes = misterdiagram_theme::Themes::from_document(before).map_err(|e| e.to_string())?;
+        let text = misterdiagram_text::Host;
         let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&text);
         let mut old = Evaluator::new(before).map_err(|e| e.to_string())?.with_theme_host(&old_themes).with_text_host(&text);
         let mut host = Self::default();
@@ -172,7 +172,7 @@ impl GlueHost {
             if layout_changed {
                 host.dirty_pages.insert(page.id);
             }
-            let mut links = BTreeMap::<u32, [Option<&diagramcraft_model::Connect>; 2]>::new();
+            let mut links = BTreeMap::<u32, [Option<&misterdiagram_model::Connect>; 2]>::new();
             for c in &page.connects {
                 count += 1;
                 if count > 100000 {
@@ -191,7 +191,7 @@ impl GlueHost {
             }
             for (id, links) in links {
                 let scope = Scope::PageShape { page: page.id, shape: id };
-                let dynamic = |c: Option<&diagramcraft_model::Connect>| c.is_some_and(|c| matches!(c.to_cell.as_deref(), Some("PinX" | "PinY")));
+                let dynamic = |c: Option<&misterdiagram_model::Connect>| c.is_some_and(|c| matches!(c.to_cell.as_deref(), Some("PinX" | "PinY")));
                 let boxes = links.map(|c| c.map(|c| bounds(&mut e, page.id, c.to_sheet)).transpose()).into_iter().collect::<Result<Vec<_>, _>>()?;
                 let preference = number(&mut e, scope, "WalkPreference")?;
                 let planned = if number(&mut e, scope, "ConFixedCode")? != 2.
@@ -208,8 +208,8 @@ impl GlueHost {
                             crate::orthogonal::number(&mut e, Scope::Page(page.id), "LineToLineY", 0.125) * 1.5,
                         );
                         Some(crate::orthogonal::endpoints(
-                            diagramcraft_geom::Rect::new(a.min.x, a.min.y, a.max.x, a.max.y),
-                            diagramcraft_geom::Rect::new(b.min.x, b.min.y, b.max.x, b.max.y),
+                            misterdiagram_geom::Rect::new(a.min.x, a.min.y, a.max.x, a.max.y),
+                            misterdiagram_geom::Rect::new(b.min.x, b.min.y, b.max.x, b.max.y),
                             &obstacles,
                             style,
                             clearance,
@@ -307,11 +307,11 @@ impl GlueHost {
             let page = doc.pages.get_mut(index).ok_or("glue page missing")?;
             let shape = shape_mut(&mut page.shapes, id, 0).ok_or("glue shape missing")?;
             if !shape.sheet.sections.iter().any(|s| s.name == "Control" && !s.deleted) {
-                shape.sheet.sections.push(diagramcraft_model::Section { name: "Control".into(), ..Default::default() });
+                shape.sheet.sections.push(misterdiagram_model::Section { name: "Control".into(), ..Default::default() });
             }
             let section = shape.sheet.sections.iter_mut().find(|s| s.name == "Control" && !s.deleted).ok_or("control section missing")?;
             if !section.rows.iter().any(|r| r.name.as_deref() == Some("TextPosition") && !r.deleted) {
-                section.rows.push(diagramcraft_model::Row { name: Some("TextPosition".into()), ..Default::default() });
+                section.rows.push(misterdiagram_model::Row { name: Some("TextPosition".into()), ..Default::default() });
             }
             let row = section.rows.iter_mut().find(|r| r.name.as_deref() == Some("TextPosition") && !r.deleted).ok_or("text control row missing")?;
             for (name, value) in [("X", x), ("Y", y), ("XDyn", x), ("YDyn", y)] {
@@ -331,11 +331,11 @@ impl GlueHost {
 mod tests {
     use super::*;
     fn drawing() -> Document {
-        let mut doc = diagramcraft_model::skeleton::document(false);
+        let mut doc = misterdiagram_model::skeleton::document(false);
         let page = &mut doc.pages[0];
-        page.shapes.push(diagramcraft_model::skeleton::rectangle(1, 1., 6., 1.5, 1.5, "").unwrap());
-        page.shapes.push(diagramcraft_model::skeleton::rectangle(2, 5., 6., 1.5, 1.5, "").unwrap());
-        diagramcraft_model::skeleton::glue_dynamic(page, 3, 2, [1, 2], [[2.5, 6.75], [5., 6.75]]).unwrap();
+        page.shapes.push(misterdiagram_model::skeleton::rectangle(1, 1., 6., 1.5, 1.5, "").unwrap());
+        page.shapes.push(misterdiagram_model::skeleton::rectangle(2, 5., 6., 1.5, 1.5, "").unwrap());
+        misterdiagram_model::skeleton::glue_dynamic(page, 3, 2, [1, 2], [[2.5, 6.75], [5., 6.75]]).unwrap();
         doc
     }
     #[test]

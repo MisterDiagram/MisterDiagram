@@ -77,7 +77,7 @@ fn vector_bytes<T>(value: &Vec<T>) -> usize {
 mod tests {
     use super::*;
     use crate::scene::{Options, page_budgeted};
-    use diagramcraft_geom::Affine;
+    use misterdiagram_geom::Affine;
     use std::sync::Arc;
 
     #[test]
@@ -93,8 +93,8 @@ mod tests {
 
     #[test]
     fn page_construction_charges_paths_and_text_before_retaining_more_shapes() {
-        let mut doc = diagramcraft_model::skeleton::document(false);
-        doc.pages[0].shapes.push(diagramcraft_model::skeleton::rectangle(1, 1., 1., 2., 1., "Budget witness").unwrap());
+        let mut doc = misterdiagram_model::skeleton::document(false);
+        doc.pages[0].shapes.push(misterdiagram_model::skeleton::rectangle(1, 1., 1., 2., 1., "Budget witness").unwrap());
         let mut budget = SceneBudget::new(usize::MAX);
         page_budgeted(&doc, 0, Options::default(), &mut budget).unwrap();
         let used = usize::MAX - budget.remaining;
@@ -102,7 +102,7 @@ mod tests {
         let mut budget = SceneBudget::new(used * 2 - 1);
         page_budgeted(&doc, 0, Options::default(), &mut budget).unwrap();
         assert!(page_budgeted(&doc, 0, Options::default(), &mut budget).unwrap_err().contains("memory limit"));
-        doc.pages[0].shapes.push(diagramcraft_model::skeleton::rectangle(2, 4., 1., 2., 1., "Budget witness").unwrap());
+        doc.pages[0].shapes.push(misterdiagram_model::skeleton::rectangle(2, 4., 1., 2., 1., "Budget witness").unwrap());
         assert!(page_budgeted(&doc, 0, Options::default(), &mut SceneBudget::new(used)).unwrap_err().contains("memory limit"));
     }
 }

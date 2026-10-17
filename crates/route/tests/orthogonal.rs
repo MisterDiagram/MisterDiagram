@@ -1,11 +1,11 @@
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use std::path::Path;
 
 fn compare(path: &Path) {
-    let original = diagramcraft_vsdx::read(path).unwrap();
+    let original = misterdiagram_vsdx::read(path).unwrap();
     let mut actual = original.clone();
-    let mut host = diagramcraft_route::GlueHost::prepare(&original, &mut actual).unwrap();
-    diagramcraft_route::reroute(&original, &mut actual, &mut host, Some((0, None))).unwrap();
+    let mut host = misterdiagram_route::GlueHost::prepare(&original, &mut actual).unwrap();
+    misterdiagram_route::reroute(&original, &mut actual, &mut host, Some((0, None))).unwrap();
     let mut oracle = Evaluator::new(&original).unwrap();
     let mut evaluated = Evaluator::new(&actual).unwrap().with_glue_host(&mut host);
     let page = &original.pages[0];
@@ -57,7 +57,7 @@ fn compare(path: &Path) {
 }
 #[test]
 fn observed_orthogonal_geometry_and_frames() {
-    let root = std::env::var_os("DIAGRAMCRAFT_CORPUS")
+    let root = std::env::var_os("MISTERDIAGRAM_CORPUS")
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|| Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus"));
     if !root.exists() {
@@ -90,13 +90,13 @@ fn observed_orthogonal_geometry_and_frames() {
     }
 }
 
-fn equivalent(a: &diagramcraft_sheet::Value, b: &diagramcraft_sheet::Value) -> bool {
-    use diagramcraft_sheet::{Expr, Value};
+fn equivalent(a: &misterdiagram_sheet::Value, b: &misterdiagram_sheet::Value) -> bool {
+    use misterdiagram_sheet::{Expr, Value};
     if let (Value::Text(a), Value::Text(b)) = (a, b) {
         if a.starts_with("POLYLINE(") && b.starts_with("POLYLINE(") {
             let scalar = |v: &Expr| match v {
                 Expr::Number(n, None) => Some(*n),
-                Expr::Unary(diagramcraft_sheet::parser::UnaryOp::Minus, e) => {
+                Expr::Unary(misterdiagram_sheet::parser::UnaryOp::Minus, e) => {
                     if let Expr::Number(n, None) = &**e {
                         Some(-n)
                     } else {
@@ -106,7 +106,7 @@ fn equivalent(a: &diagramcraft_sheet::Value, b: &diagramcraft_sheet::Value) -> b
                 _ => None,
             };
             if let (Ok(Expr::Call { name: an, args: aa }), Ok(Expr::Call { name: bn, args: ba })) =
-                (diagramcraft_sheet::parse(a), diagramcraft_sheet::parse(b))
+                (misterdiagram_sheet::parse(a), misterdiagram_sheet::parse(b))
             {
                 return an == bn
                     && aa.len() == ba.len()
@@ -123,7 +123,7 @@ fn equivalent(a: &diagramcraft_sheet::Value, b: &diagramcraft_sheet::Value) -> b
 
 #[test]
 fn observed_line_jump_rows_and_signed_arcs() {
-    let root = std::env::var_os("DIAGRAMCRAFT_CORPUS")
+    let root = std::env::var_os("MISTERDIAGRAM_CORPUS")
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|| Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus"));
     if !root.exists() {

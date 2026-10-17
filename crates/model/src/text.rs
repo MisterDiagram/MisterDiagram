@@ -4,7 +4,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use diagramcraft_color::Rgba;
+use misterdiagram_color::Rgba;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct TextOutline {

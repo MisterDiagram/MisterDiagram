@@ -1,4 +1,4 @@
-# Diagramcraft: working notes for Claude
+# MisterDiagram: working notes for Claude
 
 Read AGENTS.md first. Its asset, clean-room, never-crash, architecture and gate rules apply.
 

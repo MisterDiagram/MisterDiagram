@@ -1,6 +1,6 @@
 //! An in-process engine session that answers the engine-level control-channel methods itself.
 
-use diagramcraft_engine::Session;
+use misterdiagram_engine::Session;
 use serde_json::{Value, json};
 
 use crate::backend::Backend;

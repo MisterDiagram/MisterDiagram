@@ -1,9 +1,9 @@
 //! Bounded namespace-aware serialization of retained and authored XML trees.
 //! https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
 use super::{WriteError, error};
-use diagramcraft_model::{XmlElement, XmlNode};
+use misterdiagram_model::{XmlElement, XmlNode};
 use std::collections::BTreeMap;
-const LIMIT: usize = diagramcraft_opc::MAX_XML_PART;
+const LIMIT: usize = misterdiagram_opc::MAX_XML_PART;
 fn append(out: &mut String, s: &str) -> Result<(), WriteError> {
     if out.len().checked_add(s.len()).is_none_or(|n| n > LIMIT) {
         return Err(error("serialized XML byte limit"));
@@ -56,7 +56,7 @@ fn tree_format(root: &XmlElement, app: bool) -> Result<Vec<u8>, WriteError> {
 }
 fn node(e: &XmlElement, parent: &BTreeMap<String, String>, depth: usize, count: &mut usize, out: &mut String, app: bool) -> Result<(), WriteError> {
     *count = count.saturating_add(1);
-    if depth >= diagramcraft_opc::xml::MAX_DEPTH || *count > diagramcraft_opc::xml::MAX_NODES || e.attributes.len() > 65536 {
+    if depth >= misterdiagram_opc::xml::MAX_DEPTH || *count > misterdiagram_opc::xml::MAX_NODES || e.attributes.len() > 65536 {
         return Err(error("XML tree limit"));
     }
     if !valid_name(&e.name) {

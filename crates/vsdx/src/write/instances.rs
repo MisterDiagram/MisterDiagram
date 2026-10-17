@@ -1,7 +1,7 @@
 //! Instance caches for inherited formulas whose values differ from the master.
 //! https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
 use super::*;
-use diagramcraft_sheet::Value;
+use misterdiagram_sheet::Value;
 impl model::Writer<'_> {
     pub(super) fn instance_sheet(&mut self, sheet: &Sheet, scope: Scope, authored: bool) -> Result<Sheet, WriteError> {
         let mut bytes = super::validate::sheet(sheet)?;

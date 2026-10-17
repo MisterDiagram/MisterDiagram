@@ -1,7 +1,7 @@
 //! Package admission across parts, before retaining XML trees.
 //! https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
-use diagramcraft_opc::{PackageOut, RelsOut};
-use diagramcraft_vsdx::{MAX_RETAINED_XML_NODES, import_with_open_nodes, parse_xml};
+use misterdiagram_opc::{PackageOut, RelsOut};
+use misterdiagram_vsdx::{MAX_RETAINED_XML_NODES, import_with_open_nodes, parse_xml};
 const NS: &str = "http://schemas.microsoft.com/office/visio/2012/main";
 const REL: &str = "http://schemas.microsoft.com/visio/2010/relationships/";
 
@@ -33,17 +33,17 @@ fn package(extra: &str, pages: usize) -> Vec<u8> {
 #[test]
 fn several_small_parts_share_one_retained_node_budget() {
     let bytes = package(&"<a b='1'/>".repeat(20), 3);
-    let package = diagramcraft_opc::Package::open(&bytes).unwrap();
+    let package = misterdiagram_opc::Package::open(&bytes).unwrap();
     let mut required = 0;
     for (_, xml) in package.parts() {
-        diagramcraft_opc::xml::charge_retained_nodes(xml, &mut required, MAX_RETAINED_XML_NODES, 0).unwrap();
+        misterdiagram_opc::xml::charge_retained_nodes(xml, &mut required, MAX_RETAINED_XML_NODES, 0).unwrap();
     }
     // Reserve the existing session population so the package has a small remaining
     // budget. Each part independently fits that budget; their combined cost does not.
     let available = required - 1;
     for (name, xml) in package.parts() {
         let mut count = 0;
-        diagramcraft_opc::xml::charge_retained_nodes(xml, &mut count, available, 0).unwrap_or_else(|e| panic!("{name}: {e}"));
+        misterdiagram_opc::xml::charge_retained_nodes(xml, &mut count, available, 0).unwrap_or_else(|e| panic!("{name}: {e}"));
     }
     let already = MAX_RETAINED_XML_NODES - available;
     let Err(error) = import_with_open_nodes(&bytes, already) else {
@@ -69,7 +69,7 @@ fn text_capacity_matches_coalesced_nodes_and_namespaces_restore() {
     assert_eq!(children[0].attribute_namespaces.get("p:x").unwrap(), "new");
     assert_eq!(children[1].attribute_namespaces.get("p:y").unwrap(), "old");
     let mut used = 0;
-    diagramcraft_opc::xml::charge_retained_nodes(input.as_bytes(), &mut used, 10, 0).unwrap();
+    misterdiagram_opc::xml::charge_retained_nodes(input.as_bytes(), &mut used, 10, 0).unwrap();
     assert_eq!(used, 9);
     let mut bytes = vec![0xff, 0xfe];
     for u in input.encode_utf16() {
@@ -82,18 +82,18 @@ fn duplicate_expanded_attributes_and_hostile_preflight_are_rejected() {
     assert!(parse_xml(b"<a xmlns:p='same' xmlns:q='same' p:x='1' q:x='2'/>").is_err());
     assert!(parse_xml(format!("{}{}", "<x>".repeat(257), "</x>".repeat(257)).as_bytes()).is_err());
     let mut used = 3;
-    let e = diagramcraft_opc::xml::charge_retained_nodes(b"<a x='1'/>", &mut used, 4, 3).unwrap_err();
+    let e = misterdiagram_opc::xml::charge_retained_nodes(b"<a x='1'/>", &mut used, 4, 3).unwrap_err();
     assert!(e.to_string().contains("found 5, limit 4, already open 3"));
 }
 #[test]
 #[cfg(target_os = "macos")]
 fn retained_package_at_node_budget_edge_stays_under_1_gib() {
-    if std::env::var_os("DIAGRAMCRAFT_RETAINED_EDGE_CHILD").is_some() {
-        let overhead = diagramcraft_vsdx::import(&package("", 1)).unwrap().retained_xml_nodes;
+    if std::env::var_os("MISTERDIAGRAM_RETAINED_EDGE_CHILD").is_some() {
+        let overhead = misterdiagram_vsdx::import(&package("", 1)).unwrap().retained_xml_nodes;
         let bytes = package(&"<a/>".repeat(MAX_RETAINED_XML_NODES - overhead - 1), 1);
-        let d = diagramcraft_vsdx::import(&bytes).unwrap();
+        let d = misterdiagram_vsdx::import(&bytes).unwrap();
         assert_eq!(d.retained_xml_nodes, MAX_RETAINED_XML_NODES - 1);
-        let evaluator = diagramcraft_vsdx::evaluate::Evaluator::new(&d).unwrap();
+        let evaluator = misterdiagram_vsdx::evaluate::Evaluator::new(&d).unwrap();
         assert!(evaluator.scopes().count() > 0);
         return;
     }
@@ -101,7 +101,7 @@ fn retained_package_at_node_budget_edge_stays_under_1_gib() {
         .arg("-l")
         .arg(std::env::current_exe().unwrap())
         .args(["--exact", "retained_package_at_node_budget_edge_stays_under_1_gib", "--nocapture"])
-        .env("DIAGRAMCRAFT_RETAINED_EDGE_CHILD", "1")
+        .env("MISTERDIAGRAM_RETAINED_EDGE_CHILD", "1")
         .output()
         .unwrap();
     let stderr = String::from_utf8(output.stderr).unwrap();

@@ -1,0 +1,25 @@
+[package]
+name = "misterdiagram-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+[[bin]]
+name = "misterdiagram"
+path = "src/main.rs"
+
+[lints]
+workspace = true
+[dependencies]
+misterdiagram-render.workspace = true
+misterdiagram-text.workspace = true
+misterdiagram-opc.workspace = true
+misterdiagram-vsdx.workspace = true
+misterdiagram-corpus = { path = "../misterdiagram-corpus" }
+misterdiagram-theme.workspace = true
+misterdiagram-engine.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+[dev-dependencies]
+zip.workspace = true
+misterdiagram-geom.workspace = true

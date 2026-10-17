@@ -77,7 +77,7 @@ impl Coverage {
     pub(crate) fn record(&mut self, index: usize, matched: bool, calls: &BTreeSet<String>, witness: Option<&Witness>) {
         if let Some(p) = self.populations.get_mut(index) {
             p.rate.record(matched);
-            if calls.iter().any(|n| diagramcraft_sheet::is_text_metric(n)) {
+            if calls.iter().any(|n| misterdiagram_sheet::is_text_metric(n)) {
                 p.text.record(matched);
             }
             if let Some(witness) = witness.filter(|_| !matched) {

@@ -1,19 +1,20 @@
 [package]
-name = "diagramcraft-model"
+name = "misterdiagram-model"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
 
 [lints]
 workspace = true
 
 [dependencies]
-diagramcraft-geom.workspace = true
-diagramcraft-color.workspace = true
+misterdiagram-geom.workspace = true
+misterdiagram-color.workspace = true
 serde.workspace = true
 uuid.workspace = true
 chrono = { workspace = true, features = ["wasmbind"] }
 
 [dev-dependencies]
-diagramcraft-opc.workspace = true
-diagramcraft-vsdx.workspace = true
+misterdiagram-opc.workspace = true
+misterdiagram-vsdx.workspace = true

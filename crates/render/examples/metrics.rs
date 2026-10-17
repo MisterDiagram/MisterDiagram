@@ -1,12 +1,12 @@
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 fn main() -> Result<(), String> {
     for file in std::env::args().skip(1) {
-        let doc = diagramcraft_vsdx::read(&file).map_err(|e| e.to_string())?;
-        let themes = diagramcraft_theme::Themes::from_document(&doc).map_err(|e| e.to_string())?;
-        let mut e = diagramcraft_vsdx::evaluate::Evaluator::new(&doc)
+        let doc = misterdiagram_vsdx::read(&file).map_err(|e| e.to_string())?;
+        let themes = misterdiagram_theme::Themes::from_document(&doc).map_err(|e| e.to_string())?;
+        let mut e = misterdiagram_vsdx::evaluate::Evaluator::new(&doc)
             .map_err(|e| e.to_string())?
             .with_theme_host(&themes)
-            .with_text_host(&diagramcraft_text::Host);
+            .with_text_host(&misterdiagram_text::Host);
         let scopes: Vec<_> = e.scopes().collect();
         for scope in scopes {
             for named in e.source_named_cells(scope).map_err(|e| e.to_string())? {

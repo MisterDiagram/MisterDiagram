@@ -1,5 +1,5 @@
 //! Reader limits reject large ShapeSheets before DOM expansion.
-use diagramcraft_vsdx::parse_xml;
+use misterdiagram_vsdx::parse_xml;
 const NS: &str = "http://schemas.microsoft.com/office/visio/2012/main";
 fn huge_geometry() -> String {
     use std::fmt::Write;
@@ -22,16 +22,16 @@ fn sections_and_sheets_are_bounded_before_dom_allocation() {
 }
 #[test]
 fn caller_built_sections_receive_the_same_bound() {
-    use diagramcraft_model::{XmlElement, XmlNode};
+    use misterdiagram_model::{XmlElement, XmlNode};
     let cell = XmlElement { name: "Cell".into(), namespace: NS.into(), ..Default::default() };
     let section = XmlElement { name: "Section".into(), namespace: NS.into(), children: vec![XmlNode::Element(cell); 16_385], ..Default::default() };
     let shape = XmlElement { children: vec![XmlNode::Element(section)], ..Default::default() };
-    assert!(diagramcraft_vsdx::parse_sheet(&shape).unwrap_err().to_string().contains("section cell or row limit"));
+    assert!(misterdiagram_vsdx::parse_sheet(&shape).unwrap_err().to_string().contains("section cell or row limit"));
 }
 #[test]
 #[cfg(target_os = "macos")]
 fn geometry_section_peak_memory_is_bounded() {
-    if std::env::var_os("DIAGRAMCRAFT_GEOMETRY_MEMORY_CHILD").is_some() {
+    if std::env::var_os("MISTERDIAGRAM_GEOMETRY_MEMORY_CHILD").is_some() {
         assert!(parse_xml(huge_geometry().as_bytes()).unwrap_err().to_string().contains("section cell or row limit"));
         return;
     }
@@ -39,7 +39,7 @@ fn geometry_section_peak_memory_is_bounded() {
         .arg("-l")
         .arg(std::env::current_exe().unwrap())
         .args(["--exact", "geometry_section_peak_memory_is_bounded", "--nocapture"])
-        .env("DIAGRAMCRAFT_GEOMETRY_MEMORY_CHILD", "1")
+        .env("MISTERDIAGRAM_GEOMETRY_MEMORY_CHILD", "1")
         .output()
         .unwrap();
     let stderr = String::from_utf8(output.stderr).unwrap();
@@ -51,7 +51,7 @@ fn geometry_section_peak_memory_is_bounded() {
 
 #[test]
 fn caller_built_sheet_cannot_split_cell_budget_across_sections() {
-    use diagramcraft_model::{XmlElement, XmlNode};
+    use misterdiagram_model::{XmlElement, XmlNode};
     let cell = XmlElement {
         name: "Cell".into(),
         namespace: NS.into(),
@@ -61,6 +61,6 @@ fn caller_built_sheet_cannot_split_cell_budget_across_sections() {
     let section = XmlElement { name: "Section".into(), namespace: NS.into(), children: vec![XmlNode::Element(cell); 16_384], ..Default::default() };
     // Each section is valid in isolation, but the sheet exceeds 65,536 cells.
     let shape = XmlElement { name: "Shape".into(), namespace: NS.into(), children: vec![XmlNode::Element(section); 5], ..Default::default() };
-    let error = diagramcraft_vsdx::parse_sheet(&shape).err().map(|e| e.to_string());
+    let error = misterdiagram_vsdx::parse_sheet(&shape).err().map(|e| e.to_string());
     assert_eq!(error.as_deref(), Some("invalid Visio file: sheet cell limit"));
 }

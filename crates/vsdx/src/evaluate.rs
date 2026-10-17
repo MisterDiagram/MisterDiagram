@@ -1,6 +1,6 @@
 //! Document bindings for the model-independent ShapeSheet evaluator.
-use diagramcraft_model::{Cell, Document, Row, Section, Shape, Sheet};
-use diagramcraft_sheet::{Context, Error, Value};
+use misterdiagram_model::{Cell, Document, Row, Section, Shape, Sheet};
+use misterdiagram_sheet::{Context, Error, Value};
 use std::collections::{BTreeMap, BTreeSet};
 mod defaults;
 mod geometry;
@@ -55,9 +55,9 @@ struct Snapshot {
 pub struct Evaluator<'a> {
     defer_text_metrics: bool,
     internal_cache_units: bool,
-    glue_host: Option<&'a mut dyn diagramcraft_sheet::HostHooks>,
-    text_host: Option<&'a dyn diagramcraft_model::text::TextHost>,
-    theme_host: Option<&'a dyn diagramcraft_sheet::host::ThemeHost>,
+    glue_host: Option<&'a mut dyn misterdiagram_sheet::HostHooks>,
+    text_host: Option<&'a dyn misterdiagram_model::text::TextHost>,
+    theme_host: Option<&'a dyn misterdiagram_sheet::host::ThemeHost>,
     inheritance: inherit::Inheritance<'a>,
     pub document: &'a Document,
     sheets: BTreeMap<Scope, &'a Sheet>,
@@ -186,7 +186,7 @@ impl<'a> Evaluator<'a> {
         };
         if matches!(cell.name.as_str(), "LangID" | "DocLangID") {
             let id = u16::try_from(index()?).map_err(|_| Error::Value)?;
-            return diagramcraft_sheet::language::tag(id).map(str::to_string).ok_or(Error::Value);
+            return misterdiagram_sheet::language::tag(id).map(str::to_string).ok_or(Error::Value);
         }
         if cell.name == "Font" {
             let face = self.fonts.get(&index()?).ok_or(Error::Value)?;
@@ -201,10 +201,10 @@ impl<'a> Evaluator<'a> {
                 }
                 index -= 1;
             }
-            let rgb = self.palette.get(&index).copied().or_else(|| diagramcraft_sheet::functions::default_color(index)).ok_or(Error::Value)?;
+            let rgb = self.palette.get(&index).copied().or_else(|| misterdiagram_sheet::functions::default_color(index)).ok_or(Error::Value)?;
             return Ok(format!("#{:02x}{:02x}{:02x}", rgb[0], rgb[1], rgb[2]));
         }
-        diagramcraft_model::skeleton::number_text(number).ok_or(Error::Num)
+        misterdiagram_model::skeleton::number_text(number).ok_or(Error::Num)
     }
     /// Resolve omitted length units from the owning metric drawing or master.
     /// Witnesses: scratch metric Para.IndFirst and SOCIAL_DISTANCING_M PageSheet.
@@ -270,19 +270,19 @@ impl<'a> Evaluator<'a> {
         self.snapshot = None;
     }
     /// Inject a theme resolver from the application composition layer.
-    pub fn with_theme_host(mut self, host: &'a dyn diagramcraft_sheet::host::ThemeHost) -> Self {
+    pub fn with_theme_host(mut self, host: &'a dyn misterdiagram_sheet::host::ThemeHost) -> Self {
         self.theme_host = Some(host);
         self.values.clear();
         self
     }
-    pub fn with_text_host(mut self, host: &'a dyn diagramcraft_model::text::TextHost) -> Self {
+    pub fn with_text_host(mut self, host: &'a dyn misterdiagram_model::text::TextHost) -> Self {
         self.text_host = Some(host);
         self.values.clear();
         self
     }
     /// Inject runtime glue hooks while unimplemented hooks retain their source caches.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/begtrigger-cell-glue-info-section
-    pub fn with_glue_host(mut self, host: &'a mut dyn diagramcraft_sheet::HostHooks) -> Self {
+    pub fn with_glue_host(mut self, host: &'a mut dyn misterdiagram_sheet::HostHooks) -> Self {
         self.glue_host = Some(host);
         self.values.clear();
         self
@@ -906,7 +906,7 @@ impl<'a> Evaluator<'a> {
             if self.internal_cache_units && defaults::cell(scope, name).is_some_and(|c| std::ptr::eq(c, cell)) {
                 return self.cached_cell(cell);
             }
-            return diagramcraft_sheet::units::cached(cell.value.as_deref(), Some("STR"), cell.error.as_deref());
+            return misterdiagram_sheet::units::cached(cell.value.as_deref(), Some("STR"), cell.error.as_deref());
         }
         self.cached_cell(cell)
     }
@@ -926,7 +926,7 @@ impl<'a> Evaluator<'a> {
         if let Value::Text(text) = &value
             && (scratch_number || baseline_number)
         {
-            return match diagramcraft_sheet::units::numeric_text(text) {
+            return match misterdiagram_sheet::units::numeric_text(text) {
                 Ok(number) => Value::number(number),
                 Err(Error::Unsupported(_)) => Value::Error(Error::Value),
                 Err(error) => Value::Error(error),
@@ -939,7 +939,7 @@ impl<'a> Evaluator<'a> {
     /// Ordinary unsupported functions never take this path. References still register dependencies.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
     fn compute_formula(&mut self, scope: Scope, origin: Scope, cached: Value, formula: &str) -> Value {
-        let expr = match diagramcraft_sheet::parse(formula) {
+        let expr = match misterdiagram_sheet::parse(formula) {
             Ok(expr) => expr,
             Err(e) => return Value::Error(Error::Parse(e.to_string())),
         };
@@ -954,7 +954,7 @@ impl<'a> Evaluator<'a> {
             }
             Ok(None) => {
                 let mut context = BoundContext { evaluator: self, scope, origin, cached };
-                diagramcraft_sheet::evaluate(&expr, &mut context)
+                misterdiagram_sheet::evaluate(&expr, &mut context)
             }
             Err(e) => Value::Error(e),
         }
@@ -1004,7 +1004,7 @@ impl<'a> Evaluator<'a> {
             return Value::Text(cell.value.clone().unwrap_or_default());
         }
         if matches!(cell.name.as_str(), "LangID" | "DocLangID") && cell.error.is_none() {
-            return match diagramcraft_sheet::language::lcid(cell.value.as_deref().unwrap_or("0")) {
+            return match misterdiagram_sheet::language::lcid(cell.value.as_deref().unwrap_or("0")) {
                 Ok(id) => Value::Number(f64::from(id)),
                 Err(e) => Value::Error(e),
             };
@@ -1029,7 +1029,7 @@ impl<'a> Evaluator<'a> {
                 .palette
                 .iter()
                 .find_map(|(i, c)| (*c == rgb).then_some(*i))
-                .or_else(|| (0..24).find(|i| diagramcraft_sheet::functions::default_color(*i) == Some(rgb)))
+                .or_else(|| (0..24).find(|i| misterdiagram_sheet::functions::default_color(*i) == Some(rgb)))
                 .or_else(|| self.palette.last_key_value().map_or(Some(24), |(i, _)| i.checked_add(1)))
                 .unwrap_or(0);
             return if cell.name == "TextBkgnd" {
@@ -1045,7 +1045,7 @@ impl<'a> Evaluator<'a> {
         {
             return Value::Number(f64::from(index));
         }
-        diagramcraft_sheet::units::cached(cell.value.as_deref(), cell.units.as_deref(), cell.error.as_deref())
+        misterdiagram_sheet::units::cached(cell.value.as_deref(), cell.units.as_deref(), cell.error.as_deref())
     }
     /// Resolve local, cross-shape, document, named page/master and style-qualified references.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references
@@ -1061,7 +1061,7 @@ impl<'a> Evaluator<'a> {
                     && let Some(c) = self.cell(scope, &name).filter(|c| c.error.is_some())
                     && !string_cells::is_string(&name.to_ascii_lowercase(), c)
                 {
-                    let saved = diagramcraft_sheet::units::cached(c.value.as_deref(), c.units.as_deref(), None);
+                    let saved = misterdiagram_sheet::units::cached(c.value.as_deref(), c.units.as_deref(), None);
                     if matches!(saved, Value::Number(_)) {
                         return saved;
                     }
@@ -1144,7 +1144,7 @@ static PATH_CELL: std::sync::LazyLock<Cell> = std::sync::LazyLock::new(|| Cell {
     name: "Path".into(),
     value: Some("0".into()),
     units: Some("NUM".into()),
-    attributes: diagramcraft_model::Attributes::from([("VirtualPath".into(), "1".into())]),
+    attributes: misterdiagram_model::Attributes::from([("VirtualPath".into(), "1".into())]),
     ..Default::default()
 });
 fn path_index(name: &str) -> Option<u32> {
@@ -1303,15 +1303,15 @@ fn split_reference(s: &str) -> Result<Vec<&str>, Error> {
     Ok(out)
 }
 // Only parsed call nodes select the frozen host fallback. Quoted strings and reference names do not.
-fn hook_references(expr: &diagramcraft_sheet::Expr, defer_text: bool) -> Result<Option<Vec<&str>>, Error> {
+fn hook_references(expr: &misterdiagram_sheet::Expr, defer_text: bool) -> Result<Option<Vec<&str>>, Error> {
     hook_references_with_host(expr, defer_text, None)
 }
 fn hook_references_with_host<'e>(
-    expr: &'e diagramcraft_sheet::Expr,
+    expr: &'e misterdiagram_sheet::Expr,
     defer_text: bool,
-    host: Option<&dyn diagramcraft_sheet::HostHooks>,
+    host: Option<&dyn misterdiagram_sheet::HostHooks>,
 ) -> Result<Option<Vec<&'e str>>, Error> {
-    use diagramcraft_sheet::Expr;
+    use misterdiagram_sheet::Expr;
     let mut pending = vec![(expr, 0usize)];
     let mut references = Vec::new();
     let mut nodes = 0usize;
@@ -1330,9 +1330,9 @@ fn hook_references_with_host<'e>(
                 pending.push((b, depth + 1));
             }
             Expr::Call { name, args } => {
-                let hook = diagramcraft_sheet::is_hook(name) || defer_text && diagramcraft_sheet::is_text_metric(name);
+                let hook = misterdiagram_sheet::is_hook(name) || defer_text && misterdiagram_sheet::is_text_metric(name);
                 has_hook |= hook && !host.is_some_and(|host| host.supports(name));
-                if !hook && !diagramcraft_sheet::functions::IMPLEMENTED.contains(&name.as_str()) {
+                if !hook && !misterdiagram_sheet::functions::IMPLEMENTED.contains(&name.as_str()) {
                     unsupported.get_or_insert_with(|| name.clone());
                 }
                 pending.extend(args.iter().map(|arg| (arg, depth + 1)));
@@ -1410,7 +1410,7 @@ impl Context for BoundContext<'_, '_> {
     fn theme(&mut self, name: &str, args: &[Value]) -> Value {
         match self.evaluator.theme_host {
             Some(host) => host.theme(name, args, self),
-            None => diagramcraft_sheet::host::no_theme(name, args, self),
+            None => misterdiagram_sheet::host::no_theme(name, args, self),
         }
     }
     fn enter_eval(&mut self) -> bool {
@@ -1606,7 +1606,7 @@ impl Context for BoundContext<'_, '_> {
         self.evaluator.local_inh_cell(scope, &name).and_then(|c| c.units.clone()).or_else(|| self.evaluator.cell(scope, &name)?.units.clone())
     }
     fn color(&self, index: u32) -> Option<[u8; 3]> {
-        self.evaluator.palette.get(&index).copied().or_else(|| diagramcraft_sheet::functions::default_color(index))
+        self.evaluator.palette.get(&index).copied().or_else(|| misterdiagram_sheet::functions::default_color(index))
     }
     fn color_index(&mut self, rgb: [u8; 3]) -> Option<u32> {
         self.evaluator.intern_color(rgb)
@@ -1665,7 +1665,7 @@ fn parse_color(s: &str) -> Option<[u8; 3]> {
     }
     Some([u8::from_str_radix(s.get(..2)?, 16).ok()?, u8::from_str_radix(s.get(2..4)?, 16).ok()?, u8::from_str_radix(s.get(4..)?, 16).ok()?])
 }
-fn limited_text(element: &diagramcraft_model::XmlElement) -> Result<String, Error> {
+fn limited_text(element: &misterdiagram_model::XmlElement) -> Result<String, Error> {
     let mut out = String::new();
     let mut stack = vec![element.children.iter()];
     let mut nodes = 0usize;
@@ -1675,13 +1675,13 @@ fn limited_text(element: &diagramcraft_model::XmlElement) -> Result<String, Erro
             return Err(Error::Limit);
         }
         match iter.next() {
-            Some(diagramcraft_model::XmlNode::Text(s)) => {
+            Some(misterdiagram_model::XmlNode::Text(s)) => {
                 if out.len().saturating_add(s.len()) > 65536 {
                     return Err(Error::Limit);
                 }
                 out.push_str(s)
             }
-            Some(diagramcraft_model::XmlNode::Element(e)) => {
+            Some(misterdiagram_model::XmlNode::Element(e)) => {
                 if stack.len() >= 128 {
                     return Err(Error::Limit);
                 }
@@ -1695,7 +1695,7 @@ fn limited_text(element: &diagramcraft_model::XmlElement) -> Result<String, Erro
     Ok(out)
 }
 fn validate_formula(formula: &str) -> Result<(), Error> {
-    diagramcraft_sheet::parse(formula).map(|_| ()).map_err(|e| Error::Parse(e.to_string()))
+    misterdiagram_sheet::parse(formula).map(|_| ()).map_err(|e| Error::Parse(e.to_string()))
 }
 
 #[cfg(test)]
@@ -1708,7 +1708,7 @@ mod tests {
         Sheet { cells, ..Default::default() }
     }
     fn fixture() -> Document {
-        use diagramcraft_model::{Master, Page, Style};
+        use misterdiagram_model::{Master, Page, Style};
         Document {
             document_sheet: sheet(vec![cell("DocLangID", "1033", None)]),
             pages: vec![
@@ -1810,7 +1810,7 @@ mod tests {
         let mut doc = fixture();
         doc.colors.insert(25, "#ffffff".into());
         doc.face_names.insert(4, "Calibri".into());
-        doc.styles.push(diagramcraft_model::Style { id: 0, ..Default::default() });
+        doc.styles.push(misterdiagram_model::Style { id: 0, ..Default::default() });
         let mut e = Evaluator::new(&doc).unwrap();
         let scope = Scope::PageShape { page: 7, shape: 1 };
         assert_eq!(e.evaluate(scope, "LineGradientStops.GradientStopColor[10]"), Value::Number(1.));
@@ -1863,7 +1863,7 @@ mod tests {
         e.set_formula(Scope::Document, "Width", "4").unwrap();
         assert!(e.dirty.iter().any(|k| k.name == "hostdependent"));
         for formula in ["Pages[NOW()]!Width", "'THEMEVAL()'!Width", "UNIMPLEMENTEDFUNCTION(1)"] {
-            assert!(hook_references(&diagramcraft_sheet::parse(formula).unwrap(), false).unwrap().is_none());
+            assert!(hook_references(&misterdiagram_sheet::parse(formula).unwrap(), false).unwrap().is_none());
         }
     }
     #[test]
@@ -1943,7 +1943,7 @@ mod tests {
         let deleted = Shape {
             id: u32::MAX,
             master_shape: Some(7),
-            sheet: Sheet { attributes: diagramcraft_model::Attributes::from([("Del".into(), "1".into())]), ..Default::default() },
+            sheet: Sheet { attributes: misterdiagram_model::Attributes::from([("Del".into(), "1".into())]), ..Default::default() },
             ..Default::default()
         };
         doc.pages[0].shapes.extend([deleted.clone(), deleted]);
@@ -2049,12 +2049,12 @@ mod tests {
             ..Default::default()
         };
         let doc = Document {
-            masters: vec![diagramcraft_model::Master {
+            masters: vec![misterdiagram_model::Master {
                 id: 2,
                 shapes: vec![Shape { id: 5, sheet: Sheet { sections: vec![geometry], ..Default::default() }, ..Default::default() }],
                 ..Default::default()
             }],
-            pages: vec![diagramcraft_model::Page {
+            pages: vec![misterdiagram_model::Page {
                 id: 0,
                 shapes: vec![
                     Shape { id: 1, master: Some(2), ..Default::default() },
@@ -2099,7 +2099,7 @@ mod tests {
             ..Default::default()
         };
         let doc = Document {
-            pages: vec![diagramcraft_model::Page {
+            pages: vec![misterdiagram_model::Page {
                 id: 0,
                 shapes: vec![Shape { id: 1, sheet: Sheet { sections: vec![section], ..Default::default() }, ..Default::default() }],
                 ..Default::default()
@@ -2128,7 +2128,7 @@ mod tests {
             ..Default::default()
         };
         let doc = Document {
-            pages: vec![diagramcraft_model::Page {
+            pages: vec![misterdiagram_model::Page {
                 id: 0,
                 shapes: vec![Shape { id: 1, sheet: Sheet { sections: vec![section], ..Default::default() }, ..Default::default() }],
                 ..Default::default()

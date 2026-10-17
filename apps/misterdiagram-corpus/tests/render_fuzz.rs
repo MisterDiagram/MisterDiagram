@@ -2,7 +2,7 @@
 //! Original: deckcraft crates/pptx/tests/malformed.rs, be14248577b92059eb2b8c0c9460cceffbc1f01d, MIT OR Apache-2.0.
 //! Every local corpus package participates in deterministic XML and ZIP mutations.
 #![allow(clippy::unwrap_used, clippy::expect_used)]
-use diagramcraft_vsdx::import;
+use misterdiagram_vsdx::import;
 use std::{
     io::{Cursor, Read, Write},
     path::{Path, PathBuf},
@@ -55,14 +55,14 @@ fn corpus() -> Vec<PathBuf> {
 }
 fn exercise(bytes: &[u8]) {
     if let Ok(doc) = import(bytes) {
-        let options = diagramcraft_render::scene::Options::default();
+        let options = misterdiagram_render::scene::Options::default();
         let scene = if doc.pages.is_empty() {
-            diagramcraft_render::scene::master(&doc, 0, options)
+            misterdiagram_render::scene::master(&doc, 0, options)
         } else {
-            diagramcraft_render::scene::page(&doc, 0, options)
+            misterdiagram_render::scene::page(&doc, 0, options)
         };
         if let Ok(scene) = scene {
-            let _ = diagramcraft_render::raster::render(&scene, options);
+            let _ = misterdiagram_render::raster::render(&scene, options);
         }
     }
 }

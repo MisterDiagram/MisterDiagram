@@ -26,16 +26,16 @@ fn every_corpus_package_roundtrips_every_strict_literal_cell() {
     }
     files.sort();
     assert!(!files.is_empty());
-    let mut total = diagramcraft_vsdx::roundtrip::Report::default();
+    let mut total = misterdiagram_vsdx::roundtrip::Report::default();
     for (i, file) in files.iter().enumerate() {
-        let before = diagramcraft_vsdx::read(file).unwrap();
-        let theme = diagramcraft_theme::Themes::from_document(&before).unwrap();
-        let written = diagramcraft_vsdx::write_with_hosts(&before, Some(&theme), Some(&diagramcraft_text::Host))
+        let before = misterdiagram_vsdx::read(file).unwrap();
+        let theme = misterdiagram_theme::Themes::from_document(&before).unwrap();
+        let written = misterdiagram_vsdx::write_with_hosts(&before, Some(&theme), Some(&misterdiagram_text::Host))
             .unwrap_or_else(|e| panic!("{}: {e}", file.display()));
-        let after = diagramcraft_vsdx::import(&written.bytes).unwrap();
-        let theme_after = diagramcraft_theme::Themes::from_document(&after).unwrap();
+        let after = misterdiagram_vsdx::import(&written.bytes).unwrap();
+        let theme_after = misterdiagram_theme::Themes::from_document(&after).unwrap();
         total.merge(
-            diagramcraft_vsdx::roundtrip::compare(&before, &after, Some(&theme), Some(&theme_after), Some(&diagramcraft_text::Host))
+            misterdiagram_vsdx::roundtrip::compare(&before, &after, Some(&theme), Some(&theme_after), Some(&misterdiagram_text::Host))
                 .unwrap_or_else(|e| panic!("{}: {e}", file.display())),
         );
         if (i + 1) % 100 == 0 {
@@ -48,7 +48,7 @@ fn every_corpus_package_roundtrips_every_strict_literal_cell() {
         total.matched,
         total.total,
         total.percent(),
-        diagramcraft_vsdx::roundtrip::FLOOR
+        misterdiagram_vsdx::roundtrip::FLOOR
     );
     eprintln!(
         "roundtrip evaluation-only diagnostic: passed={}/{} rate={:.6}%",
@@ -66,10 +66,10 @@ fn every_corpus_package_roundtrips_every_strict_literal_cell() {
 
 #[test]
 fn passive_actions_and_last_valid_error_references() {
-    use diagramcraft_model::{Cell, Row, Section};
-    use diagramcraft_sheet::Value;
-    use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
-    let mut d = diagramcraft_model::skeleton::document(false);
+    use misterdiagram_model::{Cell, Row, Section};
+    use misterdiagram_sheet::Value;
+    use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
+    let mut d = misterdiagram_model::skeleton::document(false);
     d.document_sheet.sections.push(Section {
         name: "Actions".into(),
         rows: vec![Row {

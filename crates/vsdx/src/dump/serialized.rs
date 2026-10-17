@@ -1,7 +1,7 @@
 //! Literal local caches for the acceptance reporter, with no formula evaluation.
 //! https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
 use super::{display_name, escape, io_error};
-use diagramcraft_model::{Cell, Document, Shape, Sheet};
+use misterdiagram_model::{Cell, Document, Shape, Sheet};
 use std::io::Write;
 
 /// Missing V/F/U/E are distinguished from empty attributes by a presence bit mask.

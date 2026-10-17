@@ -1,7 +1,7 @@
 //! Declared string columns retain spelling even when U is absent.
-use diagramcraft_model::{Cell, Document, Row, Section, Sheet};
-use diagramcraft_sheet::Value;
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_model::{Cell, Document, Row, Section, Sheet};
+use misterdiagram_sheet::Value;
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 
 fn cell(name: &str, value: &str) -> Cell {
     Cell { name: name.into(), value: Some(value.into()), ..Default::default() }
@@ -83,7 +83,7 @@ fn string_formulas_still_evaluate_and_errors_and_size_limits_survive() {
 
 #[test]
 fn inherited_and_aliased_string_cells_and_evalcell_keep_text() {
-    use diagramcraft_model::{Master, Page, Shape};
+    use misterdiagram_model::{Master, Page, Shape};
     let mut master_sheet = document("Property", "Label", "007").document_sheet;
     master_sheet.cells.push(Cell {
         name: "User.Read".into(),
@@ -109,8 +109,8 @@ fn inherited_and_aliased_string_cells_and_evalcell_keep_text() {
 
 #[test]
 fn saved_inherited_string_cache_keeps_its_distinct_spelling() {
-    use diagramcraft_model::{Row, Section, Shape};
-    let mut doc = diagramcraft_model::skeleton::document(false);
+    use misterdiagram_model::{Row, Section, Shape};
+    let mut doc = misterdiagram_model::skeleton::document(false);
     fn label(value: &str, formula: &str) -> Section {
         Section {
             name: "Property".into(),
@@ -127,7 +127,7 @@ fn saved_inherited_string_cache_keeps_its_distinct_spelling() {
     shape.sheet.cells.push(Cell { name: "Width".into(), value: Some("2".into()), ..Default::default() });
     shape.sheet.sections.push(label("1", "Inh"));
     doc.pages[0].shapes.push(shape);
-    let saved = diagramcraft_vsdx::import(&diagramcraft_vsdx::write(&doc).unwrap().bytes).unwrap();
+    let saved = misterdiagram_vsdx::import(&misterdiagram_vsdx::write(&doc).unwrap().bytes).unwrap();
     let mut evaluator = Evaluator::new(&saved).unwrap();
     let scope = Scope::PageShape { page: 0, shape: 1 };
     let locals = evaluator.source_named_cells(scope).unwrap();

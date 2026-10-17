@@ -13,9 +13,9 @@ mod bytes;
 mod dib;
 mod emf;
 use crate::scene::{Op, Paint, SceneBudget};
-use diagramcraft_color::Rgba as Color;
 use dib::Rgba;
 use kurbo::{Affine, BezPath, PathEl, Point, Rect, Shape as _, Vec2};
+use misterdiagram_color::Rgba as Color;
 use std::sync::Arc;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Kind {
@@ -863,7 +863,7 @@ impl Player {
         // A negative height is the em; a positive one the cell (the em and the internal leading).
         let em = if f.height < 0.0 { -f.height } else { f.height * 0.85 };
         let size = if em > 0.0 && (em * k).is_finite() { (em * k).clamp(0.5, 5000.0) } else { 12.0 };
-        let db = diagramcraft_fonts::FontDb::global();
+        let db = misterdiagram_fonts::FontDb::global();
         let face = db.face(
             if f.face.trim().is_empty() { "Arial" } else { f.face.trim() },
             match (f.weight >= 600, f.italic) {
@@ -873,7 +873,7 @@ impl Player {
                 _ => "Regular",
             },
         );
-        let glyphs = diagramcraft_fonts::shape(&face, &s, &[], |c| c);
+        let glyphs = misterdiagram_fonts::shape(&face, &s, &[], |c| c);
         let advance: f64 = glyphs.iter().map(|g| f64::from(g.x_advance)).sum::<f64>() * size / face.upem.max(1.);
         let x = match align & 6 {
             6 => -advance * 0.5,
@@ -910,7 +910,7 @@ impl Player {
         if self.skipped > 0 {
             let n = self.skipped;
             self.warnings.push(format!(
-                "{n} record{} of kinds Diagramcraft doesn't read {} skipped",
+                "{n} record{} of kinds MisterDiagram doesn't read {} skipped",
                 if n == 1 { "" } else { "s" },
                 if n == 1 { "was" } else { "were" }
             ));

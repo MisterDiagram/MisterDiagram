@@ -3,8 +3,8 @@ use crate::{
     GlueHost,
     static_glue::{cell, set, shape_mut},
 };
-use diagramcraft_model::{Document, Page, Row, Section};
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_model::{Document, Page, Row, Section};
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 fn number(e: &mut Evaluator<'_>, scope: Scope, name: &str) -> Result<f64, String> {
     let value = e.evaluate(scope, name).numeric().map_err(|e| e.to_string())?;
     if value.is_finite() && value.abs() <= 1e6 { Ok(value) } else { Err("route coordinate limit".into()) }
@@ -24,7 +24,7 @@ fn connector_layer(page: &mut Page) -> Result<u32, String> {
     if index >= 16384 || page.sheet.sections.len() >= 16384 {
         return Err("layer count limit".into());
     }
-    let mut row = diagramcraft_model::skeleton::layer(index, "Connector", true)?;
+    let mut row = misterdiagram_model::skeleton::layer(index, "Connector", true)?;
     for c in &mut row.cells {
         c.formula = None;
         match c.name.as_str() {
@@ -44,12 +44,12 @@ fn connector_layer(page: &mut Page) -> Result<u32, String> {
     }
     Ok(index)
 }
-fn row(index: u32, kind: &str, cells: Vec<diagramcraft_model::Cell>, deleted: bool) -> Row {
+fn row(index: u32, kind: &str, cells: Vec<misterdiagram_model::Cell>, deleted: bool) -> Row {
     Row {
         index: Some(index),
         row_type: Some(kind.into()),
         deleted,
-        attributes: diagramcraft_model::Attributes::from([("IX".into(), index.to_string()), ("T".into(), kind.into())]),
+        attributes: misterdiagram_model::Attributes::from([("IX".into(), index.to_string()), ("T".into(), kind.into())]),
         cells,
         ..Default::default()
     }
@@ -71,9 +71,9 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
         }
     }
     let dirty_pages = doc.pages.iter().filter(|p| host.page_dirty(p.id)).map(|p| p.id).collect::<std::collections::BTreeSet<_>>();
-    let themes = diagramcraft_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
-    let old_themes = diagramcraft_theme::Themes::from_document(before).map_err(|e| e.to_string())?;
-    let text = diagramcraft_text::Host;
+    let themes = misterdiagram_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
+    let old_themes = misterdiagram_theme::Themes::from_document(before).map_err(|e| e.to_string())?;
+    let text = misterdiagram_text::Host;
     let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&text).with_glue_host(host);
     let mut old = Evaluator::new(before).map_err(|e| e.to_string())?.with_theme_host(&old_themes).with_text_host(&text);
     let mut routes = vec![];
@@ -118,10 +118,10 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
         let style = crate::orthogonal::style(&mut e, scope, page);
         let cx = crate::orthogonal::number(&mut e, Scope::Page(page), "LineToLineX", 0.125) * 1.5;
         let cy = crate::orthogonal::number(&mut e, Scope::Page(page), "LineToLineY", 0.125) * 1.5;
-        let begin = diagramcraft_geom::Point::new(bx, by);
-        let end = diagramcraft_geom::Point::new(ex, ey);
+        let begin = misterdiagram_geom::Point::new(bx, by);
+        let end = misterdiagram_geom::Point::new(ex, ey);
         let obstacles = crate::orthogonal::clearance(&obstacles, (cx, cy), [begin, end]);
-        let direction = |e: &mut Evaluator<'_>, point: diagramcraft_geom::Point, side: &str| -> Result<Option<usize>, String> {
+        let direction = |e: &mut Evaluator<'_>, point: misterdiagram_geom::Point, side: &str| -> Result<Option<usize>, String> {
             let link = doc.pages.get(index).ok_or("route page")?.connects.iter().find(|c| c.from_sheet == id && c.from_cell.as_deref() == Some(side));
             if let Some(link) = link {
                 if !matches!(link.to_cell.as_deref(), Some("PinX" | "PinY")) {

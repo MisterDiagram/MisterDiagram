@@ -6,11 +6,11 @@ fn run() -> Result<(), String> {
     for source in std::fs::read_to_string(root.join("_state/m2-contact-inputs.txt")).map_err(|e| e.to_string())?.lines() {
         let source = Path::new(source);
         let name = source.file_stem().and_then(|s| s.to_str()).ok_or("invalid stencil name")?;
-        let doc = diagramcraft_vsdx::read(source).map_err(|e| e.to_string())?;
+        let doc = misterdiagram_vsdx::read(source).map_err(|e| e.to_string())?;
         let own_path = root.join("_state/contact-sheets").join(format!("{name}-ours.png"));
-        let own = diagramcraft_render::raster::decode(&std::fs::read(own_path).map_err(|e| e.to_string())?)?;
+        let own = misterdiagram_render::raster::decode(&std::fs::read(own_path).map_err(|e| e.to_string())?)?;
         let height = doc.masters.len().div_ceil(3).checked_mul(200).ok_or("pair height overflow")?;
-        if height.checked_mul(1440).is_none_or(|n| n > diagramcraft_render::scene::MAX_PIXELS) {
+        if height.checked_mul(1440).is_none_or(|n| n > misterdiagram_render::scene::MAX_PIXELS) {
             return Err("paired contact pixel limit".into());
         }
         let mut output = image::RgbaImage::from_pixel(1440, height as u32, image::Rgba([255, 255, 255, 255]));
@@ -26,7 +26,7 @@ fn run() -> Result<(), String> {
             let tile = image::imageops::crop_imm(&own, sx as u32, sy as u32, 240, 200).to_image();
             image::imageops::overlay(&mut output, &tile, x as i64, y as i64);
             let reference = root.join("_vm/out/export-masters").join(name).join(format!("{}.png", master.id));
-            match std::fs::read(&reference).map_err(|e| e.to_string()).and_then(|bytes| diagramcraft_render::raster::decode(&bytes)) {
+            match std::fs::read(&reference).map_err(|e| e.to_string()).and_then(|bytes| misterdiagram_render::raster::decode(&bytes)) {
                 Ok(img) => {
                     let scale = (216. / f64::from(img.width()).max(1.)).min(160. / f64::from(img.height()).max(1.)).min(2.);
                     let w = (f64::from(img.width()) * scale).round().max(1.) as u32;

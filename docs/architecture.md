@@ -71,13 +71,13 @@ reader sheet limits after XML escaping, and preserves opaque part payloads exact
 | `crates/render/src/metafile/emf.rs` | vectorcraft | `crates/metafile/src/import/emf.rs` | `806b1a6972288319577d75d097c140f9bf530ce0` | MIT OR Apache-2.0 |
 | `crates/render/src/metafile/bytes.rs` | vectorcraft | `crates/metafile/src/bytes.rs` | `806b1a6972288319577d75d097c140f9bf530ce0` | MIT OR Apache-2.0 |
 | `crates/render/src/metafile/dib.rs` | vectorcraft | `crates/metafile/src/dib.rs` | `806b1a6972288319577d75d097c140f9bf530ce0` | MIT OR Apache-2.0 |
-| `apps/diagramcraft-corpus/tests/render_fuzz.rs` | deckcraft (via diagramcraft vsdx harness) | `crates/pptx/tests/malformed.rs` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
+| `apps/misterdiagram-corpus/tests/render_fuzz.rs` | deckcraft (via MisterDiagram vsdx harness) | `crates/pptx/tests/malformed.rs` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
 
 Adapted `AGENTS.md` from deckcraft `src/AGENTS.md`, commit `be14248577b92059eb2b8c0c9460cceffbc1f01d`, MIT OR Apache-2.0.
 
 Adapted `CLAUDE.md` from deckcraft `src/CLAUDE.md`, commit `be14248577b92059eb2b8c0c9460cceffbc1f01d`, MIT OR Apache-2.0.
 
-The native `apps/diagramcraft-corpus` crate shares corpus-oracle logic between the CLI and
+The native `apps/misterdiagram-corpus` crate shares corpus-oracle logic between the CLI and
 integration tests. It is an application harness above the core layers, exempt like the CLI;
 no core crate depends on it. This avoids an upward dependency from sheet tests to the reader.
 

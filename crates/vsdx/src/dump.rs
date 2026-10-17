@@ -1,7 +1,7 @@
 //! COM-compatible ShapeSheet TSV output from the parsed model and resolved cells.
 use crate::evaluate::{Evaluator, NamedCell, Scope};
-use diagramcraft_model::{Cell, Document, Shape};
-use diagramcraft_sheet::Value;
+use misterdiagram_model::{Cell, Document, Shape};
+use misterdiagram_sheet::Value;
 use std::{collections::BTreeMap, io::Write};
 
 /// Page selection is one-based ordinal; master and shape selection use Visio IDs.
@@ -27,7 +27,7 @@ pub fn dump(document: &Document, selection: Selection, out: &mut impl Write) -> 
 pub fn dump_with_theme(
     document: &Document,
     selection: Selection,
-    host: Option<&dyn diagramcraft_sheet::host::ThemeHost>,
+    host: Option<&dyn misterdiagram_sheet::host::ThemeHost>,
     out: &mut impl Write,
 ) -> Result<(), String> {
     dump_with_hosts(document, selection, host, None, out)
@@ -36,8 +36,8 @@ pub fn dump_with_theme(
 pub fn dump_with_hosts(
     document: &Document,
     selection: Selection,
-    host: Option<&dyn diagramcraft_sheet::host::ThemeHost>,
-    text: Option<&dyn diagramcraft_model::text::TextHost>,
+    host: Option<&dyn misterdiagram_sheet::host::ThemeHost>,
+    text: Option<&dyn misterdiagram_model::text::TextHost>,
     out: &mut impl Write,
 ) -> Result<(), String> {
     dump_internal(document, selection, host, text, out)
@@ -53,8 +53,8 @@ pub fn dump_serialized(document: &Document, out: &mut impl Write) -> Result<(), 
 fn dump_internal(
     document: &Document,
     selection: Selection,
-    host: Option<&dyn diagramcraft_sheet::host::ThemeHost>,
-    text: Option<&dyn diagramcraft_model::text::TextHost>,
+    host: Option<&dyn misterdiagram_sheet::host::ThemeHost>,
+    text: Option<&dyn misterdiagram_model::text::TextHost>,
     out: &mut impl Write,
 ) -> Result<(), String> {
     let mut evaluator = Evaluator::new(document).map_err(|e| e.to_string())?;
@@ -739,8 +739,8 @@ fn supplement(slots: &mut BTreeMap<(u16, u16, u16), Slot<'_>>) -> Result<(), Str
 mod tests {
     #[test]
     fn serialized_dump_uses_written_cache_without_claiming_inherited_predictions() {
-        let mut d = diagramcraft_model::skeleton::document(false);
-        let mut shape = diagramcraft_model::skeleton::rectangle(1, 0., 0., 2., 1., "").unwrap();
+        let mut d = misterdiagram_model::skeleton::document(false);
+        let mut shape = misterdiagram_model::skeleton::rectangle(1, 0., 0., 2., 1., "").unwrap();
         let width = shape.sheet.cells.iter_mut().find(|c| c.name == "Width").unwrap();
         width.formula = Some("UNSUPPORTED_ACCEPTANCE_WITNESS()".into());
         width.value = Some("23".into());
@@ -765,10 +765,10 @@ mod tests {
 
     #[test]
     fn hostile_group_name_fanout_is_bounded_before_dump_output() {
-        let mut doc = diagramcraft_model::skeleton::document(false);
-        let group = diagramcraft_model::Shape {
+        let mut doc = misterdiagram_model::skeleton::document(false);
+        let group = misterdiagram_model::Shape {
             name_u: "x".repeat(64000),
-            shapes: (1..90001).map(|id| diagramcraft_model::Shape { id, ..Default::default() }).collect(),
+            shapes: (1..90001).map(|id| misterdiagram_model::Shape { id, ..Default::default() }).collect(),
             ..Default::default()
         };
         doc.pages[0].shapes.push(group);
@@ -776,7 +776,7 @@ mod tests {
         assert!(super::selected(&doc, super::Selection::Shape(89999)).is_err());
     }
     use super::*;
-    use diagramcraft_model::{Page, Sheet};
+    use misterdiagram_model::{Page, Sheet};
     #[test]
     fn basic_rectangle_corpus_has_every_com_identity_and_unit() {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus/generated/master");
@@ -856,7 +856,7 @@ mod tests {
     }
     #[test]
     fn style_com_surface_omits_gradient_and_layer_membership_only() {
-        use diagramcraft_model::{Row, Section, Style};
+        use misterdiagram_model::{Row, Section, Style};
         let sheet = Sheet {
             cells: vec![Cell { name: "LayerMember".into(), value: Some("0".into()), ..Default::default() }],
             sections: vec![Section {
@@ -884,7 +884,7 @@ mod tests {
     }
     #[test]
     fn sparse_named_row_overrides_keep_master_slots_and_deleted_rows_compact() {
-        use diagramcraft_model::{Master, Row, Section};
+        use misterdiagram_model::{Master, Row, Section};
         let row = |name: &str, value: &str| Row {
             name: Some(name.into()),
             cells: vec![Cell { name: "Value".into(), value: Some(value.into()), ..Default::default() }],
@@ -967,7 +967,7 @@ mod tests {
 mod metric_defaults_regression {
     #[test]
     fn metric_document_format_defaults_use_observed_millimetre_codes() {
-        let document = diagramcraft_model::skeleton::document(true);
+        let document = misterdiagram_model::skeleton::document(true);
         let mut output = Vec::new();
         super::dump(&document, super::Selection::Document, &mut output).unwrap();
         let output = String::from_utf8(output).unwrap();
@@ -997,7 +997,7 @@ mod metric_defaults_regression {
 mod metric_metres_regression {
     #[test]
     fn metric_document_defaults_follow_metre_drawing_scale() {
-        let mut document = diagramcraft_model::skeleton::document(true);
+        let mut document = misterdiagram_model::skeleton::document(true);
         document.pages[0].sheet.cells.iter_mut().find(|c| c.name == "DrawingScale").unwrap().units = Some("M".into());
         let mut output = Vec::new();
         super::dump(&document, super::Selection::Document, &mut output).unwrap();
@@ -1013,7 +1013,7 @@ mod metric_metres_regression {
 mod page_sheet_identity_regression {
     #[test]
     fn nonzero_page_keeps_owner_but_pagesheet_shape_id_is_zero() {
-        let mut d = diagramcraft_model::skeleton::document(false);
+        let mut d = misterdiagram_model::skeleton::document(false);
         d.pages[0].id = 7;
         let mut raw = Vec::new();
         super::dump_serialized(&d, &mut raw).unwrap();

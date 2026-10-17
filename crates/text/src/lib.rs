@@ -26,11 +26,11 @@ mod bidi;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use diagramcraft_color::Rgba;
-use diagramcraft_fonts::script::{self, joins_following, joins_preceding};
-use diagramcraft_fonts::{FontDb, FontFace, FontSlot, ScriptTag, ShapeParams};
-use diagramcraft_geom::{Point, Rect};
-use diagramcraft_model::text::{Align, Anchor, AutoFit, BodyProps, Bullet, Caps, ParaProps, RunKind, RunProps, Spacing, Strike, TextBody, TextDir};
+use misterdiagram_color::Rgba;
+use misterdiagram_fonts::script::{self, joins_following, joins_preceding};
+use misterdiagram_fonts::{FontDb, FontFace, FontSlot, ScriptTag, ShapeParams};
+use misterdiagram_geom::{Point, Rect};
+use misterdiagram_model::text::{Align, Anchor, AutoFit, BodyProps, Bullet, Caps, ParaProps, RunKind, RunProps, Spacing, Strike, TextBody, TextDir};
 use unicode_segmentation::UnicodeSegmentation;
 
 /// A run of glyphs in one face, size and colour.
@@ -503,7 +503,7 @@ fn shape_cells(text: &str, char_style: &[usize], styles: &[Style], faces: &mut V
         // draw them, so a phrase isn't cut into items at every space.
         let neutral = cluster.iter().all(|c| script::script_of(*c).is_none());
         let face = match prev.as_ref() {
-            Some(p) if neutral && diagramcraft_fonts::covers_cluster(p, cluster) && char_style.get(a.wrapping_sub(1)) == Some(&si) => p.clone(),
+            Some(p) if neutral && misterdiagram_fonts::covers_cluster(p, cluster) && char_style.get(a.wrapping_sub(1)) == Some(&si) => p.clone(),
             _ => {
                 let chain = chains.entry((si, slot, sc)).or_insert_with(|| face_chain(st, slot, sc));
                 db.cascade(cluster, chain, st.style_name)
@@ -564,9 +564,9 @@ fn shape_item(
     let rtl = level % 2 == 1;
     let (Some(&b0), Some(&b1)) = (byte_of.get(range.start), byte_of.get(range.end)) else { return };
     // Visio SVG advances use unkerned metrics (text/align-1-0 and multiline-wrap).
-    let features: Vec<_> = diagramcraft_fonts::feature("-kern").into_iter().collect();
+    let features: Vec<_> = misterdiagram_fonts::feature("-kern").into_iter().collect();
     let params = ShapeParams { features: &features, rtl, script, language: lang };
-    let glyphs = diagramcraft_fonts::shape_range(face, text, b0..b1, &params, |ch| if upper { ch.to_uppercase().next().unwrap_or(ch) } else { ch });
+    let glyphs = misterdiagram_fonts::shape_range(face, text, b0..b1, &params, |ch| if upper { ch.to_uppercase().next().unwrap_or(ch) } else { ch });
     let upem = face.upem.max(1.0);
     let scale_of = |cell: &Cell| {
         let st = styles.get(cell.style);
@@ -607,7 +607,7 @@ fn shape_item(
             && let Some(&(gid, 1)) = lig.get(&h)
         {
             let s = cells.get(h).map(scale_of).unwrap_or(0.0);
-            let carets = diagramcraft_fonts::ligature_carets(face, gid);
+            let carets = misterdiagram_fonts::ligature_carets(face, gid);
             if carets.len() + 1 >= m {
                 bounds.extend(carets.iter().take(m - 1).map(|c| (*c as f64 * s).clamp(0.0, w)));
             }
@@ -662,7 +662,7 @@ fn map_symbol_bullet(c: &str, font: Option<&str>) -> String {
 }
 
 fn measure_str(face: &FontFace, size: f64, s: &str) -> (f64, Vec<(u32, f64)>) {
-    let g = diagramcraft_fonts::shape(face, s, &[], |c| c);
+    let g = misterdiagram_fonts::shape(face, s, &[], |c| c);
     let k = size / face.upem.max(1.0);
     let mut x = 0.0;
     let mut out = vec![];
@@ -715,7 +715,7 @@ fn break_lines(
     first_w: f64,
     rest_w: f64,
     wrap: bool,
-    tab_stops: &[diagramcraft_model::text::TabStop],
+    tab_stops: &[misterdiagram_model::text::TabStop],
     default_tab: f64,
     x0_first: f64,
     x0_rest: f64,
@@ -795,7 +795,7 @@ fn break_lines(
 }
 
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/alignment-cell-tabs-section
-fn tab_advance(x: f64, stops: &[diagramcraft_model::text::TabStop], default_tab: f64, following: &[Cell]) -> f64 {
+fn tab_advance(x: f64, stops: &[misterdiagram_model::text::TabStop], default_tab: f64, following: &[Cell]) -> f64 {
     let mut width = 0.;
     let mut decimal = None;
     for cell in following.iter().take_while(|c| !matches!(c.ch, '\t' | '\n' | '\u{b}')) {
@@ -1793,7 +1793,7 @@ fn validate(body: &TextBody, rect: Rect) -> Result<(), String> {
 
 /// Shared shaped metrics in points. Formatting is resolved by the document evaluator.
 pub struct Host;
-impl diagramcraft_model::text::TextHost for Host {
+impl misterdiagram_model::text::TextHost for Host {
     fn measure(&self, body: &TextBody, width: Option<f64>) -> Result<(f64, f64), String> {
         let width = width.unwrap_or(100_000.0);
         validate(body, Rect::new(0., 0., width, 100_000.))?;

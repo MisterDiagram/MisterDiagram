@@ -1,7 +1,7 @@
 //! Verify all SAN connector Geometry and XForm values after Visio saves the file.
 //! https://learn.microsoft.com/en-us/office/vba/api/visio.document.saveas
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use std::collections::{BTreeMap, BTreeSet};
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
@@ -11,8 +11,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         [arg] if arg == "--p4b-closure" => ("m4b-closure", "p4bc__san-topology"),
         _ => return Err("usage: route_resave [--p4b-closure]".into()),
     };
-    let before = diagramcraft_vsdx::read(root.join(format!("_state/{state}/accept-inputs/{name}.vsdx")))?;
-    let after = diagramcraft_vsdx::read(root.join(format!("_vm/out/accept/{name}/saved.vsdx")))?;
+    let before = misterdiagram_vsdx::read(root.join(format!("_state/{state}/accept-inputs/{name}.vsdx")))?;
+    let after = misterdiagram_vsdx::read(root.join(format!("_vm/out/accept/{name}/saved.vsdx")))?;
     let page = before.pages.first().ok_or("missing SAN page")?;
     let ids = page.connects.iter().map(|c| c.from_sheet).collect::<BTreeSet<_>>();
     if ids.len() != 40 || page.connects.len() != 80 {

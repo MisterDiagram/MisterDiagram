@@ -1,5 +1,5 @@
-use diagramcraft_model::{skeleton, *};
-use diagramcraft_vsdx::{SaveKind, import, write_as};
+use misterdiagram_model::{skeleton, *};
+use misterdiagram_vsdx::{SaveKind, import, write_as};
 use std::path::Path;
 fn cell(n: &str, v: &str, f: Option<&str>) -> Cell {
     Cell { name: n.into(), value: Some(v.into()), formula: f.map(str::to_owned), ..Default::default() }
@@ -135,7 +135,7 @@ fn five_documents_build_and_reread() {
         eprintln!("skip: private corpus/ absent, BASIC_U dropped-master case");
         return;
     }
-    let source = diagramcraft_vsdx::read(witness).unwrap();
+    let source = misterdiagram_vsdx::read(witness).unwrap();
     let mut d = skeleton::document(false);
     let mut m = source.masters.iter().find(|m| m.name_u == "Rectangle").unwrap().clone();
     m.id = 3;
@@ -195,14 +195,14 @@ fn dynamic_glue_rejects_nested_ids_and_writer_boundaries() {
 
 #[test]
 fn authored_dynamic_route_is_straight_in_page_space() {
-    use diagramcraft_geom::{BezPath, Rect};
-    use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+    use misterdiagram_geom::{BezPath, Rect};
+    use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
     for endpoints in [[[3., 1.5], [4., 1.5]], [[4., 1.5], [3., 1.5]], [[3., 1.5], [3., 3.5]], [[3., 1.5], [4., 3.5]]] {
         let mut d = skeleton::document(false);
         d.pages[0].shapes.push(skeleton::rectangle(1, 1., 1., 2., 1., "").unwrap());
         d.pages[0].shapes.push(skeleton::rectangle(2, 4., 1., 2., 1., "").unwrap());
         skeleton::glue_dynamic(&mut d.pages[0], 3, 2, [1, 2], endpoints).unwrap();
-        let a = diagramcraft_vsdx::import(&diagramcraft_vsdx::write(&d).unwrap().bytes).unwrap();
+        let a = misterdiagram_vsdx::import(&misterdiagram_vsdx::write(&d).unwrap().bytes).unwrap();
         let shape = &a.pages[0].shapes[2];
         let provider = &a.masters[0].shapes[0].sheet;
         for name in ["Width", "PinX", "PinY", "LocPinX", "LocPinY", "TxtPinX", "TxtPinY"] {

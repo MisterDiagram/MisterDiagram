@@ -25,7 +25,7 @@ pub(super) static CELLS: LazyLock<Vec<DefaultCell>> = LazyLock::new(|| {
                 value: Some((*value).into()),
                 formula: formula.map(str::to_owned),
                 units: string.then(|| "STR".into()),
-                attributes: diagramcraft_model::Attributes::from([
+                attributes: misterdiagram_model::Attributes::from([
                     ("ComSection".into(), src.0.to_string()),
                     ("ComRow".into(), src.1.to_string()),
                     ("ComCell".into(), src.2.to_string()),

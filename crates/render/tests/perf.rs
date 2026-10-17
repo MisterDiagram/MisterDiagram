@@ -2,14 +2,14 @@
 #[test]
 #[ignore = "explicit release measurement at the P2 human gate"]
 fn largest_stencil_and_500_shape_page() {
-    use diagramcraft_render::{contact, raster, scene};
+    use misterdiagram_render::{contact, raster, scene};
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
     if !root.exists() {
         eprintln!("skip: private corpus/ is absent");
         return;
     }
     let start = std::time::Instant::now();
-    let doc = diagramcraft_vsdx::read(root.join("ms-shipped/1033/WFDEP_M.vssx")).unwrap();
+    let doc = misterdiagram_vsdx::read(root.join("ms-shipped/1033/WFDEP_M.vssx")).unwrap();
     let (image, report) = contact::render(&doc).unwrap();
     let largest_ms = start.elapsed().as_millis();
     image.save(root.join("_state/contact-sheets/WFDEP_M-ours.png")).unwrap();
@@ -23,7 +23,7 @@ fn largest_stencil_and_500_shape_page() {
     for e in &report.warnings {
         eprintln!("{e}");
     }
-    let mut doc = diagramcraft_vsdx::read(root.join("generated/fill/pattern-01.vsdx")).unwrap();
+    let mut doc = misterdiagram_vsdx::read(root.join("generated/fill/pattern-01.vsdx")).unwrap();
     let mut base = doc.pages.first().unwrap().shapes.first().unwrap().clone();
     for c in &mut base.sheet.cells {
         if c.name == "Width" || c.name == "Height" {

@@ -185,11 +185,11 @@ impl SourceState {
 
 // Inspect parsed calls, never quoted text or coincidentally named references.
 fn resource_formula(formula: &str, colors: bool, fonts: bool) -> bool {
-    use diagramcraft_sheet::Expr;
+    use misterdiagram_sheet::Expr;
     if !colors && !fonts {
         return false;
     }
-    let Ok(expr) = diagramcraft_sheet::parse(formula) else { return true };
+    let Ok(expr) = misterdiagram_sheet::parse(formula) else { return true };
     let mut pending = vec![&expr];
     let mut count = 0usize;
     while let Some(e) = pending.pop() {

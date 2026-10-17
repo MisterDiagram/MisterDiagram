@@ -1,6 +1,6 @@
 // Review 1a attribute regression, scaled with Charles Hood's permission.
 // MIT OR Apache-2.0. Source recorded in ATTRIBUTION.md.
-use diagramcraft_opc::xml;
+use misterdiagram_opc::xml;
 use std::time::{Duration, Instant};
 
 fn attributes(n: usize) -> String {

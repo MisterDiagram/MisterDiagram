@@ -1,7 +1,7 @@
 //! Bounded session stencil documents and master discovery.
 use crate::{Result, Session, edit::*, operation};
-use diagramcraft_model::{Document, Master};
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_model::{Document, Master};
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use serde_json::{Value, json};
 use std::{path::PathBuf, sync::Arc};
 #[derive(Clone)]
@@ -22,7 +22,7 @@ pub(crate) fn open(s: &mut Session, p: &Value) -> Result<Value> {
     if s.stencils.len() >= 64 {
         return Err(operation("stencil count limit"));
     }
-    let document = diagramcraft_vsdx::read_with_open_nodes(&path, s.retained_xml_nodes()).map_err(operation)?;
+    let document = misterdiagram_vsdx::read_with_open_nodes(&path, s.retained_xml_nodes()).map_err(operation)?;
     if !document.parts.get(&document.main_part).and_then(|p| p.content_type.as_deref()).is_some_and(|v| v.contains("stencil")) {
         return Err(operation("file is not a stencil"));
     }
@@ -62,8 +62,8 @@ pub(crate) fn find<'a>(document: &'a Document, p: &Value) -> Result<&'a Master> 
         .ok_or_else(|| operation("master not found"))
 }
 fn entries(document: &Document, query: Option<&str>, limit: usize) -> Result<Value> {
-    let themes = diagramcraft_theme::Themes::from_document(document).map_err(operation)?;
-    let mut e = Evaluator::new(document).map_err(operation)?.with_theme_host(&themes).with_text_host(&diagramcraft_text::Host);
+    let themes = misterdiagram_theme::Themes::from_document(document).map_err(operation)?;
+    let mut e = Evaluator::new(document).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
     let words = query.map(|s| s.to_lowercase().split_whitespace().map(str::to_owned).collect::<Vec<_>>()).unwrap_or_default();
     let mut result = vec![];
     let mut matched = 0;
@@ -103,8 +103,8 @@ mod retained_tests {
         let directory =
             std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(format!("../../target/engine-tests/retained-session-{}", std::process::id()));
         std::fs::create_dir_all(&directory).unwrap();
-        let bytes = diagramcraft_vsdx::write_as(&crate::files::blank_document(false), diagramcraft_vsdx::SaveKind::Stencil).unwrap().bytes;
-        let nodes = diagramcraft_vsdx::import(&bytes).unwrap().retained_xml_nodes;
+        let bytes = misterdiagram_vsdx::write_as(&crate::files::blank_document(false), misterdiagram_vsdx::SaveKind::Stencil).unwrap().bytes;
+        let nodes = misterdiagram_vsdx::import(&bytes).unwrap().retained_xml_nodes;
         let first = directory.join("first.vssx");
         let second = directory.join("second.vssx");
         std::fs::write(&first, &bytes).unwrap();
@@ -112,7 +112,7 @@ mod retained_tests {
         let mut s = Session::new();
         // Model an already-admitted population without allocating millions of test
         // nodes. The full-size CLI session edge is measured separately.
-        Arc::make_mut(&mut s.document).retained_xml_nodes = diagramcraft_vsdx::MAX_RETAINED_XML_NODES - (2 * nodes - 1);
+        Arc::make_mut(&mut s.document).retained_xml_nodes = misterdiagram_vsdx::MAX_RETAINED_XML_NODES - (2 * nodes - 1);
         s.execute("stencil.open", &json!({"path":first})).unwrap();
         let already = s.retained_xml_nodes();
         s.execute("stencil.open", &json!({"path":first})).unwrap();
@@ -128,12 +128,12 @@ mod retained_tests {
         assert_eq!(s.retained_xml_nodes(), 2 * nodes, "distinct paths retain distinct documents");
 
         let drawing = directory.join("drawing.vsdx");
-        let drawing_bytes = diagramcraft_vsdx::write(&crate::files::blank_document(false)).unwrap().bytes;
-        let drawing_nodes = diagramcraft_vsdx::import(&drawing_bytes).unwrap().retained_xml_nodes;
+        let drawing_bytes = misterdiagram_vsdx::write(&crate::files::blank_document(false)).unwrap().bytes;
+        let drawing_nodes = misterdiagram_vsdx::import(&drawing_bytes).unwrap().retained_xml_nodes;
         std::fs::write(&drawing, drawing_bytes).unwrap();
         let mut reverse = Session::new();
         reverse.execute("stencil.open", &json!({"path":first})).unwrap();
-        Arc::make_mut(&mut reverse.stencils[0].document).retained_xml_nodes = diagramcraft_vsdx::MAX_RETAINED_XML_NODES - drawing_nodes + 1;
+        Arc::make_mut(&mut reverse.stencils[0].document).retained_xml_nodes = misterdiagram_vsdx::MAX_RETAINED_XML_NODES - drawing_nodes + 1;
         let before = reverse.retained_xml_nodes();
         let error = reverse.execute("file.open", &json!({"path":drawing})).unwrap_err().to_string();
         assert!(error.contains(&format!("already open {before}")), "{error}");
@@ -141,7 +141,7 @@ mod retained_tests {
         assert!(reverse.path.is_none());
         Arc::make_mut(&mut reverse.stencils[0].document).retained_xml_nodes -= 1;
         reverse.execute("file.open", &json!({"path":drawing})).unwrap();
-        assert_eq!(reverse.retained_xml_nodes(), diagramcraft_vsdx::MAX_RETAINED_XML_NODES);
+        assert_eq!(reverse.retained_xml_nodes(), misterdiagram_vsdx::MAX_RETAINED_XML_NODES);
         std::fs::remove_dir_all(directory).unwrap();
     }
 }

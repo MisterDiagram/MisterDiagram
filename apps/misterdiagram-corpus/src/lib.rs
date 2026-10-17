@@ -5,8 +5,8 @@ mod population;
 pub mod render;
 mod render_population;
 pub mod roundtrip;
-use diagramcraft_sheet::Value;
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_sheet::Value;
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use std::{
     collections::{BTreeMap, BTreeSet},
     fmt,
@@ -225,7 +225,7 @@ fn record_hosts(rates: &mut [Rate; 2], calls: &BTreeSet<String>, matched: bool) 
     {
         theme.record(matched);
     }
-    if calls.iter().any(|n| diagramcraft_sheet::is_text_metric(n)) {
+    if calls.iter().any(|n| misterdiagram_sheet::is_text_metric(n)) {
         text.record(matched);
     }
 }
@@ -266,7 +266,7 @@ fn walk(root: &Path) -> Result<Vec<PathBuf>, String> {
 fn package(p: &Path) -> bool {
     p.extension().and_then(|s| s.to_str()).is_some_and(|s| matches!(s.to_ascii_lowercase().as_str(), "vsdx" | "vssx" | "vstx" | "vsdm"))
 }
-fn read_package(path: &Path) -> Result<diagramcraft_model::Document, String> {
+fn read_package(path: &Path) -> Result<misterdiagram_model::Document, String> {
     let file = File::open(path).map_err(|e| e.to_string())?;
     if file.metadata().map_err(|e| e.to_string())?.len() > MAX_PACKAGE {
         return Err("package size limit".into());
@@ -276,7 +276,7 @@ fn read_package(path: &Path) -> Result<diagramcraft_model::Document, String> {
     if bytes.len() as u64 > MAX_PACKAGE {
         return Err("package size limit".into());
     }
-    diagramcraft_vsdx::import(&bytes).map_err(|e| format!("{}: {e}", path.display()))
+    misterdiagram_vsdx::import(&bytes).map_err(|e| format!("{}: {e}", path.display()))
 }
 /// Scan calls independently of parser success, respecting strings, references, and numeric prime units.
 pub fn function_calls(formula: &str) -> Result<BTreeSet<String>, String> {
@@ -459,7 +459,7 @@ fn cached_equal(raw: Option<&str>, expected: &Value, actual: &Value) -> bool {
     raw == Some("") && matches!(actual, Value::Text(s) if s.is_empty()) || equal(expected, actual)
 }
 fn formula_class(formula: &str) -> usize {
-    use diagramcraft_sheet::Expr;
+    use misterdiagram_sheet::Expr;
     fn literal(expr: &Expr) -> bool {
         match expr {
             Expr::Number(..) | Expr::Text(..) | Expr::Bool(..) => true,
@@ -469,7 +469,7 @@ fn formula_class(formula: &str) -> usize {
     }
     if formula.trim().is_empty() {
         1
-    } else if diagramcraft_sheet::parse(formula).is_ok_and(|expr| literal(&expr)) {
+    } else if misterdiagram_sheet::parse(formula).is_ok_and(|expr| literal(&expr)) {
         0
     } else {
         2
@@ -531,7 +531,7 @@ struct Diagnostics {
 impl Diagnostics {
     fn failure(&mut self, calls: &BTreeSet<String>, source_cell: &str, w: Witness) {
         self.cells.add(&normalized_cell(&w.cell), &w);
-        if calls.iter().any(|n| diagramcraft_sheet::is_text_metric(n)) {
+        if calls.iter().any(|n| misterdiagram_sheet::is_text_metric(n)) {
             self.text_cells.add(&format!("{} {}", w.oracle, normalized_cell(&w.cell)), &w);
             let number = |s: &str| {
                 s.strip_prefix("Number(").or_else(|| s.strip_prefix("Some(")).and_then(|s| s.strip_suffix(')')).and_then(|s| s.parse::<f64>().ok())
@@ -617,7 +617,7 @@ fn parse_row(line: &str) -> Result<DumpRow, String> {
     let result = get(7)?.parse::<f64>().ok().filter(|n| n.is_finite());
     Ok(DumpRow { id, scope: decode(get(1)?)?, name: decode(get(5)?)?, formula: decode(get(6)?)?, result })
 }
-fn map_scope(row: &DumpRow, doc: &diagramcraft_model::Document) -> Result<Scope, String> {
+fn map_scope(row: &DumpRow, doc: &misterdiagram_model::Document) -> Result<Scope, String> {
     let head = row.scope.split('/').next().ok_or("empty dump scope")?;
     if head == "document" {
         return Ok(Scope::Document);
@@ -867,18 +867,18 @@ fn run_pass_with_coverage(root: &Path, quick: bool, deferred: bool, mut coverage
     }
     let mut exclude = exclusions();
     if deferred {
-        exclude.extend(diagramcraft_sheet::TEXT_METRIC_FUNCTIONS.iter().map(|n| (*n).to_string()));
+        exclude.extend(misterdiagram_sheet::TEXT_METRIC_FUNCTIONS.iter().map(|n| (*n).to_string()));
     }
     let mut diagnostics = Diagnostics::default();
     for path in files {
         let is_shipped = path.starts_with(root.join("ms-shipped"));
         let measure_cached = !quick || !is_shipped || selected_paths.contains(&path);
         let document = read_package(&path)?;
-        let themes = diagramcraft_theme::Themes::from_document(&document).map_err(|e| format!("{}: {e}", path.display()))?;
+        let themes = misterdiagram_theme::Themes::from_document(&document).map_err(|e| format!("{}: {e}", path.display()))?;
         let mut evaluator = Evaluator::new(&document)
             .map_err(|e| format!("{}: {e}", path.display()))?
             .with_theme_host(&themes)
-            .with_text_host(&diagramcraft_text::Host);
+            .with_text_host(&misterdiagram_text::Host);
         if deferred {
             evaluator = evaluator.with_deferred_text_metrics();
         }
@@ -960,7 +960,7 @@ fn run_pass_with_coverage(root: &Path, quick: bool, deferred: bool, mut coverage
                     }
                     let actual = match map_scope(&row, &document) {
                         Ok(scope) => evaluator.evaluate_snapshot(scope, &row.name),
-                        Err(_) => Value::Error(diagramcraft_sheet::Error::Ref),
+                        Err(_) => Value::Error(misterdiagram_sheet::Error::Ref),
                     };
                     // COM ResultIU is numeric even for strings; ShapeSheet numeric coercion maps nonnumeric text to zero.
                     let matched = match (row.result, actual.numeric()) {
@@ -1063,7 +1063,7 @@ mod tests {
         assert!(cached_equal(Some(""), &Value::Number(0.), &Value::Text(String::new())));
         assert!(!cached_equal(Some("0"), &Value::Number(0.), &Value::Text(String::new())));
         assert!(!cached_equal(Some(""), &Value::Number(0.), &Value::Text("x".into())));
-        assert!(!cached_equal(Some(""), &Value::Number(0.), &Value::Error(diagramcraft_sheet::Error::Ref)));
+        assert!(!cached_equal(Some(""), &Value::Number(0.), &Value::Error(misterdiagram_sheet::Error::Ref)));
     }
     #[test]
     fn functions_ignore_strings_and_match_only_calls() {
@@ -1091,7 +1091,7 @@ mod tests {
     }
     #[test]
     fn comparisons_never_pass_errors_and_require_exact_strings() {
-        assert!(!equal(&Value::Error(diagramcraft_sheet::Error::Ref), &Value::Error(diagramcraft_sheet::Error::Ref)));
+        assert!(!equal(&Value::Error(misterdiagram_sheet::Error::Ref), &Value::Error(misterdiagram_sheet::Error::Ref)));
         assert!(!equal(&Value::Text("0".into()), &Value::Number(0.)));
         assert!(equal(&Value::Number(2.), &Value::Number(2.0000001)));
         assert!(!equal(&Value::Number(2.), &Value::Number(2.00001)));
@@ -1104,9 +1104,9 @@ mod tests {
     }
     #[test]
     fn scopes_are_scoped_not_global_shape_ids() {
-        let doc = diagramcraft_model::Document {
-            pages: vec![diagramcraft_model::Page { id: 7, name_u: "Named".into(), ..Default::default() }],
-            masters: vec![diagramcraft_model::Master { id: 2, ..Default::default() }],
+        let doc = misterdiagram_model::Document {
+            pages: vec![misterdiagram_model::Page { id: 7, name_u: "Named".into(), ..Default::default() }],
+            masters: vec![misterdiagram_model::Master { id: 2, ..Default::default() }],
             ..Default::default()
         };
         let mut row = DumpRow { id: 5, scope: "page:7:Named/Group/Sheet.5".into(), name: "Width".into(), formula: "1".into(), result: Some(1.) };
@@ -1250,7 +1250,7 @@ mod tests {
         for literal in ["5'", "5\"", "5 '", "5 \"", ".5'", "5. \"", "1e-3'", "1E+2 \"", "5 1/2 '", "5\t'", "5\u{a0}\""] {
             for name in ["NOW", "RAND"] {
                 let formula = format!("{literal}+{name}()");
-                assert!(diagramcraft_sheet::parse(&formula).is_ok(), "parser rejected {formula}");
+                assert!(misterdiagram_sheet::parse(&formula).is_ok(), "parser rejected {formula}");
                 assert_eq!(function_calls(&formula).unwrap(), BTreeSet::from([name.to_string()]), "{formula}");
             }
         }
@@ -1258,7 +1258,7 @@ mod tests {
             assert!(function_calls(formula).unwrap().is_empty(), "{formula}");
         }
         let formula = "Pages[5\"]!Width+NOW()";
-        assert!(diagramcraft_sheet::parse(formula).is_ok());
+        assert!(misterdiagram_sheet::parse(formula).is_ok());
         assert_eq!(function_calls(formula).unwrap(), BTreeSet::from(["NOW".into()]));
         assert!(function_calls("5'+NOW(").unwrap().contains("NOW")); // Malformed formulas retain lexical call evidence.
     }
@@ -1275,7 +1275,7 @@ mod text_gate_tests {
         assert!(!text_promoted(&ready, &low, 90.));
         assert!(!text_promoted(&Rate::default(), &ready, 90.));
         assert!(text_promoted(&ready, &ready, 90.));
-        assert_eq!(diagramcraft_sheet::TEXT_METRIC_FUNCTIONS.len(), 3);
+        assert_eq!(misterdiagram_sheet::TEXT_METRIC_FUNCTIONS.len(), 3);
         assert_eq!(promoted(include_str!("../../../crates/sheet/tests/floors.toml")), Ok(true));
         for invalid in ["", "promoted=maybe", "promoted=true\npromoted=false"] {
             assert!(promoted(invalid).is_err());

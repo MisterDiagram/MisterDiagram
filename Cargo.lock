@@ -208,210 +208,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "diagramcraft-cli"
-version = "0.0.1"
-dependencies = [
- "diagramcraft-corpus",
- "diagramcraft-engine",
- "diagramcraft-geom",
- "diagramcraft-opc",
- "diagramcraft-render",
- "diagramcraft-text",
- "diagramcraft-theme",
- "diagramcraft-vsdx",
- "serde",
- "serde_json",
- "zip",
-]
-
-[[package]]
-name = "diagramcraft-color"
-version = "0.0.1"
-dependencies = [
- "serde",
-]
-
-[[package]]
-name = "diagramcraft-corpus"
-version = "0.0.1"
-dependencies = [
- "diagramcraft-engine",
- "diagramcraft-model",
- "diagramcraft-render",
- "diagramcraft-sheet",
- "diagramcraft-text",
- "diagramcraft-theme",
- "diagramcraft-vsdx",
- "image",
- "serde_json",
- "sha2",
- "zip",
-]
-
-[[package]]
-name = "diagramcraft-engine"
-version = "0.0.1"
-dependencies = [
- "diagramcraft-geom",
- "diagramcraft-model",
- "diagramcraft-render",
- "diagramcraft-route",
- "diagramcraft-sheet",
- "diagramcraft-text",
- "diagramcraft-theme",
- "diagramcraft-vsdx",
- "hayro-syntax",
- "image",
- "log",
- "serde",
- "serde_json",
- "thiserror",
-]
-
-[[package]]
-name = "diagramcraft-export"
-version = "0.0.1"
-dependencies = [
- "diagramcraft-render",
- "diagramcraft-vsdx",
-]
-
-[[package]]
-name = "diagramcraft-fonts"
-version = "0.0.1"
-dependencies = [
- "harfrust",
- "kurbo",
- "log",
- "skrifa 0.47.0",
- "unicode-bidi",
-]
-
-[[package]]
-name = "diagramcraft-geom"
-version = "0.0.1"
-dependencies = [
- "kurbo",
- "serde",
-]
-
-[[package]]
-name = "diagramcraft-mcp"
-version = "0.0.1"
-dependencies = [
- "diagramcraft-engine",
- "log",
- "serde_json",
-]
-
-[[package]]
-name = "diagramcraft-model"
-version = "0.0.1"
-dependencies = [
- "chrono",
- "diagramcraft-color",
- "diagramcraft-geom",
- "diagramcraft-opc",
- "diagramcraft-vsdx",
- "serde",
- "uuid",
-]
-
-[[package]]
-name = "diagramcraft-opc"
-version = "0.0.1"
-dependencies = [
- "log",
- "quick-xml",
- "thiserror",
- "zip",
-]
-
-[[package]]
-name = "diagramcraft-render"
-version = "0.0.1"
-dependencies = [
- "base64",
- "diagramcraft-color",
- "diagramcraft-fonts",
- "diagramcraft-geom",
- "diagramcraft-model",
- "diagramcraft-sheet",
- "diagramcraft-text",
- "diagramcraft-theme",
- "diagramcraft-vsdx",
- "hayro-syntax",
- "image",
- "krilla",
- "kurbo",
- "resvg",
- "vello_common",
- "vello_cpu",
-]
-
-[[package]]
-name = "diagramcraft-route"
-version = "0.0.1"
-dependencies = [
- "diagramcraft-geom",
- "diagramcraft-model",
- "diagramcraft-sheet",
- "diagramcraft-text",
- "diagramcraft-theme",
- "diagramcraft-vsdx",
-]
-
-[[package]]
-name = "diagramcraft-sheet"
-version = "0.0.1"
-dependencies = [
- "diagramcraft-color",
- "diagramcraft-geom",
- "quick-xml",
- "zip",
-]
-
-[[package]]
-name = "diagramcraft-text"
-version = "0.0.1"
-dependencies = [
- "diagramcraft-color",
- "diagramcraft-fonts",
- "diagramcraft-geom",
- "diagramcraft-model",
- "unicode-bidi",
- "unicode-linebreak",
- "unicode-segmentation",
-]
-
-[[package]]
-name = "diagramcraft-theme"
-version = "0.0.1"
-dependencies = [
- "diagramcraft-color",
- "diagramcraft-model",
- "diagramcraft-opc",
- "diagramcraft-sheet",
-]
-
-[[package]]
-name = "diagramcraft-vsdx"
-version = "0.0.1"
-dependencies = [
- "diagramcraft-color",
- "diagramcraft-geom",
- "diagramcraft-model",
- "diagramcraft-opc",
- "diagramcraft-sheet",
- "diagramcraft-text",
- "diagramcraft-theme",
- "image",
- "quick-xml",
- "thiserror",
- "zip",
-]
-
-[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -854,6 +650,210 @@ checksum = "b63fbc4a50860e98e7b2aa7804ded1db5cbc3aff9193adaff57a6931bf7c4b4c"
 dependencies = [
  "adler2",
  "simd-adler32",
+]
+
+[[package]]
+name = "misterdiagram-cli"
+version = "0.0.1"
+dependencies = [
+ "misterdiagram-corpus",
+ "misterdiagram-engine",
+ "misterdiagram-geom",
+ "misterdiagram-opc",
+ "misterdiagram-render",
+ "misterdiagram-text",
+ "misterdiagram-theme",
+ "misterdiagram-vsdx",
+ "serde",
+ "serde_json",
+ "zip",
+]
+
+[[package]]
+name = "misterdiagram-color"
+version = "0.0.1"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "misterdiagram-corpus"
+version = "0.0.1"
+dependencies = [
+ "image",
+ "misterdiagram-engine",
+ "misterdiagram-model",
+ "misterdiagram-render",
+ "misterdiagram-sheet",
+ "misterdiagram-text",
+ "misterdiagram-theme",
+ "misterdiagram-vsdx",
+ "serde_json",
+ "sha2",
+ "zip",
+]
+
+[[package]]
+name = "misterdiagram-engine"
+version = "0.0.1"
+dependencies = [
+ "hayro-syntax",
+ "image",
+ "log",
+ "misterdiagram-geom",
+ "misterdiagram-model",
+ "misterdiagram-render",
+ "misterdiagram-route",
+ "misterdiagram-sheet",
+ "misterdiagram-text",
+ "misterdiagram-theme",
+ "misterdiagram-vsdx",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
+name = "misterdiagram-export"
+version = "0.0.1"
+dependencies = [
+ "misterdiagram-render",
+ "misterdiagram-vsdx",
+]
+
+[[package]]
+name = "misterdiagram-fonts"
+version = "0.0.1"
+dependencies = [
+ "harfrust",
+ "kurbo",
+ "log",
+ "skrifa 0.47.0",
+ "unicode-bidi",
+]
+
+[[package]]
+name = "misterdiagram-geom"
+version = "0.0.1"
+dependencies = [
+ "kurbo",
+ "serde",
+]
+
+[[package]]
+name = "misterdiagram-mcp"
+version = "0.0.1"
+dependencies = [
+ "log",
+ "misterdiagram-engine",
+ "serde_json",
+]
+
+[[package]]
+name = "misterdiagram-model"
+version = "0.0.1"
+dependencies = [
+ "chrono",
+ "misterdiagram-color",
+ "misterdiagram-geom",
+ "misterdiagram-opc",
+ "misterdiagram-vsdx",
+ "serde",
+ "uuid",
+]
+
+[[package]]
+name = "misterdiagram-opc"
+version = "0.0.1"
+dependencies = [
+ "log",
+ "quick-xml",
+ "thiserror",
+ "zip",
+]
+
+[[package]]
+name = "misterdiagram-render"
+version = "0.0.1"
+dependencies = [
+ "base64",
+ "hayro-syntax",
+ "image",
+ "krilla",
+ "kurbo",
+ "misterdiagram-color",
+ "misterdiagram-fonts",
+ "misterdiagram-geom",
+ "misterdiagram-model",
+ "misterdiagram-sheet",
+ "misterdiagram-text",
+ "misterdiagram-theme",
+ "misterdiagram-vsdx",
+ "resvg",
+ "vello_common",
+ "vello_cpu",
+]
+
+[[package]]
+name = "misterdiagram-route"
+version = "0.0.1"
+dependencies = [
+ "misterdiagram-geom",
+ "misterdiagram-model",
+ "misterdiagram-sheet",
+ "misterdiagram-text",
+ "misterdiagram-theme",
+ "misterdiagram-vsdx",
+]
+
+[[package]]
+name = "misterdiagram-sheet"
+version = "0.0.1"
+dependencies = [
+ "misterdiagram-color",
+ "misterdiagram-geom",
+ "quick-xml",
+ "zip",
+]
+
+[[package]]
+name = "misterdiagram-text"
+version = "0.0.1"
+dependencies = [
+ "misterdiagram-color",
+ "misterdiagram-fonts",
+ "misterdiagram-geom",
+ "misterdiagram-model",
+ "unicode-bidi",
+ "unicode-linebreak",
+ "unicode-segmentation",
+]
+
+[[package]]
+name = "misterdiagram-theme"
+version = "0.0.1"
+dependencies = [
+ "misterdiagram-color",
+ "misterdiagram-model",
+ "misterdiagram-opc",
+ "misterdiagram-sheet",
+]
+
+[[package]]
+name = "misterdiagram-vsdx"
+version = "0.0.1"
+dependencies = [
+ "image",
+ "misterdiagram-color",
+ "misterdiagram-geom",
+ "misterdiagram-model",
+ "misterdiagram-opc",
+ "misterdiagram-sheet",
+ "misterdiagram-text",
+ "misterdiagram-theme",
+ "quick-xml",
+ "thiserror",
+ "zip",
 ]
 
 [[package]]

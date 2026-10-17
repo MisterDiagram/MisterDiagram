@@ -27,15 +27,15 @@ pub fn write_as(doc: &Document, kind: SaveKind) -> Result<Written, WriteError> {
 pub fn write_as_with_hosts(
     doc: &Document,
     kind: SaveKind,
-    theme: Option<&dyn diagramcraft_sheet::host::ThemeHost>,
-    text: Option<&dyn diagramcraft_model::text::TextHost>,
+    theme: Option<&dyn misterdiagram_sheet::host::ThemeHost>,
+    text: Option<&dyn misterdiagram_model::text::TextHost>,
 ) -> Result<Written, WriteError> {
     validate::document(doc)?;
     let mut d = doc.clone();
     d.parts.entry(d.main_part.clone()).or_default().content_type = Some(kind.content_type().into());
     if kind == SaveKind::Stencil {
         let removed: BTreeSet<_> = d.pages.iter().filter(|p| !p.part.is_empty()).map(|p| p.part.clone()).collect();
-        d.parts.retain(|name, _| !removed.contains(name) && !removed.iter().any(|p| diagramcraft_opc::rels_path(p) == *name));
+        d.parts.retain(|name, _| !removed.contains(name) && !removed.iter().any(|p| misterdiagram_opc::rels_path(p) == *name));
         for part in d.parts.values_mut() {
             part.relationships.retain(|r| r.external || !removed.contains(&r.target));
         }
@@ -66,7 +66,7 @@ pub fn write_as_with_hosts(
         if let Some(p) = d.parts.get_mut(&path) {
             p.relationships.retain(|r| r.external || r.type_uri != format!("{}page", crate::VIS_REL));
             if p.relationships.is_empty() {
-                d.parts.remove(&diagramcraft_opc::rels_path(&path));
+                d.parts.remove(&misterdiagram_opc::rels_path(&path));
             }
         }
         if let Some(settings) = &mut d.document_settings {

@@ -1,9 +1,10 @@
 [package]
-name = "diagramcraft-color"
+name = "misterdiagram-color"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Diagramcraft colour: RGB/HSL, theme colour slots, DrawingML-style colour transforms"
+repository.workspace = true
+description = "MisterDiagram colour: RGB/HSL, theme colour slots, DrawingML-style colour transforms"
 
 [lints]
 workspace = true

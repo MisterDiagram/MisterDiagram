@@ -5,7 +5,7 @@ fn generated_render_groups_meet_frozen_ceilings() {
         eprintln!("skip: private corpus/ is absent");
         return;
     }
-    let report = diagramcraft_corpus::render::run(&root).unwrap();
+    let report = misterdiagram_corpus::render::run(&root).unwrap();
     println!("{report}");
     assert!(report.passed(), "generated render groups exceed frozen ceilings");
 }

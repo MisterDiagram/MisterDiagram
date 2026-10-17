@@ -1,5 +1,5 @@
-use diagramcraft_model::skeleton;
-use diagramcraft_vsdx::{SaveKind, import, write, write_as};
+use misterdiagram_model::skeleton;
+use misterdiagram_vsdx::{SaveKind, import, write, write_as};
 #[test]
 fn authored_stencil_and_template_retain_their_distinct_contracts() {
     let mut doc = skeleton::document(false);
@@ -30,7 +30,7 @@ fn existing_shipped_stencil_and_template_write_and_reopen() {
         return;
     }
     for (file, kind) in [("BASIC_U.vssx", SaveKind::Stencil), ("BASFLO_U.vstx", SaveKind::Template)] {
-        let doc = diagramcraft_vsdx::read(root.join("ms-shipped/1033").join(file)).unwrap();
+        let doc = misterdiagram_vsdx::read(root.join("ms-shipped/1033").join(file)).unwrap();
         let out = import(&write_as(&doc, kind).unwrap().bytes).unwrap();
         assert_eq!(out.parts[&out.main_part].content_type.as_deref(), Some(kind.content_type()));
         assert_eq!(out.masters.len(), doc.masters.len());
@@ -48,7 +48,7 @@ fn format_conversion_rejects_hostile_models_before_cloning() {
 
 #[test]
 fn stencil_preserves_extensions_and_reconciles_the_selected_page() {
-    use diagramcraft_model::{Part, Relationship, XmlElement, XmlNode};
+    use misterdiagram_model::{Part, Relationship, XmlElement, XmlNode};
     let mut doc = skeleton::document(false);
     doc.pages.push(skeleton::page(1, "Selected", false));
     doc.document_settings.as_mut().unwrap().attributes.insert("TopPage".into(), "1".into());

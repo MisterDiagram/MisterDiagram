@@ -7,7 +7,7 @@ use std::{
 
 pub(crate) fn description() -> String {
     format!(
-        "apps/diagramcraft-corpus/tests/cohorts/m3-1181-dumps.txt sha256={:x}",
+        "apps/misterdiagram-corpus/tests/cohorts/m3-1181-dumps.txt sha256={:x}",
         Sha256::digest(include_bytes!("../tests/cohorts/m3-1181-dumps.txt"))
     )
 }
@@ -53,7 +53,7 @@ impl Population {
                 })
                 .ok_or("missing population key")
         };
-        if value("dumps_path")? != "apps/diagramcraft-corpus/tests/cohorts/m3-1181-dumps.txt" {
+        if value("dumps_path")? != "apps/misterdiagram-corpus/tests/cohorts/m3-1181-dumps.txt" {
             return Err("compiled COM population path disagrees with floor".into());
         }
         let p = Self::parse(include_str!("../tests/cohorts/m3-1181-dumps.txt"), value("dumps_sha256")?)?;

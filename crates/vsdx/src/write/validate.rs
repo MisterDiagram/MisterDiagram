@@ -14,7 +14,7 @@ impl Budget {
     }
     fn string(&mut self, s: &str) -> Result<(), WriteError> {
         self.bytes = self.bytes.checked_add(s.len()).ok_or_else(|| error("model byte overflow"))?;
-        if self.bytes > diagramcraft_opc::MAX_TOTAL as usize {
+        if self.bytes > misterdiagram_opc::MAX_TOTAL as usize {
             return Err(error("model byte limit"));
         }
         Ok(())
@@ -151,7 +151,7 @@ impl Budget {
     }
 }
 pub(crate) fn document(d: &Document) -> Result<(), WriteError> {
-    if d.parts.len() > diagramcraft_opc::MAX_ENTRIES || d.pages.len() > 100_000 || d.masters.len() > 100_000 || d.styles.len() > 65536 {
+    if d.parts.len() > misterdiagram_opc::MAX_ENTRIES || d.pages.len() > 100_000 || d.masters.len() > 100_000 || d.styles.len() > 65536 {
         return Err(error("model collection limit"));
     }
     let mut b = Budget { bytes: 0, nodes: 0 };
@@ -177,7 +177,7 @@ pub(crate) fn document(d: &Document) -> Result<(), WriteError> {
     let mut names = BTreeSet::new();
     for (name, p) in &d.parts {
         valid_path(name)?;
-        if !names.insert(name.to_ascii_lowercase()) || p.bytes.len() as u64 > diagramcraft_opc::MAX_PART {
+        if !names.insert(name.to_ascii_lowercase()) || p.bytes.len() as u64 > misterdiagram_opc::MAX_PART {
             return Err(error("duplicate part or part byte limit"));
         }
         b.bytes = b.bytes.checked_add(p.bytes.len()).ok_or_else(|| error("part byte overflow"))?;

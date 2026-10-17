@@ -1,12 +1,12 @@
 //! Evaluated drawing operations in y-up page inches; output transforms flip Y once.
 use crate::style::{self, Fill, Line};
-use diagramcraft_color::Rgba;
-use diagramcraft_geom::{Affine, BezPath, Point, Rect};
-use diagramcraft_model::{Document, Shape};
-use diagramcraft_sheet::Value;
-use diagramcraft_text::{NoFields, Opts, TextLayout};
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
 use kurbo::Shape as _;
+use misterdiagram_color::Rgba;
+use misterdiagram_geom::{Affine, BezPath, Point, Rect};
+use misterdiagram_model::{Document, Shape};
+use misterdiagram_sheet::Value;
+use misterdiagram_text::{NoFields, Opts, TextLayout};
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use std::sync::Arc;
 
 mod budget;
@@ -169,7 +169,7 @@ fn color(e: &mut Evaluator<'_>, scope: Scope, name: &str, trans: &str) -> Rgba {
         Value::Color { rgb: [r, g, b], .. } => Rgba::rgb(r, g, b),
         Value::Number(n) if n.is_finite() && n >= 0. && n <= f64::from(u32::MAX) => {
             e.document.colors.get(&(n as u32)).and_then(|s| Rgba::from_hex(s)).unwrap_or_else(|| {
-                let [r, g, b] = diagramcraft_sheet::functions::default_color(n as u32).unwrap_or([0, 0, 0]);
+                let [r, g, b] = misterdiagram_sheet::functions::default_color(n as u32).unwrap_or([0, 0, 0]);
                 Rgba::rgb(r, g, b)
             })
         }
@@ -213,8 +213,8 @@ pub fn page(document: &Document, index: usize, options: Options) -> Result<Scene
 }
 /// Share a retained-scene allocation budget across pages of one export.
 pub fn page_budgeted(document: &Document, index: usize, options: Options, budget: &mut SceneBudget) -> Result<Scene, String> {
-    let themes = diagramcraft_theme::Themes::from_document(document).map_err(|e| e.to_string())?;
-    let host = diagramcraft_text::Host;
+    let themes = misterdiagram_theme::Themes::from_document(document).map_err(|e| e.to_string())?;
+    let host = misterdiagram_text::Host;
     let mut evaluator = Evaluator::new(document).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&host);
     page_prepared_budgeted(&mut evaluator, index, options, budget)
 }
@@ -264,8 +264,8 @@ fn page_prepared_budgeted(evaluator: &mut Evaluator<'_>, index: usize, options: 
     Ok(scene)
 }
 pub fn master(document: &Document, index: usize, options: Options) -> Result<Scene, String> {
-    let themes = diagramcraft_theme::Themes::from_document(document).map_err(|e| e.to_string())?;
-    let host = diagramcraft_text::Host;
+    let themes = misterdiagram_theme::Themes::from_document(document).map_err(|e| e.to_string())?;
+    let host = misterdiagram_text::Host;
     let mut evaluator = Evaluator::new(document).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&host);
     master_prepared(&mut evaluator, index, options)
 }
@@ -321,7 +321,7 @@ fn finish_bounds(scene: &mut Scene, crop: bool) {
                         b = Some(b.map_or(r, |old| old.union(r)));
                     }
                     for (gid, x, y) in &run.glyphs {
-                        let outline = diagramcraft_fonts::FontDb::global().outline(&run.face, *gid);
+                        let outline = misterdiagram_fonts::FontDb::global().outline(&run.face, *gid);
                         let ink = outline.bounding_box();
                         let scale = run.size / run.face.upem;
                         let (left, right) = if outline.elements().is_empty() {
@@ -358,7 +358,7 @@ pub(crate) fn stroke_path(path: &BezPath, stroke: &kurbo::Stroke, view: Affine, 
     kurbo::stroke(path.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-4)
 }
 pub fn text_paths(layout: &TextLayout, transform: Affine) -> Vec<(BezPath, Rgba)> {
-    let db = diagramcraft_fonts::FontDb::global();
+    let db = misterdiagram_fonts::FontDb::global();
     let mut paths = Vec::new();
     for deco in layout.decos.iter().filter(|d| d.behind) {
         paths.push((transform * deco.rect.to_path(1e-5), deco.color));
@@ -616,11 +616,12 @@ fn shapes(
                 let block = e.text_block(scope).map_err(|e| format!("shape {} text block: {e}", shape.id))?;
                 let drawing_scale = scale.determinant().abs().sqrt().max(1e-12);
                 let original_height = block.height * drawing_scale;
-                let measured = diagramcraft_model::text::TextHost::measure(&diagramcraft_text::Host, &block.body, Some(block.width * drawing_scale))?;
+                let measured =
+                    misterdiagram_model::text::TextHost::measure(&misterdiagram_text::Host, &block.body, Some(block.width * drawing_scale))?;
                 let height = original_height.max(measured.1);
-                let shift = match block.body.body.anchor.unwrap_or(diagramcraft_model::text::Anchor::Middle) {
-                    diagramcraft_model::text::Anchor::Top => 0.,
-                    diagramcraft_model::text::Anchor::Bottom => height - original_height,
+                let shift = match block.body.body.anchor.unwrap_or(misterdiagram_model::text::Anchor::Middle) {
+                    misterdiagram_model::text::Anchor::Top => 0.,
+                    misterdiagram_model::text::Anchor::Bottom => height - original_height,
                     _ => (height - original_height) * 0.5,
                 };
                 // W5: text counter-flips about its block center for X, Y and both axes.
@@ -632,7 +633,7 @@ fn shapes(
                     * Affine::scale_non_uniform(flip_x, flip_y)
                     * Affine::translate((-block.width * 0.5, -block.height * 0.5));
                 let text_transform = scale * block.to_page * counter_flip * Affine::scale(1. / drawing_scale) * Affine::translate((0., -shift));
-                let layout = diagramcraft_text::layout_for_export(
+                let layout = misterdiagram_text::layout_for_export(
                     &block.body,
                     &Opts { rect: Rect::new(0., 0., block.width * drawing_scale, height), fields: &NoFields, prompt_color: None, no_shrink: false },
                 )
@@ -672,7 +673,7 @@ fn shapes(
 /// Its relationship belongs to the provider part; placement cells belong to the instance.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/rel-element-foreigndata_type-complextypevisio-xml
-fn foreign_source<'a>(e: &Evaluator<'a>, mut scope: Scope) -> Result<Option<(Scope, &'a diagramcraft_model::XmlElement)>, String> {
+fn foreign_source<'a>(e: &Evaluator<'a>, mut scope: Scope) -> Result<Option<(Scope, &'a misterdiagram_model::XmlElement)>, String> {
     for _ in 0..=128 {
         let shape = e.shape(scope).ok_or("foreign source shape missing")?;
         if let Some(foreign) = &shape.foreign_data {
@@ -689,7 +690,7 @@ fn foreign_image(
     e: &mut Evaluator<'_>,
     scope: Scope,
     part: &str,
-    foreign: &diagramcraft_model::XmlElement,
+    foreign: &misterdiagram_model::XmlElement,
     transform: Affine,
     width: f64,
     height: f64,
@@ -750,7 +751,7 @@ fn filled_marker(kind: u32) -> bool {
 
 /// Relationship attributes are identified by expanded name, independent of prefix or storage order.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/rel-element-foreigndata_type-complextypevisio-xml
-fn foreign_relationship(rel: &diagramcraft_model::XmlElement) -> Option<&String> {
+fn foreign_relationship(rel: &misterdiagram_model::XmlElement) -> Option<&String> {
     rel.attributes
         .iter()
         .find(|(name, _)| {
@@ -764,7 +765,7 @@ fn foreign_relationship(rel: &diagramcraft_model::XmlElement) -> Option<&String>
 mod relationship_tests {
     #[test]
     fn foreign_relationship_ignores_extension_ids() {
-        let rel = diagramcraft_vsdx::parse_xml(br#"<Rel xmlns='http://schemas.microsoft.com/office/visio/2012/main' xmlns:r='http://schemas.openxmlformats.org/officeDocument/2006/relationships' xmlns:x='urn:extension' r:id='correct' x:id='wrong' id='unqualified'/>"#).unwrap();
+        let rel = misterdiagram_vsdx::parse_xml(br#"<Rel xmlns='http://schemas.microsoft.com/office/visio/2012/main' xmlns:r='http://schemas.openxmlformats.org/officeDocument/2006/relationships' xmlns:x='urn:extension' r:id='correct' x:id='wrong' id='unqualified'/>"#).unwrap();
         assert_eq!(super::foreign_relationship(&rel).map(String::as_str), Some("correct"));
         let mut extension_only = rel;
         extension_only.attributes.remove("r:id");

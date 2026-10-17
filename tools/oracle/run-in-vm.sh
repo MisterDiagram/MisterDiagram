@@ -117,7 +117,7 @@ for attempt in 1 2; do
  done
 [ "$ready" -eq 1 ] || { echo 'VM did not answer after one retry' >&2; exit 124; }
 cleanup() {
-    ps "Get-ScheduledTask -TaskName diagramcraft-oracle -ErrorAction SilentlyContinue | Stop-ScheduledTask -ErrorAction SilentlyContinue; Get-ScheduledTask -TaskName diagramcraft-oracle -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:\$false -ErrorAction Stop; exit 0" >/dev/null 2>&1 || true
+    ps "Get-ScheduledTask -TaskName misterdiagram-oracle -ErrorAction SilentlyContinue | Stop-ScheduledTask -ErrorAction SilentlyContinue; Get-ScheduledTask -TaskName misterdiagram-oracle -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:\$false -ErrorAction Stop; exit 0" >/dev/null 2>&1 || true
 }
 convert() {
     while IFS= read -r -d '' f; do
@@ -133,7 +133,7 @@ ps "Get-ScheduledTask -TaskName visioprobe -ErrorAction SilentlyContinue | Unreg
 launch() {
     local win=$1 duration=$2
     cleanup
-    ps "\$ErrorActionPreference='Stop'; \$a=New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File \"$win\"'; \$p=New-ScheduledTaskPrincipal -UserId charles -LogonType Interactive; \$s=New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Seconds $duration); Register-ScheduledTask -TaskName diagramcraft-oracle -Action \$a -Principal \$p -Settings \$s -Force | Out-Null; Start-ScheduledTask -TaskName diagramcraft-oracle" >&2
+    ps "\$ErrorActionPreference='Stop'; \$a=New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-NoProfile -ExecutionPolicy Bypass -File \"$win\"'; \$p=New-ScheduledTaskPrincipal -UserId charles -LogonType Interactive; \$s=New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Seconds $duration); Register-ScheduledTask -TaskName misterdiagram-oracle -Action \$a -Principal \$p -Settings \$s -Force | Out-Null; Start-ScheduledTask -TaskName misterdiagram-oracle" >&2
 }
 # Run one staged script. A watchdog returns 124; the caller owns recovery.
 run_one() {

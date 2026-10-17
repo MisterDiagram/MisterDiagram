@@ -1,13 +1,13 @@
 // Review 1b: synthetic round-trip repro, ported with Charles Hood's permission.
 // MIT OR Apache-2.0. Source recorded in ATTRIBUTION.md.
-use diagramcraft_model::skeleton;
-use diagramcraft_vsdx::{import, write};
+use misterdiagram_model::skeleton;
+use misterdiagram_vsdx::{import, write};
 
 /// Authored string-typed cells (Shape Data Label/Prompt/Format/SortKey, Layer Name) whose text
 /// happens to parse as a number must retain their original spelling on save.
 #[test]
 fn r1b_authored_numeric_looking_strings_keep_their_spelling() {
-    use diagramcraft_model::{Cell, Row, Section};
+    use misterdiagram_model::{Cell, Row, Section};
     let mut d = skeleton::document(false);
     let mut shape = skeleton::rectangle(1, 1., 1., 2., 1., "x").unwrap();
     let c = |n: &str, v: &str| Cell { name: n.into(), value: Some(v.into()), ..Default::default() };
@@ -43,7 +43,7 @@ fn r1b_authored_numeric_looking_strings_keep_their_spelling() {
 
 #[test]
 fn edited_string_literals_and_other_string_sections_keep_spelling() {
-    use diagramcraft_model::{Cell, Row, Section};
+    use misterdiagram_model::{Cell, Row, Section};
     let mut d = skeleton::document(false);
     let mut shape = skeleton::rectangle(1, 1., 1., 2., 1., "x").unwrap();
     for name in ["Comment", "ShapeKeywords", "Copyright", "HelpTopic"] {

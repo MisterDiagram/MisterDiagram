@@ -4,8 +4,8 @@ pub mod dump;
 pub mod evaluate;
 pub mod roundtrip;
 pub mod write;
-use diagramcraft_model::*;
-use diagramcraft_opc::{Package, xml};
+use misterdiagram_model::*;
+use misterdiagram_opc::{Package, xml};
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap, HashSet},
     io::Read,
@@ -36,12 +36,12 @@ impl std::ops::Deref for ReadPackage {
 impl ReadPackage {
     fn content_type(&self, part: &str) -> Option<String> {
         self.content_overrides
-            .get(&diagramcraft_opc::norm(part))
+            .get(&misterdiagram_opc::norm(part))
             .or_else(|| self.content_defaults.get(&part.rsplit('.').next().unwrap_or("").to_ascii_lowercase()))
             .cloned()
     }
     fn charge(&self, name: &str) -> Result<(), ReadError> {
-        let name = diagramcraft_opc::norm(name);
+        let name = misterdiagram_opc::norm(name);
         let mut counted = self.counted.try_borrow_mut().map_err(|_| bad("recursive XML budget access"))?;
         if counted.contains(&name) {
             return Ok(());
@@ -58,7 +58,7 @@ const MAX_FILE: u64 = 512 * 1024 * 1024;
 #[derive(Debug, thiserror::Error)]
 pub enum ReadError {
     #[error("{0}")]
-    Package(#[from] diagramcraft_opc::OpcError),
+    Package(#[from] misterdiagram_opc::OpcError),
     #[error("invalid Visio file: {0}")]
     Invalid(String),
     #[error("cannot read file: {0}")]
@@ -114,7 +114,7 @@ pub fn import_with_open_nodes(bytes: &[u8], already_open: usize) -> Result<Docum
     for element in types.elements() {
         if element.name == "Override" {
             if let (Some(name), Some(kind)) = (element.attr("PartName"), element.attr("ContentType")) {
-                package.content_overrides.insert(diagramcraft_opc::norm(name), kind.to_string());
+                package.content_overrides.insert(misterdiagram_opc::norm(name), kind.to_string());
             }
         } else if element.name == "Default"
             && let (Some(extension), Some(kind)) = (element.attr("Extension"), element.attr("ContentType"))
@@ -155,7 +155,7 @@ pub fn import_with_open_nodes(bytes: &[u8], already_open: usize) -> Result<Docum
     }
     let mut tables = HashMap::new();
     for name in doc.parts.keys().filter(|n| !n.ends_with(".rels")) {
-        tables.insert(diagramcraft_opc::norm(name), RelationshipTable::new(relationships(&package, name)?));
+        tables.insert(misterdiagram_opc::norm(name), RelationshipTable::new(relationships(&package, name)?));
     }
     doc.macros_removed |= package.content_type(&main).is_some_and(|s| s.contains("macroEnabled"));
     let root = part_xml(&package, &main)?;
@@ -190,12 +190,12 @@ pub fn import_with_open_nodes(bytes: &[u8], already_open: usize) -> Result<Docum
         }
     }
     retain_xml(&package, &mut doc, &main, root)?;
-    let rels = tables.get(&diagramcraft_opc::norm(&main)).ok_or_else(|| bad("missing document relationship table"))?;
+    let rels = tables.get(&misterdiagram_opc::norm(&main)).ok_or_else(|| bad("missing document relationship table"))?;
     let mut collections = HashSet::new();
     let mut pages = HashSet::new();
     let mut masters = HashSet::new();
     for r in rels.entries.iter().filter(|r| !r.external) {
-        if !collections.insert((r.type_uri.as_str(), diagramcraft_opc::norm(&r.target))) {
+        if !collections.insert((r.type_uri.as_str(), misterdiagram_opc::norm(&r.target))) {
             continue;
         }
         if r.type_uri == format!("{VIS_REL}pages") {
@@ -351,7 +351,7 @@ impl xml::TreeBuilder for VisioTree {
 /// Parse one XML part with bounded nesting, strict namespaces and preserved text order.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/visiodocument-elementvisio-xml
 pub fn parse_xml(bytes: &[u8]) -> Result<XmlElement, ReadError> {
-    if bytes.len() > diagramcraft_opc::MAX_XML_PART {
+    if bytes.len() > misterdiagram_opc::MAX_XML_PART {
         return Err(bad("XML part byte limit"));
     }
     let decoded = xml::decoded_xml(bytes)?;
@@ -425,7 +425,7 @@ fn retain_xml(p: &ReadPackage, d: &mut Document, name: &str, root: XmlElement) -
     Ok(())
 }
 fn relationships(p: &ReadPackage, name: &str) -> Result<Vec<Relationship>, ReadError> {
-    let rel_part = diagramcraft_opc::rels_path(name);
+    let rel_part = misterdiagram_opc::rels_path(name);
     let Some(bytes) = p.get(&rel_part) else { return Ok(vec![]) };
     p.charge(&rel_part)?;
     #[cfg(test)]
@@ -447,7 +447,7 @@ fn relationships(p: &ReadPackage, name: &str) -> Result<Vec<Relationship>, ReadE
         out.push(Relationship {
             id: id.into(),
             type_uri: ty.into(),
-            target: if external { target.into() } else { diagramcraft_opc::resolve(&diagramcraft_opc::dir_of(name), target) },
+            target: if external { target.into() } else { misterdiagram_opc::resolve(&misterdiagram_opc::dir_of(name), target) },
             external,
         });
     }
@@ -476,7 +476,7 @@ fn related(tables: &HashMap<String, RelationshipTable>, part: &str, e: &XmlEleme
         .map(|(_, v)| v)
         .ok_or_else(|| bad("missing relationship id"))?;
     tables
-        .get(&diagramcraft_opc::norm(part))
+        .get(&misterdiagram_opc::norm(part))
         .and_then(|t| t.by_id.get(id).and_then(|i| t.entries.get(*i)))
         .filter(|r| !r.external && r.type_uri == format!("{VIS_REL}{kind}"))
         .map(|r| r.target.clone())
@@ -658,7 +658,7 @@ fn parse_pages(
     }
     for e in root.elements().filter(|e| e.is_visio("Page")) {
         let target = if e.child("Rel").is_some() { related(tables, part, e, "page")? } else { String::new() };
-        if !target.is_empty() && !seen.insert(diagramcraft_opc::norm(&target)) {
+        if !target.is_empty() && !seen.insert(misterdiagram_opc::norm(&target)) {
             continue;
         }
         let content = if target.is_empty() {
@@ -702,7 +702,7 @@ fn parse_masters(
             d.master_shortcuts.push(e.clone());
         } else if e.is_visio("Master") {
             let target = if e.child("Rel").is_some() { related(tables, part, e, "master")? } else { String::new() };
-            if !target.is_empty() && !seen.insert(diagramcraft_opc::norm(&target)) {
+            if !target.is_empty() && !seen.insert(misterdiagram_opc::norm(&target)) {
                 continue;
             }
             let content = if target.is_empty() {

@@ -2,7 +2,7 @@
 //! https://learn.microsoft.com/en-us/office/client-developer/visio/relationships-cell-shape-layout-section
 //! https://learn.microsoft.com/en-us/office/client-developer/visio/listsheetref-function
 use super::{Error, Evaluator, Scope};
-use diagramcraft_sheet::Expr;
+use misterdiagram_sheet::Expr;
 
 impl Evaluator<'_> {
     pub(super) fn list_sheet_reference(&mut self, scope: Scope) -> Result<String, Error> {
@@ -11,7 +11,7 @@ impl Evaluator<'_> {
         }
         self.add_dependency(scope, "Relationships");
         let formula = self.effective_formula(scope, "Relationships").ok_or(Error::Ref)?;
-        let expression = diagramcraft_sheet::parse(&formula).map_err(|e| Error::Parse(e.to_string()))?;
+        let expression = misterdiagram_sheet::parse(&formula).map_err(|e| Error::Parse(e.to_string()))?;
         let local_override = self.canonical_key(scope, "Relationships").is_some_and(|key| self.overrides.contains_key(&key));
         let origin = if local_override { scope } else { self.formula_origin(scope, "Relationships").unwrap_or(scope) };
         let mut pending = vec![&expression];
@@ -72,8 +72,8 @@ impl Evaluator<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use diagramcraft_model::{Cell, Document, Page, Shape, Sheet};
-    use diagramcraft_sheet::Value;
+    use misterdiagram_model::{Cell, Document, Page, Shape, Sheet};
+    use misterdiagram_sheet::Value;
     fn cell(name: &str, value: &str, formula: Option<&str>) -> Cell {
         Cell { name: name.into(), value: Some(value.into()), formula: formula.map(str::to_string), ..Default::default() }
     }
@@ -138,7 +138,7 @@ mod tests {
     }
     #[test]
     fn inherited_relationships_rebind_once_and_local_edits_use_instance_ids() {
-        use diagramcraft_model::Master;
+        use misterdiagram_model::Master;
         let master = Shape {
             id: 8,
             sheet: Sheet { cells: vec![cell("Height", "4", None)], ..Default::default() },

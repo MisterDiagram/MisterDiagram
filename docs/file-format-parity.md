@@ -163,7 +163,7 @@ No vendor fonts were loaded, copied or embedded.
 | Segoe UI | Inter | BIZ UDPGothic |
 | Symbol, Wingdings | Per-glyph open fallback | BIZ UDPGothic |
 
-`diagramcraft-text::tests::report_default_font_substitutes` records the selected faces.
+`misterdiagram-text::tests::report_default_font_substitutes` records the selected faces.
 The missing Latin pack is a resource blocker under the read-only sibling rule. Empty
 text, exact line metrics, dynamic field formatting and aligned tabs also need evaluator
 work. Font availability alone is not asserted to fix the measured discrepancies.

@@ -1,13 +1,13 @@
 //! A small SVG writer for the shared render scene; no external resources.
 use crate::scene::{Op, Options, Paint, Scene, text_paths};
 use base64::Engine as _;
-use diagramcraft_geom::Affine;
+use misterdiagram_geom::Affine;
 use std::fmt::Write as _;
 fn matrix(m: Affine) -> String {
     let [a, b, c, d, e, f] = m.as_coeffs();
     format!("matrix({a} {b} {c} {d} {e} {f})")
 }
-fn path(out: &mut String, p: &kurbo::BezPath, c: diagramcraft_color::Rgba) {
+fn path(out: &mut String, p: &kurbo::BezPath, c: misterdiagram_color::Rgba) {
     let _ = write!(out, "<path d=\"{}\" fill=\"#{:02x}{:02x}{:02x}\" fill-opacity=\"{}\"/>", p.to_svg(), c.r, c.g, c.b, f64::from(c.a) / 255.);
 }
 fn image(out: &mut String, pixels: &image::RgbaImage, m: Affine, nearest: bool) -> Result<(), String> {

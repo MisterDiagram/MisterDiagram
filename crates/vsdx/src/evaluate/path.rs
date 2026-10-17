@@ -474,7 +474,7 @@ impl Evaluator<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use diagramcraft_model::{Cell, Document, Row, Section, Sheet};
+    use misterdiagram_model::{Cell, Document, Row, Section, Sheet};
     fn row(index: u32, kind: &str, values: &[(&str, f64)]) -> Row {
         Row {
             index: Some(index),
@@ -661,7 +661,7 @@ mod tests {
     }
     #[test]
     fn path_sampling_and_nearest_use_inherited_rows_and_partial_overrides() {
-        use diagramcraft_model::{Master, Page, Shape};
+        use misterdiagram_model::{Master, Page, Shape};
         let source = document(vec![row(1, "MoveTo", &[("X", 0.), ("Y", 0.)]), row(2, "LineTo", &[("X", 2.), ("Y", 4.)])]);
         let mut local = document(vec![Row {
             index: Some(2),

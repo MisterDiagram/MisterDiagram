@@ -1,9 +1,9 @@
 //! P4a cells/geometry acceptance; per-pair pixels are informational under
 //! Charles's 2026-10-15 ruling until the connector stroke rendering gap closes.
-//! Run: cargo run -p diagramcraft-corpus --example authoring_routes
+//! Run: cargo run -p misterdiagram-corpus --example authoring_routes
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
-use diagramcraft_engine::Session;
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_engine::Session;
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use serde_json::json;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
@@ -12,7 +12,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut over_ceiling = Vec::new();
     for name in ["dynamic-glue", "move-before", "move-after", "static-glue"] {
         let path = root.join(format!("generated/connector/{name}.vsdx"));
-        let original = diagramcraft_vsdx::read(&path)?;
+        let original = misterdiagram_vsdx::read(&path)?;
         let mut session = Session::new();
         session.execute("file.open", &json!({"path":path}))?;
         session.execute("route.reroute", &json!({"id":3}))?;
@@ -60,13 +60,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             return Err(format!("{name}: {diff}").into());
         }
         session.execute("file.save", &json!({"path":out.join(format!("route-{name}.vsdx"))}))?;
-        let options = diagramcraft_render::scene::Options::default();
-        let scene = diagramcraft_render::scene::page(session.document(), 0, options)?;
-        let rendered = diagramcraft_render::raster::render(&scene, options)?;
+        let options = misterdiagram_render::scene::Options::default();
+        let scene = misterdiagram_render::scene::page(session.document(), 0, options)?;
+        let rendered = misterdiagram_render::raster::render(&scene, options)?;
         rendered.save(out.join(format!("route-{name}.png")))?;
-        let expected = diagramcraft_render::raster::decode(&std::fs::read(path.with_extension("png"))?)?;
-        let (mad, fraction) = diagramcraft_corpus::render::compare(&expected, &rendered)?;
-        let result = diagramcraft_corpus::render::FileResult {
+        let expected = misterdiagram_render::raster::decode(&std::fs::read(path.with_extension("png"))?)?;
+        let (mad, fraction) = misterdiagram_corpus::render::compare(&expected, &rendered)?;
+        let result = misterdiagram_corpus::render::FileResult {
             file: name.into(),
             expected: expected.dimensions(),
             actual: Some(rendered.dimensions()),

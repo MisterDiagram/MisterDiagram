@@ -1,7 +1,7 @@
 //! Retained-source limits use uncompressed parts, independent of ZIP size.
 //! https://learn.microsoft.com/en-us/office/vba/api/visio.documents.openex
-use diagramcraft_engine::Session;
-use diagramcraft_model::{Part, skeleton};
+use misterdiagram_engine::Session;
+use misterdiagram_model::{Part, skeleton};
 use serde_json::json;
 use std::path::{Path, PathBuf};
 
@@ -14,7 +14,7 @@ fn fixture(directory: &Path, name: &str, media_size: usize) -> PathBuf {
         "visio/media/zeros.bin".into(),
         Part { bytes: vec![0; media_size], content_type: Some("application/octet-stream".into()), ..Default::default() },
     );
-    let bytes = diagramcraft_vsdx::write_as(&document, diagramcraft_vsdx::SaveKind::Stencil).unwrap().bytes;
+    let bytes = misterdiagram_vsdx::write_as(&document, misterdiagram_vsdx::SaveKind::Stencil).unwrap().bytes;
     assert!(bytes.len() < MIB, "generated zero media should compress to a small fixture");
     let path = directory.join(name);
     std::fs::write(&path, bytes).unwrap();
@@ -63,12 +63,12 @@ fn retained_stencil_source_accepts_over_32_mib_and_bounds_single_and_combined_so
 #[test]
 fn six_dense_stencil_sources_stay_bounded() {
     #[cfg(target_os = "macos")]
-    if std::env::var_os("DIAGRAMCRAFT_STENCIL_DOM_CHILD").is_none() {
+    if std::env::var_os("MISTERDIAGRAM_STENCIL_DOM_CHILD").is_none() {
         let output = std::process::Command::new("/usr/bin/time")
             .arg("-l")
             .arg(std::env::current_exe().unwrap())
             .args(["--exact", "six_dense_stencil_sources_stay_bounded", "--nocapture"])
-            .env("DIAGRAMCRAFT_STENCIL_DOM_CHILD", "1")
+            .env("MISTERDIAGRAM_STENCIL_DOM_CHILD", "1")
             .output()
             .unwrap();
         let stderr = String::from_utf8(output.stderr).unwrap();
@@ -91,19 +91,19 @@ fn six_dense_stencil_sources_stay_bounded() {
         part.into(),
         Part {
             bytes: xml.as_bytes().to_vec(),
-            xml: Some(diagramcraft_vsdx::parse_xml(xml.as_bytes()).unwrap()),
+            xml: Some(misterdiagram_vsdx::parse_xml(xml.as_bytes()).unwrap()),
             content_type: Some("application/vnd.ms-visio.master+xml".into()),
             ..Default::default()
         },
     );
-    document.masters.push(diagramcraft_model::Master {
+    document.masters.push(misterdiagram_model::Master {
         id: 1,
         name: "Dense".into(),
         name_u: "Dense".into(),
         part: part.into(),
         ..Default::default()
     });
-    let bytes = diagramcraft_vsdx::write_as(&document, diagramcraft_vsdx::SaveKind::Stencil).unwrap().bytes;
+    let bytes = misterdiagram_vsdx::write_as(&document, misterdiagram_vsdx::SaveKind::Stencil).unwrap().bytes;
     drop(document);
     let mut session = Session::new();
     for index in 1..=6 {

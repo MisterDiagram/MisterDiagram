@@ -1,5 +1,5 @@
-use diagramcraft_model::{Cell, Part, Row, Section, XmlElement, XmlNode, skeleton};
-use diagramcraft_vsdx::{import, write};
+use misterdiagram_model::{Cell, Part, Row, Section, XmlElement, XmlNode, skeleton};
+use misterdiagram_vsdx::{import, write};
 #[test]
 fn authored_skeleton_writes_complete_opc_and_recalculates_local_cells() {
     let mut d = skeleton::document(false);
@@ -31,7 +31,7 @@ fn unknown_parts_and_extensions_survive_modelled_edits() {
         "custom/opaque.bin".into(),
         Part { bytes: vec![0, 255, 128, 1, 2], content_type: Some("application/octet-stream".into()), ..Default::default() },
     );
-    let mut e = XmlElement { name: "Extra".into(), namespace: "urn:diagramcraft:fixture".into(), ..Default::default() };
+    let mut e = XmlElement { name: "Extra".into(), namespace: "urn:misterdiagram:fixture".into(), ..Default::default() };
     e.attributes.insert("xmlns".into(), e.namespace.to_string());
     e.children.push(XmlNode::Text("opaque extension".into()));
     d.parts.get_mut("visio/document.xml").unwrap().xml.as_mut().unwrap().children.push(XmlNode::Element(e));
@@ -46,14 +46,14 @@ fn unknown_parts_and_extensions_survive_modelled_edits() {
             .as_ref()
             .unwrap()
             .elements()
-            .any(|e| e.namespace == "urn:diagramcraft:fixture" && e.text() == "opaque extension")
+            .any(|e| e.namespace == "urn:misterdiagram:fixture" && e.text() == "opaque extension")
     );
     assert_eq!(b.pages[0].name, "Changed");
 }
 #[test]
 fn instances_keep_overrides_and_changed_inherited_caches() {
     let mut d = skeleton::document(false);
-    let mut s = diagramcraft_model::Shape { id: 1, master: Some(2), shape_type: Some("Shape".into()), ..Default::default() };
+    let mut s = misterdiagram_model::Shape { id: 1, master: Some(2), shape_type: Some("Shape".into()), ..Default::default() };
     s.sheet.cells.push(Cell { name: "BeginX".into(), value: Some("2".into()), ..Default::default() });
     d.pages[0].shapes.push(s);
     let a = import(&write(&d).unwrap().bytes).unwrap();
@@ -114,7 +114,7 @@ fn private_probe_writes_reads_and_preserves_opaque_payloads() {
         eprintln!("skip: private corpus/ is absent");
         return;
     }
-    let d = diagramcraft_vsdx::read(root.join("generated/basic/0001-probe.vsdx")).unwrap();
+    let d = misterdiagram_vsdx::read(root.join("generated/basic/0001-probe.vsdx")).unwrap();
     let a = import(&write(&d).unwrap().bytes).unwrap();
     assert_eq!(a.pages.len(), d.pages.len());
     assert_eq!(a.masters.len(), d.masters.len());
@@ -135,7 +135,7 @@ fn missing_and_authored_png_thumbnails_are_explicit_host_cases() {
     image::RgbaImage::from_pixel(2, 2, image::Rgba([255, 255, 255, 255])).write_to(&mut bytes, image::ImageFormat::Png).unwrap();
     let png = bytes.into_inner();
     d.parts.insert("docProps/thumbnail.png".into(), Part { bytes: png.clone(), content_type: Some("image/png".into()), ..Default::default() });
-    d.root_relationships.push(diagramcraft_model::Relationship {
+    d.root_relationships.push(misterdiagram_model::Relationship {
         id: "rId2".into(),
         type_uri: "http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail".into(),
         target: "docProps/thumbnail.png".into(),
@@ -154,7 +154,7 @@ fn deleted_inherited_members_preserve_repeated_sentinel_ids() {
         eprintln!("skip: private corpus/ is absent");
         return;
     }
-    let d = diagramcraft_vsdx::read(root.join("ms-shipped/1033/ASSOCIATIONS_UML_CLASS_M.vstx")).unwrap();
+    let d = misterdiagram_vsdx::read(root.join("ms-shipped/1033/ASSOCIATIONS_UML_CLASS_M.vstx")).unwrap();
     let a = import(&write(&d).unwrap().bytes).unwrap();
     let group = a.pages[0].shapes.iter().find(|s| s.id == 242).unwrap();
     let deleted: Vec<_> =
@@ -169,7 +169,7 @@ fn shipped_missing_thumbnail_relationship_does_not_fabricate_a_part() {
         eprintln!("skip: private corpus/ is absent");
         return;
     }
-    let d = diagramcraft_vsdx::read(root.join("ms-shipped/1033/AWSANALYTICS_M.vssx")).unwrap();
+    let d = misterdiagram_vsdx::read(root.join("ms-shipped/1033/AWSANALYTICS_M.vssx")).unwrap();
     assert!(!d.parts.contains_key("docProps/thumbnail.emf"));
     assert!(d.root_relationships.iter().any(|r| r.target == "docProps/thumbnail.emf"));
     let a = import(&write(&d).unwrap().bytes).unwrap();
@@ -202,7 +202,7 @@ fn stencil_page_sheet_does_not_gain_a_content_part() {
         eprintln!("skip: private corpus/ is absent");
         return;
     }
-    let d = diagramcraft_vsdx::read(root.join("ms-shipped/1033/BASIC_U.vssx")).unwrap();
+    let d = misterdiagram_vsdx::read(root.join("ms-shipped/1033/BASIC_U.vssx")).unwrap();
     assert_eq!(d.pages.len(), 1);
     assert!(d.pages[0].part.is_empty());
     let a = import(&write(&d).unwrap().bytes).unwrap();
@@ -230,7 +230,7 @@ fn destination_collisions_cannot_discard_a_page_or_opaque_payload() {
 #[test]
 fn non_sheet_collections_are_bounded_before_cloning() {
     let mut d = skeleton::document(false);
-    d.pages[0].connects = vec![diagramcraft_model::Connect::default(); 100_001];
+    d.pages[0].connects = vec![misterdiagram_model::Connect::default(); 100_001];
     assert!(write(&d).unwrap_err().to_string().contains("connect count"));
     let mut d = skeleton::document(false);
     d.colors = (0..65537).map(|i| (i, "#000000".into())).collect();
@@ -280,11 +280,11 @@ fn escaped_sheet_size_and_expanded_attribute_duplicates_are_rejected() {
 fn deleted_sentinel_extensions_stay_with_their_master_shape() {
     let mut d = skeleton::document(false);
     for id in [7, 9] {
-        let mut s = diagramcraft_model::Shape { id: u32::MAX, master_shape: Some(id), ..Default::default() };
+        let mut s = misterdiagram_model::Shape { id: u32::MAX, master_shape: Some(id), ..Default::default() };
         s.sheet.attributes.insert("Del".into(), "1".into());
         d.pages[0].shapes.push(s);
     }
-    d.parts.get_mut("visio/pages/page1.xml").unwrap().xml = Some(diagramcraft_vsdx::parse_xml(format!(
+    d.parts.get_mut("visio/pages/page1.xml").unwrap().xml = Some(misterdiagram_vsdx::parse_xml(format!(
         "<PageContents xmlns='{}'><Shapes><Shape ID='4294967295' MasterShape='7' Del='1'><Extra xmlns='urn:fixture'>seven</Extra></Shape><Shape ID='4294967295' MasterShape='9' Del='1'><Extra xmlns='urn:fixture'>nine</Extra></Shape></Shapes></PageContents>", skeleton::VISIO_NS).as_bytes()).unwrap());
     let a = import(&write(&d).unwrap().bytes).unwrap();
     let shapes = a.parts["visio/pages/page1.xml"].xml.as_ref().unwrap().child("Shapes").unwrap();
@@ -322,7 +322,7 @@ fn unchanged_arrow_and_probe_preserve_every_local_cache_and_unit() {
         return;
     }
     for file in ["generated/arrow/begin-00.vsdx", "generated/basic/0001-probe.vsdx", "ms-shipped/1033/SITACC_M.vssx"] {
-        let before = diagramcraft_vsdx::read(root.join(file)).unwrap();
+        let before = misterdiagram_vsdx::read(root.join(file)).unwrap();
         let after = import(&write(&before).unwrap().bytes).unwrap();
         for (path, p) in &before.parts {
             if let Some(xml) = &p.xml {
@@ -398,8 +398,8 @@ fn authored_cache_types_do_not_leak_evaluator_ids_or_empty_zeroes() {
 #[test]
 fn writer_text_metrics_are_internal_inches_without_rescaling_width_references() {
     struct FixedMetrics;
-    impl diagramcraft_model::text::TextHost for FixedMetrics {
-        fn measure(&self, _: &diagramcraft_model::text::TextBody, _: Option<f64>) -> Result<(f64, f64), String> {
+    impl misterdiagram_model::text::TextHost for FixedMetrics {
+        fn measure(&self, _: &misterdiagram_model::text::TextBody, _: Option<f64>) -> Result<(f64, f64), String> {
             Ok((72., 36.))
         }
     }
@@ -412,7 +412,7 @@ fn writer_text_metrics_are_internal_inches_without_rescaling_width_references() 
         s.sheet.cells.push(Cell { name: name.into(), formula: Some(formula.into()), ..Default::default() });
     }
     d.pages[0].shapes.push(s);
-    let after = import(&diagramcraft_vsdx::write_with_hosts(&d, None, Some(&FixedMetrics)).unwrap().bytes).unwrap();
+    let after = import(&misterdiagram_vsdx::write_with_hosts(&d, None, Some(&FixedMetrics)).unwrap().bytes).unwrap();
     let s = &after.pages[0].shapes[0].sheet;
     assert_eq!(s.cell("TxtWidth").unwrap().value.as_deref(), Some("1"));
     assert_eq!(s.cell("TxtHeight").unwrap().value.as_deref(), Some("0.5"));
@@ -421,7 +421,7 @@ fn writer_text_metrics_are_internal_inches_without_rescaling_width_references() 
 #[test]
 fn inherited_local_cache_is_not_replaced_by_the_provider() {
     let mut d = skeleton::document(false);
-    let mut s = diagramcraft_model::Shape { id: 1, master: Some(2), shape_type: Some("Shape".into()), ..Default::default() };
+    let mut s = misterdiagram_model::Shape { id: 1, master: Some(2), shape_type: Some("Shape".into()), ..Default::default() };
     s.sheet.cells.push(Cell {
         name: "Width".into(),
         value: Some("999.00".into()),
@@ -512,10 +512,10 @@ fn resized_basic_rectangle_reproduces_inherited_instance_cache_set() {
         eprintln!("skip: private corpus/ is absent");
         return;
     }
-    let source = diagramcraft_vsdx::read(root.join("generated/master/basic-rect.vsdx")).unwrap();
-    fn caches(d: &diagramcraft_model::Document) -> std::collections::BTreeMap<String, (Option<String>, Option<String>, Option<String>)> {
-        let e = diagramcraft_vsdx::evaluate::Evaluator::new(d).unwrap();
-        e.source_named_cells(diagramcraft_vsdx::evaluate::Scope::PageShape { page: 0, shape: 1 })
+    let source = misterdiagram_vsdx::read(root.join("generated/master/basic-rect.vsdx")).unwrap();
+    fn caches(d: &misterdiagram_model::Document) -> std::collections::BTreeMap<String, (Option<String>, Option<String>, Option<String>)> {
+        let e = misterdiagram_vsdx::evaluate::Evaluator::new(d).unwrap();
+        e.source_named_cells(misterdiagram_vsdx::evaluate::Scope::PageShape { page: 0, shape: 1 })
             .unwrap()
             .into_iter()
             .map(|n| (n.name, (n.cell.value.clone(), n.cell.formula.clone(), n.cell.units.clone())))
@@ -579,7 +579,7 @@ fn inherited_rows_keep_effective_indices_and_named_identity() {
             ..Default::default()
         },
     ];
-    let mut instance = diagramcraft_model::Shape { id: 1, master: Some(2), ..Default::default() };
+    let mut instance = misterdiagram_model::Shape { id: 1, master: Some(2), ..Default::default() };
     instance.sheet.cells.push(Cell { name: "Width".into(), value: Some("2".into()), ..Default::default() });
     instance.sheet.sections.push(Section {
         name: "User".into(),
@@ -623,7 +623,7 @@ fn inherited_string_expansion_is_rejected_at_the_sheet_byte_bound() {
             .collect(),
         ..Default::default()
     }];
-    let mut s = diagramcraft_model::Shape { id: 1, master: Some(2), ..Default::default() };
+    let mut s = misterdiagram_model::Shape { id: 1, master: Some(2), ..Default::default() };
     s.sheet.cells.push(Cell { name: "Width".into(), value: Some("2".into()), ..Default::default() });
     d.pages[0].shapes.push(s);
     d.masters[0].shapes[0].sheet.sections[0].rows.push(Row {
@@ -653,7 +653,7 @@ fn equivalent_inherited_colors_and_font_ordinals_are_not_materialized() {
         }],
         ..Default::default()
     });
-    d.pages[0].shapes.push(diagramcraft_model::Shape { id: 1, master: Some(2), ..Default::default() });
+    d.pages[0].shapes.push(misterdiagram_model::Shape { id: 1, master: Some(2), ..Default::default() });
     let a = import(&write(&d).unwrap().bytes).unwrap();
     let sheet = &a.pages[0].shapes[0].sheet;
     assert!(sheet.cell("LineColor").is_none());
@@ -697,7 +697,7 @@ fn inherited_text_caches_compare_as_text_and_named_fonts_as_faces() {
             ..Default::default()
         },
     ];
-    let mut s = diagramcraft_model::Shape { id: 1, master: Some(2), ..Default::default() };
+    let mut s = misterdiagram_model::Shape { id: 1, master: Some(2), ..Default::default() };
     s.sheet.cells.push(Cell { name: "Width".into(), value: Some("2".into()), ..Default::default() });
     d.pages[0].shapes.push(s);
     let a = import(&write(&d).unwrap().bytes).unwrap();
@@ -728,9 +728,9 @@ fn original_visio_master_content_id_four_is_preserved() {
         eprintln!("skip: private corpus/ is absent");
         return;
     }
-    let d = diagramcraft_vsdx::read(root.join("ms-shipped/1033/PHONE_CONN_U.vstx")).unwrap();
+    let d = misterdiagram_vsdx::read(root.join("ms-shipped/1033/PHONE_CONN_U.vstx")).unwrap();
     let a = import(&write(&d).unwrap().bytes).unwrap();
-    let count = |d: &diagramcraft_model::Document| {
+    let count = |d: &misterdiagram_model::Document| {
         let mut stack: Vec<_> = d.masters.iter().flat_map(|m| &m.shapes).collect();
         let mut count = 0;
         while let Some(s) = stack.pop() {
@@ -786,7 +786,7 @@ fn authored_and_edited_literal_cache_types_are_serialized_by_type() {
 fn extension_xml_cannot_authorize_a_reserved_master_shape_id() {
     let mut d = import(&write(&skeleton::document(false)).unwrap().bytes).unwrap();
     let part = d.parts.get_mut("visio/masters/master1.xml").unwrap();
-    let mut unrelated = XmlElement { name: "Extension".into(), namespace: "urn:diagramcraft:test".into(), ..Default::default() };
+    let mut unrelated = XmlElement { name: "Extension".into(), namespace: "urn:misterdiagram:test".into(), ..Default::default() };
     unrelated.children.push(XmlNode::Element(XmlElement {
         name: "Shape".into(),
         namespace: skeleton::VISIO_NS.into(),
@@ -844,10 +844,10 @@ fn background_page_link_and_last_page_removal_are_complete() {
 fn connect_to_missing_page_or_master_shape_is_rejected() {
     let mut d = skeleton::document(false);
     d.pages[0].shapes.push(skeleton::rectangle(1, 0., 0., 1., 1., "").unwrap());
-    d.pages[0].connects.push(diagramcraft_model::Connect { from_sheet: 1, to_sheet: 99, ..Default::default() });
+    d.pages[0].connects.push(misterdiagram_model::Connect { from_sheet: 1, to_sheet: 99, ..Default::default() });
     assert!(write(&d).expect_err("missing page target").to_string().contains("Connect references missing sheet"));
     d.pages[0].connects.clear();
-    d.masters[0].connects.push(diagramcraft_model::Connect { from_sheet: 5, to_sheet: 99, ..Default::default() });
+    d.masters[0].connects.push(misterdiagram_model::Connect { from_sheet: 5, to_sheet: 99, ..Default::default() });
     assert!(write(&d).expect_err("missing master target").to_string().contains("Connect references missing sheet"));
 }
 
@@ -855,7 +855,7 @@ fn connect_to_missing_page_or_master_shape_is_rejected() {
 fn connect_to_enclosing_page_sheet_is_valid_but_deleted_shape_is_not() {
     let mut d = skeleton::document(false);
     d.pages[0].shapes.push(skeleton::rectangle(1, 0., 0., 1., 1., "").unwrap());
-    d.pages[0].connects.push(diagramcraft_model::Connect {
+    d.pages[0].connects.push(misterdiagram_model::Connect {
         from_sheet: 1,
         to_sheet: 0,
         from_cell: Some("Controls.Row_1".into()),
@@ -871,9 +871,9 @@ fn connect_to_enclosing_page_sheet_is_valid_but_deleted_shape_is_not() {
         eprintln!("skip: private corpus/ is absent");
         return;
     }
-    let d = diagramcraft_vsdx::read(root.join("ms-shipped/1033/BLOCKP_M.vssx")).unwrap();
+    let d = misterdiagram_vsdx::read(root.join("ms-shipped/1033/BLOCKP_M.vssx")).unwrap();
     let a = import(&write(&d).unwrap().bytes).unwrap();
-    let count = |d: &diagramcraft_model::Document| d.masters.iter().flat_map(|m| &m.connects).filter(|c| c.to_sheet == 0).count();
+    let count = |d: &misterdiagram_model::Document| d.masters.iter().flat_map(|m| &m.connects).filter(|c| c.to_sheet == 0).count();
     assert_eq!(count(&d), 18);
     assert_eq!(count(&a), 18);
 }
@@ -916,7 +916,7 @@ fn probe_resave_has_no_literal_differences_in_acceptance_reporter() {
         return;
     }
     let source = root.join("corpus/generated/basic/0001-probe.vsdx");
-    let d = diagramcraft_vsdx::read(&source).unwrap();
+    let d = misterdiagram_vsdx::read(&source).unwrap();
     let directory = root.join("target/writer-acceptance-tests");
     std::fs::create_dir_all(&directory).unwrap();
     let output = directory.join(format!("probe-{}.vsdx", std::process::id()));
@@ -936,7 +936,7 @@ fn unchanged_opc_wrappers_keep_original_bytes() {
         return;
     }
     for name in ["generated/basic/0001-probe.vsdx", "generated/arrow/begin-00.vsdx"] {
-        let before = diagramcraft_vsdx::read(root.join(name)).unwrap();
+        let before = misterdiagram_vsdx::read(root.join(name)).unwrap();
         let after = import(&write(&before).unwrap().bytes).unwrap();
         let mut count = 0;
         for (name, part) in &before.parts {
@@ -1026,7 +1026,7 @@ fn shipped_acceptance_shapes_preserve_local_structure_and_literal_attributes() {
         "PTSKST_M.vstx",
         "SOCIAL_DISTANCING_M.vstx",
     ] {
-        let before = diagramcraft_vsdx::read(root.join(file)).unwrap();
+        let before = misterdiagram_vsdx::read(root.join(file)).unwrap();
         let after = import(&write(&before).unwrap().bytes).unwrap();
         for (path, part) in &before.parts {
             if let Some(xml) = &part.xml {
@@ -1061,7 +1061,7 @@ fn shipped_acceptance_relationships_are_written_as_read() {
         return;
     }
     let root = corpus.join("ms-shipped/1033");
-    fn keyed(rels: &[diagramcraft_model::Relationship]) -> std::collections::BTreeMap<(&str, &str), Vec<(&str, bool)>> {
+    fn keyed(rels: &[misterdiagram_model::Relationship]) -> std::collections::BTreeMap<(&str, &str), Vec<(&str, bool)>> {
         let mut result: std::collections::BTreeMap<_, Vec<_>> = std::collections::BTreeMap::new();
         for r in rels {
             result.entry((r.type_uri.as_str(), r.target.as_str())).or_default().push((r.id.as_str(), r.external));
@@ -1093,7 +1093,7 @@ fn shipped_acceptance_relationships_are_written_as_read() {
         "PTSKST_M.vstx",
         "SOCIAL_DISTANCING_M.vstx",
     ] {
-        let before = diagramcraft_vsdx::read(root.join(file)).unwrap();
+        let before = misterdiagram_vsdx::read(root.join(file)).unwrap();
         let after = import(&write(&before).unwrap().bytes).unwrap();
         assert_eq!(keyed(&before.root_relationships), keyed(&after.root_relationships), "{file}: root");
         for (path, part) in &before.parts {
@@ -1106,9 +1106,9 @@ fn shipped_acceptance_relationships_are_written_as_read() {
 #[test]
 fn newly_authored_dangling_relationships_are_errors() {
     let mut d = skeleton::document(false);
-    let r = diagramcraft_model::Relationship {
+    let r = misterdiagram_model::Relationship {
         id: "missing".into(),
-        type_uri: "urn:diagramcraft:missing".into(),
+        type_uri: "urn:misterdiagram:missing".into(),
         target: "missing.bin".into(),
         external: false,
     };

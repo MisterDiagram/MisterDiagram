@@ -1,6 +1,6 @@
 //! Materialize the private P3 selection without modifying observation inputs.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
-use diagramcraft_render::{
+use misterdiagram_render::{
     raster,
     scene::{self, Options},
 };
@@ -110,11 +110,11 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             return Err("source symlink outside corpus".into());
         }
         let (doc, warning_count) = if expected_only {
-            (diagramcraft_vsdx::read(if baseline { &source } else { &output })?, 0)
+            (misterdiagram_vsdx::read(if baseline { &source } else { &output })?, 0)
         } else {
-            let before = diagramcraft_vsdx::read(&source)?;
-            let theme = diagramcraft_theme::Themes::from_document(&before).map_err(|e| e.to_string())?;
-            let written = diagramcraft_vsdx::write_with_hosts(&before, Some(&theme), Some(&diagramcraft_text::Host))?;
+            let before = misterdiagram_vsdx::read(&source)?;
+            let theme = misterdiagram_theme::Themes::from_document(&before).map_err(|e| e.to_string())?;
+            let written = misterdiagram_vsdx::write_with_hosts(&before, Some(&theme), Some(&misterdiagram_text::Host))?;
             fs::create_dir_all(output.parent().ok_or("output parent")?)?;
             if !output.parent().ok_or("parent")?.canonicalize()?.starts_with(&root)
                 || fs::symlink_metadata(&output).is_ok_and(|m| m.file_type().is_symlink())
@@ -122,30 +122,30 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
                 return Err("output symlink".into());
             }
             fs::write(&output, &written.bytes)?;
-            (diagramcraft_vsdx::import(&written.bytes)?, written.warning_count)
+            (misterdiagram_vsdx::import(&written.bytes)?, written.warning_count)
         };
-        let theme = diagramcraft_theme::Themes::from_document(&doc).map_err(|e| e.to_string())?;
+        let theme = misterdiagram_theme::Themes::from_document(&doc).map_err(|e| e.to_string())?;
         let dir = expected.join(name);
         fs::create_dir_all(&dir)?;
         if !dir.canonicalize()?.starts_with(&expected) {
             return Err("expected output symlink".into());
         }
-        diagramcraft_vsdx::dump::dump_with_hosts(
+        misterdiagram_vsdx::dump::dump_with_hosts(
             &doc,
-            diagramcraft_vsdx::dump::Selection::All,
+            misterdiagram_vsdx::dump::Selection::All,
             Some(&theme),
-            Some(&diagramcraft_text::Host),
+            Some(&misterdiagram_text::Host),
             &mut fs::File::create(dir.join("computed.sheet.tsv"))?,
         )?;
-        diagramcraft_vsdx::dump::dump_serialized(&doc, &mut fs::File::create(dir.join("serialized.sheet.tsv"))?)?;
+        misterdiagram_vsdx::dump::dump_serialized(&doc, &mut fs::File::create(dir.join("serialized.sheet.tsv"))?)?;
         if baseline {
             eprintln!("prepared baseline metadata {}", PathBuf::from(name).display());
             continue;
         }
-        let mut evaluator = diagramcraft_vsdx::evaluate::Evaluator::new(&doc)
+        let mut evaluator = misterdiagram_vsdx::evaluate::Evaluator::new(&doc)
             .map_err(|e| e.to_string())?
             .with_theme_host(&theme)
-            .with_text_host(&diagramcraft_text::Host);
+            .with_text_host(&misterdiagram_text::Host);
         let mut images = vec![];
         let options = Options { visio_export: true, ..Default::default() };
         for (master, count) in [(false, doc.pages.len()), (true, doc.masters.len())] {

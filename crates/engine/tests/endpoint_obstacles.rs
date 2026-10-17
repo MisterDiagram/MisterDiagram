@@ -1,5 +1,5 @@
 //! Selected synthetic #44 regressions from craft-apps review 3a, user-authorized MIT OR Apache-2.0.
-use diagramcraft_engine::Session;
+use misterdiagram_engine::Session;
 use serde_json::{Value, json};
 fn run(s: &mut Session, id: &str, p: Value) -> Value {
     s.execute(id, &p).unwrap_or_else(|e| panic!("{id} {p}: {e}"))
@@ -56,7 +56,7 @@ fn dropping_connector_onto_glued_shape_succeeds() {
     run(&mut s, "master.drop", json!({"master":2,"x":2,"y":5}));
     assert_eq!(s.document().pages[0].shapes.len(), 4);
     assert_eq!(s.document().pages[0].connects.len(), 2);
-    assert!(diagramcraft_vsdx::write(s.document()).is_ok());
+    assert!(misterdiagram_vsdx::write(s.document()).is_ok());
 }
 #[test]
 fn duplicated_shape_covering_static_glue_point_succeeds() {
@@ -73,7 +73,7 @@ fn duplicated_shape_covering_static_glue_point_succeeds() {
     run(&mut s, "shape.duplicate", json!({"id":1}));
     assert_eq!(s.document().pages[0].shapes.len(), 4);
     assert_eq!(s.document().pages[0].connects.len(), 2);
-    assert!(diagramcraft_vsdx::write(s.document()).is_ok());
+    assert!(misterdiagram_vsdx::write(s.document()).is_ok());
 }
 
 #[test]
@@ -87,5 +87,5 @@ fn aligned_connector_can_detach_inside_its_former_glue_targets() {
     run(&mut s, "arrange.align", json!({"ids":[1,3],"mode":"bottom"}));
     assert!(s.document().pages[0].connects.is_empty());
     run(&mut s, "shape.move", json!({"id":1,"x":1.5,"y":8}));
-    assert!(diagramcraft_vsdx::write(s.document()).is_ok());
+    assert!(misterdiagram_vsdx::write(s.document()).is_ok());
 }

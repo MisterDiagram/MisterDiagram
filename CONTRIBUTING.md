@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for looking at DiagramCraft. Pull requests are welcome, and the first ones were
+Thank you for looking at MisterDiagram. Pull requests are welcome, and the first ones were
 merged within a day of review. A few rules keep the project honest and keep review fast.
 
 ## Clean room, no exceptions

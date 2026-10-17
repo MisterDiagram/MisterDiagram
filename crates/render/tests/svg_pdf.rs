@@ -1,4 +1,4 @@
-use diagramcraft_render::{pdf, raster, scene, svg};
+use misterdiagram_render::{pdf, raster, scene, svg};
 #[test]
 fn generated_svg_resvg_and_pdf_text() {
     let repo = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
@@ -24,7 +24,7 @@ fn generated_svg_resvg_and_pdf_text() {
             if !file.extension().is_some_and(|e| e == "vsdx") {
                 continue;
             }
-            let doc = diagramcraft_vsdx::read(&file).unwrap();
+            let doc = misterdiagram_vsdx::read(&file).unwrap();
             let options = scene::Options::default();
             let scene = scene::page(&doc, scene::default_page_index(&doc).unwrap(), options).unwrap();
             let png = raster::render(&scene, options).unwrap();
@@ -81,14 +81,14 @@ print(f'pypdf: {count} one-page PDFs, {text_count} extractable text drawings')
 
 #[test]
 fn svg_thin_closed_stroke_matches_the_raster_pen() {
-    use diagramcraft_render::scene::{Op, Scene};
     use kurbo::Shape as _;
+    use misterdiagram_render::scene::{Op, Scene};
     let scene = Scene {
         warnings: vec![],
         ops: vec![Op::Stroke {
             path: kurbo::Rect::new(0.01, 0.16, 0.78, 0.17).to_path(1e-5),
             stroke: kurbo::Stroke::new(1. / 96.),
-            color: diagramcraft_color::Rgba::BLACK,
+            color: misterdiagram_color::Rgba::BLACK,
         }],
         bounds: kurbo::Rect::new(0., 0., 0.8, 0.33),
         page_size: (8.5, 11.),

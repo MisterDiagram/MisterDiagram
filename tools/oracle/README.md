@@ -85,7 +85,7 @@ tools/oracle/run-in-vm.sh accept.ps1 900 corpus/generated/basic/0001-probe.vsdx 
 ```
 
 The runner writes UTF-8 Windows paths to corpus/_vm/accept-list.txt. Each input is copied
-to the interactive user's TEMP/diagramcraft-accept directory, opened locally with OpenEx(..., 2),
+to the interactive user's TEMP/misterdiagram-accept directory, opened locally with OpenEx(..., 2),
 and removed in finally. Package parts are read from the same local copy. Outputs stay on the share.
 
 Use `tools/oracle/run-in-vm.sh --check-task` for the required leftover-task count and
@@ -143,13 +143,13 @@ shared read-only `corpus/ms-shipped-dumps` input directory.
 
 ### P3 acceptance
 
-Run `cargo test -q -p diagramcraft-model --test from_scratch` to build the five
+Run `cargo test -q -p misterdiagram-model --test from_scratch` to build the five
 private acceptance drawings under `corpus/_state/m3/scratch/`. The test also runs
 without the private corpus, except its explicitly skipped BASIC_U case. The
 selection manifest `corpus/_state/m3/accept-plan.json` lists 204 generated drawings,
 one blank, five scratch documents and twenty shipped files chosen by size spread.
 
-`cargo run -q --release -p diagramcraft-corpus --example prepare_accept` writes
+`cargo run -q --release -p misterdiagram-corpus --example prepare_accept` writes
 recalculated packages to `corpus/_state/m3/accept-inputs/`, computed and source-backed dumps and page/
 master PNGs to `corpus/_state/m3/accept-expected/`. Run
 `python3 tools/oracle/accept_report.py --prepare` to hash the complete selection

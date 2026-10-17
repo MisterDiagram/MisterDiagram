@@ -1,23 +1,24 @@
 [package]
-name = "diagramcraft-vsdx"
+name = "misterdiagram-vsdx"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
 
 [lints]
 workspace = true
 
 [dependencies]
-diagramcraft-color.workspace = true
-diagramcraft-geom.workspace = true
-diagramcraft-model.workspace = true
-diagramcraft-sheet.workspace = true
-diagramcraft-opc.workspace = true
+misterdiagram-color.workspace = true
+misterdiagram-geom.workspace = true
+misterdiagram-model.workspace = true
+misterdiagram-sheet.workspace = true
+misterdiagram-opc.workspace = true
 thiserror.workspace = true
 quick-xml.workspace = true
 zip.workspace = true
 
 [dev-dependencies]
-diagramcraft-theme.workspace = true
-diagramcraft-text.workspace = true
+misterdiagram-theme.workspace = true
+misterdiagram-text.workspace = true
 image.workspace = true

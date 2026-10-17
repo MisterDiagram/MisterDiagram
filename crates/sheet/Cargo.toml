@@ -1,15 +1,16 @@
 [package]
-name = "diagramcraft-sheet"
+name = "misterdiagram-sheet"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
 
 [lints]
 workspace = true
 
 [dependencies]
-diagramcraft-geom.workspace = true
-diagramcraft-color.workspace = true
+misterdiagram-geom.workspace = true
+misterdiagram-color.workspace = true
 
 [dev-dependencies]
 zip.workspace = true

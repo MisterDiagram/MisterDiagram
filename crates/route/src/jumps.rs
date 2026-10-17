@@ -5,9 +5,9 @@ use crate::{
     orthogonal::number,
     static_glue::{cell, shape_mut},
 };
-use diagramcraft_geom::{Affine, Point};
-use diagramcraft_model::{Document, Row, Section};
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_geom::{Affine, Point};
+use misterdiagram_model::{Document, Row, Section};
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use std::collections::{BTreeMap, BTreeSet};
 
 struct Connector {
@@ -26,7 +26,7 @@ struct Connector {
     had_jumps: bool,
     inherited_zero: [[bool; 2]; 2],
 }
-fn row(index: u32, kind: &str, p: Point, a: Option<diagramcraft_model::Cell>) -> Row {
+fn row(index: u32, kind: &str, p: Point, a: Option<misterdiagram_model::Cell>) -> Row {
     let mut cells = vec![cell("X", p.x, None), cell("Y", p.y, None)];
     if let Some(a) = a {
         cells.push(a);
@@ -34,7 +34,7 @@ fn row(index: u32, kind: &str, p: Point, a: Option<diagramcraft_model::Cell>) ->
     Row {
         index: Some(index),
         row_type: Some(kind.into()),
-        attributes: diagramcraft_model::Attributes::from([("IX".into(), index.to_string()), ("T".into(), kind.into())]),
+        attributes: misterdiagram_model::Attributes::from([("IX".into(), index.to_string()), ("T".into(), kind.into())]),
         cells,
         ..Default::default()
     }
@@ -51,8 +51,8 @@ fn row(index: u32, kind: &str, p: Point, a: Option<diagramcraft_model::Cell>) ->
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/pagelinejumpdirx-cell-page-layout-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/pagelinejumpdiry-cell-page-layout-section
 pub(crate) fn apply(doc: &mut Document, host: &mut GlueHost, routed: &BTreeSet<(usize, u32)>) -> Result<(), String> {
-    let themes = diagramcraft_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
-    let text = diagramcraft_text::Host;
+    let themes = misterdiagram_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
+    let text = misterdiagram_text::Host;
     let mut e = Evaluator::new(doc).map_err(|v| v.to_string())?.with_theme_host(&themes).with_text_host(&text).with_glue_host(host);
     let mut connectors = Vec::new();
     let mut segments = 0usize;
@@ -185,7 +185,7 @@ pub(crate) fn apply(doc: &mut Document, host: &mut GlueHost, routed: &BTreeSet<(
             crossings.dedup_by(|a, b| (*a - *b).abs() < 1e-9);
             let length = delta.hypot();
             let radius = c.factors.get(axis).copied().unwrap_or(0.);
-            let unit = if length > 1e-12 { delta / length } else { diagramcraft_geom::Vec2::ZERO };
+            let unit = if length > 1e-12 { delta / length } else { misterdiagram_geom::Vec2::ZERO };
             let mut last = 0.;
             for at in crossings {
                 if radius <= 0. || at - radius <= last + 1e-9 || at + radius >= length - 1e-9 {
@@ -203,9 +203,9 @@ pub(crate) fn apply(doc: &mut Document, host: &mut GlueHost, routed: &BTreeSet<(
                             return Err("jump normalization extent".into());
                         }
                         let rise = if axis == 0 {
-                            diagramcraft_geom::Vec2::new(0., radius * direction)
+                            misterdiagram_geom::Vec2::new(0., radius * direction)
                         } else {
-                            diagramcraft_geom::Vec2::new(radius * direction, 0.)
+                            misterdiagram_geom::Vec2::new(radius * direction, 0.)
                         };
                         let controls = if c.style == 3. {
                             vec![inv * (*a + unit * (at - radius) + rise), inv * (*a + unit * (at + radius) + rise)]

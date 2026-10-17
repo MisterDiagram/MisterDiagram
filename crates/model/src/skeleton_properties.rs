@@ -52,7 +52,7 @@ fn summary(doc: &Document, app: &mut XmlElement) {
         }
     }
 }
-/// AppVersion is 16.0000: Visio rewrote 1.0000 but kept Application=Diagramcraft.
+/// AppVersion is 16.0000: Visio rewrote 1.0000 but kept our authored Application name.
 /// Dates are fresh UTC values; lastModifiedBy/lastPrinted remain Visio first-save stamps.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
 pub(super) fn metadata(doc: &mut Document, metric: bool) {
@@ -77,7 +77,7 @@ pub(super) fn metadata(doc: &mut Document, metric: bool) {
         APP,
         &[("xmlns", APP), ("xmlns:vt", VT)],
         vec![
-            value("Application", APP, "Diagramcraft"),
+            value("Application", APP, "MisterDiagram"),
             value("ScaleCrop", APP, "false"),
             XmlNode::Element(element_ns("HeadingPairs", APP, &[], vec![])),
             XmlNode::Element(element_ns("TitlesOfParts", APP, &[], vec![])),

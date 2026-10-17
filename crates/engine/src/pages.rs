@@ -1,7 +1,7 @@
 //! Page and layer commands.
 //! https://learn.microsoft.com/en-us/office/vba/api/visio.pages
 use crate::{Result, Session, edit::*, operation};
-use diagramcraft_model::{Document, Section, Shape};
+use misterdiagram_model::{Document, Section, Shape};
 use serde_json::{Value, json};
 
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.pages.add
@@ -17,7 +17,7 @@ pub(crate) fn add(s: &mut Session, p: &Value) -> Result<Value> {
             return Err(operation("page count limit or duplicate name"));
         }
         let id = doc.pages.iter().map(|p| p.id).max().map_or(Some(0), |v| v.checked_add(1)).ok_or_else(|| operation("page ID overflow"))?;
-        doc.pages.push(diagramcraft_model::skeleton::page(id, &title, metric));
+        doc.pages.push(misterdiagram_model::skeleton::page(id, &title, metric));
         selection.page = doc.pages.len() - 1;
         selection.shapes.clear();
         Ok(json!({"page":selection.page+1,"id":id}))
@@ -187,7 +187,7 @@ pub(crate) fn layer_add(s: &mut Session, p: &Value) -> Result<Value> {
             .max()
             .map_or(Some(0), |v| v.checked_add(1))
             .ok_or_else(|| operation("layer index overflow"))?;
-        let mut row = diagramcraft_model::skeleton::layer(id, &title, true).map_err(operation)?;
+        let mut row = misterdiagram_model::skeleton::layer(id, &title, true).map_err(operation)?;
         // Layers.Add defaults, observed in generated/basic/0001-probe.sheet.tsv.
         for c in &mut row.cells {
             match c.name.as_str() {

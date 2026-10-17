@@ -1,6 +1,6 @@
 # AGENTS.md: rules for every agent and contributor
 
-Diagramcraft is a clean-room, headless Rust Visio core. The user brief takes precedence.
+MisterDiagram is a clean-room, headless Rust Visio core. The user brief takes precedence.
 
 ## 1. Asset policy (absolute: no exceptions)
 
@@ -17,7 +17,7 @@ the app renders from those.
   product" includes Visio, Office, Windows and the fonts they install (Aptos, Calibri,
   Cambria, Segoe, Consolas, Wingdings…).
 - This holds even when the vendor publishes the material under an open licence, if it is **visual
-  design**: Diagramcraft does not embed or reference Adobe's Source Sans/Serif/Han families or Noto
+  design**: MisterDiagram does not embed or reference Adobe's Source Sans/Serif/Han families or Noto
   CJK (Source Han rebranded); `crates/fonts/build.rs` excludes them.
 - **Never** recreate, trace, redraw or closely imitate a vendor icon, theme or graphic. Our icons
   are drawn in code or come from openly licensed sets (Lucide, ISC), and our themes, colours,
@@ -26,7 +26,7 @@ the app renders from those.
   `plan/visio/screenshots/` (gitignored). They must **never** be committed, published,
   linked, shown in docs, or traced.
 - Never commit Visio-produced files to this repository. Script-generated drawings live only
-  in the permanently private diagramcraft-corpus repository. They may embed Microsoft masters.
+  in the permanently private corpus repository at `../diagramcraft-corpus`. They may embed Microsoft masters.
 - Microsoft shipped stencils and templates are observed locally, never shipped or committed.
   Their files and COM dumps stay under gitignored `corpus/ms-shipped*/`.
 
@@ -41,7 +41,7 @@ Forbidden: system fonts that are not openly licensed, vendor emoji artwork, stoc
 for personal use" material, screenshots of other people's software, anything whose licence you
 cannot prove from its original source.
 
-**Screenshots of Diagramcraft** are contributor-original. Everything visible in them must itself be
+**Screenshots of MisterDiagram** are contributor-original. Everything visible in them must itself be
 allowed: our UI, our/Lucide icons, OFL fonts, and drawings built only from allowed assets.
 
 ### 1.3 Every asset is attributed
@@ -52,7 +52,7 @@ allowed: our UI, our/Lucide icons, OFL fonts, and drawings built only from allow
   or `docs/brand/` has no row.
 - **`NOTICE`** keeps the notices the licences require.
 - P2-followup explicitly authorizes the pinned OFL Latin fonts in `crates/fonts/assets/`.
-  Other font inputs live in [storytold/craft-fonts](https://github.com/storytold/craft-fonts). Diagramcraft embeds its `fonts/latin-manifest.txt` and
+  Other font inputs live in [storytold/craft-fonts](https://github.com/storytold/craft-fonts). MisterDiagram embeds its `fonts/latin-manifest.txt` and
   `fonts/manifest.txt` when built with `CRAFT_FONTS_DIR` (local dev: `.cargo/config.toml` points at
   `/Users/charles/Projects/craft-apps/craft-fonts/src`).
 
@@ -82,7 +82,7 @@ once and tell the user.
 
 ## 3. Never crash
 
-People trust Diagramcraft with their diagrams; a crash loses work. **This outranks feature work.**
+People trust MisterDiagram with their diagrams; a crash loses work. **This outranks feature work.**
 The rules below are enforced by the local workspace gates.
 - No `unwrap()`, `expect()`, `panic!`, `unreachable!`, `todo!`, `unimplemented!` in non-test
   code; no `unsafe` (`unsafe_code = "forbid"`). Every production crate root carries
@@ -121,7 +121,7 @@ It must pass before every commit touching Rust. Commit with `M<phase>.<n>: what`
 ## 6. Running
 
 - `cargo build --workspace`
-- `cargo run -p diagramcraft-cli -- info FILE.vsdx`
+- `cargo run -p misterdiagram-cli -- info FILE.vsdx`
 - `cargo xtask ci`
 - `cargo xtask parity`
 

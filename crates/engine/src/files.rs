@@ -1,6 +1,6 @@
 //! File commands reuse the bounded model reader, writer and renderers.
 use crate::{Result, Selection, Session, operation};
-use diagramcraft_vsdx::SaveKind;
+use misterdiagram_vsdx::SaveKind;
 use serde_json::{Value, json};
 use std::{
     io::Write,
@@ -23,18 +23,18 @@ fn extension(path: &Path) -> Result<String> {
 /// Witness: generated/basic/0001-probe.vsdx. The low-level skeleton retains its
 /// M3 post-save palette contract for existing programmatic callers.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/colors-element-visiodocument_type-complextypevisio-xml
-pub(crate) fn blank_document(metric: bool) -> diagramcraft_model::Document {
-    let mut document = diagramcraft_model::skeleton::document(metric);
+pub(crate) fn blank_document(metric: bool) -> misterdiagram_model::Document {
+    let mut document = misterdiagram_model::skeleton::document(metric);
     document.colors = [(24, "#7F7F7F".into()), (25, "#FFFFFF".into())].into_iter().collect();
     document
 }
 /// Newly authored RGB literals receive the custom palette entries Visio writes.
 /// This runs only after an edit, never merely while opening an existing file.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/colors-element-visiodocument_type-complextypevisio-xml
-pub(crate) fn update_palette(doc: &mut diagramcraft_model::Document) -> Result<()> {
+pub(crate) fn update_palette(doc: &mut misterdiagram_model::Document) -> Result<()> {
     let mut colors = std::collections::BTreeSet::new();
     let mut cells = 0usize;
-    let mut collect = |sheet: &diagramcraft_model::Sheet| -> Result<()> {
+    let mut collect = |sheet: &misterdiagram_model::Sheet| -> Result<()> {
         for cell in sheet.cells.iter().chain(sheet.sections.iter().flat_map(|s| s.cells.iter().chain(s.rows.iter().flat_map(|r| &r.cells)))) {
             cells += 1;
             if cells > 2_000_000 {
@@ -100,7 +100,7 @@ pub(crate) fn new(s: &mut Session, p: &Value) -> Result<Value> {
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.documents.open
 pub(crate) fn open(s: &mut Session, p: &Value) -> Result<Value> {
     let path = path(p, "path")?;
-    let document = diagramcraft_vsdx::read_with_open_nodes(path, s.retained_xml_nodes()).map_err(operation)?;
+    let document = misterdiagram_vsdx::read_with_open_nodes(path, s.retained_xml_nodes()).map_err(operation)?;
     let pages = document.pages.len();
     s.document = Arc::new(document);
     s.selection = Selection::default();
@@ -119,8 +119,8 @@ pub(crate) fn save(s: &mut Session, p: &Value) -> Result<Value> {
         "vstx" => SaveKind::Template,
         _ => return Err(operation("save extension must be vsdx, vssx or vstx")),
     };
-    let theme = diagramcraft_theme::Themes::from_document(&s.document).map_err(operation)?;
-    let written = diagramcraft_vsdx::write_as_with_hosts(&s.document, kind, Some(&theme), Some(&diagramcraft_text::Host)).map_err(operation)?;
+    let theme = misterdiagram_theme::Themes::from_document(&s.document).map_err(operation)?;
+    let written = misterdiagram_vsdx::write_as_with_hosts(&s.document, kind, Some(&theme), Some(&misterdiagram_text::Host)).map_err(operation)?;
     atomic_write(path, &written.bytes)?;
     s.path = Some(path.to_owned());
     Ok(json!({"bytes":written.bytes.len(),"warnings":written.warnings,"warning_count":written.warning_count}))
@@ -130,7 +130,7 @@ pub(crate) fn save(s: &mut Session, p: &Value) -> Result<Value> {
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.page.export
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.document.exportasfixedformat
 pub(crate) fn export(s: &mut Session, p: &Value) -> Result<Value> {
-    use diagramcraft_render::{pdf, raster, scene, svg};
+    use misterdiagram_render::{pdf, raster, scene, svg};
     let path = path(p, "path")?;
     let ext = extension(path)?;
     if !matches!(ext.as_str(), "png" | "svg" | "pdf") {
@@ -201,7 +201,7 @@ fn atomic_write(path: &Path, bytes: &[u8]) -> Result<()> {
     };
     for _ in 0..16 {
         let n = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-        let temp = parent.join(format!(".diagramcraft-{}-{n}.tmp", std::process::id()));
+        let temp = parent.join(format!(".misterdiagram-{}-{n}.tmp", std::process::id()));
         let mut open = std::fs::OpenOptions::new();
         open.write(true).create_new(true);
         #[cfg(unix)]

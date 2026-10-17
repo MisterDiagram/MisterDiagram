@@ -2,7 +2,7 @@
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 #[cfg(test)]
 mod tests {
-    use diagramcraft_opc::{MAX_PART, PackageOut, RelsOut};
+    use misterdiagram_opc::{MAX_PART, PackageOut, RelsOut};
     use std::path::PathBuf;
     use std::process::Command;
     fn package(kind: &str) -> Vec<u8> {
@@ -19,7 +19,7 @@ mod tests {
         std::fs::create_dir_all(&dir).unwrap();
         let p = dir.join(format!("{}-{}.{}", std::process::id(), NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed), ext));
         std::fs::write(&p, bytes).unwrap();
-        let o = Command::new(env!("CARGO_BIN_EXE_diagramcraft-cli")).args(["info"]).arg(&p).output().unwrap();
+        let o = Command::new(env!("CARGO_BIN_EXE_misterdiagram")).args(["info"]).arg(&p).output().unwrap();
         std::fs::remove_file(p).unwrap();
         o
     }

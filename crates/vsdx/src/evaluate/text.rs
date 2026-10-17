@@ -1,9 +1,9 @@
 //! Lossless text markers become fully resolved layout input without an L2 dependency.
 use super::{Error, Evaluator, Scope};
-use diagramcraft_color::Rgba;
-use diagramcraft_geom::Affine;
-use diagramcraft_model::{XmlElement, XmlNode, text::*};
-use diagramcraft_sheet::Value;
+use misterdiagram_color::Rgba;
+use misterdiagram_geom::Affine;
+use misterdiagram_model::{XmlElement, XmlNode, text::*};
+use misterdiagram_sheet::Value;
 
 pub struct TextBlock {
     pub body: TextBody,
@@ -112,7 +112,7 @@ impl<'a> Evaluator<'a> {
             || self
                 .effective_formula(scope, &reference)
                 .as_deref()
-                .is_some_and(|f| diagramcraft_sheet::parse(f).is_ok_and(|e| super::hook_references(&e, false).is_ok_and(|h| h.is_some())))
+                .is_some_and(|f| misterdiagram_sheet::parse(f).is_ok_and(|e| super::hook_references(&e, false).is_ok_and(|h| h.is_some())))
         {
             return Ok(saved.into());
         }
@@ -124,12 +124,12 @@ impl<'a> Evaluator<'a> {
         let text = if matches!(value, Value::Text(_)) || format.is_empty() || format == "esc(0)" {
             value.text()
         } else {
-            let expression = diagramcraft_sheet::Expr::Call {
+            let expression = misterdiagram_sheet::Expr::Call {
                 name: "FORMAT".into(),
-                args: vec![diagramcraft_sheet::Expr::Reference(reference), diagramcraft_sheet::Expr::Text(format)],
+                args: vec![misterdiagram_sheet::Expr::Reference(reference), misterdiagram_sheet::Expr::Text(format)],
             };
             let mut context = super::BoundContext { evaluator: self, scope, origin: scope, cached: Value::Text(saved.into()) };
-            let formatted = diagramcraft_sheet::evaluate(&expression, &mut context);
+            let formatted = misterdiagram_sheet::evaluate(&expression, &mut context);
             if matches!(formatted, Value::Error(Error::Unsupported(_))) {
                 saved.into()
             } else {
@@ -164,7 +164,7 @@ impl<'a> Evaluator<'a> {
             Value::Color { rgb: [r, g, b], .. } => Rgba::rgb(r, g, b),
             Value::Number(n) if n.is_finite() && (0. ..=65535.).contains(&n) => {
                 let [r, g, b] =
-                    self.palette.get(&(n as u32)).copied().or_else(|| diagramcraft_sheet::functions::default_color(n as u32)).unwrap_or([0, 0, 0]);
+                    self.palette.get(&(n as u32)).copied().or_else(|| misterdiagram_sheet::functions::default_color(n as u32)).unwrap_or([0, 0, 0]);
                 Rgba::rgb(r, g, b)
             }
             _ => Rgba::BLACK,
@@ -415,7 +415,7 @@ impl<'a> Evaluator<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use diagramcraft_model::{Document, Page, Shape};
+    use misterdiagram_model::{Document, Page, Shape};
     fn document(xml: &str) -> Document {
         Document {
             pages: vec![Page {
@@ -465,7 +465,7 @@ mod tests {
     }
     #[test]
     fn fields_expand_current_values_and_format_pictures() {
-        use diagramcraft_model::{Cell, Row, Section};
+        use misterdiagram_model::{Cell, Row, Section};
         let mut doc = document("<Text>Total: <fld IX='0'>saved</fld>\n</Text>");
         doc.pages[0].shapes[0].sheet.sections.push(Section {
             name: "Field".into(),

@@ -1,4 +1,12 @@
-# DiagramCraft
+# MisterDiagram
+
+<img src="docs/images/misterdiagram.png" alt="A gloved hand presenting a diagram beneath a lifted cloche" width="240">
+
+*Your diagrams, as requested.* (Visio files without Visio!)
+
+Formerly DiagramCraft; renamed on 2026-10-16 out of respect for
+[DiagramCraft](https://github.com/DiagramCraft/diagram-craft), an older open-source diagram
+editor with that name.
 
 A clean-room, headless Rust core of Microsoft Visio. It opens .vsdx, .vssx and .vstx files, and their macro-enabled .vsdm, .vssm and .vstm variants with the VBA payload dropped,
 evaluates the ShapeSheet the way Visio does, renders pages and stencils to PNG, SVG and
@@ -7,9 +15,9 @@ masters, shape data, glued connectors with orthogonal routing and line jumps. An
 AI agents and pptx export are next. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and is offered to that project.
 
-![Four drawings made by this repo's scripts, rendered by DiagramCraft](docs/images/diagramcraft-renders.png)
+![Four drawings made by this repo's scripts, rendered by MisterDiagram](docs/images/misterdiagram-renders.png)
 
-*DiagramCraft's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
+*MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
 ## What works today (2026-10-15)
@@ -44,9 +52,9 @@ EMF+ images are not drawn, and compound line patterns are approximate.
 
 ```sh
 cargo build --release
-cargo run --release -p diagramcraft-cli -- info drawing.vsdx
-cargo run --release -p diagramcraft-cli -- sheet drawing.vsdx --page 1
-cargo run --release -p diagramcraft-cli -- render drawing.vsdx --page 1 out.png
+cargo run --release -p misterdiagram-cli -- info drawing.vsdx
+cargo run --release -p misterdiagram-cli -- sheet drawing.vsdx --page 1
+cargo run --release -p misterdiagram-cli -- render drawing.vsdx --page 1 out.png
 ```
 
 `info` lists the package parts. `sheet` prints every evaluated cell in the same columns as a
@@ -57,12 +65,12 @@ Rust stable with edition 2024 is required. There is no GUI and none is planned i
 ### Generate a drawing
 
 ```sh
-cargo run --release -p diagramcraft-cli -- commands
-cargo run --release -p diagramcraft-cli -- describe shape.draw.rect
-cargo run --release -p diagramcraft-cli -- run \
+cargo run --release -p misterdiagram-cli -- commands
+cargo run --release -p misterdiagram-cli -- describe shape.draw.rect
+cargo run --release -p misterdiagram-cli -- run \
   --cmd 'shape.draw.rect={"x":1,"y":1,"width":2,"height":1}' \
   --cmd 'shape.text={"id":1,"text":"Example"}' --save example.vsdx
-cargo run --release -p diagramcraft-cli -- convert example.vsdx example.svg
+cargo run --release -p misterdiagram-cli -- convert example.vsdx example.svg
 bash tools/examples/two-boxes-glued.sh corpus/_state/example
 ```
 
@@ -106,11 +114,12 @@ Code reused from the Craft apps is MIT OR Apache-2.0 and is listed per file in
 
 Pre-alpha. Milestones M0 to M4 (reading, evaluation, rendering, writing, authoring and
 routing) are met and independently reviewed, each under dated gate rulings recorded in the
-roadmap; Phase 5 has not started. The name follows the Craft apps' convention and belongs to that project: if they
-adopt this work, it transfers with the name; if not, the name changes. The project lives at
-[github.com/charles-hood/DiagramCraft](https://github.com/charles-hood/DiagramCraft) until
-that transfer happens; any other copy, including forks in community or incubator
-organisations, is a mirror. Issues, discussion and pull requests go to this repository.
+roadmap; Phase 5 has not started. The canonical repository is
+[github.com/MisterDiagram/MisterDiagram](https://github.com/MisterDiagram/MisterDiagram).
+Issues, discussion and pull requests go to this repository.
+
+MisterDiagram is not affiliated with, endorsed by or sponsored by Microsoft.
+Microsoft Visio is a trademark of Microsoft Corporation.
 
 ## Development
 

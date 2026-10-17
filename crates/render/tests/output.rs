@@ -1,4 +1,4 @@
-use diagramcraft_render::{pdf, raster, scene, svg};
+use misterdiagram_render::{pdf, raster, scene, svg};
 #[test]
 fn generated_pages_and_foreign_objects_produce_outputs() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
@@ -25,7 +25,7 @@ fn generated_pages_and_foreign_objects_produce_outputs() {
     let mut errors = vec![];
     for path in paths {
         let result = (|| -> Result<(), String> {
-            let doc = diagramcraft_vsdx::read(&path).map_err(|e| e.to_string())?;
+            let doc = misterdiagram_vsdx::read(&path).map_err(|e| e.to_string())?;
             let scene = scene::page(&doc, scene::default_page_index(&doc)?, scene::Options::default())?;
             let stem = path.file_stem().unwrap().to_string_lossy();
             let output = output.join(path.parent().unwrap().file_name().unwrap());
@@ -49,11 +49,11 @@ fn layers_visibility_print_and_background_pages() {
         eprintln!("skip: private corpus/ is absent");
         return;
     }
-    let doc = diagramcraft_vsdx::read(root.join("generated/page/layers.vsdx")).unwrap();
+    let doc = misterdiagram_vsdx::read(root.join("generated/page/layers.vsdx")).unwrap();
     let screen = scene::page(&doc, 0, scene::Options::default()).unwrap();
     let printed = scene::page(&doc, 0, scene::Options { print: true, ..Default::default() }).unwrap();
     assert!(printed.ops.len() > screen.ops.len());
-    let mut doc = diagramcraft_vsdx::read(root.join("generated/page/background.vsdx")).unwrap();
+    let mut doc = misterdiagram_vsdx::read(root.join("generated/page/background.vsdx")).unwrap();
     let index = doc.pages.iter().position(|p| p.attributes.contains_key("BackPage")).unwrap();
     assert_eq!(scene::default_page_index(&doc).unwrap(), index);
     let full = scene::page(&doc, index, scene::Options::default()).unwrap();
@@ -72,7 +72,7 @@ fn empty_glyph_outlines_do_not_expand_export_to_page_origin() {
         eprintln!("skip: private corpus/ is absent");
         return;
     }
-    let doc = diagramcraft_vsdx::read(root.join("generated/basic/0001-probe.vsdx")).unwrap();
+    let doc = misterdiagram_vsdx::read(root.join("generated/basic/0001-probe.vsdx")).unwrap();
     let drawing = scene::page(&doc, 0, scene::Options::default()).unwrap();
     assert!(drawing.bounds.x0 > 0.9 && drawing.bounds.y0 > 3.9);
     assert_eq!(drawing.canvas(scene::Options::default()).unwrap().0, 577);
@@ -91,7 +91,7 @@ fn arrow_and_cap_export_dimensions_match_all_generated_witnesses() {
             if !file.extension().is_some_and(|e| e == "vsdx") {
                 continue;
             }
-            let doc = diagramcraft_vsdx::read(&file).unwrap();
+            let doc = misterdiagram_vsdx::read(&file).unwrap();
             let scene = scene::page(&doc, 0, scene::Options::default()).unwrap();
             let (w, h, _) = scene.canvas(scene::Options::default()).unwrap();
             let oracle = raster::decode(&std::fs::read(file.with_extension("png")).unwrap()).unwrap();
@@ -108,7 +108,7 @@ fn observed_probe_and_hairline_edge_profiles() {
         return;
     }
     for file in ["basic/0001-probe", "master/basic-rect"] {
-        let doc = diagramcraft_vsdx::read(root.join(format!("generated/{file}.vsdx"))).unwrap();
+        let doc = misterdiagram_vsdx::read(root.join(format!("generated/{file}.vsdx"))).unwrap();
         let drawing = scene::page(&doc, 0, scene::Options::default()).unwrap();
         let ours = raster::render(&drawing, scene::Options::default()).unwrap();
         let visio = raster::decode(&std::fs::read(root.join(format!("generated/{file}.png"))).unwrap()).unwrap();
@@ -126,10 +126,10 @@ fn basic_drop_theme_extension_uses_its_zero_style_slot() {
         eprintln!("skip: private corpus/ is absent");
         return;
     }
-    let doc = diagramcraft_vsdx::read(root.join("ms-shipped/1033/BASIC_U.vssx")).unwrap();
-    let themes = diagramcraft_theme::Themes::from_document(&doc).unwrap();
-    let mut e = diagramcraft_vsdx::evaluate::Evaluator::new(&doc).unwrap().with_theme_host(&themes);
-    assert_eq!(e.evaluate(diagramcraft_vsdx::evaluate::Scope::MasterShape { master: 56, shape: 7 }, "LinePattern").numeric().unwrap(), 1.);
+    let doc = misterdiagram_vsdx::read(root.join("ms-shipped/1033/BASIC_U.vssx")).unwrap();
+    let themes = misterdiagram_theme::Themes::from_document(&doc).unwrap();
+    let mut e = misterdiagram_vsdx::evaluate::Evaluator::new(&doc).unwrap().with_theme_host(&themes);
+    assert_eq!(e.evaluate(misterdiagram_vsdx::evaluate::Scope::MasterShape { master: 56, shape: 7 }, "LinePattern").numeric().unwrap(), 1.);
 }
 
 #[test]
@@ -140,7 +140,7 @@ fn contact_cells_fit_large_masters_and_skip_empty_text_blocks() {
         return;
     }
     for name in ["CISCONETWORKSHAPES_U", "AZURECOMPUTE_U", "NETLOC_U", "NETSME_M", "NETSME_U"] {
-        let doc = diagramcraft_vsdx::read(root.join(format!("ms-shipped/1033/{name}.vssx"))).unwrap();
+        let doc = misterdiagram_vsdx::read(root.join(format!("ms-shipped/1033/{name}.vssx"))).unwrap();
         for index in 0..if name.starts_with("CISCO") { 1 } else { doc.masters.len() } {
             let drawing = scene::master(&doc, index, scene::Options::default()).unwrap();
             let scale = (216. / (drawing.bounds.width() * 96.).max(1.)).min(160. / (drawing.bounds.height() * 96.).max(1.)).min(2.);
@@ -157,7 +157,7 @@ fn scaled_page_dimensions_are_physical_inches() {
         eprintln!("skip: private corpus/ is absent");
         return;
     }
-    let doc = diagramcraft_vsdx::read(root.join("generated/page/metric-scale.vsdx")).unwrap();
+    let doc = misterdiagram_vsdx::read(root.join("generated/page/metric-scale.vsdx")).unwrap();
     let drawing = scene::page(&doc, 0, scene::Options { crop: false, ..Default::default() }).unwrap();
     assert!((drawing.page_size.0 - 0.085).abs() < 1e-9);
     assert!((drawing.page_size.1 - 0.11).abs() < 1e-9);
@@ -165,7 +165,7 @@ fn scaled_page_dimensions_are_physical_inches() {
 
 #[test]
 fn composed_text_height_slack_matches_visio_and_preserves_empty_blocks() {
-    use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+    use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
     if !root.exists() {
         eprintln!("skip: private corpus/ is absent");
@@ -176,9 +176,9 @@ fn composed_text_height_slack_matches_visio_and_preserves_empty_blocks() {
         ("generated/basic/0001-probe.vsdx", Scope::MasterShape { master: 2, shape: 5 }, 0.2444444444444444),
         ("ms-shipped/1033/AWSANALYTICS_U.vssx", Scope::MasterShape { master: 2, shape: 5 }, 0.15005),
     ] {
-        let doc = diagramcraft_vsdx::read(root.join(file)).unwrap();
-        let themes = diagramcraft_theme::Themes::from_document(&doc).unwrap();
-        let mut e = Evaluator::new(&doc).unwrap().with_theme_host(&themes).with_text_host(&diagramcraft_text::Host);
+        let doc = misterdiagram_vsdx::read(root.join(file)).unwrap();
+        let themes = misterdiagram_theme::Themes::from_document(&doc).unwrap();
+        let mut e = Evaluator::new(&doc).unwrap().with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
         let actual = e.evaluate(scope, "TxtHeight").numeric().unwrap();
         assert!((actual - expected).abs() < 1e-6, "{file} {scope:?}: {actual} != {expected}");
     }
@@ -186,16 +186,16 @@ fn composed_text_height_slack_matches_visio_and_preserves_empty_blocks() {
 
 #[test]
 fn text_metrics_return_scaled_drawing_units() {
-    use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+    use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
     if !root.exists() {
         eprintln!("skip: private corpus/ is absent");
         return;
     }
     for (name, master, shape, expected) in [("APPL_M", 2, 6, 11.11111111111111), ("APPL_U", 25, 5, 10.66666666666667)] {
-        let doc = diagramcraft_vsdx::read(root.join(format!("ms-shipped/1033/{name}.vssx"))).unwrap();
-        let themes = diagramcraft_theme::Themes::from_document(&doc).unwrap();
-        let mut e = Evaluator::new(&doc).unwrap().with_theme_host(&themes).with_text_host(&diagramcraft_text::Host);
+        let doc = misterdiagram_vsdx::read(root.join(format!("ms-shipped/1033/{name}.vssx"))).unwrap();
+        let themes = misterdiagram_theme::Themes::from_document(&doc).unwrap();
+        let mut e = Evaluator::new(&doc).unwrap().with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
         let actual = e.evaluate(Scope::MasterShape { master, shape }, "TxtWidth").numeric().unwrap();
         assert!((actual - expected).abs() < 1e-6, "{name}: {actual} != {expected}");
     }
@@ -203,19 +203,19 @@ fn text_metrics_return_scaled_drawing_units() {
 
 #[test]
 fn empty_flowchart_text_does_not_recurse_through_wrapping_width() {
-    use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+    use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
     if !root.exists() {
         eprintln!("skip: private corpus/ is absent");
         return;
     }
-    let doc = diagramcraft_vsdx::read(root.join("ms-shipped/1033/BASFLO_U.vssx")).unwrap();
+    let doc = misterdiagram_vsdx::read(root.join("ms-shipped/1033/BASFLO_U.vssx")).unwrap();
     for id in [9, 10, 11, 13] {
         let index = doc.masters.iter().position(|m| m.id == id).unwrap();
         assert!(scene::master(&doc, index, scene::Options::default()).is_ok(), "master{id}");
     }
-    let themes = diagramcraft_theme::Themes::from_document(&doc).unwrap();
-    let mut e = Evaluator::new(&doc).unwrap().with_theme_host(&themes).with_text_host(&diagramcraft_text::Host);
+    let themes = misterdiagram_theme::Themes::from_document(&doc).unwrap();
+    let mut e = Evaluator::new(&doc).unwrap().with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
     let scope = Scope::MasterShape { master: 11, shape: 4 };
     // Fresh COM observation: _vm/out/dump-shipped/1033/BASFLO_U.VSSX.tsv.
     for (cell, expected) in [("Height", 0.75), ("User.ResizeTxtHeight", 0.75), ("Scratch.Y1", 0.25), ("Scratch.X1", 0.25)] {
@@ -225,7 +225,7 @@ fn empty_flowchart_text_does_not_recurse_through_wrapping_width() {
 
 #[test]
 fn text_blocks_and_unkerned_lines_match_visio_svg() {
-    use diagramcraft_model::{XmlElement, XmlNode};
+    use misterdiagram_model::{XmlElement, XmlNode};
     fn collect<'a>(e: &'a XmlElement, name: &str, out: &mut Vec<&'a XmlElement>) {
         if e.name == name {
             out.push(e);
@@ -247,19 +247,19 @@ fn text_blocks_and_unkerned_lines_match_visio_svg() {
         if !file.extension().is_some_and(|s| s == "vsdx") {
             continue;
         }
-        let doc = diagramcraft_vsdx::read(&file).unwrap();
+        let doc = misterdiagram_vsdx::read(&file).unwrap();
         // The trusted local SVG fixture declares an external SVG DTD; do not load it.
         let svg = std::fs::read_to_string(file.with_extension("svg")).unwrap();
         let without_dtd = svg.lines().filter(|line| !line.starts_with("<!DOCTYPE svg PUBLIC")).collect::<Vec<_>>().join("\n");
-        let xml = diagramcraft_vsdx::parse_xml(without_dtd.as_bytes()).unwrap();
+        let xml = misterdiagram_vsdx::parse_xml(without_dtd.as_bytes()).unwrap();
         let mut rects = vec![];
         collect(&xml, "textRect", &mut rects);
-        let themes = diagramcraft_theme::Themes::from_document(&doc).unwrap();
-        let mut e = diagramcraft_vsdx::evaluate::Evaluator::new(&doc).unwrap().with_theme_host(&themes).with_text_host(&diagramcraft_text::Host);
+        let themes = misterdiagram_theme::Themes::from_document(&doc).unwrap();
+        let mut e = misterdiagram_vsdx::evaluate::Evaluator::new(&doc).unwrap().with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
         let page = doc.pages.first().unwrap();
         assert_eq!(rects.len(), page.shapes.len(), "{}", file.display());
         for (shape, rect) in page.shapes.iter().zip(rects) {
-            let block = e.text_block(diagramcraft_vsdx::evaluate::Scope::PageShape { page: page.id, shape: shape.id }).unwrap();
+            let block = e.text_block(misterdiagram_vsdx::evaluate::Scope::PageShape { page: page.id, shape: shape.id }).unwrap();
             let w = rect.attr("width").unwrap().parse::<f64>().unwrap();
             let h = rect.attr("height").unwrap().parse::<f64>().unwrap();
             assert!((block.width - w).abs() < 0.01 && (block.height - h).abs() < 0.01, "{} {:?}", file.display(), (block.width, block.height, w, h));
@@ -268,12 +268,12 @@ fn text_blocks_and_unkerned_lines_match_visio_svg() {
             // Visio's SVG has eight lines; its PNG export composes nine. Check
             // the SVG placement contract with the uncomposed layout API.
             let shape = page.shapes.first().unwrap();
-            let block = e.text_block(diagramcraft_vsdx::evaluate::Scope::PageShape { page: page.id, shape: shape.id }).unwrap();
-            let layout = diagramcraft_text::layout(
+            let block = e.text_block(misterdiagram_vsdx::evaluate::Scope::PageShape { page: page.id, shape: shape.id }).unwrap();
+            let layout = misterdiagram_text::layout(
                 &block.body,
-                &diagramcraft_text::Opts {
+                &misterdiagram_text::Opts {
                     rect: kurbo::Rect::new(0., 0., block.width, block.height),
-                    fields: &diagramcraft_text::NoFields,
+                    fields: &misterdiagram_text::NoFields,
                     prompt_color: None,
                     no_shrink: false,
                 },
@@ -298,7 +298,7 @@ fn transformed_strokes_preserve_physical_pen_and_fit_export_viewport() {
         eprintln!("skip: private corpus/ is absent");
         return;
     }
-    let doc = diagramcraft_vsdx::read(root.join("generated/text/align-1-0.vsdx")).unwrap();
+    let doc = misterdiagram_vsdx::read(root.join("generated/text/align-1-0.vsdx")).unwrap();
     let drawing = scene::page(&doc, 0, scene::Options::default()).unwrap();
     let actual = raster::render(&drawing, scene::Options::default()).unwrap();
     let expected = raster::decode(&std::fs::read(root.join("generated/text/align-1-0.png")).unwrap()).unwrap();
@@ -306,7 +306,7 @@ fn transformed_strokes_preserve_physical_pen_and_fit_export_viewport() {
         println!("edge x={x} Visio={:?} ours={:?}", expected.get_pixel(x, 30), actual.get_pixel(x, 30));
         assert_eq!(actual.get_pixel(x, 30), expected.get_pixel(x, 30));
     }
-    let doc = diagramcraft_vsdx::read(root.join("generated/group/two-rects-rotated.vsdx")).unwrap();
+    let doc = misterdiagram_vsdx::read(root.join("generated/group/two-rects-rotated.vsdx")).unwrap();
     let drawing = scene::page(&doc, 0, scene::Options::default()).unwrap();
     let pens: Vec<_> = drawing
         .ops
@@ -322,7 +322,7 @@ fn transformed_strokes_preserve_physical_pen_and_fit_export_viewport() {
 
 #[test]
 fn text_metric_grid_and_empty_fields_match_private_com_witnesses() {
-    use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+    use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
     if !root.exists() {
         eprintln!("skip: private corpus/ is absent");
@@ -334,9 +334,9 @@ fn text_metric_grid_and_empty_fields_match_private_com_witnesses() {
         ("BASICCIRCUIT_DIAGRAM_M.vstx", 8, 5, 0.1944949530707465),
         ("HVACCE_M.vssx", 12, 11, 0.2333851135253906),
     ] {
-        let doc = diagramcraft_vsdx::read(root.join("ms-shipped/1033").join(file)).unwrap();
-        let themes = diagramcraft_theme::Themes::from_document(&doc).unwrap();
-        let mut e = Evaluator::new(&doc).unwrap().with_theme_host(&themes).with_text_host(&diagramcraft_text::Host);
+        let doc = misterdiagram_vsdx::read(root.join("ms-shipped/1033").join(file)).unwrap();
+        let themes = misterdiagram_theme::Themes::from_document(&doc).unwrap();
+        let mut e = Evaluator::new(&doc).unwrap().with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
         let actual = e.evaluate(Scope::MasterShape { master, shape }, "TxtHeight").numeric().unwrap();
         assert!((actual - expected).abs() < 1e-12, "{file} master{master} shape{shape}: {actual} != {expected}");
     }
@@ -344,7 +344,7 @@ fn text_metric_grid_and_empty_fields_match_private_com_witnesses() {
 
 #[test]
 fn text_metric_terminal_fields_and_unit_override_witnesses() {
-    use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+    use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
     if !root.exists() {
         eprintln!("skip: private corpus/ is absent");
@@ -358,9 +358,9 @@ fn text_metric_terminal_fields_and_unit_override_witnesses() {
         ("CRIME_SCENE_INVESTIGATION_M.vstx", Scope::PageShape { page: 0, shape: 8 }, "User.DirArrowOffset", 27.68264941461251),
         ("CRIME_SCENE_INVESTIGATION_M.vstx", Scope::MasterShape { master: 2, shape: 12 }, "User.DirArrowOffset", 17.6518082818),
     ] {
-        let doc = diagramcraft_vsdx::read(root.join("ms-shipped/1033").join(file)).unwrap();
-        let themes = diagramcraft_theme::Themes::from_document(&doc).unwrap();
-        let mut e = Evaluator::new(&doc).unwrap().with_theme_host(&themes).with_text_host(&diagramcraft_text::Host);
+        let doc = misterdiagram_vsdx::read(root.join("ms-shipped/1033").join(file)).unwrap();
+        let themes = misterdiagram_theme::Themes::from_document(&doc).unwrap();
+        let mut e = Evaluator::new(&doc).unwrap().with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
         let actual = e.evaluate_snapshot(scope, cell).numeric().unwrap();
         assert!((actual - expected).abs() < 1e-6, "{file} {scope:?} {cell}: {actual} != {expected}");
     }
@@ -382,7 +382,7 @@ fn png_composition_and_logical_bounds_have_private_witnesses() {
         ("text/align-2-2.vsdx", (387, 291)),
     ] {
         let path = root.join(file);
-        let doc = diagramcraft_vsdx::read(&path).unwrap();
+        let doc = misterdiagram_vsdx::read(&path).unwrap();
         let drawing = scene::page(&doc, 0, scene::Options::default()).unwrap();
         let actual = raster::render(&drawing, scene::Options::default()).unwrap();
         let expected = raster::decode(&std::fs::read(path.with_extension("png")).unwrap()).unwrap();
@@ -410,7 +410,7 @@ fn shipped_cisco_kubernetes_and_aws_have_drawing_ink() {
         return;
     }
     for (file, id) in [("CISCONETWORKSHAPES_U", None), ("KUBERNETESVISIOSTENCIL_U", Some(45)), ("AWSANALYTICS_U", Some(33))] {
-        let doc = diagramcraft_vsdx::read(root.join(format!("ms-shipped/1033/{file}.vssx"))).unwrap();
+        let doc = misterdiagram_vsdx::read(root.join(format!("ms-shipped/1033/{file}.vssx"))).unwrap();
         let index = id.map_or(0, |id| doc.masters.iter().position(|m| m.id == id).unwrap());
         let drawing = scene::master(&doc, index, scene::Options::default()).unwrap();
         let scale = (216. / (drawing.bounds.width() * 96.)).min(160. / (drawing.bounds.height() * 96.)).min(2.);
@@ -432,8 +432,8 @@ fn shipped_cisco_kubernetes_and_aws_have_drawing_ink() {
             assert!(empty.warnings.iter().any(|w| w.contains("produced no drawing")));
         }
         if id == Some(45) {
-            let mut e = diagramcraft_vsdx::evaluate::Evaluator::new(&doc).unwrap();
-            let hidden = diagramcraft_vsdx::evaluate::Scope::MasterShape { master: 45, shape: 16 };
+            let mut e = misterdiagram_vsdx::evaluate::Evaluator::new(&doc).unwrap();
+            let hidden = misterdiagram_vsdx::evaluate::Scope::MasterShape { master: 45, shape: 16 };
             assert!(e.evaluate_snapshot(hidden, "Geometry1.NoShow").truth().unwrap());
             assert!(e.geometry_paths(hidden, kurbo::Rect::new(-100., -100., 100., 100.)).unwrap().is_empty());
         }
@@ -442,14 +442,14 @@ fn shipped_cisco_kubernetes_and_aws_have_drawing_ink() {
 
 #[test]
 fn group_display_mode_hides_or_orders_group_paint() {
-    use diagramcraft_model::{Document, Master, Shape};
+    use misterdiagram_model::{Document, Master, Shape};
     fn shape(id: u32, color: &str, mode: u8) -> Shape {
         let xml = format!(
             r#"<Shape xmlns="http://schemas.microsoft.com/office/visio/2012/main"><Cell N="Width" V="1"/><Cell N="Height" V="1"/><Cell N="DisplayMode" V="{mode}"/><Cell N="FillForegnd" F="{color}"/><Cell N="LinePattern" V="0"/><Section N="Geometry"><Row IX="0" T="MoveTo"><Cell N="X" V="0"/><Cell N="Y" V="0"/></Row><Row IX="1" T="LineTo"><Cell N="X" V="1"/><Cell N="Y" V="0"/></Row><Row IX="2" T="LineTo"><Cell N="X" V="1"/><Cell N="Y" V="1"/></Row><Row IX="3" T="LineTo"><Cell N="X" V="0"/><Cell N="Y" V="1"/></Row></Section></Shape>"#
         );
-        let mut sheet = diagramcraft_vsdx::parse_sheet(&diagramcraft_vsdx::parse_xml(xml.as_bytes()).unwrap()).unwrap();
+        let mut sheet = misterdiagram_vsdx::parse_sheet(&misterdiagram_vsdx::parse_xml(xml.as_bytes()).unwrap()).unwrap();
         for name in ["PinX", "PinY", "LocPinX", "LocPinY", "Angle", "FlipX", "FlipY"] {
-            sheet.cells.push(diagramcraft_model::Cell { name: name.into(), value: Some("0".into()), ..Default::default() });
+            sheet.cells.push(misterdiagram_model::Cell { name: name.into(), value: Some("0".into()), ..Default::default() });
         }
         Shape { id, sheet, ..Default::default() }
     }
@@ -486,7 +486,7 @@ fn shipped_roundtrip_render_regressions() {
         ("ACTUAL_FINISHDATES_GANTTCHART_M.vstx", None),
         ("ASSOCIATIONS_UML_CLASS_M.vstx", None),
     ] {
-        let d = diagramcraft_vsdx::read(root.join(file)).unwrap();
+        let d = misterdiagram_vsdx::read(root.join(file)).unwrap();
         let result =
             if let Some(m) = master { scene::master(&d, m, scene::Options::default()) } else { scene::page(&d, 0, scene::Options::default()) };
         assert!(result.is_ok(), "{file}: {:?}", result.err());
@@ -495,7 +495,7 @@ fn shipped_roundtrip_render_regressions() {
 
 #[test]
 fn acceptance_empty_page_and_master_use_observed_canvas() {
-    let mut doc = diagramcraft_model::skeleton::document(false);
+    let mut doc = misterdiagram_model::skeleton::document(false);
     let options = scene::Options { visio_export: true, ..Default::default() };
     let page = scene::page(&doc, 0, options).unwrap();
     let image = raster::render(&page, options).unwrap();
@@ -512,7 +512,7 @@ fn acceptance_empty_page_and_master_use_observed_canvas() {
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.page.export
 #[test]
 fn acceptance_extent_ignores_geometry_free_group_bounds() {
-    use diagramcraft_model::{Cell, skeleton};
+    use misterdiagram_model::{Cell, skeleton};
     let mut doc = skeleton::document(false);
     let mut group = skeleton::rectangle(1, 0., 0., 8., 6., "").unwrap();
     group.shape_type = Some("Group".into());
@@ -539,7 +539,7 @@ fn acceptance_extent_matches_hidden_line_and_obstacle_witnesses() {
     }
     let options = scene::Options { visio_export: true, ..Default::default() };
     for (file, size) in [("line/pattern-00.vsdx", (384, 288)), ("connector/obstacle.vsdx", (529, 307))] {
-        let d = diagramcraft_vsdx::read(root.join("generated").join(file)).unwrap();
+        let d = misterdiagram_vsdx::read(root.join("generated").join(file)).unwrap();
         let image = raster::render(&scene::page(&d, 0, options).unwrap(), options).unwrap();
         assert_eq!(image.dimensions(), size, "{file}");
     }
@@ -557,11 +557,11 @@ fn text_only_label_extent_matches_visio_original_and_san_save() {
         if !root.join(input).is_file() || !root.join(oracle).is_file() {
             continue;
         }
-        let doc = diagramcraft_vsdx::read(root.join(input)).unwrap();
-        let options = diagramcraft_render::scene::Options::default();
-        let scene = diagramcraft_render::scene::page(&doc, 0, options).unwrap();
+        let doc = misterdiagram_vsdx::read(root.join(input)).unwrap();
+        let options = misterdiagram_render::scene::Options::default();
+        let scene = misterdiagram_render::scene::page(&doc, 0, options).unwrap();
         let (w, h, _) = scene.canvas(options).unwrap();
-        let expected = diagramcraft_render::raster::decode(&std::fs::read(root.join(oracle)).unwrap()).unwrap();
+        let expected = misterdiagram_render::raster::decode(&std::fs::read(root.join(oracle)).unwrap()).unwrap();
         assert_eq!((u32::from(w), u32::from(h)), expected.dimensions(), "{input}");
     }
 }

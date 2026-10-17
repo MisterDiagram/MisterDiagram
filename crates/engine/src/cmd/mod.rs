@@ -1,7 +1,7 @@
 //! The headless document command registry.
 
-use diagramcraft_model::ShapeId;
-use diagramcraft_model::Xfrm;
+use misterdiagram_model::ShapeId;
+use misterdiagram_model::Xfrm;
 use serde::Serialize;
 use serde_json::Value;
 

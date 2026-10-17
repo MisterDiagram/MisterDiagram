@@ -17,7 +17,7 @@ fn oversized_header() -> Vec<u8> {
 }
 #[test]
 fn oversized_image_header_precedes_pixel_decode() {
-    assert_eq!(diagramcraft_render::raster::decode(&oversized_header()).unwrap_err(), "image pixel limit (header)");
+    assert_eq!(misterdiagram_render::raster::decode(&oversized_header()).unwrap_err(), "image pixel limit (header)");
 }
 #[test]
 #[cfg(target_os = "macos")]

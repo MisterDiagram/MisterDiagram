@@ -12,7 +12,7 @@ try {
     $writer = Writer (Join-Path $out 'masters.tsv')
     $writer.WriteLine("stencil`tmaster_id`tmaster_name`tfile")
     $ok = 0; $failed = 0
-    $tempRoot = Join-Path $env:TEMP 'diagramcraft-export-masters'
+    $tempRoot = Join-Path $env:TEMP 'misterdiagram-export-masters'
     New-Item -ItemType Directory -Force $tempRoot | Out-Null
     foreach ($path in (Get-Content (Join-Path $PSScriptRoot 'export-masters-list.txt') -Encoding UTF8)) {
         if ([string]::IsNullOrWhiteSpace($path)) { continue }

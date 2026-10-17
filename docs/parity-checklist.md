@@ -99,45 +99,45 @@ Core=N rows (excluded from milestone scoring):
 
 ## Phase 1 evidence
 
-- Open and save .vsdx (full fidelity, unknown parts kept): P, `diagramcraft-vsdx::reads_shape_cells_sections_text_and_unknown_content`.
-- Open .vssx stencils and .vstx templates; save a stencil: P, `diagramcraft-vsdx::all_corpus_parses_and_seeded_mutations_never_panic`.
-- Open .vsdm/.vssm/.vstm (drop macros, keep the rest): P, `diagramcraft-vsdx::macro_payload_removed_and_flagged`, `typed_vba_parts_are_removed_with_default_and_override_content_types` and `imports_macro_enabled_stencils_and_templates_without_vba_payloads`. Renamed typed VBA parts are removed by content type (PR #5); all six package families are admitted in library and CLI tests (PR #6). Full preservation and real-file fidelity remain partial.
-- ShapeSheet model: Object, Geometry, Character, Paragraph, Tabs, Controls, Connection, User, Actions, Scratch, gradient stops: D, `diagramcraft-vsdx::reads_shape_cells_sections_text_and_unknown_content`.
+- Open and save .vsdx (full fidelity, unknown parts kept): P, `misterdiagram-vsdx::reads_shape_cells_sections_text_and_unknown_content`.
+- Open .vssx stencils and .vstx templates; save a stencil: P, `misterdiagram-vsdx::all_corpus_parses_and_seeded_mutations_never_panic`.
+- Open .vsdm/.vssm/.vstm (drop macros, keep the rest): P, `misterdiagram-vsdx::macro_payload_removed_and_flagged`, `typed_vba_parts_are_removed_with_default_and_override_content_types` and `imports_macro_enabled_stencils_and_templates_without_vba_payloads`. Renamed typed VBA parts are removed by content type (PR #5); all six package families are admitted in library and CLI tests (PR #6). Full preservation and real-file fidelity remain partial.
+- ShapeSheet model: Object, Geometry, Character, Paragraph, Tabs, Controls, Connection, User, Actions, Scratch, gradient stops: D, `misterdiagram-vsdx::reads_shape_cells_sections_text_and_unknown_content`.
 
-- Drop masters from a stencil; master instances inherit and can be overridden: P, `diagramcraft-vsdx::evaluate::inherit::tests::corpus_basic_rect_and_probe_inheritance_witnesses`. Read/evaluation subset; editing, host implementations and full corpus accuracy remain open.
+- Drop masters from a stencil; master instances inherit and can be overridden: P, `misterdiagram-vsdx::evaluate::inherit::tests::corpus_basic_rect_and_probe_inheritance_witnesses`. Read/evaluation subset; editing, host implementations and full corpus accuracy remain open.
 
-- Geometry sections with formulas (Width*0.5 style), guarded cells: P, `diagramcraft-vsdx::evaluate::path::tests::path_sampling_and_nearest_use_inherited_rows_and_partial_overrides`. Read/evaluation subset; editing, host implementations and full corpus accuracy remain open.
+- Geometry sections with formulas (Width*0.5 style), guarded cells: P, `misterdiagram-vsdx::evaluate::path::tests::path_sampling_and_nearest_use_inherited_rows_and_partial_overrides`. Read/evaluation subset; editing, host implementations and full corpus accuracy remain open.
 
-- Formula engine: cell references, cross-sheet references (Sheet.N!Cell), GUARD, Inh, THEMEVAL, SETATREF, dependency recalculation: P, `diagramcraft-vsdx::evaluate::tests::dirty_recalc_orders_dependencies_and_retains_unrelated_cache`. Read/evaluation subset; editing, host implementations and full corpus accuracy remain open.
+- Formula engine: cell references, cross-sheet references (Sheet.N!Cell), GUARD, Inh, THEMEVAL, SETATREF, dependency recalculation: P, `misterdiagram-vsdx::evaluate::tests::dirty_recalc_orders_dependencies_and_retains_unrelated_cache`. Read/evaluation subset; editing, host implementations and full corpus accuracy remain open.
 
 ## M2.0 evidence
 
-- ShapeSheet model remains D: `diagramcraft-vsdx::dump::tests::basic_rectangle_corpus_has_every_com_identity_and_unit` checks all basic-rectangle COM identities and units, including Connection and Actions rows.
-- Formula engine remains P: `diagramcraft-corpus::tests::strict_denominator_classes_and_empty_serialized_string` protects the corrected cached-oracle denominator, formula classification and empty-string cache comparison. Theme and text hosts remain open.
+- ShapeSheet model remains D: `misterdiagram-vsdx::dump::tests::basic_rectangle_corpus_has_every_com_identity_and_unit` checks all basic-rectangle COM identities and units, including Connection and Actions rows.
+- Formula engine remains P: `misterdiagram-corpus::tests::strict_denominator_classes_and_empty_serialized_string` protects the corrected cached-oracle denominator, formula classification and empty-string cache comparison. Theme and text hosts remain open.
 
 ## M2.1 geometry evidence
 
-- Geometry sections with formulas remain P: `diagramcraft-vsdx::evaluated_master_and_group_paths_use_inherited_rows` binds evaluated inherited rows to the L0 converter; `every_geometry_row_has_a_real_corpus_witness` covers all fifteen kinds, including RelEllipticalArcTo. Authoring remains Phase 4.
-- Group transforms remain an implemented rendering prerequisite, without scoring move/resize/edit commands: `diagramcraft-geom::rows::tests::infinite_line_clips_and_group_composition_stays_y_up`.
+- Geometry sections with formulas remain P: `misterdiagram-vsdx::evaluated_master_and_group_paths_use_inherited_rows` binds evaluated inherited rows to the L0 converter; `every_geometry_row_has_a_real_corpus_witness` covers all fifteen kinds, including RelEllipticalArcTo. Authoring remains Phase 4.
+- Group transforms remain an implemented rendering prerequisite, without scoring move/resize/edit commands: `misterdiagram-geom::rows::tests::infinite_line_clips_and_group_composition_stays_y_up`.
 
 ## M2.2 paint evidence (historical)
 
-- Format and connector-arrow rows remain M until an output backend and render comparisons exist. `diagramcraft-render::style::tests::measured_line_families_and_fill_density` checks the observed dash families and procedural fill coverage; `all_patterns_and_arrow_sizes_are_finite_and_bounded` checks all identifiers and sizes.
+- Format and connector-arrow rows remain M until an output backend and render comparisons exist. `misterdiagram-render::style::tests::measured_line_families_and_fill_density` checks the observed dash families and procedural fill coverage; `all_patterns_and_arrow_sizes_are_finite_and_bounded` checks all identifiers and sizes.
 
 ## M2.3 theme evidence
 
-- Themes and variants: P, `diagramcraft-theme::resolve::tests::microsoft_themeval_examples_and_variant_selectors`. Package color/font/format tables, variant selectors and eight theme functions are evaluated. Corpus rates include theme cells; final rendered fidelity and full effect coverage remain open.
+- Themes and variants: P, `misterdiagram-theme::resolve::tests::microsoft_themeval_examples_and_variant_selectors`. Package color/font/format tables, variant selectors and eight theme functions are evaluated. Corpus rates include theme cells; final rendered fidelity and full effect coverage remain open.
 
 ## M2.4 text evidence
 
-- Character and paragraph formatting remains partial: `diagramcraft-vsdx::evaluate::text::tests::markers_fields_and_hostile_text` and `diagramcraft-text::tests::finite_wrapping_bidi_and_autofit`. Nonvolatile string/numeric field expansion is tested by `fields_expand_current_values_and_format_pictures`; aligned tabs and font-size spacing by `visio_font_percentage_empty_line_and_aligned_tabs`. Date-host fields retain their saved display.
-- Text block control remains partial: `diagramcraft-vsdx::evaluate::text::tests::generated_text_group_resolves_runs_and_transforms` and `diagramcraft-text::tests::finite_wrapping_bidi_and_autofit`. `probe_connector_empty_text_retains_minimum_line_height` fixes the original empty-label discrepancy. Pixel fidelity and full text metrics have not passed.
+- Character and paragraph formatting remains partial: `misterdiagram-vsdx::evaluate::text::tests::markers_fields_and_hostile_text` and `misterdiagram-text::tests::finite_wrapping_bidi_and_autofit`. Nonvolatile string/numeric field expansion is tested by `fields_expand_current_values_and_format_pictures`; aligned tabs and font-size spacing by `visio_font_percentage_empty_line_and_aligned_tabs`. Date-host fields retain their saved display.
+- Text block control remains partial: `misterdiagram-vsdx::evaluate::text::tests::generated_text_group_resolves_runs_and_transforms` and `misterdiagram-text::tests::finite_wrapping_bidi_and_autofit`. `probe_connector_empty_text_retains_minimum_line_height` fixes the original empty-label discrepancy. Pixel fidelity and full text metrics have not passed.
 
 ## M2.5 output evidence
 
-- PNG, SVG and PDF export: P, `diagramcraft-render::generated_pages_and_foreign_objects_produce_outputs` produces all three formats for all 204 generated drawings. PDF uses vector paths and embedded glyph text; visual and extraction acceptance follow in M2.6. JPEG/EMF export and links remain open.
-- Pages and backgrounds: P, `diagramcraft-render::layers_visibility_print_and_background_pages` checks background inclusion and rejects a background cycle. Page size and drawing scale feed the scene; pixel fidelity is not yet accepted.
-- Layers: P, `diagramcraft-render::layers_visibility_print_and_background_pages` distinguishes hidden screen layers from printable layers. Editing, layer colours, locking, snapping and glue remain open.
+- PNG, SVG and PDF export: P, `misterdiagram-render::generated_pages_and_foreign_objects_produce_outputs` produces all three formats for all 204 generated drawings. PDF uses vector paths and embedded glyph text; visual and extraction acceptance follow in M2.6. JPEG/EMF export and links remain open.
+- Pages and backgrounds: P, `misterdiagram-render::layers_visibility_print_and_background_pages` checks background inclusion and rejects a background cycle. Page size and drawing scale feed the scene; pixel fidelity is not yet accepted.
+- Layers: P, `misterdiagram-render::layers_visibility_print_and_background_pages` distinguishes hidden screen layers from printable layers. Editing, layer colours, locking, snapping and glue remain open.
 - Geometry and master inheritance remain P, with the generated output test exercising the evaluated path adapter. Shape authoring rows remain M.
 
 - M2.6 partial evidence, Shape text with text block control handle; double-click to edit: P, `generated_text_group_resolves_runs_and_transforms`. Rendering existing text only; control-handle editing remains absent.
@@ -173,9 +173,9 @@ Core=N rows (excluded from milestone scoring):
 
 - P2-followup-3 M2.4.3, text fidelity remains P until both text oracles promote. Tests: `microsoft_find_example_and_hostile_arguments`, `metric_font_size_grid_matches_com_height_witnesses`, `text_metric_grid_and_empty_fields_match_private_com_witnesses`. Fine metric size rounding and empty fields now match independent COM witnesses; FIND has its reference example and bounded-input tests.
 
-- M2.4.4 composed width evidence: `diagramcraft-text::tests::composed_width_terminal_space_and_advance_grid` reproduces twenty private cached witnesses. Text remains P until the independent pixel and metric gates pass.
+- M2.4.4 composed width evidence: `misterdiagram-text::tests::composed_width_terminal_space_and_advance_grid` reproduces twenty private cached witnesses. Text remains P until the independent pixel and metric gates pass.
 
-- M2.4.5 text formatting evidence: `diagramcraft-render::text_metric_terminal_fields_and_unit_override_witnesses` and `diagramcraft-sheet::numbered_field_pictures_and_integral_fractions`. Both text rows remain P; no blanket claim for unresolved fonts or export bounds.
+- M2.4.5 text formatting evidence: `misterdiagram-render::text_metric_terminal_fields_and_unit_override_witnesses` and `misterdiagram-sheet::numbered_field_pictures_and_integral_fractions`. Both text rows remain P; no blanket claim for unresolved fonts or export bounds.
 
 - M2.6.9 text block formatting remains P: `png_composition_and_logical_bounds_have_private_witnesses` resolves six dimensions; four one-pixel export residuals remain. SVG block placements retain their separate regression.
 

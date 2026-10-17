@@ -2,9 +2,9 @@
 //! Witness: generated/review-a/w4-never-reroute-before and -after.
 //! https://learn.microsoft.com/en-us/office/client-developer/visio/confixedcode-cell-shape-layout-section
 use crate::static_glue::shape_mut;
-use diagramcraft_geom::Point;
-use diagramcraft_model::{Cell, Document, Row, Section};
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_geom::Point;
+use misterdiagram_model::{Cell, Document, Row, Section};
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use std::collections::BTreeMap;
 
 pub(crate) struct EndUpdate {
@@ -65,7 +65,7 @@ pub(crate) fn end_updates(e: &mut Evaluator<'_>, page: usize, scope: Scope, ends
             if cell.formula.as_deref().is_some_and(|f| !f.is_empty() && !f.eq_ignore_ascii_case("No Formula")) {
                 continue;
             }
-            let value = diagramcraft_model::skeleton::number_text(value).ok_or("fixed connector coordinate")?;
+            let value = misterdiagram_model::skeleton::number_text(value).ok_or("fixed connector coordinate")?;
             if cell.value.as_deref() == Some(&value) {
                 continue;
             }

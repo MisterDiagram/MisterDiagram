@@ -14,11 +14,11 @@ fn run() -> Result<(), String> {
     if args.next().is_some() {
         return Err("too many coverage arguments".into());
     }
-    let mut c = diagramcraft_corpus::coverage::Coverage::from_list(&membership(&old)?)?;
+    let mut c = misterdiagram_corpus::coverage::Coverage::from_list(&membership(&old)?)?;
     if let Some(combined) = combined {
         c = c.with_combined(&membership(&combined)?)?;
     }
-    println!("{}", diagramcraft_corpus::coverage::compare(Path::new("corpus"), c)?);
+    println!("{}", misterdiagram_corpus::coverage::compare(Path::new("corpus"), c)?);
     Ok(())
 }
 fn main() -> std::process::ExitCode {

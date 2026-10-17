@@ -1,7 +1,7 @@
 //! Formula-level ShapeSheet edits use universal cell names and bounded parsing.
 use crate::{Result, Session, edit::*, operation};
-use diagramcraft_model::{Cell, Document, Row, Section, Sheet};
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_model::{Cell, Document, Row, Section, Sheet};
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use serde_json::{Value, json};
 
 pub(crate) fn target(s: &Session, p: &Value) -> Result<Scope> {
@@ -131,8 +131,8 @@ pub(crate) fn get(s: &mut Session, p: &Value) -> Result<Value> {
     let scope = target(s, p)?;
     let name = name(p, "name")?;
     let address = address(&s.document, scope, name)?;
-    let themes = diagramcraft_theme::Themes::from_document(&s.document).map_err(operation)?;
-    let mut e = Evaluator::new(&s.document).map_err(operation)?.with_theme_host(&themes).with_text_host(&diagramcraft_text::Host);
+    let themes = misterdiagram_theme::Themes::from_document(&s.document).map_err(operation)?;
+    let mut e = Evaluator::new(&s.document).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
     Ok(
         json!({"name":name,"value":e.evaluate(scope,name).text(),"cached":address.cell.value,"formula":address.cell.formula,"units":address.cell.units}),
     )
@@ -150,7 +150,7 @@ pub(crate) fn set_cell(s: &mut Session, p: &Value) -> Result<Value> {
     let formula = p.get("formula").map(|_| crate::edit::name(p, "formula")).transpose()?;
     if let Some(formula) = formula {
         if !matches!(formula, "Inh" | "No Formula") {
-            diagramcraft_sheet::parse(formula).map_err(operation)?;
+            misterdiagram_sheet::parse(formula).map_err(operation)?;
         }
         address.cell.formula = Some(formula.into());
     } else {
@@ -188,7 +188,7 @@ pub(crate) fn set_cell(s: &mut Session, p: &Value) -> Result<Value> {
                 let inherited = evaluator.evaluate(master, name);
                 Some(match (local.numeric(), inherited.numeric()) {
                     (Ok(a), Ok(b)) => a.is_finite() && b.is_finite() && (a - b).abs() < 1e-12,
-                    _ => local == inherited && !matches!(local, diagramcraft_sheet::Value::Error(_)),
+                    _ => local == inherited && !matches!(local, misterdiagram_sheet::Value::Error(_)),
                 })
             })
             .unwrap_or(false);
@@ -279,7 +279,7 @@ pub(crate) fn add_row(s: &mut Session, p: &Value) -> Result<Value> {
     }
     let row_type = p.get("type").map(|_| name(p, "type")).transpose()?;
     if section == "Geometry" {
-        row_type.ok_or_else(|| operation("geometry row requires type"))?.parse::<diagramcraft_geom::RowKind>().map_err(operation)?;
+        row_type.ok_or_else(|| operation("geometry row requires type"))?.parse::<misterdiagram_geom::RowKind>().map_err(operation)?;
     }
     s.edit_document(|doc, _| {
         let sheet = sheet_mut(doc, scope)?;

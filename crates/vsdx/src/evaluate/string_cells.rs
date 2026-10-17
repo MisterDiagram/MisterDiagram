@@ -1,5 +1,5 @@
 //! Declared text cells, independent of the optional serialized U attribute.
-use diagramcraft_model::Cell;
+use misterdiagram_model::Cell;
 
 /// Classify by section and column: Field.Format and Property.Value are not string columns.
 /// Font and language identities also keep their existing numeric interpretation.

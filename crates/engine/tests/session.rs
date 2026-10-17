@@ -1,7 +1,7 @@
 //! Session command and hostile-input regressions.
 //! Hostile-params loop adapted from deckcraft crates/engine/src/tests.rs,
 //! be14248577b92059eb2b8c0c9460cceffbc1f01d, MIT OR Apache-2.0.
-use diagramcraft_engine::{EngineError, Session};
+use misterdiagram_engine::{EngineError, Session};
 use serde_json::json;
 use std::path::{Path, PathBuf};
 
@@ -19,7 +19,7 @@ fn every_command_survives_empty_and_hostile_params() {
         json!({"index":99999,"ids":[999999],"id":-1,"text":"x","rect":"bad","color":5,"size":1e308}),
         json!({"path":"\0","metric":"bad","page":18446744073709551615u64,"scale":1e308}),
     ] {
-        for spec in diagramcraft_engine::command_specs() {
+        for spec in misterdiagram_engine::command_specs() {
             let mut s = Session::new();
             let before = s.document().clone();
             let result = s.execute(spec.id, &params);
@@ -44,8 +44,8 @@ fn registry_schemas_are_json_and_ids_are_unique() {
 #[test]
 fn failed_edit_and_validation_restore_exact_saved_bytes() {
     let mut s = Session::new();
-    let before = diagramcraft_vsdx::write(s.document()).unwrap().bytes;
-    let error: diagramcraft_engine::Result<()> = s.edit_document(|doc, selection| {
+    let before = misterdiagram_vsdx::write(s.document()).unwrap().bytes;
+    let error: misterdiagram_engine::Result<()> = s.edit_document(|doc, selection| {
         doc.pages[0].name = "half edited".into();
         selection.page = usize::MAX;
         Err(EngineError::Operation("deliberate failure".into()))
@@ -53,19 +53,19 @@ fn failed_edit_and_validation_restore_exact_saved_bytes() {
     assert!(error.is_err());
     assert_eq!(s.selection().page, 0);
     assert!(s.journal().is_empty());
-    assert_eq!(diagramcraft_vsdx::write(s.document()).unwrap().bytes, before);
+    assert_eq!(misterdiagram_vsdx::write(s.document()).unwrap().bytes, before);
     let error = s.edit_document(|doc, _| {
         doc.pages.push(doc.pages[0].clone());
         Ok(())
     });
     assert!(error.is_err(), "duplicate page ID must fail transaction validation");
-    assert_eq!(diagramcraft_vsdx::write(s.document()).unwrap().bytes, before);
+    assert_eq!(misterdiagram_vsdx::write(s.document()).unwrap().bytes, before);
 }
 #[test]
 fn panic_restores_real_document() {
     let mut s = Session::new();
     let before = s.document().clone();
-    let result: diagramcraft_engine::Result<()> = s.edit_document(|doc, _| {
+    let result: misterdiagram_engine::Result<()> = s.edit_document(|doc, _| {
         doc.pages.clear();
         panic!("seeded command panic");
     });
@@ -79,14 +79,14 @@ fn file_formats_and_exports_use_the_session() {
     let mut s = Session::new();
     s.execute("file.new", &json!({"metric":true})).unwrap();
     s.edit_document(|doc, _| {
-        doc.pages[0].shapes.push(diagramcraft_model::skeleton::rectangle(1, 1., 2., 3., 1., "Original text").unwrap());
+        doc.pages[0].shapes.push(misterdiagram_model::skeleton::rectangle(1, 1., 2., 3., 1., "Original text").unwrap());
         Ok(())
     })
     .unwrap();
     for ext in ["vsdx", "vssx", "vstx"] {
         let file = dir.join(format!("drawing.{ext}"));
         s.execute("file.save", &json!({"path":file})).unwrap();
-        let doc = diagramcraft_vsdx::read(file).unwrap();
+        let doc = misterdiagram_vsdx::read(file).unwrap();
         assert!(doc.parts[&doc.main_part].content_type.as_ref().unwrap().contains(match ext {
             "vssx" => "stencil",
             "vstx" => "template",
@@ -130,12 +130,12 @@ fn probe_session_open_save_reopen_is_strictly_identical() {
     s.execute("file.save", &json!({"path":path})).unwrap();
     let saved = std::fs::read(&path).unwrap();
     s.execute("file.open", &json!({"path":path})).unwrap();
-    let a = diagramcraft_theme::Themes::from_document(&before).unwrap();
-    let b = diagramcraft_theme::Themes::from_document(s.document()).unwrap();
-    let report = diagramcraft_vsdx::roundtrip::compare(&before, s.document(), Some(&a), Some(&b), Some(&diagramcraft_text::Host)).unwrap();
+    let a = misterdiagram_theme::Themes::from_document(&before).unwrap();
+    let b = misterdiagram_theme::Themes::from_document(s.document()).unwrap();
+    let report = misterdiagram_vsdx::roundtrip::compare(&before, s.document(), Some(&a), Some(&b), Some(&misterdiagram_text::Host)).unwrap();
     eprintln!("session probe strict roundtrip: {}/{} ({:.6}%)", report.matched, report.total, report.percent());
     assert_eq!(report.matched, report.total);
-    let result: diagramcraft_engine::Result<()> = s.edit_document(|doc, _| {
+    let result: misterdiagram_engine::Result<()> = s.edit_document(|doc, _| {
         doc.pages[0].shapes.clear();
         Err(EngineError::Operation("rollback".into()))
     });
@@ -218,7 +218,7 @@ fn command_specific_bad_inputs_preserve_history() {
         assert_eq!(s.document(), &before);
         assert_eq!(s.journal().len(), journal);
     }
-    let result: diagramcraft_engine::Result<()> = s.edit_document(|doc, _| {
+    let result: misterdiagram_engine::Result<()> = s.edit_document(|doc, _| {
         doc.pages.clear();
         Err(EngineError::Operation("failed with history".into()))
     });
@@ -235,7 +235,7 @@ fn command_specific_bad_inputs_preserve_history() {
 fn session_recalculates_dependent_cache_and_undo_redo_restore_it() {
     let mut s = Session::new();
     s.edit_document(|doc, _| {
-        doc.pages[0].shapes.push(diagramcraft_model::skeleton::rectangle(1, 0., 0., 2., 1., "").unwrap());
+        doc.pages[0].shapes.push(misterdiagram_model::skeleton::rectangle(1, 0., 0., 2., 1., "").unwrap());
         Ok(())
     })
     .unwrap();

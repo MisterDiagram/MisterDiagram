@@ -185,7 +185,7 @@ pub fn compare(a: &image::RgbaImage, b: &image::RgbaImage) -> Result<(f64, f64),
     let width = a.width().min(b.width());
     let height = a.height().min(b.height());
     let pixels = u64::from(width) * u64::from(height);
-    if pixels > diagramcraft_render::scene::MAX_PIXELS as u64 {
+    if pixels > misterdiagram_render::scene::MAX_PIXELS as u64 {
         return Err("pixel comparison limit".into());
     }
     let mut sum = 0u64;
@@ -215,7 +215,7 @@ pub fn run(root: &Path) -> Result<Report, String> {
     files.sort();
     for file in files {
         let name = file.parent().and_then(|p| p.file_name()).and_then(|s| s.to_str()).ok_or("invalid render group")?.to_string();
-        let expected = diagramcraft_render::raster::decode(&std::fs::read(file.with_extension("png")).map_err(|e| e.to_string())?)?;
+        let expected = misterdiagram_render::raster::decode(&std::fs::read(file.with_extension("png")).map_err(|e| e.to_string())?)?;
         let mut r = FileResult {
             file: file.strip_prefix(root).unwrap_or(&file).display().to_string().replace('\\', "/"),
             expected: expected.dimensions(),
@@ -225,10 +225,10 @@ pub fn run(root: &Path) -> Result<Report, String> {
             error: None,
         };
         let result = (|| -> Result<(), String> {
-            let doc = diagramcraft_vsdx::read(&file).map_err(|e| e.to_string())?;
-            let opts = diagramcraft_render::scene::Options::default();
-            let scene = diagramcraft_render::scene::page(&doc, diagramcraft_render::scene::default_page_index(&doc)?, opts)?;
-            let actual = diagramcraft_render::raster::render(&scene, opts)?;
+            let doc = misterdiagram_vsdx::read(&file).map_err(|e| e.to_string())?;
+            let opts = misterdiagram_render::scene::Options::default();
+            let scene = misterdiagram_render::scene::page(&doc, misterdiagram_render::scene::default_page_index(&doc)?, opts)?;
+            let actual = misterdiagram_render::raster::render(&scene, opts)?;
             let directory = root.join("_state/render").join(&name);
             std::fs::create_dir_all(&directory).map_err(|e| e.to_string())?;
             actual.save(directory.join(file.file_name().ok_or("missing render name")?).with_extension("png")).map_err(|e| e.to_string())?;

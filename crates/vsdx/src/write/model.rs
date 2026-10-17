@@ -4,7 +4,7 @@
 //! https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml
 use super::*;
 use crate::evaluate::{Evaluator, Scope, cell_name};
-use diagramcraft_sheet::{Expr, Value};
+use misterdiagram_sheet::{Expr, Value};
 pub(super) struct Writer<'a> {
     pub evaluator: Evaluator<'a>,
     pub source_state: super::source::SourceState,
@@ -12,7 +12,7 @@ pub(super) struct Writer<'a> {
     pub warning_count: usize,
 }
 pub(super) fn node(name: &str) -> XmlElement {
-    XmlElement { name: name.into(), namespace: diagramcraft_model::skeleton::VISIO_NS.into(), ..Default::default() }
+    XmlElement { name: name.into(), namespace: misterdiagram_model::skeleton::VISIO_NS.into(), ..Default::default() }
 }
 pub(super) fn set(e: &mut XmlElement, key: &str, value: Option<String>) {
     if let Some(v) = value {
@@ -320,5 +320,5 @@ impl Writer<'_> {
 /// Only a literal RGB call loses F; guarded, dependent and themed colours retain formulas.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/rgb-function
 fn constant_rgb(formula: &str) -> bool {
-    matches!(diagramcraft_sheet::parse(formula),Ok(Expr::Call{name,args}) if name.eq_ignore_ascii_case("RGB") && args.len()==3 && args.iter().all(|a|matches!(a,Expr::Number(n,None) if n.is_finite() && *n>=0. && *n<=255. && n.fract()==0.)))
+    matches!(misterdiagram_sheet::parse(formula),Ok(Expr::Call{name,args}) if name.eq_ignore_ascii_case("RGB") && args.len()==3 && args.iter().all(|a|matches!(a,Expr::Number(n,None) if n.is_finite() && *n>=0. && *n<=255. && n.fract()==0.)))
 }

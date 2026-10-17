@@ -1,6 +1,6 @@
 //! Shape construction and transforms in internal inches and radians.
 use crate::{Result, Session, edit::*, operation};
-use diagramcraft_model::{Row, Section, Shape, ShapeId, Sheet};
+use misterdiagram_model::{Row, Section, Shape, ShapeId, Sheet};
 use serde_json::{Value, json};
 
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.page.drawrectangle
@@ -20,7 +20,7 @@ fn draw(s: &mut Session, p: &Value, ellipse: bool) -> Result<Value> {
     s.edit_document(|doc, selection| {
         let page = page_mut(doc, index)?;
         let id = next_id(page)?;
-        let mut shape = diagramcraft_model::skeleton::rectangle(id, x, y, w, h, "").map_err(operation)?;
+        let mut shape = misterdiagram_model::skeleton::rectangle(id, x, y, w, h, "").map_err(operation)?;
         if ellipse {
             let geometry = shape.sheet.sections.first_mut().ok_or_else(|| operation("missing geometry"))?;
             geometry.rows = vec![Row {
@@ -130,7 +130,7 @@ pub(crate) fn move_shape(s: &mut Session, p: &Value) -> Result<Value> {
     let y = number(p, "y")?;
     let old_x = evaluated(&s.document, scope, "PinX")?;
     let old_y = evaluated(&s.document, scope, "PinY")?;
-    let e = diagramcraft_vsdx::evaluate::Evaluator::new(&s.document).map_err(operation)?;
+    let e = misterdiagram_vsdx::evaluate::Evaluator::new(&s.document).map_err(operation)?;
     let one_d = e.cell(scope, "BeginX").is_some();
     let ends = if one_d {
         Some([
@@ -163,7 +163,7 @@ pub(crate) fn resize(s: &mut Session, p: &Value) -> Result<Value> {
     let (index, id, scope) = shape_scope(s, p)?;
     let w = number(p, "width")?;
     let h = number(p, "height")?;
-    let e = diagramcraft_vsdx::evaluate::Evaluator::new(&s.document).map_err(operation)?;
+    let e = misterdiagram_vsdx::evaluate::Evaluator::new(&s.document).map_err(operation)?;
     let line = e.cell(scope, "BeginX").is_some();
     if w <= 0. || h < 0. || (!line && h == 0.) {
         return Err(operation("shape dimensions must be positive (a line may have zero height)"));
@@ -198,7 +198,7 @@ pub(crate) fn resize(s: &mut Session, p: &Value) -> Result<Value> {
 pub(crate) fn rotate(s: &mut Session, p: &Value) -> Result<Value> {
     let (index, id, scope) = shape_scope(s, p)?;
     let angle = number(p, "angle")?;
-    let e = diagramcraft_vsdx::evaluate::Evaluator::new(&s.document).map_err(operation)?;
+    let e = misterdiagram_vsdx::evaluate::Evaluator::new(&s.document).map_err(operation)?;
     let line = e.cell(scope, "BeginX").is_some() && e.cell(scope, "Width").and_then(|c| c.formula.as_deref()).is_some_and(|f| f.starts_with("SQRT("));
     let ends = if line {
         let x = evaluated(&s.document, scope, "PinX")?;
@@ -260,9 +260,9 @@ pub(crate) fn delete(s: &mut Session, p: &Value) -> Result<Value> {
         Ok(())
     }
     let page = s.document.pages.get(index).ok_or_else(|| operation("page not found"))?;
-    let mut evaluator = diagramcraft_vsdx::evaluate::Evaluator::new(&s.document).map_err(operation)?;
+    let mut evaluator = misterdiagram_vsdx::evaluate::Evaluator::new(&s.document).map_err(operation)?;
     let target =
-        evaluator.shape(diagramcraft_vsdx::evaluate::Scope::PageShape { page: page.id, shape: id }).ok_or_else(|| operation("shape missing"))?;
+        evaluator.shape(misterdiagram_vsdx::evaluate::Scope::PageShape { page: page.id, shape: id }).ok_or_else(|| operation("shape missing"))?;
     let mut pending = vec![target];
     let mut deleted = std::collections::BTreeSet::new();
     while let Some(shape) = pending.pop() {
@@ -280,7 +280,7 @@ pub(crate) fn delete(s: &mut Session, p: &Value) -> Result<Value> {
                 Some("EndX" | "EndY") => ("End", "EndTrigger"),
                 _ => continue,
             };
-            let scope = diagramcraft_vsdx::evaluate::Scope::PageShape { page: page.id, shape: link.from_sheet };
+            let scope = misterdiagram_vsdx::evaluate::Scope::PageShape { page: page.id, shape: link.from_sheet };
             for axis in ["X", "Y"] {
                 let name = format!("{prefix}{axis}");
                 let value = evaluator.evaluate(scope, &name).numeric().map_err(operation)?;

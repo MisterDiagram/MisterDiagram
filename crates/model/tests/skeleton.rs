@@ -1,4 +1,4 @@
-use diagramcraft_model::{Cell, Sheet, skeleton};
+use misterdiagram_model::{Cell, Sheet, skeleton};
 use std::collections::BTreeMap;
 #[test]
 fn skeleton_parts_styles_and_fresh_connector_identity() {
@@ -37,7 +37,7 @@ fn skeleton_parts_styles_and_fresh_connector_identity() {
     let custom = a.parts["docProps/custom.xml"].xml.as_ref().unwrap();
     assert!(custom.elements().any(|e| e.attr("name") == Some("BuildNumberCreated") && e.text() == "1074417614"));
     assert!(custom.elements().any(|e| e.attr("name") == Some("IsMetric") && e.text() == "false"));
-    assert_eq!(a.parts["docProps/app.xml"].xml.as_ref().unwrap().elements().find(|e| e.name == "Application").unwrap().text(), "Diagramcraft");
+    assert_eq!(a.parts["docProps/app.xml"].xml.as_ref().unwrap().elements().find(|e| e.name == "Application").unwrap().text(), "MisterDiagram");
 }
 type Values = BTreeMap<String, (Option<String>, Option<String>, Option<String>)>;
 fn insert(out: &mut Values, path: &str, c: &Cell) {
@@ -62,8 +62,8 @@ fn model_cells(sheet: &Sheet) -> Values {
     }
     out
 }
-fn observed_cells(sheet: &diagramcraft_opc::xml::El) -> Values {
-    fn visit(e: &diagramcraft_opc::xml::El, path: &str, out: &mut Values) {
+fn observed_cells(sheet: &misterdiagram_opc::xml::El) -> Values {
+    fn visit(e: &misterdiagram_opc::xml::El, path: &str, out: &mut Values) {
         for child in e.elements() {
             match child.local() {
                 "Cell" => {
@@ -91,7 +91,7 @@ fn skeleton_cell_set_matches_blank_and_probe_observations() {
         return;
     }
     let d = skeleton::document(false);
-    let p = diagramcraft_opc::Package::open(&std::fs::read(root.join("blank/blank.vsdx")).unwrap()).unwrap();
+    let p = misterdiagram_opc::Package::open(&std::fs::read(root.join("blank/blank.vsdx")).unwrap()).unwrap();
     let xml = p.xml("visio/document.xml").unwrap();
     assert_eq!(model_cells(&d.document_sheet), observed_cells(xml.root.child("DocumentSheet").unwrap()));
     let styles = xml.root.child("StyleSheets").unwrap();
@@ -111,7 +111,7 @@ fn skeleton_cell_set_matches_blank_and_probe_observations() {
     }
     let pages = p.xml("visio/pages/pages.xml").unwrap();
     assert_eq!(model_cells(&d.pages[0].sheet), observed_cells(pages.root.child("Page").unwrap().child("PageSheet").unwrap()));
-    let p = diagramcraft_opc::Package::open(&std::fs::read(root.join("generated/basic/0001-probe.vsdx")).unwrap()).unwrap();
+    let p = misterdiagram_opc::Package::open(&std::fs::read(root.join("generated/basic/0001-probe.vsdx")).unwrap()).unwrap();
     let master = p.xml("visio/masters/master1.xml").unwrap();
     let mut expected = observed_cells(master.root.child("Shapes").unwrap().child("Shape").unwrap());
     for name in ["Comment", "ShapeKeywords"] {
@@ -123,7 +123,7 @@ fn skeleton_cell_set_matches_blank_and_probe_observations() {
         model_cells(&d.styles.iter().find(|s| s.id == 7).unwrap().sheet),
         observed_cells(xml.root.child("StyleSheets").unwrap().elements().find(|s| s.u32("ID") == Some(7)).unwrap())
     );
-    let p = diagramcraft_opc::Package::open(&std::fs::read(root.join("blank/blank-rect.vsdx")).unwrap()).unwrap();
+    let p = misterdiagram_opc::Package::open(&std::fs::read(root.join("blank/blank-rect.vsdx")).unwrap()).unwrap();
     let xml = p.xml("visio/pages/page1.xml").unwrap();
     assert_eq!(
         model_cells(&skeleton::rectangle(1, 1., 1., 2., 1., "").unwrap().sheet),
@@ -182,17 +182,17 @@ fn authored_window_and_face_metadata_follow_blank_witness() {
         eprintln!("skip authored metadata witness: private corpus absent");
         return;
     }
-    let blank = diagramcraft_vsdx::import(&std::fs::read(root.join("blank/blank.vsdx")).unwrap()).unwrap();
-    let bytes = diagramcraft_vsdx::write(&skeleton::document(false)).unwrap().bytes;
-    let authored = diagramcraft_vsdx::import(&bytes).unwrap();
+    let blank = misterdiagram_vsdx::import(&std::fs::read(root.join("blank/blank.vsdx")).unwrap()).unwrap();
+    let bytes = misterdiagram_vsdx::write(&skeleton::document(false)).unwrap().bytes;
+    let authored = misterdiagram_vsdx::import(&bytes).unwrap();
     let original_window = blank.parts["visio/windows.xml"].xml.as_ref().unwrap();
     let authored_window = authored.parts["visio/windows.xml"].xml.as_ref().unwrap();
-    let attributes = |e: &diagramcraft_model::XmlElement| {
+    let attributes = |e: &misterdiagram_model::XmlElement| {
         e.attributes.iter().filter(|(key, _)| !key.starts_with("xmlns")).map(|(k, v)| (k.clone(), v.clone())).collect::<BTreeMap<_, _>>()
     };
     assert_eq!(attributes(authored_window), attributes(original_window));
     assert_eq!(authored_window.children, original_window.children);
-    let face = |d: &diagramcraft_model::Document| {
+    let face = |d: &misterdiagram_model::Document| {
         d.parts["visio/document.xml"]
             .xml
             .as_ref()

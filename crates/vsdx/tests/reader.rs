@@ -1,7 +1,7 @@
 //! Reader contracts on contributor-authored packages and local private corpus data.
 #![allow(clippy::unwrap_used, clippy::expect_used)]
-use diagramcraft_opc::{PackageOut, RelsOut};
-use diagramcraft_vsdx::{import, parse_sheet, parse_xml};
+use misterdiagram_opc::{PackageOut, RelsOut};
+use misterdiagram_vsdx::{import, parse_sheet, parse_xml};
 fn package(document: &str, page: &str, namespace: &str, macro_enabled: bool) -> Vec<u8> {
     let mut p = PackageOut::default();
     let mut rel = RelsOut::default();
@@ -56,7 +56,7 @@ fn reads_shape_cells_sections_text_and_unknown_content() {
         assert_eq!(d.parts["custom/opaque.bin"].bytes, [0, 255, 13, 10]);
         assert_eq!(d.parts["custom/unknown.xml"].bytes, b"<x>  unknown &#65; </x>");
         assert!(d.parts["custom/unknown.xml"].xml.is_none());
-        assert_eq!(d.parts["visio/pages/page1.xml"].bytes, diagramcraft_opc::Package::open(&b).unwrap().get("visio/pages/page1.xml").unwrap());
+        assert_eq!(d.parts["visio/pages/page1.xml"].bytes, misterdiagram_opc::Package::open(&b).unwrap().get("visio/pages/page1.xml").unwrap());
     }
 }
 #[test]
@@ -128,7 +128,7 @@ fn hostile_xml_and_sheet_entry_points() {
         let xml = format!("<Shape xmlns='http://schemas.microsoft.com/office/visio/2012/main'><Section N='Geometry' {attr}/></Shape>");
         assert!(parse_sheet(&parse_xml(xml.as_bytes()).unwrap()).is_err());
     }
-    assert!(diagramcraft_vsdx::read("/a-file-that-does-not-exist-diagramcraft").is_err());
+    assert!(misterdiagram_vsdx::read("/a-file-that-does-not-exist-misterdiagram").is_err());
 }
 #[test]
 fn namespace_rebinding_cannot_supply_visio_cells() {
@@ -139,7 +139,7 @@ fn namespace_rebinding_cannot_supply_visio_cells() {
 }
 #[test]
 fn public_xml_parser_enforces_depth_for_both_empty_element_forms() {
-    let limit = diagramcraft_opc::xml::MAX_DEPTH;
+    let limit = misterdiagram_opc::xml::MAX_DEPTH;
     for depth in [limit, limit + 1] {
         for leaf in ["<leaf/>", "<leaf></leaf>"] {
             let xml = format!("{}{leaf}{}", "<a>".repeat(depth - 1), "</a>".repeat(depth - 1));
@@ -149,7 +149,7 @@ fn public_xml_parser_enforces_depth_for_both_empty_element_forms() {
 }
 #[test]
 fn public_sheet_parser_bounds_caller_built_trees() {
-    use diagramcraft_model::{XmlElement, XmlNode};
+    use misterdiagram_model::{XmlElement, XmlNode};
     let mut e = XmlElement::default();
     for _ in 0..300 {
         e = XmlElement {
@@ -194,7 +194,7 @@ fn every_named_section_is_retained() {
 #[test]
 fn inherited_empty_page_without_rel_is_valid() {
     let b = package("", "", "http://schemas.microsoft.com/office/visio/2012/main", false);
-    let p = diagramcraft_opc::Package::open(&b).unwrap();
+    let p = misterdiagram_opc::Package::open(&b).unwrap();
     let mut out = std::io::Cursor::new(Vec::new());
     {
         use std::io::Write;
@@ -221,7 +221,7 @@ fn known_metadata_trees_and_relationship_targets_are_available() {
         eprintln!("local corpus absent: probe reader test skipped");
         return;
     }
-    let d = diagramcraft_vsdx::read(path).unwrap();
+    let d = misterdiagram_vsdx::read(path).unwrap();
     assert!(d.parts["docProps/core.xml"].xml.is_some());
     assert!(d.parts["docProps/app.xml"].xml.is_some());
     assert!(

@@ -1,7 +1,7 @@
 //! Complete bounded source-cell comparison, including cells absent from COM traversal.
 use crate::evaluate::{Evaluator, Scope};
-use diagramcraft_model::{Cell, Document, Row, Section, Shape, Sheet};
-use diagramcraft_sheet::Value;
+use misterdiagram_model::{Cell, Document, Row, Section, Shape, Sheet};
+use misterdiagram_sheet::Value;
 use std::collections::BTreeMap;
 // P4a M4.0 ratchet: preserve the exact M3 strict-literal result.
 pub const FLOOR: f64 = 100.;
@@ -174,9 +174,9 @@ fn equal(a: &Entry<'_>, b: &Entry<'_>, ea: &mut Evaluator<'_>, eb: &mut Evaluato
 pub fn compare(
     before: &Document,
     after: &Document,
-    theme_before: Option<&dyn diagramcraft_sheet::host::ThemeHost>,
-    theme_after: Option<&dyn diagramcraft_sheet::host::ThemeHost>,
-    text: Option<&dyn diagramcraft_model::text::TextHost>,
+    theme_before: Option<&dyn misterdiagram_sheet::host::ThemeHost>,
+    theme_after: Option<&dyn misterdiagram_sheet::host::ThemeHost>,
+    text: Option<&dyn misterdiagram_model::text::TextHost>,
 ) -> Result<Report, String> {
     let mut a = Index::document(before)?;
     let b = Index::document(after)?;
@@ -227,7 +227,7 @@ mod tests {
     }
     #[test]
     fn complete_comparison_includes_master_pages_unknown_cells_and_deleted_rows() {
-        let mut a = diagramcraft_model::skeleton::document(false);
+        let mut a = misterdiagram_model::skeleton::document(false);
         a.masters[0].sheet.cells.push(Cell { name: "UnknownPrivateCell".into(), value: Some("1".into()), ..Cell::default() });
         let mut b = a.clone();
         b.masters[0].sheet.cells.last_mut().unwrap().value = Some("2".into());
@@ -240,7 +240,7 @@ mod tests {
     }
     #[test]
     fn inherited_cache_corruption_is_visible_despite_equal_provider_values() {
-        let mut a = diagramcraft_model::skeleton::document(false);
+        let mut a = misterdiagram_model::skeleton::document(false);
         a.pages[0].shapes.push(Shape {
             id: 1,
             master: Some(a.masters[0].id),
@@ -261,7 +261,7 @@ mod tests {
     }
     #[test]
     fn duplicate_cell_names_cannot_hide_an_earlier_change() {
-        let mut a = diagramcraft_model::skeleton::document(false);
+        let mut a = misterdiagram_model::skeleton::document(false);
         for value in ["1", "2"] {
             a.document_sheet.cells.push(Cell { name: "Width".into(), value: Some(value.into()), ..Cell::default() });
         }
@@ -273,7 +273,7 @@ mod tests {
     }
     #[test]
     fn hostile_group_names_are_not_repeated_in_descendant_identities() {
-        let mut d = diagramcraft_model::skeleton::document(false);
+        let mut d = misterdiagram_model::skeleton::document(false);
         let mut s = Shape { name_u: "x".repeat(64000), ..Shape::default() };
         s.shapes = (1..90001).map(|id| Shape { id, ..Shape::default() }).collect();
         d.pages[0].shapes.push(s);

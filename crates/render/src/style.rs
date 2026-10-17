@@ -1,7 +1,7 @@
 //! Procedural ShapeSheet paints and line decorations, in inches.
-use diagramcraft_color::Rgba;
-use diagramcraft_geom::{Affine, BezPath, Point, Rect};
 use kurbo::{Cap, Circle, Join, ParamCurve, ParamCurveArclen, PathEl, RoundedRect, Shape, Stroke};
+use misterdiagram_color::Rgba;
+use misterdiagram_geom::{Affine, BezPath, Point, Rect};
 
 #[derive(Clone, Debug)]
 pub struct Fill {

@@ -4,7 +4,7 @@ use std::{
     process::{Command, Output},
 };
 fn cli(args: &[&str]) -> std::io::Result<Output> {
-    Command::new(env!("CARGO_BIN_EXE_diagramcraft-cli")).args(args).output()
+    Command::new(env!("CARGO_BIN_EXE_misterdiagram")).args(args).output()
 }
 /// CreateProcessW caps its UTF-16 command line at 32,767 characters including NUL.
 /// Only the known oversized cases may accept Windows ERROR_FILENAME_EXCED_RANGE
@@ -34,7 +34,7 @@ fn commands_and_describe_publish_parseable_schemas() {
     let output = cli(&["commands"]).unwrap();
     assert!(output.status.success());
     let commands: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
-    assert_eq!(commands.as_array().unwrap().len(), diagramcraft_engine::cmd::command_specs().len());
+    assert_eq!(commands.as_array().unwrap().len(), misterdiagram_engine::cmd::command_specs().len());
     for command in commands.as_array().unwrap() {
         let schema: serde_json::Value = serde_json::from_str(command["params"].as_str().unwrap()).unwrap();
         assert_eq!(schema["type"], "object");
@@ -62,7 +62,7 @@ fn run_uses_one_session_and_convert_dispatches_by_extension() {
     ])
     .unwrap();
     assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
-    let doc = diagramcraft_vsdx::read(drawing).unwrap();
+    let doc = misterdiagram_vsdx::read(drawing).unwrap();
     assert_eq!(doc.pages[0].shapes[0].sheet.cell("PinX").unwrap().value.as_deref(), Some("4"));
     for extension in ["vssx", "vstx", "svg", "png", "pdf"] {
         let path = directory.join(format!("converted.{extension}"));
@@ -73,7 +73,7 @@ fn run_uses_one_session_and_convert_dispatches_by_extension() {
     let path = directory.join("opened.vsdx");
     let output = cli(&["run", "--open", drawing, "--cmd", r#"shape.text={"id":1,"text":"New text"}"#, "--save", path.to_str().unwrap()]).unwrap();
     assert!(output.status.success());
-    assert!(diagramcraft_vsdx::read(path).unwrap().pages[0].shapes[0].text.as_ref().unwrap().text().contains("New text"));
+    assert!(misterdiagram_vsdx::read(path).unwrap().pages[0].shapes[0].text.as_ref().unwrap().text().contains("New text"));
 }
 #[test]
 fn hostile_arguments_fail_cleanly_for_each_new_subcommand() {
@@ -124,7 +124,7 @@ fn failing_command_does_not_write_the_final_save() {
 #[test]
 fn non_utf8_authoring_argument_returns_an_error() {
     use std::os::unix::ffi::OsStringExt;
-    let output = Command::new(env!("CARGO_BIN_EXE_diagramcraft-cli"))
+    let output = Command::new(env!("CARGO_BIN_EXE_misterdiagram"))
         .args([std::ffi::OsString::from("describe"), std::ffi::OsString::from_vec(vec![255])])
         .output()
         .unwrap();

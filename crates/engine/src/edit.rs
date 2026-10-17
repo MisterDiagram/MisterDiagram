@@ -1,7 +1,7 @@
 //! Bounded command helpers for model edits.
 use crate::{Result, Session, operation};
-use diagramcraft_model::{Cell, Document, Page, Shape, Sheet};
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_model::{Cell, Document, Page, Shape, Sheet};
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use serde_json::Value;
 
 pub(crate) fn number(p: &Value, key: &str) -> Result<f64> {
@@ -93,12 +93,12 @@ pub(crate) fn set_number(sheet: &mut Sheet, name: &str, value: f64) -> Result<()
     if !value.is_finite() || value.abs() > 1e6 {
         return Err(operation("computed coordinate limit"));
     }
-    let value = diagramcraft_model::skeleton::number_text(value).ok_or_else(|| operation("nonfinite computed coordinate"))?;
+    let value = misterdiagram_model::skeleton::number_text(value).ok_or_else(|| operation("nonfinite computed coordinate"))?;
     set(sheet, name, &value, None)
 }
 pub(crate) fn evaluated(doc: &Document, scope: Scope, name: &str) -> Result<f64> {
-    let themes = diagramcraft_theme::Themes::from_document(doc).map_err(operation)?;
-    let mut evaluator = Evaluator::new(doc).map_err(operation)?.with_theme_host(&themes).with_text_host(&diagramcraft_text::Host);
+    let themes = misterdiagram_theme::Themes::from_document(doc).map_err(operation)?;
+    let mut evaluator = Evaluator::new(doc).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
     let value = evaluator.evaluate(scope, name);
     match value.numeric() {
         Ok(v) if v.is_finite() && v.abs() <= 1e6 => Ok(v),

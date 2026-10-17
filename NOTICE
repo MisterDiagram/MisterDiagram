@@ -1,5 +1,5 @@
-Diagramcraft
-Copyright (c) 2026 Charles and the Diagramcraft contributors.
+MisterDiagram
+Copyright (c) 2026 Charles and the MisterDiagram contributors.
 Licensed under the MIT License or the Apache License, Version 2.0, at your option
 (LICENSE-MIT, LICENSE-APACHE).
 
@@ -12,3 +12,7 @@ Embedded Latin fonts: Carlito, Caladea, Arimo, Tinos and Cousine, SIL Open Font 
 Renderer dependencies: Vello Authors, copyright 2026, MIT OR Apache-2.0.
 Krilla's bundled Compact ICC Profiles by Clinton Ingram are CC0-1.0.
 The original CC0 text is distributed in krilla 0.8.2 at icc/LICENSE.
+
+README illustration docs/images/misterdiagram.png: made for this project with
+OpenAI gpt-image-2.5 from a prompt by Claude Code; no third-party artwork.
+Provided by Charles under MIT OR Apache-2.0 (LICENSE-MIT and LICENSE-APACHE).

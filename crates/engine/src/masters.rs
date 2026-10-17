@@ -1,7 +1,7 @@
 //! Master copying, instance overrides and document-stencil authoring.
 use crate::{Result, Session, edit::*, operation};
-use diagramcraft_model::{Document, Shape, ShapeId, Sheet};
-use diagramcraft_vsdx::evaluate::{Evaluator, Scope};
+use misterdiagram_model::{Document, Shape, ShapeId, Sheet};
+use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -26,7 +26,7 @@ fn part_name(doc: &Document) -> Result<String> {
     }
     Err(operation("master part count limit"))
 }
-fn cells_mut(sheet: &mut Sheet) -> impl Iterator<Item = &mut diagramcraft_model::Cell> {
+fn cells_mut(sheet: &mut Sheet) -> impl Iterator<Item = &mut misterdiagram_model::Cell> {
     sheet.cells.iter_mut().chain(sheet.sections.iter_mut().flat_map(|s| s.cells.iter_mut().chain(s.rows.iter_mut().flat_map(|r| r.cells.iter_mut()))))
 }
 fn copy_fonts(doc: &mut Document, source: &Document) -> Result<BTreeMap<u32, u32>> {
@@ -86,7 +86,7 @@ fn copy_styles(doc: &mut Document, source: &Document, fonts: &BTreeMap<u32, u32>
             {
                 let rgb = [(rgb >> 16) as u8, (rgb >> 8) as u8, rgb as u8];
                 if cell.formula.is_none()
-                    && let Some(index) = (0..24).find(|i| diagramcraft_sheet::functions::default_color(*i) == Some(rgb))
+                    && let Some(index) = (0..24).find(|i| misterdiagram_sheet::functions::default_color(*i) == Some(rgb))
                 {
                     cell.value = Some(index.to_string());
                 }
@@ -318,7 +318,7 @@ fn import_master(doc: &mut Document, source: &Document, source_id: u32, visiting
     }
     copy_parts(doc, source, &master.part, &part, id)?;
     if copy.unique_id.is_none() {
-        copy.unique_id = diagramcraft_model::skeleton::dynamic_connector().unique_id;
+        copy.unique_id = misterdiagram_model::skeleton::dynamic_connector().unique_id;
     }
     doc.masters.push(copy);
     let mut colors = BTreeSet::new();
@@ -389,7 +389,7 @@ fn canonical_master_text(shapes: &mut [Shape], depth: usize) -> Result<()> {
         if !local && let Some(text) = &mut shape.text {
             let mut default_active = true;
             text.children.retain(|child| {
-                if let diagramcraft_model::XmlNode::Element(e) = child
+                if let misterdiagram_model::XmlNode::Element(e) = child
                     && e.is_visio("pp")
                 {
                     let default = e.attr("IX") == Some("0");
@@ -524,7 +524,7 @@ pub(crate) fn new_from_shape(s: &mut Session, p: &Value) -> Result<Value> {
         return Err(operation("master stroke extent limit"));
     }
     s.edit_document(|doc, _| {
-        let mut master = diagramcraft_model::skeleton::dynamic_connector();
+        let mut master = misterdiagram_model::skeleton::dynamic_connector();
         master.id = next_master(doc)?;
         master.part = part_name(doc)?;
         master.name = title.clone();
@@ -553,10 +553,10 @@ pub(crate) fn new_from_shape(s: &mut Session, p: &Value) -> Result<Value> {
             let relationships = source.relationships.iter().filter(|rel| referenced.contains(&rel.id)).cloned().collect();
             doc.parts.insert(
                 master.part.clone(),
-                diagramcraft_model::Part {
+                misterdiagram_model::Part {
                     relationships,
                     content_type: Some("application/vnd.ms-visio.master+xml".into()),
-                    xml: Some(diagramcraft_model::XmlElement {
+                    xml: Some(misterdiagram_model::XmlElement {
                         name: "MasterContents".into(),
                         namespace: "http://schemas.microsoft.com/office/visio/2012/main".into(),
                         ..Default::default()
@@ -586,7 +586,7 @@ mod tests {
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/pp-element-text_type-complextypevisio-xml
     #[test]
     fn authored_master_keeps_paragraph_reset_to_inherited_formatting() {
-        use diagramcraft_model::{XmlElement, XmlNode};
+        use misterdiagram_model::{XmlElement, XmlNode};
         let namespace = "http://schemas.microsoft.com/office/visio/2012/main";
         let mut text = XmlElement { name: "Text".into(), namespace: namespace.into(), ..Default::default() };
         for ix in [0, 1, 0] {
@@ -605,7 +605,7 @@ mod tests {
     }
     #[test]
     fn nested_mastershape_ids_follow_reserved_id_remapping() {
-        let mut source = diagramcraft_model::skeleton::document(false);
+        let mut source = misterdiagram_model::skeleton::document(false);
         source.masters[0].shapes[0].id = 4;
         let mut outer = source.masters[0].clone();
         outer.id = 3;
@@ -614,7 +614,7 @@ mod tests {
         outer.part.clear();
         outer.shapes = vec![Shape { id: 8, shape_type: Some("Shape".into()), master: Some(2), master_shape: Some(4), ..Default::default() }];
         source.masters.push(outer);
-        let mut destination = diagramcraft_model::skeleton::document(false);
+        let mut destination = misterdiagram_model::skeleton::document(false);
         let id = import_master(&mut destination, &source, 3, &mut BTreeSet::new()).unwrap();
         let master = destination.masters.iter().find(|m| m.id == id).unwrap();
         assert_eq!(master.shapes[0].master_shape, Some(5));
@@ -622,10 +622,10 @@ mod tests {
     }
     #[test]
     fn hostile_master_dependency_cycles_roll_back_at_the_command_boundary() {
-        let mut source = diagramcraft_model::skeleton::document(false);
+        let mut source = misterdiagram_model::skeleton::document(false);
         source.masters[0].name_u = "Cyclic master".into();
         source.masters[0].shapes[0].master = Some(2);
-        let mut destination = diagramcraft_model::skeleton::document(false);
+        let mut destination = misterdiagram_model::skeleton::document(false);
         assert!(import_master(&mut destination, &source, 2, &mut BTreeSet::new()).is_err());
         let mut s = Session::new();
         let before = s.document().clone();

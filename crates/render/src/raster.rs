@@ -2,7 +2,7 @@
 //! Retargeted from deckcraft crates/render/src/{lib,paint,images}.rs,
 //! be14248577b92059eb2b8c0c9460cceffbc1f01d, MIT OR Apache-2.0.
 use crate::scene::{MAX_PIXELS, Op, Options, Paint, Scene, text_paths};
-use diagramcraft_geom::{Affine, BezPath, Rect};
+use misterdiagram_geom::{Affine, BezPath, Rect};
 use std::sync::Arc;
 use vello_common::{paint::Image, peniko};
 use vello_cpu::{Pixmap, PixmapMut, RenderContext};
@@ -215,7 +215,7 @@ mod tests {
     }
     #[test]
     fn double_line_gap_shows_the_underlying_fill() {
-        use diagramcraft_model::skeleton;
+        use misterdiagram_model::skeleton;
         let mut doc = skeleton::document(false);
         let mut shape = skeleton::rectangle(1, 0., 0., 2., 1., "").unwrap();
         for (name, value) in [("CompoundType", "1"), ("LineWeight", "0.12"), ("FillForegnd", "2")] {
@@ -223,7 +223,7 @@ mod tests {
                 c.value = Some(value.into());
                 c.formula = None;
             } else {
-                shape.sheet.cells.push(diagramcraft_model::Cell { name: name.into(), value: Some(value.into()), ..Default::default() });
+                shape.sheet.cells.push(misterdiagram_model::Cell { name: name.into(), value: Some(value.into()), ..Default::default() });
             }
         }
         doc.pages[0].shapes.push(shape);
@@ -249,7 +249,7 @@ mod tests {
         for stroke in [kurbo::Stroke::new(f64::NAN), kurbo::Stroke::new(1.).with_dashes(0., [0., 0.])] {
             let scene = Scene {
                 warnings: vec![],
-                ops: vec![Op::Stroke { path: Rect::new(0., 0., 1., 1.).to_path(0.01), stroke, color: diagramcraft_color::Rgba::BLACK }],
+                ops: vec![Op::Stroke { path: Rect::new(0., 0., 1., 1.).to_path(0.01), stroke, color: misterdiagram_color::Rgba::BLACK }],
                 bounds: Rect::new(0., 0., 1., 1.),
                 page_size: (1., 1.),
             };
