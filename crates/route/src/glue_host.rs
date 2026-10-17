@@ -201,8 +201,9 @@ impl GlueHost {
                 {
                     if let (Some(a), Some(b)) = (boxes.first().and_then(Option::as_ref), boxes.get(1).and_then(Option::as_ref)) {
                         let excluded = links.iter().flatten().map(|c| c.to_sheet).collect::<Vec<_>>();
-                        let obstacles = crate::orthogonal::obstacles(&mut e, page.id, &excluded)?;
                         let style = crate::orthogonal::style(&mut e, scope, page.id);
+                        let obstacles =
+                            if style == 2. || style == 16. { Vec::new() } else { crate::orthogonal::obstacles(&mut e, page.id, &excluded)? };
                         let clearance = (
                             crate::orthogonal::number(&mut e, Scope::Page(page.id), "LineToLineX", 0.125) * 1.5,
                             crate::orthogonal::number(&mut e, Scope::Page(page.id), "LineToLineY", 0.125) * 1.5,

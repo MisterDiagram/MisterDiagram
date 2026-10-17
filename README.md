@@ -74,8 +74,10 @@ cargo run --release -p misterdiagram-cli -- convert example.vsdx example.svg
 bash tools/examples/two-boxes-glued.sh corpus/_state/example
 ```
 
-`run` executes commands in one transactional session. Page numbers are one-based;
+`run` executes commands in one session, committing each command separately. Page numbers are one-based;
 shape IDs are the document's IDs. Lengths use internal inches and angles use radians.
+Each `run` invocation starts a new session. Scripts split across invocations must
+open their stencils again before using `master.drop` with a stencil.
 `commands` and `describe` print the parameter schemas. The two-boxes script saves
 VSDX and PNG using the document's own connector master. The private probe rebuild
 script also checks its result against the local Visio corpus.

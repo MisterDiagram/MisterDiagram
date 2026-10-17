@@ -5,6 +5,9 @@ use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 
+const MAX_OBSTACLES: usize = 256;
+const MAX_GRID_VERTICES: usize = 16384;
+
 pub(crate) fn number(e: &mut Evaluator<'_>, scope: Scope, name: &str, default: f64) -> f64 {
     e.evaluate(scope, name).numeric().ok().filter(|n| n.is_finite() && n.abs() <= 1e6).unwrap_or(default)
 }
@@ -32,7 +35,7 @@ pub(crate) fn obstacles(e: &mut Evaluator<'_>, page: u32, excluded: &[u32]) -> R
         if number(e, scope, "ShapePermeableX", 0.) != 0. && number(e, scope, "ShapePermeableY", 0.) != 0. {
             continue;
         }
-        if out.len() >= 60 {
+        if out.len() >= MAX_OBSTACLES {
             return Err("route obstacle count limit".into());
         }
         out.push(bounds(e, scope)?);
@@ -153,11 +156,57 @@ impl Ord for Node {
         o.cost.total_cmp(&self.cost).then_with(|| o.index.cmp(&self.index))
     }
 }
+/// Keep the original grid whenever it fits. For larger pages, discard only
+/// obstacles outside the endpoint corridor and its overlapping obstacle closure.
+/// Every candidate segment is still checked against ALL obstacles. No grid bound
+/// grows, and a dense connected obstacle set can still return a bounded error.
+fn route_axes(start: Point, end: Point, obs: &[Rect]) -> Result<(Vec<f64>, Vec<f64>), String> {
+    let axes = |rectangles: &[Rect]| {
+        let mut xs = vec![start.x, end.x];
+        let mut ys = vec![start.y, end.y];
+        for r in rectangles {
+            xs.extend([r.x0, r.x1]);
+            ys.extend([r.y0, r.y1]);
+        }
+        for values in [&mut xs, &mut ys] {
+            values.sort_by(f64::total_cmp);
+            values.dedup_by(|a, b| (*a - *b).abs() < 1e-9);
+        }
+        (xs, ys)
+    };
+    let full = axes(obs);
+    if full.0.len().checked_mul(full.1.len()).is_some_and(|n| n <= MAX_GRID_VERTICES) {
+        return Ok(full);
+    }
+    let mut corridor = Rect::new(start.x.min(end.x), start.y.min(end.y), start.x.max(end.x), start.y.max(end.y));
+    let mut selected = vec![false; obs.len()];
+    let mut relevant = Vec::new();
+    // Each successful iteration includes at least one previously excluded box.
+    for _ in 0..=MAX_OBSTACLES {
+        let mut changed = false;
+        for (r, selected) in obs.iter().zip(&mut selected) {
+            if !*selected && r.x0 <= corridor.x1 && r.x1 >= corridor.x0 && r.y0 <= corridor.y1 && r.y1 >= corridor.y0 {
+                *selected = true;
+                relevant.push(*r);
+                corridor = Rect::new(corridor.x0.min(r.x0), corridor.y0.min(r.y0), corridor.x1.max(r.x1), corridor.y1.max(r.y1));
+                changed = true;
+            }
+        }
+        if !changed {
+            return Ok(axes(&relevant));
+        }
+    }
+    Err("route obstacle closure limit".into())
+}
+
 /// Rectilinear visibility grid, bounded before allocation and with bend-aware shortest paths.
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.shape.reroute
 pub(crate) fn path(start: Point, end: Point, obs: &[Rect], first_dir: Option<usize>, last_dir: Option<usize>) -> Result<Vec<Point>, String> {
-    if [start.x, start.y, end.x, end.y].iter().any(|n| !n.is_finite() || n.abs() > 1e6) || obs.len() > 60 {
+    if [start.x, start.y, end.x, end.y].iter().any(|n| !n.is_finite() || n.abs() > 1e6) || obs.len() > MAX_OBSTACLES {
         return Err("route input limit".into());
+    }
+    if obs.iter().any(|r| [r.x0, r.y0, r.x1, r.y1].iter().any(|n| !n.is_finite() || n.abs() > 1e6) || r.x0 > r.x1 || r.y0 > r.y1) {
+        return Err("route obstacle bounds limit".into());
     }
     if ((start.x - end.x).abs() < 1e-9 || (start.y - end.y).abs() < 1e-9) && !blocked(start, end, obs) {
         return Ok(vec![start, end]);
@@ -166,17 +215,8 @@ pub(crate) fn path(start: Point, end: Point, obs: &[Rect], first_dir: Option<usi
     if first_dir.is_none_or(|d| d == 1) && last_dir.is_none_or(|d| d == 0) && !blocked(start, via, obs) && !blocked(via, end, obs) {
         return Ok(vec![start, via, end]);
     }
-    let mut xs = vec![start.x, end.x];
-    let mut ys = vec![start.y, end.y];
-    for r in obs {
-        xs.extend([r.x0, r.x1]);
-        ys.extend([r.y0, r.y1]);
-    }
-    for values in [&mut xs, &mut ys] {
-        values.sort_by(f64::total_cmp);
-        values.dedup_by(|a, b| (*a - *b).abs() < 1e-9);
-    }
-    let n = xs.len().checked_mul(ys.len()).filter(|n| *n <= 16384).ok_or("route grid limit")?;
+    let (xs, ys) = route_axes(start, end, obs)?;
+    let n = xs.len().checked_mul(ys.len()).filter(|n| *n <= MAX_GRID_VERTICES).ok_or("route grid limit")?;
     let locate = |p: Point| -> Result<usize, String> {
         let x = xs.iter().position(|x| (*x - p.x).abs() < 1e-9).ok_or("route x")?;
         let y = ys.iter().position(|y| (*y - p.y).abs() < 1e-9).ok_or("route y")?;
@@ -409,6 +449,22 @@ mod tests {
         assert!(route.len() > 2);
         assert!(route.windows(2).all(|s| !blocked(s[0], s[1], &[obstacle])));
         assert!(path(Point::new(f64::NAN, 0.), Point::new(5., 0.), &[], None, None).is_err());
-        assert!(path(Point::ORIGIN, Point::new(5., 0.), &vec![obstacle; 61], None, None).is_err());
+        assert!(path(Point::ORIGIN, Point::new(5., 0.), &vec![obstacle; MAX_OBSTACLES + 1], None, None).is_err());
+        assert!(path(Point::ORIGIN, Point::new(5., 0.), &[Rect::new(f64::NAN, 0., 1., 1.)], None, None).is_err());
+        assert!(path(Point::ORIGIN, Point::new(5., 0.), &[Rect::new(2., 0., 1., 1.)], None, None).is_err());
+    }
+    #[test]
+    fn distant_obstacles_are_pruned_without_increasing_the_grid_bound() {
+        let mut obstacles = vec![Rect::new(3., -1., 4., 1.)];
+        for i in 0..199 {
+            let x = 100. + f64::from(i) * 2.;
+            obstacles.push(Rect::new(x, x, x + 1., x + 1.));
+        }
+        let route = path(Point::ORIGIN, Point::new(6., 0.), &obstacles, Some(0), Some(0)).unwrap();
+        assert!(route.len() > 2);
+        assert!(route.windows(2).all(|s| !blocked(s[0], s[1], &obstacles)), "pruning must never ignore a collision");
+        // All edges now lie in the endpoint corridor. The unchanged grid bound
+        // must refuse this dense case instead of allocating its full grid.
+        assert_eq!(path(Point::ORIGIN, Point::new(1000., 1000.), &obstacles, Some(0), Some(0)).unwrap_err(), "route grid limit");
     }
 }

@@ -1,5 +1,57 @@
 # Gaps
 
+## M5.0 / #39: strict authoring cost and capacity (2026-10-17)
+
+The shipped CLI executes commands strictly, publishing after each edit. The
+five contributor-original `tools/bench` workloads were measured sequentially on
+this M4 Pro, release baseline `13897b0` with timing-only instrumentation, without
+competing builds or tests. These are measurements, not CI gates. Seconds below
+include final save; the write column includes theme setup. Other includes command
+execution, validation, palette work and measurement/output overhead.
+
+| Drawing | Commands | Shapes | Total | Session clone | COW clone | Glue prepare | Reroute | Write | Import | Other |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| rectangles-25 | 26 | 25 | 1.180624 | 0.000100 | 0.001495 | 0.440626 | 0.406785 | 0.268543 | 0.036387 | 0.026688 |
+| rectangles-50 | 51 | 50 | 3.578707 | 0.000109 | 0.003621 | 1.414235 | 1.293961 | 0.740745 | 0.089088 | 0.036947 |
+| rectangles-100 | 101 | 100 | 12.305644 | 0.000302 | 0.010366 | 5.047670 | 4.558970 | 2.368630 | 0.250205 | 0.069502 |
+| data-40 | 121 | 40 | 9.405500 | 0.000310 | 0.013661 | 3.151358 | 2.898110 | 1.761081 | 0.228385 | 1.352595 |
+| ports-1900 | 1900 | 163 | 666.761622 | 0.026569 | 0.993101 | 220.861962 | 172.414331 | 147.699954 | 13.249663 | 111.516041 |
+
+Schematic slices (250 commands each, final slice 150): through 250: 15.369329s, through 500: 33.611981s, through 750: 52.162464s, through 1000: 71.302547s, through 1250: 90.172890s, through 1500: 110.265436s, through 1750: 170.824770s, through 1900: 122.967758s.
+
+The strict writer/import boundary refreshes dependent stored values, normalizes
+RGB formulas and palette entries (including removed F), publishes inherited
+instance cells and caches, allocates relationships and validates the package.
+It also retains source state used by subsequent writes.
+
+Saving currently preserves edit history: a fixed connector with ConFixedCode=2
+and LocPinX=Width*0.5+Sheet.1!PinX-1.75 gains local Geometry1.X1 when its target
+moves away, then retains literal X=0 when it moves back. One late route leaves
+that inherited zero without a local cell. Batch mode is shelved until saving
+becomes independent of edit history; that refactor is future work.
+
+Router capacity: only orthogonal connectors gather obstacles. The obstacle cap is
+256, with finite coordinates bounded to 1,000,000 internal inches. The visibility
+grid remains capped at 16,384 vertices, with two direction states per vertex and
+at most 16 times the vertex count in its queue. When all obstacle edges would
+exceed the grid bound, only the endpoint corridor and the closure of overlapping
+obstacle boxes contribute grid edges. Every segment still checks all obstacles.
+Dense connected obstacle sets can still return a grid-limit error. Acceptance:
+500 placeable shapes plus two straight connectors save; 200 placeable shapes
+route an orthogonal connector around a barrier between two of them.
+
+History admission: the 4,000,000-node retained limit remains unchanged. After
+successful publication (or opening a stencil), oldest undo then redo snapshots
+yield before the next transaction, reserving two current-document-sized copies
+for editing and re-import. The existing 32-snapshot and 256 MiB estimated-source
+limits also remain. Active documents and stencils are never evicted. The strict
+release CLI completed 40 edits with the 608,318-node WFDEP_M.VSSX stencil and a
+303,473-node synthetic document under guard.sh 20 2048: 5.31 seconds and
+645,709,824 bytes peak RSS after review fixes. Node headroom predicts the next
+same-sized edit; a substantially larger edit can still reach the unchanged
+admission limit. Reads, failed commands and undo/redo do not trigger capacity
+eviction.
+
 Brief 22 (2026-10-16): the MisterDiagram rename changes no parity score or feature gap. Dated measurements below retain their original names and paths.
 
 Status: pre-alpha, M0 through M3 met under the recorded gates. P4a met on 2026-10-15 under the straight-route ruling. M4 plan gates are met on 2026-10-15 under the closure-2 rulings and two clean frozen passes. The carried rendering and routing gaps remain measured below.

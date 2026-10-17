@@ -113,9 +113,12 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             doc.pages.get(index).ok_or("route page missing")?.connects.iter().filter(|c| c.from_sheet == id).map(|c| c.to_sheet).collect::<Vec<_>>();
         let parent = e.parent_to_page(scope).map_err(|v| v.to_string())?;
         let inverse = parent.inverse();
-        let obstacles =
-            crate::orthogonal::obstacles(&mut e, page, &excluded)?.into_iter().map(|b| inverse.transform_rect_bbox(b)).collect::<Vec<_>>();
         let style = crate::orthogonal::style(&mut e, scope, page);
+        let obstacles = if style == 2. || style == 16. {
+            Vec::new()
+        } else {
+            crate::orthogonal::obstacles(&mut e, page, &excluded)?.into_iter().map(|b| inverse.transform_rect_bbox(b)).collect::<Vec<_>>()
+        };
         let cx = crate::orthogonal::number(&mut e, Scope::Page(page), "LineToLineX", 0.125) * 1.5;
         let cy = crate::orthogonal::number(&mut e, Scope::Page(page), "LineToLineY", 0.125) * 1.5;
         let begin = misterdiagram_geom::Point::new(bx, by);

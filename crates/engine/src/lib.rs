@@ -168,6 +168,7 @@ impl Session {
                 .cloned(),
         );
         self.editing = true;
+        let mut published = false;
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let result = f(self)?;
             if self.dirty {
@@ -193,6 +194,7 @@ impl Session {
                         .map_err(operation)?;
                 self.document = Arc::new(misterdiagram_vsdx::import_with_open_nodes(&written.bytes, self.retained_xml_nodes()).map_err(operation)?);
                 files::update_palette(Arc::make_mut(&mut self.document))?;
+                published = true;
                 self.dirty = false;
             }
             if self.selection.page >= self.document.pages.len() {
@@ -204,7 +206,15 @@ impl Session {
             Ok(result)
         }));
         match result {
-            Ok(Ok(value)) => Ok(value),
+            Ok(Ok(value)) => {
+                // Leave room for the next edit only after this one has committed.
+                // Reads, undo/redo and failures must not discard history. The old
+                // rollback clone drops on return, before any later admission.
+                if published || self.stencils.len() > before.stencils.len() {
+                    self.trim_history();
+                }
+                Ok(value)
+            }
             Ok(Err(error)) => {
                 *self = before;
                 Err(error)
@@ -233,11 +243,18 @@ impl Session {
         f(Arc::make_mut(&mut self.document), &mut self.selection)
     }
     fn trim_history(&mut self) {
-        // Keep snapshots bounded both by count and retained source size. Parsed
-        // trees are charged conservatively in addition to their source XML bytes.
+        // Keep snapshots bounded by count, source size and retained XML nodes.
+        // After a successful publication, reserve two current-document-sized copies: copy-on-write
+        // and the next reader admission. Active documents and stencils never yield.
+        // During an edit, rollback reservations pin old history, so node eviction
+        // happens after commit, ahead of the next transaction snapshot.
         let cost = |s: &Snapshot| s.document.parts.values().fold(1024 * 1024usize, |n, p| n.saturating_add(p.bytes.len().saturating_mul(16)));
         let mut bytes = self.undo.iter().chain(&self.redo).fold(0usize, |n, s| n.saturating_add(cost(s)));
-        while self.undo.len() + self.redo.len() > 32 || bytes > 256 * 1024 * 1024 {
+        let admission = self.document.retained_xml_nodes.saturating_mul(2);
+        while self.undo.len() + self.redo.len() > 32
+            || bytes > 256 * 1024 * 1024
+            || (!self.editing && self.retained_xml_nodes().saturating_add(admission) > misterdiagram_vsdx::MAX_RETAINED_XML_NODES)
+        {
             let removed = self.undo.pop_front().or_else(|| self.redo.pop_front());
             if let Some(s) = removed {
                 bytes = bytes.saturating_sub(cost(&s));
@@ -458,5 +475,52 @@ mod tests {
         assert_eq!(s.undo.len(), 1);
         assert_eq!(s.redo.len(), 1);
         assert!(s.read_reservations.is_empty());
+    }
+    #[test]
+    fn history_yields_before_the_next_reader_admission() {
+        let mut s = Session::new();
+        s.execute("sheet.set", &json!({"scope":"page","name":"PageWidth","value":20})).unwrap();
+        let nodes = s.document.retained_xml_nodes;
+        assert!(nodes > 0);
+        // Stand in for a large already admitted stencil, as in the stencil-budget
+        // tests. Real small documents, commands, snapshots and reader admissions
+        // exercise the remaining space without allocating millions of test nodes.
+        let mut stencil = files::blank_document(false);
+        stencil.retained_xml_nodes = misterdiagram_vsdx::MAX_RETAINED_XML_NODES - 6 * nodes;
+        s.stencils.push(stencils::Stencil { path: "invented-history-stencil".into(), document: Arc::new(stencil) });
+        for i in 0..40 {
+            let result = s.execute("sheet.set", &json!({"scope":"page","name":"PageWidth","value":21+i}));
+            assert!(result.is_ok(), "history must yield before edit {} is refused: {result:?}", i + 1);
+            assert!(s.retained_xml_nodes() <= misterdiagram_vsdx::MAX_RETAINED_XML_NODES);
+        }
+        assert!(!s.undo.is_empty(), "recent edits should remain undoable");
+        assert!(s.undo.len() < 32, "nodes must evict history before the count limit");
+        assert_eq!(s.execute("edit.undo", &json!({})).unwrap()["changed"], true);
+        assert_eq!(s.execute("edit.redo", &json!({})).unwrap()["changed"], true);
+    }
+    #[test]
+    fn capacity_pressure_does_not_trim_reads_failures_or_undo() {
+        let mut s = Session::new();
+        for value in [20, 21, 22] {
+            s.execute("sheet.set", &json!({"scope":"page","name":"PageWidth","value":value})).unwrap();
+        }
+        let mut stencil = files::blank_document(false);
+        stencil.retained_xml_nodes = misterdiagram_vsdx::MAX_RETAINED_XML_NODES - s.retained_xml_nodes();
+        s.stencils.push(stencils::Stencil { path: "invented-full-stencil".into(), document: Arc::new(stencil) });
+        let history = s.undo.len();
+        s.execute("sheet.get", &json!({"scope":"page","name":"PageWidth"})).unwrap();
+        assert_eq!(s.undo.len(), history, "a read must not discard undo history");
+        let before = s.document.clone();
+        let failed = s.edit_document::<()>(|doc, _| {
+            doc.pages[0].name = "not committed".into();
+            Err(operation("deliberate failure"))
+        });
+        assert!(failed.is_err());
+        assert!(Arc::ptr_eq(&s.document, &before));
+        assert_eq!(s.undo.len(), history, "a failed command must restore history");
+        assert_eq!(s.execute("edit.undo", &json!({})).unwrap()["changed"], true);
+        assert_eq!(s.undo.len(), history - 1, "undo must move one snapshot, not trim others");
+        assert_eq!(s.execute("edit.redo", &json!({})).unwrap()["changed"], true);
+        assert_eq!(s.undo.len(), history);
     }
 }
