@@ -8,10 +8,10 @@ root = Path(__file__).resolve().parents[2]
 name = 'misterdiagram-' + os.environ['RUNNER_OS'].lower() + '-' + os.environ['RUNNER_ARCH'].lower()
 binary = root / 'target/release' / ('misterdiagram.exe' if os.name == 'nt' else 'misterdiagram')
 files = [(binary, binary.name)]
-files += [(root / name, name) for name in ('LICENSE-MIT', 'LICENSE-APACHE', 'ATTRIBUTION.md')]
+files += [(root / name, name) for name in ('LICENSE-MIT', 'LICENSE-APACHE', 'ATTRIBUTION.md', 'NOTICE')]
 files += [(p, 'fonts/' + p.parent.name + '/OFL.txt') for p in sorted((root / 'crates/fonts/assets').glob('*/OFL.txt'))]
-if len(files) != 9:
-    raise SystemExit('expected the binary, three project notices and five Latin font licences')
+if len(files) != 10:
+    raise SystemExit('expected the binary, four project notices and five Latin font licences')
 output = root / 'target/ci-artifacts'
 output.mkdir(parents=True, exist_ok=True)
 with zipfile.ZipFile(output / (name + '.zip'), 'w', compression=zipfile.ZIP_DEFLATED) as archive:
