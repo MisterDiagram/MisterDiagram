@@ -15976,3 +15976,14 @@ cells and zero cell errors. Repairs 0/0; route differences 0/0 (40 SAN connector
 judged 296/28 local Geometry cells, eight/zero changed, zero outside 1e-6.
 SAN render1575x759 MAD0.868280 over16=18704/1195425; office795x723 MAD0.598729
 over16=7164/574785. Both equal-size frozen ceilings pass. Human verdicts pending.
+
+Follow-up closure evidence: full local CI8/8,586tests/3existing ignores; route
+sweep28/29, SAN80Connects, route_resave40connectors/1344cells/0differences, strict
+1413packages/15105590of15105590cells. Five benchmark outputs remain byte-equal
+under unchanged master-GUID/docProps-time masks. The intentionally revised
+SAN example differs from its pre-fix package in504V fields,32F fields,one added
+line-weight cell and20removed TextPosition.Y cells; office differs in125V fields
+andone added line-weight cell. The byte comparator still reports those intentional
+example differences (exit1); no extra mask was added. Eight source seeds are
+caught and restored, including nonconnector eligibility, long fractions and
+redundant TextPosition serialization.

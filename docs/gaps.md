@@ -71,8 +71,11 @@ Binary-grid layout and narrowly omitting inherited TextPosition literals resolve
 the remaining authored-input differences. The original 170/9 and intermediate
 8/0 failures remain preserved privately, along with the fresh inputs and saves.
 The ruling and eight witnesses are in docs/file-format-parity.md. Arithmetic
-cancellation stays deferred. Closure gates and both human visual verdicts are
-pending; no human acceptance is claimed.
+cancellation stays deferred. Both human visual verdicts are pending; no human acceptance is claimed.
+Local CI passes all eight gates with 586 tests. The four regression numbers
+remain 28/29, 80 Connects, 40/0 and 15,105,590/15,105,590 cells. All five
+benchmark packages remain byte-equal under the original GUID/time masks.
+Eight source seeds fail their intended assertions and pass after restoration.
 
 ## P5a / M5.1: headless inspection
 
