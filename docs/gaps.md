@@ -76,6 +76,21 @@ its rebuilt dump has 5,349 eligible cells, two hook exclusions, zero differences
 and route coordinates within 1e-6. Existing regression populations are unchanged.
 Reference: [GlueTo](https://learn.microsoft.com/en-us/office/vba/api/visio.cell.glueto).
 
+## P5a / M5.4: rows and fan layout
+
+layout.rows centers explicit row counts in a page region, using the larger of
+BlockSize and twice LineToNode clearance as the default gutter on each axis.
+This is an original deterministic layout policy, not a claim of Visio's general
+Re-Layout Page algorithm. layout.fan assigns distinct hub points in spoke order,
+reroutes and reports centerlines crossing selected alignment-box interiors.
+
+The rewritten SAN retains 24 switches, 40 ISLs and 80 Connects; its ink and
+bounds regression passes with no ISL entering a switch. Fresh Visio route
+preservation is checked with M5.5. General flowchart/hierarchy layout remains
+partial, and the existing endpoint-packing gap is unchanged.
+References: [BlockSizeX](https://learn.microsoft.com/en-us/office/client-developer/visio/blocksizex-cell-page-layout-section)
+and [LineToNodeX](https://learn.microsoft.com/en-us/office/client-developer/visio/linetonodex-cell-page-layout-section).
+
 ## G0: Contributed fixes
 
 - PR #4 (Matheus Breguêz): a self-closing element no longer bypasses the OPC XML depth cap; `depth_boundary_is_independent_of_empty_element_syntax` and `public_xml_parser_enforces_depth_for_both_empty_element_forms` hold MAX_DEPTH for both element forms. Closes #1.

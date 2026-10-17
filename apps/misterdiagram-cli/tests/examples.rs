@@ -123,8 +123,13 @@ fn san_script_has_eighty_glues_and_ink_on_every_isl() {
     let switch = doc.masters.iter().find(|m| m.name == "Switch").unwrap();
     let switches = page.shapes.iter().filter(|s| s.master == Some(switch.id)).collect::<Vec<_>>();
     assert_eq!(switches.len(), 24);
+    let mut switch_bounds = Vec::new();
     for shape in switches {
         let scope = misterdiagram_vsdx::evaluate::Scope::PageShape { page: page.id, shape: shape.id };
+        let w = e.evaluate(scope, "Width").numeric().unwrap();
+        let h = e.evaluate(scope, "Height").numeric().unwrap();
+        let bounds = e.shape_to_page(scope).unwrap().transform_rect_bbox(misterdiagram_geom::Rect::new(0., 0., w, h));
+        switch_bounds.push((shape.id, bounds));
         for prop in ["Name", "Fabric", "DomainID", "Model"] {
             assert!(!e.evaluate(scope, &format!("Prop.{prop}")).text().is_empty(), "missing {prop}");
         }
@@ -157,6 +162,24 @@ fn san_script_has_eighty_glues_and_ink_on_every_isl() {
         for segment in points.windows(2) {
             let a = segment[0];
             let b = segment[1];
+            for (switch, bounds) in &switch_bounds {
+                let bounds = transform.transform_rect_bbox(*bounds);
+                let mut low = 0f64;
+                let mut high = 1f64;
+                for (start, end, min, max) in [(a.x, b.x, bounds.x0 + 1e-6, bounds.x1 - 1e-6), (a.y, b.y, bounds.y0 + 1e-6, bounds.y1 - 1e-6)] {
+                    if (start - end).abs() < 1e-10 {
+                        if start <= min || start >= max {
+                            high = -1.;
+                        }
+                    } else {
+                        let u = (min - start) / (end - start);
+                        let v = (max - start) / (end - start);
+                        low = low.max(u.min(v));
+                        high = high.min(u.max(v));
+                    }
+                }
+                assert!(low >= high || high <= 0. || low >= 1., "ISL {id} passes through switch {switch}: {a:?} to {b:?}");
+            }
             if (a.x - b.x).hypot(a.y - b.y) < 12. {
                 continue;
             }

@@ -121,3 +121,61 @@ fn side_glue_rebuild_matches_original_dump_and_route() {
         String::from_utf8_lossy(&result.stderr)
     );
 }
+
+#[test]
+fn rows_are_centered_ordered_and_return_exact_bounds() {
+    let mut s = Session::new();
+    for _ in 0..3 {
+        run(&mut s, "shape.draw.rect", json!({"x":0,"y":0,"width":2,"height":1}));
+    }
+    let value =
+        run(&mut s, "layout.rows", json!({"ids":[1,2,3],"counts":[2,1],"region":{"x":0,"y":0,"width":10,"height":10},"gutter_x":1,"gutter_y":1}));
+    for (i, (x, y)) in [(2.5, 5.5), (5.5, 5.5), (4., 3.5)].into_iter().enumerate() {
+        assert_eq!(value["placed"][i]["bounds"], json!({"x":x,"y":y,"width":2.,"height":1.}));
+        let actual = run(&mut s, "shape.inspect", json!({"id":i+1}));
+        assert_eq!(actual["bounds"], value["placed"][i]["bounds"]);
+    }
+    let default = run(&mut s, "layout.rows", json!({"ids":[1,2,3],"counts":[2,1]}));
+    let get = |s: &mut Session, name| run(s, "sheet.get", json!({"scope":"page","name":name}))["value"].as_str().unwrap().parse::<f64>().unwrap();
+    assert_eq!(default["gutter_x"].as_f64().unwrap(), get(&mut s, "BlockSizeX").max(2. * get(&mut s, "LineToNodeX")));
+    let before = s.document().clone();
+    for params in [
+        json!({"ids":[1,2],"counts":[1]}),
+        json!({"ids":[1,1],"counts":[2]}),
+        json!({"ids":[1],"counts":[0]}),
+        json!({"ids":[1],"counts":[1],"gutter_x":-1}),
+        json!({"ids":[1],"counts":[1],"region":{"x":0,"y":0,"width":0.1,"height":0.1}}),
+        json!({"ids":[1],"counts":[true]}),
+    ] {
+        assert!(s.execute("layout.rows", &params).is_err());
+        assert_eq!(s.document(), &before);
+    }
+}
+#[test]
+fn fan_assigns_distinct_hub_points_in_spoke_order_and_routes_clear() {
+    let mut s = Session::new();
+    run(&mut s, "shape.draw.rect", json!({"x":4,"y":6,"width":4,"height":1}));
+    for x in [2, 5, 8] {
+        run(&mut s, "shape.draw.rect", json!({"x":x,"y":1,"width":1,"height":1}));
+    }
+    for spoke in 2..=4 {
+        let id = run(&mut s, "master.drop", json!({"master":2,"x":0,"y":0}))["id"].clone();
+        run(&mut s, "connect.sides", json!({"id":id,"source":1,"target":spoke}));
+    }
+    let result = run(&mut s, "layout.fan", json!({"hub":1,"spokes":[4,2,3]}));
+    let mut points = std::collections::BTreeSet::new();
+    for (i, spoke) in [4, 2, 3].into_iter().enumerate() {
+        let assignment = &result["assignments"][i];
+        assert_eq!(assignment["spoke"], spoke);
+        let name = assignment["point"].as_str().unwrap();
+        assert!(points.insert(name.to_string()), "fan must assign each spoke a distinct hub point");
+        let x = run(&mut s, "sheet.get", json!({"id":1,"name":name}))["value"].as_str().unwrap().parse::<f64>().unwrap();
+        assert!((x - (i + 1) as f64).abs() < 1e-9, "hub point order: {x}");
+    }
+    assert_eq!(result["crossings"], json!([]));
+    let before = s.document().clone();
+    for p in [json!({"hub":1,"spokes":[2,2]}), json!({"hub":1,"spokes":[1]}), json!({"hub":1,"spokes":[999]}), json!({"hub":1,"spokes":[false]})] {
+        assert!(s.execute("layout.fan", &p).is_err());
+        assert_eq!(s.document(), &before);
+    }
+}

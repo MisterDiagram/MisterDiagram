@@ -70,6 +70,24 @@ pub use cmd;
 pub fn command_specs() -> &'static [CommandSpec] {
     &[
         cmd!(
+            "layout.rows",
+            "Arrange rows",
+            ["Layout"],
+            None,
+            r#"{"type":"object","properties":{"page":{"type":"integer","minimum":1},"ids":{"type":"array","items":{"type":"integer"},"minItems":1,"maxItems":10000},"counts":{"type":"array","items":{"type":"integer","minimum":1},"minItems":1,"maxItems":10000},"region":{"type":"object","properties":{"x":{"type":"number"},"y":{"type":"number"},"width":{"type":"number"},"height":{"type":"number"}},"required":["x","y","width","height"],"additionalProperties":false},"gutter_x":{"type":"number","minimum":0,"maximum":1000000},"gutter_y":{"type":"number","minimum":0,"maximum":1000000}},"required":["ids","counts"],"additionalProperties":false}"#,
+            always,
+            crate::layout::rows
+        ),
+        cmd!(
+            "layout.fan",
+            "Fan hub connections",
+            ["Layout"],
+            None,
+            r#"{"type":"object","properties":{"page":{"type":"integer","minimum":1},"hub":{"type":"integer","minimum":0,"maximum":4294967294},"spokes":{"type":"array","items":{"type":"integer"},"minItems":1,"maxItems":10000}},"required":["hub","spokes"],"additionalProperties":false}"#,
+            always,
+            crate::layout::fan
+        ),
+        cmd!(
             "connect.sides",
             "Glue facing sides",
             ["Glue"],

@@ -87,3 +87,22 @@ Facing-side glue through run_command:
 This glues an existing connector to the facing side centers of two 2D shapes,
 creating canonical connection rows if absent. Existing inbound points at those
 positions are reused. Rotation and enclosing group transforms are honored.
+
+Ordered layout is also available through run_command:
+
+```json
+{"name":"run_command","arguments":{"command":"layout.rows","params":{"ids":[1,2,3],"counts":[2,1],"region":{"x":0,"y":0,"width":10,"height":8},"gutter_x":0.5,"gutter_y":1}}}
+{"name":"run_command","arguments":{"command":"layout.fan","params":{"hub":1,"spokes":[2,3]}}}
+```
+
+Rows run top to bottom in list order, centered within the region (the page by
+default), and return placed alignment bounds. Gutters default to max(BlockSize,
+2*LineToNode) on each axis. Oversized layouts, duplicate IDs, selected ancestors
+and descendants, and 1D shapes are rejected transactionally. Group-child positions
+are translated through their parent transforms.
+
+Fan requires exactly one existing connector from the hub to each listed spoke.
+Within each facing side, points are evenly spaced at i/(count+1) in spoke order.
+The response lists assignments and any route/shape crossings in the supplied set.
+Boundary contact is allowed; open alignment-box interiors are tested. Route
+inspection is bounded to 100,000 segments and two million segment/box checks.

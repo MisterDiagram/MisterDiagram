@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-17: M5.4 adds centered row layout and distinct hub fan points. The SAN example uses both, retains 80 Connects and passes connector ink and switch-interior checks. Fresh Visio acceptance follows in M5.5.
+
 - 2026-10-17: M5.3 adds static glue at facing side centers. Fresh Visio original: 5,349 eligible cells, zero rebuild differences, route tolerance 1e-6.
 
 - 2026-10-17: M5.2 exposes fourteen MCP tools over stdio, with strict per-command execution inside atomic session batches. Rollback, undo/redo, all-tool calls and exact CLI/stdio package equivalence have regression tests.

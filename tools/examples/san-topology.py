@@ -14,10 +14,7 @@ import subprocess
 import sys
 
 
-def main():
-    output = Path(sys.argv[1])
-    cli = sys.argv[2:]
-    drawing = output / 'san-topology.vsdx'
+def recipe():
     commands = []
 
     def command(command_id, **params):
@@ -49,12 +46,15 @@ def main():
             command('master.drop', master='Switch', x=left + x, y=y)
             command('shape.text', id=shape_id, text=name)
             command('layer.assign', id=shape_id, layers=[fabric_index])
+            command('format.fill', id=shape_id, color='#E8F2F0' if fabric_index == 0 else '#EDF0F8')
             for prop, value in [('Name', name), ('Fabric', fabric), ('DomainID', fabric_index * 100 + index + 1), ('Model', 'DC-SW48')]:
                 command('shape.data.define', id=shape_id, name=prop, label=prop, type=2 if prop == 'DomainID' else 0, format='', invisible=False, sort_key=prop)
                 command('shape.data.set', id=shape_id, name=prop, value=value)
             ids.append(shape_id)
             shape_id += 1
         fabrics.append(ids)
+        command('layout.rows', ids=ids[2:7] + ids[:2] + ids[7:], counts=[5, 2, 5],
+                region={'x': left + 0.3, 'y': 1.5, 'width': 7.9, 'height': 8}, gutter_x=0.1, gutter_y=2)
     for fabric_index, fabric in enumerate(('A', 'B')):
         command('shape.draw.rect', x=fabric_index * 8.5 + 2.5, y=9.75, width=3.2, height=0.6)
         command('shape.text', id=shape_id, text='Fabric ' + fabric)
@@ -69,11 +69,21 @@ def main():
         for edge in ids[2:]:
             for core in ids[:2]:
                 command('master.drop', master=2, x=0, y=0)
-                for end, target in [('begin', edge), ('end', core)]:
-                    command('connect.dynamic', id=shape_id, end=end, target=target)
+                command('connect.sides', id=shape_id, source=edge, target=core)
                 command('layer.assign', id=shape_id, layers=[fabric_index, 2])
                 shape_id += 1
+    for ids in fabrics:
+        for hub in ids[:2]:
+            command('layout.fan', hub=hub, spokes=ids[2:])
     command('route.reroute')
+    return commands
+
+
+def main():
+    output = Path(sys.argv[1])
+    cli = sys.argv[2:]
+    drawing = output / 'san-topology.vsdx'
+    commands = recipe()
 
     # Keep each delivered command line below the Windows CreateProcess limit.
     # https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw
@@ -89,6 +99,10 @@ def main():
             print(f'SAN command batch {offset}: ' + '\n'.join(result.stdout.splitlines()[-2:]), file=sys.stderr)
             print(result.stderr, file=sys.stderr, end='')
             return result.returncode
+        for line in result.stdout.splitlines():
+            result_item = json.loads(line)
+            if result_item.get('command') == 'layout.fan' and result_item['result']['crossings']:
+                raise RuntimeError('SAN route crosses a switch: ' + str(result_item['result']['crossings']))
     for extension in ('png', 'svg'):
         subprocess.run(cli + ['convert', str(drawing), str(drawing.with_suffix('.' + extension))], check=True)
     print(f'SAN: 24 Switch instances, 40 ISLs, saved {drawing}')

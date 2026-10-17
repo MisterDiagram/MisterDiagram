@@ -3,12 +3,12 @@
 > **Drafted:** 2026-10-11 from the observed app (visio-observed.md) and Microsoft's documentation · **Target:** Microsoft Visio Standard 2021 16.0.20430 (Professional rows marked Pro) · **Status:** M4 authoring milestone met under the dated closure-2 rulings; remaining evaluation, routing and rendering gaps are recorded. Format follows the storytold apps' `docs/parity-checklist.md`: area, feature, priority, Core Y/N, status D/P/M.
 
 <!-- SUMMARY -->
-**Weighted breadth parity: 50%** over 45 Core=Y features.
+**Weighted breadth parity: 51%** over 45 Core=Y features.
 
 | Priority | Features | Done | Partial | Missing | Parity |
 |---|---|---|---|---|---|
 | P0 | 27 | 8 | 19 | 0 | 65% |
-| P1 | 15 | 1 | 3 | 11 | 17% |
+| P1 | 15 | 1 | 4 | 10 | 20% |
 | P2 | 3 | 0 | 0 | 3 | 0% |
 
 | Area | Parity |
@@ -17,7 +17,7 @@
 | Pages | 50% |
 | Shapes | 63% |
 | Stencils | 61% |
-| Connectors | 37% |
+| Connectors | 43% |
 | Text | 43% |
 | Format | 38% |
 | Arrange | 60% |
@@ -76,7 +76,7 @@ Core=N rows (excluded from milestone scoring):
 | Connectors | Line jumps (style, code, size) and routing preferences per page | P1 | Y | P |
 | Connectors | Connector text that stays with the line; begin and end arrows; line ends per theme | P0 | Y | P |
 | Connectors | AutoConnect arrows and quick shapes | P1 | Y | M |
-| Connectors | Connect Shapes command, Re-Layout Page (flowchart, hierarchy, radial, circular) | P1 | Y | M |
+| Connectors | Connect Shapes command, Re-Layout Page (flowchart, hierarchy, radial, circular) | P1 | Y | P |
 | Text | Character and paragraph formatting, tabs, bullets, fields (date, page, shape data) | P0 | Y | P |
 | Text | Text block rotation, margins, vertical alignment, text resize behaviour | P0 | Y | P |
 | Text | Spelling, find and replace across pages | P2 | Y | M |
@@ -323,3 +323,10 @@ The script-building row remains P while P5a layout and topology are pending.
 Connection-point and glue rows remain P for the existing broader gaps.
 connect.sides is covered by hostile parameters, point reuse and a fresh private
 Visio original: canonical seven-cell rows, static Connects and route equality.
+
+## M5.4 layout evidence
+
+Connect Shapes/Re-Layout row moves M to P for facing-side connections, ordered
+rows and fan point assignment. General flowchart/hierarchy/radial/circular
+algorithms remain missing. Four layout integration tests and the SAN ink/bounds
+test cover bounds, point order, hostile inputs, 80 Connects and no switch crossing.

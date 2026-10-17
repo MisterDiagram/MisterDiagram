@@ -700,6 +700,7 @@ version = "0.0.1"
 dependencies = [
  "hayro-syntax",
  "image",
+ "kurbo",
  "log",
  "misterdiagram-geom",
  "misterdiagram-model",
