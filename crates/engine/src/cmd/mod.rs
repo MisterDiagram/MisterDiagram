@@ -69,6 +69,15 @@ pub use cmd;
 
 pub fn command_specs() -> &'static [CommandSpec] {
     &[
+        cmd!(
+            "connect.sides",
+            "Glue facing sides",
+            ["Glue"],
+            None,
+            r#"{"type":"object","properties":{"page":{"type":"integer","minimum":1},"id":{"type":"integer","minimum":0,"maximum":4294967294},"source":{"type":"integer","minimum":0,"maximum":4294967294},"target":{"type":"integer","minimum":0,"maximum":4294967294}},"required":["id","source","target"],"additionalProperties":false}"#,
+            always,
+            crate::layout::sides
+        ),
         cmd!(query "engine.execute", "Execute an engine command", ["Control"], None,
             r#"{"type":"object","properties":{"command":{"type":"string","minLength":1,"maxLength":256},"params":{"type":"object"}},"required":["command"],"additionalProperties":false}"#, always, crate::inspect::execute),
         cmd!(query "engine.commands", "List engine commands", ["Control"], None,

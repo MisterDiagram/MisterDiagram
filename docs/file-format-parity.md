@@ -15888,3 +15888,13 @@ three flip combinations. The two W3 recovery originals add 12 artifacts to the
 seven first-run originals. They are observations, not additions to the frozen
 regression cohort. Private paths above remain `generated/review-a`; the local
 measurement copy is `corpus/observations/review-a` during frozen gate runs.
+
+## P5a side-glue observation (2026-10-17)
+
+Private corpus commit fda936b, p5a/original/route/side-glue: two rectangles
+with facing side-center Connection rows, glued by COM GlueTo. The canonical
+row has X, Y, DirX, DirY, Type, AutoGen and Prompt. Both Connects point to
+Connections.X1 with ToPart100; endpoints use PAR(PNT(...)). The fresh rebuilt
+dump has 5,349 eligible cells, two hook exclusions and zero differences; route
+coordinates match within1e-6. This is an additional witness outside the frozen
+route and strict round-trip populations. No oracle disagreement.

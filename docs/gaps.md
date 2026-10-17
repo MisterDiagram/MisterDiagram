@@ -68,6 +68,14 @@ Layout, MCP topology and fresh P5a VM acceptance remain open.
 Inspection has a bounded response and reports alignment bounds in page inches.
 Reference: [Shape](https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml).
 
+## P5a / M5.3: facing-side static glue
+
+connect.sides creates or reuses inbound side-center connection points and glues
+both ends statically. The fresh route/side-glue original has 5,351 cells;
+its rebuilt dump has 5,349 eligible cells, two hook exclusions, zero differences,
+and route coordinates within 1e-6. Existing regression populations are unchanged.
+Reference: [GlueTo](https://learn.microsoft.com/en-us/office/vba/api/visio.cell.glueto).
+
 ## G0: Contributed fixes
 
 - PR #4 (Matheus Breguêz): a self-closing element no longer bypasses the OPC XML depth cap; `depth_boundary_is_independent_of_empty_element_syntax` and `public_xml_parser_enforces_depth_for_both_empty_element_forms` hold MAX_DEPTH for both element forms. Closes #1.

@@ -76,7 +76,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/conlinejumpstyle-cell-shape-layout-section> | `crates/route/src/jumps.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/connect-element-connects_type-complextypevisio-xml> | `crates/engine/src/inspect.rs`, `crates/engine/src/reference_cleanup.rs`, `crates/model/src/lib.rs`, `crates/model/tests/from_scratch.rs`, `crates/route/src/static_glue.rs`, `crates/vsdx/src/write/model.rs`, `crates/vsdx/src/write/validate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-row-connection-points-section> | `crates/vsdx/src/evaluate.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section> | `crates/engine/src/glue.rs`, `crates/route/src/static_glue.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section> | `crates/engine/src/glue.rs`, `crates/engine/src/layout.rs`, `crates/route/src/static_glue.rs`, `tools/oracle/p5a/make-corpus.ps1` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/connectorschemeindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/cos-function-visioshapesheet> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/cosh-function> | `crates/sheet/src/functions/numeric.rs` |
@@ -319,7 +319,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/width-cell-shape-transform-section> | `crates/engine/src/arrange.rs`, `crates/engine/src/shapes.rs`, `crates/route/src/straight.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/window-element-windows_type-complextypevisio-xml> | `crates/model/src/skeleton.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/windows-elementvisio-xml> | `crates/model/src/lib.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/x-cell-connection-points-section> | `crates/route/src/static_glue.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/x-cell-connection-points-section> | `crates/engine/src/layout.rs`, `crates/route/src/static_glue.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.application.beginundoscope> | `apps/misterdiagram-cli/src/author.rs`, `crates/engine/src/batch.rs`, `crates/engine/src/inspect.rs`, `crates/engine/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.application.endundoscope> | `crates/engine/src/batch.rs`, `crates/engine/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.application.redo> | `crates/engine/src/lib.rs` |
@@ -328,7 +328,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.applicationsettings.setrasterexportsize> | `tools/oracle/common.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.cell.formulaforceu> | `crates/engine/src/sheet.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.cell.formulau> | `crates/engine/src/sheet.rs`, `crates/engine/tests/composition.rs`, `crates/vsdx/src/dump.rs` |
-| <https://learn.microsoft.com/en-us/office/vba/api/visio.cell.glueto> | `crates/engine/src/glue.rs`, `crates/route/src/static_glue.rs` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.cell.glueto> | `crates/engine/src/glue.rs`, `crates/engine/src/layout.rs`, `crates/route/src/static_glue.rs`, `tools/oracle/p5a/make-corpus.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.cell.name> | `crates/vsdx/src/dump.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.cell.resultiu> | `crates/vsdx/src/dump.rs`, `tools/oracle/common.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.connects> | `apps/misterdiagram-cli/tests/examples.rs` |

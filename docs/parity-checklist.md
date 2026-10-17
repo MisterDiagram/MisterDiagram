@@ -317,3 +317,9 @@ serve through the CLI with the existing 4 MiB framing cap. Tests exercise every
 tool, full-session batch rollback, single undo/redo and exact saved-part equality
 with strict commands. Python stdio builds the same two-boxes package as the CLI.
 The script-building row remains P while P5a layout and topology are pending.
+
+## M5.3 facing-side glue
+
+Connection-point and glue rows remain P for the existing broader gaps.
+connect.sides is covered by hostile parameters, point reuse and a fresh private
+Visio original: canonical seven-cell rows, static Connects and route equality.

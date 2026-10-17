@@ -11,6 +11,7 @@ mod files;
 mod glue;
 pub mod guard;
 mod inspect;
+mod layout;
 mod masters;
 mod pages;
 mod reference_cleanup;

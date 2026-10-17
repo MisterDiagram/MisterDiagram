@@ -77,3 +77,13 @@ The regression compares the saved two-boxes package with the CLI script and
 compares batch with individual commands using `tools/bench/compare.py`. Only
 fresh master GUIDs and docProps save times are masked. It also asserts rollback
 when the third command of five fails.
+
+Facing-side glue through run_command:
+
+```json
+{"name":"run_command","arguments":{"command":"connect.sides","params":{"id":3,"source":1,"target":2}}}
+```
+
+This glues an existing connector to the facing side centers of two 2D shapes,
+creating canonical connection rows if absent. Existing inbound points at those
+positions are reused. Rotation and enclosing group transforms are honored.

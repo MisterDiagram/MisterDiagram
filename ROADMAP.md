@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-17: M5.3 adds static glue at facing side centers. Fresh Visio original: 5,349 eligible cells, zero rebuild differences, route tolerance 1e-6.
+
 - 2026-10-17: M5.2 exposes fourteen MCP tools over stdio, with strict per-command execution inside atomic session batches. Rollback, undo/redo, all-tool calls and exact CLI/stdio package equivalence have regression tests.
 
 - 2026-10-17: M5.1 adds headless command aliases and evaluated document/shape inspection, with JSON schemas and hostile-parameter coverage. MCP stdio and layout commands remain P5a work.
