@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-17: P5a implementation is available: MCP topology, reproducible office example, performance contribution workflow and CI archives. Fresh VM routes and equal-size renders pass; unrepaired package checks fail 170 SAN/9 office serialized changes. Both human gates remain pending, so P5a is partial.
+
 - 2026-10-17: M5.4 adds centered row layout and distinct hub fan points. The SAN example uses both, retains 80 Connects and passes connector ink and switch-interior checks. Fresh Visio acceptance follows in M5.5.
 
 - 2026-10-17: M5.3 adds static glue at facing side centers. Fresh Visio original: 5,349 eligible cells, zero rebuild differences, route tolerance 1e-6.
@@ -477,3 +479,8 @@ The M4.28 record receives its own final three-platform check. Carried gaps are
 jump-three-crossings packing, unwitnessed WalkPreference values, theme.apply,
 connector stroke rendering and small-image export mapping. Phase 5 estimate:
 32 to 48 hours. docs/mcp.md remains untouched until that phase.
+
+## What is coming
+
+- Release staging: CI build artifacts now; a tagged alpha pre-release with checksums and licence files immediately after P5a; a real release and crates.io after M5 is met and stable.
+- Fonts: Latin faces live in the repository; non-Latin faces will be fetched by pinned SHA256 at release.

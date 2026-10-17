@@ -42,3 +42,15 @@ jobs:
           key: ci-${{ matrix.os }}
       - name: cargo xtask ci
         run: cargo xtask ci
+      - name: Build test binary
+        run: cargo build --release -p misterdiagram-cli
+      - name: Archive binary and licences
+        id: archive
+        run: python3 tools/ci/archive.py
+      - name: Upload test build
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ${{ steps.archive.outputs.name }}
+          path: target/ci-artifacts/*.zip
+          retention-days: 30
+          if-no-files-found: error

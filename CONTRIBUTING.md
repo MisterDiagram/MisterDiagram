@@ -58,3 +58,8 @@ See [#39](https://github.com/MisterDiagram/MisterDiagram/issues/39) and the
 for where time goes today. Deferred-publication batch mode remains shelved until
 saving is independent of command history. MCP batch preserves every strict
 write/import boundary and only groups rollback and undo.
+
+## Test builds
+
+Testers can download artifacts from an Actions run page (GitHub login required); they are untested builds of that commit.
+macOS may require clearing the downloaded binary's quarantine attribute with `xattr -d com.apple.quarantine misterdiagram`.
