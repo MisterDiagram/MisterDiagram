@@ -16107,3 +16107,28 @@ before the repair and pass afterward. The detection parses the bounded formula;
 it does not search for SETF text or evaluate an Action's side effect.
 References: [Action cell](https://learn.microsoft.com/en-us/office/client-developer/visio/action-cell-actions-section),
 [SETF](https://learn.microsoft.com/en-us/office/client-developer/visio/setf-function).
+
+### Observed, undocumented: zero-width arcs remain visible (M5.13e stop)
+
+The original synthetic `tools/oracle/vendor-stencils/zero-width-witness.ps1`
+was opened, recalculated, saved, dumped, reopened and exported in Visio
+16.0.20430.20146 through the interactive scheduled-task wrapper. Width is
+GUARD(2IN*Actions.Visible.Action), Height is 2IN, and the text-NOT Action's
+stored zero makes Width zero. Visio caches Width/Height arc ratio D=0 and
+_ELLIPSE_THETA(0,2,2,2,Width,Height)=0, with no cell-read errors.
+
+Visio draws collapsed red strokes. The side/top D=0 cases have 1,172/604 red
+pixels. The separate theta case with constant D=2 and the combined theta/D=0
+case each have 1,172. Positive-width cases have 1,702 to 1,764 red pixels; every
+picture contains the green control. No other ink was detected. These synthetic
+observations do not support suppressing every zero-width part as empty geometry.
+The private witness is `_state/brief26c/zero-width-witness/` in the permanently
+private corpus repository; no Visio picture or file is published here.
+
+The brief explicitly requires stopping before implementation if Visio draws
+anything for the zero-width part. That condition was met. The current renderer
+still rejects the ratio-only cases with #VALUE! and theta cases with #NUM!;
+the constant-angle, positive-ratio collinear control renders. Geometry budgets,
+positive-dimension contracts, invalid-geometry refusals and knot tolerances are
+unchanged. M5.13e implementation and M5.13f remain open.
+Reference: [EllipticalArcTo row](https://learn.microsoft.com/en-us/office/client-developer/visio/ellipticalarcto-row-geometry-section).

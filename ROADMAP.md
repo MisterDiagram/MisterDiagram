@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-18: Brief 26c is partial at the mandatory M5.13e stop. Visio draws visible collapsed strokes at zero width, including zero-ratio arcs; no geometry or knot fix was implemented. The stopped release rerun remains 5,748/6,742, zero blanks/kills, and Cisco 136/143. M5.13b-d are the completed implementation scope; the 99% target and full closure remain open.
+
 - 2026-10-18: M5.13d implements the M5.10 Action ruling: passive root SETF Actions read and save zero without side effects, including unchanged imported caches and inherited formulas. Text NOT and numeric Actions retain stored values. Three original synthetic regressions pass.
 
 - 2026-10-18: M5.13c restores general field-picture formatting without reverting #41. Cached text metrics are 62,075/67,866; COM text metrics are 54,449/58,180. Full corpus passes with strict 15,105,590/15,105,590, every render ceiling intact and nine outliers. The original synthetic field-text regression fails before the fix and passes afterward.

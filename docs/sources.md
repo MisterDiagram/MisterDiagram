@@ -7,7 +7,7 @@ that the page was consulted during this session.
 | URL | Citing files |
 |---|---|
 | <http://schemas.microsoft.com/office/visio/2011/1/core> | `tools/oracle/accept_report.py` |
-| <http://schemas.microsoft.com/office/visio/2012/main> | `tools/oracle/accept_report.py`, `tools/oracle/route_geometry.py`, `tools/oracle/test_accept_report.py`, `tools/oracle/vendor-stencils/action-witness.ps1` |
+| <http://schemas.microsoft.com/office/visio/2012/main> | `tools/oracle/accept_report.py`, `tools/oracle/route_geometry.py`, `tools/oracle/test_accept_report.py`, `tools/oracle/vendor-stencils/action-witness.ps1`, `tools/oracle/vendor-stencils/zero-width-witness.ps1` |
 | <http://schemas.microsoft.com/visio/2010/relationships/master> | `tools/oracle/route_geometry.py`, `tools/oracle/test_route_geometry.py` |
 | <http://schemas.openxmlformats.org/officeDocument/2006/relationships> | `tools/oracle/route_geometry.py` |
 | <http://schemas.openxmlformats.org/package/2006/content-types> | `tools/oracle/accept_report.py`, `tools/oracle/test_accept_report.py` |
@@ -20,12 +20,12 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-error-values> | `crates/sheet/src/value.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-format-pictures> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-formulas> | `crates/sheet/src/eval.rs`, `crates/sheet/src/parser.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/about-functions> | `crates/sheet/src/functions/ellipse.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/about-functions> | `crates/sheet/src/functions/ellipse.rs`, `tools/oracle/vendor-stencils/zero-width-witness.ps1` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-operators> | `crates/sheet/src/eval.rs`, `crates/sheet/src/parser.rs`, `crates/sheet/src/units.rs`, `crates/sheet/src/value.rs`, `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-units-of-measure-visio-shapesheet-reference> | `crates/sheet/src/parser.rs`, `crates/sheet/src/units.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/abs-function-visioshapesheet> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/acos-function> | `crates/sheet/src/functions/numeric.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/action-cell-actions-section> | `crates/vsdx/src/evaluate.rs`, `crates/vsdx/tests/action_cells.rs`, `tools/oracle/vendor-stencils/action-witness.ps1` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/action-cell-actions-section> | `crates/vsdx/src/evaluate.rs`, `crates/vsdx/tests/action_cells.rs`, `tools/oracle/vendor-stencils/action-witness.ps1`, `tools/oracle/vendor-stencils/zero-width-witness.ps1` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/address-cell-hyperlinks-section> | `crates/engine/src/content.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/alignment-cell-tabs-section> | `crates/text/src/lib.rs`, `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/and-function> | `crates/sheet/src/functions/mod.rs` |
@@ -95,7 +95,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/drawingscale-cell-page-properties-section> | `crates/engine/src/pages.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/effectschemeindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/ellipse-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/vsdx/src/evaluate/path.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/ellipticalarcto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/vsdx/src/evaluate/path.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/ellipticalarcto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/vsdx/src/evaluate/path.rs`, `tools/oracle/vendor-stencils/zero-width-witness.ps1` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/embellishmentindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/endarrow-cell-line-format-section> | `crates/render/src/style.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/endtrigger-cell-glue-info-section> | `crates/route/src/glue_host.rs` |

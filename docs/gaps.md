@@ -27,16 +27,33 @@ internal ellipse calls, 52 NURBS knot descents, 35 non-finite foreign-media
 paths, 18 REF and 2 WMF. The latter three classes remain out of scope.
 Supplemental Cisco is 136/143, with four non-finite foreign-media paths and
 three EMF operation-budget refusals. No limit or population changes are allowed.
-Zero-width and knot fixes require synthetic Visio witnesses before implementation.
+M5.13e stops before implementation: the original synthetic Visio witness draws
+visible collapsed strokes at Width=0, including D=0 arcs. The four candidate
+zero-width exports contain 604 or 1,172 red pixels; the positive and green
+controls are present. Visio caches _ELLIPSE_THETA as zero. Our current renderer
+rejects the two ratio cases with #VALUE! and the two theta cases with #NUM!.
+The required stop rule leaves all 887 zero-width failures and M5.13f's 52 knot
+failures open. No silent geometry success or wider knot tolerance was introduced.
+Witness script: `tools/oracle/vendor-stencils/zero-width-witness.ps1`; its
+Visio files and exports remain in the private corpus repository.
 
-| Vendor | Masters | Before rendered | After rendered | After failed |
+The stopped-state release inventory is unchanged: 5,748/6,742 (85.256600%),
+994 failures, zero blanks and zero guard kills. All failed master IDs and error
+categories match the earlier first-cause receipts. The 6,675 target is not met.
+Supplemental Cisco remains 136/143, including the three EMF budget refusals.
+Independent review found no production blocker in B-D and one open test-coverage
+item: actual nested SETF calls need negative passive-Action read/save tests.
+Current detection is root-only; quoted SETF text is already covered. Whole-brief
+closure, the E/F source seeds and two clean frozen passes remain incomplete.
+
+| Vendor | Masters | Brief 26 after | Brief 26c after | Failed |
 |---|---:|---:|---:|---:|
-| HPE | 3,572 | 2,649 | 2,725 | 847 |
+| HPE | 3,572 | 2,725 | 2,725 | 847 |
 | Lenovo | 1,198 | 1,186 | 1,186 | 12 |
 | NetApp | 737 | 696 | 696 | 41 |
 | Palo Alto | 194 | 182 | 182 | 12 |
 | Dell | 1,041 | 959 | 959 | 82 |
-| Total | 6,742 | 5,672 | 5,748 | 994 |
+| Total | 6,742 | 5,748 | 5,748 | 994 |
 
 The supplemental Cisco files retain their baseline 143 masters, 136 rendered
 and 7 failed: Secure Firewall 1200 is 13/13; Nexus 9000 is 123/130. The brief's
