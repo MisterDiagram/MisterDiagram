@@ -16156,16 +16156,16 @@ Contributor-original synthetic oracles `zero-width-recalc.ps1` and
 `zero-height-classes.ps1` under `tools/oracle/vendor-stencils/` cover both axes,
 RatioSide, equal-endpoint RatioTop, nonzero angles, near-circle and circle
 internal-function cases. Their ten pictures exactly match explicit line-path
-references: MAD=0 and fraction over16=0, with identical nonempty stroke bounds.
+references: MAD=0 and fraction over 16=0, with identical nonempty stroke bounds.
 Changing the live dimension from two to three and back forces dependency
-recalculation before save and reopen. THETA returns0. ECC returns1 at the
-returned angle0. Those function exceptions require finite arguments, positive
+recalculation before save and reopen. THETA returns 0. ECC returns 1 at the
+returned angle 0. Those function exceptions require finite arguments, positive
 original dimensions and ratio, and exactly one zero new dimension. Nonzero ECC
 output angles and other degenerate configurations remain errors. No cache
 substitution is used. Visio evidence remains private; no picture is published.
 
 `nested-action-witness.ps1` observes GUARD(SETF(...)) and 1+SETF(...), stored
-V=0 and1, in drawing and stencil carriers. All 60 phase/case reads are zero,
+V=0 and 1, in drawing and stencil carriers. All 60 phase/case reads are zero,
 including dependency edits, save and reopen; the target User.Flag stays zero.
 The two witnessed wrappers now read and save zero like root SETF, preserving
 F and U. Other wrappers, conditional branches and arithmetic retain existing
@@ -16178,7 +16178,7 @@ hashes. Their private pictures remain only in ignored VM output. All three now
 render here, but whole-master pixel parity is not established: Visio/ours extents
 are 167x33/167x34 (zero angle), 164x17/164x17 (nonzero angle), and
 166x17/167x18 (THETA/ECC). The equal-extent nonzero-angle comparison has
-MAD 74.792085 and fraction over16 0.889168. Existing metafile warnings occur;
+MAD 74.792085 and fraction over 16 0.889168. Existing metafile warnings occur;
 the cause of these whole-master differences is not established. These private
 comparisons do not change any corpus ceiling. The ten synthetic collapsed-path
 comparisons, rather than the complete vendor pictures, match exactly. Original Rust
@@ -16188,3 +16188,49 @@ References: [EllipticalArcTo](https://learn.microsoft.com/en-us/office/client-de
 [internal functions](https://learn.microsoft.com/en-us/office/client-developer/visio/about-functions),
 [Action cell](https://learn.microsoft.com/en-us/office/client-developer/visio/action-cell-actions-section),
 [SETF](https://learn.microsoft.com/en-us/office/client-developer/visio/setf-function).
+
+### Observed, undocumented: mixed NURBS knot serialization (M5.13f)
+
+Sixteen contributor-original Visio masters establish different persisted precision
+at the NURBSTo boundary: numeric A cells save sixteen significant decimal digits,
+while the NURBS constructor saves fourteen. For example, A=1.054321098765466
+and its repeated constructor knot=1.0543210987655 represent the same input.
+Placed in that order in the knot vector, the pair exceeds the unchanged
+16*EPSILON allowance by 9.06982 times. The constructor evaluator already formats
+at fourteen digits; the failure was the geometry comparison between constructor
+knots and numeric cells.
+
+The synthetic scripts are `knot-precision-witness.ps1` and
+`knot-serialization-confirmation.ps1` under `tools/oracle/vendor-stencils/`.
+The confirmation uses explicit U=NURBS and covers sixteen positive finite
+inputs, about 1.23e-14 through 2.35e14. An independent audit of saved XML and
+64 COM phase reads finds uniquely 16-digit numeric caches and 14-digit constructor
+values among precisions 1 through 17. Visio reports 16.0.20430.20182 for this run.
+The accepted E witnesses reported 16.0.20430.20146.
+
+Both prewritten experimental knot checkers failed and remain unchanged. The first
+confused ResultStrU display formatting with serialization and omitted a required
+constructor unit tag in an extreme case. The second wrongly predicted that the
+same tiny case with explicit U=NURBS would remain an error. Its saved constructor
+is valid. Precision is established by the preserved XML and independent audit,
+not a retroactive checker pass. Extreme-domain pictures differ; universal render
+equivalence at those magnitudes is not claimed.
+
+Only NURBSTo reconciles adjacent knots with identical fourteen-digit scientific
+representations. Each equal-key run uses its largest original finite value.
+An original running-maximum check preserves the existing accumulated descent
+refusal across different keys before reconciliation. This prevents rounding from
+either hiding a real descent or rejecting a formerly accepted small one. The
+ordinary spline check, 16*EPSILON allowance, SplineStart behavior, allocation and
+recursion budgets remain unchanged. Distinct-key genuine descents still fail.
+References: [NURBS](https://learn.microsoft.com/en-us/office/client-developer/visio/nurbs-function),
+[NURBSTo](https://learn.microsoft.com/en-us/office/client-developer/visio/nurbsto-row-geometry-section).
+
+M5.13f validation: geometry 13, Action 5, collapsed-geometry 1 and knot 1 tests pass.
+All five source-only C/D/E/F/#58 seeds fail their intended assertions and exact
+sources are restored. Full CI passes 8 gates/607 tests (three ignored); full corpus
+passes strict 15,105,590/15,105,590, cached text 62,075/67,866 and COM text 54,449/58,180.
+The same 1,181 shipped packages and all ceilings/floors remain fixed. Matching
+master-render errors improve 474 to 447; all 21,407 master cases remain included.
+The supplemental exact-summary diagnostic still fails that improved count and is
+preserved unchanged. An independent audit confirms no frozen-gate movement.

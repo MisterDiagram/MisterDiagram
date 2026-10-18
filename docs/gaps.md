@@ -32,29 +32,39 @@ all 887 masters as 805 zero-angle, 62 tiny nonzero-angle and 20 THETA/ECC cases;
 the last group includes five latent internal-function failures. Every observed
 vendor arc has zero width, positive height and an internal control on the axis.
 Synthetic horizontal and equal-endpoint controls also match explicit line paths
-exactly. D=0 arcs visit control then end; THETA=0 and ECC=1 at angle0 cover the
+exactly. D=0 arcs visit control then end; THETA=0 and ECC=1 at angle 0 cover the
 witnessed axis collapse. Unwitnessed invalid configurations remain rejected.
-Nested GUARD(SETF(...)) and 1+SETF(...) Actions read/save0 without side effects,
+Nested GUARD(SETF(...)) and 1+SETF(...) Actions read/save 0 without side effects,
 per new drawing/stencil witnesses. Other containing expressions remain cached.
 
-Focused fixtures pass, including positive-geometry and hostile-input contracts.
-The M5.13e release rerun recovers 875 masters: 6,623/6,742, with zero blank and
-zero guard kills. Twelve formerly hidden first causes remain: five additional
-NURBS descents, six non-finite media paths and one REF. Current first causes are
-57 NURBS, 41 non-finite foreign-media paths, 19 REF and 2 WMF. The original named
-35 non-finite paths, 18 REF, 2 WMF and 3 Cisco EMF operation-budget refusals stay
-out of scope, as do the newly exposed media/REF cases. Supplemental Cisco also
-has four non-finite paths. M5.13f, final regressions and two clean frozen
-verification passes remain open; the 99% target is not yet met.
+M5.13f reconciles adjacent NURBSTo knots with equal fourteen-digit constructor
+keys, using an original member of each run. Numeric cells retain sixteen digits.
+The existing spline allowance and SplineStart are unchanged; genuine descents
+remain rejected, including accumulated neighboring-run cases found in review.
+The final release inventory recovers 930 masters from Brief 26's after baseline:
+6,678/6,742 (99.050727%), 64 failures, zero blanks and zero guard kills. Full local CI passes all eight gates (607 tests passed, three ignored).
+The full corpus check passes with strict 15,105,590/15,105,590, cached text
+62,075/67,866 and COM text 54,449/58,180. All 1,181 shipped packages and every
+floor, ceiling and denominator remain unchanged. The direct saved-render oracle
+report is unchanged; matching master-render errors improve 474 to 447 within
+the fixed 21,407 cases, all paired MAD 0. Frozen closure records are retained in
+plan/brief26c-a1 and the private corpus state.
+The guarded residual scan finds 41 non-finite media paths, 21 REF and 2 WMF,
+with no remaining knot-order first cause. Relative to the named baseline 35 media,
+18 REF and 2 WMF, nine latent failures are now exposed: six media and three REF.
+The last two REF cases are Cisco-SAN master 11 shape 102 geometry and NetApp-SAN
+master 58 shape 102 text block, previously hidden behind knots. These remain out
+of scope. The 3 supplemental Cisco EMF operation-budget refusals also remain named
+and unchanged; no budget, floor, ceiling or denominator was altered.
 
-| Vendor | Masters | Brief 26 after | M5.13e after | Failed |
+| Vendor | Masters | Brief 26 after | M5.13f after | Failed |
 |---|---:|---:|---:|---:|
-| HPE | 3,572 | 2,725 | 3,508 | 64 |
-| Lenovo | 1,198 | 1,186 | 1,189 | 9 |
-| NetApp | 737 | 696 | 712 | 25 |
+| HPE | 3,572 | 2,725 | 3,540 | 32 |
+| Lenovo | 1,198 | 1,186 | 1,195 | 3 |
+| NetApp | 737 | 696 | 724 | 13 |
 | Palo Alto | 194 | 182 | 182 | 12 |
-| Dell | 1,041 | 959 | 1,032 | 9 |
-| Total | 6,742 | 5,748 | 6,623 | 119 |
+| Dell | 1,041 | 959 | 1,037 | 4 |
+| Total | 6,742 | 5,748 | 6,678 | 64 |
 
 The supplemental Cisco files retain their baseline 143 masters, 136 rendered
 and 7 failed: Secure Firewall 1200 is 13/13; Nexus 9000 is 123/130. The brief's

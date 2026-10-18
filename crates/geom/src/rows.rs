@@ -281,6 +281,7 @@ pub fn geometry(rows: &[GeometryRow], width: f64, height: f64, clip: Rect, flags
                 weights.push(row.b);
                 knots.push(row.a);
                 knots.extend(std::iter::repeat_n(at(&data, 0)?, degree + 1));
+                canonicalize_constructor_knots(&mut knots)?;
                 spline(&mut path, &control, &weights, &knots, degree)?;
             }
             RowKind::SplineStart => {
@@ -399,6 +400,64 @@ fn clip_line(a: Point, b: Point, rect: Rect) -> Result<Option<(Point, Point)>> {
         }
     }
     if lo > hi { Ok(None) } else { Ok(Some((checked(a + d * lo)?, checked(a + d * hi)?))) }
+}
+/// Reconcile adjacent repeated knots at the NURBSTo constructor boundary.
+/// Visio's synthetic M5.13f witness saves NURBS tuple values at fourteen significant
+/// decimal digits while numeric A/C cells retain sixteen. Only neighbors with the
+/// same constructor representation are replaced; distinct values stay untouched.
+/// SplineStart rows do not pass through this serialization boundary.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/nurbs-function
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/nurbsto-row-geometry-section
+fn canonicalize_constructor_knots(knots: &mut [f64]) -> Result<()> {
+    // The constructor already caps its numeric arguments at 8192.
+    if knots.len() > 8192 {
+        return Err(GeometryError::Limit);
+    }
+    fn serialized(number: f64) -> Result<String> {
+        if !number.is_finite() {
+            return Err(GeometryError::Invalid);
+        }
+        // A finite f64 has a bounded scientific representation, including subnormals.
+        Ok(format!("{number:.13e}"))
+    }
+    // Preserve accumulated descent refusals between distinct decimal classes.
+    // Rounding a repeated run downward must not hide a later genuine descent.
+    let mut original_max = *knots.first().ok_or(GeometryError::Invalid)?;
+    let mut maximum_key = serialized(original_max)?;
+    for original in knots.iter().copied() {
+        let key = serialized(original)?;
+        if key != maximum_key
+            && original < original_max
+            && original_max - original > 16. * f64::EPSILON * original_max.abs().max(original.abs()).max(1.)
+        {
+            return Err(GeometryError::Invalid);
+        }
+        if original > original_max {
+            original_max = original;
+            maximum_key = key;
+        }
+    }
+    let mut remaining = knots;
+    while let Some((&first, tail)) = remaining.split_first() {
+        let key = serialized(first)?;
+        let mut count = 1usize;
+        let mut maximum = first;
+        for &next in tail {
+            if serialized(next)? != key {
+                break;
+            }
+            maximum = maximum.max(next);
+            count = count.checked_add(1).ok_or(GeometryError::Limit)?;
+        }
+        let (run, rest) = remaining.split_at_mut_checked(count).ok_or(GeometryError::Invalid)?;
+        // Choosing an original member avoids shifting the epsilon basis at the
+        // next distinct key. Already equal runs remain bitwise unchanged.
+        if run.len() > 1 {
+            run.fill(maximum);
+        }
+        remaining = rest;
+    }
+    Ok(())
 }
 /// Cox-de Boor evaluation in homogeneous coordinates, capped to degree 25.
 fn spline(path: &mut BezPath, control: &[Point], weights: &[f64], knots: &[f64], degree: usize) -> Result<()> {
@@ -697,5 +756,67 @@ mod tests {
             let end = if horizontal { (2., 0.) } else { (0., 2.) };
             assert_eq!(path.elements(), &[PathEl::MoveTo((0., 0.).into()), PathEl::LineTo(control.into()), PathEl::LineTo(end.into())]);
         }
+    }
+    #[test]
+    fn constructor_knots_canonicalize_equal_decimal_keys_only() {
+        let a = 1.0543210987655;
+        let b = 1.054321098765466;
+        assert!((a - b) > 8. * 16. * f64::EPSILON * a);
+        for pair in [[a, b], [b, a]] {
+            let mut values = [0., pair[0], pair[1], 2.];
+            canonicalize_constructor_knots(&mut values).unwrap();
+            assert_eq!(values, [0., a, a, 2.]);
+        }
+        let mut distinct = [0., 1.0543210987654, a, 2.];
+        let original = distinct;
+        canonicalize_constructor_knots(&mut distinct).unwrap();
+        assert_eq!(distinct, original);
+        let mut same = [0., b, b, 2.];
+        canonicalize_constructor_knots(&mut same).unwrap();
+        assert_eq!(same, [0., b, b, 2.]);
+        for bad in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+            assert!(canonicalize_constructor_knots(&mut [0., bad]).is_err());
+        }
+        assert!(canonicalize_constructor_knots(&mut []).is_err());
+        assert!(matches!(canonicalize_constructor_knots(&mut vec![0.; 8193]), Err(GeometryError::Limit)));
+    }
+
+    #[test]
+    fn decimal_reconciliation_cannot_hide_a_distinct_key_accumulated_descent() {
+        let b = 0.0123456789012344;
+        let key = 0.012345678901234;
+        let c = 0.0123456789012307;
+        assert!(b - c > 16. * f64::EPSILON);
+        assert!(key - c < 16. * f64::EPSILON);
+        let mut knots = [b, key, c, 1., 1., 1.];
+        assert!(canonicalize_constructor_knots(&mut knots).is_err());
+        let mut curve = row(RowKind::NURBSTo, 3., 1.);
+        curve.c = b;
+        curve.a = c;
+        curve.b = 1.;
+        curve.d = 1.;
+        curve.data = "NURBS(1,2,1,1,1,1,0.012345678901234,1)".into();
+        assert!(build(&[row(RowKind::MoveTo, 0., 0.), curve]).is_err());
+    }
+
+    #[test]
+    fn decimal_reconciliation_preserves_existing_small_descent_acceptance() {
+        let b = 0.0123456789012346;
+        let c = 0.0123456789012312;
+        assert!(b - c < 16. * f64::EPSILON);
+        let original = [0., b, b, c, 1., 1., 1.];
+        let mut knots = original;
+        canonicalize_constructor_knots(&mut knots).unwrap();
+        assert_eq!(knots, original);
+        let mut curve = row(RowKind::NURBSTo, 3., 1.);
+        curve.c = 0.;
+        curve.a = c;
+        curve.b = 1.;
+        curve.d = 1.;
+        curve.data = "NURBS(1,2,1,1,1,1,0.0123456789012346,1,2,0,0.0123456789012346,1)".into();
+        assert!(build(&[row(RowKind::MoveTo, 0., 0.), curve]).is_ok());
+        let mut extremes = [-f64::MAX, -f64::MAX, f64::MAX, f64::MAX];
+        canonicalize_constructor_knots(&mut extremes).unwrap();
+        assert!(extremes.iter().all(|v| v.is_finite()));
     }
 }

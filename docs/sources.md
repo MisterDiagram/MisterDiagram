@@ -7,7 +7,7 @@ that the page was consulted during this session.
 | URL | Citing files |
 |---|---|
 | <http://schemas.microsoft.com/office/visio/2011/1/core> | `tools/oracle/accept_report.py` |
-| <http://schemas.microsoft.com/office/visio/2012/main> | `tools/oracle/accept_report.py`, `tools/oracle/route_geometry.py`, `tools/oracle/test_accept_report.py`, `tools/oracle/vendor-stencils/action-witness.ps1`, `tools/oracle/vendor-stencils/nested-action-witness.ps1`, `tools/oracle/vendor-stencils/zero-height-classes.ps1`, `tools/oracle/vendor-stencils/zero-width-recalc.ps1`, `tools/oracle/vendor-stencils/zero-width-witness.ps1` |
+| <http://schemas.microsoft.com/office/visio/2012/main> | `tools/oracle/accept_report.py`, `tools/oracle/route_geometry.py`, `tools/oracle/test_accept_report.py`, `tools/oracle/vendor-stencils/action-witness.ps1`, `tools/oracle/vendor-stencils/knot-precision-witness.ps1`, `tools/oracle/vendor-stencils/knot-serialization-confirmation.ps1`, `tools/oracle/vendor-stencils/nested-action-witness.ps1`, `tools/oracle/vendor-stencils/zero-height-classes.ps1`, `tools/oracle/vendor-stencils/zero-width-recalc.ps1`, `tools/oracle/vendor-stencils/zero-width-witness.ps1` |
 | <http://schemas.microsoft.com/visio/2010/relationships/master> | `tools/oracle/route_geometry.py`, `tools/oracle/test_route_geometry.py` |
 | <http://schemas.openxmlformats.org/officeDocument/2006/relationships> | `tools/oracle/route_geometry.py` |
 | <http://schemas.openxmlformats.org/package/2006/content-types> | `tools/oracle/accept_report.py`, `tools/oracle/test_accept_report.py` |
@@ -200,8 +200,8 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/noshow-cell-geometry-section> | `crates/geom/src/rows.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/nosnap-cell-geometry-section> | `crates/geom/src/rows.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/not-function> | `crates/sheet/src/functions/numeric.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/nurbs-function> | `crates/geom/src/rows.rs`, `crates/sheet/src/functions/constructors.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/nurbsto-row-geometry-section> | `crates/geom/src/rows.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/nurbs-function> | `crates/geom/src/rows.rs`, `crates/sheet/src/functions/constructors.rs`, `crates/vsdx/tests/nurbs_knots.rs`, `tools/oracle/vendor-stencils/knot-precision-witness.ps1`, `tools/oracle/vendor-stencils/knot-serialization-confirmation.ps1` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/nurbsto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/vsdx/tests/nurbs_knots.rs`, `tools/oracle/vendor-stencils/knot-precision-witness.ps1`, `tools/oracle/vendor-stencils/knot-serialization-confirmation.ps1` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/objtype-cell-miscellaneous-section> | `crates/route/src/orthogonal.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/or-function> | `crates/sheet/src/functions/mod.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml> | `crates/engine/src/inspect.rs`, `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs`, `crates/model/tests/from_scratch.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/write.rs`, `crates/vsdx/src/write/validate.rs`, `tools/oracle/accept_report.py` |
@@ -339,6 +339,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.cell.glueto> | `crates/engine/src/glue.rs`, `crates/engine/src/layout.rs`, `crates/route/src/static_glue.rs`, `tools/oracle/p5a/make-corpus.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.cell.name> | `crates/vsdx/src/dump.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.cell.resultiu> | `crates/vsdx/src/dump.rs`, `tools/oracle/common.ps1` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.cell.resultstru> | `tools/oracle/vendor-stencils/knot-precision-witness.ps1`, `tools/oracle/vendor-stencils/knot-serialization-confirmation.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.connects> | `apps/misterdiagram-cli/tests/examples.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.clean> | `tools/oracle/vendor-stencils/action-witness.ps1`, `tools/oracle/vendor-stencils/nested-action-witness.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.close> | `crates/engine/src/stencils.rs` |
