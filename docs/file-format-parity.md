@@ -16031,3 +16031,21 @@ andone added line-weight cell. The byte comparator still reports those intention
 example differences (exit1); no extra mask was added. Eight source seeds are
 caught and restored, including nonconnector eligibility, long fractions and
 redundant TextPosition serialization.
+
+### M5.11: retained stencil media and evaluator aliases
+
+Image parts now have a separate 256 MiB aggregate retained-session allowance.
+The 128 MiB stencil source allowance still covers XML and unknown binary parts.
+Media admission counts distinct shared documents across open stencils, current
+drawing, history and rollback reservations. Package, per-part, decode, scene
+and 4,000,000 retained XML node limits remain unchanged. A synthetic stencil
+with forty repeated 4 MiB contributor-original BMP parts opens; a second
+distinct copy exceeds the aggregate media allowance and is refused atomically.
+
+The Aruba contact renderer also reached the existing one-million-cell evaluator
+index limit because alternate reference spellings occupied separate entries.
+Formatting `[1]`, explicit User/Prop `.Value` and Controls `.X` now resolve to
+the primary entry without retaining duplicate indexes. The cell/name budgets
+are unchanged. The guarded preliminary contact run advances from 391 limit
+failures to 76 rendered, 315 geometry `#VALUE!` failures and zero blanks.
+Those remaining failures do not justify changing Action behavior before a ruling.
