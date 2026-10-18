@@ -136,3 +136,57 @@ fn saved_inherited_string_cache_keeps_its_distinct_spelling() {
     assert_eq!(cache.cell.formula.as_deref(), Some("Inh"));
     assert_eq!(evaluator.evaluate(scope, "Prop.Test.Label"), Value::Text("1".into()));
 }
+
+/// Empty Shape Data formats select the general field picture, without losing #41's strings.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/fieldpicture-function
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/formatex-function
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/textheight-function
+#[test]
+fn empty_property_format_expands_general_field_text_before_metrics() {
+    use misterdiagram_model::Shape;
+    let mut doc = misterdiagram_model::skeleton::document(false);
+    let mut shape = Shape { id: 1, ..Default::default() };
+    shape.sheet.sections.push(Section {
+        name: "Property".into(),
+        rows: vec![Row {
+            name: Some("Count".into()),
+            cells: vec![cell("Value", "8"), cell("Format", ""), cell("Label", "007")],
+            ..Default::default()
+        }],
+        ..Default::default()
+    });
+    for (name, value, formula) in [
+        ("Width", "1.125", None),
+        ("Height", "1", None),
+        ("User.Picture", "stale", Some("IF(STRSAME(Prop.Count.Format,\"\"),FIELDPICTURE(0),Prop.Count.Format)")),
+        ("User.Display", "stale", Some("FORMATEX(Prop.Count,User.Picture,,,1033,0)")),
+        ("User.Position", "0", Some("IF(STRSAME(User.Display,\"\"),0,5)")),
+        ("TxtWidth", "0", Some("(Width-0.5MM*2)*IF(User.Position=5,0.625,1)")),
+        ("TxtHeight", "0", Some("TEXTHEIGHT(TheText,TxtWidth)")),
+    ] {
+        let mut c = cell(name, value);
+        c.formula = formula.map(str::to_owned);
+        shape.sheet.cells.push(c);
+    }
+    shape.sheet.sections.push(Section {
+        name: "Field".into(),
+        rows: vec![Row {
+            index: Some(0),
+            cells: vec![Cell { name: "Value".into(), value: Some("stale".into()), formula: Some("User.Display".into()), ..Default::default() }],
+            ..Default::default()
+        }],
+        ..Default::default()
+    });
+    shape.text = Some(misterdiagram_vsdx::parse_xml(b"<Text><fld IX='0'>stale</fld>\n</Text>").unwrap());
+    doc.pages[0].shapes.push(shape);
+    let mut e = Evaluator::new(&doc).unwrap().with_text_host(&misterdiagram_text::Host);
+    let scope = Scope::PageShape { page: 0, shape: 1 };
+    assert_eq!(e.evaluate(scope, "Prop.Count.Format"), Value::Text(String::new()));
+    assert_eq!(e.evaluate(scope, "Prop.Count.Label"), Value::Text("007".into()));
+    assert_eq!(e.evaluate(scope, "User.Picture"), Value::Text("esc(0)".into()));
+    assert_eq!(e.evaluate(scope, "User.Display"), Value::Text("8".into()), "general field picture must expand before text metrics");
+    assert!((e.evaluate(scope, "TxtWidth").numeric().unwrap() - 0.6785187007874016).abs() < 1e-12);
+    let height = e.evaluate(scope, "TxtHeight").numeric().unwrap();
+    assert!(height.is_finite() && height > 0.);
+    assert_eq!(e.text_body(scope).unwrap().paragraphs[0].text(), "8");
+}

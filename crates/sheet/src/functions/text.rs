@@ -304,10 +304,14 @@ fn format_value(name: &str, args: &[Expr], values: &[Value], context: &dyn Conte
         return Err(e);
     }
     let picture = string(values, 1)?;
+    // visFmtNumGenNoUnits: empty Shape Data formats select FIELDPICTURE(0).
+    // PCRTSK_M's text callout witnesses general text without a unit suffix.
+    // https://learn.microsoft.com/en-us/office/vba/api/visio.visfieldformats
+    let general = picture == "esc(0)";
     // Numbered field formats are pictures too. ANNOT_U master26 shape8 uses
     // FIELDPICTURE(8), three decimal places without a unit suffix.
     // https://learn.microsoft.com/en-us/office/vba/api/visio.visfieldformats
-    let picture = if let Some(code) = picture.strip_prefix("esc(").and_then(|s| s.strip_suffix(')')) {
+    let picture = if let Some(code) = picture.strip_prefix("esc(").and_then(|s| s.strip_suffix(')')).filter(|_| !general) {
         match code.parse::<u32>() {
             Ok(code @ 2..=9) => {
                 let places = (code - 2) / 2;
@@ -338,7 +342,7 @@ fn format_value(name: &str, args: &[Expr], values: &[Value], context: &dyn Conte
         if s.len() > LIMIT {
             return Err(Error::Limit);
         }
-        return format_text(s, &picture);
+        return if general { Ok(s.clone()) } else { format_text(s, &picture) };
     }
     let n = value.numeric()?;
     let source = args.first().and_then(|e| expression_unit(e, context, 0));
@@ -349,6 +353,9 @@ fn format_value(name: &str, args: &[Expr], values: &[Value], context: &dyn Conte
     let output = internal / units::factor(&unit)?;
     if !output.is_finite() {
         return Err(Error::Num);
+    }
+    if general {
+        return Ok(Value::number(output).text());
     }
     if date_picture(&picture) {
         return format_date(internal, &picture);
@@ -841,6 +848,28 @@ mod tests {
         assert_eq!(run(r#"FORMAT(0,"0/#")"#), Value::Text("0".into()));
         assert_eq!(run(r#"FORMAT(2,"0/#")"#), Value::Text("2".into()));
         assert!(matches!(run(r#"FORMAT(2,"esc(99999999999999999999999)")"#), Value::Error(_)));
+    }
+    #[test]
+    fn general_field_picture_keeps_text_and_validates_numeric_units_and_options() {
+        for (formula, expected) in [
+            (r#"FORMAT(8,FIELDPICTURE(0))"#, "8"),
+            (r#"FORMAT(2.5mm,FIELDPICTURE(0))"#, "2.5"),
+            (r#"FORMATEX(1,FIELDPICTURE(0),"in","mm")"#, "25.4"),
+            (r#"FORMATEX("007",FIELDPICTURE(0))"#, "007"),
+            (r#"FORMATEX("Count",FIELDPICTURE(0))"#, "Count"),
+        ] {
+            assert_eq!(run(formula), Value::Text(expected.into()), "{formula}");
+        }
+        for formula in [
+            r#"FORMATEX(1,FIELDPICTURE(0),"invalid")"#,
+            r#"FORMATEX(1,FIELDPICTURE(0),,,1031)"#,
+            r#"FORMATEX(1,FIELDPICTURE(0),,,,999)"#,
+            r#"FORMATEX(1/0,FIELDPICTURE(0))"#,
+        ] {
+            assert!(matches!(run(formula), Value::Error(_)), "{formula}");
+        }
+        let args = [Expr::Text("x".repeat(LIMIT + 1)), Expr::Text("esc(0)".into())];
+        assert_eq!(call("FORMAT", &args, &mut Host, &mut 100, 0), Some(Value::Error(Error::Limit)));
     }
     #[test]
     fn formatting_edges_and_date_serials() {

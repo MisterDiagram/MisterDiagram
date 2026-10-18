@@ -8,8 +8,13 @@ The source inventory includes the implementations and fixtures. Independent
 review also closed media admission bypasses through file.open and edit history: the
 unchanged 256 MiB aggregate now covers transaction and prospective reimport owners.
 The prior 61,709/67,866 cached-text result is established as pre-existing at
-1a55256 (#41), not a Brief 26 regression. M5.13c must restore at least 61,817
-without losing declared string spelling or changing the floor.
+1a55256 (#41), not a Brief 26 regression. M5.13c restores 62,075/67,866 cached text metrics (91.467009%) and
+54,449/58,180 COM text metrics (93.587143%), above both unchanged floors.
+Empty Format selects the formerly unsupported `esc(0)` general picture in
+FORMATEX. The original field-text fixture fails before and passes after; all
+five #41 tests remain green. Full corpus exits 0 with strict 15,105,590/15,105,590,
+all render ceilings passing and nine outliers. The same 21,407 master render
+cases now have 474 equal errors instead of 568; 94 text-dependent renders recover.
 
 Charles's M5.10 ruling authorizes SETF Action cells to read and save zero
 without executing their side effects. Text NOT and plain-number Action cells

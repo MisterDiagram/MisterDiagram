@@ -106,7 +106,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/eventxfmod-cell-events-section> | `crates/route/src/glue_host.rs`, `crates/route/src/orthogonal.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/facename-element-facenames_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/facenames-element-visiodocument_type-complextypevisio-xml> | `crates/engine/tests/authoring.rs`, `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs`, `crates/sheet/src/eval.rs`, `crates/vsdx/src/write.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/fieldpicture-function> | `crates/sheet/src/functions/constructors.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/fieldpicture-function> | `crates/sheet/src/functions/constructors.rs`, `crates/vsdx/tests/string_cell_evaluation.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fillforegnd-cell-fill-format-section> | `crates/engine/src/content.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fillgradient-section> | `crates/render/src/scene.rs`, `crates/render/src/style.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fillpattern-cell-fill-format-section> | `crates/engine/src/content.rs`, `crates/render/src/style.rs` |
@@ -123,7 +123,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-shape-data-section> | `crates/engine/src/content.rs`, `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-text-fields-section> | `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-function> | `crates/sheet/src/functions/text.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/formatex-function> | `crates/sheet/src/functions/text.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/formatex-function> | `crates/sheet/src/functions/text.rs`, `crates/vsdx/tests/string_cell_evaluation.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/formulaexists-function> | `crates/sheet/src/eval.rs`, `crates/sheet/src/functions/path_queries.rs`, `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section> | `crates/engine/src/layout.rs`, `crates/model/src/skeleton.rs`, `crates/route/src/straight.rs`, `crates/vsdx/src/evaluate/geometry.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/getref-function> | `crates/sheet/src/functions/references.rs` |
@@ -292,7 +292,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/tanh-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/text-element-shapesheet_type-complextypevisio-xml> | `crates/engine/src/content.rs`, `crates/engine/src/inspect.rs`, `crates/vsdx/src/evaluate/text.rs`, `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/textbkgnd-cell-text-block-format-section> | `crates/vsdx/src/evaluate.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/textheight-function> | `crates/sheet/src/functions/text_metrics.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/textheight-function> | `crates/sheet/src/functions/text_metrics.rs`, `crates/vsdx/tests/string_cell_evaluation.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/textwidth-function> | `crates/engine/tests/layout.rs`, `crates/sheet/src/functions/text_metrics.rs`, `crates/sheet/src/lib.rs`, `crates/text/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function> | `crates/sheet/src/functions/theme.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/themecbv-function> | `crates/sheet/src/functions/theme.rs` |

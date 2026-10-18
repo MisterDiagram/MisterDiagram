@@ -16053,3 +16053,31 @@ the primary entry without retaining duplicate indexes. The cell/name budgets
 are unchanged. The final guarded contact run advances from 391 limit
 failures to 76 rendered, 315 geometry `#VALUE!` failures and zero blanks.
 Those remaining failures do not justify changing Action behavior before a ruling.
+
+
+### Observed, undocumented: general field pictures after #41 (M5.13c)
+
+The PCRTSK_M.vstx page 0 shape 18 (Pivot Node/Text callout) text failure is
+caused by an unimplemented format picture. Correctly preserving an empty
+Shape Data Format as text selects FIELDPICTURE(0), or `esc(0)`. FORMATEX rejected
+that picture, so User.ValueText, User.ValuePosition, TxtWidth and TxtHeight
+propagated `#VALUE!`. This predates Brief 26 at 1a55256. The declared-string
+behavior and all #41 regression tests remain intact.
+
+General field formatting now preserves text spelling and formats numeric values
+in the requested output units without adding a unit suffix. The original
+synthetic field-text regression fails before the change and passes after it,
+including the probe's 0.6785187007874016-inch width dependency. Numeric units,
+locale/calendar validation and existing string limits remain enforced.
+
+Microsoft's FIELDPICTURE page describes its code-0 example as one decimal with
+a unit description. That wording conflicts with VisFieldFormats' code 0,
+`visFmtNumGenNoUnits`, and the saved general field text in the witness. The
+implementation follows the enumeration and observed general/no-unit output.
+References: [FIELDPICTURE](https://learn.microsoft.com/en-us/office/client-developer/visio/fieldpicture-function),
+[FORMATEX](https://learn.microsoft.com/en-us/office/client-developer/visio/formatex-function),
+[VisFieldFormats](https://learn.microsoft.com/en-us/office/vba/api/visio.visfieldformats).
+
+Full corpus after this fix: cached text 62,075/67,866 (91.467009%), COM text
+54,449/58,180 (93.587143%), strict round trip 15,105,590/15,105,590. All
+render ceilings pass and the outlier count remains nine. No gate was changed.
