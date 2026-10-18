@@ -47,6 +47,10 @@ page. Every mutating command uses the engine's strict write-and-reimport path.
 | drop_master | `{"name":"drop_master","arguments":{"master":2,"x":0,"y":0}}` | Drops the contributor-original Dynamic connector master and returns its shape ID. |
 | connect | `{"name":"connect","arguments":{"id":3,"end":"begin","target":1,"mode":"static","point":"Connections.X1"}}` | Glues connector 3 to an existing connection point on shape 1. Omit point/mode for dynamic glue to the target shape. |
 
+Passive sheet reads and saves treat SETF Action formulas as zero without
+executing the assignment. Text NOT and numeric Action formulas retain their
+stored values, following the M5.10 witness and ruling.
+
 Open external stencils with `run_command` / `stencil.open {"path":"original.vssx"}`.
 Engine commands `stencil.list` and `stencil.close {"stencil":1}` have the same
 schemas as their MCP tools. The list includes index 0 for the document stencil,

@@ -60,7 +60,12 @@ impl Writer<'_> {
         let mut formula = c.formula.clone();
         let mut err = c.error.clone();
         let has_changes = !self.source_state.changed.is_empty() || !self.source_state.contexts.is_empty();
-        if has_changes
+        // M5.10: Visio saves zero even for untouched SETF Action caches seeded with one.
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/action-cell-actions-section
+        if self.evaluator.passive_setf_action(scope, name) {
+            value = Some("0".into());
+            err = None;
+        } else if has_changes
             && c.value.as_deref() != Some("Themed")
             && c.formula.as_deref().is_some_and(|f| !f.is_empty() && !f.eq_ignore_ascii_case("No Formula"))
         {

@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-18: M5.13d implements the M5.10 Action ruling: passive root SETF Actions read and save zero without side effects, including unchanged imported caches and inherited formulas. Text NOT and numeric Actions retain stored values. Three original synthetic regressions pass.
+
 - 2026-10-18: M5.13c restores general field-picture formatting without reverting #41. Cached text metrics are 62,075/67,866; COM text metrics are 54,449/58,180. Full corpus passes with strict 15,105,590/15,105,590, every render ceiling intact and nine outliers. The original synthetic field-text regression fails before the fix and passes afterward.
 
 - 2026-10-18: M5.13b lands the reviewed Brief 26 implementation for #58, #59 and #63, with regenerated source inventory. Vendor baseline remains 5,748/6,742. The cached-text floor failure predates Brief 26 at #41; its repair, the ruled SETF Action behavior and witnessed geometry fixes follow in M5.13c through M5.13f. No vendor asset or gate changes.

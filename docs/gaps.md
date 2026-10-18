@@ -16,9 +16,10 @@ five #41 tests remain green. Full corpus exits 0 with strict 15,105,590/15,105,5
 all render ceilings passing and nine outliers. The same 21,407 master render
 cases now have 474 equal errors instead of 568; 94 text-dependent renders recover.
 
-Charles's M5.10 ruling authorizes SETF Action cells to read and save zero
-without executing their side effects. Text NOT and plain-number Action cells
-retain their stored values. M5.13d will implement this witnessed distinction.
+M5.13d implements Charles's M5.10 ruling: root SETF Action cells read and save
+zero without executing their side effects. Text NOT and plain-number Action
+cells retain their stored values. Three original synthetic tests cover page and
+master scopes, unchanged saves, inheritance and hostile detection; all pass.
 
 The Brief 26 baseline is 5,748/6,742 rendered, 994 failed, zero blank and zero
 guard kills. First causes: 872 Action-zero elliptical arcs, 15 Action-zero

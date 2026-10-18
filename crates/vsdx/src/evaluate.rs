@@ -558,6 +558,17 @@ impl<'a> Evaluator<'a> {
             })
         })
     }
+    /// A passive SETF Action reads zero, without evaluating its arguments or side effect.
+    /// The original M5.10 drawing/stencil witness covers stored zero and one.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/action-cell-actions-section
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/setf-function
+    pub(crate) fn passive_setf_action(&self, scope: Scope, name: &str) -> bool {
+        name.get(..8).is_some_and(|prefix| prefix.eq_ignore_ascii_case("Actions."))
+            && name.rsplit_once('.').is_some_and(|(_, column)| column.eq_ignore_ascii_case("Action"))
+            && self.effective_formula(scope, name).is_some_and(|formula| {
+                matches!(misterdiagram_sheet::parse(&formula), Ok(misterdiagram_sheet::Expr::Call { name, .. }) if name.eq_ignore_ascii_case("SETF"))
+            })
+    }
     pub fn display_reference(&self, scope: Scope, name: &str, reference: &str) -> Result<String, Error> {
         let origin = self.formula_origin(scope, name).unwrap_or(scope);
         self.remap_master_reference(scope, origin, reference)
@@ -688,6 +699,9 @@ impl<'a> Evaluator<'a> {
         if key.name.starts_with("actions.") && key.name.ends_with(".action")
             || matches!(key.name.as_str(), "eventdblclick" | "eventdrop" | "eventmultidrop" | "eventxfmod" | "eventthetext")
         {
+            if self.passive_setf_action(scope, &key.name) {
+                return Value::Number(0.);
+            }
             return self
                 .local_inh_cell(scope, &key.name)
                 .or_else(|| self.cell(scope, &key.name))
