@@ -559,14 +559,25 @@ impl<'a> Evaluator<'a> {
         })
     }
     /// A passive SETF Action reads zero, without evaluating its arguments or side effect.
-    /// The original M5.10 drawing/stencil witness covers stored zero and one.
+    /// Original M5.10 and M5.13e nested-action witnesses cover stored zero and one.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/action-cell-actions-section
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/setf-function
     pub(crate) fn passive_setf_action(&self, scope: Scope, name: &str) -> bool {
         name.get(..8).is_some_and(|prefix| prefix.eq_ignore_ascii_case("Actions."))
             && name.rsplit_once('.').is_some_and(|(_, column)| column.eq_ignore_ascii_case("Action"))
             && self.effective_formula(scope, name).is_some_and(|formula| {
-                matches!(misterdiagram_sheet::parse(&formula), Ok(misterdiagram_sheet::Expr::Call { name, .. }) if name.eq_ignore_ascii_case("SETF"))
+                use misterdiagram_sheet::{Expr, parser::BinaryOp};
+                fn root_setf(expr: &Expr) -> bool {
+                    matches!(expr, Expr::Call { name, .. } if name.eq_ignore_ascii_case("SETF"))
+                }
+                misterdiagram_sheet::parse(&formula).is_ok_and(|expr| {
+                    root_setf(&expr)
+                        || match &expr {
+                            Expr::Call { name, args } if name.eq_ignore_ascii_case("GUARD") && args.len() == 1 => args.first().is_some_and(root_setf),
+                            Expr::Binary(BinaryOp::Add, left, right) if matches!(left.as_ref(), Expr::Number(1., None)) => root_setf(right),
+                            _ => false,
+                        }
+                })
             })
     }
     pub fn display_reference(&self, scope: Scope, name: &str, reference: &str) -> Result<String, Error> {

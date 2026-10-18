@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-18: M5.13e addendum implements witnessed collapsed-axis arcs, zero-axis THETA/ECC and the two observed nested SETF Action wrappers. Ten synthetic picture comparisons match exactly. Release inventory reaches 6,623/6,742, zero blanks/kills; Cisco136/143. Residuals57 NURBS,41 non-finite media,19 REF,2 WMF. Whole-master vendor pixel parity is not established. Final NURBS work and whole-brief closure remain pending.
+
 - 2026-10-18: Brief 26c is partial at the mandatory M5.13e stop. Visio draws visible collapsed strokes at zero width, including zero-ratio arcs; no geometry or knot fix was implemented. The stopped release rerun remains 5,748/6,742, zero blanks/kills, and Cisco 136/143. M5.13b-d are the completed implementation scope; the 99% target and full closure remain open.
 
 - 2026-10-18: M5.13d implements the M5.10 Action ruling: passive root SETF Actions read and save zero without side effects, including unchanged imported caches and inherited formulas. Text NOT and numeric Actions retain stored values. Three original synthetic regressions pass.

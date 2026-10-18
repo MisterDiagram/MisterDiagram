@@ -27,33 +27,34 @@ internal ellipse calls, 52 NURBS knot descents, 35 non-finite foreign-media
 paths, 18 REF and 2 WMF. The latter three classes remain out of scope.
 Supplemental Cisco is 136/143, with four non-finite foreign-media paths and
 three EMF operation-budget refusals. No limit or population changes are allowed.
-M5.13e stops before implementation: the original synthetic Visio witness draws
-visible collapsed strokes at Width=0, including D=0 arcs. The four candidate
-zero-width exports contain 604 or 1,172 red pixels; the positive and green
-controls are present. Visio caches _ELLIPSE_THETA as zero. Our current renderer
-rejects the two ratio cases with #VALUE! and the two theta cases with #NUM!.
-The required stop rule leaves all 887 zero-width failures and M5.13f's 52 knot
-failures open. No silent geometry success or wider knot tolerance was introduced.
-Witness script: `tools/oracle/vendor-stencils/zero-width-witness.ps1`; its
-Visio files and exports remain in the private corpus repository.
+M5.13e now implements the accepted collapsed-stroke ruling. A scan classifies
+all 887 masters as 805 zero-angle, 62 tiny nonzero-angle and 20 THETA/ECC cases;
+the last group includes five latent internal-function failures. Every observed
+vendor arc has zero width, positive height and an internal control on the axis.
+Synthetic horizontal and equal-endpoint controls also match explicit line paths
+exactly. D=0 arcs visit control then end; THETA=0 and ECC=1 at angle0 cover the
+witnessed axis collapse. Unwitnessed invalid configurations remain rejected.
+Nested GUARD(SETF(...)) and 1+SETF(...) Actions read/save0 without side effects,
+per new drawing/stencil witnesses. Other containing expressions remain cached.
 
-The stopped-state release inventory is unchanged: 5,748/6,742 (85.256600%),
-994 failures, zero blanks and zero guard kills. All failed master IDs and error
-categories match the earlier first-cause receipts. The 6,675 target is not met.
-Supplemental Cisco remains 136/143, including the three EMF budget refusals.
-Independent review found no production blocker in B-D and one open test-coverage
-item: actual nested SETF calls need negative passive-Action read/save tests.
-Current detection is root-only; quoted SETF text is already covered. Whole-brief
-closure, the E/F source seeds and two clean frozen passes remain incomplete.
+Focused fixtures pass, including positive-geometry and hostile-input contracts.
+The M5.13e release rerun recovers 875 masters: 6,623/6,742, with zero blank and
+zero guard kills. Twelve formerly hidden first causes remain: five additional
+NURBS descents, six non-finite media paths and one REF. Current first causes are
+57 NURBS, 41 non-finite foreign-media paths, 19 REF and 2 WMF. The original named
+35 non-finite paths, 18 REF, 2 WMF and 3 Cisco EMF operation-budget refusals stay
+out of scope, as do the newly exposed media/REF cases. Supplemental Cisco also
+has four non-finite paths. M5.13f, final regressions and two clean frozen
+verification passes remain open; the 99% target is not yet met.
 
-| Vendor | Masters | Brief 26 after | Brief 26c after | Failed |
+| Vendor | Masters | Brief 26 after | M5.13e after | Failed |
 |---|---:|---:|---:|---:|
-| HPE | 3,572 | 2,725 | 2,725 | 847 |
-| Lenovo | 1,198 | 1,186 | 1,186 | 12 |
-| NetApp | 737 | 696 | 696 | 41 |
+| HPE | 3,572 | 2,725 | 3,508 | 64 |
+| Lenovo | 1,198 | 1,186 | 1,189 | 9 |
+| NetApp | 737 | 696 | 712 | 25 |
 | Palo Alto | 194 | 182 | 182 | 12 |
-| Dell | 1,041 | 959 | 959 | 82 |
-| Total | 6,742 | 5,748 | 5,748 | 994 |
+| Dell | 1,041 | 959 | 1,032 | 9 |
+| Total | 6,742 | 5,748 | 6,623 | 119 |
 
 The supplemental Cisco files retain their baseline 143 masters, 136 rendered
 and 7 failed: Secure Firewall 1200 is 13/13; Nexus 9000 is 123/130. The brief's

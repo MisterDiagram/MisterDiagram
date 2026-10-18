@@ -218,7 +218,12 @@ pub fn geometry(rows: &[GeometryRow], width: f64, height: f64, clip: Rect, flags
             }
             RowKind::EllipticalArcTo | RowKind::RelEllipticalArcTo => {
                 let from = current.ok_or(GeometryError::Invalid)?;
-                ellipse_arc(&mut path, from, point(row.a * sx, row.b * sy)?, end, row.c, row.d)?;
+                let control = point(row.a * sx, row.b * sy)?;
+                if row.d == 0. {
+                    collapsed_ellipse_arc(&mut path, from, control, end, width, height)?;
+                } else {
+                    ellipse_arc(&mut path, from, control, end, row.c, row.d)?;
+                }
             }
             RowKind::Ellipse => {
                 let u = point(row.a, row.b)? - end;
@@ -325,6 +330,25 @@ fn arc(path: &mut BezPath, center: Point, u: Vec2, v: Vec2, start: f64, sweep: f
         let db = u * (-b.sin()) + v * b.cos();
         path.curve_to(checked(pa + da * k)?, checked(pb - db * k)?, checked(pb)?);
     }
+    Ok(())
+}
+/// Visio's witnessed zero-axis arc visits its control point even when endpoints coincide.
+/// Only an axis collapse with a live positive dimension and on-axis points is accepted.
+/// Controls outside unequal endpoints remain unwitnessed, and D=0 on a normal shape is invalid.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/ellipticalarcto-row-geometry-section
+fn collapsed_ellipse_arc(path: &mut BezPath, from: Point, control: Point, end: Point, width: f64, height: f64) -> Result<()> {
+    let (a, b, c) = if width == 0. && height > 0. && from.x == 0. && control.x == 0. && end.x == 0. {
+        (from.y, control.y, end.y)
+    } else if height == 0. && width > 0. && from.y == 0. && control.y == 0. && end.y == 0. {
+        (from.x, control.x, end.x)
+    } else {
+        return Err(GeometryError::Invalid);
+    };
+    if (a == c && b == a) || (a != c && !(a.min(c) < b && b < a.max(c))) {
+        return Err(GeometryError::Invalid);
+    }
+    path.line_to(control);
+    path.line_to(end);
     Ok(())
 }
 fn ellipse_arc(path: &mut BezPath, start: Point, middle: Point, end: Point, angle: f64, ratio: f64) -> Result<()> {
@@ -605,5 +629,73 @@ mod tests {
         n.data = "NURBS(1,999999999999,1,1,0,1,0,1)".into();
         assert!(build(&[row(RowKind::MoveTo, 0., 0.), n]).is_err());
         assert!(shape_transform((0., 0.).into(), (0., 0.).into(), f64::INFINITY, false, false).is_err());
+    }
+    #[test]
+    fn collapsed_ellipse_arc_keeps_the_control_and_all_existing_limits() {
+        for horizontal in [false, true] {
+            for top in [false, true] {
+                for angle in [0., -6.921655089364709e-15, 0.5] {
+                    let p = |v| if horizontal { Point::new(v, 0.) } else { Point::new(0., v) };
+                    let start = p(if top { 1. } else { 0. });
+                    let end = p(if top { 1. } else { 2. });
+                    let control = p(if top { 2. } else { 1. });
+                    let mut arc = row(RowKind::EllipticalArcTo, end.x, end.y);
+                    arc.a = control.x;
+                    arc.b = control.y;
+                    arc.c = angle;
+                    let rows = [row(RowKind::MoveTo, start.x, start.y), arc];
+                    let (width, height) = if horizontal { (2., 0.) } else { (0., 2.) };
+                    let build = |rows: &[GeometryRow], w, h| geometry(rows, w, h, Rect::new(-10., -10., 10., 10.), GeometryFlags::default());
+                    let path = build(&rows, width, height).unwrap().path;
+                    assert_eq!(path.elements().get(1), Some(&PathEl::LineTo(control)));
+                    assert_eq!(path.elements().get(2), Some(&PathEl::LineTo(end)));
+                    for invalid in [-1., f64::NAN, f64::INFINITY, 1000.0001] {
+                        let mut bad = rows.clone();
+                        bad[1].d = invalid;
+                        assert!(build(&bad, width, height).is_err(), "ratio {invalid}");
+                    }
+                    assert!(build(&rows, 2., 2.).is_err(), "D=0 with positive dimensions");
+                    assert!(build(&rows, 0., 0.).is_err(), "both dimensions zero are unwitnessed");
+                    assert!(build(&rows, -2., height).is_err());
+                    let mut bad = rows.clone();
+                    if horizontal {
+                        bad[1].b = 1.
+                    } else {
+                        bad[1].a = 1.
+                    }
+                    assert!(build(&bad, width, height).is_err(), "noncollinear collapse");
+                    if !top {
+                        let mut bad = rows.clone();
+                        if horizontal {
+                            bad[1].a = 3.
+                        } else {
+                            bad[1].b = 3.
+                        }
+                        assert!(build(&bad, width, height).is_err(), "outside span is unwitnessed");
+                    }
+                    let mut bad = rows.clone();
+                    bad[1].a = start.x;
+                    bad[1].b = start.y;
+                    assert!(build(&bad, width, height).is_err(), "coincident control is unwitnessed");
+                    let mut bad = rows.clone();
+                    bad[1].b = MAX_COORD + 1.;
+                    assert!(matches!(build(&bad, width, height), Err(GeometryError::Limit)));
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn relative_collapsed_arc_scales_before_validating_its_control() {
+        for horizontal in [false, true] {
+            let mut arc = row(RowKind::RelEllipticalArcTo, if horizontal { 1. } else { 0. }, if horizontal { 0. } else { 1. });
+            arc.a = if horizontal { 0.5 } else { 0. };
+            arc.b = if horizontal { 0. } else { 0.5 };
+            let (width, height) = if horizontal { (2., 0.) } else { (0., 2.) };
+            let path = geometry(&[row(RowKind::RelMoveTo, 0., 0.), arc], width, height, Rect::ZERO, GeometryFlags::default()).unwrap().path;
+            let control = if horizontal { (1., 0.) } else { (0., 1.) };
+            let end = if horizontal { (2., 0.) } else { (0., 2.) };
+            assert_eq!(path.elements(), &[PathEl::MoveTo((0., 0.).into()), PathEl::LineTo(control.into()), PathEl::LineTo(end.into())]);
+        }
     }
 }

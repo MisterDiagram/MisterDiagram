@@ -47,7 +47,7 @@ page. Every mutating command uses the engine's strict write-and-reimport path.
 | drop_master | `{"name":"drop_master","arguments":{"master":2,"x":0,"y":0}}` | Drops the contributor-original Dynamic connector master and returns its shape ID. |
 | connect | `{"name":"connect","arguments":{"id":3,"end":"begin","target":1,"mode":"static","point":"Connections.X1"}}` | Glues connector 3 to an existing connection point on shape 1. Omit point/mode for dynamic glue to the target shape. |
 
-Passive sheet reads and saves treat SETF Action formulas as zero without
+Passive sheet reads and saves treat root SETF and witnessed GUARD(SETF(...))/1+SETF(...) Action formulas as zero without
 executing the assignment. Text NOT and numeric Action formulas retain their
 stored values, following the M5.10 witness and ruling.
 

@@ -16132,3 +16132,59 @@ the constant-angle, positive-ratio collinear control renders. Geometry budgets,
 positive-dimension contracts, invalid-geometry refusals and knot tolerances are
 unchanged. M5.13e implementation and M5.13f remain open.
 Reference: [EllipticalArcTo row](https://learn.microsoft.com/en-us/office/client-developer/visio/ellipticalarcto-row-geometry-section).
+
+
+### Observed, undocumented: collapsed-axis geometry and nested Actions (M5.13e)
+
+Charles's 2026-10-18 addendum accepts the earlier visible-stroke observation.
+The implementation now follows the witnessed collapsed path, before ellipse
+conversion: with D=0, one dimension zero and the other positive, on-axis start,
+control and end points produce two line segments. A distinct-endpoint control
+must lie strictly between the endpoints. Coincident endpoints require a distinct
+control, preserving the out-and-back stroke. Off-axis points, coincident controls,
+outside-span controls, both dimensions zero, negative or non-finite ratios and
+D above 1000 remain rejected. All coordinate, row and element budgets and the
+normal positive-dimension ellipse conversion remain unchanged.
+
+A guarded scan of 887 affected vendor masters found 18,860 visible zero-width
+arc rows. The mutually exclusive master classes are 805 zero-angle, 62 tiny
+nonzero-angle and 20 internal THETA/ECC, including five latent internal-function
+failures beyond the earlier 15 first causes. Every observed vendor control is
+strictly between distinct endpoints on the collapsed vertical axis.
+
+Contributor-original synthetic oracles `zero-width-recalc.ps1` and
+`zero-height-classes.ps1` under `tools/oracle/vendor-stencils/` cover both axes,
+RatioSide, equal-endpoint RatioTop, nonzero angles, near-circle and circle
+internal-function cases. Their ten pictures exactly match explicit line-path
+references: MAD=0 and fraction over16=0, with identical nonempty stroke bounds.
+Changing the live dimension from two to three and back forces dependency
+recalculation before save and reopen. THETA returns0. ECC returns1 at the
+returned angle0. Those function exceptions require finite arguments, positive
+original dimensions and ratio, and exactly one zero new dimension. Nonzero ECC
+output angles and other degenerate configurations remain errors. No cache
+substitution is used. Visio evidence remains private; no picture is published.
+
+`nested-action-witness.ps1` observes GUARD(SETF(...)) and 1+SETF(...), stored
+V=0 and1, in drawing and stencil carriers. All 60 phase/case reads are zero,
+including dependency edits, save and reopen; the target User.Flag stays zero.
+The two witnessed wrappers now read and save zero like root SETF, preserving
+F and U. Other wrappers, conditional branches and arithmetic retain existing
+cached behavior pending evidence. The bounded parser distinguishes calls from
+quoted SETF text; passive handling never evaluates the side effect.
+
+Three representative real masters were exported read-only in place by
+`vendor-three-witness.ps1`, one per vendor class, with unchanged SHA-256 input
+hashes. Their private pictures remain only in ignored VM output. All three now
+render here, but whole-master pixel parity is not established: Visio/ours extents
+are 167x33/167x34 (zero angle), 164x17/164x17 (nonzero angle), and
+166x17/167x18 (THETA/ECC). The equal-extent nonzero-angle comparison has
+MAD 74.792085 and fraction over16 0.889168. Existing metafile warnings occur;
+the cause of these whole-master differences is not established. These private
+comparisons do not change any corpus ceiling. The ten synthetic collapsed-path
+comparisons, rather than the complete vendor pictures, match exactly. Original Rust
+fixtures fail before the fix and pass afterward; the geometry source-removal
+seed and full regression measurements are recorded in the milestone report.
+References: [EllipticalArcTo](https://learn.microsoft.com/en-us/office/client-developer/visio/ellipticalarcto-row-geometry-section),
+[internal functions](https://learn.microsoft.com/en-us/office/client-developer/visio/about-functions),
+[Action cell](https://learn.microsoft.com/en-us/office/client-developer/visio/action-cell-actions-section),
+[SETF](https://learn.microsoft.com/en-us/office/client-developer/visio/setf-function).

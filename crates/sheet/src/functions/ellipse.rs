@@ -41,6 +41,21 @@ fn calculate(name: &str, args: &[Expr], context: &mut dyn Context, budget: &mut 
         }
         values.push(eval(arg, context, budget, depth + 1).numeric()?);
     }
+    let [_, ratio, old_width, old_height, new_width, new_height, ..] = values.as_slice() else { return Err(Error::Value) };
+    if !values.iter().all(|v| v.is_finite()) || [ratio, old_width, old_height].into_iter().any(|v| *v <= 0.) {
+        return Err(Error::Num);
+    }
+    // Original synthetic M5.13e axis-collapse witnesses, including forced dependency
+    // recalculation: THETA=0 and ECC=1 at the returned angle. Other degeneracies fail.
+    if (*new_width == 0. && *new_height > 0.) || (*new_height == 0. && *new_width > 0.) {
+        return if name == "_ELLIPSE_THETA" {
+            Ok(0.)
+        } else if values.get(6) == Some(&0.) {
+            Ok(1.)
+        } else {
+            Err(Error::Num)
+        };
+    }
     let basis = Basis::new(&values)?;
     if name == "_ELLIPSE_THETA" { Ok(basis.angle()) } else { basis.ratio(*values.get(6).ok_or(Error::Value)?) }
 }
@@ -156,6 +171,24 @@ mod tests {
         assert!(b.ratio(f64::NAN).is_err());
         for formula in ["_ELLIPSE_THETA(0,1,1,1,1)", "_ELLIPSE_ECC(0,1,1,1,1,1)", "_ELLIPSE_THETA(,1,1,1,1,1)", "_ELLIPSE_THETA(0,1,0,1,1,1)"] {
             assert!(matches!(crate::formula(formula, &mut Test), Value::Error(_)));
+        }
+    }
+    #[test]
+    fn witnessed_axis_collapse_returns_zero_theta_and_unit_ecc() {
+        for dimensions in ["0,2", "2,0"] {
+            for ratio in ["1", "1.0000202209969"] {
+                assert_eq!(crate::formula(&format!("_ELLIPSE_THETA(0,{ratio},19,2,{dimensions})"), &mut Test), Value::Number(0.));
+                assert_eq!(crate::formula(&format!("_ELLIPSE_ECC(0,{ratio},19,2,{dimensions},0)"), &mut Test), Value::Number(1.));
+            }
+        }
+        for formula in [
+            "_ELLIPSE_THETA(0,1,19,2,0,0)",
+            "_ELLIPSE_THETA(0,1,0,2,0,2)",
+            "_ELLIPSE_THETA(0,-1,19,2,0,2)",
+            "_ELLIPSE_THETA(0,1,19,2,-1,2)",
+            "_ELLIPSE_ECC(0,1,19,2,0,2,0.5)",
+        ] {
+            assert_eq!(crate::formula(formula, &mut Test), Value::Error(Error::Num), "{formula}");
         }
     }
 }

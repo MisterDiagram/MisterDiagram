@@ -38,6 +38,9 @@ fn carrier(id: u32, stored: u32, formula: &str) -> Shape {
     shape
 }
 fn input(doc: &Document, patches: usize) -> Document {
+    input_formula(doc, patches, SETF)
+}
+fn input_formula(doc: &Document, patches: usize, formula: &str) -> Document {
     // Patch original package bytes after writing, so new writer behavior cannot
     // silently repair the fixture before the unchanged-source save is exercised.
     let bytes = misterdiagram_vsdx::write(doc).unwrap().bytes;
@@ -51,7 +54,7 @@ fn input(doc: &Document, patches: usize) -> Document {
         let data = if name.ends_with(".xml") {
             let text = std::str::from_utf8(bytes).unwrap();
             count += text.matches("&quot;SETF_PLACEHOLDER&quot;").count();
-            text.replace("&quot;SETF_PLACEHOLDER&quot;", SETF).into_bytes()
+            text.replace("&quot;SETF_PLACEHOLDER&quot;", formula).into_bytes()
         } else {
             bytes.to_vec()
         };
@@ -169,5 +172,55 @@ fn passive_action_detection_is_parsed_bounded_and_case_insensitive() {
         let scope = Scope::PageShape { page: 0, shape: 1 };
         assert_eq!(e.evaluate(scope, "Actions.Toggle.Action").numeric().unwrap(), expected);
         assert_eq!(e.evaluate(scope, "User.Flag"), Value::Number(0.));
+    }
+}
+
+#[test]
+fn nested_setf_actions_read_and_save_zero_without_side_effects() {
+    // Both syntactic wrappers, stored V=0/1, drawing and stencil were witnessed
+    // through open, recalculate, dependency edit, save and reopen in Visio.
+    for formula in [format!("GUARD({SETF})"), format!("1+{SETF}")] {
+        for stored in 0..=1 {
+            let mut doc = misterdiagram_model::skeleton::document(false);
+            doc.pages[0].shapes = vec![carrier(5, stored, PLACEHOLDER)];
+            doc.masters = vec![Master { id: 42, name_u: "NestedAction".into(), shapes: doc.pages[0].shapes.clone(), ..Default::default() }];
+            let doc = input_formula(&doc, 2, &formula);
+            for saved in [false, true] {
+                let copy = if saved { misterdiagram_vsdx::import(&misterdiagram_vsdx::write(&doc).unwrap().bytes).unwrap() } else { doc.clone() };
+                let mut e = Evaluator::new(&copy).unwrap();
+                for scope in [Scope::PageShape { page: 0, shape: 5 }, Scope::MasterShape { master: 42, shape: 5 }] {
+                    assert_eq!(e.evaluate(scope, "Actions.Toggle.Action"), Value::Number(0.), "nested Action {formula} V={stored}");
+                    assert_eq!(e.evaluate(scope, "User.Flag"), Value::Number(0.), "nested SETF side effect");
+                    if saved {
+                        let c = e.source_named_cells(scope).unwrap().into_iter().find(|c| c.name == "Actions.Toggle.Action").unwrap().cell;
+                        assert_eq!(c.value.as_deref(), Some("0"));
+                        assert_eq!(c.formula.as_deref(), Some(formula.as_str()));
+                        assert_eq!(c.units.as_deref(), Some("BOOL"));
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn unwitnessed_setf_containers_keep_existing_passive_cache_behavior() {
+    for formula in [
+        "IF(FALSE,SETF(GETREF(User.Flag),1),7)",
+        "UnknownWrapper(SETF(GETREF(User.Flag),1))",
+        "2+SETF(GETREF(User.Flag),1)",
+        "GUARD(1+SETF(GETREF(User.Flag),1))",
+    ] {
+        let mut doc = misterdiagram_model::skeleton::document(false);
+        doc.pages[0].shapes = vec![carrier(5, 1, formula)];
+        let mut e = Evaluator::new(&doc).unwrap();
+        let scope = Scope::PageShape { page: 0, shape: 5 };
+        assert_eq!(e.evaluate(scope, "Actions.Toggle.Action"), Value::Number(1.), "unwitnessed {formula}");
+        assert_eq!(e.evaluate(scope, "User.Flag"), Value::Number(0.));
+        let saved = misterdiagram_vsdx::import(&misterdiagram_vsdx::write(&doc).unwrap().bytes).unwrap();
+        let e = Evaluator::new(&saved).unwrap();
+        let c = e.source_named_cells(scope).unwrap().into_iter().find(|c| c.name == "Actions.Toggle.Action").unwrap().cell;
+        assert_eq!(c.value.as_deref(), Some("1"));
+        assert_eq!(c.formula.as_deref(), Some(formula));
     }
 }
