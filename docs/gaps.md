@@ -8,12 +8,26 @@ recalculation and a source Width edit; its target User.Flag stays 0. SaveAs
 writes V=0. MisterDiagram reads 1 from the same input. Action-cell evaluator changes wait for Charles's ruling; M5.11 to M5.13 continue under addendum 2. See the M5.10 observation in
 file-format-parity.md. This is a partial brief, with no parity score change.
 
-Remaining inventory counts are the original survey, not a new measurement:
-Action-related geometry failures about 609; Aruba retained-source refusal 391;
-HPE-ProLiant-Misc text REF 13; panw-vssx scene-coordinate refusals 12;
-undetermined images 2 (Cisco-SAN and NetApp-SAN). M5.11 and M5.12 acceptance is pending. M5.13 issues #58 (batch stencil accounting), #59 (all-open-stencil
-search) and #63 (close/list commands) remain unimplemented and their requested
-large synthetic real-stdio repros have not run. No vendor artwork was copied.
+The guarded rerun renders 5,748 of the original 6,742 masters (85.2566%),
+with 994 failures, zero blanks and zero guard kills. The 99% target remains unmet.
+Aruba opens after media accounting and alias-index changes; its contact sheet
+renders 76 of 391, with 315 geometry `#VALUE!` failures. The three smaller
+M5.12 gaps are named below. MCP issues #58, #59 and #63 have passing real-stdio
+repros using generated 38 MiB stencils; final CI and closure receipts are pending.
+No vendor artwork was copied into either repository.
+
+| Vendor | Masters | Before rendered | After rendered | After failed |
+|---|---:|---:|---:|---:|
+| HPE | 3,572 | 2,649 | 2,725 | 847 |
+| Lenovo | 1,198 | 1,186 | 1,186 | 12 |
+| NetApp | 737 | 696 | 696 | 41 |
+| Palo Alto | 194 | 182 | 182 | 12 |
+| Dell | 1,041 | 959 | 959 | 82 |
+| Total | 6,742 | 5,672 | 5,748 | 994 |
+
+The supplemental Cisco files retain their baseline 143 masters, 136 rendered
+and 7 failed: Secure Firewall 1200 is 13/13; Nexus 9000 is 123/130. The brief's
+136 is the inventory's rendered count. The 6,742-master denominator is unchanged.
 
 ## M5.0 / #39: strict authoring cost and capacity (2026-10-17)
 
@@ -1306,3 +1320,26 @@ The remaining eight are Geometry 0, rows 3 and 4, X literals on SAN shapes 48,
 `corpus/_state/p5a-followup2/accept-report.json`. That run stopped at its required gate. Charles subsequently ruled these router-owned numeric Geometry values subject to the existing route bound; the fresh follow-up 3 run passes with 0 repairs for both drawings.
 No evaluator arithmetic, imported cells, masks, repair classifier or threshold changed.
 Reference: https://learn.microsoft.com/en-us/office/client-developer/visio/width-cell-shape-transform-section
+
+## Brief 26 M5.12: named smaller vendor gaps
+
+- HPE-ProLiant-Misc: 13 masters fail text-block evaluation at `IF(REF(),...)`.
+  `REF()` is currently unknown; Microsoft's REF function returns `#REF!`, so
+  merely recognizing it would still propagate an error. No cached-angle fallback
+  is justified by the available witness. Synthetic text-angle fixture reproduces
+  `#NAME? REF`; deferred pending an observation of error-bearing text blocks.
+- Palo Alto panw-vssx: 12 masters fail `scene coordinate limit`. Guarded scene
+  inspection finds 15 or 18 non-finite path points in each failing master,
+  with every finite coordinate below two inches. This is not a large-coordinate
+  case. The 1,000,000 coordinate bound stays; the path-generation cause remains
+  unresolved. A synthetic non-finite path reproduces the refusal and tests NaN,
+  both infinities and a finite out-of-bound coordinate.
+- Cisco-SAN and NetApp-SAN: one master each, 2 total, references standard WMF
+  data mislabeled with an `.emf` extension and EMF content type. META_HEADER
+  identifies type1, header9 WORDs and version0x0300. The renderer implements
+  EMF but lacks a WMF record reader. A contributor-original WMF rectangle with
+  this labeling reproduces the image-format refusal. Deferred WMF support.
+
+These three fixtures describe existing gaps. No M5.12 behavior fix or source
+seed is claimed. References: [REF](https://learn.microsoft.com/en-us/office/client-developer/visio/ref-function)
+and [WMF META_HEADER](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/ba5458c6-e885-41e6-b5d7-d54ef9e1065f).
