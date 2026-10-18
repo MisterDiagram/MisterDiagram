@@ -1,5 +1,20 @@
 # Gaps
 
+## Brief 26: M5.10 witness recorded, ruling pending (2026-10-17)
+
+The stored-Action-value hypothesis is not universal. In the new synthetic
+drawing and stencil, the SETF toggle seeded with V=1 reads 0 in Visio after opening,
+recalculation and a source Width edit; its target User.Flag stays 0. SaveAs
+writes V=0. MisterDiagram reads 1 from the same input. Action-cell evaluator changes wait for Charles's ruling; M5.11 to M5.13 continue under addendum 2. See the M5.10 observation in
+file-format-parity.md. This is a partial brief, with no parity score change.
+
+Remaining inventory counts are the original survey, not a new measurement:
+Action-related geometry failures about 609; Aruba retained-source refusal 391;
+HPE-ProLiant-Misc text REF 13; panw-vssx scene-coordinate refusals 12;
+undetermined images 2 (Cisco-SAN and NetApp-SAN). M5.11 and M5.12 acceptance is pending. M5.13 issues #58 (batch stencil accounting), #59 (all-open-stencil
+search) and #63 (close/list commands) remain unimplemented and their requested
+large synthetic real-stdio repros have not run. No vendor artwork was copied.
+
 ## M5.0 / #39: strict authoring cost and capacity (2026-10-17)
 
 The shipped CLI executes commands strictly, publishing after each edit. The

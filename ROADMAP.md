@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-17: Brief 26 is active; M5.10 is witness recorded, ruling pending. A synthetic SETF Action with stored V=1 becomes 0 in Visio without executing its side effect, contradicting the universal stored-value hypothesis. M5.11 to M5.13 continue; their acceptance and closure remain pending. No vendor-rendering improvement is claimed.
+
 - 2026-10-17: P5a implementation is available: MCP topology, reproducible office example, performance contribution workflow and CI archives. Fresh VM routes and equal-size renders pass; repairs are 0 SAN/0 office under Charles's router-owned Geometry ruling, with 296/28 cells judged within 1e-6. Local CI and all four regression numbers pass; five benchmark packages remain byte-equal. Both human gates remain pending.
 
 - 2026-10-17: M5.4 adds centered row layout and distinct hub fan points. The SAN example uses both, retains 80 Connects and passes connector ink and switch-interior checks. Fresh Visio acceptance follows in M5.5.

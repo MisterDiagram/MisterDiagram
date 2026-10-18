@@ -7,7 +7,7 @@ that the page was consulted during this session.
 | URL | Citing files |
 |---|---|
 | <http://schemas.microsoft.com/office/visio/2011/1/core> | `tools/oracle/accept_report.py` |
-| <http://schemas.microsoft.com/office/visio/2012/main> | `tools/oracle/accept_report.py`, `tools/oracle/route_geometry.py`, `tools/oracle/test_accept_report.py` |
+| <http://schemas.microsoft.com/office/visio/2012/main> | `tools/oracle/accept_report.py`, `tools/oracle/route_geometry.py`, `tools/oracle/test_accept_report.py`, `tools/oracle/vendor-stencils/action-witness.ps1` |
 | <http://schemas.microsoft.com/visio/2010/relationships/master> | `tools/oracle/route_geometry.py`, `tools/oracle/test_route_geometry.py` |
 | <http://schemas.openxmlformats.org/officeDocument/2006/relationships> | `tools/oracle/route_geometry.py` |
 | <http://schemas.openxmlformats.org/package/2006/content-types> | `tools/oracle/accept_report.py`, `tools/oracle/test_accept_report.py` |
@@ -25,6 +25,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-units-of-measure-visio-shapesheet-reference> | `crates/sheet/src/parser.rs`, `crates/sheet/src/units.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/abs-function-visioshapesheet> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/acos-function> | `crates/sheet/src/functions/numeric.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/action-cell-actions-section> | `tools/oracle/vendor-stencils/action-witness.ps1` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/address-cell-hyperlinks-section> | `crates/engine/src/content.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/alignment-cell-tabs-section> | `crates/text/src/lib.rs`, `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/and-function> | `crates/sheet/src/functions/mod.rs` |
@@ -118,7 +119,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/font-function> | `crates/sheet/src/functions/color.rs`, `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fontschemeindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fonttoid-function> | `crates/sheet/src/functions/color.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml> | `crates/engine/tests/foreign_master.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml> | `crates/engine/tests/foreign_master.rs`, `crates/engine/tests/stencil_limits.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-shape-data-section> | `crates/engine/src/content.rs`, `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-text-fields-section> | `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-function> | `crates/sheet/src/functions/text.rs` |
@@ -338,6 +339,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.cell.name> | `crates/vsdx/src/dump.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.cell.resultiu> | `crates/vsdx/src/dump.rs`, `tools/oracle/common.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.connects> | `apps/misterdiagram-cli/tests/examples.rs` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.document.clean> | `tools/oracle/vendor-stencils/action-witness.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.exportasfixedformat> | `crates/engine/src/files.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.masters> | `crates/engine/src/stencils.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.saveas> | `apps/misterdiagram-cli/src/author.rs`, `apps/misterdiagram-corpus/examples/route_resave.rs`, `crates/engine/src/files.rs`, `tools/oracle/accept.ps1` |
@@ -348,6 +350,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.layer.delete> | `crates/engine/src/pages.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.layer.name> | `crates/engine/src/pages.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.layers.add> | `crates/engine/src/pages.rs` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.master.drawrectangle> | `tools/oracle/vendor-stencils/action-witness.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.master.export> | `tools/oracle/export-masters.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.master.matchbyname> | `crates/engine/src/masters.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.masters.drop> | `apps/misterdiagram-cli/tests/examples.rs`, `crates/engine/src/masters.rs`, `crates/engine/src/reference_cleanup.rs`, `tools/oracle/make-corpus.ps1` |

@@ -234,6 +234,50 @@ the other measured files use 2012/main. Container inspection accepts both exact 
 
 ## Observed, undocumented
 
+### M5.10: passive Action values, stored-value counterexample (2026-10-17)
+
+M5.10 is paused before changing Action evaluation; M5.11 to M5.13 continue. The existing evaluator already
+reads stored Action values during passive evaluation. The synthetic witness
+shows that this rule is insufficient for the SETF case below; it does not
+justify evaluating every Action formula or executing side effects.
+
+Witness recipe: `tools/oracle/vendor-stencils/action-witness.ps1`, run through
+`tools/oracle/run-in-vm.sh`. Private drawing/stencil inputs and unchanged observations
+are under `corpus/_state/brief26/action-witness/` (SHA-256 manifest alongside). Each input has six carrier rectangles
+and six dependents. Each formula kind has stored V=0 and V=1 with U=BOOL.
+Dependents use `GUARD(Sheet.N!Width*Sheet.N!Actions.Toggle.Action)`.
+Visio version 16.0, build 20430 (executable 16.0.20430.20146).
+
+Both drawing and stencil observations use open, `Application.ActiveDocument.Clean` with
+all-object target 511 and only stale-result action/fix 8, source Width edit
+2 to 3, SaveAs, and reopen. Text-NOT and plain-number Action values remain
+0 and 1 throughout. Their edited dependents become 0 and 3. SETF Action
+values are both 0 starting at open, their edited dependents both stay 0,
+and User.Flag stays 0. In particular the SETF input V=1 is saved as V=0.
+MisterDiagram on that input returns Action=1 and dependent Width=2.
+
+| Action formula in input | Stored V | Visio Action after source edit | Visio dependent Width |
+|---|---:|---:|---:|
+| `NOT("Actions.Action[3]")` | 0 | 0 | 0 |
+| `NOT("Actions.Action[3]")` | 1 | 1 | 3 |
+| `SETF(GETREF(User.Flag),NOT(User.Flag))` | 0 | 0 | 0 |
+| `SETF(GETREF(User.Flag),NOT(User.Flag))` | 1 | 0 | 0 |
+| `7` | 0 | 0 | 0 |
+| `7` | 1 | 1 | 3 |
+
+The SETF target staying 0 distinguishes the observed result normalization from
+executing the toggle. This single witness does not establish a general rule
+for other action functions. Plain-number formulas are omitted on save and
+read back as FALSE/TRUE. Initial dependent caches remain stale until the source
+Width edit; the edit supplies the effective dependency observation.
+
+Microsoft documents invocation-only evaluation in the
+[Action cell reference](https://learn.microsoft.com/en-us/office/client-developer/visio/action-cell-actions-section).
+The forced stale-result check uses the documented
+[Document.Clean method](https://learn.microsoft.com/en-us/office/vba/api/visio.document.clean).
+No frozen oracle, population, threshold or volatile list was changed.
+
+
 M3.7 thumbnail decision (Charles, P3-closure): authored skeletons omit both the
 thumbnail part and its relationship. The read-only private variants
 corpus/_state/m3/diag-variants/v0-original.vsdx, v2-noconnector.vsdx and

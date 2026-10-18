@@ -14,6 +14,15 @@ Every implemented element, cell and function cites its reference page in its doc
 
 ## 3. Third-party projects consulted
 
+Brief 26 (2026-10-17): Charles's local scoping records
+`craft-apps/scope/visio/stencil-strategy.md` (Root causes found) and
+`craft-apps/scope/visio/stencil-survey/INVENTORY.md` were consulted for the
+reported failure patterns and original vendor/master counts. The local
+`render_all.sh` was read for the acceptance procedure. No vendor package,
+artwork, extracted part or render was copied into either repository. The new
+Action witness is contributor-original procedural code, observed in Visio.
+
+
 The [libvisio project README](https://github.com/LibreOffice/libvisio) was consulted
 on 2026-10-12 for project scope and licence metadata only. No implementation,
 sample documents or assets were used.

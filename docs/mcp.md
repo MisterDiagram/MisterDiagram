@@ -1,5 +1,11 @@
 # MCP
 
+Brief 26 status (2026-10-17): Action-cell behavior awaits a ruling while M5.11 to M5.13 continue.
+Issues #58, #59 and #63 remain open in this implementation. In particular,
+the tool advertises all-stencil behavior, but without a stencil argument the
+current implementation searches only the document stencil (#59). stencil.close and stencil.list are not yet available.
+Large-stencil batch budget failures (#58) are not resolved by this brief.
+
 Run `misterdiagram mcp`. The server reads one JSON-RPC message per line on stdin
 and writes replies on stdout. Diagnostics use stderr. Messages are capped at
 4 MiB. `serverInfo.name` is `misterdiagram`. EOF shuts down the server.
@@ -35,7 +41,7 @@ page. Every mutating command uses the engine's strict write-and-reimport path.
 | inspect_shape | `{"name":"inspect_shape","arguments":{"page":1,"id":1,"cells":["Width","PinX"]}}` | Evaluated XForm, text transforms, data, connection points, glue and requested cells. |
 | sheet_get | `{"name":"sheet_get","arguments":{"id":1,"name":"Width"}}` | Evaluated value, cached value, formula and units. |
 | sheet_set | `{"name":"sheet_set","arguments":{"id":1,"name":"Width","formula":"2 in"}}` | Changes a cell and publishes its dependencies. GUARD requires force. |
-| stencil_search | `{"name":"stencil_search","arguments":{"query":"Dynamic","limit":10}}` | Searches the document stencil and open stencils. Open external stencils with run_command/stencil.open. |
+| stencil_search | `{"name":"stencil_search","arguments":{"query":"Dynamic","limit":10}}` | Searches the selected stencil, or only the document stencil when omitted (#59 pending). Open external stencils with run_command/stencil.open. |
 | drop_master | `{"name":"drop_master","arguments":{"master":2,"x":0,"y":0}}` | Drops the contributor-original Dynamic connector master and returns its shape ID. |
 | connect | `{"name":"connect","arguments":{"id":3,"end":"begin","target":1,"mode":"static","point":"Connections.X1"}}` | Glues connector 3 to an existing connection point on shape 1. Omit point/mode for dynamic glue to the target shape. |
 
