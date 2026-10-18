@@ -13,7 +13,13 @@ with 994 failures, zero blanks and zero guard kills. The 99% target remains unme
 Aruba opens after media accounting and alias-index changes; its contact sheet
 renders 76 of 391, with 315 geometry `#VALUE!` failures. The three smaller
 M5.12 gaps are named below. MCP issues #58, #59 and #63 have passing real-stdio
-repros using generated 38 MiB stencils; final CI and closure receipts are pending.
+repros using generated 38 MiB stencils. Full corpus exits 1 because cached text
+61,709/67,866 (90.927710%) misses the unchanged 90.987500% floor.
+All strict cells and roundtrip render groups pass, including the 1,181 shipped
+packages. Candidate CI was stopped under the brief's regression rule; Rust
+changes remain uncommitted. A full starting-commit cached-text receipt is absent,
+so the new floor failure is not yet attributed to a particular change.
+Closure is incomplete and final GitHub Actions is unavailable after the SSH failure.
 No vendor artwork was copied into either repository.
 
 | Vendor | Masters | Before rendered | After rendered | After failed |

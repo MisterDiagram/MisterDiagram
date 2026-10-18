@@ -1,5 +1,7 @@
 # Architecture
 
+Brief 26 candidate note: the retained-media and batch stencil changes documented here remain uncommitted pending resolution of the recorded full-corpus text-floor failure and a complete final CI pass.
+
 Page coordinates are inches, y-up, origin bottom-left. Dependencies go to strictly lower layers. Apps are exempt. UI crates are forbidden in L0 to L6.
 
 | Layer | Crates | Responsibility |
@@ -114,10 +116,19 @@ File outputs publish from a sibling temporary file after successful serializatio
 Exports share a retained-scene budget across PDF pages; EMF operations are charged
 while records are interpreted, before the enclosing scene retains the result.
 
-`stencil.open` retains at most 128 MiB of uncompressed source-part bytes across
-all open stencils in a session, with the existing 64-stencil count limit.
-Reopening the same canonical path reuses its source. A source-byte refusal names
-the stencil, its required MiB, the MiB already open and the 128 MiB limit.
+`stencil.open` retains at most 128 MiB of uncompressed nonmedia source-part
+bytes across all open stencils, with the existing 64-stencil count limit.
+Image parts without a retained XML tree have a separate 256 MiB allowance across
+distinct documents retained by the session, history and rollback reservations.
+Unknown binary parts remain source bytes. Package, decoder and scene limits
+still apply. Reopening the same canonical path reuses its source. A source-byte
+refusal names the stencil, required MiB, MiB already open and the 128 MiB limit.
+
+Open stencils use shared `Arc<Document>` storage. Document-only batches omit
+unchanged stencil inventories from undo snapshots; inventory-changing batches
+retain them under the existing history estimate. `file.new` and `file.open`
+keep external stencils. `stencil.list` exposes the current indices, with zero
+for the document stencil; `stencil.close` compacts external indices.
 
 ### Shared retained XML budget (2026-10-16)
 

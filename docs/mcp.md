@@ -1,10 +1,9 @@
 # MCP
 
-Brief 26 status (2026-10-17): Action-cell behavior awaits a ruling while M5.11 to M5.13 continue.
-Issues #58, #59 and #63 remain open in this implementation. In particular,
-the tool advertises all-stencil behavior, but without a stencil argument the
-current implementation searches only the document stencil (#59). stencil.close and stencil.list are not yet available.
-Large-stencil batch budget failures (#58) are not resolved by this brief.
+Brief 26 candidate status: the list/close, global stencil search and batch retention changes described below pass focused real-stdio tests, but remain uncommitted after a full-corpus cached-text floor failure stopped final CI. The committed server preceding this candidate has fourteen tools.
+
+Brief 26 adds stencil lifetime controls and global search, with real stdio
+regressions for issues #58, #59 and #63. Action-cell behavior awaits Charles's ruling.
 
 Run `misterdiagram mcp`. The server reads one JSON-RPC message per line on stdin
 and writes replies on stdout. Diagnostics use stderr. Messages are capped at
@@ -12,7 +11,7 @@ and writes replies on stdout. Diagnostics use stderr. Messages are capped at
 
 Initialize with `initialize` (`protocolVersion: "2025-06-18"`, clientInfo and
 capabilities), then send `notifications/initialized`. `tools/list` returns the
-fourteen tools and their JSON Schemas. Each example below is the `params` of a
+sixteen tools and their JSON Schemas. Each example below is the `params` of a
 `tools/call` request, wrapped as:
 
 ```json
@@ -41,9 +40,22 @@ page. Every mutating command uses the engine's strict write-and-reimport path.
 | inspect_shape | `{"name":"inspect_shape","arguments":{"page":1,"id":1,"cells":["Width","PinX"]}}` | Evaluated XForm, text transforms, data, connection points, glue and requested cells. |
 | sheet_get | `{"name":"sheet_get","arguments":{"id":1,"name":"Width"}}` | Evaluated value, cached value, formula and units. |
 | sheet_set | `{"name":"sheet_set","arguments":{"id":1,"name":"Width","formula":"2 in"}}` | Changes a cell and publishes its dependencies. GUARD requires force. |
-| stencil_search | `{"name":"stencil_search","arguments":{"query":"Dynamic","limit":10}}` | Searches the selected stencil, or only the document stencil when omitted (#59 pending). Open external stencils with run_command/stencil.open. |
+| stencil_list | `{"name":"stencil_list","arguments":{}}` | Lists stencil index, name, canonical display path and master count. Index 0 is the document stencil. |
+| stencil_close | `{"name":"stencil_close","arguments":{"stencil":1}}` | Closes external stencil 1; later external indices shift down by one. |
+| stencil_search | `{"name":"stencil_search","arguments":{"query":"Dynamic","limit":10}}` | Searches the selected stencil, or the document and every open stencil when omitted. Every result includes its stencil index. |
 | drop_master | `{"name":"drop_master","arguments":{"master":2,"x":0,"y":0}}` | Drops the contributor-original Dynamic connector master and returns its shape ID. |
 | connect | `{"name":"connect","arguments":{"id":3,"end":"begin","target":1,"mode":"static","point":"Connections.X1"}}` | Glues connector 3 to an existing connection point on shape 1. Omit point/mode for dynamic glue to the target shape. |
+
+Open external stencils with `run_command` / `stencil.open {"path":"original.vssx"}`.
+Engine commands `stencil.list` and `stencil.close {"stencil":1}` have the same
+schemas as their MCP tools. The list includes index 0 for the document stencil,
+whose path is null for an unsaved document. Non-UTF-8 path bytes appear as
+replacement characters in display strings. External indices are 1 through 64.
+`file.new` and `file.open` keep external stencils open. Closing one compacts the
+indices, so list again before reusing stored indices. Index 0 cannot be closed.
+Search, master listing and drop accept explicit index 0 for the document.
+Global search visits the document first, then open stencils in index order;
+`limit` caps the combined results, while `matched` counts all matching masters.
 
 `connect` uses the existing connector's ID. `end` is `begin` or `end`.
 `mode` is `static` or `dynamic`; the default is static when point is supplied,
@@ -56,7 +68,11 @@ later reads or edits. If any item fails, the entire session is restored:
 document, selection, open stencils, path, journal, undo and redo. Errors report
 both the zero-based failing index and the one-based command number. Successful
 batches have one undo step, including stencil changes. The output list has a
-1 MiB budget; exceeding a budget fails transactionally. Files already written
+1 MiB budget; exceeding a budget fails transactionally. Unchanged open stencils
+are shared by reference and omitted from batch undo snapshots. A batch changing
+the stencil inventory retains it for undo and is still subject to the existing
+256 MiB history estimate and 4,000,000 retained XML node limit. A genuinely
+oversized snapshot fails with `batch undo snapshot exceeds retained budget`. Files already written
 by save/export commands are external side effects and are not removed on a
 later failure. Prefer saving after a successful batch. This transaction wrapper
 does not implement the deferred-publication optimization shelved under #39.
@@ -77,6 +93,7 @@ same engine queries. The Python example and real stdio regression are runnable:
 cargo build -p misterdiagram-cli
 python3 tools/mcp/two-boxes.py target/mcp-example --cli target/debug/misterdiagram
 MISTERDIAGRAM_CLI="$PWD/target/debug/misterdiagram" python3 tools/mcp/test_stdio.py
+MISTERDIAGRAM_CLI="$PWD/target/debug/misterdiagram" python3 tools/mcp/test_stencils.py
 ```
 
 The regression compares the saved two-boxes package with the CLI script and

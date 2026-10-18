@@ -16034,6 +16034,10 @@ redundant TextPosition serialization.
 
 ### M5.11: retained stencil media and evaluator aliases
 
+Candidate only: these Rust changes remain uncommitted after the full-corpus
+cached-text floor failure stopped the brief. Focused tests and render comparisons
+pass, but no complete final candidate CI is claimed.
+
 Image parts now have a separate 256 MiB aggregate retained-session allowance.
 The 128 MiB stencil source allowance still covers XML and unknown binary parts.
 Media admission counts distinct shared documents across open stencils, current
@@ -16046,6 +16050,6 @@ The Aruba contact renderer also reached the existing one-million-cell evaluator
 index limit because alternate reference spellings occupied separate entries.
 Formatting `[1]`, explicit User/Prop `.Value` and Controls `.X` now resolve to
 the primary entry without retaining duplicate indexes. The cell/name budgets
-are unchanged. The guarded preliminary contact run advances from 391 limit
+are unchanged. The final guarded contact run advances from 391 limit
 failures to 76 rendered, 315 geometry `#VALUE!` failures and zero blanks.
 Those remaining failures do not justify changing Action behavior before a ruling.
