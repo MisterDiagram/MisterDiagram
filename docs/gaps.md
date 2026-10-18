@@ -1,26 +1,27 @@
 # Gaps
 
-## Brief 26: M5.10 witness recorded, ruling pending (2026-10-17)
+## Brief 26c: vendor stencil completion (2026-10-18)
 
-The stored-Action-value hypothesis is not universal. In the new synthetic
-drawing and stencil, the SETF toggle seeded with V=1 reads 0 in Visio after opening,
-recalculation and a source Width edit; its target User.Flag stays 0. SaveAs
-writes V=0. MisterDiagram reads 1 from the same input. Action-cell evaluator changes wait for Charles's ruling; M5.11 to M5.13 continue under addendum 2. See the M5.10 observation in
-file-format-parity.md. This is a partial brief, with no parity score change.
+M5.13b lands the reviewed alias index, bounded media accounting, stencil
+list/close, all-open search and batch snapshot changes for #58, #59 and #63.
+The source inventory includes the implementations and fixtures. Independent
+review also closed media admission bypasses through file.open and edit history: the
+unchanged 256 MiB aggregate now covers transaction and prospective reimport owners.
+The prior 61,709/67,866 cached-text result is established as pre-existing at
+1a55256 (#41), not a Brief 26 regression. M5.13c must restore at least 61,817
+without losing declared string spelling or changing the floor.
 
-The guarded rerun renders 5,748 of the original 6,742 masters (85.2566%),
-with 994 failures, zero blanks and zero guard kills. The 99% target remains unmet.
-Aruba opens after media accounting and alias-index changes; its contact sheet
-renders 76 of 391, with 315 geometry `#VALUE!` failures. The three smaller
-M5.12 gaps are named below. MCP issues #58, #59 and #63 have passing real-stdio
-repros using generated 38 MiB stencils. Full corpus exits 1 because cached text
-61,709/67,866 (90.927710%) misses the unchanged 90.987500% floor.
-All strict cells and roundtrip render groups pass, including the 1,181 shipped
-packages. Candidate CI was stopped under the brief's regression rule; Rust
-changes remain uncommitted. A full starting-commit cached-text receipt is absent,
-so the new floor failure is not yet attributed to a particular change.
-Closure is incomplete and final GitHub Actions is unavailable after the SSH failure.
-No vendor artwork was copied into either repository.
+Charles's M5.10 ruling authorizes SETF Action cells to read and save zero
+without executing their side effects. Text NOT and plain-number Action cells
+retain their stored values. M5.13d will implement this witnessed distinction.
+
+The Brief 26 baseline is 5,748/6,742 rendered, 994 failed, zero blank and zero
+guard kills. First causes: 872 Action-zero elliptical arcs, 15 Action-zero
+internal ellipse calls, 52 NURBS knot descents, 35 non-finite foreign-media
+paths, 18 REF and 2 WMF. The latter three classes remain out of scope.
+Supplemental Cisco is 136/143, with four non-finite foreign-media paths and
+three EMF operation-budget refusals. No limit or population changes are allowed.
+Zero-width and knot fixes require synthetic Visio witnesses before implementation.
 
 | Vendor | Masters | Before rendered | After rendered | After failed |
 |---|---:|---:|---:|---:|

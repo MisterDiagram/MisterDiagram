@@ -64,7 +64,6 @@ pub struct Evaluator<'a> {
     shapes: BTreeMap<Scope, &'a Shape>,
     parents: BTreeMap<Scope, Scope>,
     cells: BTreeMap<Key, &'a Cell>,
-    canonical: BTreeMap<Key, Key>,
     names: BTreeMap<Scope, Vec<NamedCell<'a>>>,
     values: BTreeMap<Key, CachedValue>,
     active: BTreeSet<Key>,
@@ -122,7 +121,6 @@ impl<'a> Evaluator<'a> {
             shapes: BTreeMap::new(),
             parents: BTreeMap::new(),
             cells: BTreeMap::new(),
-            canonical: BTreeMap::new(),
             names: BTreeMap::new(),
             values: BTreeMap::new(),
             active: BTreeSet::new(),
@@ -352,25 +350,13 @@ impl<'a> Evaluator<'a> {
                 for c in &row.cells {
                     let name = cell_name(section, row, position, c)?;
                     self.add_cell(scope, name.clone(), c, Some(section), Some(row), &mut names)?;
-                    // First indexed formatting rows also accept the explicit [1] syntax.
-                    if matches!(section.name.as_str(), "Character" | "Paragraph" | "Field" | "Layer" | "FillGradient" | "LineGradient")
-                        && row.index.unwrap_or(position as u32) == 0
-                    {
-                        self.alias(scope, format!("{name}[1]"), c, &name)?;
-                    }
-                    if matches!(section.name.as_str(), "User" | "Property") && c.name == "Value" {
-                        self.alias(scope, format!("{name}.Value"), c, &name)?;
-                    }
-                    if matches!(section.name.as_str(), "Control" | "Controls") && c.name == "X" {
-                        self.alias(scope, format!("{name}.X"), c, &name)?;
-                    }
                 }
             }
         }
         self.names.insert(scope, names);
         Ok(())
     }
-    fn alias(&mut self, scope: Scope, name: String, cell: &'a Cell, canonical: &str) -> Result<(), Error> {
+    fn index_cell(&mut self, scope: Scope, name: String, cell: &'a Cell) -> Result<(), Error> {
         if self.cells.len() >= MAX_CELLS || name.len() > 65536 {
             return Err(Error::Limit);
         }
@@ -379,7 +365,6 @@ impl<'a> Evaluator<'a> {
             return Err(Error::Limit);
         }
         let key = Key { scope, name: name.to_ascii_lowercase() };
-        self.canonical.insert(key.clone(), Key { scope, name: canonical.to_ascii_lowercase() });
         self.cells.insert(key, cell);
         Ok(())
     }
@@ -392,7 +377,7 @@ impl<'a> Evaluator<'a> {
         row: Option<&'a Row>,
         names: &mut Vec<NamedCell<'a>>,
     ) -> Result<(), Error> {
-        self.alias(scope, name.clone(), cell, &name)?;
+        self.index_cell(scope, name.clone(), cell)?;
         names.push(NamedCell { name, cell, section, row });
         Ok(())
     }
@@ -434,7 +419,7 @@ impl<'a> Evaluator<'a> {
         Ok(cells)
     }
     pub fn cell(&self, scope: Scope, name: &str) -> Option<&'a Cell> {
-        self.cells.get(&Key { scope, name: name.to_ascii_lowercase() }).copied().or_else(|| self.baseline_cell(scope, name))
+        indexed_key(&self.cells, scope, name).and_then(|key| self.cells.get(&key).copied()).or_else(|| self.baseline_cell(scope, name))
     }
     fn baseline_cell(&self, scope: Scope, name: &str) -> Option<&'a Cell> {
         if !self.sheets.contains_key(&scope) || !self.defaults_allowed(scope, name) {
@@ -836,10 +821,7 @@ impl<'a> Evaluator<'a> {
         if name.len() > 65536 {
             return None;
         }
-        self.canonical
-            .get(&Key { scope, name: name.to_ascii_lowercase() })
-            .cloned()
-            .or_else(|| self.baseline_cell(scope, name).map(|_| Key { scope, name: name.to_ascii_lowercase() }))
+        indexed_key(&self.cells, scope, name).or_else(|| self.baseline_cell(scope, name).map(|_| Key { scope, name: name.to_ascii_lowercase() }))
     }
     /// Custom arguments live only during invocation; argument-free dependencies share the cell cache.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/evalcell-function
@@ -1249,6 +1231,36 @@ pub(crate) fn connection_name(index: u32, column: &str) -> Result<String, Error>
     } else {
         format!("Connections.{column}[{one}]")
     })
+}
+/// Formatting [1], explicit User/Prop.Value and Controls.X are alternate
+/// spellings of an existing cell, not additional retained cell entries.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references
+fn indexed_key(cells: &BTreeMap<Key, &Cell>, scope: Scope, name: &str) -> Option<Key> {
+    let mut key = Key { scope, name: name.to_ascii_lowercase() };
+    if cells.contains_key(&key) {
+        return Some(key);
+    }
+    let (section, _) = key.name.split_once('.')?;
+    let section = section.to_owned();
+    let formatting = matches!(section.as_str(), "char" | "para" | "fields" | "layers" | "fillgradientstops" | "linegradientstops");
+    let base = if formatting {
+        key.name.strip_suffix("[1]")
+    } else if matches!(section.as_str(), "user" | "prop") {
+        key.name.strip_suffix(".value")
+    } else if section == "controls" {
+        key.name.strip_suffix(".x")
+    } else {
+        None
+    }?;
+    key.name = base.to_owned();
+    let cell = cells.get(&key)?;
+    if formatting && key.name != format!("{section}.{}", cell.name.to_ascii_lowercase()) {
+        return None;
+    }
+    if (matches!(section.as_str(), "user" | "prop") && cell.name != "Value") || (section == "controls" && cell.name != "X") {
+        return None;
+    }
+    Some(key)
 }
 fn unquote(s: &str) -> String {
     let s = s.trim();
@@ -1750,6 +1762,40 @@ mod tests {
             face_names: BTreeMap::from([(0, "Example".into())]),
             ..Default::default()
         }
+    }
+    #[test]
+    fn alternate_cell_spellings_share_one_retained_index_entry() {
+        let mut doc = Document::default();
+        for (section, row, column, value) in [
+            ("Character", None, "Synthetic", "2"),
+            ("Paragraph", None, "Synthetic", "3"),
+            ("User", Some("Flag"), "Value", "4"),
+            ("Property", Some("Flag"), "Value", "5"),
+            ("Controls", Some("Handle"), "X", "6"),
+        ] {
+            doc.document_sheet.sections.push(Section {
+                name: section.into(),
+                rows: vec![Row { name: row.map(str::to_owned), index: Some(0), cells: vec![cell(column, value, None)], ..Default::default() }],
+                ..Default::default()
+            });
+        }
+        for section in doc.document_sheet.sections.iter_mut().take(2) {
+            section.rows.push(Row { index: Some(1), cells: vec![cell("Synthetic", "7", None)], ..Default::default() });
+        }
+        let mut evaluator = Evaluator::new(&doc).unwrap();
+        assert_eq!(evaluator.cells.len(), 7, "alternate spellings must not consume extra retained cell entries");
+        for (name, expected) in
+            [("Char.Synthetic[1]", 2.), ("Para.Synthetic[1]", 3.), ("User.Flag.Value", 4.), ("Prop.Flag.Value", 5.), ("Controls.Handle.X", 6.)]
+        {
+            assert_eq!(evaluator.evaluate(Scope::Document, name), Value::Number(expected));
+            assert!(evaluator.cell(Scope::Document, name).is_some());
+        }
+        assert_eq!(evaluator.evaluate(Scope::Document, "Char.Synthetic[2]"), Value::Number(7.));
+        for invalid in ["Char.Synthetic[2][1]", "Para.Synthetic[2][1]", "Char.Synthetic[1][1]", "Char.Synthetic[3]"] {
+            assert_eq!(evaluator.evaluate(Scope::Document, invalid), Value::Error(Error::Ref), "{invalid}");
+            assert!(evaluator.cell(Scope::Document, invalid).is_none(), "{invalid}");
+        }
+        assert_eq!(evaluator.evaluate(Scope::Document, "User.Missing.Value"), Value::Error(Error::Ref));
     }
     #[test]
     fn numeric_cell_coerces_index_text_but_user_variant_keeps_string() {

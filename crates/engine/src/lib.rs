@@ -184,6 +184,7 @@ impl Session {
         let mut published = false;
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let result = f(self)?;
+            stencils::check_media(self, None)?;
             if self.dirty {
                 let identities = |d: &Document| {
                     (
@@ -205,7 +206,9 @@ impl Session {
                 let written =
                     misterdiagram_vsdx::write_with_glue_host(&self.document, Some(&theme), Some(&misterdiagram_text::Host), Some(&mut glue))
                         .map_err(operation)?;
-                self.document = Arc::new(misterdiagram_vsdx::import_with_open_nodes(&written.bytes, self.retained_xml_nodes()).map_err(operation)?);
+                let document = misterdiagram_vsdx::import_with_open_nodes(&written.bytes, self.retained_xml_nodes()).map_err(operation)?;
+                stencils::check_media(self, Some(&document))?;
+                self.document = Arc::new(document);
                 files::update_palette(Arc::make_mut(&mut self.document))?;
                 published = true;
                 self.dirty = false;

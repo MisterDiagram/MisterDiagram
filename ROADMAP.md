@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-18: M5.13b lands the reviewed Brief 26 implementation for #58, #59 and #63, with regenerated source inventory. Vendor baseline remains 5,748/6,742. The cached-text floor failure predates Brief 26 at #41; its repair, the ruled SETF Action behavior and witnessed geometry fixes follow in M5.13c through M5.13f. No vendor asset or gate changes.
+
 - 2026-10-17: Brief 26 partial: M5.10 witness recorded, ruling pending; Action evaluation unchanged. Media accounting and shared evaluator aliases recover 76 vendor masters: 5,748/6,742 (85.2566%), zero blanks or guard kills. M5.12 names 13 REF, 12 non-finite path and 2 WMF gaps. MCP large-stencil batch, global search and list/close repros pass. Full corpus roundtrip and render ceilings pass, but cached text 61,709/67,866 (90.927710%) is below the unchanged 90.987500% floor. Work stopped under the regression rule; candidate Rust remains uncommitted without a complete final CI. The 99% inventory target is not met.
 
 - 2026-10-17: P5a implementation is available: MCP topology, reproducible office example, performance contribution workflow and CI archives. Fresh VM routes and equal-size renders pass; repairs are 0 SAN/0 office under Charles's router-owned Geometry ruling, with 296/28 cells judged within 1e-6. Local CI and all four regression numbers pass; five benchmark packages remain byte-equal. Both human gates remain pending.

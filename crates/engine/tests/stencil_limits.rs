@@ -115,3 +115,67 @@ fn six_dense_stencil_sources_stay_bounded() {
     }
     std::fs::remove_dir_all(directory).unwrap();
 }
+
+/// Repeated images are media, rather than retained structured source XML.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml
+#[test]
+fn repeated_large_media_has_a_separate_bounded_stencil_budget() {
+    let directory = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(format!("../../target/engine-tests/stencil-media-{}", std::process::id()));
+    std::fs::create_dir_all(&directory).unwrap();
+    let mut document = skeleton::document(false);
+    // A contributor-original one-pixel, 24-bit BMP, padded like a large payload.
+    let mut bmp = vec![0; 4 * MIB];
+    bmp[..2].copy_from_slice(b"BM");
+    bmp[2..6].copy_from_slice(&(58u32).to_le_bytes());
+    bmp[10..14].copy_from_slice(&(54u32).to_le_bytes());
+    bmp[14..18].copy_from_slice(&(40u32).to_le_bytes());
+    bmp[18..22].copy_from_slice(&(1i32).to_le_bytes());
+    bmp[22..26].copy_from_slice(&(1i32).to_le_bytes());
+    bmp[26..28].copy_from_slice(&(1u16).to_le_bytes());
+    bmp[28..30].copy_from_slice(&(24u16).to_le_bytes());
+    for index in 0..40 {
+        document.parts.insert(
+            format!("visio/media/repeated{index}.bmp"),
+            Part { bytes: bmp.clone(), content_type: Some("image/bmp".into()), ..Default::default() },
+        );
+    }
+    let bytes = misterdiagram_vsdx::write_as(&document, misterdiagram_vsdx::SaveKind::Stencil).unwrap().bytes;
+    for index in 25..40 {
+        document.parts.remove(&format!("visio/media/repeated{index}.bmp"));
+    }
+    let medium = directory.join("medium.vsdx");
+    std::fs::write(&medium, misterdiagram_vsdx::write(&document).unwrap().bytes).unwrap();
+    drop(document);
+    let path = directory.join("repeated.vssx");
+    std::fs::write(&path, &bytes).unwrap();
+    let mut session = Session::new();
+    let opened = session.execute("stencil.open", &json!({"path":path}));
+    assert!(opened.is_ok(), "160 MiB repeated media must not consume the 128 MiB source budget: {opened:?}");
+    assert_eq!(session.execute("stencil.open", &json!({"path":path})).unwrap()["stencil"], 1);
+    let second = directory.join("second.vssx");
+    std::fs::write(&second, &bytes).unwrap();
+    let error = session.execute("stencil.open", &json!({"path":second})).unwrap_err().to_string();
+    assert!(error.contains("retained stencil media byte limit") && error.contains("limit 256 MiB"), "{error}");
+    assert!(session.execute("stencil.masters", &json!({"stencil":1})).is_ok());
+    assert!(session.execute("stencil.masters", &json!({"stencil":2})).is_err(), "media refusal must be transactional");
+    session.execute("shape.draw.rect", &json!({"x":1,"y":1,"width":2,"height":1})).unwrap();
+    let before = session.document().clone();
+    let error = session.execute("file.open", &json!({"path":second})).unwrap_err().to_string();
+    assert!(error.contains("media byte limit"), "drawing admission must charge open stencil media: {error}");
+    assert_eq!(session.document(), &before, "failed drawing admission must roll back");
+    drop(session);
+    let mut session = Session::new();
+    session.execute("file.open", &json!({"path":path})).unwrap();
+    let error = session.execute("stencil.open", &json!({"path":second})).unwrap_err().to_string();
+    assert!(error.contains("media byte limit"), "both admission orders must enforce the same aggregate: {error}");
+    let error = session.execute("shape.draw.rect", &json!({"x":1,"y":1,"width":2,"height":1})).unwrap_err().to_string();
+    assert!(error.contains("media byte limit"), "copy-on-write must charge rollback media owners: {error}");
+    assert!(session.document().pages[0].shapes.is_empty(), "failed publication must roll back");
+    drop(session);
+    let mut session = Session::new();
+    session.execute("file.open", &json!({"path":medium})).unwrap();
+    let error = session.execute("shape.draw.rect", &json!({"x":1,"y":1,"width":2,"height":1})).unwrap_err().to_string();
+    assert!(error.contains("media byte limit"), "reimport must include its separate allocation: {error}");
+    assert!(session.document().pages[0].shapes.is_empty(), "refused reimport must roll back");
+    std::fs::remove_dir_all(directory).unwrap();
+}

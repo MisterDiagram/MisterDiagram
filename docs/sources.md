@@ -119,7 +119,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/font-function> | `crates/sheet/src/functions/color.rs`, `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fontschemeindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fonttoid-function> | `crates/sheet/src/functions/color.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml> | `crates/engine/tests/foreign_master.rs`, `crates/engine/tests/stencil_limits.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml> | `crates/engine/src/stencils.rs`, `crates/engine/tests/foreign_master.rs`, `crates/engine/tests/stencil_limits.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-shape-data-section> | `crates/engine/src/content.rs`, `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-text-fields-section> | `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-function> | `crates/sheet/src/functions/text.rs` |
@@ -235,6 +235,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rad-function> | `crates/sheet/src/functions/extras.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rectsect-function> | `crates/sheet/src/functions/spatial.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/red-function> | `crates/sheet/src/functions/color.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/ref-function> | `crates/render/tests/vendor_patterns.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/refby-element-cell_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rel-element-foreigndata_type-complextypevisio-xml> | `crates/engine/tests/foreign_master.rs`, `crates/render/src/scene.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rel-element-page_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/vsdx/src/lib.rs` |
@@ -340,9 +341,11 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.cell.resultiu> | `crates/vsdx/src/dump.rs`, `tools/oracle/common.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.connects> | `apps/misterdiagram-cli/tests/examples.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.clean> | `tools/oracle/vendor-stencils/action-witness.ps1` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.document.close> | `crates/engine/src/stencils.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.exportasfixedformat> | `crates/engine/src/files.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.masters> | `crates/engine/src/stencils.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.saveas> | `apps/misterdiagram-cli/src/author.rs`, `apps/misterdiagram-corpus/examples/route_resave.rs`, `crates/engine/src/files.rs`, `tools/oracle/accept.ps1` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.documents> | `crates/engine/src/stencils.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.documents.add> | `crates/engine/src/files.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.documents.open> | `crates/engine/src/files.rs`, `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.documents.openex> | `crates/engine/src/stencils.rs`, `crates/engine/tests/stencil_limits.rs`, `tools/oracle/accept.ps1` |
@@ -419,5 +422,6 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/c5e4da4b-c1d0-4cdd-a418-04fccbc098ae> | `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/f91b1356-cff1-4c71-8a04-247007cbe4c9> | `crates/sheet/src/language.rs`, `tools/oracle/accept_report.py` |
 | <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/> | `crates/render/src/metafile/mod.rs` |
+| <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/ba5458c6-e885-41e6-b5d7-d54ef9e1065f> | `crates/render/tests/vendor_patterns.rs` |
 | <https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw> | `apps/misterdiagram-cli/tests/authoring.rs` |
 | <https://learn.microsoft.com/en-us/windows/win32/gdi/ternary-raster-operations> | `crates/render/src/metafile/mod.rs` |

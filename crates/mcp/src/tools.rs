@@ -1,4 +1,4 @@
-//! Fourteen MCP tools backed by the engine's public command schemas.
+//! MCP tools backed by the engine's public command schemas.
 use crate::backend::Backend;
 use serde_json::{Value, json};
 pub struct ToolResult(Result<Value, String>);
@@ -22,6 +22,8 @@ const TOOLS: &[(&str, &str, &str)] = &[
     ("inspect_shape", "shape.inspect", "Inspect evaluated shape cells, text, data and glue"),
     ("sheet_get", "sheet.get", "Read an evaluated ShapeSheet cell"),
     ("sheet_set", "sheet.set", "Set a ShapeSheet cell"),
+    ("stencil_list", "stencil.list", "List the document stencil and all open external stencils"),
+    ("stencil_close", "stencil.close", "Close an external stencil; later stencil indices shift down"),
     ("stencil_search", "stencil.search", "Search open stencils and the document stencil"),
     ("drop_master", "master.drop", "Drop a master instance"),
     ("connect", "connect.dynamic", "Glue a connector end statically or dynamically"),

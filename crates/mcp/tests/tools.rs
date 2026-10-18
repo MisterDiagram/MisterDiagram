@@ -15,7 +15,7 @@ fn command(s: &mut Server, name: &str, params: Value) -> Value {
     call(s, "run_command", json!({"command":name,"params":params}))
 }
 #[test]
-fn lifecycle_and_all_fourteen_tools_honor_parameters() {
+fn lifecycle_and_all_sixteen_tools_honor_parameters() {
     let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/mcp-tools").join(std::process::id().to_string());
     std::fs::create_dir_all(&dir).unwrap();
     let mut s = Server::new(Box::new(Headless::new()));
@@ -25,7 +25,7 @@ fn lifecycle_and_all_fourteen_tools_honor_parameters() {
     assert!(s.handle(json!({"jsonrpc":"2.0","method":"notifications/initialized"})).is_none());
     assert!(s.is_initialized());
     let list = rpc(&mut s, "tools/list", json!({}));
-    assert_eq!(list["tools"].as_array().unwrap().len(), 14);
+    assert_eq!(list["tools"].as_array().unwrap().len(), 16);
     for tool in list["tools"].as_array().unwrap() {
         assert_eq!(tool["inputSchema"]["type"], "object");
         let name = tool["name"].as_str().unwrap();
@@ -79,6 +79,14 @@ fn lifecycle_and_all_fourteen_tools_honor_parameters() {
     call(&mut s, "open", json!({"path":saved}));
     assert_eq!(call(&mut s, "inspect_document", json!({}))["pages"].as_array().unwrap().len(), 2);
     assert!(call(&mut s, "inspect_shape", json!({"page":1,"id":1}))["text"].as_str().unwrap().contains("Orchard"));
+    let stencil = dir.join("original.vssx");
+    call(&mut s, "save", json!({"path":stencil}));
+    command(&mut s, "stencil.open", json!({"path":stencil}));
+    let stencils = call(&mut s, "stencil_list", json!({}));
+    assert_eq!(stencils["stencils"].as_array().unwrap().len(), 2);
+    assert_eq!(stencils["stencils"][1]["name"], "original.vssx");
+    assert_eq!(call(&mut s, "stencil_close", json!({"stencil":1}))["closed"], 1);
+    assert_eq!(call(&mut s, "stencil_list", json!({}))["stencils"].as_array().unwrap().len(), 1);
     let doc = call(&mut s, "inspect_document", json!({}));
     let failed = rpc(
         &mut s,

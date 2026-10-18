@@ -10,8 +10,36 @@ pub(crate) struct Stencil {
     pub document: Arc<Document>,
 }
 const MAX_SOURCE_BYTES: usize = 128 * 1024 * 1024;
+const MAX_MEDIA_BYTES: usize = 256 * 1024 * 1024;
+fn is_media(part: &misterdiagram_model::Part) -> bool {
+    part.xml.is_none() && part.content_type.as_deref().is_some_and(|kind| kind.starts_with("image/"))
+}
 fn source_size(doc: &Document) -> usize {
-    doc.parts.values().fold(0usize, |n, p| n.saturating_add(p.bytes.len()))
+    doc.parts.values().filter(|part| !is_media(part)).fold(0usize, |n, p| n.saturating_add(p.bytes.len()))
+}
+fn media_size(doc: &Document) -> usize {
+    doc.parts.values().filter(|part| is_media(part)).fold(0usize, |n, p| n.saturating_add(p.bytes.len()))
+}
+/// Admit media across distinct active, stencil, history and rollback documents.
+/// An incoming reimport is a separate allocation even when its bytes are equal.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml
+pub(crate) fn check_media(s: &Session, incoming: Option<&Document>) -> Result<()> {
+    // Media remain subject to package/part and decode limits. Retained media also
+    // have an aggregate session allowance, including history and rollback owners.
+    // https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml
+    let mut seen = std::collections::HashSet::new();
+    let retained_media =
+        s.retained_documents().into_iter().filter(|d| seen.insert(Arc::as_ptr(d))).fold(0usize, |n, d| n.saturating_add(media_size(d)));
+    let needed_media = incoming.map_or(0, media_size);
+    if needed_media.saturating_add(retained_media) > MAX_MEDIA_BYTES {
+        return Err(operation(format!(
+            "retained stencil media byte limit: needs {:.1} MiB, {:.1} MiB already retained, limit {} MiB",
+            needed_media as f64 / (1024. * 1024.),
+            retained_media as f64 / (1024. * 1024.),
+            MAX_MEDIA_BYTES / (1024 * 1024),
+        )));
+    }
+    Ok(())
 }
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.documents.openex
 pub(crate) fn open(s: &mut Session, p: &Value) -> Result<Value> {
@@ -37,13 +65,37 @@ pub(crate) fn open(s: &mut Session, p: &Value) -> Result<Value> {
             MAX_SOURCE_BYTES / (1024 * 1024),
         )));
     }
+    check_media(s, Some(&document))?;
     let count = document.masters.len();
     s.stencils.push(Stencil { path, document: Arc::new(document) });
     Ok(json!({"stencil":s.stencils.len(),"masters":count}))
 }
+/// Open stencils survive file.new and file.open; index zero is the document stencil.
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.documents
+pub(crate) fn list(s: &mut Session, _: &Value) -> Result<Value> {
+    let mut rows = vec![
+        json!({"stencil":0,"name":"Document stencil","path":s.path.as_ref().map(|path| path.to_string_lossy()),"masters":s.document.masters.len()}),
+    ];
+    rows.extend(s.stencils.iter().enumerate().map(|(index, stencil)| {
+        json!({"stencil":index+1,"name":stencil.path.file_name().unwrap_or(stencil.path.as_os_str()).to_string_lossy(),"path":stencil.path.to_string_lossy(),"masters":stencil.document.masters.len()})
+    }));
+    Ok(json!({"stencils":rows}))
+}
+/// Close an external stencil. Later external indices shift down by one.
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.document.close
+pub(crate) fn close(s: &mut Session, p: &Value) -> Result<Value> {
+    let index =
+        usize::try_from(uint(p, "stencil")?).map_err(operation)?.checked_sub(1).ok_or_else(|| operation("cannot close the document stencil"))?;
+    if s.stencils.get(index).is_none() {
+        return Err(operation("stencil not found"));
+    }
+    s.stencils.remove(index);
+    Ok(json!({"closed":index+1}))
+}
 pub(crate) fn document(s: &Session, p: &Value) -> Result<Arc<Document>> {
     match p.get("stencil") {
         None => Ok(s.document.clone()),
+        Some(value) if value.as_u64() == Some(0) => Ok(s.document.clone()),
         Some(_) => {
             let i = usize::try_from(uint(p, "stencil")?).map_err(operation)?.checked_sub(1).ok_or_else(|| operation("stencil is one-based"))?;
             s.stencils.get(i).map(|s| s.document.clone()).ok_or_else(|| operation("stencil not found"))
@@ -61,7 +113,7 @@ pub(crate) fn find<'a>(document: &'a Document, p: &Value) -> Result<&'a Master> 
         })
         .ok_or_else(|| operation("master not found"))
 }
-fn entries(document: &Document, query: Option<&str>, limit: usize) -> Result<Value> {
+fn entries(document: &Document, stencil: usize, query: Option<&str>, limit: usize) -> Result<Value> {
     let themes = misterdiagram_theme::Themes::from_document(document).map_err(operation)?;
     let mut e = Evaluator::new(document).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
     let words = query.map(|s| s.to_lowercase().split_whitespace().map(str::to_owned).collect::<Vec<_>>()).unwrap_or_default();
@@ -79,25 +131,51 @@ fn entries(document: &Document, query: Option<&str>, limit: usize) -> Result<Val
             continue;
         }
         let dimension = |e: &mut Evaluator<'_>, name: &str| scope.map(|scope| e.evaluate(scope, name).numeric().map_err(operation)).transpose();
-        result.push(json!({"id":master.id,"name":master.name,"name_u":master.name_u,"width":dimension(&mut e,"Width")?,"height":dimension(&mut e,"Height")?,"keywords":keywords}));
+        result.push(json!({"stencil":stencil,"id":master.id,"name":master.name,"name_u":master.name_u,"width":dimension(&mut e,"Width")?,"height":dimension(&mut e,"Height")?,"keywords":keywords}));
     }
     Ok(json!({"masters":result,"matched":matched}))
 }
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.document.masters
 pub(crate) fn masters(s: &mut Session, p: &Value) -> Result<Value> {
     let limit = p.get("limit").map(|_| uint(p, "limit")).transpose()?.unwrap_or(1000).min(1000) as usize;
-    entries(document(s, p)?.as_ref(), None, limit)
+    entries(document(s, p)?.as_ref(), p.get("stencil").and_then(Value::as_u64).unwrap_or(0) as usize, None, limit)
 }
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/shapekeywords-cell-miscellaneous-section
 pub(crate) fn search(s: &mut Session, p: &Value) -> Result<Value> {
     let query = name(p, "query")?;
     let limit = p.get("limit").map(|_| uint(p, "limit")).transpose()?.unwrap_or(1000).min(1000) as usize;
-    entries(document(s, p)?.as_ref(), Some(query), limit)
+    if p.get("stencil").is_some() {
+        let index = usize::try_from(uint(p, "stencil")?).map_err(operation)?;
+        return entries(document(s, p)?.as_ref(), index, Some(query), limit);
+    }
+    let mut masters = Vec::new();
+    let mut matched = 0usize;
+    for (index, doc) in std::iter::once(&s.document).chain(s.stencils.iter().map(|stencil| &stencil.document)).enumerate() {
+        let result = entries(doc, index, Some(query), limit.saturating_sub(masters.len()))?;
+        matched = matched.saturating_add(result.get("matched").and_then(Value::as_u64).unwrap_or(0) as usize);
+        if let Some(rows) = result.get("masters").and_then(Value::as_array) {
+            masters.extend(rows.iter().cloned());
+        }
+    }
+    Ok(json!({"masters":masters,"matched":matched}))
 }
 
 #[cfg(test)]
 mod retained_tests {
     use super::*;
+    #[cfg(unix)]
+    #[test]
+    fn stencil_listing_displays_non_utf8_paths_without_panicking() {
+        use std::os::unix::ffi::OsStringExt;
+        let path = PathBuf::from(std::ffi::OsString::from_vec(b"original-\xff.vssx".to_vec()));
+        let mut s = Session::new();
+        s.path = Some(path.clone());
+        s.stencils.push(Stencil { path, document: s.document.clone() });
+        let result = list(&mut s, &json!({})).unwrap();
+        assert_eq!(result["stencils"][0]["path"], "original-\u{fffd}.vssx");
+        assert_eq!(result["stencils"][1]["path"], "original-\u{fffd}.vssx");
+        assert_eq!(result["stencils"][1]["name"], "original-\u{fffd}.vssx");
+    }
     #[test]
     fn document_and_stencils_share_admission_and_refusal_rolls_back() {
         let directory =

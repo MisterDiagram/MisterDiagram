@@ -46,6 +46,11 @@ jobs:
         run: python3 tools/oracle/test_route_geometry.py
       - name: Build test binary
         run: cargo build --release -p misterdiagram-cli
+      - name: MCP large-stencil stdio regressions
+        env:
+          MISTERDIAGRAM_CLI: target/release/misterdiagram${{ runner.os == 'Windows' && '.exe' || '' }}
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python3 tools/mcp/test_stencils.py
       - name: Archive binary and licences
         id: archive
         run: python3 tools/ci/archive.py

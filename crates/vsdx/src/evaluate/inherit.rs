@@ -149,7 +149,6 @@ impl<'a> Evaluator<'a> {
             self.effective(*scope, &local_names, &mut resolved, &mut visiting, &mut count, 0)?;
         }
         self.cells.clear();
-        self.canonical.clear();
         self.names.clear();
         self.indexed_name_bytes = 0;
         for scope in scopes {
@@ -159,21 +158,6 @@ impl<'a> Evaluator<'a> {
                 let n = entry.named;
                 self.add_cell(scope, n.name.clone(), n.cell, n.section, n.row, &mut names)?;
                 self.inheritance.origins.insert(Key { scope, name: n.name.to_ascii_lowercase() }, entry.origin);
-                if let Some(section) = n.section
-                    && n.row.is_some()
-                {
-                    if matches!(section.name.as_str(), "Character" | "Paragraph" | "Field" | "Layer" | "FillGradient" | "LineGradient")
-                        && !n.name.ends_with(']')
-                    {
-                        self.alias(scope, format!("{}[1]", n.name), n.cell, &n.name)?;
-                    }
-                    if matches!(section.name.as_str(), "User" | "Property") && n.cell.name == "Value" {
-                        self.alias(scope, format!("{}.Value", n.name), n.cell, &n.name)?;
-                    }
-                    if matches!(section.name.as_str(), "Control" | "Controls") && n.cell.name == "X" {
-                        self.alias(scope, format!("{}.X", n.name), n.cell, &n.name)?;
-                    }
-                }
             }
             self.names.insert(scope, names);
             for ((section, index), rows) in effective.named_rows {
@@ -498,7 +482,7 @@ impl<'a> Evaluator<'a> {
     /// Local cache, including Inh, before resolving the formula provider.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
     pub(crate) fn local_source_cell(&self, scope: Scope, name: &str) -> Option<&'a Cell> {
-        self.inheritance.local_cells.get(&Key { scope, name: name.to_ascii_lowercase() }).copied()
+        super::indexed_key(&self.inheritance.local_cells, scope, name).and_then(|key| self.inheritance.local_cells.get(&key).copied())
     }
     pub(crate) fn formula_origin(&self, scope: Scope, name: &str) -> Option<Scope> {
         let key = self.canonical_key(scope, name)?;

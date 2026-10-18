@@ -1,9 +1,10 @@
 # MCP
 
-Brief 26 candidate status: the list/close, global stencil search and batch retention changes described below pass focused real-stdio tests, but remain uncommitted after a full-corpus cached-text floor failure stopped final CI. The committed server preceding this candidate has fourteen tools.
-
-Brief 26 adds stencil lifetime controls and global search, with real stdio
-regressions for issues #58, #59 and #63. Action-cell behavior awaits Charles's ruling.
+M5.13b includes stencil lifetime controls, global search and bounded batch
+snapshots. Three real-stdio regressions cover issues #58, #59 and #63 with
+contributor-original 38 MiB stencils generated at runtime. The 256 MiB retained
+media allowance includes active documents, stencils, history and rollback owners;
+file opening and edited reimports enforce the same aggregate transactionally.
 
 Run `misterdiagram mcp`. The server reads one JSON-RPC message per line on stdin
 and writes replies on stdout. Diagnostics use stderr. Messages are capped at

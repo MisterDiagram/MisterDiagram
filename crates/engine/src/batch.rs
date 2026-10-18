@@ -45,7 +45,13 @@ impl Session {
             }
         }
         let mut before = self.snapshot();
-        before.stencils = Some(self.stencils.clone());
+        // Immutable open stencils are already shared by Arc. A document-only
+        // batch must not charge their sources again as undo state (#58).
+        if self.stencils.len() != candidate.stencils.len()
+            || self.stencils.iter().zip(&candidate.stencils).any(|(a, b)| !std::sync::Arc::ptr_eq(&a.document, &b.document))
+        {
+            before.stencils = Some(self.stencils.clone());
+        }
         candidate.undo = self.undo.clone();
         candidate.undo.push_back(before);
         candidate.redo.clear();
