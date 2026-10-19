@@ -19,8 +19,7 @@ const INVALID_PARAMS: i64 = -32602;
 const INTERNAL_ERROR: i64 = -32603;
 const RESOURCE_NOT_FOUND: i64 = -32002;
 
-const INSTRUCTIONS: &str =
-    "MisterDiagram headless Visio core. Strict transactional authoring, inspection and export. Page coordinates are inches, y-up.";
+const INSTRUCTIONS: &str = "MisterDiagram headless Visio core. Strict transactional authoring, inspection and export. Page coordinates are inches, y-up. For drawings generated from data with hundreds of commands, write a script that builds the command list and runs it with the CLI, so the drawing can be rebuilt when data changes. Use MCP tools for interactive edits, inspection and the render-and-look loop. Use export for deliverables and render for previews.";
 
 /// Resource URIs.
 pub const DOC_URI: &str = "misterdiagram://document";

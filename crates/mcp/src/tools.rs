@@ -38,29 +38,61 @@ impl ToolResult {
     }
 }
 const TOOLS: &[(&str, &str, &str)] = &[
-    ("open", "file.open", "Open a drawing"),
-    ("save", "file.save", "Save a drawing, stencil or template"),
-    ("export", "file.export", "Export VSDX, SVG, PNG or PDF (chosen by path extension)"),
-    ("render", "file.export", "Render PNG, SVG or PDF"),
-    ("list_commands", "engine.commands", "List engine commands and schemas"),
-    ("run_command", "engine.execute", "Execute one strict engine command"),
-    ("batch", "engine.batch", "Run strict commands atomically as one undo step"),
-    ("inspect_document", "document.inspect", "Inspect pages, layers, shapes and Connects"),
-    ("inspect_shape", "shape.inspect", "Inspect evaluated shape cells, text, data and glue"),
-    ("sheet_get", "sheet.get", "Read an evaluated ShapeSheet cell"),
-    ("sheet_set", "sheet.set", "Set a ShapeSheet cell"),
-    ("stencil_list", "stencil.list", "List the document stencil and all open external stencils"),
-    ("stencil_close", "stencil.close", "Close an external stencil; later stencil indices shift down"),
-    ("stencil_search", "stencil.search", "Search open stencils and the document stencil"),
-    ("drop_master", "master.drop", "Drop a master instance"),
-    ("connect", "connect.dynamic", "Glue a connector end statically or dynamically"),
+    ("open", "file.open", "Use this shortcut to open a drawing interactively; equivalent to run_command file.open."),
+    ("save", "file.save", "Use this shortcut to save a drawing, stencil or template deliverable; equivalent to run_command file.save."),
+    (
+        "export",
+        "file.export",
+        "Use for deliverables in VSDX, PNG, SVG or PDF; equivalent to run_command file.save/file.export. Use render for previews.",
+    ),
+    (
+        "render",
+        "file.export",
+        "Use for PNG, SVG or PDF previews in the render-and-look loop; equivalent to run_command file.export. Use export for deliverables.",
+    ),
+    ("list_commands", "engine.commands", "Use to discover command schemas before run_command; equivalent to run_command engine.commands."),
+    (
+        "run_command",
+        "engine.execute",
+        "Use for any registered command, especially operations without a dedicated shortcut; dedicated tools expose the same engine behavior.",
+    ),
+    (
+        "batch",
+        "engine.batch",
+        "Use instead of repeated run_command calls for an atomic interactive edit with references and one undo step; equivalent to run_command engine.batch. Use a CLI script for hundreds of data-generated commands.",
+    ),
+    (
+        "inspect_document",
+        "document.inspect",
+        "Use for a document overview with page/sections/cells filters; equivalent to run_command document.inspect. Use inspect_shape for one shape.",
+    ),
+    ("inspect_shape", "shape.inspect", "Use for focused shape inspection with cells/sections filters; equivalent to run_command shape.inspect."),
+    ("sheet_get", "sheet.get", "Use for one evaluated ShapeSheet cell with formula/cache/units; equivalent to run_command sheet.get."),
+    ("sheet_set", "sheet.set", "Use for a direct ShapeSheet cell edit; equivalent to run_command sheet.set."),
+    ("stencil_list", "stencil.list", "Use to discover current stencil indices before dropping/searching; equivalent to run_command stencil.list."),
+    (
+        "stencil_close",
+        "stencil.close",
+        "Use to release an external stencil; equivalent to run_command stencil.close. Later stencil indices shift down.",
+    ),
+    ("stencil_search", "stencil.search", "Use to find masters with query/limit filters; equivalent to run_command stencil.search."),
+    (
+        "drop_master",
+        "master.drop",
+        "Use to drop and optionally label/style one master; equivalent to run_command master.drop. Use batch for linked creation.",
+    ),
+    (
+        "connect",
+        "connect.dynamic",
+        "Use to glue one end of an existing connector; equivalent to run_command connect.static/connect.dynamic. Use run_command connector.add to create and glue both ends.",
+    ),
 ];
 fn schema(name: &str, command: &str) -> Result<Value, String> {
     let spec = misterdiagram_engine::find_command(command).ok_or_else(|| format!("missing engine command {command}"))?;
     let mut schema: Value = serde_json::from_str(spec.params).map_err(|e| e.to_string())?;
     if name == "connect" {
-        schema["properties"]["mode"] = json!({"type":"string","enum":["static","dynamic"]});
-        schema["properties"]["point"] = json!({"type":"string","minLength":1,"maxLength":65536});
+        schema["properties"]["mode"] = json!({"type":"string","enum":["static","dynamic"],"description":"Glue mode: static connection-point glue or dynamic whole-shape glue; unitless."});
+        schema["properties"]["point"] = json!({"type":"string","minLength":1,"maxLength":65536,"description":"Universal connection X-cell name on the target shape, for example Connections.X1."});
     }
     Ok(schema)
 }

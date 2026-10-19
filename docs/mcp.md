@@ -284,3 +284,27 @@ calls), SAN 338 commands in one batch (five total calls), and fabric 28 build
 commands in two batches (five total calls). Totals include layout inspection and
 save/render or export. The fabric page reports 10 rule b and 10 rule g hits on
 its ordinary boxes and headings; a, c and d pass. These boxes are not containers.
+
+Use MCP for interactive edits, inspection and the render-and-look loop. Use
+`render` for previews; use `export` for deliverables. Both reach the same export
+engine, but naming the intent makes a tool transcript easier to follow.
+`list_commands` returns each command's `params` as a JSON object. Every parameter
+has a description stating its units and coordinate anchor where applicable.
+In particular, rectangle/ellipse x/y are the bottom-left corner in page inches;
+master.drop x/y are the pin in page inches. This documents existing behavior.
+
+For a drawing generated from data with hundreds of commands, write a script that
+builds the command list and runs it with the CLI. Keep the data and script so the
+drawing can be rebuilt when the data changes. `run --batch FILE` reads at most
+1 MiB of JSON with the same `{"commands":[...]}` envelope as MCP batch. A short
+worked example writes two labeled rectangles and a link from a data list:
+
+```sh
+python3 tools/mcp/script-route.py target/script-route --cli target/release/misterdiagram
+# The script writes commands.json, then runs:
+target/release/misterdiagram run --batch target/script-route/commands.json --save target/script-route/drawing.vsdx
+```
+
+The source uses `as` names and `$name` references, so adding another data row does
+not require predicting or renumbering shape IDs. Saving follows the successful
+batch as a separate operation.

@@ -1,7 +1,10 @@
 //! CLI commands share the engine's session, schema validation and rollback boundary.
 use misterdiagram_engine::Session;
 use serde_json::{Value, json};
-use std::{ffi::OsString, io::Write};
+use std::{
+    ffi::OsString,
+    io::{Read, Write},
+};
 fn output(out: &mut impl Write, value: &impl serde::Serialize) -> Result<(), String> {
     serde_json::to_writer(&mut *out, value).map_err(|e| e.to_string())?;
     writeln!(out).map_err(|e| e.to_string())
@@ -34,10 +37,23 @@ pub fn run(args: &[OsString], out: &mut impl Write) -> Result<(), String> {
     let mut commands = Vec::<(&str, Value)>::new();
     let mut index = 1usize;
     while let Some(arg) = args.get(index) {
-        let value = args.get(index + 1).ok_or("usage: run [--open FILE] --cmd ID=JSON ... [--save FILE]")?;
+        let value = args.get(index + 1).ok_or("usage: run [--open FILE] [--cmd ID=JSON | --batch FILE] ... [--save FILE]")?;
         match text(arg)? {
             "--open" if open.is_none() => open = Some(text(value)?),
             "--save" if save.is_none() => save = Some(text(value)?),
+            "--batch" => {
+                if commands.len() >= 1024 {
+                    return Err("command count limit".into());
+                }
+                let file = std::fs::File::open(value).map_err(|e| format!("batch input: {e}"))?;
+                let mut data = Vec::new();
+                file.take(1024 * 1024 + 1).read_to_end(&mut data).map_err(|e| format!("batch input: {e}"))?;
+                if data.len() > 1024 * 1024 {
+                    return Err("batch file exceeds 1 MiB limit".into());
+                }
+                let params: Value = serde_json::from_slice(&data).map_err(|e| format!("invalid batch JSON: {e}"))?;
+                commands.push(("engine.batch", params));
+            }
             "--cmd" => {
                 if commands.len() >= 1024 {
                     return Err("command count limit".into());
@@ -53,12 +69,16 @@ pub fn run(args: &[OsString], out: &mut impl Write) -> Result<(), String> {
                 let params = serde_json::from_str(params).map_err(|e| format!("invalid command JSON: {e}"))?;
                 commands.push((id, params));
             }
-            _ => return Err("usage: run [--open FILE] --cmd ID=JSON ... [--save FILE] (options may occur once except --cmd)".into()),
+            _ => {
+                return Err(
+                    "usage: run [--open FILE] [--cmd ID=JSON | --batch FILE] ... [--save FILE] (options may occur once except --cmd/--batch)".into(),
+                );
+            }
         }
         index = index.checked_add(2).ok_or("argument count overflow")?;
     }
     if open.is_none() && save.is_none() && commands.is_empty() {
-        return Err("usage: run [--open FILE] --cmd ID=JSON ... [--save FILE]".into());
+        return Err("usage: run [--open FILE] [--cmd ID=JSON | --batch FILE] ... [--save FILE]".into());
     }
     let mut session = Session::new();
     if let Some(path) = open {

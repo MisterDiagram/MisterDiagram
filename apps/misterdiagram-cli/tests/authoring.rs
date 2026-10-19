@@ -36,7 +36,8 @@ fn commands_and_describe_publish_parseable_schemas() {
     let commands: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(commands.as_array().unwrap().len(), misterdiagram_engine::cmd::command_specs().len());
     for command in commands.as_array().unwrap() {
-        let schema: serde_json::Value = serde_json::from_str(command["params"].as_str().unwrap()).unwrap();
+        let schema = &command["params"];
+        assert!(schema.is_object());
         assert_eq!(schema["type"], "object");
     }
     for id in ["connect.dynamic", "engine.execute", "engine.commands", "document.inspect", "shape.inspect"] {
@@ -183,4 +184,31 @@ fn mcp_stdio_python_client_matches_cli_and_strict_batches() {
         .output()
         .unwrap();
     assert!(result.status.success(), "{}{}", String::from_utf8_lossy(&result.stdout), String::from_utf8_lossy(&result.stderr));
+}
+
+#[test]
+fn batch_file_rebuilds_references_and_rejects_hostile_input() {
+    let dir = dir().join("batch-file");
+    std::fs::create_dir_all(&dir).unwrap();
+    let recipe = dir.join("commands.json");
+    let drawing = dir.join("drawing.vsdx");
+    std::fs::write(
+        &recipe,
+        serde_json::to_vec(&serde_json::json!({"commands":[
+            {"command":"shape.draw.rect","as":"host","params":{"x":1,"y":1,"width":2,"height":1,"text":"Cedar"}},
+            {"command":"shape.move","params":{"id":"$host","x":5,"y":4}}
+        ]}))
+        .unwrap(),
+    )
+    .unwrap();
+    let result = cli(&["run", "--batch", recipe.to_str().unwrap(), "--save", drawing.to_str().unwrap()]).unwrap();
+    assert!(result.status.success(), "{}", String::from_utf8_lossy(&result.stderr));
+    let d = misterdiagram_vsdx::read(&drawing).unwrap();
+    assert_eq!(d.pages[0].shapes[0].sheet.cell("PinX").unwrap().value.as_deref(), Some("5"));
+    for data in [b"null".to_vec(), b"[]".to_vec(), b"{broken".to_vec(), vec![b' '; 1024 * 1024 + 1]] {
+        std::fs::write(&recipe, data).unwrap();
+        let result = cli(&["run", "--batch", recipe.to_str().unwrap()]).unwrap();
+        assert_eq!(result.status.code(), Some(1));
+        assert!(!String::from_utf8_lossy(&result.stderr).contains("panicked"));
+    }
 }
