@@ -16266,3 +16266,42 @@ That cause remains unresolved, not established as an export-frame exception.
 A library export min-axis scale trial passed its2%ceiling but produced54frozen
 render outliers against10maximum. It was reverted; no general export correction
 is claimed and all numerical acceptance criteria remain unchanged.
+
+### Observed, undocumented: invalid zero line weight and Dell framing (Brief 25 addendum 1)
+
+One interactive COM run observed three readonly Dell masters dropped on pages.
+The full 40,031-cell dump has zero COM errors; input SHA256 hashes stayed unchanged.
+Evidence is private under `corpus/_vm/out/dell-instance-witness/`; no vendor file
+or picture is included in either repository. Direct evaluator queries supplement
+TSV output for inherited ForeignInfo cells omitted by the dump's SRC enumeration.
+
+Z9264F-ON and Z9100-ON instance shape 2 (master shape 6) has
+`LineWeight = REF()*User.ScaleAdj`, cached V=0, with Visio ResultIU=0. Our evaluator
+returns `#NAME? REF`; the renderer formerly substituted 0.01 inch. That fallback
+caused the tiny marks above/below the collapsed rack-mount shape. The renderer now
+retains the witnessed explicit zero cache when LineWeight evaluation fails;
+valid formulas still win, and other invalid caches retain the existing fallback.
+This is a rendering exception, not new REF evaluation semantics. An original
+collapsed rectangle test fails before the correction and passes afterward.
+
+At 384 dpi, Z9264F master/instance exports are 668x130 and 670x132 pixels;
+ours changes 669x134 to 669x130. Z9100 master/instance exports are 664x68 and
+666x70; ours changes 665x71 to 665x68. The endpoint marks disappear. VEP4600
+stays 656x67 here, versus Visio master 656x66 and instance 658x68.
+
+The mount-margin question is not resolved by a differing size/visibility cell.
+Direct comparison covers 92/93/91 relevant cells for Z9264F/VEP4600/Z9100;
+only the two LineWeight errors differ. For example, VEP4600 instance shape 4
+Width is 1.7079999999999993 inches here and agrees with Visio within 1e-9;
+its foreign shape 7 ImgWidth is 1.7082733273327282 inches in both. Rack-mount
+shape 2 Width is zero in both. For Z9100, shape 4 Width is
+1.7300000000020437 and shape 7 ImgWidth is 1.7190894089409006 here
+(Visio 1.7190894089409021). Geometry NoShow, HideText, layer visibility and
+referenced User/Prop values agree. At a dark-pixel cutoff of 128, VEP4600's
+master body spans x=14..641 of 656 pixels in Visio, versus x=2..653 of 656
+here. Z9100's master spans x=8..655 of 664, whereas its instance spans
+x=3..662 of 666. These are export-frame differences still requiring an export
+mapping derivation, not evidence for changing Width or picture cells. No such
+mapping work is attempted in this brief; the margin cause remains a named gap.
+
+Reference: https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section

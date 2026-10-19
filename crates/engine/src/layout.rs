@@ -3,6 +3,8 @@ use crate::{Result, Session, edit::*, operation};
 use misterdiagram_geom::Point;
 use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use serde_json::{Value, json};
+mod tree;
+pub(crate) use tree::tree;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 enum Side {

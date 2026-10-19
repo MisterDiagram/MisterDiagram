@@ -123,7 +123,7 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
         let cy = crate::orthogonal::number(&mut e, Scope::Page(page), "LineToLineY", 0.125) * 1.5;
         let begin = misterdiagram_geom::Point::new(bx, by);
         let end = misterdiagram_geom::Point::new(ex, ey);
-        let obstacles = crate::orthogonal::clearance(&obstacles, (cx, cy), [begin, end]);
+        let obstacles = crate::orthogonal::clearance(&obstacles, if style == 17. { (0., 0.) } else { (cx, cy) }, [begin, end]);
         let direction = |e: &mut Evaluator<'_>, point: misterdiagram_geom::Point, side: &str| -> Result<Option<usize>, String> {
             let link = doc.pages.get(index).ok_or("route page")?.connects.iter().find(|c| c.from_sheet == id && c.from_cell.as_deref() == Some(side));
             if let Some(link) = link {
@@ -139,7 +139,36 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             }
         };
         let dirs = (direction(&mut e, begin, "BeginX")?, direction(&mut e, end, "EndX")?);
-        let points = if style == 2. || style == 16. { vec![begin, end] } else { crate::orthogonal::path(begin, end, &obstacles, dirs.0, dirs.1)? };
+        // B25 office-style-17 observes a vertical-first midpoint jog. Preserve
+        // the existing obstacle router when that direct tree path is blocked.
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/shaperoutestyle-cell-shape-layout-section
+        let points = if style == 2. || style == 16. {
+            vec![begin, end]
+        } else if style == 17. {
+            let mid = (by + ey) / 2.;
+            let points = if bx == ex || by == ey {
+                vec![begin, end]
+            } else {
+                vec![begin, misterdiagram_geom::Point::new(bx, mid), misterdiagram_geom::Point::new(ex, mid), end]
+            };
+            if points.windows(2).any(|pair| {
+                obstacles.iter().any(|r| {
+                    let Some(a) = pair.first() else { return true };
+                    let Some(b) = pair.get(1) else { return true };
+                    if a.x == b.x {
+                        a.x > r.x0 && a.x < r.x1 && a.y.min(b.y) < r.y1 && a.y.max(b.y) > r.y0
+                    } else {
+                        a.y > r.y0 && a.y < r.y1 && a.x.min(b.x) < r.x1 && a.x.max(b.x) > r.x0
+                    }
+                })
+            }) {
+                crate::orthogonal::path(begin, end, &obstacles, dirs.0, dirs.1)?
+            } else {
+                points
+            }
+        } else {
+            crate::orthogonal::path(begin, end, &obstacles, dirs.0, dirs.1)?
+        };
         routes.push((index, id, bx, by, ex, ey, style, points, crate::orthogonal::inherited_zero(&e, scope)));
         if routes.len() > 100000 {
             return Err("route count limit".into());

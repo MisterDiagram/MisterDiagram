@@ -1413,12 +1413,26 @@ References: [Geometry](https://learn.microsoft.com/en-us/office/client-developer
 The prior stop was a misreading. Charles applies the informational from-scratch
 pixel ruling above; reverted trials do not trigger the regression stop rule.
 M5.6 CI passes all eight gates: 615 tests passed, 0 failed, 3 ignored.
-The four carry-ins have separate validated commits. M5.7-M5.9 remain in progress.
+The four carry-ins have separate validated commits. M5.7 passes full CI; M5.8-M5.9 remain in progress.
 
-The #54 candidate honours picture size/offset and clips EMF/PNG to the shape.
+The #54 implementation honours picture size/offset and clips EMF/PNG to the shape.
 The pre-observation22case checker passes. A new offset-picture test checks both
 cropped export bounds and all painted pixels on the uncropped page. Hidden
-Z9264F overlay is suppressed. The bounded addendum diagnostic will compare all
-requested cells for the three Dell instances; rack margins and tiny marks are
-not yet diagnosed. The release inventory passes at 6,678/6,742, zero blanks or guard kills.
-The full corpus check remains running.
+Z9264F overlay is suppressed. The bounded addendum diagnostic compared all
+requested cells for the three Dell instances; its findings are recorded below. The release inventory passes at 6,678/6,742, zero blanks or guard kills.
+The full corpus check passed with the unchanged strict and text populations.
+
+The bounded Dell addendum run completed once, with 40,031 cells and zero COM
+errors; vendor hashes are unchanged. The centre marks were an invalid LineWeight
+fallback, now covered by an original failing-before/passing-after regression.
+VEP4600 and Z9100 mount margins remain an export-framing gap: relevant geometry,
+visibility and picture cell values agree. Exact cell values and readable export
+measurements are recorded in file-format-parity.md. No export mapping change.
+
+M5.7 supports rooted tree placement and witnessed style-17 midpoint
+routes. Independent discovery regressions cover rounded-region overflow, flipped
+and position-dependent transforms, off-grid obstacle detours and unrelated-content
+page cropping. Six focused tree tests and the nine-route COM comparison pass.
+Full M5.7 CI passes all eight gates. The M5.8 checker and M5.9 rebuilt examples remain pending.
+The M5.6 full corpus check passes: 15,105,590 strict cells, cached text 62,075,
+COM text 54,449 and generated outliers 9/max10.

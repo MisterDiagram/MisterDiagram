@@ -70,6 +70,15 @@ pub use cmd;
 pub fn command_specs() -> &'static [CommandSpec] {
     &[
         cmd!(
+            "layout.tree",
+            "Arrange rooted tree",
+            ["Layout"],
+            None,
+            r#"{"type":"object","properties":{"page":{"type":"integer","minimum":1},"root":{"type":"integer","minimum":0,"maximum":4294967294},"edges":{"type":"array","maxItems":9999,"items":{"type":"array","minItems":2,"maxItems":2,"items":{"type":"integer","minimum":0,"maximum":4294967294}}},"ids":{"type":"array","minItems":1,"maxItems":10000,"items":{"type":"integer"}},"region":{"type":"object","properties":{"x":{"type":"number"},"y":{"type":"number"},"width":{"type":"number"},"height":{"type":"number"}},"required":["x","y","width","height"],"additionalProperties":false},"gutter_x":{"type":"number","minimum":0,"maximum":1000000},"gutter_y":{"type":"number","minimum":0,"maximum":1000000},"fit_page":{"type":"boolean"},"margin":{"type":"number","minimum":0,"maximum":1000000}},"required":["root"],"additionalProperties":false}"#,
+            always,
+            crate::layout::tree
+        ),
+        cmd!(
             "layout.rows",
             "Arrange rows",
             ["Layout"],

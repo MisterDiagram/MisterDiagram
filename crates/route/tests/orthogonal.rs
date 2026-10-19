@@ -135,3 +135,13 @@ fn observed_line_jump_rows_and_signed_arcs() {
     }
     compare(&root.join("generated/connector/line-jumps.vsdx"));
 }
+
+#[test]
+fn b25_style17_midpoint_routes_match_the_preimplementation_visio_witness() {
+    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus/_vm/out/layout-witness/office-style-17.vsdx");
+    if !path.exists() {
+        eprintln!("private B25 route witness absent; skipped");
+        return;
+    }
+    compare(&path);
+}

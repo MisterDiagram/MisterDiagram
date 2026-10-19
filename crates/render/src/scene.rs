@@ -164,6 +164,18 @@ impl Scene {
 fn number(e: &mut Evaluator<'_>, scope: Scope, name: &str, default: f64) -> f64 {
     e.evaluate(scope, name).numeric().ok().filter(|n| n.is_finite() && n.abs() <= 1e6).unwrap_or(default)
 }
+/// Retain an explicitly cached zero when an invalid LineWeight cannot evaluate.
+/// The B25 readonly Dell instance witness reports ResultIU=0 for REF()*ScaleAdj;
+/// substituting the ordinary missing-cell default adds spurious endpoint marks.
+/// Other invalid caches retain the prior fallback until separately witnessed.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section
+fn line_weight(e: &mut Evaluator<'_>, scope: Scope) -> f64 {
+    match e.evaluate(scope, "LineWeight").numeric() {
+        Ok(value) if value.is_finite() && value.abs() <= 1e6 => value,
+        Err(_) if e.cell(scope, "LineWeight").and_then(|c| c.value.as_deref()).and_then(|v| v.parse::<f64>().ok()) == Some(0.) => 0.,
+        _ => 0.01,
+    }
+}
 fn color(e: &mut Evaluator<'_>, scope: Scope, name: &str, trans: &str) -> Rgba {
     let mut c = match e.evaluate(scope, name) {
         Value::Color { rgb: [r, g, b], .. } => Rgba::rgb(r, g, b),
@@ -462,10 +474,11 @@ fn shapes(
             foreground: color(e, scope, "FillForegnd", "FillForegndTrans"),
             background: color(e, scope, "FillBkgnd", "FillBkgndTrans"),
         };
-        let nominal_weight = number(e, scope, "LineWeight", 0.01).max(0.) / scale.determinant().abs().sqrt().max(1e-12);
+        let weight = line_weight(e, scope);
+        let nominal_weight = weight.max(0.) / scale.determinant().abs().sqrt().max(1e-12);
         let line = Line {
             color: color(e, scope, "LineColor", "LineColorTrans"),
-            weight: number(e, scope, "LineWeight", 0.01).max(1. / (96. * options.scale)) / scale.determinant().abs().sqrt().max(1e-12),
+            weight: weight.max(1. / (96. * options.scale)) / scale.determinant().abs().sqrt().max(1e-12),
             pattern: number(e, scope, "LinePattern", 1.).max(0.) as u32,
             cap: number(e, scope, "LineCap", 0.).max(0.) as u32,
             join: number(e, scope, "LineJoin", 0.).max(0.) as u32,

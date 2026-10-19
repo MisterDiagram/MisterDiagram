@@ -507,3 +507,12 @@ Text Transform (#61), line units (#62), picture cells/clipping (#54) and CLI
 version are separate commits. Inventory remains 6,678/6,742, zero blanks/kills;
 routes remain 28/29 and resave 40/0. Dell diagnosis and M5.7-M5.9 follow.
 Contact sheet, office and SAN human gates remain pending Charles.
+
+Brief 25 M5.7 adds rooted tree layout, static physical-side glue,
+region centring and equal-margin page fit. Six focused tree tests pass; all
+nine routes match the preceding style-17 COM witness within 1e-6. Independent
+discovery caught region, flip and obstacle edge cases; their regressions and
+transactional guards are included. Full M5.7 CI passes all eight gates; M5.8 and M5.9 follow.
+The M5.6 full corpus check exits 0: strict 15,105,590/15,105,590 cells, cached
+text 62,075 and COM text 54,449. The bounded Dell run corrects zero-cached invalid
+LineWeight rendering; residual mount framing is documented without export changes.

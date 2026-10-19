@@ -169,3 +169,21 @@ plain shape or dropped instance; no section/row creation is needed (#61).
 is retained; `{"id":1,"weight":1.5,"units":"PT"}` writes a 1.5 point line. Units
 require weight. CLI `misterdiagram --version` prints the crate version; MCP
 serverInfo remains the crate version. Tree layout and rebuilt examples are pending.
+
+`layout.tree` accepts `root` plus ordered `edges: [[parent,child],...]`, or `root`
+plus `ids` whose existing connects form a tree. It creates missing connectors for
+explicit edges and reuses unambiguous existing links. Each depth shares a PinY;
+parents centre over their immediate children's alignment-box span. Nodes use
+physical bottom/top connection points and witnessed SimpleNS routing (style 17),
+with horizontal jogs midway between tiers. Edge order controls sibling order;
+inferred links use shape-ID order.
+
+Spacing defaults to the greater of BlockSizeX/Y and twice LineToNodeX/Y, with
+`gutter_x` and `gutter_y` overrides. `region` has x/y/width/height; otherwise the
+page is used. `fit_page: true` resizes around the tree with `margin` (default
+0.5 inches). A fit that would exclude unrelated content is rejected. Shapes must
+be unrotated top-level nodes. Dimensions round up to sixteenths, pins and gutters
+to thirty-seconds, leaving connector midpoints on the 1/64-inch grid. Impossible
+region fits, position-dependent transforms/bounds, and obstacles requiring an
+off-grid or non-midpoint detour roll back the whole command. The node/edge limits
+are 10,000/9,999, with two million node-edge work units.
