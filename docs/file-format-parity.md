@@ -16305,3 +16305,23 @@ mapping derivation, not evidence for changing Width or picture cells. No such
 mapping work is attempted in this brief; the margin cause remains a named gap.
 
 Reference: https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section
+
+### Observed, undocumented: literal connection coordinates and point weights (M5.19)
+
+The first Brief 27 acceptance candidate opens and saves without route changes,
+but Visio removes `F="0"` from literal-zero connection coordinates. The SAN
+witness has 26 such rewrites, including shape 1, Connection row 20, Y. The fabric
+witness has six. The same fabric save serializes 1 pt LineWeight as
+`V="0.01388888888888889"` and 1.5 pt as `V="0.02083333333333333"`, retaining `U="PT"`
+and no formula. Our earlier values used Rust's full shortest decimal spelling.
+
+Evidence: local `corpus/_state/brief27/first-acceptance/b27-san/saved.vsdx` and
+`corpus/_state/brief27/first-acceptance/b27-fabric/saved.vsdx`, compared with the
+input hashes recorded in their `status.json` files. The command implementation
+now omits the redundant literal-zero formula and uses the existing Visio number
+formatter for line weights. Two regression tests fail before the correction and
+pass after it; compound/fine-grained package equality is preserved. No oracle
+filter or numerical threshold changed.
+
+References: [Connection Points](https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section),
+[LineWeight](https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section).

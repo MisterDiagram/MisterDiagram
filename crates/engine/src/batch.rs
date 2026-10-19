@@ -103,7 +103,10 @@ impl Session {
             })();
             match result {
                 Ok(value) => results.push(value),
-                Err(error) => return Err(operation(format!("batch command index {index} (command {}): {error}", index + 1))),
+                Err(error) => {
+                    self.observe_external_save(&candidate);
+                    return Err(operation(format!("batch command index {index} (command {}): {error}", index + 1)));
+                }
             }
         }
         self.publish_batch(candidate, json!({"results":results,"references":references}))
@@ -123,9 +126,13 @@ impl Session {
         candidate.read_reservations.clear();
         candidate.trim_history();
         if candidate.undo.is_empty() {
+            self.observe_external_save(&candidate);
             return Err(operation("batch undo snapshot exceeds retained budget"));
         }
-        crate::result_budget(&result)?;
+        if let Err(error) = crate::result_budget(&result) {
+            self.observe_external_save(&candidate);
+            return Err(error);
+        }
         *self = candidate;
         Ok(result)
     }

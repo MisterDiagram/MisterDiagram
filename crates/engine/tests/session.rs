@@ -204,7 +204,7 @@ fn command_specific_bad_inputs_preserve_history() {
     let truncated = dir.join("truncated.vsdx");
     std::fs::write(&truncated, b"PK\x03\x04").unwrap();
     for (command, params) in [
-        ("file.open", json!({"path": truncated})),
+        ("file.open", json!({"path": truncated,"discard":true})),
         ("file.save", json!({"path": dir.join("bad.extension")})),
         ("file.save", json!({"path": dir.join("missing/sub/output.vsdx")})),
         ("file.export", json!({"path": dir.join("out.png"), "page": u64::MAX})),

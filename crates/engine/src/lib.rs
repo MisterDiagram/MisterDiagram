@@ -54,6 +54,7 @@ struct Snapshot {
     document: Arc<Document>,
     selection: Selection,
     path: Option<PathBuf>,
+    revision: u64,
 }
 #[derive(Clone)]
 pub struct JournalEntry {
@@ -74,6 +75,10 @@ pub struct Session {
     dirty: bool,
     editing: bool,
     read_reservations: Vec<Arc<Document>>,
+    revision: u64,
+    saved_revision: Option<u64>,
+    save_generation: u64,
+    next_revision: u64,
 }
 impl Default for Session {
     fn default() -> Self {
@@ -87,6 +92,10 @@ impl Default for Session {
             journal: VecDeque::new(),
             journal_bytes: 0,
             dirty: false,
+            revision: 0,
+            saved_revision: Some(0),
+            save_generation: 0,
+            next_revision: 1,
             editing: false,
             read_reservations: Vec::new(),
         }
@@ -113,6 +122,22 @@ impl Session {
         let mut seen = std::collections::HashSet::new();
         self.retained_documents().into_iter().filter(|d| seen.insert(Arc::as_ptr(d))).fold(0usize, |n, d| n.saturating_add(d.retained_xml_nodes))
     }
+    fn observe_external_save(&mut self, candidate: &Self) {
+        if self.save_generation != candidate.save_generation {
+            self.saved_revision = None;
+            self.save_generation = candidate.save_generation;
+            self.next_revision = self.next_revision.max(candidate.next_revision);
+        }
+    }
+    fn advance_revision(&mut self) -> Result<()> {
+        let next = self.next_revision.checked_add(1).ok_or_else(|| operation("document revision limit"))?;
+        self.revision = self.next_revision;
+        self.next_revision = next;
+        Ok(())
+    }
+    pub fn has_unsaved_changes(&self) -> bool {
+        Some(self.revision) != self.saved_revision
+    }
     pub fn document(&self) -> &Document {
         &self.document
     }
@@ -126,7 +151,13 @@ impl Session {
         command_specs().iter().map(|c| c.info(self)).collect()
     }
     fn snapshot(&self) -> Snapshot {
-        Snapshot { stencils: None, document: self.document.clone(), selection: self.selection.clone(), path: self.path.clone() }
+        Snapshot {
+            stencils: None,
+            document: self.document.clone(),
+            selection: self.selection.clone(),
+            path: self.path.clone(),
+            revision: self.revision,
+        }
     }
     fn restore(&mut self, snapshot: Snapshot) {
         if let Some(stencils) = snapshot.stencils {
@@ -135,6 +166,7 @@ impl Session {
         self.document = snapshot.document;
         self.selection = snapshot.selection;
         self.path = snapshot.path;
+        self.revision = snapshot.revision;
     }
     /// Execute one command as one rollback, undo and journal boundary.
     /// https://learn.microsoft.com/en-us/office/vba/api/visio.application.beginundoscope
@@ -185,7 +217,7 @@ impl Session {
         if self.editing {
             return Err(operation("nested session edits are not supported"));
         }
-        let before = self.clone();
+        let mut before = self.clone();
         // Rollback documents can leave the active census after copy-on-write or
         // history eviction, but the transaction snapshot keeps them alive.
         self.read_reservations.extend(before.retained_documents().into_iter().cloned());
@@ -219,6 +251,7 @@ impl Session {
                 stencils::check_media(self, Some(&document))?;
                 self.document = Arc::new(document);
                 files::update_palette(Arc::make_mut(&mut self.document))?;
+                self.advance_revision()?;
                 published = true;
                 self.dirty = false;
             }
@@ -241,10 +274,12 @@ impl Session {
                 Ok(value)
             }
             Ok(Err(error)) => {
+                before.observe_external_save(self);
                 *self = before;
                 Err(error)
             }
             Err(payload) => {
+                before.observe_external_save(self);
                 *self = before;
                 Err(EngineError::Internal("session.edit".into(), guard::panic_message(payload.as_ref())))
             }
@@ -486,7 +521,7 @@ mod tests {
         let mut doc = s.document.as_ref().clone();
         let part = doc.parts.values_mut().next().unwrap();
         part.bytes.resize(17 * 1024 * 1024, 0);
-        s.undo.push_back(Snapshot { stencils: None, document: Arc::new(doc), selection: Selection::default(), path: None });
+        s.undo.push_back(Snapshot { stencils: None, document: Arc::new(doc), selection: Selection::default(), path: None, revision: s.revision });
         s.trim_history();
         assert!(s.undo.is_empty());
     }
@@ -510,7 +545,7 @@ mod tests {
         for nodes in [40, 50] {
             let mut d = s.document.as_ref().clone();
             d.retained_xml_nodes = nodes;
-            let snapshot = Snapshot { stencils: None, document: Arc::new(d), selection: Selection::default(), path: None };
+            let snapshot = Snapshot { stencils: None, document: Arc::new(d), selection: Selection::default(), path: None, revision: s.revision };
             if nodes == 40 {
                 s.undo.push_back(snapshot);
             } else {

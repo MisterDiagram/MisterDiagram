@@ -202,7 +202,7 @@ fn checker_rejects_detached_shared_fragments_and_drawn_endpoint_mismatches() {
         let path = dir.join(format!("disconnected-{detached_end}.vsdx"));
         let themes = misterdiagram_theme::Themes::from_document(&doc).unwrap();
         std::fs::write(&path, misterdiagram_vsdx::write_with_hosts(&doc, Some(&themes), Some(&misterdiagram_text::Host)).unwrap().bytes).unwrap();
-        run(&mut s, "file.open", json!({"path":path}));
+        run(&mut s, "file.open", json!({"path":path,"discard":true}));
         let result = run(&mut s, "layout.check", json!({}));
         assert!(has(&result, "d"), "detached segment must fail d: {result}");
         assert_eq!(has(&result, "a"), detached_end, "drawn endpoints: {result}");

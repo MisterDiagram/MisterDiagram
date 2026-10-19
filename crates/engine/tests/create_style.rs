@@ -264,3 +264,33 @@ fn parallel_connector_packages_match_fine_grained_point_edits() {
     }
     equal(&mut fine, &mut compound, "parallel-fine-points");
 }
+
+/// Visio witness: corpus/_state/brief27/first-acceptance/b27-fabric/saved.vsdx.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section
+#[test]
+fn authored_point_weights_use_visio_decimal_serialization() {
+    let mut s = pair();
+    for (weight, expected) in [(1., "0.01388888888888889"), (1.5, "0.02083333333333333")] {
+        run(&mut s, "format.line", json!({"id":1,"weight":weight,"units":"PT"}));
+        let cell = s.document().pages[0].shapes[0].sheet.cell("LineWeight").unwrap();
+        assert_eq!(cell.value.as_deref(), Some(expected));
+        assert_eq!(cell.units.as_deref(), Some("PT"));
+        assert!(cell.formula.is_none());
+    }
+}
+
+/// Visio removes literal-zero F from authored connection coordinates.
+/// Witness: corpus/_state/brief27/first-acceptance/b27-san/saved.vsdx.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section
+#[test]
+fn literal_zero_connection_coordinates_have_no_formula() {
+    let mut s = pair();
+    run(&mut s, "shape.connection.add", json!({"id":1,"x":"0","y":"0"}));
+    let section = s.document().pages[0].shapes[0].sheet.sections.iter().find(|v| v.name == "Connection").unwrap();
+    let row = section.rows.last().unwrap();
+    for name in ["X", "Y"] {
+        let cell = row.cells.iter().find(|c| c.name == name).unwrap();
+        assert_eq!(cell.value.as_deref(), Some("0"));
+        assert!(cell.formula.is_none(), "literal zero {name} must not retain F");
+    }
+}

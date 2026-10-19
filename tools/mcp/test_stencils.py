@@ -58,7 +58,7 @@ class Stencils(unittest.TestCase):
             self.assertEqual(before, client.tool('inspect_document'))
             self.assertTrue(client.command('edit.redo')['changed'])
             self.assertEqual(after, client.tool('inspect_document'))
-            client.tool('open', path=str(self.large))
+            client.tool('open', path=str(self.large), discard=True)
             before = client.tool('inspect_document')
             with self.assertRaisesRegex(RuntimeError, 'batch undo snapshot exceeds retained budget'):
                 client.tool('batch', commands=commands)

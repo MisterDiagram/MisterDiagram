@@ -8,7 +8,9 @@ pub(crate) fn connection(s: &mut Session, p: &Value) -> Result<Value> {
     let coordinate = |key: &str| -> Result<misterdiagram_model::Cell> {
         if let Some(f) = p.get(key).and_then(Value::as_str) {
             misterdiagram_sheet::parse(f).map_err(operation)?;
-            Ok(cell(key, "0", Some(f)))
+            // Visio drops literal-zero formulas from connection coordinates.
+            // Witness: corpus/_state/brief27/first-acceptance/b27-san/saved.vsdx.
+            Ok(cell(key, "0", (f.trim() != "0").then_some(f)))
         } else {
             Ok(cell(key, &number(p, key)?.to_string(), None))
         }

@@ -280,7 +280,7 @@ mod tests {
         let count = s.document().masters.len();
         s.execute("master.drop", &json!({"master":"network.cloud"})).unwrap();
         assert_eq!(s.document().masters.len(), count);
-        s.execute("file.new", &json!({})).unwrap();
+        s.execute("file.new", &json!({"discard":true})).unwrap();
         s.execute("master.drop", &json!({"master":"storage.switch"})).unwrap();
     }
 }

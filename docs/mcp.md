@@ -308,3 +308,20 @@ target/release/misterdiagram run --batch target/script-route/commands.json --sav
 The source uses `as` names and `$name` references, so adding another data row does
 not require predicting or renumbering shape IDs. Saving follows the successful
 batch as a separate operation.
+
+`file.new` and `open`/`file.open` refuse to replace a document with unsaved edits.
+The error tells callers to pass `discard: true` when replacement is intentional.
+A fresh session is clean; save marks the current revision clean. Undo and redo
+track the saved revision, and inspection, previews and external stencil loading
+do not mark the drawing dirty. The guard state lives only in the session and is
+never written into the document.
+If a transaction fails after a save has written a file, the restored in-memory
+document is conservatively marked unsaved. File writes cannot be rolled back, so
+this prevents a later new/open from discarding content that the save overwrote.
+Save the restored document, or explicitly discard it, to clear that protection.
+
+
+The Brief 27 final joint acceptance retains 18/80/20 Connects and every route
+for office/SAN/fabric after Visio re-save, with zero repair differences. Office
+and SAN pass all applicable layout checks. Fabric retains the documented box
+and heading hits; these ordinary shapes do not gain container semantics.

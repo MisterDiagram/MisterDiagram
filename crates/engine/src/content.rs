@@ -360,7 +360,14 @@ fn format_paint(s: &mut Session, p: &Value, line: bool) -> Result<Value> {
             if !(0. ..=max).contains(&v) {
                 return Err(operation("format value out of range"));
             }
-            let mut value = cell(name, &v.to_string(), None);
+            let serialized = if key == "weight" {
+                // Keep the same decimal spelling as Visio's saved point weights.
+                // Witness: corpus/_state/brief27/first-acceptance/b27-fabric/saved.vsdx.
+                misterdiagram_model::skeleton::number_text(v).ok_or_else(|| operation("nonfinite line weight"))?
+            } else {
+                v.to_string()
+            };
+            let mut value = cell(name, &serialized, None);
             if key == "weight" {
                 // Visio serializes typed "1.5 pt" as V in inches and U="PT", with no F.
                 // Witness: corpus/_vm/out/layout-witness/straight-and-weight.vsdx.

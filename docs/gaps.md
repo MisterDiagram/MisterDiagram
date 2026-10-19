@@ -1472,24 +1472,31 @@ is jump-three-crossings. Final release inventory is 6,678/6,742, zero blanks/kil
 Final release corpus check exits 0: 1,413 packages, strict round trip 15,105,590/15,105,590 cells, cached text 62,075/67,866 and COM text 54,449/58,180. Generated-render outliers remain 9/max10; route sweep remains 28/29 and closure re-save 40 connectors, 1,344 cells, zero differences.
 
 
-Brief 27 M5.15 (#64): bounded inspection now selects cells before expanding
-inherited connection points and Shape Data. Explicit sections work on shapes
-and documents; inspection is capped at 64 KiB and every MCP result envelope
-at 1 MiB, with actionable errors and no truncation. Original synthetic
-200-point/100-data-row master and transport escaping tests cover both limits.
-M5.19 and full acceptance remain open.
+Brief 27 M5.15 through M5.19 (#64, #65) implements bounded inspection (64 KiB),
+a 1 MiB MCP result budget, ordered batch references, create-and-style,
+connector.add with distinct parallel ports, described object schemas and
+explicit discard for unsaved documents. Five existing dirty-session callers
+now request discard explicitly. No private saved cells, sections or parts were
+introduced. Compound edits remain package-equal to their fine-grained sequence.
 
-M5.16 (#65 point 1): batch references implemented and covered by transactional,
-array, grouped-master and literal-dollar tests. Nested batches are rejected.
+Measured examples: office 12 build commands in one batch, four total MCP calls,
+10 devices and 9 links; SAN 338 commands in one batch, five total calls,
+24 devices and 40 links; fabric 28 build commands in two batches, five total
+calls, versus the recount's 64 commands. Office's 23 parts match the original
+CLI recipe under unchanged masks. Office and SAN have zero layout violations;
+fabric has only the permitted 10 rule b and 10 rule g hits on its ordinary boxes.
 
-M5.17 (#65 point 2): create-and-style and connector.add compose existing edits
-with one undo step and equal saved packages. Automatic parallel links retain
-separate ports, including named ports and other neighbors; layout.fan supports
-multiple links per spoke with the witnessed straight style 2. Office, SAN and
-fabric MCP recipes use ordered references. Final acceptance remains pending.
+Final joint Visio acceptance opens and saves all three unrepaired: office
+18 Connects/227 route cells, SAN 80/920, fabric 20/230, with zero repair differences
+and zero route changes. The first joint candidate exposed literal-zero connection
+formulas and point-weight decimal spelling; source corrections and two regression
+tests precede the successful final joint run. Both attempts are retained locally.
+The same layout results hold after re-save. Containers remain a later brief.
 
-M5.18 (#65 points 3 and 5): command schemas describe every parameter, including
-units and coordinate anchors; list_commands returns params objects. MCP tool
-descriptions distinguish interactive shortcuts, previews and deliverables.
-Large data-driven drawings have a bounded CLI batch input and reproducible
-script example, with hostile-input tests. Final acceptance remains pending.
+Regression results remain 28/29 route sweeps, closure 40 connectors/1,344 cells
+with zero differences, strict round trip 15,105,590/15,105,590, full corpus exit 0,
+cached text 62,075/67,866 and COM text 54,449/58,180, generated-render outliers 9/max10,
+and inventory 6,678/6,742 with zero blanks or guard kills. All seven source seeds
+fail their intended assertions and pass after exact restoration. Final CI and
+frozen verification receipts are retained in local plan/brief27. Existing human
+visual gates for the contact sheet, office and SAN remain pending Charles.

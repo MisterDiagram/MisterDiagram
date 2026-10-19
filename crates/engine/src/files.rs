@@ -8,6 +8,12 @@ use std::{
     sync::Arc,
 };
 
+fn require_discard(s: &Session, p: &Value) -> Result<()> {
+    if s.has_unsaved_changes() && p.get("discard").and_then(Value::as_bool) != Some(true) {
+        return Err(operation("document has unsaved changes; pass discard: true to replace it"));
+    }
+    Ok(())
+}
 pub(crate) fn path<'a>(p: &'a Value, key: &str) -> Result<&'a Path> {
     let value = p
         .get(key)
@@ -101,11 +107,14 @@ pub(crate) fn update_palette(doc: &mut misterdiagram_model::Document) -> Result<
 /// Create an empty drawing, corresponding to Documents.Add("").
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.documents.add
 pub(crate) fn new(s: &mut Session, p: &Value) -> Result<Value> {
+    require_discard(s, p)?;
     let metric = match p.get("metric") {
         None => false,
         Some(Value::Bool(b)) => *b,
         _ => return Err(operation("metric must be boolean")),
     };
+    s.advance_revision()?;
+    s.saved_revision = Some(s.revision);
     s.document = Arc::new(blank_document(metric));
     s.selection = Selection::default();
     s.path = None;
@@ -116,9 +125,12 @@ pub(crate) fn new(s: &mut Session, p: &Value) -> Result<Value> {
 /// Open an existing package without changing its imported local caches.
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.documents.open
 pub(crate) fn open(s: &mut Session, p: &Value) -> Result<Value> {
+    require_discard(s, p)?;
     let path = path(p, "path")?;
     let document = misterdiagram_vsdx::read_with_open_nodes(path, s.retained_xml_nodes()).map_err(operation)?;
     let pages = document.pages.len();
+    s.advance_revision()?;
+    s.saved_revision = Some(s.revision);
     s.document = Arc::new(document);
     s.selection = Selection::default();
     s.path = Some(path.to_owned());
@@ -138,7 +150,10 @@ pub(crate) fn save(s: &mut Session, p: &Value) -> Result<Value> {
     };
     let theme = misterdiagram_theme::Themes::from_document(&s.document).map_err(operation)?;
     let written = misterdiagram_vsdx::write_as_with_hosts(&s.document, kind, Some(&theme), Some(&misterdiagram_text::Host)).map_err(operation)?;
+    let saved_generation = s.save_generation.checked_add(1).ok_or_else(|| operation("save generation limit"))?;
     atomic_write(path, &written.bytes)?;
+    s.save_generation = saved_generation;
+    s.saved_revision = Some(s.revision);
     s.path = Some(path.to_owned());
     Ok(json!({"bytes":written.bytes.len(),"warnings":written.warnings,"warning_count":written.warning_count}))
 }

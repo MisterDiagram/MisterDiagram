@@ -160,7 +160,7 @@ fn repeated_large_media_has_a_separate_bounded_stencil_budget() {
     assert!(session.execute("stencil.masters", &json!({"stencil":2})).is_err(), "media refusal must be transactional");
     session.execute("shape.draw.rect", &json!({"x":1,"y":1,"width":2,"height":1})).unwrap();
     let before = session.document().clone();
-    let error = session.execute("file.open", &json!({"path":second})).unwrap_err().to_string();
+    let error = session.execute("file.open", &json!({"path":second,"discard":true})).unwrap_err().to_string();
     assert!(error.contains("media byte limit"), "drawing admission must charge open stencil media: {error}");
     assert_eq!(session.document(), &before, "failed drawing admission must roll back");
     drop(session);
