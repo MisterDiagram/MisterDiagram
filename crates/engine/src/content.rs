@@ -327,6 +327,14 @@ pub(crate) fn line(s: &mut Session, p: &Value) -> Result<Value> {
 fn format_paint(s: &mut Session, p: &Value, line: bool) -> Result<Value> {
     let (index, id, _) = shape_scope(s, p)?;
     let mut cells = vec![];
+    let units = p.get("units").map(|v| v.as_str().ok_or_else(|| operation("invalid line weight units"))).transpose()?;
+    let units = units.map(str::to_ascii_uppercase);
+    if units.is_some() && (!line || p.get("weight").is_none()) {
+        return Err(operation("units requires line weight"));
+    }
+    if units.as_deref().is_some_and(|u| !matches!(u, "IN" | "PT" | "MM" | "CM" | "FT")) {
+        return Err(operation("line weight units must be IN, PT, MM, CM or FT"));
+    }
     if let Some(v) = p.get("color") {
         cells.push(color(v.as_str().ok_or_else(|| operation("invalid color"))?, if line { "LineColor" } else { "FillForegnd" })?);
     }
@@ -343,11 +351,22 @@ fn format_paint(s: &mut Session, p: &Value, line: bool) -> Result<Value> {
     }
     for (key, name, max) in [("transparency", if line { "LineColorTrans" } else { "FillForegndTrans" }, 1.), ("weight", "LineWeight", 1000.)] {
         if p.get(key).is_some() {
-            let v = number(p, key)?;
+            let magnitude = number(p, key)?;
+            let v = if key == "weight" {
+                magnitude * misterdiagram_sheet::units::factor(units.as_deref().unwrap_or("IN")).map_err(operation)?
+            } else {
+                magnitude
+            };
             if !(0. ..=max).contains(&v) {
                 return Err(operation("format value out of range"));
             }
-            cells.push(cell(name, &v.to_string(), None));
+            let mut value = cell(name, &v.to_string(), None);
+            if key == "weight" {
+                // Visio serializes typed "1.5 pt" as V in inches and U="PT", with no F.
+                // Witness: corpus/_vm/out/layout-witness/straight-and-weight.vsdx.
+                value.units = units.clone();
+            }
+            cells.push(value);
         }
     }
     if cells.is_empty() {

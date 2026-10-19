@@ -375,7 +375,7 @@ pub fn command_specs() -> &'static [CommandSpec] {
             "format.line",
             ["Format"],
             None,
-            r#"{"type":"object","properties":{"page":{"type":"integer","minimum":1,"maximum":100000},"id":{"type":"integer","minimum":0,"maximum":4294967294},"color":{"type":"string","minLength":1,"maxLength":65536},"pattern":{"type":"integer","minimum":0,"maximum":4294967294},"weight":{"type":"number","minimum":-1000000.0,"maximum":1000000.0},"transparency":{"type":"number","minimum":-1000000.0,"maximum":1000000.0},"begin_arrow":{"type":"integer","minimum":0,"maximum":4294967294},"end_arrow":{"type":"integer","minimum":0,"maximum":4294967294}},"required":["id"],"additionalProperties":false}"#,
+            r#"{"type":"object","properties":{"page":{"type":"integer","minimum":1,"maximum":100000},"id":{"type":"integer","minimum":0,"maximum":4294967294},"color":{"type":"string","minLength":1,"maxLength":65536},"pattern":{"type":"integer","minimum":0,"maximum":4294967294},"units":{"type":"string","enum":["IN","PT","MM","CM","FT","in","pt","mm","cm","ft"],"default":"IN","description":"Weight unit: inches (default), points, millimetres, centimetres or feet."},"weight":{"description":"Line width in units (inches by default).","type":"number","minimum":-1000000.0,"maximum":1000000.0},"transparency":{"type":"number","minimum":-1000000.0,"maximum":1000000.0},"begin_arrow":{"type":"integer","minimum":0,"maximum":4294967294},"end_arrow":{"type":"integer","minimum":0,"maximum":4294967294}},"required":["id"],"additionalProperties":false}"#,
             always,
             crate::content::line
         ),
