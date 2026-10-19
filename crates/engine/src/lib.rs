@@ -23,6 +23,7 @@ mod sheet;
 mod stencils;
 pub use cmd::{command_specs, find_command};
 use misterdiagram_model::{Document, ShapeId};
+pub use retention::MemoryLimits;
 use serde_json::Value;
 use std::{collections::VecDeque, path::PathBuf, sync::Arc};
 
@@ -65,6 +66,7 @@ pub struct JournalEntry {
 }
 #[derive(Clone)]
 pub struct Session {
+    memory: MemoryLimits,
     stencils: Vec<stencils::Stencil>,
     document: Arc<Document>,
     selection: Selection,
@@ -85,6 +87,7 @@ pub struct Session {
 impl Default for Session {
     fn default() -> Self {
         Self {
+            memory: MemoryLimits::default(),
             document: Arc::new(files::blank_document(false)),
             stencils: Vec::new(),
             selection: Selection::default(),
@@ -108,6 +111,9 @@ impl Session {
     pub fn new() -> Self {
         guard::install_panic_hook();
         Self::default()
+    }
+    pub fn with_memory_limits(memory: MemoryLimits) -> Self {
+        Self { memory, ..Self::new() }
     }
     fn retained_documents(&self) -> Vec<&Arc<Document>> {
         let mut documents = vec![&self.document];
@@ -250,7 +256,9 @@ impl Session {
                 let written =
                     misterdiagram_vsdx::write_with_glue_host(&self.document, Some(&theme), Some(&misterdiagram_text::Host), Some(&mut glue))
                         .map_err(operation)?;
-                let document = misterdiagram_vsdx::import_with_open_nodes(&written.bytes, self.retained_xml_nodes()).map_err(operation)?;
+                let held_nodes = self.retained_xml_nodes();
+                let document = misterdiagram_vsdx::import_with_open_nodes(&written.bytes, held_nodes)
+                    .map_err(|error| retention::admission_error(error, held_nodes))?;
                 self.reserve(Some((&document, false)))?;
                 self.document = Arc::new(document);
                 files::update_palette(Arc::make_mut(&mut self.document))?;
@@ -303,6 +311,9 @@ impl Session {
                 Ok(result)
             });
         }
+        if Arc::strong_count(&self.document) > 1 {
+            self.reserve(Some((&self.document, false)))?;
+        }
         self.dirty = true;
         f(Arc::make_mut(&mut self.document), &mut self.selection)
     }
@@ -314,7 +325,7 @@ impl Session {
         // happens after commit, ahead of the next transaction snapshot.
         let admission = self.document.retained_xml_nodes.saturating_mul(2);
         while self.undo.len() + self.redo.len() > 32
-            || self.retention().history > 256 * 1024 * 1024
+            || self.retention().history > self.memory.history()
             || (!self.editing && self.retained_xml_nodes().saturating_add(admission) > misterdiagram_vsdx::MAX_RETAINED_XML_NODES)
         {
             let removed = self.undo.pop_front().or_else(|| self.redo.pop_front());

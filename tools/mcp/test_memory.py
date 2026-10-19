@@ -40,21 +40,44 @@ class Memory(unittest.TestCase):
                     z.writestr(n, data)
                 z.writestr('visio/media/original.bmp', bytes(mib * 1024 * 1024))
             paths.append(path)
-        for compound in [False, True]:
-            with Client(CLI) as c:
+        for compound, wrapped, changed in [(False, False, True), (True, False, True), (True, True, True), (True, True, False)]:
+            with Client(CLI, args=("--memory-limit", "1024")) as c:
                 c.tool('open', path=str(paths[0]))
                 c.command('stencil.open', path=str(paths[1]))
                 before = c.tool('inspect_document'), c.tool('stencil_list')
                 params = {'x': 1, 'y': 1, 'width': 2, 'height': 1}
                 if compound:
                     params['text'] = 'hello'
-                commands = [{'command': 'stencil.close', 'params': {'stencil': 1}},
-                            {'command': 'shape.draw.rect', 'params': params}]
+                inventory = {'command': 'stencil.close', 'params': {'stencil': 1}} if changed else {'command': 'stencil.open', 'params': {'path': str(paths[1])}}
+                if wrapped:
+                    inventory = {'command': 'engine.execute', 'params': inventory}
+                commands = [inventory, {'command': 'shape.draw.rect', 'params': params}]
                 if not compound:
                     commands.append({'command': 'shape.text', 'params': {'id': 2, 'text': 'hello'}})
-                with self.assertRaisesRegex(RuntimeError, 'media byte limit'):
+                with self.assertRaisesRegex(RuntimeError, 'media byte limit') as refused:
                     c.tool('batch', commands=commands)
+                self.assertEqual('opening stencils in their own call' in str(refused.exception), changed)
                 self.assertEqual((c.tool('inspect_document'), c.tool('stencil_list')), before)
+
+    def test_memory_setting_never_raises_file_node_admission(self):
+        path = test_stencils.Stencils.out / 'hostile-nodes.vssx'
+        with zipfile.ZipFile(self.stencil) as z:
+            parts = {n: z.read(n) for n in z.namelist() if n != 'original-padding.bin'}
+        key = 'visio/document.xml'
+        content = parts[key]
+        closing = content.rfind(b'</')
+        self.assertGreater(closing, 0)
+        parts[key] = content[:closing] + b'<x/>' * 4_000_001 + content[closing:]
+        with zipfile.ZipFile(path, 'w', compression=zipfile.ZIP_DEFLATED) as z:
+            for name, data in parts.items():
+                z.writestr(name, data)
+        with Client(CLI, args=('--memory-limit', '8192')) as c:
+            before = c.tool('stencil_list')
+            with self.assertRaisesRegex(RuntimeError, 'retained XML node limit.*limit 4000000') as refused:
+                c.command('stencil.open', path=str(path))
+            self.assertIn('--memory-limit and MISTERDIAGRAM_MEMORY_LIMIT do not change this fixed admission bound', str(refused.exception))
+            self.assertRegex(str(refused.exception), r'needs at least [0-9]+ new nodes, [0-9]+ already retained')
+            self.assertEqual(c.tool('stencil_list'), before)
 
     def test_failure1_inventory_batch_shares_unchanged_stencil(self):
         with Client(CLI) as c:

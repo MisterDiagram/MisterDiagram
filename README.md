@@ -149,3 +149,5 @@ MIT OR Apache-2.0; see LICENSE-MIT, LICENSE-APACHE and NOTICE. The embedded font
 Caladea, Arimo, Tinos and Cousine are under the SIL Open Font License 1.1.
 
 The built-in network stencil provides eleven semantic device masters as native editable geometry via `stencil.open {"builtin":"network"}`.
+
+Session retention defaults to a 2 GiB ceiling; use `--memory-limit <MiB>` or `MISTERDIAGRAM_MEMORY_LIMIT` (the flag wins) to change it without changing any per-file admission bound.

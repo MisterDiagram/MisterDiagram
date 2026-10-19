@@ -148,7 +148,7 @@ fn repeated_large_media_has_a_separate_bounded_stencil_budget() {
     drop(document);
     let path = directory.join("repeated.vssx");
     std::fs::write(&path, &bytes).unwrap();
-    let mut session = Session::new();
+    let mut session = Session::with_memory_limits(misterdiagram_engine::MemoryLimits::from_mib(1024).unwrap());
     let opened = session.execute("stencil.open", &json!({"path":path}));
     assert!(opened.is_ok(), "160 MiB repeated media must not consume the 128 MiB source budget: {opened:?}");
     assert_eq!(session.execute("stencil.open", &json!({"path":path})).unwrap()["stencil"], 1);
@@ -164,7 +164,7 @@ fn repeated_large_media_has_a_separate_bounded_stencil_budget() {
     assert!(error.contains("media byte limit"), "drawing admission must charge open stencil media: {error}");
     assert_eq!(session.document(), &before, "failed drawing admission must roll back");
     drop(session);
-    let mut session = Session::new();
+    let mut session = Session::with_memory_limits(misterdiagram_engine::MemoryLimits::from_mib(1024).unwrap());
     session.execute("file.open", &json!({"path":path})).unwrap();
     let error = session.execute("stencil.open", &json!({"path":second})).unwrap_err().to_string();
     assert!(error.contains("media byte limit"), "both admission orders must enforce the same aggregate: {error}");
@@ -172,7 +172,7 @@ fn repeated_large_media_has_a_separate_bounded_stencil_budget() {
     assert!(error.contains("media byte limit"), "copy-on-write must charge rollback media owners: {error}");
     assert!(session.document().pages[0].shapes.is_empty(), "failed publication must roll back");
     drop(session);
-    let mut session = Session::new();
+    let mut session = Session::with_memory_limits(misterdiagram_engine::MemoryLimits::from_mib(1024).unwrap());
     session.execute("file.open", &json!({"path":medium})).unwrap();
     let error = session.execute("shape.draw.rect", &json!({"x":1,"y":1,"width":2,"height":1})).unwrap_err().to_string();
     assert!(error.contains("media byte limit"), "reimport must include its separate allocation: {error}");

@@ -116,13 +116,16 @@ File outputs publish from a sibling temporary file after successful serializatio
 Exports share a retained-scene budget across PDF pages; EMF operations are charged
 while records are interpreted, before the enclosing scene retains the result.
 
-`stencil.open` retains at most 128 MiB of uncompressed nonmedia source-part
-bytes across all open stencils, with the existing 64-stencil count limit.
-Image parts without a retained XML tree have a separate 256 MiB allowance across
+`stencil.open` defaults to at most 128 MiB of uncompressed nonmedia source-part
+bytes across retained stencil identities, with the existing 64-stencil count limit.
+Image parts without a retained XML tree have a separate 512 MiB allowance across
 distinct documents retained by the session, history and rollback reservations.
 Unknown binary parts remain source bytes. Package, decoder and scene limits
 still apply. Reopening the same canonical path reuses its source. A source-byte
-refusal names the stencil, required MiB, MiB already open and the 128 MiB limit.
+refusal names the required bytes, bytes already retained, derived limit and
+configuration setting. The earlier history estimate also charged shared stencil
+source again; the identity census removes that duplicate charge and accounts
+for pictures separately.
 
 Open stencils use shared `Arc<Document>` storage. Document-only batches omit
 unchanged stencil inventories from undo snapshots; inventory-changing batches
@@ -132,6 +135,73 @@ consume no additional history estimate. Nonmedia history estimates and picture
 bytes use that same census for admission and trimming. `file.new` and `file.open`
 keep external stencils. `stencil.list` exposes the current indices, with zero
 for the document stencil; `stencil.close` compacts external indices.
+
+### Configurable session retention (M5.19c)
+
+`MemoryLimits` derives byte allowances from one ceiling C, default 2,048 MiB.
+The CLI and MCP accept `--memory-limit <MiB>` or `MISTERDIAGRAM_MEMORY_LIMIT`;
+the flag wins, including over an invalid environment value. Whole positive MiB
+are checked for overflow. This setting never enters a file/parser/render limit.
+
+| Bound | Prior default | Default at C = 2,048 MiB | Derivation |
+| --- | ---: | ---: | --- |
+| External stencil nonmedia source | 128 MiB | 128 MiB | C / 16 |
+| Pictures across active/history/rollback identities | 256 MiB | 512 MiB | C / 4 |
+| Nonmedia history estimate | 256 MiB | 256 MiB | C / 8 |
+| Aggregate retained resident estimate | No single ceiling | 1,536 MiB | 3 C / 4 |
+| Transient-work margin | Not derived | 512 MiB | C / 4 |
+| History count | 32 snapshots | 32 snapshots | Fixed |
+
+Each unique `Arc<Document>` contributes its source nodes, actual picture bytes,
+twice its nonmedia source bytes, and 1 MiB of document overhead to the aggregate
+estimate. Nodes reserve 320 bytes each, conservatively above the compact 88-byte
+XML node alone to include attributes, typed data, strings and allocator overhead.
+The 512 MiB remainder covers in-flight package, writer, evaluator and routing work.
+The component allowances overlap the aggregate estimate; they are not added to it.
+History independently estimates 16 times nonmedia source plus 1 MiB per unique
+historical document, excluding shared external stencil identities. Oldest history
+yields at the unchanged count/node limits or its derived byte estimate. Active
+stencils and documents are never evicted.
+
+A single census includes active documents, open stencils, undo/redo and enclosing
+rollback owners. Compound edits restore their parent's reservation scope after
+each internal publication. Inventory snapshots retain references and indices,
+not additional stencil copies. Master resources reserve their incremental buffers
+and cumulative copied XML before cloning; edited copy-on-write and reimport
+reservations use the same byte admission function. New sessions preflight ZIP
+source sizes before decompression and retain the reader's independent bounds.
+Refusals include needed, held and limit values in MiB and exact bytes, plus the
+flag/environment setting. Inventory rollback refusals explain that opening
+stencils in their own call avoids that retention. Fixed node refusals explicitly
+say that the memory setting cannot raise the node bound.
+
+| Fixed admission bound | Before and after |
+| --- | --- |
+| Compressed reader file / decompressed individual part | 512 MiB / 512 MiB |
+| Decompressed package source | 2 GiB |
+| Parsed XML part | 96 MiB |
+| Retained reader-source XML nodes, including history/rollback | 4,000,000 |
+| ZIP entry, parser depth/count, evaluator, image and render bounds | Unchanged |
+| Brief B guard / media sheet-to-info RSS ratio | 20 s, 2,048 MiB / at most 1.2 |
+
+The release MCP measurement under the unchanged `guard.sh 600 2048` opens all
+three requested Cisco, Brocade and Dell stencils and drops each requested master.
+Their combined source count is 846,556 nodes (451,697 + 277,309 + 117,550), below
+the unchanged 4,000,000-node bound. The page-1 batch then refuses command 4:
+30,981,038 new picture bytes plus 515,938,434 held bytes exceed the 536,870,912-byte
+picture allowance. Peak RSS is 900,284,416 bytes (858.58 MiB), elapsed 8.17 s;
+there is 1,189.42 MiB of measured margin below the 2 GiB guard. No guard kill or
+stencil-open refusal occurs. The later 32-history/full-rollback workload is not
+reached after this clean capacity refusal. Synthetic tests separately cover
+inventory undo/redo and full strict/compound rollback.
+
+A separate exploratory setting of 8,192 MiB under the same 2 GiB guard is killed
+during the page-1 batch. It is not the default measurement and does not justify
+larger defaults. Component allowances are deliberately conservative: the 320-byte
+node estimate plus the 512 MiB transient reserve and measured margin protect the
+observed default workload; they are not a claim that the estimator exactly models
+every allocator or that a larger configured ceiling fits a smaller external guard.
+Vendor stencils are read in place and never included as fixtures or outputs.
 
 ### Shared retained XML budget (2026-10-16)
 
@@ -155,8 +225,9 @@ that maximum rather than ten, by **Charles's ruling of 2026-10-16**. The origina
 exception targeted room for the reader and evaluator under 1 GiB. His subsequent
 Brief B follow-up 5 ruling accepts B1 against **2 GiB**, retaining this node-only
 budget and the compact representation. Distinct strings carry no additional units.
-The existing 128 MiB stencil source budget, 64-stencil count and all other caps
-remain unchanged.
+The 128 MiB stencil source default and 64-stencil count remain unchanged.
+The M5.19c session policy below replaces the former 256 MiB picture allowance;
+the fixed reader/node bounds are independent of that policy.
 Largest source package: 33,815,410 bytes, SOCIAL_DISTANCING_M.vstx. Largest part
 including synthetic stencil probes: 500,191 nodes, brief-b/st1.vssx,
 visio/masters/master1.xml. Largest ordinary corpus part: 467,889 nodes,

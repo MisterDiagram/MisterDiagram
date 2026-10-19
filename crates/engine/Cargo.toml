@@ -10,6 +10,8 @@ workspace = true
 
 [dependencies]
 misterdiagram-model.workspace = true
+misterdiagram-opc.workspace = true
+zip.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

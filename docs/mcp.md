@@ -1,10 +1,24 @@
 # MCP
 
-M5.13b includes stencil lifetime controls, global search and bounded batch
-snapshots. Three real-stdio regressions cover issues #58, #59 and #63 with
-contributor-original 38 MiB stencils generated at runtime. The 256 MiB retained
+Stencil lifetime controls, global search and bounded batch snapshots have
+three existing real-stdio regressions for issues #58, #59 and #63 with
+contributor-original 38 MiB stencils generated at runtime. The default 512 MiB retained
 media allowance includes active documents, stencils, history and rollback owners;
 file opening and edited reimports enforce the same aggregate transactionally.
+
+The default session ceiling is 2 GiB. Use `misterdiagram mcp --memory-limit 4096`
+(or `misterdiagram --memory-limit 4096 mcp`) to change it in whole MiB.
+`MISTERDIAGRAM_MEMORY_LIMIT=4096 misterdiagram mcp` sets the same ceiling; the
+flag wins. Invalid, zero, fractional and overflowing values fail before serving.
+The CLI `run` and `convert` use the same session policy. This setting changes only
+session retention, never per-file source/decompression/XML/render bounds or the
+fixed 4,000,000-node limit. At the default, source/media/history allowances are
+128/512/256 MiB with a 1,536 MiB aggregate estimate and 512 MiB transient margin.
+Errors name needed, held and limit values, exact bytes and the setting. Fixed node
+and stencil-count errors explicitly say that the setting cannot raise those
+fixed bounds. Four additional real-stdio memory tests cover shared inventory
+snapshots, media admission/drop, inherited rollback and the immutable node bound.
+See docs/architecture.md for the derivation.
 
 Run `misterdiagram mcp`. The server reads one JSON-RPC message per line on stdin
 and writes replies on stdout. Diagnostics use stderr. Messages are capped at
@@ -89,7 +103,9 @@ are charged once by identity even when an inventory-changing batch includes them
 in its undo snapshot. A batch changing the stencil inventory retains references
 for undo and is still subject to the existing
 256 MiB history estimate and 4,000,000 retained XML node limit. A genuinely
-oversized snapshot fails with `batch undo snapshot exceeds retained budget`. Files already written
+oversized snapshot fails with `batch undo snapshot exceeds retained budget` and
+the actual history-byte or fixed-node bound. Inventory rollback refusals also
+explain that opening stencils in their own call avoids that extra retention. Files already written
 by save/export commands are external side effects and are not removed on a
 later failure. Prefer saving after a successful batch. This transaction wrapper
 does not implement the deferred-publication optimization shelved under #39.

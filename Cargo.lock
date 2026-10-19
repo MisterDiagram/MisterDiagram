@@ -704,6 +704,7 @@ dependencies = [
  "log",
  "misterdiagram-geom",
  "misterdiagram-model",
+ "misterdiagram-opc",
  "misterdiagram-render",
  "misterdiagram-route",
  "misterdiagram-sheet",
@@ -713,6 +714,7 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror",
+ "zip",
 ]
 
 [[package]]

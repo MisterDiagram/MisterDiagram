@@ -9,8 +9,8 @@ MAX_MESSAGE = 4 * 1024 * 1024
 
 
 class Client:
-    def __init__(self, binary):
-        self.process = subprocess.Popen([str(binary), 'mcp'], stdin=subprocess.PIPE,
+    def __init__(self, binary, args=()):
+        self.process = subprocess.Popen([str(binary), 'mcp', *args], stdin=subprocess.PIPE,
                                         stdout=subprocess.PIPE, text=True, encoding='utf-8')
         self.replies = queue.Queue(maxsize=2)
         self.next_id = 0

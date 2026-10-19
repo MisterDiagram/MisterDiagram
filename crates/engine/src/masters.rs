@@ -167,22 +167,24 @@ fn rewrite_shapes(
     }
     Ok(())
 }
-fn copy_parts(doc: &mut Document, source: &Document, root: &str, destination: &str, master_id: u32) -> Result<()> {
+fn copy_parts(
+    doc: &mut Document,
+    source: &Document,
+    root: &str,
+    destination: &str,
+    master_id: u32,
+    budget: &crate::retention::Reservation,
+) -> Result<()> {
     if !source.parts.contains_key(root) {
         return Ok(());
     }
     let mut mapping = BTreeMap::from([(root.to_owned(), destination.to_owned())]);
     let mut pending = vec![root.to_owned()];
-    let mut bytes = doc.parts.values().fold(0usize, |n, p| n.saturating_add(p.bytes.len()));
     while let Some(name) = pending.pop() {
         if mapping.len() > 10000 {
             return Err(operation("master resource count limit"));
         }
         let part = source.parts.get(&name).ok_or_else(|| operation("master resource is missing"))?;
-        bytes = bytes.saturating_add(part.bytes.len());
-        if bytes > 128 * 1024 * 1024 {
-            return Err(operation("master resource byte limit"));
-        }
         for rel in &part.relationships {
             if rel.external || mapping.contains_key(&rel.target) {
                 continue;
@@ -195,6 +197,8 @@ fn copy_parts(doc: &mut Document, source: &Document, root: &str, destination: &s
             pending.push(rel.target.clone());
         }
     }
+    let copied_nodes = budget.parts(doc, mapping.keys().filter_map(|name| source.parts.get(name)))?;
+    doc.retained_xml_nodes = doc.retained_xml_nodes.saturating_add(copied_nodes);
     for (name, target) in &mapping {
         let mut part = source.parts.get(name).ok_or_else(|| operation("resource missing"))?.clone();
         for rel in &mut part.relationships {
@@ -268,7 +272,13 @@ fn collect_colors(sheet: &Sheet, colors: &mut BTreeSet<String>) {
         }
     }
 }
-fn import_master(doc: &mut Document, source: &Document, source_id: u32, visiting: &mut BTreeSet<u32>) -> Result<u32> {
+fn import_master(
+    doc: &mut Document,
+    source: &Document,
+    source_id: u32,
+    visiting: &mut BTreeSet<u32>,
+    budget: &crate::retention::Reservation,
+) -> Result<u32> {
     let master = source.masters.iter().find(|m| m.id == source_id).ok_or_else(|| operation("master missing"))?;
     if let Some(existing) = doc.masters.iter().find(|m| {
         master.unique_id.is_some() && m.unique_id == master.unique_id
@@ -293,7 +303,7 @@ fn import_master(doc: &mut Document, source: &Document, source_id: u32, visiting
     let mut nested_map = BTreeMap::new();
     let mut nested_ids = BTreeMap::new();
     for id in nested {
-        nested_map.insert(id, import_master(doc, source, id, visiting)?);
+        nested_map.insert(id, import_master(doc, source, id, visiting, budget)?);
         let master = source.masters.iter().find(|m| m.id == id).ok_or_else(|| operation("nested master missing"))?;
         nested_ids.insert(id, imported_ids(&master.shapes)?);
     }
@@ -316,7 +326,7 @@ fn import_master(doc: &mut Document, source: &Document, source_id: u32, visiting
             connect.to_sheet = *id;
         }
     }
-    copy_parts(doc, source, &master.part, &part, id)?;
+    copy_parts(doc, source, &master.part, &part, id, budget)?;
     if copy.unique_id.is_none() {
         copy.unique_id = misterdiagram_model::skeleton::dynamic_connector().unique_id;
     }
@@ -427,8 +437,9 @@ pub(crate) fn drop_master(s: &mut Session, p: &Value) -> Result<Value> {
     }
     let source_id = crate::stencils::find(&source, p)?.id;
     let own = std::sync::Arc::ptr_eq(&source, &s.document);
+    let budget = s.reservation();
     s.edit_document(|doc, selection| {
-        let master_id = if own { source_id } else { import_master(doc, &source, source_id, &mut BTreeSet::new())? };
+        let master_id = if own { source_id } else { import_master(doc, &source, source_id, &mut BTreeSet::new(), &budget)? };
         let master = doc.masters.iter().find(|m| m.id == master_id).ok_or_else(|| operation("master missing"))?;
         let roots = master.shapes.iter().filter(|s| !s.sheet.attributes.get("Del").is_some_and(|v| v == "1" || v == "true")).collect::<Vec<_>>();
         if roots.len() != 1 {
@@ -589,6 +600,26 @@ pub(crate) fn new_from_shape(s: &mut Session, p: &Value) -> Result<Value> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
+    #[test]
+    fn nested_resource_copies_reserve_cumulative_nodes_before_allocation() {
+        let mut destination = misterdiagram_model::skeleton::document(false);
+        destination.retained_xml_nodes = misterdiagram_vsdx::MAX_RETAINED_XML_NODES - 2;
+        let mut source = misterdiagram_model::skeleton::document(false);
+        for (name, xml) in [("first.xml", "<Original/>"), ("second.xml", "<Original><Child/></Original>")] {
+            source.parts.insert(
+                name.into(),
+                misterdiagram_model::Part { xml: Some(misterdiagram_vsdx::parse_xml(xml.as_bytes()).unwrap()), ..Default::default() },
+            );
+        }
+        let budget = Session::new().reservation();
+        copy_parts(&mut destination, &source, "first.xml", "copy1.xml", 2, &budget).unwrap();
+        assert_eq!(destination.retained_xml_nodes, misterdiagram_vsdx::MAX_RETAINED_XML_NODES - 1);
+        let before = destination.clone();
+        let error = copy_parts(&mut destination, &source, "second.xml", "copy2.xml", 3, &budget).unwrap_err().to_string();
+        assert!(error.contains("retained XML node limit"), "{error}");
+        assert_eq!(destination, before, "refuse before allocating the second resource tree");
+    }
     /// Returning from a local paragraph run to inherited row0 needs its pp marker.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/pp-element-text_type-complextypevisio-xml
     #[test]
@@ -622,7 +653,7 @@ mod tests {
         outer.shapes = vec![Shape { id: 8, shape_type: Some("Shape".into()), master: Some(2), master_shape: Some(4), ..Default::default() }];
         source.masters.push(outer);
         let mut destination = misterdiagram_model::skeleton::document(false);
-        let id = import_master(&mut destination, &source, 3, &mut BTreeSet::new()).unwrap();
+        let id = import_master(&mut destination, &source, 3, &mut BTreeSet::new(), &Session::new().reservation()).unwrap();
         let master = destination.masters.iter().find(|m| m.id == id).unwrap();
         assert_eq!(master.shapes[0].master_shape, Some(5));
         assert!(Evaluator::new(&destination).unwrap().evaluate(Scope::MasterShape { master: id, shape: 8 }, "Width").numeric().is_ok());
@@ -633,7 +664,7 @@ mod tests {
         source.masters[0].name_u = "Cyclic master".into();
         source.masters[0].shapes[0].master = Some(2);
         let mut destination = misterdiagram_model::skeleton::document(false);
-        assert!(import_master(&mut destination, &source, 2, &mut BTreeSet::new()).is_err());
+        assert!(import_master(&mut destination, &source, 2, &mut BTreeSet::new(), &Session::new().reservation()).is_err());
         let mut s = Session::new();
         let before = s.document().clone();
         s.stencils.push(crate::stencils::Stencil { path: std::path::PathBuf::from("cycle.vssx"), document: std::sync::Arc::new(source) });

@@ -1,5 +1,5 @@
 //! CLI commands share the engine's session, schema validation and rollback boundary.
-use misterdiagram_engine::Session;
+use misterdiagram_engine::{MemoryLimits, Session};
 use serde_json::{Value, json};
 use std::{
     ffi::OsString,
@@ -31,7 +31,7 @@ pub fn describe(args: &[OsString], out: &mut impl Write) -> Result<(), String> {
 }
 /// Execute a bounded sequence in one session, with optional open and final save.
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.application.beginundoscope
-pub fn run(args: &[OsString], out: &mut impl Write) -> Result<(), String> {
+pub fn run(args: &[OsString], out: &mut impl Write, memory: MemoryLimits) -> Result<(), String> {
     let mut open = None;
     let mut save = None;
     let mut commands = Vec::<(&str, Value)>::new();
@@ -80,7 +80,7 @@ pub fn run(args: &[OsString], out: &mut impl Write) -> Result<(), String> {
     if open.is_none() && save.is_none() && commands.is_empty() {
         return Err("usage: run [--open FILE] [--cmd ID=JSON | --batch FILE] ... [--save FILE]".into());
     }
-    let mut session = Session::new();
+    let mut session = Session::with_memory_limits(memory);
     if let Some(path) = open {
         session.execute("file.open", &json!({"path":path})).map_err(|e| e.to_string())?;
     }
@@ -97,7 +97,7 @@ pub fn run(args: &[OsString], out: &mut impl Write) -> Result<(), String> {
 /// Convert a document through the same file.open/save/export commands as scripting.
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.document.saveas
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.page.export
-pub fn convert(args: &[OsString], out: &mut impl Write) -> Result<(), String> {
+pub fn convert(args: &[OsString], out: &mut impl Write, memory: MemoryLimits) -> Result<(), String> {
     if args.len() != 3 {
         return Err("usage: convert IN OUT".into());
     }
@@ -109,7 +109,7 @@ pub fn convert(args: &[OsString], out: &mut impl Write) -> Result<(), String> {
         "png" | "svg" | "pdf" => "file.export",
         _ => return Err("convert output must be vsdx, vssx, vstx, png, svg or pdf".into()),
     };
-    let mut session = Session::new();
+    let mut session = Session::with_memory_limits(memory);
     session.execute("file.open", &json!({"path":input})).map_err(|e| e.to_string())?;
     let value = session.execute(command, &json!({"path":output_path})).map_err(|e| e.to_string())?;
     output(out, &value)

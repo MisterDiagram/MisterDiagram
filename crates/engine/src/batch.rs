@@ -44,6 +44,11 @@ fn resolve(value: &mut Value, shape_id: bool, references: &BTreeMap<String, Valu
     Ok(())
 }
 impl Session {
+    fn stencil_inventory_changed(&self, other: &Self) -> bool {
+        self.stencils.len() != other.stencils.len()
+            || self.stencils.iter().zip(&other.stencils).any(|(a, b)| !std::sync::Arc::ptr_eq(&a.document, &b.document))
+    }
+
     /// Execute in order, roll back the entire session on failure, or retain one
     /// undo snapshot on success. File outputs already published by commands are
     /// external side effects and are not reverted by session rollback.
@@ -106,7 +111,12 @@ impl Session {
                 Ok(value) => results.push(value),
                 Err(error) => {
                     self.observe_external_save(&candidate);
-                    return Err(operation(format!("batch command index {index} (command {}): {error}", index + 1)));
+                    let hint = if error.to_string().contains("retained") && self.stencil_inventory_changed(&candidate) {
+                        "; opening stencils in their own call avoids inventory rollback retention"
+                    } else {
+                        ""
+                    };
+                    return Err(operation(format!("batch command index {index} (command {}): {error}{hint}", index + 1)));
                 }
             }
         }
@@ -116,9 +126,7 @@ impl Session {
         let mut before = self.snapshot();
         // Immutable open stencils are already shared by Arc. A document-only
         // batch must not charge their sources again as undo state (#58).
-        if self.stencils.len() != candidate.stencils.len()
-            || self.stencils.iter().zip(&candidate.stencils).any(|(a, b)| !std::sync::Arc::ptr_eq(&a.document, &b.document))
-        {
+        if self.stencil_inventory_changed(&candidate) {
             before.stencils = Some(self.stencils.clone());
         }
         candidate.undo = self.undo.clone();
@@ -126,19 +134,34 @@ impl Session {
         candidate.redo.clear();
         candidate.read_reservations = self.read_reservations.clone();
         candidate.stencil_reservations = self.stencil_reservations.clone();
-        let history = candidate.retention().history;
+        let retained = candidate.retention();
+        let history = retained.history;
         let inventory_changed = candidate.undo.back().is_some_and(|s| s.stencils.is_some());
         candidate.trim_history();
         if candidate.undo.is_empty() {
             self.observe_external_save(&candidate);
-            let error = crate::retention::retention_error(
-                "history",
-                256 * 1024 * 1024,
-                history.saturating_sub(self.retention().history),
-                self.retention().history,
-            );
+            let error = if history > self.memory.history() {
+                crate::retention::retention_error(
+                    "history",
+                    self.memory.history(),
+                    history.saturating_sub(self.retention().history),
+                    self.retention().history,
+                )
+            } else {
+                operation(format!(
+                    "retained XML node limit: needs {} nodes for next-edit headroom, {} already retained, limit {}; --memory-limit and MISTERDIAGRAM_MEMORY_LIMIT do not change this fixed admission bound",
+                    candidate.document.retained_xml_nodes.saturating_mul(2),
+                    retained.nodes,
+                    misterdiagram_vsdx::MAX_RETAINED_XML_NODES
+                ))
+            };
             let hint = if inventory_changed { "; opening stencils in their own call avoids inventory rollback retention" } else { "" };
             return Err(operation(format!("batch undo snapshot exceeds retained budget: {error}{hint}")));
+        }
+        if let Err(error) = candidate.check_retention(self.retention(), candidate.retention()) {
+            self.observe_external_save(&candidate);
+            let hint = if inventory_changed { "; opening stencils in their own call avoids inventory rollback retention" } else { "" };
+            return Err(operation(format!("{error}{hint}")));
         }
         if let Err(error) = crate::result_budget(&result) {
             self.observe_external_save(&candidate);

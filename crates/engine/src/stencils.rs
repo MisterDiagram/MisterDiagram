@@ -23,15 +23,18 @@ pub(crate) fn open(s: &mut Session, p: &Value) -> Result<Value> {
         return Ok(json!({"stencil":index+1,"masters":s.stencils.get(index).map(|s|s.document.masters.len())}));
     }
     if s.stencils.len() >= 64 {
-        return Err(operation("stencil count limit"));
+        return Err(crate::retention::fixed_admission_error("stencil count", 1, s.stencils.len(), 64, "stencil"));
     }
-    let document = if builtin.is_some() {
-        crate::network::document()?
-    } else {
-        misterdiagram_vsdx::read_with_open_nodes(&path, s.retained_xml_nodes()).map_err(operation)?
-    };
-    if s.retained_xml_nodes().saturating_add(document.retained_xml_nodes) > misterdiagram_vsdx::MAX_RETAINED_XML_NODES {
-        return Err(operation("retained XML node limit"));
+    let document = if builtin.is_some() { crate::network::document()? } else { s.read_document(&path, true)? };
+    let held_nodes = s.retained_xml_nodes();
+    if held_nodes.saturating_add(document.retained_xml_nodes) > misterdiagram_vsdx::MAX_RETAINED_XML_NODES {
+        return Err(crate::retention::fixed_admission_error(
+            "XML node",
+            document.retained_xml_nodes,
+            held_nodes,
+            misterdiagram_vsdx::MAX_RETAINED_XML_NODES,
+            "nodes",
+        ));
     }
     if !document.parts.get(&document.main_part).and_then(|p| p.content_type.as_deref()).is_some_and(|v| v.contains("stencil")) {
         return Err(operation("file is not a stencil"));
@@ -134,6 +137,32 @@ pub(crate) fn search(s: &mut Session, p: &Value) -> Result<Value> {
 #[cfg(test)]
 mod retained_tests {
     use super::*;
+    /// https://learn.microsoft.com/en-us/office/vba/api/visio.documents.openex
+    #[test]
+    fn builtin_node_refusal_names_fixed_bound_and_preserves_inventory() {
+        let mut s = Session::with_memory_limits(crate::MemoryLimits::from_mib(8192).unwrap());
+        Arc::make_mut(&mut s.document).retained_xml_nodes = misterdiagram_vsdx::MAX_RETAINED_XML_NODES;
+        let before = s.document.clone();
+        let error = s.execute("stencil.open", &json!({"builtin":"network"})).unwrap_err().to_string();
+        assert!(error.contains("limit 4000000"), "{error}");
+        assert!(error.contains("4000000 already retained"), "{error}");
+        assert!(error.contains("needs "), "{error}");
+        assert!(error.contains("--memory-limit and MISTERDIAGRAM_MEMORY_LIMIT do not change this fixed admission bound"), "{error}");
+        assert!(s.stencils.is_empty());
+        assert!(Arc::ptr_eq(&before, &s.document));
+    }
+    /// https://learn.microsoft.com/en-us/office/vba/api/visio.documents.openex
+    #[test]
+    fn stencil_count_refusal_names_fixed_bound_and_preserves_inventory() {
+        let mut s = Session::new();
+        for i in 0..64 {
+            s.stencils.push(Stencil { path: format!("original-count-{i}").into(), document: s.document.clone() });
+        }
+        let error = s.execute("stencil.open", &json!({"builtin":"network"})).unwrap_err().to_string();
+        assert!(error.contains("needs 1 stencil, 64 already retained, limit 64"), "{error}");
+        assert!(error.contains("--memory-limit and MISTERDIAGRAM_MEMORY_LIMIT do not change this fixed admission bound"), "{error}");
+        assert_eq!(s.stencils.len(), 64);
+    }
     #[cfg(unix)]
     #[test]
     fn stencil_listing_displays_non_utf8_paths_without_panicking() {

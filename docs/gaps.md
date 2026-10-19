@@ -1509,3 +1509,31 @@ undo/redo and close/failure restoration, and consistent picture admission/drop.
 The 280 MiB original stencil already refused at open on c7d5553; its refusal
 diagnostic lacked the configuration setting. Failure1 reproduced exactly.
 M5.19c supplies the configurable ceiling and measured release acceptance.
+
+## M5.19c: configurable session ceiling
+
+The default ceiling is 2 GiB, deriving 128 MiB stencil source, 512 MiB pictures,
+256 MiB history estimate and 1,536 MiB resident estimate with 512 MiB transient
+headroom. `--memory-limit` wins over `MISTERDIAGRAM_MEMORY_LIMIT`. File, XML,
+node, decoder and render bounds remain fixed. Discovery corrected enclosing
+compound rollback reservations, cumulative master-resource node reservations,
+publication checks, wrapped-command hint classification and fractional errors.
+The measured release session opens all three requested real stencils and drops
+all three requested masters (846,556 source nodes). Page 1 then refuses picture
+retention at 512 MiB: 29.5 MiB needed with 492.0 MiB held. Peak RSS is 858.58 MiB
+in 8.17 seconds, without a guard kill. The real-session 32-history fill and
+failing-last batch are not reached after this clean capacity refusal; original
+stdio tests cover inventory undo/redo and full rollback separately.
+
+All 27 frozen hostile rows retain their recorded exits under 20 seconds and
+2 GiB. Media sheet/info RSS is 1.002999671 (limit 1.2). Office, SAN and fabric
+remain package-equal to c7d5553 under existing masks (23, 16 and 18 parts).
+Route sweep remains 28/29 with the named jump-three-crossings gap; closure has
+40 connectors, 1,344 cells and zero differences. SAN retains 80 Connects.
+Inventory remains 6,678/6,742, zero blank or guard kills; supplemental Cisco is
+136/143. All 89 contact images and per-file counts match c7d5553, so there are
+zero newly rendered masters. Full corpus exits 0: strict round trip 15,105,590/15,105,590, cached text
+62,075/67,866, COM text 54,449/58,180 and generated outliers 9/max10.
+Full CI passes all eight gates: 667 tests passed, zero failed and three ignored.
+All three prescribed source seeds fail their intended assertions and pass after
+exact restoration. No oracle, threshold, witness, floor or denominator changed.
