@@ -1,6 +1,48 @@
 //! Atomic session batches retain every strict write/re-import boundary.
 use crate::{Result, Session, operation, params_size};
 use serde_json::{Value, json};
+use std::collections::BTreeMap;
+// References are command-surface state only, never document cells or metadata.
+fn reference_name(item: &Value) -> Result<Option<&str>> {
+    item.get("as")
+        .map(|v| {
+            v.as_str()
+                .filter(|name| {
+                    !name.is_empty() && name.len() <= 64 && name.bytes().all(|b| b.is_ascii_alphanumeric() || matches!(b, b'_' | b'-' | b'.'))
+                })
+                .ok_or_else(|| operation("as requires a name of 1 through 64 ASCII letters, digits, underscore, hyphen or dot"))
+        })
+        .transpose()
+}
+fn resolve(value: &mut Value, shape_id: bool, references: &BTreeMap<String, Value>, depth: usize) -> Result<()> {
+    if depth > 64 {
+        return Err(operation("batch reference nesting limit"));
+    }
+    match value {
+        Value::String(text) => {
+            if shape_id {
+                if let Some(name) = text.strip_prefix('$') {
+                    *value = references.get(name).cloned().ok_or_else(|| operation(format!("unknown batch reference ${name}")))?;
+                }
+            } else if let Some(literal) = text.strip_prefix("$$") {
+                *text = format!("${literal}");
+            }
+        }
+        Value::Array(items) => {
+            for item in items {
+                resolve(item, shape_id, references, depth + 1)?;
+            }
+        }
+        Value::Object(items) => {
+            for (key, item) in items {
+                let is_id = matches!(key.as_str(), "id" | "source" | "target" | "root" | "hub" | "from" | "to" | "ids" | "spokes" | "edges");
+                resolve(item, is_id, references, depth + 1)?;
+            }
+        }
+        _ => {}
+    }
+    Ok(())
+}
 impl Session {
     /// Execute in order, roll back the entire session on failure, or retain one
     /// undo snapshot on success. File outputs already published by commands are
@@ -24,15 +66,35 @@ impl Session {
         let reservations = self.retained_documents().into_iter().cloned().collect::<Vec<_>>();
         let mut results = Vec::new();
         let mut output_bytes = 0usize;
+        let mut references = BTreeMap::new();
         for (index, item) in commands.iter().enumerate() {
             let result = (|| {
                 params_size(item)?;
-                if item.as_object().is_none_or(|p| p.keys().any(|k| k != "command" && k != "params")) {
-                    return Err(operation("batch item requires command and optional params"));
+                if item.as_object().is_none_or(|p| p.keys().any(|k| k != "command" && k != "params" && k != "as")) {
+                    return Err(operation("batch item requires command and optional params/as"));
                 }
                 let command = crate::edit::name(item, "command")?;
+                if command == "engine.batch"
+                    || (command == "engine.execute"
+                        && item.get("params").and_then(|p| p.get("command")).and_then(Value::as_str) == Some("engine.batch"))
+                {
+                    return Err(operation("nested batches are not supported; combine commands in one batch"));
+                }
+                let alias = reference_name(item)?;
+                if alias.is_some_and(|name| references.contains_key(name)) {
+                    return Err(operation("duplicate batch reference name"));
+                }
+                let mut params = item.get("params").cloned().unwrap_or_else(|| json!({}));
+                resolve(&mut params, false, &references, 0)?;
                 candidate.read_reservations = reservations.clone();
-                let result = candidate.execute(command, item.get("params").unwrap_or(&json!({})))?;
+                let result = candidate.execute(command, &params)?;
+                if let Some(name) = alias {
+                    let id = result
+                        .get("id")
+                        .filter(|v| v.as_u64().is_some_and(|id| id <= u64::from(u32::MAX)))
+                        .ok_or_else(|| operation("named batch command did not return an id"))?;
+                    references.insert(name.to_owned(), id.clone());
+                }
                 output_bytes = output_bytes.saturating_add(serde_json::to_vec(&result).map_err(operation)?.len());
                 if output_bytes > 1024 * 1024 {
                     return Err(operation("batch result byte limit; use fewer batch commands or cells/sections filters"));
@@ -60,7 +122,7 @@ impl Session {
         if candidate.undo.is_empty() {
             return Err(operation("batch undo snapshot exceeds retained budget"));
         }
-        let result = json!({"results":results});
+        let result = json!({"results":results,"references":references});
         crate::result_budget(&result)?;
         *self = candidate;
         Ok(result)

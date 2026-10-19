@@ -141,6 +141,9 @@ impl Session {
         let bytes = params_size(params)?;
         let spec = find_command(id).ok_or_else(|| EngineError::UnknownCommand(id.chars().take(256).collect()))?;
         validate_schema(spec.params, params)?;
+        if id == "engine.batch" {
+            return self.execute_batch(params);
+        }
         if id == "engine.execute" {
             return inspect::execute(self, params);
         }

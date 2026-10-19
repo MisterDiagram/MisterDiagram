@@ -139,7 +139,17 @@ fn oversized_escaped_batch_result_rolls_back_mutations() {
     let mut commands = vec![json!({"command":"shape.draw.rect","params":{"x":0,"y":0,"width":1,"height":1}})];
     // Schemas contain many escaped quotes: the raw results fit the older batch
     // limit while their MCP content envelope exceeds it.
-    commands.extend((0..29).map(|_| json!({"command":"engine.commands"})));
+    let registry = run(&mut s, "engine.commands", json!({}));
+    let escaped_entry = serde_json::to_string(&registry.to_string()).unwrap().len();
+    let count = 1024 * 1024 / escaped_entry + 1;
+    let mut results = vec![json!({"id":1})];
+    results.extend(std::iter::repeat_n(registry, count));
+    let payload = json!({"results":results,"references":{}});
+    let raw = serde_json::to_vec(&payload).unwrap().len();
+    let envelope = json!({"content":[{"type":"text","text":payload.to_string()}],"isError":false});
+    assert!(raw < 1024 * 1024, "raw result must fit: {raw}");
+    assert!(serde_json::to_vec(&envelope).unwrap().len() > 1024 * 1024, "escaped envelope must overflow");
+    commands.extend((0..count).map(|_| json!({"command":"engine.commands"})));
     let error = s.execute_batch(&json!({"commands":commands})).unwrap_err().to_string();
     assert!(error.contains("budget") && error.contains("fewer batch"), "{error}");
     assert_eq!(s.document(), &before);

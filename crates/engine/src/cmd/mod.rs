@@ -108,6 +108,8 @@ pub fn command_specs() -> &'static [CommandSpec] {
             always,
             crate::layout::sides
         ),
+        cmd!(query "engine.batch", "Execute an atomic command batch", ["Control"], None,
+            r#"{"type":"object","properties":{"commands":{"type":"array","minItems":1,"maxItems":1024,"items":{"type":"object","properties":{"command":{"type":"string","minLength":1,"maxLength":256},"params":{"type":"object"},"as":{"type":"string","minLength":1,"maxLength":64}},"required":["command"],"additionalProperties":false}}},"required":["commands"],"additionalProperties":false}"#, always, Session::execute_batch),
         cmd!(query "engine.execute", "Execute an engine command", ["Control"], None,
             r#"{"type":"object","properties":{"command":{"type":"string","minLength":1,"maxLength":256},"params":{"type":"object"}},"required":["command"],"additionalProperties":false}"#, always, crate::inspect::execute),
         cmd!(query "engine.commands", "List engine commands", ["Control"], None,

@@ -36,7 +36,7 @@ page. Every mutating command uses the engine's strict write-and-reimport path.
 | render | `{"name":"render","arguments":{"path":"drawing.png","page":1,"scale":2}}` | Renders PNG, SVG or PDF at the requested scale. |
 | list_commands | `{"name":"list_commands","arguments":{}}` | Lists command IDs, labels, schemas and enabled state. |
 | run_command | `{"name":"run_command","arguments":{"command":"shape.draw.rect","params":{"x":1,"y":2,"width":2,"height":1}}}` | Creates a rectangle and returns its ID. Any registered engine command is available. |
-| batch | `{"name":"batch","arguments":{"commands":[{"command":"shape.draw.rect","params":{"x":1,"y":2,"width":2,"height":1}},{"command":"shape.text","params":{"id":1,"text":"Cedar"}}]}}` | Creates and labels shape 1 in a new document, as one undo step. Returns results in order. |
+| batch | `{"name":"batch","arguments":{"commands":[{"command":"shape.draw.rect","as":"cedar","params":{"x":1,"y":2,"width":2,"height":1}},{"command":"shape.text","params":{"id":"$cedar","text":"Cedar"}}]}}` | Creates and labels a rectangle as one undo step. Returns results and the reference map. |
 | inspect_document | `{"name":"inspect_document","arguments":{"page":1}}` | Pages, layers, flattened shapes, inherited text/data, bounds and Connects. |
 | inspect_shape | `{"name":"inspect_shape","arguments":{"page":1,"id":1,"cells":["Width","PinX"]}}` | Only id, bounds and the requested cells; optional sections select other groups. |
 | sheet_get | `{"name":"sheet_get","arguments":{"id":1,"name":"Width"}}` | Evaluated value, cached value, formula and units. |
@@ -68,6 +68,17 @@ otherwise dynamic. Dynamic glue accepts preference `horizontal` or `vertical`.
 Create connection points through run_command/shape.connection.add.
 
 Batch supports 1 to 1,024 commands within the engine's 1 MiB parameter budget.
+An item may carry `"as":"name"`; later shape-ID parameters may use `"$name"`,
+including ID arrays and tree edges. Names contain 1 through 64 ASCII letters,
+digits, underscores, periods or hyphens, are case-sensitive and resolve in order.
+Any successful command returning an `id` can be named, including grouped master
+drops. The result includes `references`, a name-to-ID object, alongside `results`.
+Unknown names, duplicates and naming a command without an ID fail the whole batch
+with the item index. References are local to one batch. Text is literal except
+that a leading `$$` loses one `$`, so `$$cost` produces `$cost`; `$cedar` in a text
+parameter remains text. Nested batches are rejected; combine their command lists
+into one batch. The engine command `engine.batch` exposes the same contract.
+
 Every item executes exactly as run_command does, including publication before
 later reads or edits. If any item fails, the entire session is restored:
 document, selection, open stencils, path, journal, undo and redo. Errors report

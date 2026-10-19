@@ -17,7 +17,7 @@ impl Headless {
 }
 impl Backend for Headless {
     fn call(&mut self, method: &str, params: Value) -> Result<Value, String> {
-        if method == "engine.batch" { self.session.execute_batch(&params) } else { self.session.execute(method, &params) }.map_err(|e| e.to_string())
+        self.session.execute(method, &params).map_err(|e| e.to_string())
     }
     fn has_ui(&self) -> bool {
         false

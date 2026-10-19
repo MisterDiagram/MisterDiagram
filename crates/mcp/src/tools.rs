@@ -56,10 +56,6 @@ const TOOLS: &[(&str, &str, &str)] = &[
     ("connect", "connect.dynamic", "Glue a connector end statically or dynamically"),
 ];
 fn schema(name: &str, command: &str) -> Result<Value, String> {
-    if name == "batch" {
-        return Ok(json!({"type":"object","properties":{"commands":{"type":"array","minItems":1,"maxItems":1024,
-            "items":{"type":"object","properties":{"command":{"type":"string","minLength":1,"maxLength":256},"params":{"type":"object"}},"required":["command"],"additionalProperties":false}}},"required":["commands"],"additionalProperties":false}));
-    }
     let spec = misterdiagram_engine::find_command(command).ok_or_else(|| format!("missing engine command {command}"))?;
     let mut schema: Value = serde_json::from_str(spec.params).map_err(|e| e.to_string())?;
     if name == "connect" {
