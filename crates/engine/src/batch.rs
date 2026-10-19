@@ -35,7 +35,7 @@ impl Session {
                 let result = candidate.execute(command, item.get("params").unwrap_or(&json!({})))?;
                 output_bytes = output_bytes.saturating_add(serde_json::to_vec(&result).map_err(operation)?.len());
                 if output_bytes > 1024 * 1024 {
-                    return Err(operation("batch result byte limit"));
+                    return Err(operation("batch result byte limit; use fewer batch commands or cells/sections filters"));
                 }
                 Ok(result)
             })();
@@ -60,8 +60,10 @@ impl Session {
         if candidate.undo.is_empty() {
             return Err(operation("batch undo snapshot exceeds retained budget"));
         }
+        let result = json!({"results":results});
+        crate::result_budget(&result)?;
         *self = candidate;
-        Ok(json!({"results":results}))
+        Ok(result)
     }
 }
 

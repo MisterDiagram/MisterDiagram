@@ -38,7 +38,7 @@ page. Every mutating command uses the engine's strict write-and-reimport path.
 | run_command | `{"name":"run_command","arguments":{"command":"shape.draw.rect","params":{"x":1,"y":2,"width":2,"height":1}}}` | Creates a rectangle and returns its ID. Any registered engine command is available. |
 | batch | `{"name":"batch","arguments":{"commands":[{"command":"shape.draw.rect","params":{"x":1,"y":2,"width":2,"height":1}},{"command":"shape.text","params":{"id":1,"text":"Cedar"}}]}}` | Creates and labels shape 1 in a new document, as one undo step. Returns results in order. |
 | inspect_document | `{"name":"inspect_document","arguments":{"page":1}}` | Pages, layers, flattened shapes, inherited text/data, bounds and Connects. |
-| inspect_shape | `{"name":"inspect_shape","arguments":{"page":1,"id":1,"cells":["Width","PinX"]}}` | Evaluated XForm, text transforms, data, connection points, glue and requested cells. |
+| inspect_shape | `{"name":"inspect_shape","arguments":{"page":1,"id":1,"cells":["Width","PinX"]}}` | Only id, bounds and the requested cells; optional sections select other groups. |
 | sheet_get | `{"name":"sheet_get","arguments":{"id":1,"name":"Width"}}` | Evaluated value, cached value, formula and units. |
 | sheet_set | `{"name":"sheet_set","arguments":{"id":1,"name":"Width","formula":"2 in"}}` | Changes a cell and publishes its dependencies. GUARD requires force. |
 | stencil_list | `{"name":"stencil_list","arguments":{}}` | Lists stencil index, name, canonical display path and master count. Index 0 is the document stencil. |
@@ -88,8 +88,24 @@ and `shape.inspect` appear in CLI `commands` and `describe` with schemas.
 extra undo boundary, and rejects self-invocation. Inspection is read-only.
 Bounds are page-space alignment boxes including group transforms, not painted
 ink. Cell values are evaluated strings with formula, cache and units retained.
-Up to 256 extra cell names can be requested. Inspection entries share a 1 MiB
-budget and oversized queries fail without truncation; use a page or shape query.
+Up to 256 cell names can be requested. With `cells` and no `sections`, shape
+inspection returns exactly `id`, `bounds` and `cells`. Both inspection tools
+accept `sections`: an array of `xform`, `text`, `connection_points`, `data`,
+`glue`, `cells`. Explicit sections select only those groups in addition to id
+and bounds; `text` includes text transforms, `glue` includes Connects, and
+`cells` includes the requested names. An empty sections array requests identities
+and bounds only. Document inspection retains its page/layer/selection envelope.
+Omitting both filters retains the default summary.
+
+Inspection has a 65,536-byte (64 KiB) serialized JSON budget. Every MCP tool
+result, including errors, has a 1,048,576-byte (1 MiB) serialized content-envelope
+budget, including JSON escaping. Exceeding either budget returns an error naming
+the applicable `cells`, `sections`, `page`, `query`/`limit` filters or batch size.
+Results are never silently truncated. Select fewer sections or a single shape,
+or split a large batch. The engine checks the escaped-result budget before
+publishing session changes, so oversized command and batch results roll back
+in-memory state. Files already written remain external side effects. The engine
+reserves 64 bytes for the transport envelope inside the same 1 MiB allowance.
 
 Resources `misterdiagram://document` and `misterdiagram://commands` return these
 same engine queries. The Python example and real stdio regression are runnable:

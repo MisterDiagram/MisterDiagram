@@ -48,7 +48,7 @@ fn inspection_exposes_evaluated_inherited_data_text_glue_and_page_bounds() {
     run(&mut s, "layer.add", json!({"name":"Devices"}));
     let before = s.document().clone();
     let history = s.journal().len();
-    let shape = run(&mut s, "shape.inspect", json!({"id":1,"cells":["Width","Prop.Label"]}));
+    let shape = run(&mut s, "shape.inspect", json!({"id":1,"cells":["Width","Prop.Label"],"sections":["cells","connection_points","glue"]}));
     assert_eq!(shape["bounds"], json!({"x":1.0,"y":2.0,"width":3.0,"height":4.0}));
     assert_eq!(shape["cells"]["Width"]["value"], "3");
     assert_eq!(shape["cells"]["Prop.Label"]["value"], "009");
@@ -78,4 +78,70 @@ fn inspection_exposes_evaluated_inherited_data_text_glue_and_page_bounds() {
     run(&mut s, "shape.group", json!({"ids":[1,2]}));
     let child = run(&mut s, "shape.inspect", json!({"id":1}));
     assert_eq!(child["bounds"], shape["bounds"]);
+}
+
+#[test]
+fn dense_master_inspection_filters_before_expansion_and_fails_over_budget() {
+    let mut s = Session::new();
+    run(&mut s, "shape.draw.rect", json!({"x":1,"y":2,"width":3,"height":4}));
+    // Original synthetic master: no vendor fixture or asset.
+    for i in 0..200 {
+        run(&mut s, "shape.connection.add", json!({"id":1,"x":format!("Width*{i}/200"),"y":"Height/2"}));
+    }
+    for i in 0..100 {
+        run(&mut s, "shape.data.define", json!({"id":1,"name":format!("Field{i}"),"label":format!("Invented field {i}")}));
+    }
+    let master = run(&mut s, "master.new_from_shape", json!({"id":1,"name":"Dense original"}))["master"].clone();
+    let id = run(&mut s, "master.drop", json!({"master":master,"x":7,"y":7}))["id"].clone();
+    let before = s.document().clone();
+    let minimal = run(&mut s, "shape.inspect", json!({"id":id,"cells":["Width","Height"]}));
+    assert_eq!(minimal.as_object().unwrap().keys().map(String::as_str).collect::<Vec<_>>(), vec!["bounds", "cells", "id"]);
+    assert_eq!(minimal["cells"].as_object().unwrap().len(), 2);
+    assert_eq!(minimal["cells"]["Width"]["value"], "3");
+    assert_eq!(minimal["cells"]["Height"]["value"], "4");
+    assert!(minimal.to_string().len() < 1024);
+    let error = s.execute("shape.inspect", &json!({"id":id})).unwrap_err().to_string();
+    assert!(error.contains("budget") && error.contains("sections"), "{error}");
+    let points = run(&mut s, "shape.inspect", json!({"id":id,"sections":["cells"],"cells":["Connections.X200"]}));
+    assert!(points["cells"].get("Connections.X200").is_some());
+    for section in ["xform", "text", "glue"] {
+        let v = run(&mut s, "shape.inspect", json!({"id":id,"sections":[section]}));
+        assert!(v.get(section).is_some());
+        assert!(v.get("connection_points").is_none());
+    }
+    let data = run(&mut s, "shape.inspect", json!({"id":id,"cells":["Prop.Field99"]}));
+    assert!(data["cells"].get("Prop.Field99").is_some());
+    let doc = run(&mut s, "document.inspect", json!({"page":1,"sections":["cells"],"cells":["Width"]}));
+    for shape in doc["pages"][0]["shapes"].as_array().unwrap() {
+        assert_eq!(shape.as_object().unwrap().len(), 3);
+        assert_eq!(shape["cells"].as_object().unwrap().len(), 1);
+    }
+    for params in [json!({"id":id,"sections":["unknown"]}), json!({"id":id,"sections":false}), json!({"id":id,"cells":[null]})] {
+        assert!(s.execute("shape.inspect", &params).is_err());
+    }
+    assert_eq!(s.document(), &before);
+}
+
+#[test]
+fn repeated_cell_names_do_not_charge_for_absent_output() {
+    let mut s = Session::new();
+    run(&mut s, "shape.draw.rect", json!({"x":1,"y":2,"width":3,"height":4}));
+    run(&mut s, "sheet.set", json!({"id":1,"name":"Width","formula":format!("3{}", " ".repeat(500))}));
+    let single = run(&mut s, "shape.inspect", json!({"id":1,"cells":["Width"]}));
+    let repeated = run(&mut s, "shape.inspect", json!({"id":1,"cells":vec!["Width";256]}));
+    assert_eq!(single, repeated);
+}
+
+#[test]
+fn oversized_escaped_batch_result_rolls_back_mutations() {
+    let mut s = Session::new();
+    let before = s.document().clone();
+    let mut commands = vec![json!({"command":"shape.draw.rect","params":{"x":0,"y":0,"width":1,"height":1}})];
+    // Schemas contain many escaped quotes: the raw results fit the older batch
+    // limit while their MCP content envelope exceeds it.
+    commands.extend((0..29).map(|_| json!({"command":"engine.commands"})));
+    let error = s.execute_batch(&json!({"commands":commands})).unwrap_err().to_string();
+    assert!(error.contains("budget") && error.contains("fewer batch"), "{error}");
+    assert_eq!(s.document(), &before);
+    assert!(s.journal().is_empty());
 }

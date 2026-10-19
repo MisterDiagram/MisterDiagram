@@ -1470,3 +1470,11 @@ TextBkgnd) remain outside this brief. The unchanged named route-sweep exception
 is jump-three-crossings. Final release inventory is 6,678/6,742, zero blanks/kills.
 
 Final release corpus check exits 0: 1,413 packages, strict round trip 15,105,590/15,105,590 cells, cached text 62,075/67,866 and COM text 54,449/58,180. Generated-render outliers remain 9/max10; route sweep remains 28/29 and closure re-save 40 connectors, 1,344 cells, zero differences.
+
+
+Brief 27 M5.15 (#64): bounded inspection now selects cells before expanding
+inherited connection points and Shape Data. Explicit sections work on shapes
+and documents; inspection is capped at 64 KiB and every MCP result envelope
+at 1 MiB, with actionable errors and no truncation. Original synthetic
+200-point/100-data-row master and transport escaping tests cover both limits.
+M5.16 through M5.19 and full acceptance remain open.

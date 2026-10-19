@@ -148,6 +148,7 @@ impl Session {
             (spec.enabled)(s).map_err(operation)?;
             let before = s.snapshot();
             let result = (spec.run)(s, params)?;
+            result_budget(&result)?;
             if spec.undoable && !Arc::ptr_eq(&before.document, &s.document) {
                 s.undo.push_back(before);
                 s.redo.clear();
@@ -315,6 +316,28 @@ impl Session {
         Ok(serde_json::json!({"changed":true}))
     }
 }
+/// Bound a serialized result including the escaped JSON text envelope used by MCP.
+/// Counting while serializing avoids building an unbounded intermediate string.
+pub(crate) fn result_budget(value: &Value) -> Result<()> {
+    struct Budget(usize);
+    impl std::io::Write for Budget {
+        fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+            let escaped = bytes.iter().filter(|b| matches!(b, b'"' | b'\\')).count();
+            self.0 = self.0.checked_sub(bytes.len().saturating_add(escaped)).ok_or_else(|| {
+                std::io::Error::other(
+                    "result exceeds 1048576 byte budget; use cells/sections/page filters, query/limit for stencil search, or fewer batch commands",
+                )
+            })?;
+            Ok(bytes.len())
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+    // Reserve 64 bytes for the complete text-content envelope (including quotes).
+    serde_json::to_writer(Budget(1024 * 1024 - 64), value).map_err(operation)
+}
+
 fn params_size(params: &Value) -> Result<usize> {
     if !params.is_object() {
         return Err(operation("command parameters must be an object"));

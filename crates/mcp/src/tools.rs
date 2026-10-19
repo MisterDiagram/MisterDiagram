@@ -1,13 +1,40 @@
 //! MCP tools backed by the engine's public command schemas.
 use crate::backend::Backend;
 use serde_json::{Value, json};
+const TOOL_RESULT_BYTES: usize = 1024 * 1024;
 pub struct ToolResult(Result<Value, String>);
+struct ResultBudget(usize);
+impl std::io::Write for ResultBudget {
+    fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+        self.0 = self.0.checked_sub(bytes.len()).ok_or_else(|| std::io::Error::other("tool result budget"))?;
+        Ok(bytes.len())
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+fn error_result(message: &str) -> Value {
+    json!({"content":[{"type":"text","text":message}],"isError":true})
+}
 impl ToolResult {
     pub fn to_value(self) -> Value {
-        match self.0 {
-            Ok(v) => json!({"content":[{"type":"text","text":v.to_string()}],"isError":false}),
-            Err(e) => json!({"content":[{"type":"text","text":e}],"isError":true}),
+        let result = match self.0 {
+            Ok(v) => {
+                if serde_json::to_writer(ResultBudget(TOOL_RESULT_BYTES), &v).is_err() {
+                    return error_result(
+                        "tool result exceeds 1048576 byte budget; use cells/sections/page inspection filters, query/limit for stencil search, or fewer batch commands",
+                    );
+                }
+                json!({"content":[{"type":"text","text":v.to_string()}],"isError":false})
+            }
+            Err(e) => error_result(&e),
+        };
+        if serde_json::to_writer(ResultBudget(TOOL_RESULT_BYTES), &result).is_err() {
+            return error_result(
+                "tool result exceeds 1048576 byte budget; use cells/sections/page inspection filters, query/limit for stencil search, or fewer batch commands",
+            );
         }
+        result
     }
 }
 const TOOLS: &[(&str, &str, &str)] = &[
@@ -82,4 +109,22 @@ pub fn call_tool(b: &mut dyn Backend, name: &str, args: &Value) -> ToolResult {
         }
         b.call(command, params)
     })())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn oversized_tool_results_fail_instead_of_truncating() {
+        for v in [json!("x".repeat(TOOL_RESULT_BYTES)), json!("\"".repeat(TOOL_RESULT_BYTES / 3))] {
+            let result = ToolResult(Ok(v)).to_value();
+            assert_eq!(result["isError"], true);
+            let message = result["content"][0]["text"].as_str().unwrap();
+            assert!(message.contains("budget") && message.contains("sections"), "{message}");
+            assert!(result.to_string().len() < 1024);
+        }
+        let result = ToolResult(Ok(json!({"kept":"complete"}))).to_value();
+        assert_eq!(result["isError"], false);
+        assert_eq!(serde_json::from_str::<Value>(result["content"][0]["text"].as_str().unwrap()).unwrap(), json!({"kept":"complete"}));
+    }
 }
