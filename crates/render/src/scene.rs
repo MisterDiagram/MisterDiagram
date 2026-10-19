@@ -291,10 +291,19 @@ pub fn master_prepared(evaluator: &mut Evaluator<'_>, index: usize, options: Opt
 }
 fn finish_bounds(scene: &mut Scene, crop: bool) {
     let mut bounds: Option<Rect> = None;
+    let mut clips: Vec<Rect> = Vec::new();
     for op in &scene.ops {
         let b = match op {
             Op::Bounds(b) => *b,
-            Op::Clip { .. } | Op::Pop => continue,
+            Op::Clip { path, .. } => {
+                let b = path.bounding_box();
+                clips.push(clips.last().map_or(b, |previous| previous.intersect(b)));
+                continue;
+            }
+            Op::Pop => {
+                clips.pop();
+                continue;
+            }
             // Geometry and foreign objects carry logical bounds separately from their device strokes.
             Op::Path { .. } | Op::Stroke { .. } => continue,
             Op::Image { pixels, transform } => {
@@ -337,7 +346,10 @@ fn finish_bounds(scene: &mut Scene, crop: bool) {
                 b
             }
         };
-        bounds = Some(bounds.map_or(b, |old| old.union(b)));
+        let b = clips.last().map_or(b, |clip| clip.intersect(b));
+        if clips.is_empty() || (b.width() > 0. && b.height() > 0.) {
+            bounds = Some(bounds.map_or(b, |old| old.union(b)));
+        }
     }
     scene.bounds = if crop {
         bounds.unwrap_or(Rect::new(0., 0., scene.page_size.0, scene.page_size.1))
@@ -686,6 +698,10 @@ fn foreign_source<'a>(e: &Evaluator<'a>, mut scope: Scope) -> Result<Option<(Sco
 }
 /// Foreign objects use their related media part; thumbnails remain opaque package data.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/imgwidth-cell-foreign-image-info-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/imgheight-cell-foreign-image-info-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/imgoffsetx-cell-foreign-image-info-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/imgoffsety-cell-foreign-image-info-section
 fn foreign_image(
     e: &mut Evaluator<'_>,
     scope: Scope,
@@ -696,6 +712,15 @@ fn foreign_image(
     height: f64,
     scene: &mut Scene,
 ) -> Result<(), String> {
+    let w = number(e, scope, "ImgWidth", width);
+    let h = number(e, scope, "ImgHeight", height);
+    let x = number(e, scope, "ImgOffsetX", 0.);
+    let y = number(e, scope, "ImgOffsetY", 0.);
+    // A hidden picture does not decode its media. Vendor masters intentionally
+    // select overlays with zero-valued picture dimensions.
+    if w == 0. || h == 0. || width == 0. || height == 0. {
+        return Ok(());
+    }
     let rel = foreign.child("Rel").and_then(foreign_relationship).ok_or("foreign object lacks relationship")?;
     let target = e
         .document
@@ -707,10 +732,11 @@ fn foreign_image(
     if bytes.get(40..44) == Some(&b" EMF"[..]) {
         let imported = crate::metafile::import(bytes)?;
         let m = transform
-            * Affine::translate((0., height))
-            * Affine::scale_non_uniform(width / imported.frame.width().max(1e-12), -height / imported.frame.height().max(1e-12))
+            * Affine::translate((x, y + h))
+            * Affine::scale_non_uniform(w / imported.frame.width().max(1e-12), -h / imported.frame.height().max(1e-12))
             * Affine::translate((-imported.frame.x0, -imported.frame.y0));
-        scene.ops.push(Op::Bounds(transform.transform_rect_bbox(Rect::new(0., 0., width, height))));
+        scene.ops.push(Op::Clip { path: transform * Rect::new(0., 0., width, height).to_path(1e-5), even_odd: false });
+        scene.ops.push(Op::Bounds(m.transform_rect_bbox(imported.frame)));
         if !imported.ops.iter().any(|op| matches!(op, Op::Path { .. } | Op::Stroke { .. } | Op::Image { .. } | Op::Text { .. })) {
             scene.warnings.push(format!("foreign object {scope:?} {} produced no drawing", target.target));
         }
@@ -733,15 +759,14 @@ fn foreign_image(
                 Op::Text { layout, transform } => Op::Text { layout, transform: m * transform },
             });
         }
+        scene.ops.push(Op::Pop);
         return Ok(());
     }
     let pixels = crate::raster::decode(bytes)?;
-    let w = number(e, scope, "ImgWidth", width);
-    let h = number(e, scope, "ImgHeight", height);
-    let x = number(e, scope, "ImgOffsetX", 0.);
-    let y = number(e, scope, "ImgOffsetY", 0.);
     let m = transform * Affine::translate((x, y + h)) * Affine::scale_non_uniform(w / f64::from(pixels.width()), -h / f64::from(pixels.height()));
+    scene.ops.push(Op::Clip { path: transform * Rect::new(0., 0., width, height).to_path(1e-5), even_odd: false });
     scene.ops.push(Op::Image { pixels: Arc::new(pixels), transform: m });
+    scene.ops.push(Op::Pop);
     Ok(())
 }
 
