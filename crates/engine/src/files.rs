@@ -26,6 +26,23 @@ fn extension(path: &Path) -> Result<String> {
 pub(crate) fn blank_document(metric: bool) -> misterdiagram_model::Document {
     let mut document = misterdiagram_model::skeleton::document(metric);
     document.colors = [(24, "#7F7F7F".into()), (25, "#FFFFFF".into())].into_iter().collect();
+    // New engine documents target the observed current format-compatibility build.
+    // B25 network/drop witness: Visio 16.0.20430.20182 preserves Created and writes
+    // Edited=1074679758. Imported metadata and the original M3 skeleton stay intact.
+    // https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
+    if let Some(root) = document.parts.get_mut("docProps/custom.xml").and_then(|p| p.xml.as_mut()) {
+        for node in &mut root.children {
+            if let misterdiagram_model::XmlNode::Element(property) = node
+                && property.attr("name") == Some("BuildNumberEdited")
+            {
+                for child in &mut property.children {
+                    if let misterdiagram_model::XmlNode::Element(value) = child {
+                        value.children = vec![misterdiagram_model::XmlNode::Text("1074679758".into())];
+                    }
+                }
+            }
+        }
+    }
     document
 }
 /// Newly authored RGB literals receive the custom palette entries Visio writes.

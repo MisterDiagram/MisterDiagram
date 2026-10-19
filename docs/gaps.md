@@ -840,6 +840,16 @@ M3.37 67-cell connector diagnostic above: no differing cell explains the
 approximately 0.04 in padding. No renderer change is part of M3.39/M3.40.
 Saved measurements remain visible in corpus check and measured in reports.
 
+Brief25 addendum1 (Charles,2026-10-18) applies this ruling to the native network
+one-of-each drop page: 653x495, MAD0.974306619, 7,630/323,235 pixels over16
+(2.3605%). Icon centroids drift in x from -0.21px to +0.31px across575px,
+approximately0.09% x scale; y stays within0.1px. This is informational evidence,
+not a changed ceiling. The stencil and drawing have0repair differences, contact
+renders11/11 without blanks and the generated-render gate is9/max10. No export
+mapping work is part of Brief25. The rejected min-axis trial stays documented.
+M5.9 retains P5a's equal-size render gate; a pixel-only failure with this same drift
+signature is recorded for Claude Code acceptance while other work continues.
+
 ### M3.40 relationship preservation
 
 The writer no longer drops AZURECOMPUTE_M's original dangling thumbnail link.
@@ -1384,3 +1394,31 @@ Reference: https://learn.microsoft.com/en-us/office/client-developer/visio/width
 These three fixtures describe existing gaps. No M5.12 behavior fix or source
 seed is claimed. References: [REF](https://learn.microsoft.com/en-us/office/client-developer/visio/ref-function)
 and [WMF META_HEADER](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/ba5458c6-e885-41e6-b5d7-d54ef9e1065f).
+
+## Brief 25: native network library and topology layout
+
+M5.6: eleven semantic masters generated from readable native geometry,
+with affinity square-style redraw provenance pinned in ATTRIBUTION.md. The FC
+switch is contributor-original. Optional Text Transform cells are now writable
+on plain shapes and master instances (#61), with rollback and readback tests.
+Stencil and one-of-each drawing pass Visio open/save with 0 repair differences.
+The contact sheet renders 11/11 without blanks; generated-render outliers remain
+9/max10. M5.6 meets the addendum acceptance. Tree layout, the topology checker
+and rebuilt examples remain pending, as do all three human visual gates.
+References: [Geometry](https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section),
+[Text Transform](https://learn.microsoft.com/en-us/office/client-developer/visio/text-transform-section).
+
+### Brief 25 addendum 1: carry-ins and remaining layout work
+
+The prior stop was a misreading. Charles applies the informational from-scratch
+pixel ruling above; reverted trials do not trigger the regression stop rule.
+M5.6 CI passes all eight gates: 615 tests passed, 0 failed, 3 ignored.
+The four carry-ins have separate validated commits. M5.7-M5.9 remain in progress.
+
+The #54 candidate honours picture size/offset and clips EMF/PNG to the shape.
+The pre-observation22case checker passes. A new offset-picture test checks both
+cropped export bounds and all painted pixels on the uncropped page. Hidden
+Z9264F overlay is suppressed. The bounded addendum diagnostic will compare all
+requested cells for the three Dell instances; rack margins and tiny marks are
+not yet diagnosed. The release inventory passes at 6,678/6,742, zero blanks or guard kills.
+The full corpus check remains running.

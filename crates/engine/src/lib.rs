@@ -13,6 +13,7 @@ pub mod guard;
 mod inspect;
 mod layout;
 mod masters;
+mod network;
 mod pages;
 mod reference_cleanup;
 mod shapes;

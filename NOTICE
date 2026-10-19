@@ -16,3 +16,9 @@ The original CC0 text is distributed in krilla 0.8.2 at icc/LICENSE.
 README illustration docs/images/misterdiagram.png: made for this project with
 OpenAI gpt-image-2.5 from a prompt by Claude Code; no third-party artwork.
 Provided by Charles under MIT OR Apache-2.0 (LICENSE-MIT and LICENSE-APACHE).
+
+Built-in network stencil: native redraws of ecceman/affinity square icons,
+public domain (Unlicense), commit 48d4a4fa87957cb542678ed5952227028b8657f5.
+https://github.com/ecceman/affinity
+The Fibre Channel switch is original MisterDiagram artwork.
+See licenses/affinity-Unlicense.txt and ATTRIBUTION.md.

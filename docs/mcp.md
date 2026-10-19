@@ -154,3 +154,18 @@ Both human visual verdicts remain pending.
 Rows whose formula-driven bounds change when moved are rejected transactionally.
 Legacy JSON-RPC arrays share the 4 MiB response cap; oversized replies return an
 error without emitting an oversized frame. This is separate from the `batch` tool.
+
+The compiled network library opens with `stencil.open {"builtin":"network"}`.
+Search it with `stencil_search`; `drop_master` and `master.drop` accept semantic
+names such as `network.router` or `storage.switch` across open stencils. An
+ambiguous name requires an explicit stencil index. Drop coordinates default to
+zero so a layout command can place the devices. All eleven masters share native
+geometry, editable category colors and the same label band below the square icon.
+`sheet.set` also accepts the seven optional Text Transform cells directly on a
+plain shape or dropped instance; no section/row creation is needed (#61).
+
+`format.line.units` accepts `IN` (default), `PT`,
+`MM`, `CM` or `FT`. Weight is converted to internal inches and its display unit
+is retained; `{"id":1,"weight":1.5,"units":"PT"}` writes a 1.5 point line. Units
+require weight. CLI `misterdiagram --version` prints the crate version; MCP
+serverInfo remains the crate version. Tree layout and rebuilt examples are pending.

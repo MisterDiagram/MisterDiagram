@@ -442,7 +442,7 @@ pub fn command_specs() -> &'static [CommandSpec] {
             always,
             crate::arrange::same_size
         ),
-        cmd!(noundo "stencil.open", "stencil.open", ["Stencils"], None, r#"{"type":"object","properties":{"path":{"type":"string","minLength":1,"maxLength":65536}},"required":["path"],"additionalProperties":false}"#, always, crate::stencils::open),
+        cmd!(noundo "stencil.open", "stencil.open", ["Stencils"], None, r#"{"type":"object","properties":{"path":{"type":"string","minLength":1,"maxLength":65536},"builtin":{"type":"string","enum":["network"]}},"required":[],"additionalProperties":false}"#, always, crate::stencils::open),
         cmd!(noundo "stencil.close", "stencil.close", ["Stencils"], None, r#"{"type":"object","properties":{"stencil":{"type":"integer","minimum":1,"maximum":64}},"required":["stencil"],"additionalProperties":false}"#, always, crate::stencils::close),
         cmd!(query "stencil.list", "stencil.list", ["Stencils"], None, r#"{"type":"object","properties":{},"required":[],"additionalProperties":false}"#, always, crate::stencils::list),
         cmd!(query "stencil.search", "stencil.search", ["Stencils"], None, r#"{"type":"object","properties":{"stencil":{"type":"integer","minimum":0,"maximum":64},"query":{"type":"string","minLength":1,"maxLength":65536},"limit":{"type":"integer","minimum":0,"maximum":4294967294}},"required":["query"],"additionalProperties":false}"#, always, crate::stencils::search),
@@ -452,7 +452,7 @@ pub fn command_specs() -> &'static [CommandSpec] {
             "master.drop",
             ["Stencils"],
             None,
-            r#"{"type":"object","properties":{"stencil":{"type":"integer","minimum":0,"maximum":64},"master":{"type":["integer","string"]},"page":{"type":"integer","minimum":1},"x":{"type":"number","minimum":-1000000.0,"maximum":1000000.0},"y":{"type":"number","minimum":-1000000.0,"maximum":1000000.0},"width":{"type":"number","minimum":-1000000.0,"maximum":1000000.0},"height":{"type":"number","minimum":-1000000.0,"maximum":1000000.0}},"required":["master","x","y"],"additionalProperties":false}"#,
+            r#"{"type":"object","properties":{"stencil":{"type":"integer","minimum":0,"maximum":64},"master":{"type":["integer","string"]},"page":{"type":"integer","minimum":1},"x":{"type":"number","minimum":-1000000.0,"maximum":1000000.0},"y":{"type":"number","minimum":-1000000.0,"maximum":1000000.0},"width":{"type":"number","minimum":-1000000.0,"maximum":1000000.0},"height":{"type":"number","minimum":-1000000.0,"maximum":1000000.0}},"required":["master"],"additionalProperties":false}"#,
             always,
             crate::masters::drop_master
         ),

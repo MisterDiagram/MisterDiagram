@@ -410,16 +410,23 @@ fn canonical_master_text(shapes: &mut [Shape], depth: usize) -> Result<()> {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
 pub(crate) fn drop_master(s: &mut Session, p: &Value) -> Result<Value> {
     let page_index = page_index(s, p)?;
-    let x = number(p, "x")?;
-    let y = number(p, "y")?;
+    let x = p.get("x").map(|_| number(p, "x")).transpose()?.unwrap_or(0.);
+    let y = p.get("y").map(|_| number(p, "y")).transpose()?.unwrap_or(0.);
     let width = p.get("width").map(|_| number(p, "width")).transpose()?;
     let height = p.get("height").map(|_| number(p, "height")).transpose()?;
     if width.is_some_and(|v| v <= 0.) || height.is_some_and(|v| v <= 0.) {
         return Err(operation("master dimensions must be positive"));
     }
-    let source = crate::stencils::document(s, p)?;
+    let mut source = crate::stencils::document(s, p)?;
+    if p.get("stencil").is_none() && p.get("master").is_some_and(Value::is_string) && crate::stencils::find(&source, p).is_err() {
+        let mut matches = s.stencils.iter().filter(|stencil| crate::stencils::find(&stencil.document, p).is_ok());
+        source = matches.next().map(|s| s.document.clone()).ok_or_else(|| operation("master not found"))?;
+        if matches.next().is_some() {
+            return Err(operation("ambiguous master name; supply stencil"));
+        }
+    }
     let source_id = crate::stencils::find(&source, p)?.id;
-    let own = p.get("stencil").is_none();
+    let own = std::sync::Arc::ptr_eq(&source, &s.document);
     s.edit_document(|doc, selection| {
         let master_id = if own { source_id } else { import_master(doc, &source, source_id, &mut BTreeSet::new())? };
         let master = doc.masters.iter().find(|m| m.id == master_id).ok_or_else(|| operation("master missing"))?;

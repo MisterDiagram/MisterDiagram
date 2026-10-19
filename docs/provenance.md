@@ -221,3 +221,10 @@ observation is retained privately, including the failed SAN Property/text/master
 serialization, font identity and export-height comparisons. No vendor artwork,
 font binary or theme asset is committed with the generator. The named packing
 gap is checked against only its measured coordinate differences.
+
+Brief 25 uses ecceman/affinity only as a public-domain visual reference for ten
+native icon redraws, pinned at48d4a4fa87957cb542678ed5952227028b8657f5. It is
+not a Visio implementation or format reference. SVG source files stay local;
+ATTRIBUTION.md records each mapping and the original FC-switch contribution.
+New engine documents target the observed .20182 Edited compatibility metadata
+1074679758; Created retains1074417614 and imported properties remain unchanged.

@@ -16234,3 +16234,35 @@ The same 1,181 shipped packages and all ceilings/floors remain fixed. Matching
 master-render errors improve 474 to 447; all 21,407 master cases remain included.
 The supplemental exact-summary diagnostic still fails that improved count and is
 preserved unchanged. An independent audit confirms no frozen-gate movement.
+
+### M5.6 native library authoring (Brief 25)
+
+The new network stencil witness uses only contributor-redrawn native Geometry.
+Visio 16.0.20430.20182 adds `T="Connection"` to untyped connection rows and a
+`cp IX="0"` text marker where the shape carries local Character formatting.
+The compiled source now emits both. Stencil construction retains its blank page
+until the existing stencil writer removes its PageContents part, avoiding an
+orphan page. Initial rejected observations remain in the VM acceptance history.
+
+Current Visio preserves BuildNumberCreated 1074417614 and writes
+BuildNumberEdited 1074679758. Newly authored engine documents now emit that
+Edited compatibility value. Imported metadata and the original low-level M3
+skeleton remain unchanged. This is an authored-byte correction, with no new
+repair waiver and no baseline change. Witnesses: the b25-network and
+b25-network-dropped acceptance records under private corpus/_vm/out/accept.
+
+### Brief25 picture-cell observation and unresolved export
+
+Original EMF and PNG panels were observed in11configurations each: zero width,
+zero height, normal/small/large dimensions and both signs of offsets. The checker
+was hashed before observation; all22cases confirm shape clipping and no drawing
+for a zero picture dimension. The rendering candidate follows both media branches.
+Three Dell masters observed read-only at384dpi retain export differences: Visio
+668x130/656x66/664x68 versus669x134/656x67/665x71. Z9264F shape11's ImgWidth0
+explains the hidden reverse-airflow overlay. Visible picture size/offset cells and
+clip-aware operation bounds do not explain the remaining rack-margin difference.
+That cause remains unresolved, not established as an export-frame exception.
+
+A library export min-axis scale trial passed its2%ceiling but produced54frozen
+render outliers against10maximum. It was reverted; no general export correction
+is claimed and all numerical acceptance criteria remain unchanged.

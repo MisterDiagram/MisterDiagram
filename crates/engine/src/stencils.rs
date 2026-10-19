@@ -43,14 +43,28 @@ pub(crate) fn check_media(s: &Session, incoming: Option<&Document>) -> Result<()
 }
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.documents.openex
 pub(crate) fn open(s: &mut Session, p: &Value) -> Result<Value> {
-    let path = crate::files::path(p, "path")?.canonicalize().map_err(operation)?;
+    let builtin = p.get("builtin").and_then(Value::as_str);
+    if builtin.is_some() && p.get("path").is_some() {
+        return Err(operation("supply path or builtin, not both"));
+    }
+    if builtin.is_some_and(|name| name != "network") {
+        return Err(operation("unknown built-in stencil"));
+    }
+    let path = if builtin.is_some() { PathBuf::from("builtin:network") } else { crate::files::path(p, "path")?.canonicalize().map_err(operation)? };
     if let Some(index) = s.stencils.iter().position(|stencil| stencil.path == path) {
         return Ok(json!({"stencil":index+1,"masters":s.stencils.get(index).map(|s|s.document.masters.len())}));
     }
     if s.stencils.len() >= 64 {
         return Err(operation("stencil count limit"));
     }
-    let document = misterdiagram_vsdx::read_with_open_nodes(&path, s.retained_xml_nodes()).map_err(operation)?;
+    let document = if builtin.is_some() {
+        crate::network::document()?
+    } else {
+        misterdiagram_vsdx::read_with_open_nodes(&path, s.retained_xml_nodes()).map_err(operation)?
+    };
+    if s.retained_xml_nodes().saturating_add(document.retained_xml_nodes) > misterdiagram_vsdx::MAX_RETAINED_XML_NODES {
+        return Err(operation("retained XML node limit"));
+    }
     if !document.parts.get(&document.main_part).and_then(|p| p.content_type.as_deref()).is_some_and(|v| v.contains("stencil")) {
         return Err(operation("file is not a stencil"));
     }

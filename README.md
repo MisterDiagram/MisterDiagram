@@ -152,3 +152,5 @@ Build gates, the oracle VM workflow, corpus pinning and contact sheets are in
 
 MIT OR Apache-2.0; see LICENSE-MIT, LICENSE-APACHE and NOTICE. The embedded fonts Carlito,
 Caladea, Arimo, Tinos and Cousine are under the SIL Open Font License 1.1.
+
+The built-in network stencil provides eleven semantic device masters as native editable geometry via `stencil.open {"builtin":"network"}`.

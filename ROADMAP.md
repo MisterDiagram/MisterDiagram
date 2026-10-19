@@ -498,3 +498,12 @@ connector stroke rendering and small-image export mapping. Phase 5 estimate:
 
 - Release staging: CI build artifacts now; a tagged alpha pre-release with checksums and licence files immediately after P5a; a real release and crates.io after M5 is met and stable.
 - Fonts: Latin faces live in the repository; non-Latin faces will be fetched by pinned SHA256 at release.
+
+Brief 25 M5.6 meets Charles's addendum acceptance: native network library 11/11,
+no blank contact images, stencil/drawing 0 repair differences, generated-render
+outliers 9/max10. From-scratch pixels remain informational under the M3 ruling
+(2.3605%, MAD 0.974). Full CI passes eight gates, 615 tests and three ignored.
+Text Transform (#61), line units (#62), picture cells/clipping (#54) and CLI
+version are separate commits. Inventory remains 6,678/6,742, zero blanks/kills;
+routes remain 28/29 and resave 40/0. Dell diagnosis and M5.7-M5.9 follow.
+Contact sheet, office and SAN human gates remain pending Charles.
