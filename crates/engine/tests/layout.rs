@@ -266,7 +266,11 @@ fn text_position_omits_only_the_matching_inherited_literal() {
         run(&mut s, "shape.draw.rect", json!({"x":x,"y":y,"width":1.5,"height":1.5}));
     }
     run(&mut s, "master.drop", json!({"master":2,"x":0,"y":0}));
-    run(&mut s, "connect.sides", json!({"id":3,"source":1,"target":2}));
+    // Explicit static glue keeps this cache-inheritance test independent of layout policy.
+    for (target, x, end) in [(1, "Width", "begin"), (2, "0", "end")] {
+        let point = run(&mut s, "shape.connection.add", json!({"id":target,"x":x,"y":"Height/2"}))["cell"].clone();
+        run(&mut s, "connect.static", json!({"id":3,"target":target,"point":point,"end":end}));
+    }
     let local_y = |s: &Session| {
         s.document().pages[0]
             .shapes

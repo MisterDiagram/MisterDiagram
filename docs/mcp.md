@@ -115,6 +115,8 @@ Facing-side glue through run_command:
 This glues an existing connector to the facing side centers of two 2D shapes,
 creating canonical connection rows if absent. Existing inbound points at those
 positions are reused. Rotation and enclosing group transforms are honored.
+Separated physical tiers use top/bottom points and style-17 midpoint routing,
+including flipped endpoints.
 
 Ordered layout is also available through run_command:
 
@@ -130,6 +132,8 @@ and descendants, and 1D shapes are rejected transactionally. Group-child positio
 are translated through their parent transforms.
 
 Fan requires exactly one existing connector from the hub to each listed spoke.
+It assigns distinct points at both ends, considering every connected peer at a
+spoke, and uses witnessed straight routing (style 2) for separate ISL tracks.
 Within each facing side, points approximate even spacing in spoke order using
 the nearest distinct binary fractions. Five spokes use 1/8, 3/8, 1/2, 5/8 and 7/8.
 Layout normalizes selected sizes and pins to 1/64 inch; formula dimensions keep
@@ -168,7 +172,7 @@ plain shape or dropped instance; no section/row creation is needed (#61).
 `MM`, `CM` or `FT`. Weight is converted to internal inches and its display unit
 is retained; `{"id":1,"weight":1.5,"units":"PT"}` writes a 1.5 point line. Units
 require weight. CLI `misterdiagram --version` prints the crate version; MCP
-serverInfo remains the crate version. Tree layout and rebuilt examples are pending.
+serverInfo remains the crate version. Rebuilt semantic examples are pending.
 
 `layout.tree` accepts `root` plus ordered `edges: [[parent,child],...]`, or `root`
 plus `ids` whose existing connects form a tree. It creates missing connectors for
@@ -187,3 +191,25 @@ to thirty-seconds, leaving connector midpoints on the 1/64-inch grid. Impossible
 region fits, position-dependent transforms/bounds, and obstacles requiring an
 off-grid or non-midpoint detour roll back the whole command. The node/edge limits
 are 10,000/9,999, with two million node-edge work units.
+
+`layout.check` is a read-only query with optional `page`, `root` and `fit_page`.
+It reports `count` and `violations`, each with a rule letter, shape IDs, connector
+IDs and detail. Rules a-g check connection-point glue and drawn endpoints,
+shape crossings, parallel border clearance within 1/16 inch (inclusive), shared
+segments outside a continuous source trunk, tree tier/parent alignment, equal
+fitted margins within 1/64 inch, and label crossings. Tree checks require `root`;
+margin checks require `fit_page: true`. Labels use evaluated Text Transform cells,
+including nested shapes and connector text. A connector crossing its own visible
+label is also a violation. Disconnected geometry cannot extend a trunk exception.
+Traversal is capped at 10,000 shapes, 100,000 flattened segments, two million
+comparisons and 10,000 violations; uncheckable input returns an error.
+
+The command and CLI/README tests share the same checker through:
+
+```sh
+python3 tools/check-layout.py drawing.vsdx --cli target/debug/misterdiagram
+python3 tools/check-layout.py tree.vsdx --cli target/debug/misterdiagram --root 1 --fit-page
+```
+
+Exit 0 means no violations, 1 means violations, and 2 means the input could not
+be checked. The checker never edits the drawing.

@@ -1436,3 +1436,12 @@ page cropping. Six focused tree tests and the nine-route COM comparison pass.
 Full M5.7 CI passes all eight gates. The M5.8 checker and M5.9 rebuilt examples remain pending.
 The M5.6 full corpus check passes: 15,105,590 strict cells, cached text 62,075,
 COM text 54,449 and generated outliers 9/max10.
+
+M5.8: the shared tools/engine checker covers all seven layout rules and
+is run by both CLI example tests, including the three-platform README check.
+The P5a office and SAN now have zero violations after physical tier routing and
+both-end fan assignment changes. No layout.rows change was needed for those
+recipes. Five discovery findings have regression tests: nested content, connector
+labels, disconnected trunks, inclusive 1/16-inch clearance and flipped side glue.
+Reference: [ShapeRouteStyle](https://learn.microsoft.com/en-us/office/client-developer/visio/shaperoutestyle-cell-shape-layout-section).
+Independent correction verification and full CI pass: eight gates, 634 tests, zero failures and three ignored.

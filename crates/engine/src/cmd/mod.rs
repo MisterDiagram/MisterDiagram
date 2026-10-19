@@ -69,6 +69,9 @@ pub use cmd;
 
 pub fn command_specs() -> &'static [CommandSpec] {
     &[
+        cmd!(query "layout.check", "Check topology", ["Layout"], None,
+            r#"{"type":"object","properties":{"page":{"type":"integer","minimum":1},"root":{"type":"integer","minimum":0,"maximum":4294967294},"fit_page":{"type":"boolean"}},"additionalProperties":false}"#,
+            always, crate::layout::check),
         cmd!(
             "layout.tree",
             "Arrange rooted tree",

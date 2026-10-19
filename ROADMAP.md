@@ -516,3 +516,9 @@ transactional guards are included. Full M5.7 CI passes all eight gates; M5.8 and
 The M5.6 full corpus check exits 0: strict 15,105,590/15,105,590 cells, cached
 text 62,075 and COM text 54,449. The bounded Dell run corrects zero-cached invalid
 LineWeight rendering; residual mount framing is documented without export changes.
+
+Brief 25 M5.8 adds the shared topology checker (rules a-g), physical
+tier side glue and independent straight ISLs with distinct points at both ends.
+The P5a office and SAN recipes check with zero violations. Nested and connector
+labels, disconnected trunks, exact border clearance and flipped tier routing have
+discovery regressions. Independent correction verification and full CI pass: eight gates, 634 tests, zero failures and three ignored.

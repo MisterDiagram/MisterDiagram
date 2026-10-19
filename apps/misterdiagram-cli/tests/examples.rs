@@ -3,6 +3,15 @@ use std::{path::PathBuf, process::Command};
 fn root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
+fn check_layout(path: &std::path::Path, tree: bool) {
+    let mut command = Command::new(if cfg!(windows) { "python" } else { "python3" });
+    command.arg(root().join("tools/check-layout.py")).arg(path).arg("--cli").arg(env!("CARGO_BIN_EXE_misterdiagram"));
+    if tree {
+        command.args(["--root", "1", "--fit-page"]);
+    }
+    let checked = command.output().unwrap();
+    assert!(checked.status.success(), "layout checker: {} {}", String::from_utf8_lossy(&checked.stdout), String::from_utf8_lossy(&checked.stderr));
+}
 /// Find Bash in the installed Git tree rather than the Windows WSL launcher.
 /// Git reports its installation's helper directory via --exec-path.
 /// https://git-scm.com/docs/git#Documentation/git.txt---exec-pathltpathgt
@@ -105,6 +114,7 @@ fn acceptance_checker_rejects_corrupt_package_without_panic() {
 fn san_script_has_eighty_glues_and_ink_on_every_isl() {
     let out = root().join("target/example-tests/san topology");
     let result = run_output("san-topology.sh", &out);
+    check_layout(&out.join("san-topology.vsdx"), false);
     let doc = misterdiagram_vsdx::read(out.join("san-topology.vsdx")).unwrap();
     let page = &doc.pages[0];
     assert_eq!(page.connects.len(), 80, "every ISL requires both glued ends");
@@ -264,6 +274,7 @@ fn readme_office_network_matches_script_and_pixels() {
         .output()
         .unwrap();
     assert!(output.status.success(), "office network: {} {}", String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr));
+    check_layout(&out.join("office-network.vsdx"), false);
     let actual = misterdiagram_render::raster::decode(&std::fs::read(out.join("office-network.png")).unwrap()).unwrap();
     let expected = misterdiagram_render::raster::decode(&std::fs::read(root().join("docs/images/office-network.png")).unwrap()).unwrap();
     assert_eq!(actual.dimensions(), expected.dimensions(), "office PNG dimensions on {}", std::env::consts::OS);

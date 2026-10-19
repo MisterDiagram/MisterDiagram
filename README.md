@@ -97,6 +97,7 @@ args+=(--cmd 'layout.fan={"hub":4,"spokes":[7,5,6]}')
 
 The same script is [tools/examples/office-network.sh](tools/examples/office-network.sh).
 It saves `target/office-network/office-network.vsdx` and renders the image above.
+Check it with `python3 tools/check-layout.py target/office-network/office-network.vsdx --cli target/debug/misterdiagram`.
 `run` commits each command separately. Page numbers are one-based, shape IDs are
 document IDs, lengths use inches and angles use radians. `commands` and `describe`
 print the command schemas. `misterdiagram mcp` serves the same engine over stdio;

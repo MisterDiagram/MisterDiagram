@@ -3,7 +3,9 @@ use crate::{Result, Session, edit::*, operation};
 use misterdiagram_geom::Point;
 use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use serde_json::{Value, json};
+mod check;
 mod tree;
+pub(crate) use check::check;
 pub(crate) use tree::tree;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -116,6 +118,19 @@ fn facing(doc: &misterdiagram_model::Document, page: usize, id: u32, target: u32
     if transform.determinant().abs() < 1e-12 {
         return Err(operation("singular shape transform"));
     }
+    // Prefer physical top/bottom points when the alignment boxes occupy separate tiers.
+    let other_box = (transform.inverse() * e.shape_to_page(other).map_err(operation)?).transform_rect_bbox(misterdiagram_geom::Rect::new(
+        0.,
+        0.,
+        number(&mut e, other, "Width")?,
+        number(&mut e, other, "Height")?,
+    ));
+    if other_box.y0 >= h {
+        return Ok(Side::Top);
+    }
+    if other_box.y1 <= 0. {
+        return Ok(Side::Bottom);
+    }
     let local = transform.inverse() * other_center;
     let dx = (local.x - w / 2.) / w;
     let dy = (local.y - h / 2.) / h;
@@ -204,8 +219,18 @@ pub(crate) fn sides(s: &mut Session, p: &Value) -> Result<Value> {
     grid_shapes(&mut normalized, index, &[source, target])?;
     let begin = facing(&normalized, index, source, target)?;
     let end = facing(&normalized, index, target, source)?;
+    let page_id = normalized.pages.get(index).ok_or_else(|| operation("page missing"))?.id;
+    let themes = misterdiagram_theme::Themes::from_document(&normalized).map_err(operation)?;
+    let mut e = Evaluator::new(&normalized).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
+    let a = crate::inspect::bounds(&mut e, Scope::PageShape { page: page_id, shape: source })?;
+    let b = crate::inspect::bounds(&mut e, Scope::PageShape { page: page_id, shape: target })?;
+    let tiers = a.y0 >= b.y1 || b.y0 >= a.y1;
+    drop(e);
     s.edit_document(|doc, _| {
         *doc = normalized;
+        if tiers {
+            set_number(&mut shape_mut(&mut page_mut(doc, index)?.shapes, id)?.sheet, "ShapeRouteStyle", 17.)?;
+        }
         let a = point(doc, index, source, begin, 0.5, &Default::default())?;
         let b = point(doc, index, target, end, 0.5, &Default::default())?;
         misterdiagram_route::connect_static(doc, index, id, misterdiagram_route::End::Begin, source, &a).map_err(operation)?;
@@ -394,7 +419,9 @@ pub(crate) fn rows(s: &mut Session, p: &Value) -> Result<Value> {
 
 /// Assign distinct positions along each facing hub side, preserving spoke order.
 /// Existing connectors are selected by their two endpoint shape IDs; ambiguity
-/// is an error. Routing still happens inside the ordinary strict transaction.
+/// is an error. Both ends get distinct points; witnessed style 2 uses straight
+/// independent ISLs. Routing stays inside the ordinary strict transaction.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/shaperoutestyle-cell-shape-layout-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.shape.reroute
 pub(crate) fn fan(s: &mut Session, p: &Value) -> Result<Value> {
@@ -430,6 +457,40 @@ pub(crate) fn fan(s: &mut Session, p: &Value) -> Result<Value> {
         *totals.entry(side).or_insert(0usize) += 1;
         assignments.push((*spoke, side, connection.from_sheet, end));
     }
+    // Determine spoke fractions against every already-connected peer, so successive
+    // hub fans preserve distinct points at both ends of each ISL.
+    let mut endpoints = std::collections::BTreeMap::<u32, Vec<u32>>::new();
+    for c in &page.connects {
+        if matches!(c.from_cell.as_deref(), Some("BeginX" | "EndX")) {
+            endpoints.entry(c.from_sheet).or_default().push(c.to_sheet);
+        }
+    }
+    let mut neighbors = std::collections::BTreeMap::<u32, std::collections::BTreeSet<u32>>::new();
+    for pair in endpoints.values() {
+        if let [a, b] = pair.as_slice() {
+            neighbors.entry(*a).or_default().insert(*b);
+            neighbors.entry(*b).or_default().insert(*a);
+        }
+    }
+    let mut spoke_points = std::collections::BTreeMap::new();
+    for spoke in &spokes {
+        let side = facing(&normalized, index, *spoke, hub)?;
+        let mut peers = Vec::new();
+        let themes = misterdiagram_theme::Themes::from_document(&normalized).map_err(operation)?;
+        let mut e = Evaluator::new(&normalized).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
+        for peer in neighbors.get(spoke).into_iter().flatten() {
+            if facing(&normalized, index, *spoke, *peer)? != side {
+                continue;
+            }
+            let scope = Scope::PageShape { page: page.id, shape: *peer };
+            let center =
+                e.shape_to_page(scope).map_err(operation)? * Point::new(number(&mut e, scope, "Width")? / 2., number(&mut e, scope, "Height")? / 2.);
+            peers.push((*peer, if matches!(side, Side::Top | Side::Bottom) { center.x } else { center.y }));
+        }
+        peers.sort_by(|a, b| a.1.total_cmp(&b.1).then(a.0.cmp(&b.0)));
+        let rank = peers.iter().position(|(id, _)| *id == hub).ok_or_else(|| operation("fan hub missing from spoke peers"))?;
+        spoke_points.insert(*spoke, (side, fraction(rank + 1, peers.len())?));
+    }
     let placed = s.edit_document(|doc, _| {
         *doc = normalized;
         let mut positions = std::collections::BTreeMap::new();
@@ -443,7 +504,12 @@ pub(crate) fn fan(s: &mut Session, p: &Value) -> Result<Value> {
             let name = point(doc, index, hub, *side, fraction, &used)?;
             used.insert(name.clone());
             misterdiagram_route::connect_static(doc, index, *connector, *end, hub, &name).map_err(operation)?;
-            placed.push(json!({"spoke":spoke,"connector":connector,"point":name,"fraction":fraction}));
+            let (spoke_side,spoke_fraction)=spoke_points.get(spoke).copied().ok_or_else(||operation("spoke point missing"))?;
+            let spoke_name=point(doc,index,*spoke,spoke_side,spoke_fraction,&Default::default())?;
+            let other_end=match end {misterdiagram_route::End::Begin=>misterdiagram_route::End::End,misterdiagram_route::End::End=>misterdiagram_route::End::Begin};
+            misterdiagram_route::connect_static(doc,index,*connector,other_end,*spoke,&spoke_name).map_err(operation)?;
+            set_number(&mut shape_mut(&mut page_mut(doc,index)?.shapes,*connector)?.sheet,"ShapeRouteStyle",2.)?;
+            placed.push(json!({"spoke":spoke,"connector":connector,"point":name,"fraction":fraction,"spoke_point":spoke_name,"spoke_fraction":spoke_fraction}));
         }
         Ok(json!(placed))
     })?;

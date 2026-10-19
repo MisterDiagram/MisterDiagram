@@ -145,3 +145,13 @@ fn b25_style17_midpoint_routes_match_the_preimplementation_visio_witness() {
     }
     compare(&path);
 }
+
+#[test]
+fn b25_straight_distinct_point_routes_match_the_preimplementation_visio_witness() {
+    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus/_vm/out/layout-witness/straight-and-weight.vsdx");
+    if !path.exists() {
+        eprintln!("private B25 straight witness absent; skipped");
+        return;
+    }
+    compare(&path);
+}
