@@ -130,7 +130,7 @@ fn san_script_has_eighty_glues_and_ink_on_every_isl() {
     let ps = misterdiagram_vsdx::evaluate::Scope::Page(page.id);
     assert_eq!(e.evaluate(ps, "PageWidth").numeric().unwrap(), 17.);
     assert_eq!(e.evaluate(ps, "PageHeight").numeric().unwrap(), 11.);
-    let switch = doc.masters.iter().find(|m| m.name == "Switch").unwrap();
+    let switch = doc.masters.iter().find(|m| m.name == "storage.switch").unwrap();
     let switches = page.shapes.iter().filter(|s| s.master == Some(switch.id)).collect::<Vec<_>>();
     assert_eq!(switches.len(), 24);
     let mut switch_bounds = Vec::new();
@@ -274,7 +274,7 @@ fn readme_office_network_matches_script_and_pixels() {
         .output()
         .unwrap();
     assert!(output.status.success(), "office network: {} {}", String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr));
-    check_layout(&out.join("office-network.vsdx"), false);
+    check_layout(&out.join("office-network.vsdx"), true);
     let actual = misterdiagram_render::raster::decode(&std::fs::read(out.join("office-network.png")).unwrap()).unwrap();
     let expected = misterdiagram_render::raster::decode(&std::fs::read(root().join("docs/images/office-network.png")).unwrap()).unwrap();
     assert_eq!(actual.dimensions(), expected.dimensions(), "office PNG dimensions on {}", std::env::consts::OS);

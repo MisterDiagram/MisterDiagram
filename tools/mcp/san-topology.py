@@ -21,10 +21,13 @@ def build(binary, output):
         connects = sum(len(page['connects']) for page in document['pages'])
         if connects != 80:
             raise RuntimeError(f'expected 80 Connects, got {connects}')
+        checked = client.command('layout.check')
+        if checked['count']:
+            raise RuntimeError(f'layout violations: {checked}')
         client.tool('save', path=str(output / 'p5a-san-topology.vsdx'))
         for extension in ('png', 'svg'):
             client.tool('export', path=str(output / f'p5a-san-topology.{extension}'))
-    print(f'MCP SAN: 24 switches, 40 ISLs, {connects} Connects, no switch crossings')
+    print(f'MCP SAN: 24 storage.switch instances, 40 ISLs, {connects} Connects, zero layout violations')
 
 
 if __name__ == '__main__':

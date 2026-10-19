@@ -172,7 +172,7 @@ plain shape or dropped instance; no section/row creation is needed (#61).
 `MM`, `CM` or `FT`. Weight is converted to internal inches and its display unit
 is retained; `{"id":1,"weight":1.5,"units":"PT"}` writes a 1.5 point line. Units
 require weight. CLI `misterdiagram --version` prints the crate version; MCP
-serverInfo remains the crate version. Rebuilt semantic examples are pending.
+serverInfo remains the crate version. The office and SAN examples use the built-in semantic library.
 
 `layout.tree` accepts `root` plus ordered `edges: [[parent,child],...]`, or `root`
 plus `ids` whose existing connects form a tree. It creates missing connectors for
@@ -213,3 +213,11 @@ python3 tools/check-layout.py tree.vsdx --cli target/debug/misterdiagram --root 
 
 Exit 0 means no violations, 1 means violations, and 2 means the input could not
 be checked. The checker never edits the drawing.
+
+The office recipe in `tools/examples/office-network.sh` drops ten named semantic
+masters, then calls `layout.tree` with nine parent-child pairs and `fit_page`.
+It has no placement coordinates. `tools/mcp/san-topology.py OUTPUT` builds
+24 `storage.switch` instances and 40 ISLs in two fabrics through MCP, then
+requires `layout.check` to report zero violations before saving and exporting.
+Both examples pass fresh Visio open/save with zero repair and route differences,
+and the unchanged equal-size pixel ceilings. Their human visual gates remain pending.

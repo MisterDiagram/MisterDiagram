@@ -65,7 +65,7 @@ Rust stable with edition 2024 is required. There is no GUI and none is planned i
 ### Generate a drawing
 
 Build the CLI with `cargo build -p misterdiagram-cli`, then run this script from the
-repository root. It creates its own master from a rectangle and needs no stencils.
+repository root. The built-in network library provides eleven semantic device masters with native geometry; this example places them with tree layout and fits the page.
 
 <!-- office-network:start -->
 ```bash
@@ -75,19 +75,13 @@ set -euo pipefail
 cli="${MISTERDIAGRAM_CLI:-target/debug/misterdiagram}"
 out="${1:-target/office-network}"; image="${2:-docs/images/office-network.png}"
 mkdir -p "$out" "$(dirname "$image")"
-args=(--cmd 'page.size={"width":10,"height":11}' --cmd 'shape.draw.rect={"x":0,"y":0,"width":1.6875,"height":0.625}' --cmd 'format.line={"id":1,"weight":0.03125}' --cmd 'format.text={"id":1,"size":10,"align":1}' --cmd 'format.fill={"id":1,"color":"#E8F2F0"}' --cmd 'master.new_from_shape={"id":1,"name":"Office node"}' --cmd 'shape.delete={"id":1}')
+args=(--cmd 'stencil.open={"builtin":"network"}')
 names=('Sky Internet' 'Alder Firewall' 'Birch Router' 'Cedar Core' 'Elm Access' 'Fir Access' 'Grove Server' 'Hazel Wi-Fi' 'Iris PC' 'Juniper PC')
+masters=(network.cloud network.firewall network.router network.switch.core network.switch.access network.switch.access compute.server network.wireless_ap compute.desktop compute.desktop)
 for i in "${!names[@]}"; do
-  args+=(--cmd 'master.drop={"master":"Office node","x":0,"y":0}' --cmd "shape.text={\"id\":$((i+1)),\"text\":\"${names[$i]}\"}")
+  args+=(--cmd "master.drop={\"master\":\"${masters[$i]}\"}" --cmd "shape.text={\"id\":$((i+1)),\"text\":\"${names[$i]}\"}")
 done
-args+=(--cmd 'layout.rows={"ids":[1,2,3,4,7,5,6,8,9,10],"counts":[1,1,1,1,4,2],"region":{"x":0,"y":0.5,"width":10,"height":10},"gutter_x":0.5,"gutter_y":0.75}')
-links=('1 2' '2 3' '3 4' '4 5' '4 6' '4 7' '6 8' '5 9' '6 10'); id=11
-for link in "${links[@]}"; do
-  read -r source target <<< "$link"
-  args+=(--cmd 'master.drop={"master":2,"x":0,"y":0}' --cmd "connect.sides={\"id\":$id,\"source\":$source,\"target\":$target}")
-  ((id+=1))
-done
-args+=(--cmd 'layout.fan={"hub":4,"spokes":[7,5,6]}')
+args+=(--cmd 'layout.tree={"root":1,"edges":[[1,2],[2,3],[3,4],[4,7],[4,5],[4,6],[5,9],[6,10],[6,8]],"gutter_x":2,"gutter_y":0.5,"fit_page":true}')
 "$cli" run "${args[@]}" --save "$out/office-network.vsdx"
 "$cli" convert "$out/office-network.vsdx" "$image"
 ```
@@ -97,7 +91,7 @@ args+=(--cmd 'layout.fan={"hub":4,"spokes":[7,5,6]}')
 
 The same script is [tools/examples/office-network.sh](tools/examples/office-network.sh).
 It saves `target/office-network/office-network.vsdx` and renders the image above.
-Check it with `python3 tools/check-layout.py target/office-network/office-network.vsdx --cli target/debug/misterdiagram`.
+Check it with `python3 tools/check-layout.py target/office-network/office-network.vsdx --cli target/debug/misterdiagram --root 1 --fit-page`.
 `run` commits each command separately. Page numbers are one-based, shape IDs are
 document IDs, lengths use inches and angles use radians. `commands` and `describe`
 print the command schemas. `misterdiagram mcp` serves the same engine over stdio;
@@ -111,7 +105,7 @@ dated in [ROADMAP.md](ROADMAP.md).
 ## What is coming
 
 - Phase 5b: PowerPoint export. The MCP server and layout commands are available;
-  the SAN and office-network drawings await human review and their serialization acceptance remains open.
+  the semantic SAN and office drawings pass Visio repair, route and render acceptance and await human review.
 - Carried gaps, named in [docs/gaps.md](docs/gaps.md): the three-crossing packing shift,
   unwitnessed WalkPreference values, theme.apply (Visio refused the variant call under
   COM), connector stroke rendering, and export mapping for small images.

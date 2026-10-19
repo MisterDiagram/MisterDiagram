@@ -522,3 +522,14 @@ tier side glue and independent straight ISLs with distinct points at both ends.
 The P5a office and SAN recipes check with zero violations. Nested and connector
 labels, disconnected trunks, exact border clearance and flipped tier routing have
 discovery regressions. Independent correction verification and full CI pass: eight gates, 634 tests, zero failures and three ignored.
+
+Brief 25 M5.9 rebuilds the office with ten semantic devices and nine tree links,
+and the MCP SAN with 24 FC-switch masters and 40 independent ISLs. Both drawings
+and their Visio re-saves have zero layout violations and 18/80 Connects. One VM
+run gives zero repair differences and unchanged routes (227/920 route cells).
+Equal-size renders pass: office MAD 0.607978, 1.466309% over16; SAN MAD 0.825804,
+1.806668% over16. The contact sheet and both drawings await Charles's human gates.
+All six required source seeds fail their intended assertions and pass after exact
+restoration. Final release inventory remains 6,678/6,742, zero blank or guard kills.
+
+Final release corpus check exits 0: 1,413 packages, strict round trip 15,105,590/15,105,590 cells, cached text 62,075/67,866 and COM text 54,449/58,180. Generated-render outliers remain 9/max10; route sweep remains 28/29 and closure re-save 40 connectors, 1,344 cells, zero differences.

@@ -1445,3 +1445,28 @@ recipes. Five discovery findings have regression tests: nested content, connecto
 labels, disconnected trunks, inclusive 1/16-inch clearance and flipped side glue.
 Reference: [ShapeRouteStyle](https://learn.microsoft.com/en-us/office/client-developer/visio/shaperoutestyle-cell-shape-layout-section).
 Independent correction verification and full CI pass: eight gates, 634 tests, zero failures and three ignored.
+
+### Brief 25 M5.9: semantic examples and acceptance
+
+The 15-line office recipe has no placement coordinates and uses tree layout with
+page fitting. The MCP SAN uses 24 storage.switch masters and 40 straight ISLs,
+with distinct points at both ends. Both original and Visio-saved drawings pass
+all applicable checker rules, with 18/80 Connects. The single VM run opens and
+saves both unrepaired: zero repair differences and zero route changes across
+227 office and 920 SAN route cells. Pixel ceilings are unchanged and pass at equal
+sizes: office 1083x951, MAD0.607978,15102/1029933 over16 (1.466309%);
+SAN1503x830,MAD0.825804,22538/1247490 over16 (1.806668%).
+
+The office image attribution now credits its native affinity-derived forms at
+the pinned public-domain source. Six source seeds cover tree centres, border
+clearance, shared ISLs, point glue, label offsets and picture width; every intended
+assertion fails under its seed and passes after exact restoration. No oracle,
+threshold, floor, denominator or volatile list changed.
+
+Open visual gates: contact sheet, office and SAN, all pending Charles. The Dell
+mount-margin export-framing gap above remains should-fix; no export-mapping work
+was done in this brief. Other #54 items (ClippingPath, PDF glyph offsets and
+TextBkgnd) remain outside this brief. The unchanged named route-sweep exception
+is jump-three-crossings. Final release inventory is 6,678/6,742, zero blanks/kills.
+
+Final release corpus check exits 0: 1,413 packages, strict round trip 15,105,590/15,105,590 cells, cached text 62,075/67,866 and COM text 54,449/58,180. Generated-render outliers remain 9/max10; route sweep remains 28/29 and closure re-save 40 connectors, 1,344 cells, zero differences.

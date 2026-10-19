@@ -27,27 +27,18 @@ def recipe():
     # The blank page already inherits LineJumpCode=1; Visio omits that local default.
     for fabric in ('A', 'B'):
         command('layer.add', name='Fabric ' + fabric)
-    command('shape.draw.rect', x=0, y=0, width=1.5, height=0.75)
-    command('shape.text', id=1, text='Switch')
-    # Inherit the document face. Renderer fallback names are not authored fonts.
-    command('format.text', id=1, size=10, align=1)
-    command('format.line', id=1, weight=0.03125)
-    command('master.new_from_shape', id=1, name='Switch')
-    command('shape.delete', id=1)
+    command('stencil.open', builtin='network')
 
     fabrics = []
     shape_id = 1
     for fabric_index, fabric in enumerate(('A', 'B')):
         left = fabric_index * 8.5
-        positions = [(2.5, 8.75), (5.703125, 8.75)]
-        positions += [(0.90625 + column * 1.59375, y) for y in (5.75, 2.75) for column in range(5)]
         ids = []
-        for index, (x, y) in enumerate(positions):
+        for index in range(12):
             name = f'{fabric}-Core-{index + 1}' if index < 2 else f'{fabric}-Edge-{index - 1:02}'
-            command('master.drop', master='Switch', x=left + x, y=y)
+            command('master.drop', master='storage.switch')
             command('shape.text', id=shape_id, text=name)
             command('layer.assign', id=shape_id, layers=[fabric_index])
-            command('format.fill', id=shape_id, color='#E8F2F0' if fabric_index == 0 else '#EDF0F8')
             for prop, value in [('Name', name), ('Fabric', fabric), ('DomainID', fabric_index * 100 + index + 1), ('Model', 'DC-SW48')]:
                 command('shape.data.define', id=shape_id, name=prop, label=prop, type=2 if prop == 'DomainID' else 0, format='', invisible=False, sort_key=prop)
                 command('shape.data.set', id=shape_id, name=prop, value=value)
@@ -106,7 +97,7 @@ def main():
                 raise RuntimeError('SAN route crosses a switch: ' + str(result_item['result']['crossings']))
     for extension in ('png', 'svg'):
         subprocess.run(cli + ['convert', str(drawing), str(drawing.with_suffix('.' + extension))], check=True)
-    print(f'SAN: 24 Switch instances, 40 ISLs, saved {drawing}')
+    print(f'SAN: 24 storage.switch instances, 40 ISLs, saved {drawing}')
     return 0
 
 
