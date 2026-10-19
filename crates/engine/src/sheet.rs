@@ -51,16 +51,35 @@ fn prefix(value: &str) -> &str {
         v => v,
     }
 }
+const TEXT_TRANSFORM: &[(&str, &str)] = &[
+    ("TxtPinX", "Width*0.5"),
+    ("TxtPinY", "Height*0.5"),
+    ("TxtWidth", "Width"),
+    ("TxtHeight", "Height"),
+    ("TxtLocPinX", "TxtWidth*0.5"),
+    ("TxtLocPinY", "TxtHeight*0.5"),
+    ("TxtAngle", "0"),
+];
+
 pub(crate) fn address(doc: &Document, scope: Scope, name: &str) -> Result<Address> {
     let e = Evaluator::new(doc).map_err(operation)?;
     if matches!(scope, Scope::PageShape { .. }) && e.shape(scope).is_none() {
         return Err(operation("shape not found"));
     }
-    let named = e
-        .resolved_named_cells(scope)
-        .into_iter()
-        .find(|c| c.name.eq_ignore_ascii_case(name))
-        .ok_or_else(|| operation("cell does not exist; add its section and row first"))?;
+    let found = e.resolved_named_cells(scope).into_iter().find(|c| c.name.eq_ignore_ascii_case(name));
+    // Optional Text Transform cells serialize directly on Shape, not in a Section.
+    // https://learn.microsoft.com/en-us/office/client-developer/visio/text-transform-section
+    if found.is_none()
+        && matches!(scope, Scope::PageShape { .. })
+        && let Some((canonical, formula)) = TEXT_TRANSFORM.iter().find(|(n, _)| n.eq_ignore_ascii_case(name))
+    {
+        return Ok(Address {
+            section: None,
+            row: None,
+            cell: Cell { name: (*canonical).into(), formula: Some((*formula).into()), ..Default::default() },
+        });
+    }
+    let named = found.ok_or_else(|| operation("cell does not exist; add its section and row first"))?;
     let mut cell = named.cell.clone();
     cell.attributes.retain(|k, _| !k.starts_with("Com"));
     cell.ref_by.clear();
@@ -126,13 +145,38 @@ pub(crate) fn install(sheet: &mut Sheet, address: Address) -> Result<()> {
     }
     Ok(())
 }
+/// Materialize the optional section as a complete set, preserving existing overrides.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/text-transform-section
+fn ensure_text_transform(doc: &mut Document, scope: Scope, name: &str) -> Result<()> {
+    if !matches!(scope, Scope::PageShape { .. }) || !TEXT_TRANSFORM.iter().any(|(n, _)| n.eq_ignore_ascii_case(name)) {
+        return Ok(());
+    }
+    let e = Evaluator::new(doc).map_err(operation)?;
+    let missing =
+        TEXT_TRANSFORM.iter().filter(|(n, _)| e.cell(scope, n).is_none()).map(|(n, _)| address(doc, scope, n)).collect::<Result<Vec<_>>>()?;
+    drop(e);
+    for value in missing {
+        install(sheet_mut(doc, scope)?, value)?;
+    }
+    Ok(())
+}
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.shape.cellsu
 pub(crate) fn get(s: &mut Session, p: &Value) -> Result<Value> {
     let scope = target(s, p)?;
     let name = name(p, "name")?;
     let address = address(&s.document, scope, name)?;
-    let themes = misterdiagram_theme::Themes::from_document(&s.document).map_err(operation)?;
-    let mut e = Evaluator::new(&s.document).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
+    let mut temporary;
+    let document = if TEXT_TRANSFORM.iter().any(|(n, _)| n.eq_ignore_ascii_case(name))
+        && Evaluator::new(&s.document).map_err(operation)?.cell(scope, name).is_none()
+    {
+        temporary = s.document.as_ref().clone();
+        ensure_text_transform(&mut temporary, scope, name)?;
+        &temporary
+    } else {
+        s.document.as_ref()
+    };
+    let themes = misterdiagram_theme::Themes::from_document(document).map_err(operation)?;
+    let mut e = Evaluator::new(document).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
     Ok(
         json!({"name":name,"value":e.evaluate(scope,name).text(),"cached":address.cell.value,"formula":address.cell.formula,"units":address.cell.units}),
     )
@@ -172,6 +216,7 @@ pub(crate) fn set_cell(s: &mut Session, p: &Value) -> Result<Value> {
     }
     address.cell.error = None;
     s.edit_document(|doc, _| {
+        ensure_text_transform(doc, scope, name)?;
         install(sheet_mut(doc, scope)?, address.clone())?;
         // Setting an override back to the master's own formula/value removes it.
         // Witness: probe connector5 zero Geometry/Control cells after Visio SaveAs.
