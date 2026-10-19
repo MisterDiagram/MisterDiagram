@@ -9,38 +9,6 @@ pub(crate) struct Stencil {
     pub path: PathBuf,
     pub document: Arc<Document>,
 }
-const MAX_SOURCE_BYTES: usize = 128 * 1024 * 1024;
-const MAX_MEDIA_BYTES: usize = 256 * 1024 * 1024;
-fn is_media(part: &misterdiagram_model::Part) -> bool {
-    part.xml.is_none() && part.content_type.as_deref().is_some_and(|kind| kind.starts_with("image/"))
-}
-fn source_size(doc: &Document) -> usize {
-    doc.parts.values().filter(|part| !is_media(part)).fold(0usize, |n, p| n.saturating_add(p.bytes.len()))
-}
-fn media_size(doc: &Document) -> usize {
-    doc.parts.values().filter(|part| is_media(part)).fold(0usize, |n, p| n.saturating_add(p.bytes.len()))
-}
-/// Admit media across distinct active, stencil, history and rollback documents.
-/// An incoming reimport is a separate allocation even when its bytes are equal.
-/// https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml
-pub(crate) fn check_media(s: &Session, incoming: Option<&Document>) -> Result<()> {
-    // Media remain subject to package/part and decode limits. Retained media also
-    // have an aggregate session allowance, including history and rollback owners.
-    // https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml
-    let mut seen = std::collections::HashSet::new();
-    let retained_media =
-        s.retained_documents().into_iter().filter(|d| seen.insert(Arc::as_ptr(d))).fold(0usize, |n, d| n.saturating_add(media_size(d)));
-    let needed_media = incoming.map_or(0, media_size);
-    if needed_media.saturating_add(retained_media) > MAX_MEDIA_BYTES {
-        return Err(operation(format!(
-            "retained stencil media byte limit: needs {:.1} MiB, {:.1} MiB already retained, limit {} MiB",
-            needed_media as f64 / (1024. * 1024.),
-            retained_media as f64 / (1024. * 1024.),
-            MAX_MEDIA_BYTES / (1024 * 1024),
-        )));
-    }
-    Ok(())
-}
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.documents.openex
 pub(crate) fn open(s: &mut Session, p: &Value) -> Result<Value> {
     let builtin = p.get("builtin").and_then(Value::as_str);
@@ -68,18 +36,7 @@ pub(crate) fn open(s: &mut Session, p: &Value) -> Result<Value> {
     if !document.parts.get(&document.main_part).and_then(|p| p.content_type.as_deref()).is_some_and(|v| v.contains("stencil")) {
         return Err(operation("file is not a stencil"));
     }
-    let needed = source_size(&document);
-    let already_open = s.stencils.iter().fold(0usize, |n, s| n.saturating_add(source_size(&s.document)));
-    if needed.saturating_add(already_open) > MAX_SOURCE_BYTES {
-        let name = path.file_name().unwrap_or(path.as_os_str()).to_string_lossy();
-        return Err(operation(format!(
-            "retained stencil source byte limit: {name} needs {:.1} MiB, {:.1} MiB already open, limit {} MiB",
-            needed as f64 / (1024. * 1024.),
-            already_open as f64 / (1024. * 1024.),
-            MAX_SOURCE_BYTES / (1024 * 1024),
-        )));
-    }
-    check_media(s, Some(&document))?;
+    s.reserve(Some((&document, true)))?;
     let count = document.masters.len();
     s.stencils.push(Stencil { path, document: Arc::new(document) });
     Ok(json!({"stencil":s.stencils.len(),"masters":count}))

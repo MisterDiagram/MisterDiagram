@@ -87,6 +87,7 @@ impl Session {
                 let mut params = item.get("params").cloned().unwrap_or_else(|| json!({}));
                 resolve(&mut params, false, &references, 0)?;
                 candidate.read_reservations = reservations.clone();
+                candidate.stencil_reservations = self.retained_stencils();
                 let result = candidate.execute(command, &params)?;
                 if let Some(name) = alias {
                     let id = result
@@ -123,11 +124,21 @@ impl Session {
         candidate.undo = self.undo.clone();
         candidate.undo.push_back(before);
         candidate.redo.clear();
-        candidate.read_reservations.clear();
+        candidate.read_reservations = self.read_reservations.clone();
+        candidate.stencil_reservations = self.stencil_reservations.clone();
+        let history = candidate.retention().history;
+        let inventory_changed = candidate.undo.back().is_some_and(|s| s.stencils.is_some());
         candidate.trim_history();
         if candidate.undo.is_empty() {
             self.observe_external_save(&candidate);
-            return Err(operation("batch undo snapshot exceeds retained budget"));
+            let error = crate::retention::retention_error(
+                "history",
+                256 * 1024 * 1024,
+                history.saturating_sub(self.retention().history),
+                self.retention().history,
+            );
+            let hint = if inventory_changed { "; opening stencils in their own call avoids inventory rollback retention" } else { "" };
+            return Err(operation(format!("batch undo snapshot exceeds retained budget: {error}{hint}")));
         }
         if let Err(error) = crate::result_budget(&result) {
             self.observe_external_save(&candidate);

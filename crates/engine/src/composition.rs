@@ -37,6 +37,7 @@ pub(crate) fn execute(s: &mut Session, command: &str, p: &Value) -> Result<Value
     let page = page_index(s, p)?;
     let mut candidate = s.clone();
     candidate.read_reservations = s.retained_documents().into_iter().cloned().collect();
+    candidate.stencil_reservations = s.retained_stencils();
     let result = if command == "connector.add" {
         connector(&mut candidate, p, page)?
     } else {

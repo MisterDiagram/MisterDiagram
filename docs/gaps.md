@@ -1500,3 +1500,12 @@ and inventory 6,678/6,742 with zero blanks or guard kills. All seven source seed
 fail their intended assertions and pass after exact restoration. Final CI and
 frozen verification receipts are retained in local plan/brief27. Existing human
 visual gates for the contact sheet, office and SAN remain pending Charles.
+
+## M5.19b: shared session accounting
+
+One document-identity census covers stencil source, pictures and history with
+rollback reservations. Runtime original real-stdio tests cover inventory batch
+undo/redo and close/failure restoration, and consistent picture admission/drop.
+The 280 MiB original stencil already refused at open on c7d5553; its refusal
+diagnostic lacked the configuration setting. Failure1 reproduced exactly.
+M5.19c supplies the configurable ceiling and measured release acceptance.

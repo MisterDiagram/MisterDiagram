@@ -120,7 +120,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fontschemeindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fonttoid-function> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/foreign-image-info-section> | `crates/render/tests/picture_cells.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml> | `crates/engine/src/stencils.rs`, `crates/engine/tests/foreign_master.rs`, `crates/engine/tests/stencil_limits.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml> | `crates/engine/tests/foreign_master.rs`, `crates/engine/tests/stencil_limits.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-shape-data-section> | `crates/engine/src/content.rs`, `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-text-fields-section> | `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-function> | `crates/sheet/src/functions/text.rs` |
@@ -355,7 +355,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.documents> | `crates/engine/src/stencils.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.documents.add> | `crates/engine/src/files.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.documents.open> | `crates/engine/src/files.rs`, `crates/vsdx/src/lib.rs` |
-| <https://learn.microsoft.com/en-us/office/vba/api/visio.documents.openex> | `crates/engine/src/stencils.rs`, `crates/engine/tests/stencil_limits.rs`, `tools/oracle/accept.ps1`, `tools/oracle/vendor-stencils/vendor-three-witness.ps1` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.documents.openex> | `crates/engine/src/retention.rs`, `crates/engine/src/stencils.rs`, `crates/engine/tests/stencil_limits.rs`, `tools/oracle/accept.ps1`, `tools/oracle/vendor-stencils/vendor-three-witness.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.hyperlinks.add> | `crates/engine/src/content.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.layer.delete> | `crates/engine/src/pages.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.layer.name> | `crates/engine/src/pages.rs` |

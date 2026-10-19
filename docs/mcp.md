@@ -85,8 +85,9 @@ document, selection, open stencils, path, journal, undo and redo. Errors report
 both the zero-based failing index and the one-based command number. Successful
 batches have one undo step, including stencil changes. The output list has a
 1 MiB budget; exceeding a budget fails transactionally. Unchanged open stencils
-are shared by reference and omitted from batch undo snapshots. A batch changing
-the stencil inventory retains it for undo and is still subject to the existing
+are charged once by identity even when an inventory-changing batch includes them
+in its undo snapshot. A batch changing the stencil inventory retains references
+for undo and is still subject to the existing
 256 MiB history estimate and 4,000,000 retained XML node limit. A genuinely
 oversized snapshot fails with `batch undo snapshot exceeds retained budget`. Files already written
 by save/export commands are external side effects and are not removed on a

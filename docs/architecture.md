@@ -126,7 +126,10 @@ refusal names the stencil, required MiB, MiB already open and the 128 MiB limit.
 
 Open stencils use shared `Arc<Document>` storage. Document-only batches omit
 unchanged stencil inventories from undo snapshots; inventory-changing batches
-retain them under the existing history estimate. `file.new` and `file.open`
+retain inventory references. The shared identity census charges each document once,
+including closed stencils pinned by history or rollback; unchanged open stencils
+consume no additional history estimate. Nonmedia history estimates and picture
+bytes use that same census for admission and trimming. `file.new` and `file.open`
 keep external stencils. `stencil.list` exposes the current indices, with zero
 for the document stencil; `stencil.close` compacts external indices.
 

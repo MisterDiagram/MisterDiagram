@@ -128,6 +128,7 @@ pub(crate) fn open(s: &mut Session, p: &Value) -> Result<Value> {
     require_discard(s, p)?;
     let path = path(p, "path")?;
     let document = misterdiagram_vsdx::read_with_open_nodes(path, s.retained_xml_nodes()).map_err(operation)?;
+    s.reserve(Some((&document, false)))?;
     let pages = document.pages.len();
     s.advance_revision()?;
     s.saved_revision = Some(s.revision);

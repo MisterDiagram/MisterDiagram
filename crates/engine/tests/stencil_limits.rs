@@ -40,7 +40,7 @@ fn retained_stencil_source_accepts_over_32_mib_and_bounds_single_and_combined_so
     std::fs::copy(&small, &fourth).unwrap();
     let error = session.execute("stencil.open", &json!({"path":fourth})).unwrap_err().to_string();
     assert!(
-        error.contains("retained stencil source byte limit: copy-4.vssx needs 32.0 MiB, 96.1 MiB already open, limit 128 MiB"),
+        error.contains("retained stencil source byte limit: needs 32.0 MiB, 96.1 MiB already retained, limit 128 MiB"),
         "combined source limit must report requested and retained sizes: {error}"
     );
     assert!(session.execute("stencil.masters", &json!({"stencil":3})).is_ok(), "refusal must retain earlier sources");
@@ -51,7 +51,7 @@ fn retained_stencil_source_accepts_over_32_mib_and_bounds_single_and_combined_so
     let mut session = Session::new();
     let error = session.execute("stencil.open", &json!({"path":large})).unwrap_err().to_string();
     assert!(
-        error.contains("retained stencil source byte limit: over-128.vssx needs 129.0 MiB, 0.0 MiB already open, limit 128 MiB"),
+        error.contains("retained stencil source byte limit: needs 129.0 MiB, 0.0 MiB already retained, limit 128 MiB"),
         "single source limit must report requested and retained sizes: {error}"
     );
     assert_eq!(session.execute("stencil.open", &json!({"path":small})).unwrap()["stencil"], 1, "refusal must leave the session usable");

@@ -17,6 +17,7 @@ mod masters;
 mod network;
 mod pages;
 mod reference_cleanup;
+mod retention;
 mod shapes;
 mod sheet;
 mod stencils;
@@ -75,6 +76,7 @@ pub struct Session {
     dirty: bool,
     editing: bool,
     read_reservations: Vec<Arc<Document>>,
+    stencil_reservations: Vec<Arc<Document>>,
     revision: u64,
     saved_revision: Option<u64>,
     save_generation: u64,
@@ -98,6 +100,7 @@ impl Default for Session {
             next_revision: 1,
             editing: false,
             read_reservations: Vec::new(),
+            stencil_reservations: Vec::new(),
         }
     }
 }
@@ -119,8 +122,7 @@ impl Session {
         documents
     }
     pub(crate) fn retained_xml_nodes(&self) -> usize {
-        let mut seen = std::collections::HashSet::new();
-        self.retained_documents().into_iter().filter(|d| seen.insert(Arc::as_ptr(d))).fold(0usize, |n, d| n.saturating_add(d.retained_xml_nodes))
+        self.retention().nodes
     }
     fn observe_external_save(&mut self, candidate: &Self) {
         if self.save_generation != candidate.save_generation {
@@ -221,11 +223,12 @@ impl Session {
         // Rollback documents can leave the active census after copy-on-write or
         // history eviction, but the transaction snapshot keeps them alive.
         self.read_reservations.extend(before.retained_documents().into_iter().cloned());
+        self.stencil_reservations.extend(before.retained_stencils());
         self.editing = true;
         let mut published = false;
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let result = f(self)?;
-            stencils::check_media(self, None)?;
+            self.check_retention(before.retention(), self.retention())?;
             if self.dirty {
                 let identities = |d: &Document| {
                     (
@@ -248,7 +251,7 @@ impl Session {
                     misterdiagram_vsdx::write_with_glue_host(&self.document, Some(&theme), Some(&misterdiagram_text::Host), Some(&mut glue))
                         .map_err(operation)?;
                 let document = misterdiagram_vsdx::import_with_open_nodes(&written.bytes, self.retained_xml_nodes()).map_err(operation)?;
-                stencils::check_media(self, Some(&document))?;
+                self.reserve(Some((&document, false)))?;
                 self.document = Arc::new(document);
                 files::update_palette(Arc::make_mut(&mut self.document))?;
                 self.advance_revision()?;
@@ -259,7 +262,8 @@ impl Session {
                 self.selection.page = 0;
                 self.selection.shapes.clear();
             }
-            self.read_reservations.clear();
+            self.read_reservations = before.read_reservations.clone();
+            self.stencil_reservations = before.stencil_reservations.clone();
             self.editing = false;
             Ok(result)
         }));
@@ -308,21 +312,13 @@ impl Session {
         // and the next reader admission. Active documents and stencils never yield.
         // During an edit, rollback reservations pin old history, so node eviction
         // happens after commit, ahead of the next transaction snapshot.
-        let cost = |s: &Snapshot| {
-            std::iter::once(&s.document).chain(s.stencils.iter().flatten().map(|stencil| &stencil.document)).fold(0usize, |total, doc| {
-                total.saturating_add(doc.parts.values().fold(1024 * 1024usize, |n, p| n.saturating_add(p.bytes.len().saturating_mul(16))))
-            })
-        };
-        let mut bytes = self.undo.iter().chain(&self.redo).fold(0usize, |n, s| n.saturating_add(cost(s)));
         let admission = self.document.retained_xml_nodes.saturating_mul(2);
         while self.undo.len() + self.redo.len() > 32
-            || bytes > 256 * 1024 * 1024
+            || self.retention().history > 256 * 1024 * 1024
             || (!self.editing && self.retained_xml_nodes().saturating_add(admission) > misterdiagram_vsdx::MAX_RETAINED_XML_NODES)
         {
             let removed = self.undo.pop_front().or_else(|| self.redo.pop_front());
-            if let Some(s) = removed {
-                bytes = bytes.saturating_sub(cost(&s));
-            } else {
+            if removed.is_none() {
                 break;
             }
         }
