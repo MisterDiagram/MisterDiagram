@@ -116,6 +116,7 @@ fn execute(args: &[std::ffi::OsString], out: &mut impl Write) -> Result<(), Stri
         return Err("argument count or byte limit".into());
     }
     match args.first().and_then(|a| a.to_str()) {
+        Some("--version") if args.len() == 1 => writeln!(out, "misterdiagram {}", env!("CARGO_PKG_VERSION")).map_err(|e| e.to_string()),
         Some("info") if args.len() == 2 => info(Path::new(args.get(1).ok_or("missing file")?), out),
         Some("sheet") if matches!(args.len(), 2..=4) => {
             use misterdiagram_vsdx::dump::Selection;
@@ -174,6 +175,13 @@ fn main() -> ExitCode {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn version_is_the_crate_version() {
+        let mut out = Vec::new();
+        execute(&["--version".into()], &mut out).unwrap();
+        assert_eq!(out, format!("misterdiagram {}\n", env!("CARGO_PKG_VERSION")).as_bytes());
+        assert!(execute(&["--version".into(), "extra".into()], &mut out).is_err());
+    }
     #[test]
     fn hostile_cli_selectors() {
         for args in [
