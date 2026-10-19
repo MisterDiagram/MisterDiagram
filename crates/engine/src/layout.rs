@@ -97,7 +97,7 @@ fn check_grid(e: &mut Evaluator<'_>, page: u32, ids: &[u32]) -> Result<()> {
 fn slot(size: f64) -> f64 {
     (size * 32.).ceil() / 32.
 }
-fn facing(doc: &misterdiagram_model::Document, page: usize, id: u32, target: u32) -> Result<Side> {
+fn facing_mode(doc: &misterdiagram_model::Document, page: usize, id: u32, target: u32, touching: bool) -> Result<Side> {
     let page = doc.pages.get(page).ok_or_else(|| operation("page missing"))?;
     let themes = misterdiagram_theme::Themes::from_document(doc).map_err(operation)?;
     let mut e = Evaluator::new(doc).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
@@ -125,16 +125,19 @@ fn facing(doc: &misterdiagram_model::Document, page: usize, id: u32, target: u32
         number(&mut e, other, "Width")?,
         number(&mut e, other, "Height")?,
     ));
-    if other_box.y0 >= h {
+    if other_box.y0 > h || (touching && other_box.y0 == h) {
         return Ok(Side::Top);
     }
-    if other_box.y1 <= 0. {
+    if other_box.y1 < 0. || (touching && other_box.y1 == 0.) {
         return Ok(Side::Bottom);
     }
     let local = transform.inverse() * other_center;
     let dx = (local.x - w / 2.) / w;
     let dy = (local.y - h / 2.) / h;
     if dx.abs() >= dy.abs() { Ok(if dx >= 0. { Side::Right } else { Side::Left }) } else { Ok(if dy >= 0. { Side::Top } else { Side::Bottom }) }
+}
+fn facing(doc: &misterdiagram_model::Document, page: usize, id: u32, target: u32) -> Result<Side> {
+    facing_mode(doc, page, id, target, true)
 }
 /// Reuse an inbound point at the requested side position, or append the seven
 /// canonical cells observed in P5a route/side-glue and connector/static-glue.
@@ -418,8 +421,8 @@ pub(crate) fn rows(s: &mut Session, p: &Value) -> Result<Value> {
 }
 
 /// Assign distinct positions along each facing hub side, preserving spoke order.
-/// Existing connectors are selected by their two endpoint shape IDs; ambiguity
-/// is an error. Both ends get distinct points; witnessed style 2 uses straight
+/// Existing connectors are selected by their two endpoint shape IDs, including
+/// every parallel link. Both ends get distinct points; witnessed style 2 uses straight
 /// independent ISLs. Routing stays inside the ordinary strict transaction.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/shaperoutestyle-cell-shape-layout-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section
@@ -437,7 +440,7 @@ pub(crate) fn fan(s: &mut Session, p: &Value) -> Result<Value> {
     let mut assignments = Vec::new();
     let mut totals = std::collections::BTreeMap::new();
     for spoke in &spokes {
-        let side = facing(&normalized, index, hub, *spoke)?;
+        let side = facing_mode(&normalized, index, hub, *spoke, false)?;
         let candidates = page
             .connects
             .iter()
@@ -446,16 +449,21 @@ pub(crate) fn fan(s: &mut Session, p: &Value) -> Result<Value> {
                 page.connects.iter().any(|other| other.from_sheet == c.from_sheet && other.to_sheet == *spoke && other.from_cell != c.from_cell)
             })
             .collect::<Vec<_>>();
-        let [connection] = candidates.as_slice() else {
-            return Err(operation("each spoke requires exactly one connector to the hub"));
-        };
-        let end = match connection.from_cell.as_deref() {
-            Some("BeginX") => misterdiagram_route::End::Begin,
-            Some("EndX") => misterdiagram_route::End::End,
-            _ => return Err(operation("fan requires endpoint glue")),
-        };
-        *totals.entry(side).or_insert(0usize) += 1;
-        assignments.push((*spoke, side, connection.from_sheet, end));
+        if candidates.is_empty() {
+            return Err(operation("each spoke requires at least one connector to the hub"));
+        }
+        for connection in candidates {
+            let end = match connection.from_cell.as_deref() {
+                Some("BeginX") => misterdiagram_route::End::Begin,
+                Some("EndX") => misterdiagram_route::End::End,
+                _ => return Err(operation("fan requires endpoint glue")),
+            };
+            if assignments.len() >= 10000 {
+                return Err(operation("fan connector limit"));
+            }
+            *totals.entry(side).or_insert(0usize) += 1;
+            assignments.push((*spoke, side, connection.from_sheet, end));
+        }
     }
     // Determine spoke fractions against every already-connected peer, so successive
     // hub fans preserve distinct points at both ends of each ISL.
@@ -465,31 +473,34 @@ pub(crate) fn fan(s: &mut Session, p: &Value) -> Result<Value> {
             endpoints.entry(c.from_sheet).or_default().push(c.to_sheet);
         }
     }
-    let mut neighbors = std::collections::BTreeMap::<u32, std::collections::BTreeSet<u32>>::new();
-    for pair in endpoints.values() {
+    let mut neighbors = std::collections::BTreeMap::<u32, Vec<(u32, u32)>>::new();
+    for (connector, pair) in &endpoints {
         if let [a, b] = pair.as_slice() {
-            neighbors.entry(*a).or_default().insert(*b);
-            neighbors.entry(*b).or_default().insert(*a);
+            neighbors.entry(*a).or_default().push((*b, *connector));
+            neighbors.entry(*b).or_default().push((*a, *connector));
         }
     }
     let mut spoke_points = std::collections::BTreeMap::new();
     for spoke in &spokes {
-        let side = facing(&normalized, index, *spoke, hub)?;
+        let side = facing_mode(&normalized, index, *spoke, hub, false)?;
         let mut peers = Vec::new();
         let themes = misterdiagram_theme::Themes::from_document(&normalized).map_err(operation)?;
         let mut e = Evaluator::new(&normalized).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
-        for peer in neighbors.get(spoke).into_iter().flatten() {
-            if facing(&normalized, index, *spoke, *peer)? != side {
+        for (peer, connector) in neighbors.get(spoke).into_iter().flatten() {
+            if facing_mode(&normalized, index, *spoke, *peer, false)? != side {
                 continue;
             }
             let scope = Scope::PageShape { page: page.id, shape: *peer };
             let center =
                 e.shape_to_page(scope).map_err(operation)? * Point::new(number(&mut e, scope, "Width")? / 2., number(&mut e, scope, "Height")? / 2.);
-            peers.push((*peer, if matches!(side, Side::Top | Side::Bottom) { center.x } else { center.y }));
+            peers.push((*peer, *connector, if matches!(side, Side::Top | Side::Bottom) { center.x } else { center.y }));
         }
-        peers.sort_by(|a, b| a.1.total_cmp(&b.1).then(a.0.cmp(&b.0)));
-        let rank = peers.iter().position(|(id, _)| *id == hub).ok_or_else(|| operation("fan hub missing from spoke peers"))?;
-        spoke_points.insert(*spoke, (side, fraction(rank + 1, peers.len())?));
+        peers.sort_by(|a, b| a.2.total_cmp(&b.2).then(a.0.cmp(&b.0)).then(a.1.cmp(&b.1)));
+        for (rank, (peer, connector, _)) in peers.iter().enumerate() {
+            if *peer == hub {
+                spoke_points.insert(*connector, (side, fraction(rank + 1, peers.len())?));
+            }
+        }
     }
     let placed = s.edit_document(|doc, _| {
         *doc = normalized;
@@ -504,7 +515,7 @@ pub(crate) fn fan(s: &mut Session, p: &Value) -> Result<Value> {
             let name = point(doc, index, hub, *side, fraction, &used)?;
             used.insert(name.clone());
             misterdiagram_route::connect_static(doc, index, *connector, *end, hub, &name).map_err(operation)?;
-            let (spoke_side,spoke_fraction)=spoke_points.get(spoke).copied().ok_or_else(||operation("spoke point missing"))?;
+            let (spoke_side,spoke_fraction)=spoke_points.get(connector).copied().ok_or_else(||operation("spoke point missing"))?;
             let spoke_name=point(doc,index,*spoke,spoke_side,spoke_fraction,&Default::default())?;
             let other_end=match end {misterdiagram_route::End::Begin=>misterdiagram_route::End::End,misterdiagram_route::End::End=>misterdiagram_route::End::Begin};
             misterdiagram_route::connect_static(doc,index,*connector,other_end,*spoke,&spoke_name).map_err(operation)?;
@@ -610,6 +621,100 @@ fn crosses(a: Point, b: Point, r: misterdiagram_geom::Rect) -> bool {
     }
     low < high && high > 0. && low < 1.
 }
+/// Plan fresh parallel ports without moving any existing static endpoint.
+/// Connection rows use the same canonical cells as shape.connection.add.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section
+pub(crate) fn parallel_plan(s: &Session, index: usize, from: u32, to: u32, newest: u32) -> Result<Vec<Value>> {
+    use std::collections::{BTreeMap, BTreeSet};
+    let doc = s.document();
+    let page = doc.pages.get(index).ok_or_else(|| operation("page missing"))?;
+    let mut ends = BTreeMap::<u32, Vec<&misterdiagram_model::Connect>>::new();
+    for c in &page.connects {
+        if matches!(c.from_cell.as_deref(), Some("BeginX" | "EndX")) {
+            ends.entry(c.from_sheet).or_default().push(c);
+        }
+    }
+    let pairs = ends
+        .iter()
+        .filter_map(|(id, ends)| (ends.len() == 2 && ends.iter().any(|c| c.to_sheet == from) && ends.iter().any(|c| c.to_sheet == to)).then_some(*id))
+        .collect::<BTreeSet<_>>();
+    let themes = misterdiagram_theme::Themes::from_document(doc).map_err(operation)?;
+    let mut e = Evaluator::new(doc).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
+    let mut result = Vec::new();
+    for (target, other) in [(from, to), (to, from)] {
+        let side = facing_mode(doc, index, target, other, false)?;
+        let scope = Scope::PageShape { page: page.id, shape: target };
+        let w = number(&mut e, scope, "Width")?;
+        let h = number(&mut e, scope, "Height")?;
+        let all = e.resolved_named_cells(scope);
+        let mut static_points = BTreeMap::new();
+        for x in all.iter().filter(|n| n.cell.name == "X" && n.section.is_some_and(|v| v.name == "Connection")) {
+            let y = all
+                .iter()
+                .find(|n| {
+                    n.cell.name == "Y"
+                        && n.section.is_some_and(|v| v.name == "Connection")
+                        && n.row.zip(x.row).is_some_and(|(a, b)| a.name == b.name && a.index == b.index)
+                })
+                .ok_or_else(|| operation("incomplete connection row"))?;
+            static_points.insert(x.name.clone(), (number(&mut e, scope, &x.name)?, number(&mut e, scope, &y.name)?));
+        }
+        let mut occupied = Vec::new();
+        for c in page.connects.iter().filter(|c| c.to_sheet == target && c.from_sheet != newest) {
+            if let Some(position) = c.to_cell.as_ref().and_then(|p| static_points.get(p)) {
+                occupied.push(*position);
+            }
+        }
+        for (id, ends) in ends.iter().filter(|(id, _)| pairs.contains(id)) {
+            let c = ends.iter().find(|c| c.to_sheet == target).ok_or_else(|| operation("parallel endpoint missing"))?;
+            let current = c.to_cell.as_ref().and_then(|p| static_points.get(p));
+            if *id != newest && current.is_some() {
+                continue;
+            }
+            if pairs.len() < 2 && !current.is_some_and(|position| occupied.contains(position)) {
+                continue;
+            }
+            let mut selected = None;
+            // Breadth-first dyadic positions stay exactly representable and bounded.
+            for ordinal in 1usize..=32767 {
+                let denominator = ordinal.checked_next_power_of_two().ok_or_else(|| operation("parallel denominator"))?;
+                let denominator = if ordinal.is_power_of_two() {
+                    denominator.checked_mul(2).ok_or_else(|| operation("parallel denominator"))?
+                } else {
+                    denominator
+                };
+                let numerator = ordinal
+                    .checked_sub(denominator / 2)
+                    .and_then(|v| v.checked_mul(2))
+                    .and_then(|v| v.checked_add(1))
+                    .ok_or_else(|| operation("parallel numerator"))?;
+                let f = numerator as f64 / denominator as f64;
+                let (x, y, xf, yf) = match side {
+                    Side::Left => (0., h * f, "0".to_owned(), format!("Height*{f}")),
+                    Side::Right => (w, h * f, "Width".to_owned(), format!("Height*{f}")),
+                    Side::Bottom => (w * f, 0., format!("Width*{f}"), "0".to_owned()),
+                    Side::Top => (w * f, h, format!("Width*{f}"), "Height".to_owned()),
+                };
+                if !occupied.iter().any(|(a, b)| *a == x && *b == y) {
+                    selected = Some((x, y, xf, yf));
+                    break;
+                }
+            }
+            let (x, y, xf, yf) = selected.ok_or_else(|| operation("parallel connection point limit"))?;
+            occupied.push((x, y));
+            result.push(json!({"id":id,"target":target,"end":if c.from_cell.as_deref()==Some("BeginX"){"begin"}else{"end"},"x":xf,"y":yf}));
+        }
+    }
+    // Route style is an ordinary cell, with no record of the creating command.
+    if result.is_empty() {
+        return Ok(result);
+    }
+    for id in pairs {
+        result.push(json!({"style":id}));
+    }
+    Ok(result)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

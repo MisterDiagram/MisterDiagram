@@ -14,6 +14,7 @@ class Client:
                                         stdout=subprocess.PIPE, text=True, encoding='utf-8')
         self.replies = queue.Queue(maxsize=2)
         self.next_id = 0
+        self.tool_calls = 0
         threading.Thread(target=self._read, daemon=True).start()
         try:
             reply = self.request('initialize', {'protocolVersion': '2025-06-18', 'capabilities': {},
@@ -58,6 +59,7 @@ class Client:
         return reply['result']
 
     def tool(self, name, **arguments):
+        self.tool_calls += 1
         result = self.request('tools/call', {'name': name, 'arguments': arguments})
         text = result['content'][0]['text']
         if result.get('isError'):

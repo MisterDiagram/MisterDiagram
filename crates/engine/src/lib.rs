@@ -5,6 +5,7 @@
 mod arrange;
 mod batch;
 pub mod cmd;
+mod composition;
 mod content;
 mod edit;
 mod files;
@@ -141,6 +142,9 @@ impl Session {
         let bytes = params_size(params)?;
         let spec = find_command(id).ok_or_else(|| EngineError::UnknownCommand(id.chars().take(256).collect()))?;
         validate_schema(spec.params, params)?;
+        if composition::applies(id, params) {
+            return composition::execute(self, id, params);
+        }
         if id == "engine.batch" {
             return self.execute_batch(params);
         }

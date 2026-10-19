@@ -248,3 +248,39 @@ It has no placement coordinates. `tools/mcp/san-topology.py OUTPUT` builds
 requires `layout.check` to report zero violations before saving and exporting.
 Both examples pass fresh Visio open/save with zero repair and route differences,
 and the unchanged equal-size pixel ceilings. Their human visual gates remain pending.
+
+Creation commands `shape.draw.rect`, `shape.draw.ellipse`, `shape.draw.line` and
+`master.drop` accept optional `text` (a string), `fill` (format.fill properties),
+`line` (format.line properties) and `font` (format.text properties). Formatting
+objects omit `id` and `page`. These edits have one undo step and save the same
+cells as the corresponding fine-grained commands, without command markers.
+
+`connector.add {from,to,glue,from_point,to_point,line}` requires distinct endpoint
+shapes. It drops the document's
+Dynamic connector and glues both ends. `glue` defaults to `static`, using facing
+sides; `dynamic` uses whole-shape glue. Explicit points require both point names
+and static glue. Automatic links reserve unused ports when an endpoint is already
+occupied. Parallel links use separate points at both ends and straight route
+style 2; existing static ports, including explicitly selected ports, stay put.
+Automatic dynamic endpoints become static points when links run in parallel.
+`layout.fan` accepts multiple connectors per spoke and assigns every link its own
+pair of points using the same straight style. These are ordinary connection rows,
+glue records and route cells, with no private saved state.
+
+Examples use the built-in contributor-original network library:
+
+```sh
+python3 tools/mcp/office-network.py target/office
+python3 tools/mcp/san-topology.py target/san
+python3 tools/mcp/fabric-page.py target/fabric
+```
+
+Office uses one reference batch for ten labeled devices and the tree layout.
+SAN uses one batch for the larger topology. The fabric example demonstrates three
+array links per fabric and reports container-related layout hits separately.
+
+Measured recipe sizes are office 12 commands in one batch (four total tool
+calls), SAN 338 commands in one batch (five total calls), and fabric 28 build
+commands in two batches (five total calls). Totals include layout inspection and
+save/render or export. The fabric page reports 10 rule b and 10 rule g hits on
+its ordinary boxes and headings; a, c and d pass. These boxes are not containers.

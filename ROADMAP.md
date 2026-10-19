@@ -540,7 +540,13 @@ inherited connection points and Shape Data. Explicit sections work on shapes
 and documents; inspection is capped at 64 KiB and every MCP result envelope
 at 1 MiB, with actionable errors and no truncation. Original synthetic
 200-point/100-data-row master and transport escaping tests cover both limits.
-M5.17 through M5.19 and full acceptance remain open.
+M5.18 through M5.19 and full acceptance remain open.
 
 M5.16 (#65): atomic batches resolve ordered names in scalar and array shape IDs,
 return their name-to-ID map and support a literal leading dollar in text.
+
+M5.17 (#65 point 2): create-and-style and connector.add compose existing edits
+with one undo step and equal saved packages. Automatic parallel links retain
+separate ports, including named ports and other neighbors; layout.fan supports
+multiple links per spoke with the witnessed straight style 2. Office, SAN and
+fabric MCP recipes use ordered references. Final acceptance remains pending.

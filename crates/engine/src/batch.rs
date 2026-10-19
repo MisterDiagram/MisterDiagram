@@ -106,6 +106,9 @@ impl Session {
                 Err(error) => return Err(operation(format!("batch command index {index} (command {}): {error}", index + 1))),
             }
         }
+        self.publish_batch(candidate, json!({"results":results,"references":references}))
+    }
+    pub(crate) fn publish_batch(&mut self, mut candidate: Self, result: Value) -> Result<Value> {
         let mut before = self.snapshot();
         // Immutable open stencils are already shared by Arc. A document-only
         // batch must not charge their sources again as undo state (#58).
@@ -122,7 +125,6 @@ impl Session {
         if candidate.undo.is_empty() {
             return Err(operation("batch undo snapshot exceeds retained budget"));
         }
-        let result = json!({"results":results,"references":references});
         crate::result_budget(&result)?;
         *self = candidate;
         Ok(result)
