@@ -1,6 +1,6 @@
 # MisterDiagram roadmap
 
-Status: pre-alpha, M0 through M3 met. M3 closed on 2026-10-14 under Charles's small-image ruling and two clean independent frozen passes. P4a met on 2026-10-15 under Charles's straight-route ruling and two clean frozen verification passes. M4 plan gates are met on 2026-10-15 under the recorded closure-2 rulings and two clean frozen verification passes. Final record push checks are retained privately. Target: Visio Standard 2021.
+Status: pre-alpha, M0 through M4 met (M4: 2026-10-15). Phase 5 is in progress; P5a is accepted. PowerPoint export and the M5 gate remain open. Target: Visio Standard 2021.
 
 Phase 0 establishes the workspace, conventions, oracle scripts and private corpus. Phases 1
 through 5 add reading and ShapeSheet evaluation, rendering, writing, authoring, and exports.
@@ -8,6 +8,8 @@ M0 closed at 1473b0d. M1 code closed at e7dfbd4 after all acceptance commands an
 clean independent frozen verification passes.
 
 ## Progress
+
+- 2026-10-20: M5.28 review hygiene (#73, #74, #77): README function count is tied to the 117-entry registry, current CLI/MCP/status docs replace Phase 1 notes, Python comparisons become explicitly optional locally and mandatory in CI, and Ubuntu checks the dependency-required Rust 1.92 minimum. EMF bitmap-offset reads use checked slices with a hostile 32-bit regression. No saved-package or oracle policy changes.
 
 - 2026-10-20: M5.27 review fix for #72: command orchestration panics return internal errors using existing edit restoration or candidate discard. MCP catches escaped dispatch panics and continues after over-cap or invalid-UTF-8 frames. Four engine state tests and five real-stdio recovery tests pass; each stdio case preserves all 14 saved parts under existing masks. The release contains no injection hooks; full CI passes all eight gates (673 test passes, 3 ignored). Closure receipts are tracked privately.
 

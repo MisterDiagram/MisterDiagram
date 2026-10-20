@@ -3,6 +3,15 @@
 Thank you for looking at MisterDiagram. Pull requests are welcome, and the first ones were
 merged within a day of review. A few rules keep the project honest and keep review fast.
 
+## Test prerequisites
+
+Use Rust 1.92 or newer and Python 3.11 or newer for the full test suite.
+Without a Python 3 executable (`python3` or `python` on PATH), the Python package
+comparisons in `crates/engine/tests/create_style.rs` and `crates/mcp/tests/tools.rs`
+print a reason and skip the Python-dependent checks. Other Rust tests continue. `MISTERDIAGRAM_REQUIRE_PYTHON=1` turns a missing interpreter into a test
+failure; `cargo xtask ci` and CI set it automatically. Private-corpus tests have
+separate prerequisites described in `docs/development.md`.
+
 ## Clean room, no exceptions
 
 - Test inputs are contributor-authored: synthetic XML strings, in-memory packages built with

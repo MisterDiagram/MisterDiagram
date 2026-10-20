@@ -14,6 +14,12 @@ Every implemented element, cell and function cites its reference page in its doc
 
 ## 3. Third-party projects consulted
 
+Brief 30 (2026-10-20): the outside review recorded in
+[MisterDiagram issue 77](https://github.com/MisterDiagram/MisterDiagram/issues/77)
+was consulted to locate the 32-bit EMF bitmap-offset overflow and define its
+synthetic regression. The fix uses this module's existing checked slice helper.
+No third-party implementation or asset was copied.
+
 Brief 26 (2026-10-17): Charles's local scoping records
 `craft-apps/scope/visio/stencil-strategy.md` (Root causes found) and
 `craft-apps/scope/visio/stencil-survey/INVENTORY.md` were consulted for the

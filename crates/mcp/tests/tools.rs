@@ -1,4 +1,6 @@
 //! Exercise every tool through JSON-RPC, including actual parameter effects.
+#[path = "../../../tools/test-support/python.rs"]
+mod python;
 use misterdiagram_mcp::{headless::Headless, server::Server};
 use serde_json::{Value, json};
 fn rpc(s: &mut Server, method: &str, params: Value) -> Value {
@@ -104,6 +106,7 @@ fn lifecycle_and_all_sixteen_tools_honor_parameters() {
 
 #[test]
 fn saved_batch_matches_individual_tool_calls_with_only_permitted_masks() {
+    let Some(mut python) = python::command() else { return };
     let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/mcp-equivalence").join(std::process::id().to_string());
     std::fs::create_dir_all(&dir).unwrap();
     let commands = json!([
@@ -123,7 +126,7 @@ fn saved_batch_matches_individual_tool_calls_with_only_permitted_masks() {
         }
         call(&mut server, "save", json!({"path":dir.join(if batch {"batch.vsdx"} else {"strict.vsdx"})}));
     }
-    let result = std::process::Command::new(if cfg!(windows) { "python" } else { "python3" })
+    let result = python
         .arg(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../tools/bench/compare.py"))
         .arg(dir.join("strict.vsdx"))
         .arg(dir.join("batch.vsdx"))

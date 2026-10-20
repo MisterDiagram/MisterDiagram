@@ -22,7 +22,7 @@ commands:
   assets          check that every icon/image/font/asset is attributed in ATTRIBUTION.md
   layers          enforce the crate dependency layering (docs/architecture.md)
   wasm            cargo check --target wasm32-unknown-unknown for the wasm-safe crates
-  ci              fmt --check, clippy -D warnings, test, assets, layers, sources, wasm (stops at first failure)
+  ci              fmt --check, clippy -D warnings, test, render, assets, layers, sources, wasm (stops at first failure)
   corpus          --local [--update-manifest]: hydrate the pinned private corpus
   parity          recompute the Visio feature-parity summary in docs/parity-checklist.md
 ";
@@ -165,7 +165,7 @@ fn cmd_ci() -> Result<(), String> {
             "test",
             Box::new(|| {
                 let mut c = cargo();
-                c.args(["test", "--workspace"]);
+                c.args(["test", "--workspace"]).env("MISTERDIAGRAM_REQUIRE_PYTHON", "1");
                 run(c, "cargo test --workspace")
             }),
         ),

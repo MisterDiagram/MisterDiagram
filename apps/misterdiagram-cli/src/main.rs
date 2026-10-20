@@ -173,7 +173,7 @@ fn main() -> ExitCode {
         Ok(()) => ExitCode::SUCCESS,
         Err(e) => {
             let _ = writeln!(std::io::stderr().lock(), "error: {}", e.replace(['\n', '\r'], " "));
-            if e == "not implemented in Phase 1" || e.starts_with("usage:") { ExitCode::from(2) } else { ExitCode::FAILURE }
+            if e.starts_with("usage:") { ExitCode::from(2) } else { ExitCode::FAILURE }
         }
     }
 }

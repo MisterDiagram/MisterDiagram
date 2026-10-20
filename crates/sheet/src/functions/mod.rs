@@ -259,6 +259,13 @@ mod tests {
         assert!((got - expected).abs() <= tolerance, "{f}: {got} != {expected}");
     }
     #[test]
+    fn readme_function_count_matches_registry() {
+        let readme = include_str!("../../../../README.md");
+        let internal = IMPLEMENTED.iter().filter(|name| name.starts_with('_')).count();
+        let expected = format!("{} functions including {internal} internal functions", IMPLEMENTED.len());
+        assert!(readme.contains(&expected), "README function count must say: {expected}");
+    }
+    #[test]
     fn microsoft_arithmetic_and_trig_examples() {
         assert_eq!(result("LANGUAGE(\"en-us\")"), Value::Number(1033.));
         assert_eq!(result("LANGUAGE(\"es-es\")"), Value::Number(3082.));

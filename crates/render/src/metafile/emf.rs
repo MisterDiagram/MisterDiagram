@@ -88,9 +88,9 @@ fn bitmap(rec: &[u8], off_bmi: u32, cb_bmi: u32, off_bits: u32, cb_bits: u32, al
 
 /// The rows a DIB's source rectangle counts from the bottom in (StretchDIBits on a bottom-up DIB).
 fn bottom_up(rec: &[u8], off_bmi: u32) -> bool {
-    let at = off_bmi as usize;
-    let size = rec.get(at..at + 4).and_then(|b| b.try_into().ok()).map(u32::from_le_bytes);
-    let height = rec.get(at + 8..at + 12).and_then(|b| b.try_into().ok()).map(i32::from_le_bytes);
+    let Some(header) = slice(rec, off_bmi, 12) else { return false };
+    let size = header.get(..4).and_then(|b| b.try_into().ok()).map(u32::from_le_bytes);
+    let height = header.get(8..12).and_then(|b| b.try_into().ok()).map(i32::from_le_bytes);
     size.is_some_and(|s| s >= 40) && height.is_some_and(|h| h > 0)
 }
 
@@ -448,3 +448,29 @@ mod budget_tests {
 #[cfg(test)]
 #[path = "emf_bounds_tests.rs"]
 mod work_tests;
+
+#[cfg(test)]
+mod offset_tests {
+    use super::*;
+
+    #[test]
+    fn stretch_dibits_hostile_bitmap_offset_is_not_bottom_up() {
+        let mut rec = vec![0u8; 80];
+        rec[..4].copy_from_slice(&81u32.to_le_bytes());
+        rec[4..8].copy_from_slice(&80u32.to_le_bytes());
+        rec[48..52].copy_from_slice(&0xffff_fff8u32.to_le_bytes());
+        rec[52..56].copy_from_slice(&40u32.to_le_bytes());
+        let offset = u32::from_le_bytes(rec[48..52].try_into().unwrap());
+        assert!(!bottom_up(&rec, offset));
+        let mut player = Player::new(Kind::Emf, Affine::IDENTITY, 1.0, Rect::new(0.0, 0.0, 10.0, 10.0));
+        assert!(record(&mut player, 81, &rec).is_some());
+        // Valid bottom-up, top-down and short headers retain their old meaning.
+        let mut header = [0u8; 12];
+        header[..4].copy_from_slice(&40u32.to_le_bytes());
+        header[8..12].copy_from_slice(&1i32.to_le_bytes());
+        assert!(bottom_up(&header, 0));
+        header[8..12].copy_from_slice(&(-1i32).to_le_bytes());
+        assert!(!bottom_up(&header, 0));
+        assert!(!bottom_up(&header[..11], 0));
+    }
+}

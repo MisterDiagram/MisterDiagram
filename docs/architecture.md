@@ -1,7 +1,5 @@
 # Architecture
 
-Brief 26 candidate note: the retained-media and batch stencil changes documented here remain uncommitted pending resolution of the recorded full-corpus text-floor failure and a complete final CI pass.
-
 Page coordinates are inches, y-up, origin bottom-left. Dependencies go to strictly lower layers. Apps are exempt. UI crates are forbidden in L0 to L6.
 
 | Layer | Crates | Responsibility |

@@ -13,7 +13,7 @@ cargo xtask parity    # Core=Y checklist rows: D, P or M
 cargo run --release -p misterdiagram-cli -- corpus check
 ```
 
-Use Rust stable, edition 2024, with rustfmt, clippy and the `wasm32-unknown-unknown` target
+Use Rust 1.92 or newer, edition 2024, with rustfmt, clippy and the `wasm32-unknown-unknown` target
 installed. Corpus-dependent tests print a one-line skip message when `corpus/` is absent
 (`cargo test --workspace -- --nocapture` shows it). When the local corpus exists, the cell
 floors, render ceilings and structural tests are mandatory and `cargo xtask ci` runs them.
@@ -26,6 +26,10 @@ differing by more than 16/255 (8/255 and 5% for the text group), a one-pixel exp
 difference tolerated and compared over the common area. Floors and ceilings only rise or
 tighten; the rules for changing a denominator are in AGENTS.md section 7.
 
+Python 3.11 or newer is required for the full test suite. The Rust package-comparison
+tests print a skip reason when no Python 3 executable is available; setting
+`MISTERDIAGRAM_REQUIRE_PYTHON=1` makes absence a failure. `cargo xtask ci` and
+GitHub Actions set it, so these comparisons cannot silently skip in CI.
 SVG and PDF validation needs a local `.venv` with `pypdf` installed.
 
 ## Fonts
@@ -42,6 +46,11 @@ No fonts are downloaded.
 The corpus is private by design: files Visio writes embed Microsoft's connector master and
 artwork, and Microsoft's shipped stencils and templates are redistributable by nobody. None
 of it ships with this repository, and `corpus/` is gitignored.
+
+`MISTERDIAGRAM_CORPUS=/absolute/path/to/corpus` overrides the default repository
+`corpus/` root for the route tests and `route_sweep` example. Other corpus tests
+and the CLI continue to use the repository's `corpus/` directory; this variable
+does not disable gates or fetch inputs.
 
 - `corpus/generated/`: drawings made by `tools/oracle/make-corpus.ps1` in a licensed Visio,
   each with Visio's PNG, SVG, PDF, COM dump and Connects table. Pinned by commit and SHA256

@@ -353,9 +353,11 @@ A fresh session is clean; save marks the current revision clean. Undo and redo
 track the saved revision, and inspection, previews and external stencil loading
 do not mark the drawing dirty. The guard state lives only in the session and is
 never written into the document.
-If a transaction fails after a save has written a file, the restored in-memory
-document is conservatively marked unsaved. File writes cannot be rolled back, so
-this prevents a later new/open from discarding content that the save overwrote.
+If a transaction returns an operation error after a save has written a file, the
+restored in-memory document is conservatively marked unsaved. Panic recovery
+restores revision/save bookkeeping exactly along with the rest of the session.
+Neither path can roll back external file writes. The operation-error protection
+prevents a later new/open from discarding content that the save overwrote.
 Save the restored document, or explicitly discard it, to clear that protection.
 
 

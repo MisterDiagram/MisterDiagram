@@ -124,7 +124,7 @@ until Phase 2; the active geom API provides Vec2, Affine and Inches.
 
 ## 5. Quality gates
 
-`cargo xtask ci` runs formatting, Clippy with `-D warnings`, tests, assets, layers, source-inventory freshness and wasm.
+`cargo xtask ci` runs formatting, Clippy with `-D warnings`, tests, render, assets, layers, source-inventory freshness and wasm.
 It must pass before every commit touching Rust. Commit with `M<phase>.<n>: what`, push to
 `origin master`, never force-push or rewrite history.
 
@@ -135,9 +135,25 @@ It must pass before every commit touching Rust. Commit with `M<phase>.<n>: what`
 - `cargo xtask ci`
 - `cargo xtask parity`
 
-Phase 1 implements `info`, `sheet` and `corpus check` in the CLI. Other subcommands return
-exit 2. MCP is a library scaffold with list_commands and run_command; authoring commands
-arrive in Phase 4.
+The `misterdiagram` CLI implements every subcommand below:
+
+- `info FILE`: package parts and content types.
+- `sheet FILE [--shape N | --page N | --master N | --document]`: evaluated cells.
+- `render FILE [--page N] [--scale S] OUT.{png,svg,pdf}` and
+  `render --masters STENCIL OUT.png`: page export or master contact sheet.
+- `convert IN OUT`: VSDX/VSSX/VSTX or PNG/SVG/PDF by output extension.
+- `run [--open FILE] [--cmd ID=JSON | --batch FILE] ... [--save FILE]`:
+  commands in one session, with strict atomic batches and an optional final save.
+- `commands` and `describe ID`: registered commands and JSON parameter schemas.
+- `corpus check`: full cached/COM, round-trip and render oracle checks.
+- `mcp`: the sixteen-tool JSON-RPC stdio server, with engine commands, batches,
+  inspection, stencils, glue, saves and exports (see `docs/mcp.md`).
+
+`--version` prints the package version. `--memory-limit MiB` or
+`MISTERDIAGRAM_MEMORY_LIMIT` configures session retention; the flag wins.
+Exit 0 means success (including MCP EOF); exit 2 means a `usage:` error;
+exit 1 means an operational, validation, input or stream-I/O failure. MCP
+request errors are replies and keep the session running, rather than CLI exits.
 Fonts are read from CRAFT_FONTS_DIR set in `.cargo/config.toml`. Never write to sibling repos.
 
 ## 7. Operating rules for the agents

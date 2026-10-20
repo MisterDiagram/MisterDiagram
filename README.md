@@ -19,18 +19,21 @@ vectorcraft and their siblings) and is offered to that project.
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-10-15)
+## What works today (2026-10-20)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
-  204-drawing test corpus, with zero errors and zero panics under mutation fuzzing.
-- **Evaluate** the ShapeSheet: 104 functions, inheritance from masters, style sheets and
-  document defaults, dirty-set recalculation. Measured against Visio itself: 97.8% of 4.8
-  million formula cells match the value Visio cached in the file, and 98.4% of 76.2 million
-  cells match Visio's live COM dumps, theme and text-metric cells included.
+  generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
+- **Evaluate** the ShapeSheet: 117 functions including 3 internal functions, from
+  `crates/sheet/src/functions/mod.rs`'s `IMPLEMENTED` registry. Inheritance covers
+  masters, style sheets and document defaults, with dirty-set recalculation. The full
+  oracle check passes its fixed floors, including 62,075/67,866 cached text metrics
+  and 54,449/58,180 COM text metrics.
 - **Render** PNG, SVG and vector PDF. All aggregate feature groups of the test corpus pass their fixed
   pixel ceilings against Visio's own 96 dpi export. Individual connector comparisons
   remain above their ceilings and are tracked as a renderer gap. All 1,108 masters in the
-  review stencil set render. PDF text extracts with ligatures and combining marks intact.
+  review stencil set render. The vendor inventory renders 6,678/6,742 masters with
+  zero blanks or guard kills; the remaining 64 are named gaps. PDF text extracts
+  with ligatures and combining marks intact.
 - **Write** .vsdx, .vssx and .vstx, and build documents from scratch. Visio 2021 opened all
   230 files of the acceptance set, five of them built from scratch, with no repair beyond a
   few disclosed metadata rewrites, and its COM dumps of the reopened files show zero
@@ -41,9 +44,19 @@ export of the same file, measured by the test harness; Visio's exports stay out 
   29 witness drawings (obstacles, route styles, page preferences and line jumps) within one
   millionth of an inch; the one gap is a 1/64 in packing shift where three connectors cross.
   The 24-switch, 40-connector topology keeps every route when Visio re-saves it,
-  and its equal-size export matches ours inside the pixel ceilings. The current SAN and
-  office examples still have serialization changes on Visio save, tracked in the
-  gaps below. CI runs the full gate set on Linux, Windows and macOS for every push.
+  and its equal-size export matches ours inside the pixel ceilings. Current office,
+  SAN and fabric examples retain 18/80/20 Connects after Visio re-save with zero
+  repair or route differences. Office and SAN pass layout checks; fabric retains
+  its documented box and heading crossings.
+- **Automate** through sixteen MCP tools or CLI scripts: atomic reference batches,
+  styled creation, connector creation, built-in network masters, tree/row/fan
+  layout and layout checks. Filtered inspection bounds reply sizes. Unsaved-change
+  protection, panic recovery and bounded malformed-line recovery keep sessions usable.
+  CLI scripts can rebuild drawings from data with `run --batch FILE`.
+
+M4 met its plan gates on 2026-10-15. Phase 5 is in progress and P5a is accepted;
+PowerPoint export remains next. CI runs all eight gates on Linux, Windows and
+macOS, plus an Ubuntu check at the declared Rust minimum.
 
 Known gaps are listed in [docs/gaps.md](docs/gaps.md). Text wrapping is the weakest area,
 EMF+ images are not drawn, and compound line patterns are approximate.

@@ -1,11 +1,14 @@
 //! Convenience commands must serialize exactly like their fine-grained edits.
 use misterdiagram_engine::Session;
 use serde_json::{Value, json};
-use std::{path::Path, process::Command};
+use std::path::Path;
+#[path = "../../../tools/test-support/python.rs"]
+mod python;
 fn run(s: &mut Session, command: &str, p: Value) -> Value {
     s.execute(command, &p).unwrap()
 }
 fn equal(a: &mut Session, b: &mut Session, name: &str) {
+    let Some(mut python) = python::command() else { return };
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let out = root.join("target/create-style-tests").join(std::process::id().to_string());
     std::fs::create_dir_all(&out).unwrap();
@@ -13,12 +16,7 @@ fn equal(a: &mut Session, b: &mut Session, name: &str) {
     let right = out.join(format!("{name}-compound.vsdx"));
     run(a, "file.save", json!({"path":left}));
     run(b, "file.save", json!({"path":right}));
-    let result = Command::new(if cfg!(windows) { "python" } else { "python3" })
-        .arg(root.join("tools/bench/compare.py"))
-        .arg(left)
-        .arg(right)
-        .output()
-        .unwrap();
+    let result = python.arg(root.join("tools/bench/compare.py")).arg(left).arg(right).output().unwrap();
     assert!(result.status.success(), "package equality: {}{}", String::from_utf8_lossy(&result.stdout), String::from_utf8_lossy(&result.stderr));
 }
 #[test]

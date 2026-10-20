@@ -1,7 +1,7 @@
 name: ci
 
 # Quality gates for every push to master and every pull request: rustfmt, clippy (-D warnings),
-# tests, asset attribution, crate layering, source citations and the wasm32 check, which is
+# tests, render, asset attribution, crate layering, source citations and the wasm32 check, which is
 # `cargo xtask ci`. Corpus-dependent gates skip on the runners because the private corpus is
 # absent; they run locally and in the acceptance records (docs/development.md).
 on:
@@ -19,8 +19,21 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
+  MISTERDIAGRAM_REQUIRE_PYTHON: '1'
 
 jobs:
+  msrv:
+    name: MSRV (1.92)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check manifest/toolchain agreement
+        run: python3 -c "import tomllib; assert tomllib.load(open('Cargo.toml', 'rb'))['workspace']['package']['rust-version'] == '1.92'"
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f # v1
+        with:
+          toolchain: '1.92.0'
+      - name: Check every target at the declared minimum
+        run: cargo check --workspace --all-targets
   gates:
     name: gates (${{ matrix.os }})
     strategy:

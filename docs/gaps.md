@@ -6,9 +6,20 @@ M5.27 addresses #72: composition/batch/delegation panics are caught without a
 second rollback mechanism. MCP retains its session after escaped dispatch
 panics, over-cap frames and invalid UTF-8. Full session state and saved-package
 identity have regressions. Panic injection is absent from default builds.
-M5.28 tracks documentation/registry consistency (#73), Python/MSRV CI hygiene
-(#74), and checked 32-bit EMF bitmap offsets (#77). Existing router, vendor and
-render gaps and all their numerical gates remain unchanged.
+M5.28 closes the review items with targeted gates:
+
+- #73: README's 117 registry entries (including 3 internal functions) are checked
+  by a Rust test. Current status, CLI/MCP behavior and all eight CI gates are documented.
+- #74: missing Python prints a comparison skip locally and fails with
+  `MISTERDIAGRAM_REQUIRE_PYTHON=1`, which full CI sets. The unused proptest workspace
+  declaration is removed. Locked krilla/hayro dependencies require Rust 1.92;
+  the Ubuntu MSRV job checks all targets at that minimum.
+- #77: EMF bottom-up detection uses checked record slices. A StretchDIBits record
+  with offset 0xFFFFFFF8 returns false without a panic. The remaining metafile
+  arithmetic is covered by existing record, count and decoded-pixel bounds;
+  the audit found no second instance of this raw-offset pattern.
+
+Existing router, vendor and render gaps and all their numerical gates remain unchanged.
 
 ## Brief 26c: vendor stencil completion (2026-10-18)
 
