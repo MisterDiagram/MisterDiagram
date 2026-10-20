@@ -58,3 +58,13 @@ and charges it once, including its raw-byte contribution. Replacing or mutating 
 picture detaches that allocation; the old version keeps its original bytes.
 Nonmedia source, history and logical-node accounting retain their prior rules.
 The default 2 GiB session ceiling and all derived limits are unchanged.
+
+Within one evaluator, immutable ShapeSheet resolution is reused separately from
+live evaluated values. Effective inherited maps share read-only allocations;
+bare-cell default availability is memoized by scope and property category, with
+cycle errors checked before every hit. Baseline-cell lookups cache source cells
+and misses only after inheritance construction finishes. Formula overrides,
+SETF, context changes and dependency invalidation retain their existing paths.
+Entry and name-storage caps disable further caching when reached, then fall back
+to the original resolver. They do not reject additional input or alter an existing
+construction, recursion or file bound.

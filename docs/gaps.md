@@ -146,6 +146,65 @@ Profile runs are separate and are not used for speed targets.
 | san-large | 250, 500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500 | 25.567662, 50.004520, 59.885243, 119.373225, 192.049607, 261.290014, 318.003051, 361.286276, 352.243243, 342.041014 | 43.248886 |
 | shapes-377 | 250, 500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500 | 20.463946, 47.434416, 74.948677, 103.684533, 129.571988, 157.006841, 190.050019, 229.053598, 262.166886, 295.596738 | 30.523505 |
 
+### M5.23 final Brief 28 measurements (2026-10-20)
+
+The profile-selected final change reuses immutable ShapeSheet resolution within
+one evaluator. Inherited effective maps share allocations; bounded caches retain
+bare-cell default availability and baseline source lookups. Construction errors,
+cycle ordering, live formula overrides and all admission bounds remain unchanged.
+Storage saturation falls back to the original resolver.
+
+**After, seconds.**
+
+| Workload | Commands | Shapes | Total | Clone | COW | Glue | Reroute | Write | Import | Other | Peak MiB |
+|---|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| rectangles-25 | 26 | 25 | 0.375954 | 0.000064 | 0.000715 | 0.175256 | 0.000047 | 0.162329 | 0.015120 | 0.022422 | 33.921875 |
+| rectangles-50 | 51 | 50 | 1.066086 | 0.000066 | 0.001369 | 0.556253 | 0.000007 | 0.434079 | 0.046739 | 0.027573 | 51.859375 |
+| rectangles-100 | 101 | 100 | 3.586051 | 0.000245 | 0.002787 | 1.982650 | 0.000023 | 1.380933 | 0.165235 | 0.054177 | 89.343750 |
+| data-40 | 121 | 40 | 2.236225 | 0.000229 | 0.003294 | 0.411723 | 0.000013 | 0.984463 | 0.110656 | 0.725848 | 59.406250 |
+| ports-1900 | 1900 | 163 | 239.031349 | 0.033780 | 0.068158 | 61.698092 | 24.322569 | 79.458668 | 11.606851 | 61.843232 | 302.046875 |
+| san-large | 2500 | 380 (312 roots) | 787.703887 | 0.046675 | 0.162746 | 170.522382 | 107.299024 | 378.728294 | 19.872002 | 111.072764 | 320.312500 |
+
+| Workload | Slice ends | Slice seconds | Normalized slope (s per 250-command position) |
+|---|---|---|---:|
+| ports-1900 | 250, 500, 750, 1000, 1250, 1500, 1750, 1900 | 4.474240, 9.625335, 14.723583, 20.008277, 28.075883, 47.918714, 82.001765, 32.152861 | 9.904242 |
+| san-large | 250, 500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500 | 12.345080, 13.861232, 21.345849, 59.607391, 91.657466, 122.212328, 151.397381, 124.467197, 95.546951, 95.202260 | 12.963917 |
+
+Ports normalized last/first slice ratio: 11.977028.
+
+| Target | Measured | Met |
+|---|---:|---|
+| ports-1900 speedup >=5 | 2.473155 | NO |
+| san-large <180 seconds | 787.703887 | NO |
+| shapes-377 <60 seconds | Quiet measurement pending | NO |
+| shapes-377 last/first <=2 | Quiet measurement pending | NO |
+| large-edit <10 seconds | Quiet measurement pending | NO |
+| ports-1900 slice slope <=11.972493 | 9.904242 | YES |
+| each completed quiet workload peak <=2048 MiB | 320.312500 | YES |
+
+The final shapes-377 and large-edit quiet measurements remain pending. Their separate contended runs pass package equality but supply no accepted timing.
+
+Acceptance remains partial for every target marked NO. The heavy real-session
+witness still stops at its unchanged 64 KiB inspection limit after all 39 edit
+events, with zero memory refusals. Its failing-last batch and 32-undo acceptance
+are not reached. A separate filtered diagnostic is not acceptance and found only
+16 undo entries. No witness or ceiling was changed to claim success.
+
+All 18 benchmark/chunk saves, all 1,413 corpus resaves, all 26 CLI/MCP recipe
+packages, five focused witnesses and ten optional panic-recovery packages equal
+27f6a35 under the original masks. Four existing oversized MCP padding parts are
+compared exhaustively in bounded partitions through the unchanged comparator;
+no byte is omitted. All five source-only defect seeds fail intended equality
+assertions and pass after exact restoration.
+
+Final CI passes all eight gates: 690 tests passed, zero failed, three ignored.
+Route sweep remains 28/29 with the named jump-three-crossings gap, closure 40
+connectors/zero differences, SAN 80 Connects, strict 15,105,590/15,105,590 cells,
+cached text 62,075 and COM text 54,449, generated outliers 9/max 10. Inventory remains
+6,678/6,742 original masters, zero blanks or guard kills. All 27 frozen hostile
+rows retain their original exits and bounds. The unmet performance/heavy rows
+prevent two clean acceptance passes; they remain explicit open items for #39.
+
 ### M5.21 conservative routing scope
 
 Strict publication records a weak identity for its validated predecessor. Proven

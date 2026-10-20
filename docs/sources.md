@@ -15,7 +15,7 @@ that the page was consulted during this session.
 | <http://schemas.openxmlformats.org/package/2006/relationships> | `tools/oracle/accept_report.py`, `tools/oracle/route_geometry.py`, `tools/oracle/test_accept_report.py` |
 | <https://git-scm.com/docs/git#Documentation/git.txt---exec-pathltpathgt> | `apps/misterdiagram-cli/tests/examples.rs` |
 | <https://github.com/storytold/craft-fonts> | `crates/fonts/src/lib.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references> | `crates/engine/src/arrange.rs`, `crates/engine/src/reference_cleanup.rs`, `crates/vsdx/src/evaluate.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references> | `crates/engine/src/arrange.rs`, `crates/engine/src/reference_cleanup.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/lookup.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-date-time-and-duration-values> | `crates/sheet/src/functions/text.rs`, `crates/sheet/src/units.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-error-values> | `crates/sheet/src/value.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-format-pictures> | `crates/sheet/src/functions/text.rs` |

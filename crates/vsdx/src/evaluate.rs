@@ -6,6 +6,7 @@ mod defaults;
 mod geometry;
 mod inherit;
 mod interval;
+mod lookup;
 mod path;
 mod relationships;
 mod string_cells;
@@ -59,6 +60,8 @@ pub struct Evaluator<'a> {
     text_host: Option<&'a dyn misterdiagram_model::text::TextHost>,
     theme_host: Option<&'a dyn misterdiagram_sheet::host::ThemeHost>,
     inheritance: inherit::Inheritance<'a>,
+    baseline_lookup: std::cell::RefCell<lookup::Baselines<'a>>,
+    lookup_ready: bool,
     pub document: &'a Document,
     sheets: BTreeMap<Scope, &'a Sheet>,
     shapes: BTreeMap<Scope, &'a Shape>,
@@ -117,6 +120,8 @@ impl<'a> Evaluator<'a> {
             internal_cache_units: false,
             document,
             inheritance: Default::default(),
+            baseline_lookup: Default::default(),
+            lookup_ready: false,
             sheets: BTreeMap::new(),
             shapes: BTreeMap::new(),
             parents: BTreeMap::new(),
@@ -160,6 +165,7 @@ impl<'a> Evaluator<'a> {
             result.add_shapes(&master.shapes, Scope::Master(master.id))?;
         }
         result.install_inheritance()?;
+        result.lookup_ready = true;
         Ok(result)
     }
     /// Writer caches use physical internal inches, independently of displayed drawing units.
@@ -429,6 +435,17 @@ impl<'a> Evaluator<'a> {
         indexed_key(&self.cells, scope, name).and_then(|key| self.cells.get(&key).copied()).or_else(|| self.baseline_cell(scope, name))
     }
     fn baseline_cell(&self, scope: Scope, name: &str) -> Option<&'a Cell> {
+        if !self.lookup_ready {
+            return self.resolve_baseline_cell(scope, name);
+        }
+        if let Some(cell) = self.baseline_lookup.borrow().get(scope, name) {
+            return cell;
+        }
+        let cell = self.resolve_baseline_cell(scope, name);
+        self.baseline_lookup.borrow_mut().insert(scope, name, cell);
+        cell
+    }
+    fn resolve_baseline_cell(&self, scope: Scope, name: &str) -> Option<&'a Cell> {
         if !self.sheets.contains_key(&scope) || !self.defaults_allowed(scope, name) {
             return None;
         }

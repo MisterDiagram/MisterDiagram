@@ -1,6 +1,7 @@
 //! Effective ShapeSheets retain borrowed source cells and explicit formula provenance.
 use super::{Cell, Error, Evaluator, Key, MAX_CELLS, MAX_SCOPES, NamedCell, Row, Scope, Section};
 use std::{
+    cell::RefCell,
     collections::{BTreeMap, BTreeSet},
     rc::Rc,
 };
@@ -8,6 +9,7 @@ use std::{
 #[derive(Default)]
 pub(super) struct Inheritance<'a> {
     local_cells: BTreeMap<Key, &'a Cell>,
+    defaults: RefCell<BTreeMap<(Scope, Option<Category>), bool>>,
     origins: BTreeMap<Key, Scope>,
     errors: BTreeMap<Scope, Error>,
     pub(super) masters: BTreeMap<Scope, Scope>,
@@ -62,7 +64,7 @@ impl ConstructionBudget {
         Ok(())
     }
 }
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum Category {
     Line,
     Fill,
@@ -153,6 +155,7 @@ impl<'a> Evaluator<'a> {
         self.indexed_name_bytes = 0;
         for scope in scopes {
             let Some(effective) = resolved.remove(&scope) else { continue };
+            let effective = Rc::unwrap_or_clone(effective);
             let mut names = Vec::new();
             for entry in effective.cells.into_values() {
                 let n = entry.named;
@@ -252,11 +255,11 @@ impl<'a> Evaluator<'a> {
         &mut self,
         scope: Scope,
         locals: &BTreeMap<Scope, Vec<NamedCell<'a>>>,
-        memo: &mut BTreeMap<Scope, Effective<'a>>,
+        memo: &mut BTreeMap<Scope, Rc<Effective<'a>>>,
         visiting: &mut BTreeSet<Scope>,
         count: &mut ConstructionBudget,
         depth: usize,
-    ) -> Result<Effective<'a>, Error> {
+    ) -> Result<Rc<Effective<'a>>, Error> {
         if let Some(sheet) = memo.get(&scope) {
             return Ok(sheet.clone());
         }
@@ -265,14 +268,14 @@ impl<'a> Evaluator<'a> {
         }
         if !visiting.insert(scope) {
             self.inheritance.errors.insert(scope, Error::Cycle);
-            return Ok(Effective::default());
+            return Ok(Rc::new(Effective::default()));
         }
         let mut effective = if let Some(master) = self.inheritance.masters.get(&scope).copied() {
             let e = self.effective(master, locals, memo, visiting, count, depth + 1)?;
             if let Some(error) = self.inheritance.errors.get(&master).cloned() {
                 self.inheritance.errors.insert(scope, error);
             }
-            e
+            (*e).clone()
         } else {
             Effective::default()
         };
@@ -286,12 +289,12 @@ impl<'a> Evaluator<'a> {
                 if !style_enabled(&style_sheet, cat) {
                     continue;
                 }
-                for (name, entry) in style_sheet.cells {
-                    if category(&name) == Some(cat)
-                        && self.defaults_allowed(scope, &name)
-                        && effective.cells.get(&name).is_none_or(|old| matches!(old.origin, Scope::Style(_) | Scope::Document))
+                for (name, entry) in &style_sheet.cells {
+                    if category(name) == Some(cat)
+                        && self.defaults_allowed(scope, name)
+                        && effective.cells.get(name).is_none_or(|old| matches!(old.origin, Scope::Style(_) | Scope::Document))
                     {
-                        effective.cells.insert(name, entry);
+                        effective.cells.insert(name.clone(), entry.clone());
                     }
                 }
             }
@@ -402,6 +405,7 @@ impl<'a> Evaluator<'a> {
         // against the same aggregate logical-name bound used by the final index.
         count.charge(&effective)?;
         visiting.remove(&scope);
+        let effective = Rc::new(effective);
         memo.insert(scope, effective.clone());
         Ok(effective)
     }
@@ -411,6 +415,26 @@ impl<'a> Evaluator<'a> {
         if self.inheritance.errors.get(&scope) == Some(&Error::Cycle) {
             return false;
         }
+        let category = category(name);
+        // Bare names cannot match a section prefix (which always includes a dot).
+        // Their complete tombstone walk therefore depends only on scope/category.
+        // Cycle errors are checked above because construction can discover them
+        // after an earlier successful query. Saturation only disables memoization.
+        if !name.contains('.') {
+            let key = (scope, category);
+            if let Some(allowed) = self.inheritance.defaults.borrow().get(&key).copied() {
+                return allowed;
+            }
+            let allowed = self.defaults_walk(scope, name, category);
+            let mut memo = self.inheritance.defaults.borrow_mut();
+            if memo.len() < 16384 {
+                memo.insert(key, allowed);
+            }
+            return allowed;
+        }
+        self.defaults_walk(scope, name, category)
+    }
+    fn defaults_walk(&self, scope: Scope, name: &str, category: Option<Category>) -> bool {
         let mut pending = vec![scope];
         let mut seen = BTreeSet::new();
         let lower = name.to_ascii_lowercase();
@@ -440,7 +464,7 @@ impl<'a> Evaluator<'a> {
                     }
                 }
             }
-            if let Some(cat) = category(name)
+            if let Some(cat) = category
                 && let Some(style) = self.style_link(current, cat)
             {
                 pending.push(Scope::Style(style));
@@ -612,6 +636,81 @@ fn row_matches(section: &str, row: &Row, position: usize, tail: &str) -> bool {
 mod tests {
     use super::*;
     use misterdiagram_model::{Document, Master, Page, Shape, Sheet, Style};
+    #[test]
+    fn default_availability_preserves_branched_graph_bound_and_late_cycles() {
+        let doc = Document {
+            masters: (1..=70)
+                .map(|id| Master {
+                    id,
+                    shapes: vec![Shape { id: 1, master: (id < 70).then_some(id + 1), ..Default::default() }].into(),
+                    ..Default::default()
+                })
+                .collect(),
+            styles: (1..=70).map(|id| Style { id, line_style: (id < 70).then_some(id + 1), ..Default::default() }).collect(),
+            pages: vec![Page {
+                id: 0,
+                shapes: vec![Shape { id: 1, master: Some(1), line_style: Some(1), ..Default::default() }].into(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let mut evaluator = Evaluator::new(&doc).unwrap();
+        let scope = Scope::PageShape { page: 0, shape: 1 };
+        for _ in 0..2 {
+            assert!(!evaluator.defaults_allowed(scope, "LineWeight"));
+            assert!(!evaluator.defaults_allowed(scope, "LineColor"));
+            assert!(evaluator.defaults_allowed(scope, "FillForegnd"));
+            assert!(evaluator.defaults_allowed(scope, "Width"));
+        }
+        // Effective-sheet construction may discover a cycle after a previous
+        // availability query. That error must override a previously true answer.
+        evaluator.inheritance.errors.insert(scope, Error::Cycle);
+        assert!(!evaluator.defaults_allowed(scope, "FillForegnd"));
+        assert!(!evaluator.defaults_allowed(scope, "Width"));
+    }
+    #[test]
+    fn default_availability_storage_saturation_keeps_original_semantics() {
+        let doc = Document {
+            pages: vec![Page {
+                id: 0,
+                sheet: Sheet {
+                    sections: vec![Section {
+                        name: "User".into(),
+                        rows: vec![Row { name: Some("Gone".into()), deleted: true, ..Default::default() }],
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                },
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let evaluator = Evaluator::new(&doc).unwrap();
+        for id in 1..=17000 {
+            assert!(evaluator.defaults_allowed(Scope::Page(id), "Width"));
+        }
+        assert!(evaluator.defaults_allowed(Scope::Page(0), "Width"));
+        assert!(!evaluator.defaults_allowed(Scope::Page(0), "User.Gone"));
+        assert!(evaluator.defaults_allowed(Scope::Page(0), "User.Present"));
+        assert!(evaluator.inheritance.defaults.borrow().len() <= 16384);
+    }
+    #[test]
+    fn warmed_default_lookup_keeps_formula_assignments_live() {
+        let doc = Document {
+            pages: vec![Page { id: 0, shapes: vec![Shape { id: 1, ..Default::default() }].into(), ..Default::default() }],
+            ..Default::default()
+        };
+        let scope = Scope::PageShape { page: 0, shape: 1 };
+        let mut evaluator = Evaluator::new(&doc).unwrap();
+        let source = evaluator.cell(scope, "LineWeight").unwrap();
+        evaluator.set_formula(scope, "LineWeight", "3").unwrap();
+        assert_eq!(evaluator.evaluate(scope, "LineWeight"), super::super::Value::Number(3.));
+        assert!(std::ptr::eq(source, evaluator.cell(scope, "LineWeight").unwrap()));
+        evaluator.set_formula(scope, "LineWeight", "7").unwrap();
+        assert_eq!(evaluator.evaluate(scope, "LineWeight"), super::super::Value::Number(7.));
+        assert_eq!(evaluator.evaluate(scope, "LINEWEIGHT"), super::super::Value::Number(7.));
+    }
+
     fn c(name: &str, value: &str, formula: Option<&str>) -> Cell {
         Cell { name: name.into(), value: Some(value.into()), formula: formula.map(str::to_owned), ..Default::default() }
     }
