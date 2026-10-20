@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-20: M5.20 baseline (#39): eight strict release workloads now include the original SAN groups and bitmap hosts, ten 250-command rectangle invocations, and 20 edits to a large drawing. Baseline `27f6a35` measures ports-1900 at 591.16 s, san-large at 2081.83 s, shapes-377 at 1509.98 s, and large-edit at 19.95 s. Every timing run exits 0; saved packages are retained for strict equality before optimization. Stage and slice tables sit beside the original M5.0 measurements in docs/gaps.md.
+
 - 2026-10-20: M5.28 review hygiene (#73, #74, #77): README function count is tied to the 117-entry registry, current CLI/MCP/status docs replace Phase 1 notes, Python comparisons become explicitly optional locally and mandatory in CI, and Ubuntu checks the dependency-required Rust 1.92 minimum. EMF bitmap-offset reads use checked slices with a hostile 32-bit regression. No saved-package or oracle policy changes.
 
 - 2026-10-20: M5.27 review fix for #72: command orchestration panics return internal errors using existing edit restoration or candidate discard. MCP catches escaped dispatch panics and continues after over-cap or invalid-UTF-8 frames. Four engine state tests and five real-stdio recovery tests pass; each stdio case preserves all 14 saved parts under existing masks. The release contains no injection hooks; full CI passes all eight gates (673 test passes, 3 ignored). Closure receipts are tracked privately.

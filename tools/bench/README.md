@@ -3,6 +3,45 @@
 These contributor-original workloads measure issue #39. They are not CI timing
 oracles. They contain no customer names, site names or vendor artwork.
 
+Brief 28 adds `python3 tools/bench/large.py OUTPUT`:
+
+- `san-large`: two invented fabrics, 312 top-level shapes and 68 group children
+  (380 total), 196 connectors, 2,500 commands. Two director group instances each
+  have 96 named ports. Sixty-four host groups contain an original 8 by 8 bitmap.
+  Fabric outlines are plain rectangles. Static and dynamic glue both occur.
+- `shapes-377`: 377 rectangles with fill, line, text and two populated Shape Data
+  fields, no connectors, exactly 2,500 commands. `measure.py` runs ten distinct
+  CLI invocations of 250 commands, reopening and saving the same file. Creation
+  uses the existing composed fill/line parameters; their strict sub-edits remain.
+- `large-edit`: open the resulting `shapes-377.vsdx`, then execute 20 commands
+  moving and restyling shapes and adding, gluing and deleting two connectors.
+  Open, final save and process shutdown are included in elapsed time.
+
+`invented.vssx` is generated entirely from original geometry and procedural
+bitmap pixels by `large.py`; it contains no vendor masters or artwork.
+`PYTHONDONTWRITEBYTECODE=1 python3 tools/bench/test_large.py` verifies population,
+group/bitmap structure, connection ports and command mix.
+`PYTHONDONTWRITEBYTECODE=1 python3 tools/bench/test_measure.py` checks malformed,
+overlong and over-count workload inputs against the harness's admission bounds.
+
+`instrument-current.py CHECKOUT` adds the M5.0 stage clocks to a disposable
+checkout of the current engine. It requires each insertion point exactly once
+and refuses the working source tree. Build its CLI and `authoring-bench`
+example in release mode, then run:
+
+```sh
+python3 tools/bench/measure.py --cli PATH_TO_CLI --harness PATH_TO_AUTHORING_BENCH \
+  --workloads OUTPUT --output RESULTS
+```
+
+The original five workloads must also have been generated with `generate.py`.
+Each receipt records the exact command, exit status and elapsed time; stderr
+retains stage clocks and `/usr/bin/time -l` peak RSS. Every shapes-377 chunk's
+saved package is retained for byte comparison. Profiles are separate runs,
+using `--profile ~/.cargo/bin/samply`; their timing is not used for speed targets.
+Run no competing builds or tests during either measurement. Keep baseline
+packages outside this repository and compare with the unchanged `compare.py`.
+
 `generate.py OUTPUT` writes five command lists: 25, 50 and 100 rectangles,
 40 rectangles with one Shape Data row each, and 1,900 commands producing an
 invented 192-port director, 58 connected ports, 46 endpoint symbols and

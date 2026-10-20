@@ -110,6 +110,42 @@ execution, validation, palette work and measurement/output overhead.
 
 Schematic slices (250 commands each, final slice 150): through 250: 15.369329s, through 500: 33.611981s, through 750: 52.162464s, through 1000: 71.302547s, through 1250: 90.172890s, through 1500: 110.265436s, through 1750: 170.824770s, through 1900: 122.967758s.
 
+### M5.20 baseline for Brief 28 (2026-10-20)
+
+The new baseline is `27f6a35`, measured in release mode with timing-only probes
+and no competing builds or tests. The original M5.0 table above is unchanged.
+Three new original workloads add grouped directors, bitmap host groups, mixed
+glue, repeated CLI reopen/save invocations and editing an existing large drawing.
+Every timing run exited 0. Packages, including all ten rectangle chunk saves,
+are retained privately outside the code repository for the unchanged
+`tools/bench/compare.py` equality gate.
+
+Harness totals include final save. The rectangle chunks and large-edit include
+process startup, open, final save and shutdown. Write includes theme setup;
+Other includes command execution, validation, palette work and timing overhead.
+Per-slice growth uses least-squares slope against 250-command positions, with
+the final 150-command ports slice normalized to 250. Raw slice times are below.
+Profile runs are separate and are not used for speed targets.
+
+**Before, seconds.**
+
+| Workload | Commands | Shapes | Total | Clone | COW | Glue | Reroute | Write | Import | Other | Peak MiB |
+|---|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| rectangles-25 | 26 | 25 | 1.067423 | 0.000041 | 0.001754 | 0.391320 | 0.354478 | 0.256348 | 0.038772 | 0.024710 | 40.640625 |
+| rectangles-50 | 51 | 50 | 3.275094 | 0.000107 | 0.004394 | 1.273717 | 1.134025 | 0.725559 | 0.097411 | 0.039880 | 61.703125 |
+| rectangles-100 | 101 | 100 | 11.010352 | 0.000302 | 0.012076 | 4.477974 | 3.939170 | 2.247818 | 0.264497 | 0.068516 | 97.875000 |
+| data-40 | 121 | 40 | 7.796497 | 0.000278 | 0.011390 | 2.567406 | 2.332153 | 1.550430 | 0.225943 | 1.108896 | 69.703125 |
+| ports-1900 | 1900 | 163 | 591.161486 | 0.034131 | 1.051108 | 195.461188 | 144.312287 | 143.598297 | 13.391234 | 93.313240 | 289.984375 |
+| san-large | 2500 | 380 (312 roots) | 2081.825038 | 0.051456 | 2.491165 | 796.393289 | 277.548870 | 829.130499 | 30.649425 | 145.560335 | 335.953125 |
+| shapes-377 | 2500 | 377 | 1509.977642 | 0.011532 | 2.144032 | 524.920634 | 461.364968 | 258.081846 | 32.718339 | 230.736291 | 371.500000 |
+| large-edit | 20 | 377 final | 19.947635 | 0.000044 | 0.024984 | 6.557552 | 5.754557 | 3.148671 | 0.387779 | 4.074048 | 333.718750 |
+
+| Workload | Slice ends | Slice seconds | Normalized slope (s per 250-command position) |
+|---|---|---|---:|
+| ports-1900 | 250, 500, 750, 1000, 1250, 1500, 1750, 1900 | 13.408013, 28.773202, 46.387173, 63.143763, 78.171742, 95.780084, 155.386693, 110.033543 | 23.944986 |
+| san-large | 250, 500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500 | 25.567662, 50.004520, 59.885243, 119.373225, 192.049607, 261.290014, 318.003051, 361.286276, 352.243243, 342.041014 | 43.248886 |
+| shapes-377 | 250, 500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500 | 20.463946, 47.434416, 74.948677, 103.684533, 129.571988, 157.006841, 190.050019, 229.053598, 262.166886, 295.596738 | 30.523505 |
+
 The strict writer/import boundary refreshes dependent stored values, normalizes
 RGB formulas and palette entries (including removed F), publishes inherited
 instance cells and caches, allocates relationships and validates the package.
