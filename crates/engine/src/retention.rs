@@ -1,7 +1,10 @@
 //! One census for retained document identities, including transaction owners.
 use crate::{Result, Session, operation};
 use misterdiagram_model::Document;
-use std::{collections::HashSet, sync::Arc};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+};
 
 const MIB: usize = 1024 * 1024;
 /// Session retention policy. File/parser/render bounds are independent constants.
@@ -52,6 +55,17 @@ pub(crate) struct Usage {
 fn media(part: &misterdiagram_model::Part) -> bool {
     part.xml.is_none() && part.content_type.as_deref().is_some_and(|kind| kind.starts_with("image/"))
 }
+type Pictures = HashMap<usize, misterdiagram_model::Shared<Vec<u8>>>;
+fn retain_picture(pictures: &mut Pictures, part: &misterdiagram_model::Part) -> bool {
+    if let std::collections::hash_map::Entry::Vacant(entry) = pictures.entry(part.bytes.allocation_id()) {
+        // Pin each identity for the reservation lifetime so a freed address cannot
+        // be mistaken for an unchanged picture allocation.
+        entry.insert(part.bytes.clone());
+        true
+    } else {
+        false
+    }
+}
 impl Usage {
     fn resident(self) -> usize {
         self.raw
@@ -61,11 +75,14 @@ impl Usage {
             .saturating_add(self.nodes.saturating_mul(320))
             .saturating_add(self.documents.saturating_mul(MIB))
     }
-    fn add(&mut self, doc: &Document, stencil: bool, history: bool) {
+    fn add(&mut self, doc: &Document, stencil: bool, history: bool, pictures: &mut Pictures) {
         self.nodes = self.nodes.saturating_add(doc.retained_xml_nodes);
         self.documents = self.documents.saturating_add(1);
         let mut estimate = MIB;
         for part in doc.parts.values() {
+            if media(part) && !retain_picture(pictures, part) {
+                continue;
+            }
             self.raw = self.raw.saturating_add(part.bytes.len());
             if media(part) {
                 self.media = self.media.saturating_add(part.bytes.len());
@@ -129,25 +146,29 @@ impl Session {
         documents
     }
     pub(crate) fn retention(&self) -> Usage {
+        self.retention_census().0
+    }
+    fn retention_census(&self) -> (Usage, Pictures) {
         let stencils: HashSet<_> = self.retained_stencils().iter().map(Arc::as_ptr).collect();
         let history: HashSet<_> = self.undo.iter().chain(&self.redo).map(|s| Arc::as_ptr(&s.document)).collect();
         let mut seen = HashSet::new();
         let mut usage = Usage::default();
+        let mut pictures = Pictures::new();
         for doc in self.retained_documents() {
             let identity = Arc::as_ptr(doc);
             if seen.insert(identity) {
-                usage.add(doc, stencils.contains(&identity), history.contains(&identity));
+                usage.add(doc, stencils.contains(&identity), history.contains(&identity), &mut pictures);
             }
         }
-        usage
+        (usage, pictures)
     }
     /// Opening, editing and reader replacement share the same admission function.
     /// https://learn.microsoft.com/en-us/office/vba/api/visio.documents.openex
     pub(crate) fn reserve(&self, incoming: Option<(&Document, bool)>) -> Result<()> {
-        let held = self.retention();
+        let (held, mut pictures) = self.retention_census();
         let mut total = held;
         if let Some((doc, stencil)) = incoming {
-            total.add(doc, stencil, false);
+            total.add(doc, stencil, false, &mut pictures);
         }
         self.check_retention(held, total)
     }
@@ -155,7 +176,8 @@ impl Session {
         check(self.memory, held, total)
     }
     pub(crate) fn reservation(&self) -> Reservation {
-        Reservation { memory: self.memory, held: self.retention() }
+        let (held, pictures) = self.retention_census();
+        Reservation { memory: self.memory, held, pictures }
     }
 }
 fn check(memory: MemoryLimits, held: Usage, total: Usage) -> Result<()> {
@@ -171,17 +193,22 @@ fn check(memory: MemoryLimits, held: Usage, total: Usage) -> Result<()> {
     Ok(())
 }
 /// A mutation's original owners remain pinned until its last publication.
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub(crate) struct Reservation {
     memory: MemoryLimits,
     held: Usage,
+    pictures: Pictures,
 }
 impl Reservation {
     pub(crate) fn parts<'a>(&self, document: &Document, parts: impl Iterator<Item = &'a misterdiagram_model::Part>) -> Result<usize> {
         let mut total = self.held;
-        total.add(document, false, false);
+        let mut pictures = self.pictures.clone();
+        total.add(document, false, false, &mut pictures);
         let initial_nodes = total.nodes;
         for part in parts {
+            if media(part) && !retain_picture(&mut pictures, part) {
+                continue;
+            }
             total.raw = total.raw.saturating_add(part.bytes.len());
             if media(part) {
                 total.media = total.media.saturating_add(part.bytes.len());
@@ -194,7 +221,7 @@ impl Reservation {
                 continue;
             }
             // Copying a retained DOM also consumes node storage before reimport.
-            let mut pending = part.xml.iter().collect::<Vec<_>>();
+            let mut pending = part.xml.iter().map(|root| &**root).collect::<Vec<_>>();
             while let Some(element) = pending.pop() {
                 total.nodes = total.nodes.saturating_add(1).saturating_add(element.attributes.len());
                 for child in &element.children {
@@ -278,7 +305,7 @@ mod tests {
         let mut s = Session::new();
         let mut sentinel = s.document.as_ref().clone();
         sentinel.retained_xml_nodes = 12345;
-        sentinel.parts.insert("original.bin".into(), misterdiagram_model::Part { bytes: vec![0; 4096], ..Default::default() });
+        sentinel.parts.insert("original.bin".into(), misterdiagram_model::Part { bytes: vec![0; 4096].into(), ..Default::default() });
         let sentinel = Arc::new(sentinel);
         s.read_reservations = vec![sentinel.clone(), sentinel.clone()];
         s.stencil_reservations = vec![sentinel.clone()];
@@ -294,16 +321,40 @@ mod tests {
     #[test]
     fn copied_resources_reserve_media_and_cumulative_nodes_before_clone() {
         let mut s = Session::with_memory_limits(MemoryLimits::from_mib(16).unwrap());
-        let part = misterdiagram_model::Part { bytes: vec![0; 5 * MIB], content_type: Some("image/bmp".into()), ..Default::default() };
+        let part = misterdiagram_model::Part { bytes: vec![0; 5 * MIB].into(), content_type: Some("image/bmp".into()), ..Default::default() };
         let error = s.reservation().parts(s.document(), std::iter::once(&part)).unwrap_err().to_string();
         assert!(error.contains("needs 5.0 MiB") && error.contains("limit 4 MiB"), "{error}");
         s.memory = MemoryLimits::default();
         let mut doc = s.document.as_ref().clone();
         doc.retained_xml_nodes = misterdiagram_vsdx::MAX_RETAINED_XML_NODES;
         let part = misterdiagram_model::Part {
-            xml: Some(misterdiagram_model::XmlElement { name: "Original".into(), ..Default::default() }),
+            xml: Some(misterdiagram_model::XmlElement { name: "Original".into(), ..Default::default() }.into()),
             ..Default::default()
         };
         assert!(s.reservation().parts(&doc, std::iter::once(&part)).unwrap_err().to_string().contains("retained XML node limit"));
+    }
+    #[test]
+    fn picture_census_deduplicates_versions_and_reservations_but_not_replacements() {
+        let mut session = Session::new();
+        let image =
+            misterdiagram_model::Part { bytes: vec![7; 4096].into(), content_type: Some("image/x-original-test".into()), ..Default::default() };
+        Arc::make_mut(&mut session.document).parts.insert("visio/media/original.bin".into(), image.clone());
+        let original = session.document.clone();
+        let mut version = original.as_ref().clone();
+        version.pages[0].name = "Another version".into();
+        session.read_reservations.push(original.clone());
+        session.document = Arc::new(version);
+        assert_eq!(session.retention().media, 4096);
+        session.reserve(Some((&original, false))).unwrap();
+        let reservation = session.reservation();
+        reservation.parts(session.document(), std::iter::once(&image)).unwrap();
+        let mut replaced = original.as_ref().clone();
+        replaced.parts.get_mut("visio/media/original.bin").unwrap().bytes[0] = 11;
+        session.document = Arc::new(replaced);
+        assert_eq!(session.retention().media, 8192);
+        assert_eq!(original.parts["visio/media/original.bin"].bytes[0], 7);
+        assert_eq!(session.document.parts["visio/media/original.bin"].bytes[0], 11);
+        let separate = misterdiagram_model::Part { bytes: vec![7; 4096].into(), ..image };
+        assert!(!separate.bytes.ptr_eq(&original.parts["visio/media/original.bin"].bytes));
     }
 }

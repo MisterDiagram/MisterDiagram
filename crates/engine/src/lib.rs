@@ -267,12 +267,16 @@ impl Session {
                     .map_err(operation)?;
                 misterdiagram_route::reroute(&before.document, Arc::make_mut(&mut self.document), &mut glue, None).map_err(operation)?;
                 let theme = misterdiagram_theme::Themes::from_document(&self.document).map_err(operation)?;
-                let written =
-                    misterdiagram_vsdx::write_with_glue_host(&self.document, Some(&theme), Some(&misterdiagram_text::Host), Some(&mut glue))
-                        .map_err(operation)?;
+                let written = misterdiagram_vsdx::write::write_parts_with_glue_host(
+                    &self.document,
+                    Some(&theme),
+                    Some(&misterdiagram_text::Host),
+                    Some(&mut glue),
+                )
+                .map_err(operation)?;
                 let held_nodes = self.retained_xml_nodes();
-                let document = misterdiagram_vsdx::import_with_open_nodes(&written.bytes, held_nodes)
-                    .map_err(|error| retention::admission_error(error, held_nodes))?;
+                let document =
+                    misterdiagram_vsdx::import_written_parts(written, held_nodes).map_err(|error| retention::admission_error(error, held_nodes))?;
                 self.reserve(Some((&document, false)))?;
                 self.document = Arc::new(document);
                 files::update_palette(Arc::make_mut(&mut self.document))?;

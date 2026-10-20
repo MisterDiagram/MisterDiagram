@@ -105,8 +105,8 @@ fn setf_actions_read_and_save_zero_without_side_effects() {
             shapes.push(dependent);
         }
     }
-    doc.pages[0].shapes = shapes.clone();
-    doc.masters = vec![Master { id: 42, name_u: "OriginalActionCases".into(), shapes, ..Default::default() }];
+    doc.pages[0].shapes = shapes.clone().into();
+    doc.masters = vec![Master { id: 42, name_u: "OriginalActionCases".into(), shapes: shapes.into(), ..Default::default() }];
     let mut doc = input(&doc, 4);
     verify_matrix(&doc, 2., false);
     let saved = misterdiagram_vsdx::import(&misterdiagram_vsdx::write(&doc).unwrap().bytes).unwrap();
@@ -122,7 +122,8 @@ fn setf_actions_read_and_save_zero_without_side_effects() {
 #[test]
 fn inherited_setf_action_ignores_local_stored_cache() {
     let mut doc = misterdiagram_model::skeleton::document(false);
-    doc.masters = vec![Master { id: 42, name_u: "OriginalInheritedAction".into(), shapes: vec![carrier(5, 1, PLACEHOLDER)], ..Default::default() }];
+    doc.masters =
+        vec![Master { id: 42, name_u: "OriginalInheritedAction".into(), shapes: vec![carrier(5, 1, PLACEHOLDER)].into(), ..Default::default() }];
     let mut instance = Shape { id: 10, master: Some(42), ..Default::default() };
     instance.sheet.sections.push(Section {
         name: "Actions".into(),
@@ -139,7 +140,7 @@ fn inherited_setf_action_ignores_local_stored_cache() {
         }],
         ..Default::default()
     });
-    doc.pages[0].shapes = vec![instance];
+    doc.pages[0].shapes = vec![instance].into();
     let doc = input(&doc, 1);
     let scope = Scope::PageShape { page: 0, shape: 10 };
     let mut e = Evaluator::new(&doc).unwrap();
@@ -167,7 +168,7 @@ fn passive_action_detection_is_parsed_bounded_and_case_insensitive() {
         (format!("SETF({})", "x".repeat(65_537)), 1.),
     ] {
         let mut doc = misterdiagram_model::skeleton::document(false);
-        doc.pages[0].shapes = vec![carrier(1, 1, &formula)];
+        doc.pages[0].shapes = vec![carrier(1, 1, &formula)].into();
         let mut e = Evaluator::new(&doc).unwrap();
         let scope = Scope::PageShape { page: 0, shape: 1 };
         assert_eq!(e.evaluate(scope, "Actions.Toggle.Action").numeric().unwrap(), expected);
@@ -182,7 +183,7 @@ fn nested_setf_actions_read_and_save_zero_without_side_effects() {
     for formula in [format!("GUARD({SETF})"), format!("1+{SETF}")] {
         for stored in 0..=1 {
             let mut doc = misterdiagram_model::skeleton::document(false);
-            doc.pages[0].shapes = vec![carrier(5, stored, PLACEHOLDER)];
+            doc.pages[0].shapes = vec![carrier(5, stored, PLACEHOLDER)].into();
             doc.masters = vec![Master { id: 42, name_u: "NestedAction".into(), shapes: doc.pages[0].shapes.clone(), ..Default::default() }];
             let doc = input_formula(&doc, 2, &formula);
             for saved in [false, true] {
@@ -212,7 +213,7 @@ fn unwitnessed_setf_containers_keep_existing_passive_cache_behavior() {
         "GUARD(1+SETF(GETREF(User.Flag),1))",
     ] {
         let mut doc = misterdiagram_model::skeleton::document(false);
-        doc.pages[0].shapes = vec![carrier(5, 1, formula)];
+        doc.pages[0].shapes = vec![carrier(5, 1, formula)].into();
         let mut e = Evaluator::new(&doc).unwrap();
         let scope = Scope::PageShape { page: 0, shape: 5 };
         assert_eq!(e.evaluate(scope, "Actions.Toggle.Action"), Value::Number(1.), "unwitnessed {formula}");

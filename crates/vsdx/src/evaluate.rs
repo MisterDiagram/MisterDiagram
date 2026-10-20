@@ -1772,21 +1772,22 @@ mod tests {
                             ..Default::default()
                         },
                         Shape { id: 2, name: "B".into(), sheet: sheet(vec![cell("Width", "4", None)]), ..Default::default() },
-                    ],
+                    ]
+                    .into(),
                     ..Default::default()
                 },
                 Page {
                     id: 9,
                     name: "Other".into(),
                     sheet: sheet(vec![cell("PageWidth", "20", None)]),
-                    shapes: vec![Shape { id: 2, name: "Named".into(), sheet: sheet(vec![cell("Width", "6", None)]), ..Default::default() }],
+                    shapes: vec![Shape { id: 2, name: "Named".into(), sheet: sheet(vec![cell("Width", "6", None)]), ..Default::default() }].into(),
                     ..Default::default()
                 },
             ],
             masters: vec![Master {
                 id: 5,
                 name: "Gear".into(),
-                shapes: vec![Shape { id: 3, name: "Shaft".into(), sheet: sheet(vec![cell("Width", "8", None)]), ..Default::default() }],
+                shapes: vec![Shape { id: 3, name: "Shaft".into(), sheet: sheet(vec![cell("Width", "8", None)]), ..Default::default() }].into(),
                 ..Default::default()
             }],
             styles: vec![Style { id: 4, name: "Manager".into(), sheet: sheet(vec![cell("LineColor", "3", None)]), ..Default::default() }],
@@ -2129,7 +2130,7 @@ mod tests {
         let doc = Document {
             masters: vec![misterdiagram_model::Master {
                 id: 2,
-                shapes: vec![Shape { id: 5, sheet: Sheet { sections: vec![geometry], ..Default::default() }, ..Default::default() }],
+                shapes: vec![Shape { id: 5, sheet: Sheet { sections: vec![geometry], ..Default::default() }, ..Default::default() }].into(),
                 ..Default::default()
             }],
             pages: vec![misterdiagram_model::Page {
@@ -2145,7 +2146,8 @@ mod tests {
                         },
                         ..Default::default()
                     },
-                ],
+                ]
+                .into(),
                 ..Default::default()
             }],
             ..Default::default()
@@ -2179,7 +2181,7 @@ mod tests {
         let doc = Document {
             pages: vec![misterdiagram_model::Page {
                 id: 0,
-                shapes: vec![Shape { id: 1, sheet: Sheet { sections: vec![section], ..Default::default() }, ..Default::default() }],
+                shapes: vec![Shape { id: 1, sheet: Sheet { sections: vec![section], ..Default::default() }, ..Default::default() }].into(),
                 ..Default::default()
             }],
             ..Default::default()
@@ -2208,7 +2210,7 @@ mod tests {
         let doc = Document {
             pages: vec![misterdiagram_model::Page {
                 id: 0,
-                shapes: vec![Shape { id: 1, sheet: Sheet { sections: vec![section], ..Default::default() }, ..Default::default() }],
+                shapes: vec![Shape { id: 1, sheet: Sheet { sections: vec![section], ..Default::default() }, ..Default::default() }].into(),
                 ..Default::default()
             }],
             ..Default::default()

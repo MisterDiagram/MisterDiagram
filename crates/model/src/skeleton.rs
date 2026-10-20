@@ -117,7 +117,7 @@ fn vis_relation(id: usize, kind: &str, target: &str) -> Relationship {
     relation(id, &format!("{VIS_REL}{kind}"), target)
 }
 fn part(root: XmlElement, content_type: &str) -> Part {
-    Part { xml: Some(root), content_type: Some(content_type.into()), ..Default::default() }
+    Part { xml: Some(root.into()), content_type: Some(content_type.into()), ..Default::default() }
 }
 /// Create a blank US or metric drawing, with six observed blank styles and connector style 7.
 /// Style 5 is absent in both witnesses. No vendor theme, thumbnail or icon is embedded.
@@ -295,7 +295,8 @@ pub fn dynamic_connector() -> Master {
                 sheet
             },
             ..Default::default()
-        }],
+        }]
+        .into(),
         attributes: attributes(&[
             ("IsCustomNameU", "1"),
             ("IsCustomName", "1"),
@@ -691,7 +692,8 @@ mod glue_byte_regression {
                 ..Default::default()
             },
             Shape { id: 2, ..Default::default() },
-        ];
+        ]
+        .into();
         let remaining = 16 * 1024 * 1024 - glue_metadata_bytes(&page.shapes[0].sheet).unwrap();
         page.shapes[0].sheet.cells[1].value = Some("x".repeat(remaining));
         assert_eq!(glue_metadata_bytes(&page.shapes[0].sheet).unwrap(), 16 * 1024 * 1024);

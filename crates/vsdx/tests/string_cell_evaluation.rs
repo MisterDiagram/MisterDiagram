@@ -94,8 +94,13 @@ fn inherited_and_aliased_string_cells_and_evalcell_keep_text() {
     let mut layer_sheet = document("Layer", "NameUniv", "0042").document_sheet;
     layer_sheet.sections[0].rows[0].index = Some(0);
     let doc = Document {
-        masters: vec![Master { id: 5, shapes: vec![Shape { id: 1, sheet: master_sheet, ..Default::default() }], ..Default::default() }],
-        pages: vec![Page { id: 1, sheet: layer_sheet, shapes: vec![Shape { id: 2, master: Some(5), ..Default::default() }], ..Default::default() }],
+        masters: vec![Master { id: 5, shapes: vec![Shape { id: 1, sheet: master_sheet, ..Default::default() }].into(), ..Default::default() }],
+        pages: vec![Page {
+            id: 1,
+            sheet: layer_sheet,
+            shapes: vec![Shape { id: 2, master: Some(5), ..Default::default() }].into(),
+            ..Default::default()
+        }],
         ..Default::default()
     };
     let mut e = Evaluator::new(&doc).unwrap();

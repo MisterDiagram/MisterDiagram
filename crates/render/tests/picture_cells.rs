@@ -47,7 +47,7 @@ fn document(kind: &str, w: f64, h: f64, x: f64, y: f64) -> Document {
         })],
         ..Default::default()
     });
-    doc.pages[0].shapes = vec![shape];
+    doc.pages[0].shapes = vec![shape].into();
     doc.pages[0].sheet.cells.iter_mut().filter(|c| c.name == "PageWidth" || c.name == "PageHeight").for_each(|c| {
         c.formula = None;
         c.value = Some("4".into());
@@ -61,7 +61,7 @@ fn document(kind: &str, w: f64, h: f64, x: f64, y: f64) -> Document {
         buffer.into_inner()
     };
     let target = "visio/media/panels";
-    doc.parts.insert(target.into(), Part { bytes, ..Default::default() });
+    doc.parts.insert(target.into(), Part { bytes: bytes.into(), ..Default::default() });
     doc.parts.entry(doc.pages[0].part.clone()).or_default().relationships.push(Relationship {
         id: "picture".into(),
         type_uri: format!("{ns}/image"),
@@ -123,7 +123,7 @@ fn emf_and_png_picture_size_offsets_and_clip_match_the_preobserved_fixture() {
 #[test]
 fn zero_picture_size_does_not_decode_hostile_media() {
     let mut doc = document("emf", 0., 2., 0., 0.);
-    doc.parts.get_mut("visio/media/panels").unwrap().bytes = vec![0xff; 32];
+    doc.parts.get_mut("visio/media/panels").unwrap().bytes = vec![0xff; 32].into();
     assert!(scene::page(&doc, 0, scene::Options::default()).is_ok());
     doc.pages[0].shapes[0].sheet.cells.iter_mut().find(|c| c.name == "ImgWidth").unwrap().value = Some("3".into());
     assert!(scene::page(&doc, 0, scene::Options::default()).is_err());

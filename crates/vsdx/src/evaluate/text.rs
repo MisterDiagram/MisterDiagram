@@ -420,7 +420,7 @@ mod tests {
         Document {
             pages: vec![Page {
                 id: 1,
-                shapes: vec![Shape { id: 1, text: Some(crate::parse_xml(xml.as_bytes()).unwrap()), ..Default::default() }],
+                shapes: vec![Shape { id: 1, text: Some(crate::parse_xml(xml.as_bytes()).unwrap()), ..Default::default() }].into(),
                 ..Default::default()
             }],
             ..Default::default()

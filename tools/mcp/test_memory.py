@@ -54,9 +54,19 @@ class Memory(unittest.TestCase):
                 commands = [inventory, {'command': 'shape.draw.rect', 'params': params}]
                 if not compound:
                     commands.append({'command': 'shape.text', 'params': {'id': 2, 'text': 'hello'}})
-                with self.assertRaisesRegex(RuntimeError, 'media byte limit') as refused:
-                    c.tool('batch', commands=commands)
-                self.assertEqual('opening stencils in their own call' in str(refused.exception), changed)
+                # The original 60/70 MiB inputs fit when unchanged pictures share
+                # allocations across publication and rollback owners. Keep the
+                # same 1 GiB setting and exercise the original compound variants.
+                c.tool('batch', commands=commands)
+                after = c.tool('inspect_document'), c.tool('stencil_list')
+                self.assertTrue(c.command('edit.undo')['changed'])
+                self.assertEqual((c.tool('inspect_document'), c.tool('stencil_list')), before)
+                self.assertTrue(c.command('edit.redo')['changed'])
+                self.assertEqual((c.tool('inspect_document'), c.tool('stencil_list')), after)
+                self.assertTrue(c.command('edit.undo')['changed'])
+                failing = commands + [{'command': 'shape.move', 'params': {'id': 999999, 'x': 0, 'y': 0}}]
+                with self.assertRaisesRegex(RuntimeError, 'shape'):
+                    c.tool('batch', commands=failing)
                 self.assertEqual((c.tool('inspect_document'), c.tool('stencil_list')), before)
 
     def test_memory_setting_never_raises_file_node_admission(self):

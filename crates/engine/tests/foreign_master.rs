@@ -36,7 +36,7 @@ fn media(doc: &mut Document, owner: &str, target: &str, format: ImageFormat, col
     doc.parts.insert(
         target.into(),
         Part {
-            bytes: bytes.into_inner(),
+            bytes: bytes.into_inner().into(),
             content_type: Some(format!("image/{}", if format == ImageFormat::Bmp { "bmp" } else { "png" })),
             ..Default::default()
         },
@@ -62,7 +62,7 @@ fn fixture(format: ImageFormat) -> PathBuf {
     for (name, value, formula) in [("ImgWidth", "2", "Width"), ("ImgHeight", "1", "Height")] {
         shape.sheet.cells.push(Cell { name: name.into(), value: Some(value.into()), formula: Some(formula.into()), ..Default::default() });
     }
-    master.shapes = vec![shape];
+    master.shapes = vec![shape].into();
     let part = master.part.clone();
     media(&mut doc, &part, &format!("visio/media/original.{format:?}"), format, RED);
     let bytes = misterdiagram_vsdx::write_as(&doc, misterdiagram_vsdx::SaveKind::Stencil).unwrap().bytes;

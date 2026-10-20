@@ -227,7 +227,7 @@ pub(crate) fn document() -> Result<Document> {
         for (n, v) in [("PageWidth", 1.5), ("PageHeight", 1.25), ("DrawingResizeType", 1.)] {
             set_number(&mut master.sheet, n, v)?;
         }
-        master.shapes = vec![shape];
+        master.shapes = vec![shape].into();
         doc.masters.push(master);
     }
     crate::files::update_palette(&mut doc)?;

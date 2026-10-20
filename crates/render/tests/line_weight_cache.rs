@@ -10,7 +10,7 @@ fn picture(formula: Option<&str>, cached: &str) -> (scene::Scene, image::RgbaIma
     width.formula = None;
     shape.sheet.cells.retain(|c| c.name != "LineWeight");
     shape.sheet.cells.push(Cell { name: "LineWeight".into(), value: Some(cached.into()), formula: formula.map(str::to_owned), ..Default::default() });
-    doc.pages[0].shapes = vec![shape];
+    doc.pages[0].shapes = vec![shape].into();
     let options = scene::Options { scale: 4., ..Default::default() };
     let result = scene::page(&doc, 0, options).unwrap();
     let pixels = raster::render(&result, options).unwrap();

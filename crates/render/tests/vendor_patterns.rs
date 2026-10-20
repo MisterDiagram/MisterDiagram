@@ -6,7 +6,7 @@ use misterdiagram_render::scene::{self, Op, Paint, Scene};
 
 fn master(text: &str) -> Document {
     let mut doc = skeleton::document(false);
-    doc.masters[0].shapes = vec![skeleton::rectangle(5, 0., 0., 2., 1., text).unwrap()];
+    doc.masters[0].shapes = vec![skeleton::rectangle(5, 0., 0., 2., 1., text).unwrap()].into();
     doc
 }
 
@@ -74,7 +74,7 @@ fn standard_wmf_with_emf_extension_is_a_named_media_gap() {
     });
     let target = "visio/media/original.emf";
     let owner = doc.masters[0].part.clone();
-    doc.parts.insert(target.into(), Part { bytes, content_type: Some("image/x-emf".into()), ..Default::default() });
+    doc.parts.insert(target.into(), Part { bytes: bytes.into(), content_type: Some("image/x-emf".into()), ..Default::default() });
     doc.parts.entry(owner).or_default().relationships.push(Relationship {
         id: "original".into(),
         type_uri: format!("{relationship_namespace}/image"),

@@ -92,7 +92,8 @@ mod tests {
                     },
                     Shape { id: 2, sheet: Sheet { cells: vec![cell("Height", "4", None)], ..Default::default() }, ..Default::default() },
                     Shape { id: 3, sheet: Sheet { cells: vec![cell("Height", "5", None)], ..Default::default() }, ..Default::default() },
-                ],
+                ]
+                .into(),
                 ..Default::default()
             }],
             ..Default::default()
@@ -163,8 +164,8 @@ mod tests {
             ..Default::default()
         };
         let doc = Document {
-            masters: vec![Master { id: 43, shapes: vec![master], ..Default::default() }],
-            pages: vec![Page { id: 0, shapes: vec![instance], ..Default::default() }],
+            masters: vec![Master { id: 43, shapes: vec![master].into(), ..Default::default() }],
+            pages: vec![Page { id: 0, shapes: vec![instance].into(), ..Default::default() }],
             ..Default::default()
         };
         let mut evaluator = Evaluator::new(&doc).unwrap();

@@ -38,7 +38,7 @@ pub(crate) fn unaffected(before: &Document, after: &Document) -> bool {
         {
             return false;
         }
-        let mut pending = vec![(&old.shapes, &new.shapes)];
+        let mut pending: Vec<(&[misterdiagram_model::Shape], &[misterdiagram_model::Shape])> = vec![(&old.shapes, &new.shapes)];
         let mut count = 0usize;
         while let Some((old, new)) = pending.pop() {
             if old.len() != new.len() {

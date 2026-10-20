@@ -311,7 +311,7 @@ mod tests {
     #[test]
     fn reference_scan_is_quoted_scoped_and_bounded() {
         let mut doc = misterdiagram_model::skeleton::document(false);
-        doc.pages[0].shapes = [1, 3].map(|id| misterdiagram_model::skeleton::rectangle(id, 0., 0., 1., 1., "").unwrap()).to_vec();
+        doc.pages[0].shapes = [1, 3].map(|id| misterdiagram_model::skeleton::rectangle(id, 0., 0., 1., 1., "").unwrap()).to_vec().into();
         let page = doc.pages[0].id;
         let scope = Scope::PageShape { page, shape: 1 };
         let e = Evaluator::new(&doc).unwrap();

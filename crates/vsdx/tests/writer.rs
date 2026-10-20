@@ -29,7 +29,7 @@ fn unknown_parts_and_extensions_survive_modelled_edits() {
     let mut d = skeleton::document(false);
     d.parts.insert(
         "custom/opaque.bin".into(),
-        Part { bytes: vec![0, 255, 128, 1, 2], content_type: Some("application/octet-stream".into()), ..Default::default() },
+        Part { bytes: vec![0, 255, 128, 1, 2].into(), content_type: Some("application/octet-stream".into()), ..Default::default() },
     );
     let mut e = XmlElement { name: "Extra".into(), namespace: "urn:misterdiagram:fixture".into(), ..Default::default() };
     e.attributes.insert("xmlns".into(), e.namespace.to_string());
@@ -134,7 +134,7 @@ fn missing_and_authored_png_thumbnails_are_explicit_host_cases() {
     let mut bytes = std::io::Cursor::new(Vec::new());
     image::RgbaImage::from_pixel(2, 2, image::Rgba([255, 255, 255, 255])).write_to(&mut bytes, image::ImageFormat::Png).unwrap();
     let png = bytes.into_inner();
-    d.parts.insert("docProps/thumbnail.png".into(), Part { bytes: png.clone(), content_type: Some("image/png".into()), ..Default::default() });
+    d.parts.insert("docProps/thumbnail.png".into(), Part { bytes: png.clone().into(), content_type: Some("image/png".into()), ..Default::default() });
     d.root_relationships.push(misterdiagram_model::Relationship {
         id: "rId2".into(),
         type_uri: "http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail".into(),
@@ -142,7 +142,7 @@ fn missing_and_authored_png_thumbnails_are_explicit_host_cases() {
         external: false,
     });
     let output = import(&write(&d).unwrap().bytes).unwrap();
-    assert_eq!(output.parts["docProps/thumbnail.png"].bytes, png);
+    assert_eq!(output.parts["docProps/thumbnail.png"].bytes, png.into());
     assert_eq!(image::load_from_memory(&output.parts["docProps/thumbnail.png"].bytes).unwrap().width(), 2);
     // Host structural evidence only. Visio's acceptance is measured in M3.5.
 }
@@ -220,7 +220,7 @@ fn destination_collisions_cannot_discard_a_page_or_opaque_payload() {
     let mut d = skeleton::document(false);
     d.parts.insert(
         "custom/opaque.bin".into(),
-        Part { bytes: vec![1, 2, 3], content_type: Some("application/octet-stream".into()), ..Default::default() },
+        Part { bytes: vec![1, 2, 3].into(), content_type: Some("application/octet-stream".into()), ..Default::default() },
     );
     d.pages[0].part = "custom/opaque.bin".into();
     assert!(write(&d).unwrap_err().to_string().contains("overwrite"));
@@ -230,7 +230,7 @@ fn destination_collisions_cannot_discard_a_page_or_opaque_payload() {
 #[test]
 fn non_sheet_collections_are_bounded_before_cloning() {
     let mut d = skeleton::document(false);
-    d.pages[0].connects = vec![misterdiagram_model::Connect::default(); 100_001];
+    d.pages[0].connects = vec![misterdiagram_model::Connect::default(); 100_001].into();
     assert!(write(&d).unwrap_err().to_string().contains("connect count"));
     let mut d = skeleton::document(false);
     d.colors = (0..65537).map(|i| (i, "#000000".into())).collect();
@@ -272,7 +272,7 @@ fn escaped_sheet_size_and_expanded_attribute_duplicates_are_rejected() {
     let mut second = skeleton::page(1, "Other", false);
     second.part.clear();
     d.pages.push(second);
-    d.parts.insert("visio/pages/page2.xml".into(), Part { bytes: b"opaque-original".to_vec(), ..Default::default() });
+    d.parts.insert("visio/pages/page2.xml".into(), Part { bytes: b"opaque-original".to_vec().into(), ..Default::default() });
     assert!(write(&d).unwrap_err().to_string().contains("overwrite"));
 }
 
@@ -285,7 +285,7 @@ fn deleted_sentinel_extensions_stay_with_their_master_shape() {
         d.pages[0].shapes.push(s);
     }
     d.parts.get_mut("visio/pages/page1.xml").unwrap().xml = Some(misterdiagram_vsdx::parse_xml(format!(
-        "<PageContents xmlns='{}'><Shapes><Shape ID='4294967295' MasterShape='7' Del='1'><Extra xmlns='urn:fixture'>seven</Extra></Shape><Shape ID='4294967295' MasterShape='9' Del='1'><Extra xmlns='urn:fixture'>nine</Extra></Shape></Shapes></PageContents>", skeleton::VISIO_NS).as_bytes()).unwrap());
+        "<PageContents xmlns='{}'><Shapes><Shape ID='4294967295' MasterShape='7' Del='1'><Extra xmlns='urn:fixture'>seven</Extra></Shape><Shape ID='4294967295' MasterShape='9' Del='1'><Extra xmlns='urn:fixture'>nine</Extra></Shape></Shapes></PageContents>", skeleton::VISIO_NS).as_bytes()).unwrap().into());
     let a = import(&write(&d).unwrap().bytes).unwrap();
     let shapes = a.parts["visio/pages/page1.xml"].xml.as_ref().unwrap().child("Shapes").unwrap();
     let text: Vec<_> = shapes.elements().map(XmlElement::text).collect();

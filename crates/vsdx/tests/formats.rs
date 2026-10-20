@@ -54,7 +54,7 @@ fn stencil_preserves_extensions_and_reconciles_the_selected_page() {
     doc.document_settings.as_mut().unwrap().attributes.insert("TopPage".into(), "1".into());
     doc.parts.insert(
         "custom/opaque.bin".into(),
-        Part { bytes: vec![1, 2, 3], content_type: Some("application/octet-stream".into()), ..Default::default() },
+        Part { bytes: vec![1, 2, 3].into(), content_type: Some("application/octet-stream".into()), ..Default::default() },
     );
     let pages = doc.parts.get_mut("visio/pages/pages.xml").unwrap();
     pages.xml.as_mut().unwrap().children.push(XmlNode::Element(XmlElement {
@@ -73,6 +73,6 @@ fn stencil_preserves_extensions_and_reconciles_the_selected_page() {
     let again = import(&write_as(&stencil, SaveKind::Stencil).unwrap().bytes).unwrap();
     assert_eq!(again.document_settings.as_ref().unwrap().attr("TopPage"), Some("0"));
     assert!(again.parts["visio/pages/pages.xml"].relationships.iter().any(|r| r.id == "extra"));
-    assert_eq!(again.parts["custom/opaque.bin"].bytes, [1, 2, 3]);
+    assert_eq!(again.parts["custom/opaque.bin"].bytes.as_slice(), [1, 2, 3]);
     assert!(again.parts["visio/pages/pages.xml"].xml.as_ref().unwrap().elements().any(|e| e.namespace == "urn:fixture" && e.text() == "kept"));
 }

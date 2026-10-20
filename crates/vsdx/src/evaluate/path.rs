@@ -669,10 +669,14 @@ mod tests {
             ..Default::default()
         }]);
         let d = Document {
-            masters: vec![Master { id: 2, shapes: vec![Shape { id: 5, sheet: source.document_sheet, ..Default::default() }], ..Default::default() }],
+            masters: vec![Master {
+                id: 2,
+                shapes: vec![Shape { id: 5, sheet: source.document_sheet, ..Default::default() }].into(),
+                ..Default::default()
+            }],
             pages: vec![Page {
                 id: 0,
-                shapes: vec![Shape { id: 1, master: Some(2), sheet: std::mem::take(&mut local.document_sheet), ..Default::default() }],
+                shapes: vec![Shape { id: 1, master: Some(2), sheet: std::mem::take(&mut local.document_sheet), ..Default::default() }].into(),
                 ..Default::default()
             }],
             ..Default::default()

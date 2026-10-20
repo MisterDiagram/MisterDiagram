@@ -135,7 +135,7 @@ mod tests {
                 .map(|id| misterdiagram_model::Master {
                     id,
                     name_u: format!("Master {id}"),
-                    shapes: vec![misterdiagram_model::skeleton::rectangle(1, 1., 1., 1., 1., "").unwrap()],
+                    shapes: vec![misterdiagram_model::skeleton::rectangle(1, 1., 1., 1., 1., "").unwrap()].into(),
                     ..Default::default()
                 })
                 .collect(),
@@ -174,7 +174,7 @@ mod tests {
             masters: (1..=2).map(|id| misterdiagram_model::Master { id, name_u: format!("M{id}"), ..Default::default() }).collect(),
             ..Default::default()
         };
-        doc.parts.insert("visio/theme/theme1.xml".into(), misterdiagram_model::Part { bytes: b"<notTheme/>".to_vec(), ..Default::default() });
+        doc.parts.insert("visio/theme/theme1.xml".into(), misterdiagram_model::Part { bytes: b"<notTheme/>".to_vec().into(), ..Default::default() });
         for error in ["#VALUE!", "#LIMIT!"] {
             let (pixels, report) = render(&doc).unwrap();
             assert_eq!((report.rendered, report.blank, report.failed), (0, 0, 2));

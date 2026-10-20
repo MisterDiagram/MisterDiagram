@@ -123,7 +123,7 @@ fn five_documents_build_and_reread() {
         m.name_u = m.name.clone();
         m.attributes.insert("MasterType".into(), "2".into());
         m.part = format!("visio/masters/master{}.xml", i + 1);
-        m.shapes = vec![skeleton::rectangle(5, 0., 0., 1. + f64::from(i) * 0.5, 1., &m.name).unwrap()];
+        m.shapes = vec![skeleton::rectangle(5, 0., 0., 1. + f64::from(i) * 0.5, 1., &m.name).unwrap()].into();
         d.masters.push(m);
     }
     let a = save(&root, "scratch__three-masters.vssx", &d, SaveKind::Stencil);
@@ -184,7 +184,7 @@ fn dynamic_glue_rejects_nested_ids_and_writer_boundaries() {
     assert_eq!(d.pages[0].shapes[0].shapes.len(), 99_998);
     assert!(d.pages[0].connects.is_empty());
     d.pages[0].shapes[0].shapes.clear();
-    d.pages[0].connects = vec![Connect::default(); 99_999];
+    d.pages[0].connects = vec![Connect::default(); 99_999].into();
     assert!(skeleton::glue_dynamic(&mut d.pages[0], 3, 2, [1, 2], [[1., 0.5], [2., 0.5]]).is_err());
     assert_eq!(d.pages[0].connects.len(), 99_999);
     assert!(d.pages[0].shapes[0].sheet.cell("ObjType").is_none());

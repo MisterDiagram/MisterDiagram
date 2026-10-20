@@ -12,7 +12,10 @@ fn retained_dom_keeps_extension_attributes_and_order() {
     assert_eq!(extra, ["1", "2"]);
     assert_eq!(root.text(), "text");
     assert_eq!(root.elements().last().unwrap().namespace, support::NS);
-    assert_eq!(doc.parts["visio/pages/page1.xml"].bytes, misterdiagram_opc::Package::open(&bytes).unwrap().get("visio/pages/page1.xml").unwrap());
+    assert_eq!(
+        doc.parts["visio/pages/page1.xml"].bytes.as_slice(),
+        misterdiagram_opc::Package::open(&bytes).unwrap().get("visio/pages/page1.xml").unwrap()
+    );
 }
 
 #[test]

@@ -45,7 +45,7 @@ fn fixture(knot: &str, descending: bool) -> Document {
         ..Default::default()
     });
     let mut doc = misterdiagram_model::skeleton::document(false);
-    doc.masters = vec![Master { id: 1, name_u: "OriginalRepeatedKnot".into(), shapes: vec![shape], ..Default::default() }];
+    doc.masters = vec![Master { id: 1, name_u: "OriginalRepeatedKnot".into(), shapes: vec![shape].into(), ..Default::default() }];
     misterdiagram_vsdx::import(&misterdiagram_vsdx::write(&doc).unwrap().bytes).unwrap()
 }
 #[test]

@@ -654,8 +654,8 @@ mod tests {
         let mut root = Shape { id: 349, master: Some(43), sheet: sheet(vec![c("Width", "4", None)]), ..Default::default() };
         root.shapes.push(Shape { id: 351, master_shape: Some(5), sheet: sheet(vec![c("PinX", "2", Some("Inh"))]), ..Default::default() });
         let doc = Document {
-            masters: vec![Master { id: 43, shapes: vec![master_root], ..Default::default() }],
-            pages: vec![Page { id: 0, shapes: vec![root], ..Default::default() }],
+            masters: vec![Master { id: 43, shapes: vec![master_root].into(), ..Default::default() }],
+            pages: vec![Page { id: 0, shapes: vec![root].into(), ..Default::default() }],
             ..Default::default()
         };
         let mut e = Evaluator::new(&doc).unwrap();
@@ -696,7 +696,7 @@ mod tests {
         let doc = Document {
             masters: vec![Master {
                 id: 2,
-                shapes: vec![Shape { id: 5, sheet: Sheet { sections: vec![master_geometry], ..Default::default() }, ..Default::default() }],
+                shapes: vec![Shape { id: 5, sheet: Sheet { sections: vec![master_geometry], ..Default::default() }, ..Default::default() }].into(),
                 ..Default::default()
             }],
             pages: vec![Page {
@@ -706,7 +706,8 @@ mod tests {
                     master: Some(2),
                     sheet: Sheet { sections: vec![local_geometry], ..Default::default() },
                     ..Default::default()
-                }],
+                }]
+                .into(),
                 ..Default::default()
             }],
             ..Default::default()
@@ -734,7 +735,7 @@ mod tests {
             styles,
             pages: vec![Page {
                 id: 0,
-                shapes: vec![Shape { id: 1, line_style: Some(4), fill_style: Some(2), text_style: Some(3), ..Default::default() }],
+                shapes: vec![Shape { id: 1, line_style: Some(4), fill_style: Some(2), text_style: Some(3), ..Default::default() }].into(),
                 ..Default::default()
             }],
             ..Default::default()
@@ -772,7 +773,7 @@ mod tests {
             ],
             pages: vec![Page {
                 id: 0,
-                shapes: vec![Shape { id: 1, line_style: Some(3), fill_style: Some(3), text_style: Some(3), ..Default::default() }],
+                shapes: vec![Shape { id: 1, line_style: Some(3), fill_style: Some(3), text_style: Some(3), ..Default::default() }].into(),
                 ..Default::default()
             }],
             ..Default::default()
@@ -804,7 +805,8 @@ mod tests {
                         ..Default::default()
                     },
                     ..Default::default()
-                }],
+                }]
+                .into(),
                 ..Default::default()
             }],
             ..Default::default()
@@ -844,7 +846,8 @@ mod tests {
                     id: 5,
                     sheet: Sheet { cells: vec![c("LineWeight", "8", None)], sections: vec![user], ..Default::default() },
                     ..Default::default()
-                }],
+                }]
+                .into(),
                 ..Default::default()
             }],
             pages: vec![Page {
@@ -856,7 +859,8 @@ mod tests {
                     fill_style: Some(1),
                     sheet: Sheet { sections: vec![local], ..Default::default() },
                     ..Default::default()
-                }],
+                }]
+                .into(),
                 ..Default::default()
             }],
             ..Default::default()

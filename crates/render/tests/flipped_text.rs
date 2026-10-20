@@ -13,7 +13,7 @@ fn set(shape: &mut Shape, name: &str, value: &str) {
 
 fn doc_with(shapes: Vec<Shape>) -> Document {
     let mut d = skeleton::document(false);
-    d.pages[0].shapes = shapes;
+    d.pages[0].shapes = shapes.into();
     d
 }
 

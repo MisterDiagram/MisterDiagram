@@ -2,10 +2,7 @@
 //! https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
 use crate::evaluate::{Evaluator, Scope};
 use misterdiagram_model::*;
-use std::{
-    collections::{BTreeMap, BTreeSet},
-    io::{Cursor, Write},
-};
+use std::collections::{BTreeMap, BTreeSet};
 mod format;
 pub use format::{SaveKind, write_as, write_as_with_hosts};
 mod instances;
@@ -15,12 +12,21 @@ mod validate;
 pub(crate) use validate::document as validate_document;
 pub(crate) use validate::dump_bounds;
 mod xml;
+mod zip_parts;
 use model::{node, replace, set};
 #[derive(Debug, thiserror::Error)]
 #[error("cannot write Visio package: {0}")]
 pub struct WriteError(String);
 fn error(message: impl Into<String>) -> WriteError {
     WriteError(message.into())
+}
+/// An admitted internal package. Its fields cannot be forged by callers.
+#[derive(Debug)]
+pub struct WrittenParts {
+    pub(crate) files: BTreeMap<String, Shared<Vec<u8>>>,
+    pub(crate) memos: BTreeMap<String, PartMemo>,
+    pub warnings: Vec<String>,
+    pub warning_count: usize,
 }
 #[derive(Debug)]
 pub struct Written {
@@ -49,6 +55,28 @@ pub fn write_with_glue_host<'a>(
     text: Option<&'a dyn misterdiagram_model::text::TextHost>,
     glue: Option<&'a mut dyn misterdiagram_sheet::HostHooks>,
 ) -> Result<Written, WriteError> {
+    let parts = build_parts_with_glue_host(doc, theme, text, glue)?;
+    let bytes = zip_parts::bytes(&parts.files)?;
+    Ok(Written { bytes, warnings: parts.warnings, warning_count: parts.warning_count })
+}
+/// Publish complete serialized parts while preserving immutable source allocations.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
+pub fn write_parts_with_glue_host<'a>(
+    doc: &'a Document,
+    theme: Option<&'a dyn misterdiagram_sheet::host::ThemeHost>,
+    text: Option<&'a dyn misterdiagram_model::text::TextHost>,
+    glue: Option<&'a mut dyn misterdiagram_sheet::HostHooks>,
+) -> Result<WrittenParts, WriteError> {
+    let parts = build_parts_with_glue_host(doc, theme, text, glue)?;
+    zip_parts::admit(&parts.files)?;
+    Ok(parts)
+}
+fn build_parts_with_glue_host<'a>(
+    doc: &'a Document,
+    theme: Option<&'a dyn misterdiagram_sheet::host::ThemeHost>,
+    text: Option<&'a dyn misterdiagram_model::text::TextHost>,
+    glue: Option<&'a mut dyn misterdiagram_sheet::HostHooks>,
+) -> Result<WrittenParts, WriteError> {
     validate::document(doc)?;
     let mut evaluator = Evaluator::new(doc).map_err(|e| error(e.to_string()))?.with_internal_cache_units();
     if let Some(h) = theme {
@@ -211,8 +239,10 @@ pub fn write_with_glue_host<'a>(
         }
         root_rels.retain(|r| !r.type_uri.ends_with("/vbaProject"));
     }
-    let bytes = package(parts, root_rels)?;
-    Ok(Written { bytes, warnings: w.warnings, warning_count: w.warning_count })
+    let mut written = package(parts, root_rels)?;
+    written.warnings = w.warnings;
+    written.warning_count = w.warning_count;
+    Ok(written)
 }
 fn sheet_only(doc: &Document, p: &Page) -> bool {
     if !p.part.is_empty() || !p.shapes.is_empty() || !p.connects.is_empty() {
@@ -224,14 +254,14 @@ fn sheet_only(doc: &Document, p: &Page) -> bool {
     })
 }
 fn source<'a>(d: &'a Document, path: &str) -> Option<&'a XmlElement> {
-    d.parts.get(path).and_then(|p| p.xml.as_ref())
+    d.parts.get(path).and_then(|p| p.xml.as_ref()).map(|root| &**root)
 }
 fn put(parts: &mut BTreeMap<String, Part>, path: &str, xml: XmlElement, kind: &str) {
     let p = parts.entry(path.into()).or_default();
     if p.content_type.is_none() {
         p.content_type = Some(kind.into());
     }
-    p.xml = Some(xml);
+    p.xml = Some(xml.into());
 }
 fn related(rels: &[Relationship], kind: &str) -> Option<String> {
     rels.iter().find(|r| !r.external && r.type_uri == format!("{}{kind}", crate::VIS_REL)).map(|r| r.target.clone())
@@ -340,13 +370,13 @@ fn relationships(path: &str, rels: &[Relationship]) -> Result<Vec<u8>, WriteErro
 /// Preserve an unchanged relationship part, including its original serialization.
 /// Witness: the probe's six unmatched OPC hashes in the M3.24 baseline comparison.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
-fn relationship_bytes(parts: &BTreeMap<String, Part>, path: &str, rels: &[Relationship]) -> Result<Vec<u8>, WriteError> {
+fn relationship_bytes(parts: &BTreeMap<String, Part>, path: &str, rels: &[Relationship]) -> Result<Shared<Vec<u8>>, WriteError> {
     if source_relationships(parts, path)?.as_deref() == Some(rels)
         && let Some(p) = parts.get(&misterdiagram_opc::rels_path(path))
     {
         return Ok(p.bytes.clone());
     }
-    relationships(path, rels)
+    relationships(path, rels).map(Into::into)
 }
 /// Source relationships survive an unchanged save even if their target is absent.
 /// Observed: AZURECOMPUTE_M.vssx root thumbnail relationship and its Visio save.
@@ -355,7 +385,7 @@ fn source_relationships(parts: &BTreeMap<String, Part>, path: &str) -> Result<Op
     let Some(p) = parts.get(&misterdiagram_opc::rels_path(path)).filter(|p| !p.bytes.is_empty()) else {
         return Ok(None);
     };
-    let root = crate::parse_xml(&p.bytes).map_err(|e| error(e.to_string()))?;
+    let root = source_xml(p, &misterdiagram_opc::rels_path(path))?;
     if root.name != "Relationships" || root.namespace != crate::REL_NS {
         return Err(error("invalid source relationship root"));
     }
@@ -376,8 +406,14 @@ fn source_relationships(parts: &BTreeMap<String, Part>, path: &str) -> Result<Op
     Ok(Some(original?))
 }
 
-fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Result<Vec<u8>, WriteError> {
-    let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+fn source_xml(p: &Part, name: &str) -> Result<Shared<XmlElement>, WriteError> {
+    if let Some(cached) = crate::cache::admitted(p, name) {
+        return Ok(cached.xml.clone());
+    }
+    crate::parse_xml(&p.bytes).map(Into::into).map_err(|e| error(e.to_string()))
+}
+fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Result<WrittenParts, WriteError> {
+    let mut files: BTreeMap<String, Shared<Vec<u8>>> = BTreeMap::new();
     let mut types = BTreeMap::new();
     let mut output_bytes = 0usize;
     let all: BTreeSet<_> = parts.keys().map(String::as_str).collect();
@@ -393,12 +429,12 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
             }
         }
         let bytes = if let Some(e) = &p.xml {
-            if !p.bytes.is_empty() && crate::parse_xml(&p.bytes).map_err(|e| error(e.to_string()))? == *e {
+            if !p.bytes.is_empty() && source_xml(p, name)? == *e {
                 p.bytes.clone()
             } else if p.bytes.is_empty() && name == "docProps/app.xml" {
-                xml::authored_app(e)?
+                xml::authored_app(e)?.into()
             } else {
-                xml::tree(e)?
+                xml::tree(e)?.into()
             }
         } else {
             p.bytes.clone()
@@ -422,11 +458,11 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
     add_file(&mut files, &mut output_bytes, "_rels/.rels".into(), relationship_bytes(&parts, "", &root_rels)?)?;
     let ns = "http://schemas.openxmlformats.org/package/2006/content-types";
     let original_ct = if let Some(p) = parts.get("[Content_Types].xml") {
-        crate::parse_xml(&p.bytes).map_err(|e| error(e.to_string()))?
+        source_xml(p, "[Content_Types].xml")?
     } else {
-        XmlElement { name: "Types".into(), namespace: ns.into(), ..Default::default() }
+        Shared::from(XmlElement { name: "Types".into(), namespace: ns.into(), ..Default::default() })
     };
-    let mut ct = original_ct.clone();
+    let mut ct = (*original_ct).clone();
     // Keep observed default/override order. Remove only absent entries; append genuinely new parts.
     ct.children.retain(
         |n| !matches!(n,XmlNode::Element(e) if e.name=="Override" && !files.contains_key(e.attr("PartName").unwrap_or("").trim_start_matches('/'))),
@@ -502,10 +538,10 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
             ..Default::default()
         }));
     }
-    let ct_bytes = if ct == original_ct {
-        parts.get("[Content_Types].xml").map(|p| p.bytes.clone()).map(Ok).unwrap_or_else(|| xml::tree(&ct))?
+    let ct_bytes = if ct == *original_ct {
+        parts.get("[Content_Types].xml").map(|p| p.bytes.clone()).map(Ok).unwrap_or_else(|| xml::tree(&ct).map(Into::into))?
     } else {
-        xml::tree(&ct)?
+        xml::tree(&ct)?.into()
     };
     add_file(&mut files, &mut output_bytes, "[Content_Types].xml".into(), ct_bytes)?;
     if files.len() > misterdiagram_opc::MAX_ENTRIES {
@@ -515,20 +551,27 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
     if total as u64 > misterdiagram_opc::MAX_TOTAL {
         return Err(error("written package byte limit"));
     }
-    let mut zip = zip::ZipWriter::new(Cursor::new(Vec::new()));
-    let opts = zip::write::SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
-    for (name, bytes) in files {
-        zip.start_file(name, opts).map_err(|e| error(e.to_string()))?;
-        zip.write_all(&bytes).map_err(|e| error(e.to_string()))?;
+    // Namespace declarations can differ in the in-memory candidate tree while
+    // serializing to identical bytes. Exact whole-part byte equality is also a
+    // valid source proof, after the ordinary serializer has completed its work.
+    for (name, bytes) in &mut files {
+        if let Some(part) = parts.get(name)
+            && *bytes == part.bytes
+        {
+            *bytes = part.bytes.clone();
+        }
     }
-    let bytes = zip.finish().map_err(|e| error(e.to_string()))?.into_inner();
-    if bytes.len() as u64 > crate::MAX_FILE {
-        return Err(error("written compressed file limit"));
-    }
-    Ok(bytes)
+    let memos = files
+        .iter()
+        .filter_map(|(name, bytes)| {
+            let part = parts.get(name)?;
+            (part.bytes.ptr_eq(bytes) && crate::cache::admitted(part, name).is_some()).then(|| (name.clone(), part.memo.clone()))
+        })
+        .collect();
+    Ok(WrittenParts { files, memos, warnings: vec![], warning_count: 0 })
 }
 
-fn add_file(files: &mut BTreeMap<String, Vec<u8>>, total: &mut usize, name: String, bytes: Vec<u8>) -> Result<(), WriteError> {
+fn add_file(files: &mut BTreeMap<String, Shared<Vec<u8>>>, total: &mut usize, name: String, bytes: Shared<Vec<u8>>) -> Result<(), WriteError> {
     let next = total.checked_add(bytes.len()).ok_or_else(|| error("written byte overflow"))?;
     if next as u64 > misterdiagram_opc::MAX_TOTAL {
         return Err(error("written package byte limit"));

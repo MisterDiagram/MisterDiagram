@@ -26,7 +26,7 @@ fn reachable(s: &Session) {
             pending.extend(&s.shapes);
         }
         let ids = all.iter().map(|s| s.id).collect::<BTreeSet<_>>();
-        let mut xml = doc.parts.get(part).and_then(|p| p.xml.as_ref()).into_iter().collect::<Vec<_>>();
+        let mut xml = doc.parts.get(part).and_then(|p| p.xml.as_ref()).map(|root| &**root).into_iter().collect::<Vec<_>>();
         while let Some(element) = xml.pop() {
             if let Some(formula) = element.attr("F") {
                 for id in references(formula) {

@@ -53,10 +53,13 @@ fn reads_shape_cells_sections_text_and_unknown_content() {
         assert_eq!(s.text.as_ref().unwrap().text(), "Helloworld");
         assert_eq!(d.colors[&24], "#123456");
         assert_eq!(d.face_names[&0], "Example");
-        assert_eq!(d.parts["custom/opaque.bin"].bytes, [0, 255, 13, 10]);
-        assert_eq!(d.parts["custom/unknown.xml"].bytes, b"<x>  unknown &#65; </x>");
+        assert_eq!(d.parts["custom/opaque.bin"].bytes.as_slice(), [0, 255, 13, 10]);
+        assert_eq!(d.parts["custom/unknown.xml"].bytes.as_slice(), b"<x>  unknown &#65; </x>");
         assert!(d.parts["custom/unknown.xml"].xml.is_none());
-        assert_eq!(d.parts["visio/pages/page1.xml"].bytes, misterdiagram_opc::Package::open(&b).unwrap().get("visio/pages/page1.xml").unwrap());
+        assert_eq!(
+            d.parts["visio/pages/page1.xml"].bytes.as_slice(),
+            misterdiagram_opc::Package::open(&b).unwrap().get("visio/pages/page1.xml").unwrap()
+        );
     }
 }
 #[test]
@@ -93,7 +96,7 @@ fn typed_vba_parts_are_removed_with_default_and_override_content_types() {
         let d = import(&p.finish().unwrap()).unwrap();
         assert!(!d.parts.contains_key("custom/renamed.bin"), "VBA default type: {vba_first}");
         assert!(d.macros_removed);
-        assert_eq!(d.parts["custom/opaque.bin"].bytes, b"original opaque bytes");
+        assert_eq!(d.parts["custom/opaque.bin"].bytes.as_slice(), b"original opaque bytes");
     }
 }
 #[test]
@@ -113,7 +116,7 @@ fn imports_macro_enabled_stencils_and_templates_without_vba_payloads() {
         let doc = import(&p.finish().unwrap()).unwrap();
         assert!(doc.macros_removed);
         assert!(!doc.parts.contains_key("visio/vbaProject.bin"));
-        assert_eq!(doc.parts["custom/original.dat"].bytes, b"original data");
+        assert_eq!(doc.parts["custom/original.dat"].bytes.as_slice(), b"original data");
         assert_eq!(doc.main_part, "visio/document.xml");
     }
 }

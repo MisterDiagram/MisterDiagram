@@ -456,7 +456,7 @@ fn group_display_mode_hides_or_orders_group_paint() {
     for (mode, colors) in [(0, vec![(0, 0, 255)]), (1, vec![(255, 0, 0), (0, 0, 255)]), (2, vec![(0, 0, 255), (255, 0, 0)])] {
         let mut parent = shape(1, "RGB(255,0,0)", mode);
         parent.shapes.push(shape(2, "RGB(0,0,255)", 1));
-        let doc = Document { masters: vec![Master { id: 1, shapes: vec![parent], ..Default::default() }], ..Default::default() };
+        let doc = Document { masters: vec![Master { id: 1, shapes: vec![parent].into(), ..Default::default() }], ..Default::default() };
         let scene = scene::master(&doc, 0, scene::Options::default()).unwrap();
         let actual: Vec<_> = scene
             .ops
@@ -522,7 +522,7 @@ fn acceptance_extent_ignores_geometry_free_group_bounds() {
     for mode in ["0", "1", "2"] {
         group.sheet.cells.retain(|c| c.name != "DisplayMode");
         group.sheet.cells.push(Cell { name: "DisplayMode".into(), value: Some(mode.into()), ..Default::default() });
-        doc.pages[0].shapes = vec![group.clone()];
+        doc.pages[0].shapes = vec![group.clone()].into();
         let drawing = scene::page(&doc, 0, options).unwrap();
         assert!(drawing.bounds.width() < 1.1 && drawing.bounds.height() < 1.1, "mode={mode}: {:?}", drawing.bounds);
     }

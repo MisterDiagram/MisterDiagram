@@ -12,7 +12,7 @@ fn fixture(directory: &Path, name: &str, media_size: usize) -> PathBuf {
     // Opaque contributor-original media, never decoded by stencil.open.
     document.parts.insert(
         "visio/media/zeros.bin".into(),
-        Part { bytes: vec![0; media_size], content_type: Some("application/octet-stream".into()), ..Default::default() },
+        Part { bytes: vec![0; media_size].into(), content_type: Some("application/octet-stream".into()), ..Default::default() },
     );
     let bytes = misterdiagram_vsdx::write_as(&document, misterdiagram_vsdx::SaveKind::Stencil).unwrap().bytes;
     assert!(bytes.len() < MIB, "generated zero media should compress to a small fixture");
@@ -90,8 +90,8 @@ fn six_dense_stencil_sources_stay_bounded() {
     document.parts.insert(
         part.into(),
         Part {
-            bytes: xml.as_bytes().to_vec(),
-            xml: Some(misterdiagram_vsdx::parse_xml(xml.as_bytes()).unwrap()),
+            bytes: xml.as_bytes().to_vec().into(),
+            xml: Some(misterdiagram_vsdx::parse_xml(xml.as_bytes()).unwrap().into()),
             content_type: Some("application/vnd.ms-visio.master+xml".into()),
             ..Default::default()
         },
@@ -136,7 +136,7 @@ fn repeated_large_media_has_a_separate_bounded_stencil_budget() {
     for index in 0..40 {
         document.parts.insert(
             format!("visio/media/repeated{index}.bmp"),
-            Part { bytes: bmp.clone(), content_type: Some("image/bmp".into()), ..Default::default() },
+            Part { bytes: bmp.clone().into(), content_type: Some("image/bmp".into()), ..Default::default() },
         );
     }
     let bytes = misterdiagram_vsdx::write_as(&document, misterdiagram_vsdx::SaveKind::Stencil).unwrap().bytes;
@@ -168,14 +168,38 @@ fn repeated_large_media_has_a_separate_bounded_stencil_budget() {
     session.execute("file.open", &json!({"path":path})).unwrap();
     let error = session.execute("stencil.open", &json!({"path":second})).unwrap_err().to_string();
     assert!(error.contains("media byte limit"), "both admission orders must enforce the same aggregate: {error}");
-    let error = session.execute("shape.draw.rect", &json!({"x":1,"y":1,"width":2,"height":1})).unwrap_err().to_string();
-    assert!(error.contains("media byte limit"), "copy-on-write must charge rollback media owners: {error}");
-    assert!(session.document().pages[0].shapes.is_empty(), "failed publication must roll back");
+    assert_shared_drawing_edit(&mut session);
     drop(session);
     let mut session = Session::with_memory_limits(misterdiagram_engine::MemoryLimits::from_mib(1024).unwrap());
     session.execute("file.open", &json!({"path":medium})).unwrap();
-    let error = session.execute("shape.draw.rect", &json!({"x":1,"y":1,"width":2,"height":1})).unwrap_err().to_string();
-    assert!(error.contains("media byte limit"), "reimport must include its separate allocation: {error}");
-    assert!(session.document().pages[0].shapes.is_empty(), "refused reimport must roll back");
+    assert_shared_drawing_edit(&mut session);
     std::fs::remove_dir_all(directory).unwrap();
+}
+
+fn assert_shared_drawing_edit(session: &mut Session) {
+    let before = session.document().clone();
+    session.execute("shape.draw.rect", &json!({"x":1,"y":1,"width":2,"height":1})).unwrap();
+    let after = session.document().clone();
+    assert_eq!(after.pages[0].shapes.len(), 1);
+    for (name, part) in &before.parts {
+        if part.content_type.as_deref() == Some("image/bmp") {
+            assert!(part.bytes.ptr_eq(&after.parts[name].bytes), "unchanged picture must share its allocation: {name}");
+        }
+    }
+    session.execute("edit.undo", &json!({})).unwrap();
+    assert_eq!(session.document(), &before);
+    session.execute("edit.redo", &json!({})).unwrap();
+    assert_eq!(session.document(), &after);
+    let error = session
+        .execute(
+            "engine.batch",
+            &json!({"commands":[
+                {"command":"shape.draw.rect","params":{"x":4,"y":1,"width":2,"height":1}},
+                {"command":"shape.move","params":{"id":999999,"x":0,"y":0}}
+            ]}),
+        )
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("shape not found"), "{error}");
+    assert_eq!(session.document(), &after, "last-item failure must restore the shared drawing");
 }

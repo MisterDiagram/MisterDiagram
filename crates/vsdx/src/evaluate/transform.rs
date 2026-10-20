@@ -186,7 +186,7 @@ mod tests {
         child.sheet.cells.retain(|c| !matches!(c.name.as_str(), "PinX" | "PinY" | "LocPinX" | "LocPinY"));
         group.shapes.push(child);
         let doc = Document {
-            pages: vec![Page { id: 0, shapes: vec![group], ..Default::default() }, Page { id: 1, name: "Other".into(), ..Default::default() }],
+            pages: vec![Page { id: 0, shapes: vec![group].into(), ..Default::default() }, Page { id: 1, name: "Other".into(), ..Default::default() }],
             ..Default::default()
         };
         let mut e = Evaluator::new(&doc).unwrap();
@@ -203,7 +203,7 @@ mod tests {
         let mut group = shape(1, 10., 20., std::f64::consts::FRAC_PI_2, false);
         group.shapes.push(shape(2, 4., 5., 0., true));
         let doc = Document {
-            pages: vec![Page { id: 0, shapes: vec![group], ..Default::default() }, Page { id: 1, name: "Other".into(), ..Default::default() }],
+            pages: vec![Page { id: 0, shapes: vec![group].into(), ..Default::default() }, Page { id: 1, name: "Other".into(), ..Default::default() }],
             ..Default::default()
         };
         let mut e = Evaluator::new(&doc).unwrap();

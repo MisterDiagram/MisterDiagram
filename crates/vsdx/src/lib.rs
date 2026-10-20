@@ -15,6 +15,7 @@ pub use write::{SaveKind, WriteError, Written, write, write_as, write_as_with_ho
 const REL_NS: &str = "http://schemas.openxmlformats.org/package/2006/relationships";
 const ATTR_REL_NS: &str = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 const VIS_REL: &str = "http://schemas.microsoft.com/visio/2010/relationships/";
+mod cache;
 mod limits;
 
 /// Shared logical-node admission limit, authorized by Charles on 2026-10-16.
@@ -26,6 +27,8 @@ struct ReadPackage {
     used: std::cell::Cell<usize>,
     already_open: usize,
     counted: std::cell::RefCell<HashSet<String>>,
+    node_counts: std::cell::RefCell<HashMap<String, usize>>,
+    memos: std::cell::RefCell<HashMap<String, PartMemo>>,
 }
 impl std::ops::Deref for ReadPackage {
     type Target = Package;
@@ -34,6 +37,18 @@ impl std::ops::Deref for ReadPackage {
     }
 }
 impl ReadPackage {
+    fn memo(&self, name: &str) -> Result<Option<PartMemo>, ReadError> {
+        let original = self.original_name(name).ok_or_else(|| bad(format!("missing part {name}")))?;
+        let bytes = self.shared(name).ok_or_else(|| bad(format!("missing part {name}")))?;
+        let memos = self.memos.try_borrow().map_err(|_| bad("recursive part memo access"))?;
+        Ok(memos
+            .get(&misterdiagram_opc::norm(name))
+            .filter(|memo| {
+                memo.get::<cache::CachedXml>()
+                    .is_some_and(|cached| cached.owner == original && std::sync::Arc::ptr_eq(&cached.bytes.shared(), &bytes))
+            })
+            .cloned())
+    }
     fn content_type(&self, part: &str) -> Option<String> {
         self.content_overrides
             .get(&misterdiagram_opc::norm(part))
@@ -47,8 +62,17 @@ impl ReadPackage {
             return Ok(());
         }
         let bytes = self.get(&name).ok_or_else(|| bad(format!("missing part {name}")))?;
-        let mut used = self.used.get();
-        xml::charge_retained_nodes(bytes, &mut used, MAX_RETAINED_XML_NODES, self.already_open)?;
+        let prior = self.used.get();
+        let mut used = prior;
+        let memo = self.memo(&name)?;
+        let cached = memo.as_ref().and_then(PartMemo::get::<cache::CachedXml>);
+        if let Some(next) = cached.and_then(|c| prior.checked_add(c.nodes)).filter(|n| *n <= MAX_RETAINED_XML_NODES) {
+            used = next;
+        } else {
+            // Preserve the original scanner's admission failure and diagnostic.
+            xml::charge_retained_nodes(bytes, &mut used, MAX_RETAINED_XML_NODES, self.already_open)?;
+        }
+        self.node_counts.try_borrow_mut().map_err(|_| bad("recursive XML node count access"))?.insert(name.clone(), used.saturating_sub(prior));
         self.used.set(used);
         counted.insert(name);
         Ok(())
@@ -95,13 +119,24 @@ pub fn import_with_open_nodes(bytes: &[u8], already_open: usize) -> Result<Docum
     if bytes.len() as u64 > MAX_FILE {
         return Err(bad("compressed file exceeds cap"));
     }
+    import_package(Package::open(bytes)?, HashMap::new(), already_open)
+}
+/// Reimport an engine publication, reusing only reader-proven immutable source parts.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
+pub fn import_written_parts(written: write::WrittenParts, already_open: usize) -> Result<Document, ReadError> {
+    let package = Package::from_shared_parts(written.files.into_iter().map(|(name, bytes)| (name, bytes.shared())))?;
+    import_package(package, written.memos.into_iter().map(|(name, memo)| (misterdiagram_opc::norm(&name), memo)).collect(), already_open)
+}
+fn import_package(package: Package, memos: HashMap<String, PartMemo>, already_open: usize) -> Result<Document, ReadError> {
     let mut package = ReadPackage {
-        package: Package::open(bytes)?,
+        package,
         content_overrides: HashMap::new(),
         content_defaults: HashMap::new(),
         used: std::cell::Cell::new(already_open),
         already_open,
         counted: Default::default(),
+        node_counts: Default::default(),
+        memos: std::cell::RefCell::new(memos),
     };
     // Validate the same package contract using trees already needed by this import.
     // Avoid reparsing root relationships through Package::validate_visio.
@@ -229,9 +264,13 @@ pub fn import_with_open_nodes(bytes: &[u8], already_open: usize) -> Result<Docum
         }
     }
     doc.retained_xml_nodes = package.used.get().saturating_sub(already_open);
-    for (name, bytes) in package.package.into_parts() {
+    let memos = package.memos.into_inner();
+    let counted = package.counted.into_inner();
+    for (name, bytes) in package.package.into_shared_parts() {
         if let Some(part) = doc.parts.get_mut(&name) {
-            part.bytes = bytes;
+            let key = misterdiagram_opc::norm(&name);
+            part.memo = if counted.contains(&key) { memos.get(&key).cloned().unwrap_or_default() } else { PartMemo::default() };
+            part.bytes = bytes.into();
         }
     }
     Ok(doc)
@@ -412,12 +451,41 @@ fn child_counts(bytes: &[u8]) -> Result<Vec<usize>, ReadError> {
     Ok(counts)
 }
 
-fn part_xml(p: &ReadPackage, name: &str) -> Result<XmlElement, ReadError> {
+fn part_xml(p: &ReadPackage, name: &str) -> Result<Shared<XmlElement>, ReadError> {
     p.charge(name)?;
-    let data = p.get(name).ok_or_else(|| bad(format!("missing part {name}")))?;
-    parse_xml(data)
+    if let Some(memo) = p.memo(name)?
+        && let Some(cached) = memo.get::<cache::CachedXml>()
+    {
+        return Ok(cached.xml.clone());
+    }
+    let bytes: Shared<Vec<u8>> = p.shared(name).ok_or_else(|| bad(format!("missing part {name}")))?.into();
+    let xml: Shared<XmlElement> = parse_xml(&bytes)?.into();
+    let key = misterdiagram_opc::norm(name);
+    let nodes = p
+        .node_counts
+        .try_borrow()
+        .map_err(|_| bad("recursive XML node count access"))?
+        .get(&key)
+        .copied()
+        .ok_or_else(|| bad("missing XML node count"))?;
+    let owner = p.original_name(name).ok_or_else(|| bad("missing part owner"))?.to_string();
+    let memo = PartMemo::new(cache::CachedXml { owner, bytes, xml: xml.clone(), nodes, contents: Default::default() });
+    p.memos.try_borrow_mut().map_err(|_| bad("recursive part memo access"))?.insert(key, memo);
+    Ok(xml)
 }
-fn retain_xml(p: &ReadPackage, d: &mut Document, name: &str, root: XmlElement) -> Result<(), ReadError> {
+fn parsed_contents(p: &ReadPackage, name: &str, root: &XmlElement) -> Result<cache::Contents, ReadError> {
+    let memo = if name.is_empty() { None } else { p.memo(name)? };
+    let cached = memo.as_ref().and_then(PartMemo::get::<cache::CachedXml>);
+    if let Some(contents) = cached.and_then(|c| c.contents.get()) {
+        return Ok(contents.clone());
+    }
+    let contents = (shapes(root, 0)?.into(), connects(root)?.into());
+    if let Some(cached) = cached {
+        let _ = cached.contents.set(contents.clone());
+    }
+    Ok(contents)
+}
+fn retain_xml(p: &ReadPackage, d: &mut Document, name: &str, root: Shared<XmlElement>) -> Result<(), ReadError> {
     let original = p.original_name(name).ok_or_else(|| bad("part name missing"))?;
     if let Some(part) = d.parts.get_mut(original) {
         part.xml = Some(root);
@@ -426,11 +494,12 @@ fn retain_xml(p: &ReadPackage, d: &mut Document, name: &str, root: XmlElement) -
 }
 fn relationships(p: &ReadPackage, name: &str) -> Result<Vec<Relationship>, ReadError> {
     let rel_part = misterdiagram_opc::rels_path(name);
-    let Some(bytes) = p.get(&rel_part) else { return Ok(vec![]) };
-    p.charge(&rel_part)?;
+    if p.get(&rel_part).is_none() {
+        return Ok(vec![]);
+    };
     #[cfg(test)]
     RELATIONSHIP_PARSES.with(|n| n.set(n.get() + 1));
-    let root = parse_xml(bytes)?;
+    let root = part_xml(p, &rel_part)?;
     if root.name != "Relationships" || root.namespace != REL_NS {
         return Err(bad("invalid relationship root"));
     }
@@ -662,20 +731,21 @@ fn parse_pages(
             continue;
         }
         let content = if target.is_empty() {
-            XmlElement { name: "PageContents".into(), namespace: e.namespace.clone(), ..Default::default() }
+            Shared::from(XmlElement { name: "PageContents".into(), namespace: e.namespace.clone(), ..Default::default() })
         } else {
             part_xml(p, &target)?
         };
         if !content.is_visio("PageContents") {
             return Err(bad("invalid PageContents root"));
         }
+        let (shapes, connects) = parsed_contents(p, &target, &content)?;
         d.pages.push(Page {
             id: required_u32(e, "ID")?,
             name: string(e, "Name"),
             name_u: string(e, "NameU"),
             sheet: e.child("PageSheet").map(parse_sheet).transpose()?.unwrap_or_default(),
-            shapes: shapes(&content, 0)?,
-            connects: connects(&content)?,
+            shapes,
+            connects,
             part: target.clone(),
             attributes: e.attributes.clone(),
         });
@@ -706,13 +776,14 @@ fn parse_masters(
                 continue;
             }
             let content = if target.is_empty() {
-                XmlElement { name: "MasterContents".into(), namespace: e.namespace.clone(), ..Default::default() }
+                Shared::from(XmlElement { name: "MasterContents".into(), namespace: e.namespace.clone(), ..Default::default() })
             } else {
                 part_xml(p, &target)?
             };
             if !content.is_visio("MasterContents") {
                 return Err(bad("invalid MasterContents root"));
             }
+            let (shapes, connects) = parsed_contents(p, &target, &content)?;
             d.masters.push(Master {
                 id: required_u32(e, "ID")?,
                 name: string(e, "Name"),
@@ -721,8 +792,8 @@ fn parse_masters(
                 base_id: e.attr("BaseID").map(str::to_string),
                 icon: e.child("Icon").cloned(),
                 sheet: e.child("PageSheet").map(parse_sheet).transpose()?.unwrap_or_default(),
-                shapes: shapes(&content, 0)?,
-                connects: connects(&content)?,
+                shapes,
+                connects,
                 part: target.clone(),
                 attributes: e.attributes.clone(),
             });

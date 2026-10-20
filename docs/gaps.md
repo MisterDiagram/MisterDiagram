@@ -164,6 +164,28 @@ The benchmark captures compare 18/18 saved packages, and corpus/CLI/MCP captures
 compare 1,439/1,439 packages, with zero byte differences under the existing masks.
 Final performance and final-source equality measurements follow M5.22/M5.23.
 
+### M5.22 immutable parts and picture ownership
+
+Strict publication still constructs and evaluates the complete candidate. Whole
+XML or serialized-byte equality allows unchanged parts to retain their original
+allocation. A private reader proof then reuses admitted XML and typed page/master
+contents. Changed document cells, relationships and media cannot use that proof.
+Every logical XML node is still charged against the original 4,000,000-node
+budget, and every file and session bound remains unchanged.
+
+Pictures use copy-on-write ownership across document versions, undo and rollback.
+The session census pins each picture identity and charges that allocation once.
+The unchanged real-session witness now completes all 39 edit events without a
+memory refusal, but its unfiltered inspection exceeds the existing 64 KiB result
+budget. A separate filtered diagnostic confirms failed-batch rollback and finds
+16 retained undo entries, below the requested 32. The full heavy-session target
+is therefore still unmet. Neither witness nor ceiling was relaxed.
+
+All 18 workload/chunk packages and all 1,439 corpus/recipe packages compare
+byte-equal to the starting build under the unchanged masks. Five focused
+geometry, dependency, page, document and picture witnesses also compare equal.
+Full CI passes all eight gates: 686 tests passed, zero failed and three ignored.
+
 The strict writer/import boundary refreshes dependent stored values, normalizes
 RGB formulas and palette entries (including removed F), publishes inherited
 instance cells and caches, allocates relationships and validates the package.

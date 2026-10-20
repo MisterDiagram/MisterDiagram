@@ -31,7 +31,7 @@ pub const RT_CORE: &str = "http://schemas.openxmlformats.org/package/2006/relati
 
 /// The files of a package, keyed by normalised part name (no leading slash, lowercase).
 pub struct Package {
-    parts: HashMap<String, (String, Vec<u8>)>,
+    parts: HashMap<String, (String, std::sync::Arc<Vec<u8>>)>,
     content_types: std::sync::OnceLock<Option<ContentTypes>>,
 }
 
@@ -68,7 +68,7 @@ impl Package {
                 }
             }
             total = total.saturating_add(data.len() as u64);
-            if parts.insert(name.to_ascii_lowercase(), (name, data)).is_some() {
+            if parts.insert(name.to_ascii_lowercase(), (name, std::sync::Arc::new(data))).is_some() {
                 return Err(OpcError::InvalidPackage("duplicate part name".into()));
             }
         }
@@ -82,7 +82,35 @@ impl Package {
     }
     /// Transfer decompressed buffers without duplicating their allocations.
     pub fn into_parts(self) -> impl Iterator<Item = (String, Vec<u8>)> {
+        self.parts.into_values().map(|(name, data)| (name, std::sync::Arc::unwrap_or_clone(data)))
+    }
+    /// Transfer shared immutable package buffers to the admitted reader model.
+    pub fn into_shared_parts(self) -> impl Iterator<Item = (String, std::sync::Arc<Vec<u8>>)> {
         self.parts.into_values()
+    }
+    pub fn shared(&self, name: &str) -> Option<std::sync::Arc<Vec<u8>>> {
+        self.parts.get(&norm(name)).map(|(_, data)| data.clone())
+    }
+    /// Admit a serialized part map with the same entry and byte bounds as ZIP input.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
+    pub fn from_shared_parts(files: impl IntoIterator<Item = (String, std::sync::Arc<Vec<u8>>)>) -> Result<Self, OpcError> {
+        let mut parts = HashMap::new();
+        let mut total = 0u64;
+        for (name, data) in files {
+            if parts.len() >= MAX_ENTRIES {
+                return Err(OpcError::InvalidPackage("too many entries".into()));
+            }
+            let name = name.trim_start_matches('/').to_string();
+            let size = data.len() as u64;
+            if size > MAX_PART {
+                return Err(OpcError::InvalidPackage(format!("oversized part {name} ({size} bytes)")));
+            }
+            total = total.checked_add(size).filter(|n| *n <= MAX_TOTAL).ok_or_else(|| OpcError::InvalidPackage("total size cap exceeded".into()))?;
+            if parts.insert(name.to_ascii_lowercase(), (name, data)).is_some() {
+                return Err(OpcError::InvalidPackage("duplicate part name".into()));
+            }
+        }
+        Ok(Self { parts, content_types: std::sync::OnceLock::new() })
     }
     /// Validate the Visio document relationship and main part content type.
     /// Reference: <https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx>.
@@ -440,5 +468,20 @@ mod tests {
         assert_eq!(relative("ppt/slides/slide1.xml", "ppt/media/image1.png"), "../media/image1.png");
         assert_eq!(relative("ppt/presentation.xml", "ppt/slides/slide1.xml"), "slides/slide1.xml");
         assert_eq!(relative("ppt/slides/slide1.xml", "ppt/slides/slide2.xml"), "slide2.xml");
+    }
+}
+
+#[cfg(test)]
+mod shared_parts_tests {
+    use super::*;
+    use std::sync::Arc;
+    #[test]
+    fn shared_parts_reject_hostile_duplicate_names_and_entry_count() {
+        let bytes = Arc::new(vec![1]);
+        assert!(Package::from_shared_parts(vec![("A".into(), bytes.clone()), ("/a".into(), bytes.clone())]).is_err());
+        assert!(Package::from_shared_parts((0..=MAX_ENTRIES).map(|i| (format!("part{i}"), bytes.clone()))).is_err());
+        let package = Package::from_shared_parts(vec![("original.bin".into(), bytes.clone())]).unwrap();
+        assert!(Arc::ptr_eq(&package.shared("original.bin").unwrap(), &bytes));
+        assert_eq!(package.get("original.bin"), Some(&[1][..]));
     }
 }

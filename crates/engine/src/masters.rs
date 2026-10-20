@@ -553,7 +553,7 @@ pub(crate) fn new_from_shape(s: &mut Session, p: &Value) -> Result<Value> {
         master.attributes.insert("MatchByName".into(), "0".into());
         master.sheet.sections.clear();
         set_number(&mut master.sheet, "DrawingResizeType", 1.)?;
-        master.shapes = vec![shape];
+        master.shapes = vec![shape].into();
         canonical_master_text(&mut master.shapes, 0)?;
         master.connects.clear();
         let ids = map_shape_ids(&master.shapes, 5)?;
@@ -574,11 +574,14 @@ pub(crate) fn new_from_shape(s: &mut Session, p: &Value) -> Result<Value> {
                 misterdiagram_model::Part {
                     relationships,
                     content_type: Some("application/vnd.ms-visio.master+xml".into()),
-                    xml: Some(misterdiagram_model::XmlElement {
-                        name: "MasterContents".into(),
-                        namespace: "http://schemas.microsoft.com/office/visio/2012/main".into(),
-                        ..Default::default()
-                    }),
+                    xml: Some(
+                        misterdiagram_model::XmlElement {
+                            name: "MasterContents".into(),
+                            namespace: "http://schemas.microsoft.com/office/visio/2012/main".into(),
+                            ..Default::default()
+                        }
+                        .into(),
+                    ),
                     ..Default::default()
                 },
             );
@@ -609,7 +612,7 @@ mod tests {
         for (name, xml) in [("first.xml", "<Original/>"), ("second.xml", "<Original><Child/></Original>")] {
             source.parts.insert(
                 name.into(),
-                misterdiagram_model::Part { xml: Some(misterdiagram_vsdx::parse_xml(xml.as_bytes()).unwrap()), ..Default::default() },
+                misterdiagram_model::Part { xml: Some(misterdiagram_vsdx::parse_xml(xml.as_bytes()).unwrap().into()), ..Default::default() },
             );
         }
         let budget = Session::new().reservation();
@@ -650,7 +653,7 @@ mod tests {
         outer.unique_id = Some("{OWN-OUTER}".into());
         outer.name_u = "Outer".into();
         outer.part.clear();
-        outer.shapes = vec![Shape { id: 8, shape_type: Some("Shape".into()), master: Some(2), master_shape: Some(4), ..Default::default() }];
+        outer.shapes = vec![Shape { id: 8, shape_type: Some("Shape".into()), master: Some(2), master_shape: Some(4), ..Default::default() }].into();
         source.masters.push(outer);
         let mut destination = misterdiagram_model::skeleton::document(false);
         let id = import_master(&mut destination, &source, 3, &mut BTreeSet::new(), &Session::new().reservation()).unwrap();

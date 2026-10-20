@@ -34,3 +34,27 @@ connection points in one evaluator epoch. SETF assignments and contextual hook
 activity invalidate the epoch; a computation that changes it is never cached.
 Old and new document evaluators have separate caches. Empty routed sets skip
 construction of the crossing-decoration evaluator.
+
+Strict publication also shares immutable package allocations. The writer still
+builds and evaluates the complete candidate using the existing dependency policy.
+It reuses source bytes only when the whole generated XML tree equals an admitted
+source tree, or when the completed serialization equals the whole original byte
+sequence. Page, document and theme changes therefore retain the writer's existing
+formula invalidation. An unchanged filename alone never permits reuse.
+
+The reader's private memo binds an original part name to its exact byte allocation,
+parsed XML, parsed shape/connect vectors and original logical node charge. Only
+that proof can skip parsing on publication. Each document version still incurs
+its original logical node charge; reuse never raises the 4,000,000-node bound.
+All file, XML, part, entry and decompressed-package limits remain unchanged.
+Internal publication transfers the admitted part map without ZIP round trips.
+A conservative compressed-size envelope proves the original compressed-file cap;
+when inconclusive, a counting ZIP writer checks the actual compressed size.
+Ordinary file saves compress once and check their actual output size.
+
+Picture bytes use copy-on-write ownership across documents, stencils, history,
+batches and rollback snapshots. A reservation pins each counted picture allocation
+and charges it once, including its raw-byte contribution. Replacing or mutating a
+picture detaches that allocation; the old version keeps its original bytes.
+Nonmedia source, history and logical-node accounting retain their prior rules.
+The default 2 GiB session ceiling and all derived limits are unchanged.

@@ -841,7 +841,8 @@ mod tests {
                     id: 2,
                     sheet: Sheet { cells: vec![Cell { name: "Width".into(), value: Some("2".into()), ..Default::default() }], ..Default::default() },
                     ..Default::default()
-                }],
+                }]
+                .into(),
                 ..Default::default()
             }],
             ..Default::default()
@@ -872,7 +873,12 @@ mod tests {
         };
         let doc = Document {
             styles: vec![Style { id: 0, name_u: "No Style".into(), sheet: sheet.clone(), ..Default::default() }],
-            pages: vec![Page { id: 0, name_u: "Page-1".into(), shapes: vec![Shape { id: 1, sheet, ..Default::default() }], ..Default::default() }],
+            pages: vec![Page {
+                id: 0,
+                name_u: "Page-1".into(),
+                shapes: vec![Shape { id: 1, sheet, ..Default::default() }].into(),
+                ..Default::default()
+            }],
             ..Default::default()
         };
         let mut out = Vec::new();
@@ -900,7 +906,8 @@ mod tests {
                     id: 5,
                     sheet: Sheet { sections: vec![section(vec![row("A", "1"), row("B", "2")])], ..Default::default() },
                     ..Default::default()
-                }],
+                }]
+                .into(),
                 ..Default::default()
             }],
             pages: vec![Page {
@@ -927,7 +934,8 @@ mod tests {
                         },
                         ..Default::default()
                     },
-                ],
+                ]
+                .into(),
                 ..Default::default()
             }],
             ..Default::default()

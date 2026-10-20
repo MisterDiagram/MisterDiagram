@@ -69,7 +69,7 @@ fn action_zero_width_arcs_match_visio_collapsed_strokes() {
             ..Default::default()
         });
         let mut doc = misterdiagram_model::skeleton::document(false);
-        doc.masters = vec![Master { id: 1, name_u: name.into(), shapes: vec![shape], ..Default::default() }];
+        doc.masters = vec![Master { id: 1, name_u: name.into(), shapes: vec![shape].into(), ..Default::default() }];
         // Exercise our own original package fixture, including import and unchanged save.
         let doc = misterdiagram_vsdx::import(&misterdiagram_vsdx::write(&doc).unwrap().bytes).unwrap();
         let mut e = Evaluator::new(&doc).unwrap();

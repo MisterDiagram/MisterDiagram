@@ -1,5 +1,7 @@
 //! Lossless Visio package data and typed ShapeSheet records. Page coordinates are inches, y-up.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
+mod shared;
+pub use shared::{PartMemo, Shared};
 use std::collections::BTreeMap;
 mod compact;
 pub use compact::{Attributes, XmlString};
@@ -91,9 +93,10 @@ pub struct Relationship {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Part {
-    pub bytes: Vec<u8>,
+    pub bytes: Shared<Vec<u8>>,
+    pub memo: PartMemo,
     pub content_type: Option<String>,
-    pub xml: Option<XmlElement>,
+    pub xml: Option<Shared<XmlElement>>,
     pub relationships: Vec<Relationship>,
 }
 
@@ -308,10 +311,10 @@ pub struct Page {
     pub sheet: Sheet,
     /// Shapes in the related PageContents part.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
-    pub shapes: Vec<Shape>,
+    pub shapes: Shared<Vec<Shape>>,
     /// Connect records in the related PageContents part.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
-    pub connects: Vec<Connect>,
+    pub connects: Shared<Vec<Connect>>,
     /// Resolved PageContents part name.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
     pub part: String,
@@ -347,10 +350,10 @@ pub struct Master {
     pub sheet: Sheet,
     /// Shapes in the related MasterContents part.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
-    pub shapes: Vec<Shape>,
+    pub shapes: Shared<Vec<Shape>>,
     /// Connect records in the related MasterContents part.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
-    pub connects: Vec<Connect>,
+    pub connects: Shared<Vec<Connect>>,
     /// Resolved MasterContents part name.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
     pub part: String,
