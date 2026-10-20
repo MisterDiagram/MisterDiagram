@@ -44,7 +44,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/beginarrow-cell-line-format-section> | `crates/render/src/style.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/beginarrowsize-cell-line-format-section> | `crates/render/src/style.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/beginx-cell-1-d-endpoints-section> | `crates/engine/src/reference_cleanup.rs`, `crates/vsdx/src/evaluate/transform.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/begtrigger-cell-glue-info-section> | `crates/route/src/glue_host.rs`, `crates/sheet/src/eval.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/write.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/begtrigger-cell-glue-info-section> | `crates/route/src/glue_host.rs`, `crates/route/src/scope.rs`, `crates/sheet/src/eval.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/write.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/bitand-function> | `crates/sheet/src/functions/extras.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/bitnot-function> | `crates/sheet/src/functions/extras.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/bitor-function> | `crates/sheet/src/functions/extras.rs` |
@@ -207,7 +207,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/not-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/nurbs-function> | `crates/geom/src/rows.rs`, `crates/sheet/src/functions/constructors.rs`, `crates/vsdx/tests/nurbs_knots.rs`, `tools/oracle/vendor-stencils/knot-precision-witness.ps1`, `tools/oracle/vendor-stencils/knot-serialization-confirmation.ps1` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/nurbsto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/vsdx/tests/nurbs_knots.rs`, `tools/oracle/vendor-stencils/knot-precision-witness.ps1`, `tools/oracle/vendor-stencils/knot-serialization-confirmation.ps1` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/objtype-cell-miscellaneous-section> | `crates/route/src/orthogonal.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/objtype-cell-miscellaneous-section> | `crates/route/src/orthogonal.rs`, `crates/route/src/scope.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/or-function> | `crates/sheet/src/functions/mod.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml> | `crates/engine/src/inspect.rs`, `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs`, `crates/model/tests/from_scratch.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/write.rs`, `crates/vsdx/src/write/validate.rs`, `tools/oracle/accept_report.py` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pageheight-cell-page-properties-section> | `crates/engine/src/pages.rs` |

@@ -146,6 +146,24 @@ Profile runs are separate and are not used for speed targets.
 | san-large | 250, 500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500 | 25.567662, 50.004520, 59.885243, 119.373225, 192.049607, 261.290014, 318.003051, 361.286276, 352.243243, 342.041014 | 43.248886 |
 | shapes-377 | 250, 500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500 | 20.463946, 47.434416, 74.948677, 103.684533, 129.571988, 157.006841, 190.050019, 229.053598, 262.166886, 295.596738 | 30.523505 |
 
+### M5.21 conservative routing scope
+
+Strict publication records a weak identity for its validated predecessor. Proven
+independent presentation, text and Shape Data edits can exclude all connectors;
+any geometry, connection-point, topology, page/document or uncertain formula
+change retains the full dependency closure. This includes old and new obstacle
+bounds, route corridors and indirect formula users. Empty connector sets avoid
+rerouting evaluators after geometry validation. Shared glue targets reuse bounds
+only within the same evaluator epoch, with a bounded cache and recomputation on
+assignment or contextual effects. See [the engine rule](engine.md).
+
+The route sweep remains 28/29 within 1e-6, with jump-three-crossings the existing
+gap. The P4b closure remains 40 connectors, 1,344 compared cells and zero
+differences. CI passes all eight gates (679 tests, zero failures, three ignored).
+The benchmark captures compare 18/18 saved packages, and corpus/CLI/MCP captures
+compare 1,439/1,439 packages, with zero byte differences under the existing masks.
+Final performance and final-source equality measurements follow M5.22/M5.23.
+
 The strict writer/import boundary refreshes dependent stored values, normalizes
 RGB formulas and palette entries (including removed F), publishes inherited
 instance cells and caches, allocates relationships and validates the package.

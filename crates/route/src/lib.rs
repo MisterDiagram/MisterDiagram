@@ -10,5 +10,6 @@ pub use glue_host::GlueHost;
 mod fixed;
 mod jumps;
 mod orthogonal;
+mod scope;
 mod straight;
 pub use straight::reroute;

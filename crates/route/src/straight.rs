@@ -62,6 +62,9 @@ fn row(index: u32, kind: &str, cells: Vec<misterdiagram_model::Cell>, deleted: b
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/angle-cell-shape-transform-section
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.shape.reroute
 pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force: Option<(usize, Option<u32>)>) -> Result<usize, String> {
+    if host.unaffected && force.is_none() {
+        return Ok(0);
+    }
     if let Some((index, shape)) = force {
         let page = doc.pages.get(index).ok_or("route page missing")?;
         for id in page.connects.iter().map(|c| c.from_sheet) {

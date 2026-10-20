@@ -51,6 +51,9 @@ fn row(index: u32, kind: &str, p: Point, a: Option<misterdiagram_model::Cell>) -
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/pagelinejumpdirx-cell-page-layout-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/pagelinejumpdiry-cell-page-layout-section
 pub(crate) fn apply(doc: &mut Document, host: &mut GlueHost, routed: &BTreeSet<(usize, u32)>) -> Result<(), String> {
+    if routed.is_empty() {
+        return Ok(());
+    }
     let themes = misterdiagram_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
     let text = misterdiagram_text::Host;
     let mut e = Evaluator::new(doc).map_err(|v| v.to_string())?.with_theme_host(&themes).with_text_host(&text).with_glue_host(host);

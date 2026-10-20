@@ -278,6 +278,13 @@ impl<'a> Evaluator<'a> {
         self.values.clear();
         self
     }
+    /// Stamp for application-local memoization of evaluated geometry. SETF and
+    /// context-dependent hooks invalidate reuse, including effects while computing
+    /// the value being memoized. The evaluator and document must remain the same.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/setf-function
+    pub fn evaluation_epoch(&self) -> (usize, u64) {
+        (self.revision, self.context_epoch.get())
+    }
     /// Inject runtime glue hooks while unimplemented hooks retain their source caches.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/begtrigger-cell-glue-info-section
     pub fn with_glue_host(mut self, host: &'a mut dyn misterdiagram_sheet::HostHooks) -> Self {

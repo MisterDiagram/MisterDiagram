@@ -60,6 +60,35 @@ fn bounds(e: &mut Evaluator<'_>, page: u32, shape: u32) -> Result<BoxShape, Stri
     }
     Ok(BoxShape { transform, width, height, min, max, points })
 }
+/// One target can serve hundreds of endpoints. Reuse its evaluated geometry only
+/// in the same evaluator epoch; assignments or contextual hooks prevent reuse.
+#[derive(Default)]
+struct TargetBounds {
+    epoch: Option<(usize, u64)>,
+    values: BTreeMap<(u32, u32), std::rc::Rc<BoxShape>>,
+    points: usize,
+}
+impl TargetBounds {
+    fn get(&mut self, e: &mut Evaluator<'_>, page: u32, shape: u32) -> Result<std::rc::Rc<BoxShape>, String> {
+        let epoch = e.evaluation_epoch();
+        if self.epoch != Some(epoch) {
+            self.values.clear();
+            self.points = 0;
+            self.epoch = Some(epoch);
+        }
+        if let Some(value) = self.values.get(&(page, shape)) {
+            return Ok(value.clone());
+        }
+        let value = std::rc::Rc::new(bounds(e, page, shape)?);
+        // Cache saturation falls back to ordinary computation, never an input refusal.
+        let points = self.points.checked_add(value.points.len());
+        if e.evaluation_epoch() == epoch && self.values.len() < 4096 && points.is_some_and(|n| n <= 65536) {
+            self.points = points.ok_or("target memo point overflow")?;
+            self.values.insert((page, shape), value.clone());
+        }
+        Ok(value)
+    }
+}
 fn center(b: &BoxShape) -> Point {
     Point::new((b.min.x + b.max.x) * 0.5, (b.min.y + b.max.y) * 0.5)
 }
@@ -125,6 +154,7 @@ fn endpoint(b: &BoxShape, other: &BoxShape, vertical: bool) -> Result<Point, Str
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/walkpreference-cell-glue-info-section
 #[derive(Default)]
 pub struct GlueHost {
+    pub(crate) unaffected: bool,
     points: BTreeMap<Key, Point>,
     triggers: BTreeMap<Key, f64>,
     active: std::collections::BTreeSet<(u32, u32)>,
@@ -158,12 +188,23 @@ impl GlueHost {
     /// Endpoint caches are not filled here: evaluation must call `_WALKGLUE` to obtain the new point.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/eventxfmod-cell-events-section
     pub fn prepare(before: &Document, doc: &mut Document) -> Result<Self, String> {
+        Self::prepare_scoped(before, doc, false)
+    }
+    /// A validated predecessor permits exclusion of edits proved independent of
+    /// routing. Imported or restored documents use the full validation path.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/eventxfmod-cell-events-section
+    pub fn prepare_scoped(before: &Document, doc: &mut Document, validated: bool) -> Result<Self, String> {
+        if validated && crate::scope::unaffected(before, doc) {
+            return Ok(Self { unaffected: true, ..Self::default() });
+        }
         let themes = misterdiagram_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
         let old_themes = misterdiagram_theme::Themes::from_document(before).map_err(|e| e.to_string())?;
         let text = misterdiagram_text::Host;
         let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&text);
         let mut old = Evaluator::new(before).map_err(|e| e.to_string())?.with_theme_host(&old_themes).with_text_host(&text);
-        let mut host = Self::default();
+        let mut host = Self { unaffected: crate::scope::empty_routes(doc), ..Self::default() };
+        let mut current_bounds = TargetBounds::default();
+        let mut prior_bounds = TargetBounds::default();
         let mut changes = vec![];
         let mut affected = std::collections::BTreeSet::new();
         let mut count = 0usize;
@@ -192,14 +233,17 @@ impl GlueHost {
             for (id, links) in links {
                 let scope = Scope::PageShape { page: page.id, shape: id };
                 let dynamic = |c: Option<&misterdiagram_model::Connect>| c.is_some_and(|c| matches!(c.to_cell.as_deref(), Some("PinX" | "PinY")));
-                let boxes = links.map(|c| c.map(|c| bounds(&mut e, page.id, c.to_sheet)).transpose()).into_iter().collect::<Result<Vec<_>, _>>()?;
+                let boxes = links
+                    .map(|c| c.map(|c| current_bounds.get(&mut e, page.id, c.to_sheet)).transpose())
+                    .into_iter()
+                    .collect::<Result<Vec<_>, _>>()?;
                 let preference = number(&mut e, scope, "WalkPreference")?;
                 let planned = if number(&mut e, scope, "ConFixedCode")? != 2.
                     && preference == 0.
                     && links.iter().all(|c| dynamic(*c))
                     && boxes.iter().flatten().all(|b| b.points.is_empty())
                 {
-                    if let (Some(a), Some(b)) = (boxes.first().and_then(Option::as_ref), boxes.get(1).and_then(Option::as_ref)) {
+                    if let (Some(a), Some(b)) = (boxes.first().and_then(Option::as_deref), boxes.get(1).and_then(Option::as_deref)) {
                         let excluded = links.iter().flatten().map(|c| c.to_sheet).collect::<Vec<_>>();
                         let style = crate::orthogonal::style(&mut e, scope, page.id);
                         let obstacles =
@@ -242,8 +286,8 @@ impl GlueHost {
                 for (side, link) in links.iter().enumerate() {
                     let Some(link) = link else { continue };
                     let end = if side == 0 { End::Begin } else { End::End };
-                    let target = boxes.get(side).and_then(Option::as_ref).ok_or("glue target missing")?;
-                    let old_target = bounds(&mut old, page.id, link.to_sheet).ok();
+                    let target = boxes.get(side).and_then(Option::as_deref).ok_or("glue target missing")?;
+                    let old_target = prior_bounds.get(&mut old, page.id, link.to_sheet).ok();
                     let changed = inputs_changed
                         || old_target.is_none_or(|o| {
                             o.transform != target.transform || o.width != target.width || o.height != target.height || o.points != target.points
@@ -260,7 +304,7 @@ impl GlueHost {
                         affected.insert((page_index, id));
                     }
                     if dynamic(Some(link)) {
-                        let opposite = boxes.get(1usize.saturating_sub(side)).and_then(Option::as_ref);
+                        let opposite = boxes.get(1usize.saturating_sub(side)).and_then(Option::as_deref);
                         let fallback;
                         let other = if let Some(other) = opposite {
                             other
@@ -294,7 +338,7 @@ impl GlueHost {
             set(&mut shape.sheet, cell(name, value, formula))?;
         }
         let mut centers = Vec::new();
-        {
+        if !affected.is_empty() {
             let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&text).with_glue_host(&mut host);
             for (index, id) in affected {
                 let page = doc.pages.get(index).ok_or("glue page missing")?;
@@ -350,6 +394,16 @@ mod tests {
         assert_eq!(host.hook_at(Some(0), Some(3), "BeginY", "_WALKGLUE", &[], &Value::Number(6.75)), Value::Point(2.5, 6.25));
         assert_eq!(host.hook_at(Some(0), Some(3), "EndTrigger", "_XFTRIGGER", &[], &Value::Number(2.)), Value::Number(3.));
         assert_eq!(host.hook_at(Some(0), Some(3), "Other", "unknown", &[], &Value::Number(17.)), Value::Number(17.));
+    }
+    #[test]
+    fn shared_target_bounds_do_not_hide_formula_assignments() {
+        let mut doc = drawing();
+        doc.pages[0].shapes[0].sheet.cells.push(cell("User.Assign", 0, Some("SETF(GETREF(Width),3)".into())));
+        let mut evaluator = Evaluator::new(&doc).unwrap();
+        let mut targets = TargetBounds::default();
+        assert_eq!(targets.get(&mut evaluator, 0, 1).unwrap().width, 1.5);
+        evaluator.evaluate(Scope::PageShape { page: 0, shape: 1 }, "User.Assign");
+        assert_eq!(targets.get(&mut evaluator, 0, 1).unwrap().width, 3.);
     }
     #[test]
     fn hostile_target_coordinates_and_counter_overflow_return_errors() {

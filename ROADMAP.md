@@ -9,6 +9,7 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-20: M5.21 routing scope (#39): proven independent presentation/data edits skip glue and routing preparation after a validated publication. Geometry, obstacles and uncertain formula effects keep the full dependency closure. Repeated glue targets share evaluated bounds within one evaluator epoch. Route sweep remains 28/29 with the named jump gap; closure remains 40 connectors and zero differences. All eight CI gates pass, with 679 passing tests and zero failures. The benchmark gate compares 18 saved packages with zero differences.
 - 2026-10-20: M5.20 baseline (#39): eight strict release workloads now include the original SAN groups and bitmap hosts, ten 250-command rectangle invocations, and 20 edits to a large drawing. Baseline `27f6a35` measures ports-1900 at 591.16 s, san-large at 2081.83 s, shapes-377 at 1509.98 s, and large-edit at 19.95 s. Every timing run exits 0; saved packages are retained for strict equality before optimization. Stage and slice tables sit beside the original M5.0 measurements in docs/gaps.md.
 
 - 2026-10-20: M5.28 review hygiene (#73, #74, #77): README function count is tied to the 117-entry registry, current CLI/MCP/status docs replace Phase 1 notes, Python comparisons become explicitly optional locally and mandatory in CI, and Ubuntu checks the dependency-required Rust 1.92 minimum. EMF bitmap-offset reads use checked slices with a hostile 32-bit regression. No saved-package or oracle policy changes.

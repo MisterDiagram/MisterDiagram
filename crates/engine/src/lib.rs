@@ -78,6 +78,7 @@ pub struct Session {
     journal: VecDeque<JournalEntry>,
     journal_bytes: usize,
     dirty: bool,
+    routing_validated: std::sync::Weak<Document>,
     editing: bool,
     read_reservations: Vec<Arc<Document>>,
     stencil_reservations: Vec<Arc<Document>>,
@@ -99,6 +100,7 @@ impl Default for Session {
             journal: VecDeque::new(),
             journal_bytes: 0,
             dirty: false,
+            routing_validated: std::sync::Weak::new(),
             revision: 0,
             saved_revision: Some(0),
             save_generation: 0,
@@ -260,7 +262,9 @@ impl Session {
                     part.bytes.clear();
                     Arc::make_mut(&mut self.document).parts.insert("docProps/app.xml".into(), part);
                 }
-                let mut glue = misterdiagram_route::GlueHost::prepare(&before.document, Arc::make_mut(&mut self.document)).map_err(operation)?;
+                let validated = self.routing_validated.upgrade().is_some_and(|d| Arc::ptr_eq(&d, &before.document));
+                let mut glue = misterdiagram_route::GlueHost::prepare_scoped(&before.document, Arc::make_mut(&mut self.document), validated)
+                    .map_err(operation)?;
                 misterdiagram_route::reroute(&before.document, Arc::make_mut(&mut self.document), &mut glue, None).map_err(operation)?;
                 let theme = misterdiagram_theme::Themes::from_document(&self.document).map_err(operation)?;
                 let written =
@@ -272,6 +276,7 @@ impl Session {
                 self.reserve(Some((&document, false)))?;
                 self.document = Arc::new(document);
                 files::update_palette(Arc::make_mut(&mut self.document))?;
+                self.routing_validated = Arc::downgrade(&self.document);
                 self.advance_revision()?;
                 published = true;
                 self.dirty = false;
