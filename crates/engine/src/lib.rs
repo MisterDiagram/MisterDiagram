@@ -16,6 +16,8 @@ mod layout;
 mod masters;
 mod network;
 mod pages;
+#[cfg(test)]
+mod panic_tests;
 mod reference_cleanup;
 mod retention;
 mod shapes;
@@ -179,6 +181,14 @@ impl Session {
     /// Execute one command as one rollback, undo and journal boundary.
     /// https://learn.microsoft.com/en-us/office/vba/api/visio.application.beginundoscope
     pub fn execute(&mut self, id: &str, params: &Value) -> Result<Value> {
+        // Edits restore their own snapshot. Orchestrators publish a candidate only
+        // on success, so unwinding discards it without another rollback snapshot.
+        match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.dispatch(id, params))) {
+            Ok(result) => result,
+            Err(payload) => Err(EngineError::Internal(id.into(), guard::panic_message(payload.as_ref()))),
+        }
+    }
+    fn dispatch(&mut self, id: &str, params: &Value) -> Result<Value> {
         let bytes = params_size(params)?;
         let spec = find_command(id).ok_or_else(|| EngineError::UnknownCommand(id.chars().take(256).collect()))?;
         validate_schema(spec.params, params)?;
@@ -273,25 +283,20 @@ impl Session {
             self.read_reservations = before.read_reservations.clone();
             self.stencil_reservations = before.stencil_reservations.clone();
             self.editing = false;
+            // Keep post-publication history maintenance inside the edit guard.
+            if published || self.stencils.len() > before.stencils.len() {
+                self.trim_history();
+            }
             Ok(result)
         }));
         match result {
-            Ok(Ok(value)) => {
-                // Leave room for the next edit only after this one has committed.
-                // Reads, undo/redo and failures must not discard history. The old
-                // rollback clone drops on return, before any later admission.
-                if published || self.stencils.len() > before.stencils.len() {
-                    self.trim_history();
-                }
-                Ok(value)
-            }
+            Ok(Ok(value)) => Ok(value),
             Ok(Err(error)) => {
                 before.observe_external_save(self);
                 *self = before;
                 Err(error)
             }
             Err(payload) => {
-                before.observe_external_save(self);
                 *self = before;
                 Err(EngineError::Internal("session.edit".into(), guard::panic_message(payload.as_ref())))
             }

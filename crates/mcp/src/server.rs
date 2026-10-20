@@ -1,6 +1,6 @@
 //! JSON-RPC 2.0 framing and the MCP lifecycle / tools / resources methods.
 
-use std::io::{BufRead, Read, Write};
+use std::io::{BufRead, Write};
 const MAX_MESSAGE: u64 = 4 * 1024 * 1024;
 
 use serde_json::{Value, json};
@@ -74,15 +74,52 @@ impl Server {
     /// Serve newline-delimited JSON-RPC until `input` closes. Logs go to stderr only (stdout is
     /// the protocol stream).
     pub fn serve(&mut self, mut input: impl BufRead, mut output: impl Write) -> std::io::Result<()> {
+        // One allocation avoids retaining earlier growth allocations alongside
+        // the cap-sized frame on allocators that keep freed blocks resident.
+        let mut line = Vec::with_capacity(MAX_MESSAGE as usize);
         loop {
-            let mut line = String::new();
-            if input.by_ref().take(MAX_MESSAGE + 1).read_line(&mut line)? == 0 {
+            line.clear();
+            if line.capacity() == 0 {
+                line.reserve_exact(MAX_MESSAGE as usize);
+            }
+            let mut oversized = false;
+            // Drain one entire frame. Once over cap, consume borrowed chunks
+            // without retaining any more bytes, including the terminating LF.
+            loop {
+                let chunk = input.fill_buf()?;
+                if chunk.is_empty() {
+                    break;
+                }
+                let newline = chunk.iter().position(|b| *b == b'\n');
+                let count = newline.map_or(chunk.len(), |i| i + 1);
+                if !oversized {
+                    if count > (MAX_MESSAGE as usize).saturating_sub(line.len()) {
+                        oversized = true;
+                        // The rejected prefix is no longer useful. Release it
+                        // before draining or constructing the error/next reply.
+                        line.clear();
+                        line.shrink_to_fit();
+                    } else {
+                        line.extend_from_slice(&chunk[..count]);
+                    }
+                }
+                input.consume(count);
+                if newline.is_some() {
+                    break;
+                }
+            }
+            if line.is_empty() && !oversized {
                 break;
             }
-            if line.len() as u64 > MAX_MESSAGE {
-                return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "MCP message exceeds cap"));
-            }
-            if let Some(reply) = self.handle_line(&line) {
+            let reply = if oversized {
+                Some(error(Value::Null, PARSE_ERROR, "MCP message exceeds cap").to_string())
+            } else {
+                match std::str::from_utf8(&line) {
+                    Ok(line) => self.handle_line(line),
+                    Err(e) => Some(error(Value::Null, PARSE_ERROR, format!("parse error: {e}")).to_string()),
+                }
+            };
+            if let Some(reply) = reply {
                 output.write_all(reply.as_bytes())?;
                 output.write_all(b"\n")?;
                 output.flush()?;
@@ -143,6 +180,18 @@ impl Server {
 
     /// Handle one JSON-RPC message; `None` for notifications and responses.
     pub fn handle(&mut self, msg: Value) -> Option<Value> {
+        let id = msg.get("id").cloned().unwrap_or(Value::Null);
+        match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.handle_message(msg))) {
+            Ok(reply) => reply,
+            Err(payload) => {
+                let message = misterdiagram_engine::guard::panic_message(payload.as_ref());
+                let _ = writeln!(std::io::stderr(), "MCP request panic: {message}");
+                Some(error(id, INTERNAL_ERROR, message))
+            }
+        }
+    }
+
+    fn handle_message(&mut self, msg: Value) -> Option<Value> {
         let Value::Object(o) = &msg else { return Some(error(Value::Null, INVALID_REQUEST, "message must be an object")) };
         let id = o.get("id").cloned();
         let Some(method) = o.get("method").and_then(Value::as_str) else {
@@ -191,6 +240,10 @@ impl Server {
             "tools/call" => {
                 let name = params.get("name").and_then(Value::as_str).ok_or((INVALID_PARAMS, "missing tool `name`".to_string()))?;
                 let args = params.get("arguments").cloned().unwrap_or(json!({}));
+                #[cfg(any(test, feature = "test-panic-injection"))]
+                if name == "__test_panic_dispatch" {
+                    std::panic::resume_unwind(Box::new("injected server-dispatch panic"));
+                }
                 Ok(call_tool(self.backend.as_mut(), name, &args).to_value())
             }
             "resources/list" => Ok(json!({"resources": [
@@ -218,13 +271,43 @@ mod tests {
     use super::*;
     use crate::headless::Headless;
     #[test]
+    fn server_dispatch_panic_is_internal_error_and_next_message_works() {
+        let mut s = Server::new(Box::new(Headless::new()));
+        let reply = s.handle(json!({"id":"panic-id","method":"tools/call","params":{"name":"__test_panic_dispatch"}})).unwrap();
+        assert_eq!(reply["id"], "panic-id");
+        assert_eq!(reply["error"]["code"], INTERNAL_ERROR);
+        assert_eq!(reply["error"]["message"], "injected server-dispatch panic");
+        assert_eq!(s.handle(json!({"id":2,"method":"ping"})).unwrap()["result"], json!({}));
+    }
+    #[test]
+    fn framing_recovers_at_newline_and_eof_with_small_reader_chunks() {
+        for bad in [vec![b'x'; MAX_MESSAGE as usize + 1], vec![0xff, 0xfe]] {
+            let mut input = bad.clone();
+            input.extend_from_slice(b"\n{\"id\":7,\"method\":\"ping\"}\n");
+            let mut output = Vec::new();
+            let mut s = Server::new(Box::new(Headless::new()));
+            s.serve(std::io::BufReader::with_capacity(31, std::io::Cursor::new(input)), &mut output).unwrap();
+            let replies = String::from_utf8(output).unwrap().lines().map(|v| serde_json::from_str::<Value>(v).unwrap()).collect::<Vec<_>>();
+            assert_eq!(replies.len(), 2);
+            assert_eq!(replies[0]["id"], Value::Null);
+            assert_eq!(replies[0]["error"]["code"], PARSE_ERROR);
+            assert_eq!(replies[1]["id"], 7);
+            assert_eq!(replies[1]["result"], json!({}));
+            let mut output = Vec::new();
+            s.serve(std::io::Cursor::new(bad), &mut output).unwrap();
+            assert_eq!(String::from_utf8(output).unwrap().lines().count(), 1);
+        }
+    }
+    #[test]
     fn hostile_json_and_bounded_framing() {
         let mut s = Server::new(Box::new(Headless::new()));
         for text in ["{", "[]", "42", "{\"id\":null,\"method\":\"ping\"}"] {
             assert!(s.handle_line(text).is_some());
         }
         assert!(s.handle_line(&"[".repeat(200)).is_some());
-        assert!(s.serve(std::io::Cursor::new(vec![b'x'; MAX_MESSAGE as usize + 1]), Vec::new()).is_err());
+        let mut replies = Vec::new();
+        s.serve(std::io::Cursor::new(vec![b'x'; MAX_MESSAGE as usize + 1]), &mut replies).unwrap();
+        assert!(String::from_utf8(replies).unwrap().contains("MCP message exceeds cap"));
     }
     #[test]
     fn aggregate_and_escaped_responses_obey_the_framing_cap() {

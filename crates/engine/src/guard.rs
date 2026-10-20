@@ -23,3 +23,20 @@ pub fn install_panic_hook() {
         }));
     });
 }
+
+#[cfg(test)]
+thread_local! {
+    pub(crate) static PANIC_POINT: std::cell::Cell<Option<&'static str>> = const { std::cell::Cell::new(None) };
+}
+
+/// Fault injection is absent from default builds, including release artifacts.
+#[cfg(any(test, feature = "test-panic-injection"))]
+pub(crate) fn inject(point: &'static str) {
+    #[cfg(test)]
+    let armed = PANIC_POINT.with(|p| p.get() == Some(point));
+    #[cfg(not(test))]
+    let armed = std::env::var("MISTERDIAGRAM_TEST_PANIC").is_ok_and(|p| p == point);
+    if armed {
+        std::panic::resume_unwind(Box::new(format!("injected {point} panic")));
+    }
+}

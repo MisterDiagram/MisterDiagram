@@ -90,8 +90,18 @@ The rules below are enforced by the local workspace gates.
 - Errors are `Result<T, E>` + `?`. Input-derived numbers (files, commands, MCP/control params) are
   hostile: `get()` not `[i]`, checked arithmetic, no NaN casts, capped allocations, bounded
   recursion.
-- `Session::execute` runs every command inside a panic guard (`crates/engine/src/guard.rs`) that
-  keeps the drawing as it was. It is a safety net, not a licence.
+- `Session::execute` catches unwinding panics across validation, command dispatch,
+  composition, `engine.batch` and `engine.execute`, returning `EngineError::Internal`
+  with the panic message. Strict edits use `Session::edit`'s full-session restore;
+  composition and batch discard their unpublished candidate. Nested catches do not
+  restore twice. Document, stencil inventory/indices, selection, undo/redo, journal
+  and retention reservations survive, including revision/save bookkeeping on panic.
+  Already-written files are external side effects; returned operation errors retain
+  the existing conservative unsaved-state protection after a save.
+  Process aborts, allocation failure and external file writes cannot be rolled back.
+- MCP catches escaped per-message panics, logs to stderr, replies with JSON-RPC
+  -32603 and keeps the same session. Over-cap and non-UTF-8 lines receive one parse
+  error and are drained to their newline; EOF or real stream I/O errors end serving.
 - Every crash fix lands with a regression test.
 
 ## 4. Architecture

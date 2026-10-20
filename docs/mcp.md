@@ -22,7 +22,28 @@ See docs/architecture.md for the derivation.
 
 Run `misterdiagram mcp`. The server reads one JSON-RPC message per line on stdin
 and writes replies on stdout. Diagnostics use stderr. Messages are capped at
-4 MiB. `serverInfo.name` is `misterdiagram`. EOF shuts down the server.
+4 MiB, including the newline. Over-cap lines are drained through their newline
+without retaining bytes beyond the cap and receive one -32700 error with null id
+and `MCP message exceeds cap`. Invalid UTF-8 receives the same -32700 parse-error
+code as malformed JSON. The next request uses the same session. EOF or an actual
+stream I/O failure ends serving. `serverInfo.name` is `misterdiagram`.
+
+Engine command panics return an internal command error and preserve the session:
+strict edits restore their snapshot; batch and composition discard the candidate.
+This includes `engine.execute` delegation and orchestration outside strict edits.
+MCP adds a per-message backstop: an escaped panic logs to stderr and returns
+JSON-RPC -32603 with the request id (null if absent), then continues serving.
+External files already written remain external side effects.
+
+Recovery tests use real stdio and the unchanged package-comparison masks:
+
+```sh
+cargo build -p misterdiagram-cli --features test-panic-injection
+MISTERDIAGRAM_TEST_INJECTIONS=1 python3 tools/mcp/test_recovery.py
+```
+
+The non-default feature is for test binaries only. Release artifacts are built
+without it and checked for the absence of all injection markers.
 
 Initialize with `initialize` (`protocolVersion: "2025-06-18"`, clientInfo and
 capabilities), then send `notifications/initialized`. `tools/list` returns the
@@ -95,7 +116,7 @@ into one batch. The engine command `engine.batch` exposes the same contract.
 
 Every item executes exactly as run_command does, including publication before
 later reads or edits. If any item fails, the entire session is restored:
-document, selection, open stencils, path, journal, undo and redo. Errors report
+document, selection, open stencils, path, journal, undo and redo. Ordinary item errors report
 both the zero-based failing index and the one-based command number. Successful
 batches have one undo step, including stencil changes. The output list has a
 1 MiB budget; exceeding a budget fails transactionally. Unchanged open stencils

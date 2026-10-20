@@ -44,6 +44,13 @@ jobs:
         run: cargo xtask ci
       - name: Router geometry acceptance boundaries
         run: python3 tools/oracle/test_route_geometry.py
+      - name: Build panic-injection test binary
+        run: cargo build -p misterdiagram-cli --features test-panic-injection
+      - name: MCP panic and framing recovery
+        env:
+          MISTERDIAGRAM_CLI: target/debug/misterdiagram${{ runner.os == 'Windows' && '.exe' || '' }}
+          MISTERDIAGRAM_TEST_INJECTIONS: '1'
+        run: python3 tools/mcp/test_recovery.py
       - name: Build test binary
         run: cargo build --release -p misterdiagram-cli
       - name: MCP large-stencil stdio regressions
@@ -53,6 +60,7 @@ jobs:
         run: |
           python3 tools/mcp/test_stencils.py
           python3 tools/mcp/test_memory.py
+          python3 tools/mcp/test_recovery.py --verify-production
       - name: Archive binary and licences
         id: archive
         run: python3 tools/ci/archive.py

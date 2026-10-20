@@ -49,6 +49,8 @@ pub(crate) fn execute(s: &mut Session, command: &str, p: &Value) -> Result<Value
         }
         candidate.execute(command, &base)?
     };
+    #[cfg(any(test, feature = "test-panic-injection"))]
+    crate::guard::inject("composition-orchestration");
     let id = result.get("id").ok_or_else(|| operation("creation command did not return id"))?;
     style(&mut candidate, p, id, page)?;
     // Internal edits stay visible in the saved cells, but the public journal is

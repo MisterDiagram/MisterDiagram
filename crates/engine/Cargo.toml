@@ -5,6 +5,10 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 
+[features]
+# Test-only fault injection; never enabled for release artifacts.
+test-panic-injection = []
+
 [lints]
 workspace = true
 

@@ -1,5 +1,15 @@
 # Gaps
 
+## Review fixes, Brief 30 (2026-10-20)
+
+M5.27 addresses #72: composition/batch/delegation panics are caught without a
+second rollback mechanism. MCP retains its session after escaped dispatch
+panics, over-cap frames and invalid UTF-8. Full session state and saved-package
+identity have regressions. Panic injection is absent from default builds.
+M5.28 tracks documentation/registry consistency (#73), Python/MSRV CI hygiene
+(#74), and checked 32-bit EMF bitmap offsets (#77). Existing router, vendor and
+render gaps and all their numerical gates remain unchanged.
+
 ## Brief 26c: vendor stencil completion (2026-10-18)
 
 M5.13b lands the reviewed alias index, bounded media accounting, stencil

@@ -94,6 +94,10 @@ impl Session {
                 candidate.read_reservations = reservations.clone();
                 candidate.stencil_reservations = self.retained_stencils();
                 let result = candidate.execute(command, &params)?;
+                #[cfg(any(test, feature = "test-panic-injection"))]
+                if index == 1 {
+                    crate::guard::inject("batch-orchestration");
+                }
                 if let Some(name) = alias {
                     let id = result
                         .get("id")
@@ -110,6 +114,9 @@ impl Session {
             match result {
                 Ok(value) => results.push(value),
                 Err(error) => {
+                    if matches!(error, crate::EngineError::Internal(..)) {
+                        return Err(error);
+                    }
                     self.observe_external_save(&candidate);
                     let hint = if error.to_string().contains("retained") && self.stencil_inventory_changed(&candidate) {
                         "; opening stencils in their own call avoids inventory rollback retention"

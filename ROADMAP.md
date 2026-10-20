@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-20: M5.27 review fix for #72: command orchestration panics return internal errors using existing edit restoration or candidate discard. MCP catches escaped dispatch panics and continues after over-cap or invalid-UTF-8 frames. Four engine state tests and five real-stdio recovery tests pass; each stdio case preserves all 14 saved parts under existing masks. The release contains no injection hooks; full CI passes all eight gates (673 test passes, 3 ignored). Closure receipts are tracked privately.
+
 - 2026-10-18: M5.13f release inventory reaches 6,678/6,742 (99.050727%), zero blanks/kills; Cisco 136/143. Witnessed 14-digit constructor classes reconcile mixed numeric knots without widening the spline tolerance. Full corpus passes at strict 15,105,590/15,105,590 and text 62,075 cached/54,449 COM, with all existing ceilings and populations intact. Local CI passes 8 gates/607 tests; all five source seeds are detected and restored. Closure verification records are retained privately.
 
 - 2026-10-18: M5.13e addendum implements witnessed collapsed-axis arcs, zero-axis THETA/ECC and the two observed nested SETF Action wrappers. Ten synthetic picture comparisons match exactly. Release inventory reaches 6,623/6,742, zero blanks/kills; Cisco 136/143. Residuals: 57 NURBS, 41 non-finite media, 19 REF, 2 WMF. Whole-master vendor pixel parity is not established. NURBS work and closure were pending at this intermediate step.

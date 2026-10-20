@@ -8,6 +8,10 @@ repository.workspace = true
 name = "misterdiagram"
 path = "src/main.rs"
 
+[features]
+# Test-only fault injection; never enabled for release artifacts.
+test-panic-injection = ["misterdiagram-mcp/test-panic-injection"]
+
 [lints]
 workspace = true
 [dependencies]
