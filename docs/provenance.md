@@ -51,6 +51,8 @@ The witness is 0001-probe's Text/Icon: our writer had turned physical CRLF into 
 carriage-return references, changing the parsed text. This is our defect, not a Visio
 normalization exception; character references still preserve their specified characters.
 
+Brief26b: [ntwrk-clean-and-flat README and LICENSE](https://github.com/DukeNuke3D/ntwrk-clean-and-flat/tree/211ba3c9e7f1ed895f6ad4d5dbd67e7cb4b731a5), consulted 2026-10-21 for author, redraw provenance and the Unlicense dedication. The pinned stencil is the user-authorized test-only fixture; no implementation was copied.
+
 ## 4. Excluded content
 
 This repository never contains Microsoft's shipped stencils, templates, fonts, icons or

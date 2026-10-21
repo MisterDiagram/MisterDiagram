@@ -16339,3 +16339,59 @@ pages keep their original representation, as required by Brief32's equality rule
 No repair mask or threshold is changed. The inheritance semantics are defined by
 [Cell](https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml);
 the redundant-local save choice is an observation from this witness.
+
+### Observed, undocumented: dynamic glue and connector ends (Brief 26b)
+
+Pre-observation hashes and raw COM results are retained privately under
+`plan/brief26b/` and `corpus/_vm/out/glue-witness-v2/`. The first collector used
+COM Cell.NameU, which returned empty route-cell names. Its outputs are retained;
+the second collector uses Cell.Name and repeats the same original inputs.
+Visio version: 16.0.20430.20182. No router or engine edits preceded these runs.
+
+Whole-shape glue ignores interior connection rows. The real HOST and DISK2
+masters both contain interior rows, explaining the shared #60/#69 cause. PNG
+Foreign shapes, PNG image groups, the faceplate control, and the fixture's
+Router and nested Servers group land on the alignment perimeter in this setup.
+The offset PNG picture does not change the endpoint. Full and offset EMFs are
+different: Visio uses their painted envelope, including the recording-device
+and frame conversion, clipped 0.0001 inch inside the Foreign shape's boundary.
+The original color-panel EMF has Device 300x200, Millimeters 76x51, and Frame
+7620x5080 in .01 mm. Its full-image bottom attachment is 5.9001 rather than5.9;
+its offset-small attachment is6.098425196850394 rather than6.1. The supplemental
+EMF with aligned Frame7600x5100 attaches at6.1. Asymmetric horizontal attachments
+are2.584212598425197 and2.715 after FlipX; the aligned-frame equivalent is2.585
+before FlipX. These distinguish the picture rectangle, frame and group transform.
+
+The #69 rectangles with one or two interior points, and the original cylinder
+control, all produce Begin=(2.0035,2.12), End=(3.55,0.9), with one bend. The issue's
+2.004 is rounded prose; the full specified dimensions produce2.0035 in COM.
+
+The native #66 witness reproduces A's route (1,6),(1,5.8125),(2.5,5.8125),(2.5,4),
+and B's route (4.5,6),(4.5,4.1875),(1.75,4.1875),(1.75,4), including B's jump
+across A. Changing each of LineToNodeX,LineToNodeY,LineToLineX,LineToLineY from
+0.125 to0.4 does not change the0.1875-inch stub. LineToLineX changes the horizontal
+jump radius from1/24 to2/15 inch. Other three sides and a0.1x0.1 target were also
+observed; the stub remains0.1875. This establishes a constant in these cases,
+not a derivation from those page spacing cells.
+
+Native point glue refers to the existing connection X cell in Connects and the
+endpoint formula. Reusing the same point does not append a connection row or
+replace its coordinate formulas. Its companion Y and other row cells remain
+on the target shape.
+
+References: [Connection Points](https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section),
+[Foreign Image Info](https://learn.microsoft.com/en-us/office/client-developer/visio/foreign-image-info-section),
+[EMF Header](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/e4a35c41-e8e3-43f9-bc07-a18e99bb866d),
+[LineToNodeX](https://learn.microsoft.com/en-us/office/client-developer/visio/linetonodex-cell-page-layout-section),
+[LineToLineX](https://learn.microsoft.com/en-us/office/client-developer/visio/linetolinex-cell-page-layout-section).
+
+The supplemental `glue-point-trace` run preserves each creation and nudge step.
+Mixed static/dynamic routes retain their target-side position on source-only
+moves. Moving the target selects the midpoint of the free interval divided by
+neighboring horizontal routes: the two side attachments change from 2.5/2.75
+to 2.375/2.6875. A fresh MCP construction must repeat that edit sequence; a
+second nudge of an already-recalculated native file is a different input.
+Primitive lines (`ObjType=0`, here `ConFixedCode=6`) attach independently at the
+facing side centers. In the real-master witness HOST begins at (2.5,5.9) and
+its offset rectangle ends at (2.52,4); DISK2 begins at (3.5,1.7) and ends at
+(3.5,3). This is separate from the existing `ConFixedCode=2` never-reroute rule.
