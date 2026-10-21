@@ -13,7 +13,11 @@ fn generated(count: u32, layout: &str) -> Document {
         let (x, y, w, h) = match layout {
             "grid" => (f64::from(i % 20) * 3., f64::from(i / 20) * 3., 0.5, 0.5),
             "rows-with-gaps" => (f64::from(i % 30) * 2. + f64::from(i % 30 / 5) * 2., f64::from(i / 30) * 4., 1., 1.),
-            "nested-clusters" => (f64::from(i % 10) * 1.5 + f64::from(i / 100) * 30., f64::from(i / 10 % 10) * 1.5, 0.5, 0.5),
+            "nested-clusters" => {
+                // Base-three spacing of binary digits nests five cluster levels.
+                let coordinate = |index: u32| (0..5).map(|bit| f64::from((index >> bit) & 1) * 3_f64.powi(bit)).sum::<f64>() * 2.;
+                (coordinate(i % 32), coordinate(i / 32), 0.5, 0.5)
+            }
             "far-barrier" => match id {
                 1 => (0., 0., 1., 1.),
                 2 => (8., 0., 1., 1.),
@@ -29,7 +33,16 @@ fn generated(count: u32, layout: &str) -> Document {
         page.shapes.push(shape);
     }
     for i in 0..50 {
-        let targets = if layout == "far-barrier" { [1, 2] } else { [i + 1, count - i] };
+        let targets = if layout == "far-barrier" {
+            [1, 2]
+        } else if layout == "nested-clusters" {
+            // Alternate axes and cross all five levels, including nearby clusters.
+            let first = i * 17 % count;
+            let bit = i % 5 + (i % 2) * 5;
+            [first + 1, (first ^ (1 << bit)) % count + 1]
+        } else {
+            [i + 1, count - i]
+        };
         skeleton::glue_dynamic(page, count + i + 1, 2, targets, [[0., 0.], [1., 1.]]).unwrap();
     }
     doc

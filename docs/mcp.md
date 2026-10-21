@@ -123,8 +123,13 @@ batches have one undo step, including stencil changes. The output list has a
 are charged once by identity even when an inventory-changing batch includes them
 in its undo snapshot. A batch changing the stencil inventory retains references
 for undo and is still subject to the existing
-256 MiB history estimate and 4,000,000 retained XML node limit. A genuinely
-oversized snapshot fails with `batch undo snapshot exceeds retained budget` and
+256 MiB history estimate and 4,000,000 retained XML node limit. The history
+estimate charges shared immutable nonmedia part bytes once across snapshots,
+plus 1 MiB per historical document; detached allocations are charged separately.
+Shared page/master content nodes are charged once in the aggregate retention
+census only when the reader proves identical source, DOM, Shapes and Connects
+allocations. Detached contents and metadata remain charged; per-file checks and
+all ceilings are unchanged. An oversized snapshot fails with `batch undo snapshot exceeds retained budget` and
 the actual history-byte or fixed-node bound. Inventory rollback refusals also
 explain that opening stencils in their own call avoids that extra retention. Files already written
 by save/export commands are external side effects and are not removed on a

@@ -108,18 +108,32 @@ fn capacity_degrades_with_glue_warnings_one_undo_step_and_retry() {
     .unwrap();
     let id = 4101;
     run(&mut s, "master.drop", json!({"master":2,"x":1,"y":0.5}));
-    run(&mut s, "connect.dynamic", json!({"id":id,"end":"begin","target":1}));
+    let initial = run(&mut s, "connect.dynamic", json!({"id":id,"end":"begin","target":1}));
     let before_degradation = s.document().clone();
     let result = run(&mut s, "connect.dynamic", json!({"id":id,"end":"end","target":2}));
     assert_eq!(result["route_warnings"][0]["connector"], id);
     assert_eq!(result["route_warnings"][0]["limit"], "route obstacle count limit");
     let degraded = s.document().clone();
     let undo = run(&mut s, "edit.undo", json!({}));
-    assert!(undo.get("route_warnings").is_none());
+    assert_eq!(undo.get("route_warnings"), initial.get("route_warnings"));
     assert_eq!(s.document(), &before_degradation);
     let redo = run(&mut s, "edit.redo", json!({}));
     assert_eq!(redo["route_warnings"], result["route_warnings"]);
     assert_eq!(s.document(), &degraded);
+    // Projected axes can exhaust capacity before both ends are glued. Also
+    // exercise a warning-free state so undo must clear a newly added warning.
+    let straight = run(&mut s, "sheet.set", json!({"id":id,"name":"ShapeRouteStyle","value":2}));
+    assert!(straight.get("route_warnings").is_none());
+    let before_warning = s.document().clone();
+    let orthogonal = run(&mut s, "sheet.set", json!({"id":id,"name":"ShapeRouteStyle","value":1}));
+    assert_eq!(orthogonal["route_warnings"][0]["limit"], "route obstacle count limit");
+    let after_warning = s.document().clone();
+    let undo = run(&mut s, "edit.undo", json!({}));
+    assert!(undo.get("route_warnings").is_none());
+    assert_eq!(s.document(), &before_warning);
+    let redo = run(&mut s, "edit.redo", json!({}));
+    assert_eq!(redo["route_warnings"], orthogonal["route_warnings"]);
+    assert_eq!(s.document(), &after_warning);
     let before = s.document().clone();
     let result = run(&mut s, "shape.move", json!({"id":2,"x":12,"y":0}));
     assert_eq!(result["route_warnings"].as_array().unwrap().len(), 1);
@@ -168,4 +182,80 @@ fn grid_capacity_publishes_but_bad_geometry_still_rolls_back() {
     let before = s.document().clone();
     assert!(s.execute("sheet.set", &json!({"id":1,"name":"PinX","value":"NaN"})).is_err());
     assert_eq!(s.document(), &before);
+}
+
+#[test]
+fn invalid_geometry_after_local_capacity_still_rolls_back() {
+    for invalid in [3, 4100] {
+        let mut s = page(4100, 1);
+        s.edit_document(|doc, _| {
+            let page = &mut doc.pages[0];
+            for shape in &mut page.shapes {
+                if shape.id < 3 {
+                    continue;
+                }
+                for cell in &mut shape.sheet.cells {
+                    if cell.name == "PinX" {
+                        cell.value = Some("4.5".into());
+                    }
+                    if cell.name == "PinY" {
+                        cell.value = Some("0.5".into());
+                    }
+                }
+            }
+            skeleton::glue_dynamic(page, 4101, 2, [1, 2], [[1., 0.5], [9., 0.5]]).map_err(EngineError::Operation)?;
+            Ok(())
+        })
+        .unwrap();
+        let before = s.document().clone();
+        let error = s.execute("sheet.set", &json!({"id":invalid,"name":"PinX","value":10000000})).unwrap_err();
+        assert!(error.to_string().contains("route box limit"), "{error}");
+        assert_eq!(s.document(), &before);
+        // The failed edit adds no undo entry and publishes no capacity warning.
+        let result = run(&mut s, "edit.undo", json!({}));
+        assert!(result.get("route_warnings").is_none());
+        assert_eq!(s.document().pages[0].shapes.len(), 4100);
+        assert!(s.document().pages[0].connects.is_empty());
+    }
+}
+
+/// Visio elides these exact master matches in the private 130-pair resave.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+#[test]
+fn newly_routable_pages_elide_exact_master_route_duplicates_only_over_cap() {
+    for count in [258, 260] {
+        let mut s = page(count, 17);
+        s.edit_document(|doc, _| {
+            let page = &mut doc.pages[0];
+            page.shapes[0] = skeleton::rectangle(1, 1., 2.5, 0.5, 0.5, "").map_err(EngineError::Operation)?;
+            page.shapes[1] = skeleton::rectangle(2, 1., 1., 0.5, 0.5, "").map_err(EngineError::Operation)?;
+            for shape in &mut page.shapes[..2] {
+                shape.sheet.cells.push(Cell { name: "ObjType".into(), value: Some("1".into()), ..Default::default() });
+            }
+            skeleton::glue_dynamic(page, count + 1, 2, [1, 2], [[1.25, 2.5], [1.25, 1.5]]).map_err(EngineError::Operation)?;
+            Ok(())
+        })
+        .unwrap();
+        run(&mut s, "route.reroute", json!({}));
+        let shape = s.document().pages[0].shapes.iter().find(|shape| shape.id == count + 1).unwrap();
+        let has_height = shape.sheet.cell("Height").is_some();
+        let has_y = shape
+            .sheet
+            .sections
+            .iter()
+            .find(|section| section.name == "Geometry")
+            .unwrap()
+            .rows
+            .iter()
+            .find(|row| row.index == Some(2))
+            .unwrap()
+            .cells
+            .iter()
+            .any(|cell| cell.name == "Y");
+        assert_eq!((has_height, has_y), (count == 258, count == 258));
+        let mut e = Evaluator::new(s.document()).unwrap();
+        let scope = Scope::PageShape { page: 0, shape: count + 1 };
+        assert_eq!(e.evaluate(scope, "Height").numeric().unwrap(), -1.);
+        assert_eq!(e.evaluate(scope, "Geometry1.Y2").numeric().unwrap(), -1.);
+    }
 }

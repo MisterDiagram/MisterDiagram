@@ -16,6 +16,7 @@ const REL_NS: &str = "http://schemas.openxmlformats.org/package/2006/relationshi
 const ATTR_REL_NS: &str = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 const VIS_REL: &str = "http://schemas.microsoft.com/visio/2010/relationships/";
 mod cache;
+pub use cache::shared_content_nodes;
 mod limits;
 
 /// Shared logical-node admission limit, authorized by Charles on 2026-10-16.

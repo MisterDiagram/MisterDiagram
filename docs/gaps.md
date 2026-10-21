@@ -223,8 +223,18 @@ All 14 saved packages, and the office, SAN and fabric MCP examples rebuilt on bo
 builds, are byte-equal under the original masks. The heavy real session, with its
 inspection filtered, completes all 39 edit events and the failing-last batch at
 the 2 GiB default with no refusal; peak RSS about 609 MiB, rollback byte-equal.
-History retains 16 snapshots, not 32: the history estimate (16 times nonmedia
-source plus 1 MiB per snapshot) likely still charges parts that M5.22 shares.
+That starting build retains 16 snapshots, not 32. M5.34 measured the intended
+32 versions: 30,619,324 logical nonmedia bytes share 1,030,816 bytes of
+unique source payload (1,664,317 bytes of actual buffer capacity). Charging
+every snapshot separately estimates
+523,463,616 bytes; charging each allocation once plus 1 MiB per snapshot
+estimates 50,047,488 bytes. The history census now uses the latter accounting,
+with the same 256 MiB default cap, 2 GiB ceiling and independent file bounds.
+The aggregate node/resident census also charges reader-proven shared page and
+master contents once; metadata and detached allocations remain separate.
+The supplied heavy session now completes 39 events with zero refusals, equal
+rollback and 32 undo snapshots. Final measured peak RSS is 611,844,096 bytes
+(100.14 seconds, concurrent validation), below the unchanged 2 GiB guard.
 shapes-377 keeps its per-invocation growth because every invocation reopens,
 evaluates and writes the whole growing file. #39 stays open.
 
@@ -285,20 +295,46 @@ Above that count, routing gathers candidates intersecting the union of the two
 end boxes grown by twice max(abs(LineToNode), 1.5 abs(LineToLine), 0.01)
 per axis. The margin doubles when a route reaches the corridor edge or fails
 geometrically, until the route is clear or every candidate is included. Each
-connector admits at most 4,096 gathered obstacles and 32 corridor attempts.
+connector retains at most 4,096 candidate boxes and makes at most 32 corridor
+attempts. This combined bound includes local blocking obstacles and outside
+boxes whose projected edge coordinates affect grid tie choices inside the
+corridor. Those outside boxes supply grid coordinates, not local collisions.
 The existing bounds remain 16,384 grid vertices, two direction states per
 vertex and 16 times the vertex count in the queue. Finite coordinates remain bounded to 1,000,000 internal
 inches. Capacity exhaustion in endpoint planning or rerouting publishes the
 edit with `route_warnings`, preserving glue. Degraded orthogonal connectors use
 a straight segment when aligned, otherwise one vertical-first elbow; tree
 style 17 keeps its vertical-first midpoint jog. Straight styles 2 and 16 keep
-a straight segment and do not gather obstacles. Geometry errors still abort.
+a straight segment and do not gather obstacles. Geometry errors still abort,
+including invalid boxes found after the selected-obstacle cap is reached; the
+router validates remaining candidates without retaining more than 4,096 boxes.
+On these newly routable pages, exact inherited Height and second-row Y duplicates
+are omitted as Visio does on save; pages below the old cap keep their representation.
 Save includes outstanding degraded connectors in its warnings; `route.reroute`
 retries them. Undo restores both the drawing and degraded-route status in one
 ordinary step. The generated exactness tests compare 50 connectors on each
 of twelve pages (300, 600 and 1,000 placeable shapes in four layouts) against
 the full obstacle set within 1e-9. All 600 routes agree; each far-barrier page
-requires 600 corridor growths across endpoint planning and routing.
+requires 600 corridor growths across endpoint planning and routing. Recursive
+nested clusters require 50, 55 and 59 growths at the three sizes; their connector
+pairs span five hierarchy levels. The earlier separated-grid fixture is retained
+privately as supplemental flat-cluster coverage.
+Final Visio open/resave checks retain the degraded connector and all 130-pair
+routes with zero repair or route differences. The informational native Visio
+300-shape/10-connector witness matches 0/10 routes within 1e-6; large-page
+Visio route parity is not established, and this brief does not tune to it.
+The final 1,000-placeable-shape/500-connector glued move and save takes 6.05
+seconds with no warnings and 492,716,032-byte peak RSS. All 1,000 Connects
+remain, and the changed route ends stay on their targets. The hostile
+20,000-placeable-shape/10-connector move passes guard60/2048 in 11.81 seconds
+with ten obstacle-capacity warnings and 1,313,423,360-byte peak RSS, without
+an abort or kill. These measurements overlapped validation and background backup.
+All eight Brief 28 benchmark workloads remain within the unchanged 10%
+allowance (largest regression 5.85%); all 18 benchmark packages and 1,439
+corpus/recipe packages retain equality under the existing masks. Full CI passes
+701 tests and all eight gates. The full corpus check retains 15,105,590/15,105,590
+strict cells, 62,075/67,866 cached text metrics, 54,449/58,180 COM text metrics
+and nine generated outliers against the unchanged maximum of ten.
 
 History admission: the 4,000,000-node retained limit remains unchanged. After
 successful publication (or opening a stencil), oldest undo then redo snapshots

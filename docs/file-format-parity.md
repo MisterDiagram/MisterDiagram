@@ -16325,3 +16325,17 @@ filter or numerical threshold changed.
 
 References: [Connection Points](https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section),
 [LineWeight](https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section).
+
+### Observed, undocumented: large-page route local-cell elision (M5.34, #76)
+
+Private witness `corpus/_vm/out/brief32-final-oracle/pairs-130/saved.vsdx`
+opens the 130-pair drawing and preserves every connector's evaluated route. Visio
+removes 260 redundant instance cells: `Height=-1` with
+`GUARD(EndY-BeginY)` and `Geometry1.Y2=-1`, each identical to the connector
+master. The original package retained those locals, so the unchanged repair
+checker correctly reported 260 differences. Newly routable pages above the old
+256-candidate cap now omit these exact master duplicates. Existing successful
+pages keep their original representation, as required by Brief32's equality rule.
+No repair mask or threshold is changed. The inheritance semantics are defined by
+[Cell](https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml);
+the redundant-local save choice is an observation from this witness.

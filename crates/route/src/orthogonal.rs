@@ -115,7 +115,7 @@ fn clear_y(a: Rect, b: Rect, obs: &[Rect]) -> Option<f64> {
 /// Dynamic walking chooses the common free alignment interval before adding bends.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/walkpreference-cell-glue-info-section
 pub(crate) fn endpoints(a: Rect, b: Rect, obs: &[Rect], style: f64, clearance: (f64, f64)) -> Result<[Point; 2], String> {
-    endpoints_traced(a, b, obs, style, clearance, None)
+    endpoints_traced(a, b, obs, style, clearance, None, None)
 }
 fn endpoints_traced(
     a: Rect,
@@ -124,6 +124,7 @@ fn endpoints_traced(
     style: f64,
     clearance: (f64, f64),
     mut footprint: Option<&mut Vec<Point>>,
+    axes: Option<(&[Rect], Rect)>,
 ) -> Result<[Point; 2], String> {
     let ac = center(a);
     let bc = center(b);
@@ -158,7 +159,12 @@ fn endpoints_traced(
     let mut limit = None;
     for (side, end) in candidates.into_iter().enumerate() {
         let inflated = self::clearance(obs, clearance, [start, end]);
-        let candidate = path(start, end, &inflated, Some(0), Some(if side == 0 { 0 } else { 1 }));
+        let projected = axes.map(|(boxes, corridor)| (self::clearance(boxes, clearance, [start, end]), corridor));
+        let candidate = if let Some((boxes, corridor)) = &projected {
+            path_with_axes(start, end, &inflated, Some(0), Some(if side == 0 { 0 } else { 1 }), Some((boxes, *corridor)))
+        } else {
+            path(start, end, &inflated, Some(0), Some(if side == 0 { 0 } else { 1 }))
+        };
         if let Err(error) = &candidate
             && capacity(error)
         {
@@ -207,7 +213,7 @@ impl Ord for Node {
 /// obstacles outside the endpoint corridor and its overlapping obstacle closure.
 /// Every candidate segment is still checked against ALL obstacles. No grid bound
 /// grows, and a dense connected obstacle set can still return a bounded error.
-fn route_axes(start: Point, end: Point, obs: &[Rect]) -> Result<(Vec<f64>, Vec<f64>), String> {
+fn route_axes(start: Point, end: Point, obs: &[Rect], projected: Option<(&[Rect], Rect)>) -> Result<(Vec<f64>, Vec<f64>), String> {
     let axes = |rectangles: &[Rect]| {
         let mut xs = vec![start.x, end.x];
         let mut ys = vec![start.y, end.y];
@@ -221,9 +227,24 @@ fn route_axes(start: Point, end: Point, obs: &[Rect]) -> Result<(Vec<f64>, Vec<f
         }
         (xs, ys)
     };
-    let full = axes(obs);
+    let mut full = axes(obs);
+    if let Some((boxes, corridor)) = projected {
+        // Outside boxes can supply equal-cost bend coordinates inside the corridor.
+        // They contribute grid lines, but do not become local blocking obstacles.
+        for r in boxes {
+            full.0.extend([r.x0, r.x1].into_iter().filter(|x| *x >= corridor.x0 && *x <= corridor.x1));
+            full.1.extend([r.y0, r.y1].into_iter().filter(|y| *y >= corridor.y0 && *y <= corridor.y1));
+        }
+        for values in [&mut full.0, &mut full.1] {
+            values.sort_by(f64::total_cmp);
+            values.dedup_by(|a, b| (*a - *b).abs() < 1e-9);
+        }
+    }
     if full.0.len().checked_mul(full.1.len()).is_some_and(|n| n <= MAX_GRID_VERTICES) {
         return Ok(full);
+    }
+    if projected.is_some() {
+        return Err("route grid limit".into());
     }
     let mut corridor = Rect::new(start.x.min(end.x), start.y.min(end.y), start.x.max(end.x), start.y.max(end.y));
     let mut selected = vec![false; obs.len()];
@@ -249,13 +270,27 @@ fn route_axes(start: Point, end: Point, obs: &[Rect]) -> Result<(Vec<f64>, Vec<f
 /// Rectilinear visibility grid, bounded before allocation and with bend-aware shortest paths.
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.shape.reroute
 pub(crate) fn path(start: Point, end: Point, obs: &[Rect], first_dir: Option<usize>, last_dir: Option<usize>) -> Result<Vec<Point>, String> {
+    path_with_axes(start, end, obs, first_dir, last_dir, None)
+}
+pub(crate) fn path_with_axes(
+    start: Point,
+    end: Point,
+    obs: &[Rect],
+    first_dir: Option<usize>,
+    last_dir: Option<usize>,
+    projected: Option<(&[Rect], Rect)>,
+) -> Result<Vec<Point>, String> {
     if [start.x, start.y, end.x, end.y].iter().any(|n| !n.is_finite() || n.abs() > 1e6) {
         return Err("route input limit".into());
     }
-    if obs.len() > MAX_LOCAL_OBSTACLES {
+    if obs.len().checked_add(projected.map_or(0, |(boxes, _)| boxes.len())).is_none_or(|n| n > MAX_LOCAL_OBSTACLES) {
         return Err("route obstacle count limit".into());
     }
-    if obs.iter().any(|r| [r.x0, r.y0, r.x1, r.y1].iter().any(|n| !n.is_finite() || n.abs() > 1e6) || r.x0 > r.x1 || r.y0 > r.y1) {
+    if obs
+        .iter()
+        .chain(projected.into_iter().flat_map(|(boxes, _)| boxes))
+        .any(|r| [r.x0, r.y0, r.x1, r.y1].iter().any(|n| !n.is_finite() || n.abs() > 1e6) || r.x0 > r.x1 || r.y0 > r.y1)
+    {
         return Err("route obstacle bounds limit".into());
     }
     if ((start.x - end.x).abs() < 1e-9 || (start.y - end.y).abs() < 1e-9) && !blocked(start, end, obs) {
@@ -265,7 +300,7 @@ pub(crate) fn path(start: Point, end: Point, obs: &[Rect], first_dir: Option<usi
     if first_dir.is_none_or(|d| d == 1) && last_dir.is_none_or(|d| d == 0) && !blocked(start, via, obs) && !blocked(via, end, obs) {
         return Ok(vec![start, via, end]);
     }
-    let (xs, ys) = route_axes(start, end, obs)?;
+    let (xs, ys) = route_axes(start, end, obs, projected)?;
     let n = xs.len().checked_mul(ys.len()).filter(|n| *n <= MAX_GRID_VERTICES).ok_or("route grid limit")?;
     let locate = |p: Point| -> Result<usize, String> {
         let x = xs.iter().position(|x| (*x - p.x).abs() < 1e-9).ok_or("route x")?;
@@ -517,6 +552,32 @@ mod tests {
         // must refuse this dense case instead of allocating its full grid.
         assert_eq!(path(Point::ORIGIN, Point::new(1000., 1000.), &obstacles, Some(0), Some(0)).unwrap_err(), "route grid limit");
     }
+    #[test]
+    fn projected_axes_are_nonblocking_and_share_the_obstacle_and_grid_bounds() {
+        let corridor = Rect::new(-1., -1., 10000., 10000.);
+        let distant = Rect::new(2., 100., 3., 101.);
+        let start = Point::ORIGIN;
+        let end = Point::new(6., 0.);
+        assert_eq!(path_with_axes(start, end, &[], None, None, Some((&[distant], corridor))).unwrap(), vec![start, end]);
+        assert_eq!(
+            path_with_axes(start, end, &[distant], None, None, Some((&vec![distant; MAX_LOCAL_OBSTACLES], corridor))).unwrap_err(),
+            "route obstacle count limit"
+        );
+        assert_eq!(
+            path_with_axes(start, end, &[], None, None, Some((&[Rect::new(f64::NAN, 0., 1., 1.)], corridor))).unwrap_err(),
+            "route obstacle bounds limit"
+        );
+        let axes = (0..4095)
+            .map(|i| {
+                let value = 100. + f64::from(i) * 2.;
+                Rect::new(value, value, value + 1., value + 1.)
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(
+            path_with_axes(start, end, &[Rect::new(3., -1., 4., 1.)], Some(0), Some(0), Some((&axes, corridor))).unwrap_err(),
+            "route grid limit"
+        );
+    }
 }
 
 /// Reuse evaluated candidate boxes only above the old cap, within one evaluator
@@ -562,7 +623,7 @@ pub(crate) fn with_obstacles(
     frame: misterdiagram_geom::Affine,
     ends: [Rect; 2],
     memo: &mut ObstacleBounds,
-    mut route: impl FnMut(&[Rect]) -> Result<Vec<Point>, String>,
+    mut route: impl FnMut(&[Rect], Option<(&[Rect], Rect)>) -> Result<Vec<Point>, String>,
 ) -> Result<Vec<Point>, String> {
     let spacing = |e: &mut Evaluator<'_>, axis: &str| {
         number(e, Scope::Page(page), &format!("LineToNode{axis}"), 0.125)
@@ -577,7 +638,9 @@ pub(crate) fn with_obstacles(
     for _ in 0..32 {
         let corridor = base.inflate(margin.0, margin.1);
         let mut selected = Vec::new();
+        let mut projected = Vec::new();
         let mut whole = true;
+        let mut exhausted = false;
         for &scope in &scopes {
             let Some(b) = memo.get(e, scope)? else { continue };
             let b = frame.transform_rect_bbox(b);
@@ -585,15 +648,30 @@ pub(crate) fn with_obstacles(
             #[cfg(test)]
             let include = include || FULL_OBSTACLES.get();
             if include {
-                if selected.len() >= MAX_LOCAL_OBSTACLES {
-                    return Err("route obstacle count limit".into());
+                if selected.len() + projected.len() >= MAX_LOCAL_OBSTACLES {
+                    exhausted = true;
+                } else {
+                    selected.push(b);
                 }
-                selected.push(b);
             } else {
                 whole = false;
+                if [b.x0, b.x1].iter().any(|x| *x >= corridor.x0 - gap.0 && *x <= corridor.x1 + gap.0)
+                    || [b.y0, b.y1].iter().any(|y| *y >= corridor.y0 - gap.1 && *y <= corridor.y1 + gap.1)
+                {
+                    if selected.len() + projected.len() >= MAX_LOCAL_OBSTACLES {
+                        exhausted = true;
+                    } else {
+                        projected.push(b);
+                    }
+                }
             }
         }
-        match route(&selected) {
+        // Capacity bounds retained search data, but must not conceal a later
+        // invalid candidate box. Finish validation before recovering capacity.
+        if exhausted {
+            return Err("route obstacle count limit".into());
+        }
+        match route(&selected, (!projected.is_empty()).then_some((projected.as_slice(), corridor))) {
             Ok(points)
                 if whole
                     || points.iter().all(|p| {
@@ -622,9 +700,16 @@ std::thread_local! {
     static CORRIDOR_GROWTHS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
 }
 
-pub(crate) fn endpoint_footprint(a: Rect, b: Rect, obs: &[Rect], style: f64, clearance: (f64, f64)) -> Result<Vec<Point>, String> {
+pub(crate) fn endpoint_footprint(
+    a: Rect,
+    b: Rect,
+    obs: &[Rect],
+    style: f64,
+    clearance: (f64, f64),
+    axes: Option<(&[Rect], Rect)>,
+) -> Result<Vec<Point>, String> {
     let mut footprint = Vec::new();
-    let ends = endpoints_traced(a, b, obs, style, clearance, Some(&mut footprint))?;
+    let ends = endpoints_traced(a, b, obs, style, clearance, Some(&mut footprint), axes)?;
     let mut result = Vec::from(ends);
     result.extend(footprint);
     Ok(result)

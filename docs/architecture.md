@@ -150,14 +150,24 @@ are checked for overflow. This setting never enters a file/parser/render limit.
 | Transient-work margin | Not derived | 512 MiB | C / 4 |
 | History count | 32 snapshots | 32 snapshots | Fixed |
 
-Each unique `Arc<Document>` contributes its source nodes, actual picture bytes,
+Each unique `Arc<Document>` contributes its retained nodes, actual picture bytes,
 twice its nonmedia source bytes, and 1 MiB of document overhead to the aggregate
-estimate. Nodes reserve 320 bytes each, conservatively above the compact 88-byte
+estimate. M5.34 charges shared PageContents/MasterContents nodes once across
+versions only when the reader proves that source bytes, DOM, Shapes and Connects
+all retain their original allocation identities. Metadata and detached contents
+remain separately charged. The same census applies to aggregate node retention;
+the reader still charges every file its full logical node count. Nodes reserve 320 bytes each, conservatively above the compact 88-byte
 XML node alone to include attributes, typed data, strings and allocator overhead.
 The 512 MiB remainder covers in-flight package, writer, evaluator and routing work.
 The component allowances overlap the aggregate estimate; they are not added to it.
-History independently estimates 16 times nonmedia source plus 1 MiB per unique
-historical document, excluding shared external stencil identities. Oldest history
+History independently estimates 16 times each unique nonmedia source allocation
+plus 1 MiB per unique historical document, excluding shared external stencil
+identities. M5.34 deduplicates immutable part-byte identities across historical
+versions within each census; detached copy-on-write buffers and equal bytes in
+different allocations are charged separately. Every owner remains alive during
+the census, so allocation identities cannot be recycled while being counted.
+All byte and node ceilings, the 320-byte node estimate, and per-file admission
+remain unchanged. Reservations pin shared DOM identities against address reuse. Oldest history
 yields at the unchanged count/node limits or its derived byte estimate. Active
 stencils and documents are never evicted.
 

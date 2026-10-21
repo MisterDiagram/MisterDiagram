@@ -55,6 +55,7 @@ pub(crate) struct Usage {
 fn media(part: &misterdiagram_model::Part) -> bool {
     part.xml.is_none() && part.content_type.as_deref().is_some_and(|kind| kind.starts_with("image/"))
 }
+type Contents = HashMap<usize, misterdiagram_model::Shared<misterdiagram_model::XmlElement>>;
 type Pictures = HashMap<usize, misterdiagram_model::Shared<Vec<u8>>>;
 fn retain_picture(pictures: &mut Pictures, part: &misterdiagram_model::Part) -> bool {
     if let std::collections::hash_map::Entry::Vacant(entry) = pictures.entry(part.bytes.allocation_id()) {
@@ -75,8 +76,25 @@ impl Usage {
             .saturating_add(self.nodes.saturating_mul(320))
             .saturating_add(self.documents.saturating_mul(MIB))
     }
-    fn add(&mut self, doc: &Document, stencil: bool, history: bool, pictures: &mut Pictures) {
-        self.nodes = self.nodes.saturating_add(doc.retained_xml_nodes);
+    fn add(
+        &mut self,
+        doc: &Document,
+        stencil: bool,
+        history: bool,
+        pictures: &mut Pictures,
+        history_parts: &mut HashSet<usize>,
+        contents: &mut Contents,
+    ) {
+        let mut duplicate = 0usize;
+        for (xml, nodes) in misterdiagram_vsdx::shared_content_nodes(doc) {
+            if let std::collections::hash_map::Entry::Vacant(entry) = contents.entry(xml.allocation_id()) {
+                // Reservations pin the allocation until their census is released.
+                entry.insert(xml);
+            } else {
+                duplicate = duplicate.saturating_add(nodes);
+            }
+        }
+        self.nodes = self.nodes.saturating_add(doc.retained_xml_nodes.saturating_sub(duplicate));
         self.documents = self.documents.saturating_add(1);
         let mut estimate = MIB;
         for part in doc.parts.values() {
@@ -90,7 +108,11 @@ impl Usage {
                 if stencil {
                     self.source = self.source.saturating_add(part.bytes.len());
                 }
-                estimate = estimate.saturating_add(part.bytes.len().saturating_mul(16));
+                // All retained owners stay alive for this census. An immutable source
+                // allocation shared across historical versions is charged once.
+                if history && !stencil && history_parts.insert(part.bytes.allocation_id()) {
+                    estimate = estimate.saturating_add(part.bytes.len().saturating_mul(16));
+                }
             }
         }
         if history && !stencil {
@@ -148,27 +170,29 @@ impl Session {
     pub(crate) fn retention(&self) -> Usage {
         self.retention_census().0
     }
-    fn retention_census(&self) -> (Usage, Pictures) {
+    fn retention_census(&self) -> (Usage, Pictures, Contents) {
         let stencils: HashSet<_> = self.retained_stencils().iter().map(Arc::as_ptr).collect();
         let history: HashSet<_> = self.undo.iter().chain(&self.redo).map(|s| Arc::as_ptr(&s.document)).collect();
         let mut seen = HashSet::new();
         let mut usage = Usage::default();
         let mut pictures = Pictures::new();
+        let mut history_parts = HashSet::new();
+        let mut contents = Contents::new();
         for doc in self.retained_documents() {
             let identity = Arc::as_ptr(doc);
             if seen.insert(identity) {
-                usage.add(doc, stencils.contains(&identity), history.contains(&identity), &mut pictures);
+                usage.add(doc, stencils.contains(&identity), history.contains(&identity), &mut pictures, &mut history_parts, &mut contents);
             }
         }
-        (usage, pictures)
+        (usage, pictures, contents)
     }
     /// Opening, editing and reader replacement share the same admission function.
     /// https://learn.microsoft.com/en-us/office/vba/api/visio.documents.openex
     pub(crate) fn reserve(&self, incoming: Option<(&Document, bool)>) -> Result<()> {
-        let (held, mut pictures) = self.retention_census();
+        let (held, mut pictures, mut contents) = self.retention_census();
         let mut total = held;
         if let Some((doc, stencil)) = incoming {
-            total.add(doc, stencil, false, &mut pictures);
+            total.add(doc, stencil, false, &mut pictures, &mut HashSet::new(), &mut contents);
         }
         self.check_retention(held, total)
     }
@@ -176,8 +200,8 @@ impl Session {
         check(self.memory, held, total)
     }
     pub(crate) fn reservation(&self) -> Reservation {
-        let (held, pictures) = self.retention_census();
-        Reservation { memory: self.memory, held, pictures }
+        let (held, pictures, contents) = self.retention_census();
+        Reservation { memory: self.memory, held, pictures, contents }
     }
 }
 fn check(memory: MemoryLimits, held: Usage, total: Usage) -> Result<()> {
@@ -198,12 +222,14 @@ pub(crate) struct Reservation {
     memory: MemoryLimits,
     held: Usage,
     pictures: Pictures,
+    contents: Contents,
 }
 impl Reservation {
     pub(crate) fn parts<'a>(&self, document: &Document, parts: impl Iterator<Item = &'a misterdiagram_model::Part>) -> Result<usize> {
         let mut total = self.held;
         let mut pictures = self.pictures.clone();
-        total.add(document, false, false, &mut pictures);
+        let mut contents = self.contents.clone();
+        total.add(document, false, false, &mut pictures, &mut HashSet::new(), &mut contents);
         let initial_nodes = total.nodes;
         for part in parts {
             if media(part) && !retain_picture(&mut pictures, part) {
@@ -356,5 +382,93 @@ mod tests {
         assert_eq!(session.document.parts["visio/media/original.bin"].bytes[0], 11);
         let separate = misterdiagram_model::Part { bytes: vec![7; 4096].into(), ..image };
         assert!(!separate.bytes.ptr_eq(&original.parts["visio/media/original.bin"].bytes));
+    }
+    #[test]
+    fn shared_nonmedia_parts_keep_thirty_two_ordinary_undo_snapshots() {
+        let mut s = Session::new();
+        s.edit_document(|doc, _| {
+            doc.parts.insert(
+                "visio/original-history.bin".into(),
+                misterdiagram_model::Part { bytes: vec![7; MIB].into(), content_type: Some("application/octet-stream".into()), ..Default::default() },
+            );
+            Ok(())
+        })
+        .unwrap();
+        for i in 1..=40 {
+            s.execute("page.rename", &json!({"name":format!("history {i}")})).unwrap();
+        }
+        assert_eq!(s.undo.len(), 32, "shared parts must not evict ordinary history");
+        assert!(s.retention().history < 64 * MIB);
+        for _ in 0..32 {
+            assert_eq!(s.execute("edit.undo", &json!({})).unwrap()["changed"], true);
+        }
+        assert_eq!(s.document.pages[0].name, "history 8");
+        assert_eq!(s.execute("edit.undo", &json!({})).unwrap()["changed"], false);
+        for _ in 0..32 {
+            assert_eq!(s.execute("edit.redo", &json!({})).unwrap()["changed"], true);
+        }
+        assert_eq!(s.document.pages[0].name, "history 40");
+    }
+    #[test]
+    fn history_charges_detached_and_equal_but_distinct_nonmedia_allocations() {
+        let mut doc = Document::default();
+        doc.parts.insert("original.bin".into(), misterdiagram_model::Part { bytes: vec![7; 4096].into(), ..Default::default() });
+        let mut detached = doc.clone();
+        detached.parts.get_mut("original.bin").unwrap().bytes[0] = 11;
+        let mut equal = doc.clone();
+        equal.parts.get_mut("original.bin").unwrap().bytes = vec![7; 4096].into();
+        let mut usage = Usage::default();
+        let mut pictures = Pictures::new();
+        let mut history_parts = HashSet::new();
+        let mut contents = Contents::new();
+        for d in [&doc, &doc, &detached, &equal] {
+            usage.add(d, false, true, &mut pictures, &mut history_parts, &mut contents);
+        }
+        assert_eq!(usage.history, 4 * MIB + 3 * 4096 * 16);
+        assert_eq!(usage.raw, 4 * 4096, "resident/source admission remains conservative");
+        assert_eq!(doc.parts["original.bin"].bytes[0], 7);
+    }
+    #[test]
+    fn shared_content_resident_charge_requires_every_reader_allocation() {
+        let mut original = misterdiagram_model::skeleton::document(false);
+        original.pages[0].shapes.push(misterdiagram_model::skeleton::rectangle(1, 0., 0., 1., 1., "Original").unwrap());
+        let doc = misterdiagram_vsdx::import(&misterdiagram_vsdx::write(&original).unwrap().bytes).unwrap();
+        let allocations = misterdiagram_vsdx::shared_content_nodes(&doc);
+        let count: usize = allocations.iter().map(|(_, n)| n).sum();
+        assert!(count > 0 && count < doc.retained_xml_nodes);
+        let measure = |other: &Document| {
+            let mut usage = Usage::default();
+            let mut pictures = Pictures::new();
+            let mut history = HashSet::new();
+            let mut contents = Contents::new();
+            usage.add(&doc, false, true, &mut pictures, &mut history, &mut contents);
+            usage.add(other, false, true, &mut pictures, &mut history, &mut contents);
+            usage
+        };
+        let shared = measure(&doc.clone());
+        assert_eq!(shared.nodes, doc.retained_xml_nodes * 2 - count);
+        assert_eq!(shared.resident(), shared.raw * 2 + shared.nodes * 320 + 2 * MIB);
+        let page_part = doc.pages[0].part.clone();
+        let page_nodes = allocations.iter().find(|(xml, _)| xml.ptr_eq(doc.parts[&page_part].xml.as_ref().unwrap())).unwrap().1;
+        for kind in 0..4 {
+            let mut detached = doc.clone();
+            match kind {
+                0 => {
+                    let part = detached.parts.get_mut(&page_part).unwrap();
+                    part.bytes = part.bytes.to_vec().into();
+                }
+                1 => {
+                    let part = detached.parts.get_mut(&page_part).unwrap();
+                    part.xml = Some((**part.xml.as_ref().unwrap()).clone().into());
+                }
+                2 => detached.pages[0].shapes[0].name = "Detached".into(),
+                _ => detached.pages[0].connects.push(misterdiagram_model::Connect::default()),
+            }
+            let usage = measure(&detached);
+            assert_eq!(usage.nodes, shared.nodes + page_nodes, "detached kind {kind}");
+            assert_eq!(usage.resident(), shared.resident() + page_nodes * 320);
+        }
+        let separate = misterdiagram_vsdx::import(&misterdiagram_vsdx::write(&original).unwrap().bytes).unwrap();
+        assert_eq!(measure(&separate).nodes, doc.retained_xml_nodes * 2, "equal content is not shared storage");
     }
 }

@@ -270,7 +270,7 @@ impl GlueHost {
                                 Affine::IDENTITY,
                                 [a, b],
                                 &mut obstacles_memo,
-                                |obstacles| crate::orthogonal::endpoint_footprint(a, b, obstacles, style, clearance),
+                                |obstacles, axes| crate::orthogonal::endpoint_footprint(a, b, obstacles, style, clearance, axes),
                             ),
                             Err(error) => Err(error),
                         };

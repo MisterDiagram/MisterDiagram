@@ -125,6 +125,17 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             crate::orthogonal::obstacles(&mut e, page, &excluded)
                 .map(|boxes| boxes.into_iter().map(|b| inverse.transform_rect_bbox(b)).collect::<Vec<_>>())
         };
+        // Only newly routable over-cap pages use Visio's redundant-local elision.
+        // Existing successful pages retain their exact serialized representation.
+        // Witness: corpus/_vm/out/brief32-final-oracle/pairs-130/saved.vsdx.
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+        let inherited_route = if gathered.as_ref().is_err_and(|error| error == "route obstacle count limit") {
+            e.master_source(scope).map_or_else(Vec::new, |master| {
+                ["Height", "Geometry1.Y2"].into_iter().filter_map(|name| e.cell(master, name).cloned().map(|cell| (name, cell))).collect()
+            })
+        } else {
+            Vec::new()
+        };
         let cx = crate::orthogonal::number(&mut e, Scope::Page(page), "LineToLineX", 0.125) * 1.5;
         let cy = crate::orthogonal::number(&mut e, Scope::Page(page), "LineToLineY", 0.125) * 1.5;
         let begin = misterdiagram_geom::Point::new(bx, by);
@@ -151,8 +162,12 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             if let Some(Some(error)) = outcomes.get(&(page, id)) {
                 return Err(error.clone());
             }
-            let solve = |obstacles: &[misterdiagram_geom::Rect]| {
+            let solve = |obstacles: &[misterdiagram_geom::Rect], axes: Option<(&[misterdiagram_geom::Rect], misterdiagram_geom::Rect)>| {
                 let obstacles = crate::orthogonal::clearance(obstacles, if style == 17. { (0., 0.) } else { (cx, cy) }, [begin, end]);
+                let projected = axes.map(|(boxes, corridor)| {
+                    (crate::orthogonal::clearance(boxes, if style == 17. { (0., 0.) } else { (cx, cy) }, [begin, end]), corridor)
+                });
+                let projected = projected.as_ref().map(|(boxes, corridor)| (boxes.as_slice(), *corridor));
                 let points = if style == 2. || style == 16. {
                     vec![begin, end]
                 } else if style == 17. {
@@ -173,17 +188,17 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
                             }
                         })
                     }) {
-                        crate::orthogonal::path(begin, end, &obstacles, dirs.0, dirs.1)?
+                        crate::orthogonal::path_with_axes(begin, end, &obstacles, dirs.0, dirs.1, projected)?
                     } else {
                         points
                     }
                 } else {
-                    crate::orthogonal::path(begin, end, &obstacles, dirs.0, dirs.1)?
+                    crate::orthogonal::path_with_axes(begin, end, &obstacles, dirs.0, dirs.1, projected)?
                 };
                 Ok(points)
             };
             match gathered {
-                Ok(obstacles) => solve(&obstacles),
+                Ok(obstacles) => solve(&obstacles, None),
                 Err(error) if error == "route obstacle count limit" => {
                     let mut boxes = [misterdiagram_geom::Rect::new(bx, by, bx, by), misterdiagram_geom::Rect::new(ex, ey, ex, ey)];
                     for (slot, target) in boxes.iter_mut().zip(&excluded) {
@@ -206,7 +221,7 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             }
             Err(error) => return Err(error),
         };
-        routes.push((index, id, bx, by, ex, ey, style, points, crate::orthogonal::inherited_zero(&e, scope)));
+        routes.push((index, id, bx, by, ex, ey, style, points, crate::orthogonal::inherited_zero(&e, scope), inherited_route));
         if routes.len() > 100000 {
             return Err("route count limit".into());
         }
@@ -216,7 +231,7 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
     let count = routes.len();
     let routed = routes.iter().map(|r| (r.0, r.1)).collect();
     crate::fixed::apply(doc, fixed)?;
-    for (index, id, bx, by, ex, ey, _style, points, inherited_zero) in routes {
+    for (index, id, bx, by, ex, ey, _style, points, inherited_zero, inherited_route) in routes {
         let page = doc.pages.get_mut(index).ok_or("route page missing")?;
         let layer = connector_layer(page)?;
         let shape = shape_mut(&mut page.shapes, id, 0).ok_or("route shape missing")?;
@@ -288,6 +303,15 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             old.rows = geometry.rows;
         } else {
             shape.sheet.sections.push(geometry);
+        }
+        for (name, inherited) in inherited_route {
+            if name == "Height" {
+                shape.sheet.cells.retain(|cell| cell != &inherited);
+            } else if let Some(geometry) = shape.sheet.sections.iter_mut().find(|s| s.name == "Geometry" && s.index.unwrap_or(0) == 0)
+                && let Some(row) = geometry.rows.iter_mut().find(|row| row.index == Some(2) && !row.deleted)
+            {
+                row.cells.retain(|cell| cell != &inherited);
+            }
         }
         let control = Row {
             name: Some("TextPosition".into()),
