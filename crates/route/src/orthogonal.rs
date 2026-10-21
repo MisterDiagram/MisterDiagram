@@ -6,11 +6,15 @@ use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 
 const MAX_OBSTACLES: usize = 256;
+const MAX_LOCAL_OBSTACLES: usize = 4096;
 const MAX_GRID_VERTICES: usize = 16384;
 
 /// Work bounds are recoverable; invalid geometry retains its original error.
 pub(crate) fn capacity(error: &str) -> bool {
-    matches!(error, "route obstacle count limit" | "route grid limit" | "route queue limit" | "route obstacle closure limit")
+    matches!(
+        error,
+        "route obstacle count limit" | "route grid limit" | "route queue limit" | "route obstacle closure limit" | "route corridor growth limit"
+    )
 }
 
 /// Obstacle-free fallback: straight when aligned, otherwise one orthogonal elbow.
@@ -111,6 +115,16 @@ fn clear_y(a: Rect, b: Rect, obs: &[Rect]) -> Option<f64> {
 /// Dynamic walking chooses the common free alignment interval before adding bends.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/walkpreference-cell-glue-info-section
 pub(crate) fn endpoints(a: Rect, b: Rect, obs: &[Rect], style: f64, clearance: (f64, f64)) -> Result<[Point; 2], String> {
+    endpoints_traced(a, b, obs, style, clearance, None)
+}
+fn endpoints_traced(
+    a: Rect,
+    b: Rect,
+    obs: &[Rect],
+    style: f64,
+    clearance: (f64, f64),
+    mut footprint: Option<&mut Vec<Point>>,
+) -> Result<[Point; 2], String> {
     let ac = center(a);
     let bc = center(b);
     if style == 16. {
@@ -151,6 +165,9 @@ pub(crate) fn endpoints(a: Rect, b: Rect, obs: &[Rect], style: f64, clearance: (
             limit = Some(error.clone());
         }
         if let Ok(path) = candidate {
+            if let Some(footprint) = &mut footprint {
+                footprint.extend_from_slice(&path);
+            }
             let cost =
                 path.windows(2).map(|s| s.first().zip(s.get(1)).map_or(0., |(a, b)| (*b - *a).hypot())).sum::<f64>() + path.len() as f64 * 0.01;
             if best.as_ref().is_none_or(|(v, _)| cost < *v - 1e-9) {
@@ -212,7 +229,7 @@ fn route_axes(start: Point, end: Point, obs: &[Rect]) -> Result<(Vec<f64>, Vec<f
     let mut selected = vec![false; obs.len()];
     let mut relevant = Vec::new();
     // Each successful iteration includes at least one previously excluded box.
-    for _ in 0..=MAX_OBSTACLES {
+    for _ in 0..=obs.len() {
         let mut changed = false;
         for (r, selected) in obs.iter().zip(&mut selected) {
             if !*selected && r.x0 <= corridor.x1 && r.x1 >= corridor.x0 && r.y0 <= corridor.y1 && r.y1 >= corridor.y0 {
@@ -232,8 +249,11 @@ fn route_axes(start: Point, end: Point, obs: &[Rect]) -> Result<(Vec<f64>, Vec<f
 /// Rectilinear visibility grid, bounded before allocation and with bend-aware shortest paths.
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.shape.reroute
 pub(crate) fn path(start: Point, end: Point, obs: &[Rect], first_dir: Option<usize>, last_dir: Option<usize>) -> Result<Vec<Point>, String> {
-    if [start.x, start.y, end.x, end.y].iter().any(|n| !n.is_finite() || n.abs() > 1e6) || obs.len() > MAX_OBSTACLES {
+    if [start.x, start.y, end.x, end.y].iter().any(|n| !n.is_finite() || n.abs() > 1e6) {
         return Err("route input limit".into());
+    }
+    if obs.len() > MAX_LOCAL_OBSTACLES {
+        return Err("route obstacle count limit".into());
     }
     if obs.iter().any(|r| [r.x0, r.y0, r.x1, r.y1].iter().any(|n| !n.is_finite() || n.abs() > 1e6) || r.x0 > r.x1 || r.y0 > r.y1) {
         return Err("route obstacle bounds limit".into());
@@ -479,7 +499,7 @@ mod tests {
         assert!(route.len() > 2);
         assert!(route.windows(2).all(|s| !blocked(s[0], s[1], &[obstacle])));
         assert!(path(Point::new(f64::NAN, 0.), Point::new(5., 0.), &[], None, None).is_err());
-        assert!(path(Point::ORIGIN, Point::new(5., 0.), &vec![obstacle; MAX_OBSTACLES + 1], None, None).is_err());
+        assert!(path(Point::ORIGIN, Point::new(5., 0.), &vec![obstacle; MAX_LOCAL_OBSTACLES + 1], None, None).is_err());
         assert!(path(Point::ORIGIN, Point::new(5., 0.), &[Rect::new(f64::NAN, 0., 1., 1.)], None, None).is_err());
         assert!(path(Point::ORIGIN, Point::new(5., 0.), &[Rect::new(2., 0., 1., 1.)], None, None).is_err());
     }
@@ -498,3 +518,117 @@ mod tests {
         assert_eq!(path(Point::ORIGIN, Point::new(1000., 1000.), &obstacles, Some(0), Some(0)).unwrap_err(), "route grid limit");
     }
 }
+
+/// Reuse evaluated candidate boxes only above the old cap, within one evaluator
+/// epoch. The memo is bounded independently of the per-connector obstacle set.
+#[derive(Default)]
+pub(crate) struct ObstacleBounds {
+    epoch: Option<(usize, u64)>,
+    values: std::collections::BTreeMap<(u32, u32), Option<Rect>>,
+}
+impl ObstacleBounds {
+    fn get(&mut self, e: &mut Evaluator<'_>, scope: Scope) -> Result<Option<Rect>, String> {
+        let Scope::PageShape { page, shape } = scope else { return Ok(None) };
+        let epoch = e.evaluation_epoch();
+        if self.epoch != Some(epoch) {
+            self.values.clear();
+            self.epoch = Some(epoch);
+        }
+        if let Some(value) = self.values.get(&(page, shape)) {
+            return Ok(*value);
+        }
+        let value = if number(e, scope, "ObjType", 0.) == 1.
+            && (number(e, scope, "ShapePermeableX", 0.) == 0. || number(e, scope, "ShapePermeableY", 0.) == 0.)
+        {
+            Some(bounds(e, scope)?)
+        } else {
+            None
+        };
+        if e.evaluation_epoch() == epoch && self.values.len() < MAX_LOCAL_OBSTACLES {
+            self.values.insert((page, shape), value);
+        }
+        Ok(value)
+    }
+}
+
+/// Gather in the unchanged order below the historical cap. Larger pages use a
+/// bounded expanding endpoint corridor; obstacles never disappear mid-search.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/linetonodex-cell-page-layout-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/linetolinex-cell-page-layout-section
+pub(crate) fn with_obstacles(
+    e: &mut Evaluator<'_>,
+    page: u32,
+    excluded: &[u32],
+    frame: misterdiagram_geom::Affine,
+    ends: [Rect; 2],
+    memo: &mut ObstacleBounds,
+    mut route: impl FnMut(&[Rect]) -> Result<Vec<Point>, String>,
+) -> Result<Vec<Point>, String> {
+    let spacing = |e: &mut Evaluator<'_>, axis: &str| {
+        number(e, Scope::Page(page), &format!("LineToNode{axis}"), 0.125)
+            .abs()
+            .max(number(e, Scope::Page(page), &format!("LineToLine{axis}"), 0.125).abs() * 1.5)
+            .max(0.01)
+    };
+    let gap = (spacing(e, "X"), spacing(e, "Y"));
+    let base = ends[0].union(ends[1]);
+    let scopes = e.scopes().filter(|s| matches!(s, Scope::PageShape {page:p,shape} if *p==page && !excluded.contains(shape))).collect::<Vec<_>>();
+    let mut margin = (gap.0 * 2., gap.1 * 2.);
+    for _ in 0..32 {
+        let corridor = base.inflate(margin.0, margin.1);
+        let mut selected = Vec::new();
+        let mut whole = true;
+        for &scope in &scopes {
+            let Some(b) = memo.get(e, scope)? else { continue };
+            let b = frame.transform_rect_bbox(b);
+            let include = intersects(corridor, b.inflate(gap.0, gap.1));
+            #[cfg(test)]
+            let include = include || FULL_OBSTACLES.get();
+            if include {
+                if selected.len() >= MAX_LOCAL_OBSTACLES {
+                    return Err("route obstacle count limit".into());
+                }
+                selected.push(b);
+            } else {
+                whole = false;
+            }
+        }
+        match route(&selected) {
+            Ok(points)
+                if whole
+                    || points.iter().all(|p| {
+                        p.x > corridor.x0 + gap.0 && p.x < corridor.x1 - gap.0 && p.y > corridor.y0 + gap.1 && p.y < corridor.y1 - gap.1
+                    }) =>
+            {
+                return Ok(points);
+            }
+            Ok(_) => {}
+            Err(error) if error == "no orthogonal route" && !whole => {}
+            Err(error) => return Err(error),
+        }
+        margin.0 *= 2.;
+        margin.1 *= 2.;
+        #[cfg(test)]
+        CORRIDOR_GROWTHS.set(CORRIDOR_GROWTHS.get() + 1);
+    }
+    Err("route corridor growth limit".into())
+}
+fn intersects(a: Rect, b: Rect) -> bool {
+    a.x0 <= b.x1 && a.x1 >= b.x0 && a.y0 <= b.y1 && a.y1 >= b.y0
+}
+#[cfg(test)]
+std::thread_local! {
+    static FULL_OBSTACLES: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+    static CORRIDOR_GROWTHS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
+
+pub(crate) fn endpoint_footprint(a: Rect, b: Rect, obs: &[Rect], style: f64, clearance: (f64, f64)) -> Result<Vec<Point>, String> {
+    let mut footprint = Vec::new();
+    let ends = endpoints_traced(a, b, obs, style, clearance, Some(&mut footprint))?;
+    let mut result = Vec::from(ends);
+    result.extend(footprint);
+    Ok(result)
+}
+#[cfg(test)]
+#[path = "capacity_exactness.rs"]
+mod capacity_exactness;

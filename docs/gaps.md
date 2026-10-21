@@ -279,9 +279,15 @@ moves away, then retains literal X=0 when it moves back. One late route leaves
 that inherited zero without a local cell. Batch mode is shelved until saving
 becomes independent of edit history; that refactor is future work.
 
-Router capacity (M5.32, #76): orthogonal routing is bounded to 256 obstacles,
-16,384 grid vertices, two direction states per vertex and 16 times the vertex
-count in the queue. Finite coordinates remain bounded to 1,000,000 internal
+Router capacity (M5.32 to M5.33, #76): connectors with at most 256
+placeable, non-permeable candidates retain the original obstacle set and order.
+Above that count, routing gathers candidates intersecting the union of the two
+end boxes grown by twice max(abs(LineToNode), 1.5 abs(LineToLine), 0.01)
+per axis. The margin doubles when a route reaches the corridor edge or fails
+geometrically, until the route is clear or every candidate is included. Each
+connector admits at most 4,096 gathered obstacles and 32 corridor attempts.
+The existing bounds remain 16,384 grid vertices, two direction states per
+vertex and 16 times the vertex count in the queue. Finite coordinates remain bounded to 1,000,000 internal
 inches. Capacity exhaustion in endpoint planning or rerouting publishes the
 edit with `route_warnings`, preserving glue. Degraded orthogonal connectors use
 a straight segment when aligned, otherwise one vertical-first elbow; tree
@@ -289,7 +295,10 @@ style 17 keeps its vertical-first midpoint jog. Straight styles 2 and 16 keep
 a straight segment and do not gather obstacles. Geometry errors still abort.
 Save includes outstanding degraded connectors in its warnings; `route.reroute`
 retries them. Undo restores both the drawing and degraded-route status in one
-ordinary step. Connector-local gathering above 256 candidates is M5.33 work.
+ordinary step. The generated exactness tests compare 50 connectors on each
+of twelve pages (300, 600 and 1,000 placeable shapes in four layouts) against
+the full obstacle set within 1e-9. All 600 routes agree; each far-barrier page
+requires 600 corridor growths across endpoint planning and routing.
 
 History admission: the 4,000,000-node retained limit remains unchanged. After
 successful publication (or opening a stencil), oldest undo then redo snapshots

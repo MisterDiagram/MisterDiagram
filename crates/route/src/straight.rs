@@ -81,6 +81,7 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
     let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&text).with_glue_host(host);
     let mut old = Evaluator::new(before).map_err(|e| e.to_string())?.with_theme_host(&old_themes).with_text_host(&text);
     let mut routes = vec![];
+    let mut obstacles_memo = crate::orthogonal::ObstacleBounds::default();
     let mut fixed = vec![];
     for scope in e.scopes().collect::<Vec<_>>() {
         let Scope::PageShape { page, shape: id } = scope else { continue };
@@ -150,35 +151,49 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             if let Some(Some(error)) = outcomes.get(&(page, id)) {
                 return Err(error.clone());
             }
-            let obstacles = crate::orthogonal::clearance(&gathered?, if style == 17. { (0., 0.) } else { (cx, cy) }, [begin, end]);
-            let points = if style == 2. || style == 16. {
-                vec![begin, end]
-            } else if style == 17. {
-                let mid = (by + ey) / 2.;
-                let points = if bx == ex || by == ey {
+            let solve = |obstacles: &[misterdiagram_geom::Rect]| {
+                let obstacles = crate::orthogonal::clearance(obstacles, if style == 17. { (0., 0.) } else { (cx, cy) }, [begin, end]);
+                let points = if style == 2. || style == 16. {
                     vec![begin, end]
+                } else if style == 17. {
+                    let mid = (by + ey) / 2.;
+                    let points = if bx == ex || by == ey {
+                        vec![begin, end]
+                    } else {
+                        vec![begin, misterdiagram_geom::Point::new(bx, mid), misterdiagram_geom::Point::new(ex, mid), end]
+                    };
+                    if points.windows(2).any(|pair| {
+                        obstacles.iter().any(|r| {
+                            let Some(a) = pair.first() else { return true };
+                            let Some(b) = pair.get(1) else { return true };
+                            if a.x == b.x {
+                                a.x > r.x0 && a.x < r.x1 && a.y.min(b.y) < r.y1 && a.y.max(b.y) > r.y0
+                            } else {
+                                a.y > r.y0 && a.y < r.y1 && a.x.min(b.x) < r.x1 && a.x.max(b.x) > r.x0
+                            }
+                        })
+                    }) {
+                        crate::orthogonal::path(begin, end, &obstacles, dirs.0, dirs.1)?
+                    } else {
+                        points
+                    }
                 } else {
-                    vec![begin, misterdiagram_geom::Point::new(bx, mid), misterdiagram_geom::Point::new(ex, mid), end]
-                };
-                if points.windows(2).any(|pair| {
-                    obstacles.iter().any(|r| {
-                        let Some(a) = pair.first() else { return true };
-                        let Some(b) = pair.get(1) else { return true };
-                        if a.x == b.x {
-                            a.x > r.x0 && a.x < r.x1 && a.y.min(b.y) < r.y1 && a.y.max(b.y) > r.y0
-                        } else {
-                            a.y > r.y0 && a.y < r.y1 && a.x.min(b.x) < r.x1 && a.x.max(b.x) > r.x0
-                        }
-                    })
-                }) {
                     crate::orthogonal::path(begin, end, &obstacles, dirs.0, dirs.1)?
-                } else {
-                    points
-                }
-            } else {
-                crate::orthogonal::path(begin, end, &obstacles, dirs.0, dirs.1)?
+                };
+                Ok(points)
             };
-            Ok(points)
+            match gathered {
+                Ok(obstacles) => solve(&obstacles),
+                Err(error) if error == "route obstacle count limit" => {
+                    let mut boxes = [misterdiagram_geom::Rect::new(bx, by, bx, by), misterdiagram_geom::Rect::new(ex, ey, ex, ey)];
+                    for (slot, target) in boxes.iter_mut().zip(&excluded) {
+                        *slot =
+                            slot.union(inverse.transform_rect_bbox(crate::orthogonal::bounds(&mut e, Scope::PageShape { page, shape: *target })?));
+                    }
+                    crate::orthogonal::with_obstacles(&mut e, page, &excluded, inverse, boxes, &mut obstacles_memo, solve)
+                }
+                Err(error) => Err(error),
+            }
         })();
         let points = match attempt {
             Ok(points) => {

@@ -211,6 +211,7 @@ impl GlueHost {
         let mut host = Self { unaffected: crate::scope::empty_routes(doc), ..Self::default() };
         let mut current_bounds = TargetBounds::default();
         let mut prior_bounds = TargetBounds::default();
+        let mut obstacles_memo = crate::orthogonal::ObstacleBounds::default();
         let mut changes = vec![];
         let mut affected = std::collections::BTreeSet::new();
         let mut count = 0usize;
@@ -260,9 +261,21 @@ impl GlueHost {
                         );
                         let a = misterdiagram_geom::Rect::new(a.min.x, a.min.y, a.max.x, a.max.y);
                         let b = misterdiagram_geom::Rect::new(b.min.x, b.min.y, b.max.x, b.max.y);
-                        let plan = obstacles.and_then(|obstacles| crate::orthogonal::endpoints(a, b, &obstacles, style, clearance));
+                        let plan = match obstacles {
+                            Ok(obstacles) => crate::orthogonal::endpoints(a, b, &obstacles, style, clearance).map(Vec::from),
+                            Err(error) if error == "route obstacle count limit" => crate::orthogonal::with_obstacles(
+                                &mut e,
+                                page.id,
+                                &excluded,
+                                Affine::IDENTITY,
+                                [a, b],
+                                &mut obstacles_memo,
+                                |obstacles| crate::orthogonal::endpoint_footprint(a, b, obstacles, style, clearance),
+                            ),
+                            Err(error) => Err(error),
+                        };
                         Some(match plan {
-                            Ok(points) => points,
+                            Ok(points) => [*points.first().ok_or("endpoint plan length")?, *points.get(1).ok_or("endpoint plan length")?],
                             Err(error) if crate::orthogonal::capacity(&error) => {
                                 host.outcomes.insert((page.id, id), Some(error));
                                 crate::orthogonal::endpoints(a, b, &[], style, clearance)?

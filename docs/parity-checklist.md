@@ -345,11 +345,14 @@ visual gates are pending. No score increase for these
 examples. Discovery regressions cover dependent bounds, tiny fan points,
 text-sized layout and bounded aggregate MCP replies.
 
-## M5.32 routing capacity
+## M5.32 to M5.33 routing capacity
 
 The orthogonal-routing row remains P. Capacity limits now publish connected
 obstacle-free routes with per-connector warnings, preserving ordinary undo and
 retry. `route_capacity` covers obstacle/grid exhaustion, glued endpoints,
 save warnings, retry recovery and geometry-error rollback. Route sweep and
 re-save numbers remain 28/29 and 40 connectors with zero differences.
+Connector-local gathering preserves all 1,439 corpus/recipe packages and all
+600 generated connector routes match the full obstacle set within 1e-9.
+The four layouts include a far barrier requiring corridor growth.
 Reference: https://learn.microsoft.com/en-us/office/vba/api/visio.shape.reroute

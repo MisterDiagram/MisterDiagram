@@ -88,14 +88,38 @@ fn two_hundred_obstacles_route_an_orthogonal_connector() {
 
 #[test]
 fn capacity_degrades_with_glue_warnings_one_undo_step_and_retry() {
-    let mut s = page(260, 1);
-    let id = 261;
+    let mut s = page(4100, 1);
+    s.edit_document(|doc, _| {
+        for shape in &mut doc.pages[0].shapes {
+            if shape.id < 3 {
+                continue;
+            }
+            for cell in &mut shape.sheet.cells {
+                if cell.name == "PinX" {
+                    cell.value = Some("4.5".into());
+                }
+                if cell.name == "PinY" {
+                    cell.value = Some("0.5".into());
+                }
+            }
+        }
+        Ok(())
+    })
+    .unwrap();
+    let id = 4101;
     run(&mut s, "master.drop", json!({"master":2,"x":1,"y":0.5}));
-    for (end, target) in [("begin", 1), ("end", 2)] {
-        let result = run(&mut s, "connect.dynamic", json!({"id":id,"end":end,"target":target}));
-        assert_eq!(result["route_warnings"][0]["connector"], id);
-        assert_eq!(result["route_warnings"][0]["limit"], "route obstacle count limit");
-    }
+    run(&mut s, "connect.dynamic", json!({"id":id,"end":"begin","target":1}));
+    let before_degradation = s.document().clone();
+    let result = run(&mut s, "connect.dynamic", json!({"id":id,"end":"end","target":2}));
+    assert_eq!(result["route_warnings"][0]["connector"], id);
+    assert_eq!(result["route_warnings"][0]["limit"], "route obstacle count limit");
+    let degraded = s.document().clone();
+    let undo = run(&mut s, "edit.undo", json!({}));
+    assert!(undo.get("route_warnings").is_none());
+    assert_eq!(s.document(), &before_degradation);
+    let redo = run(&mut s, "edit.redo", json!({}));
+    assert_eq!(redo["route_warnings"], result["route_warnings"]);
+    assert_eq!(s.document(), &degraded);
     let before = s.document().clone();
     let result = run(&mut s, "shape.move", json!({"id":2,"x":12,"y":0}));
     assert_eq!(result["route_warnings"].as_array().unwrap().len(), 1);
@@ -108,7 +132,7 @@ fn capacity_degrades_with_glue_warnings_one_undo_step_and_retry() {
     let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../plan/brief32");
     std::fs::create_dir_all(&dir).unwrap();
     let result = run(&mut s, "file.save", json!({"path":dir.join("degraded.vsdx")}));
-    assert!(result["warnings"].as_array().unwrap().iter().any(|v| v.as_str().unwrap().contains("connector 261")));
+    assert!(result["warnings"].as_array().unwrap().iter().any(|v| v.as_str().unwrap().contains(&format!("connector {id}"))));
     let result = run(&mut s, "route.reroute", json!({"id":id}));
     assert_eq!(result["route_warnings"][0]["connector"], id);
     s.edit_document(|doc, _| {

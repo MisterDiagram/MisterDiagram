@@ -384,3 +384,9 @@ also lists every still-degraded connector in its existing `warnings` and
 `warning_count`. `route.reroute` retries routing and clears warnings for recovered
 connectors. Degraded status is session state, restored with undo/redo; it is not
 extra package metadata. Opening a saved package preserves its stored geometry.
+
+The named capacity bounds are `route obstacle count limit` (4,096 local
+obstacles above the unchanged 256-candidate path), `route grid limit`
+(16,384 vertices), `route queue limit`, `route obstacle closure limit`, and
+`route corridor growth limit` (32 attempts). Corridor selection uses the page
+LineToNode and LineToLine spacing and grows before declaring a geometric failure.
