@@ -81,6 +81,7 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
     let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&text).with_glue_host(host);
     let mut old = Evaluator::new(before).map_err(|e| e.to_string())?.with_theme_host(&old_themes).with_text_host(&text);
     let mut routes = vec![];
+    let mut horizontal_runs = Vec::<(u32, misterdiagram_geom::Point, misterdiagram_geom::Point)>::new();
     let mut obstacles_memo = crate::orthogonal::ObstacleBounds::default();
     let mut fixed = vec![];
     for scope in e.scopes().collect::<Vec<_>>() {
@@ -97,6 +98,41 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
         });
         let changed = changed || ["BeginX", "BeginY", "EndX", "EndY"].iter().any(|name| e.evaluate(scope, name) != old.evaluate(scope, name));
         if !forced && !changed && !dirty_pages.contains(&page) {
+            // Targeted reroutes must see the unchanged preceding connectors too.
+            // Reuse their serialized centerlines, including across jump arcs.
+            let transform = e.shape_to_page(scope).map_err(|v| v.to_string())?;
+            let mut rows = std::collections::BTreeMap::new();
+            for n in e.resolved_named_cells(scope) {
+                if n.section.is_some_and(|s| s.name == "Geometry" && s.index.unwrap_or(0) == 0)
+                    && let Some(row) = n.row.filter(|r| !r.deleted)
+                {
+                    rows.insert(row.index.unwrap_or(0), row.row_type.clone());
+                    if rows.len() > 16384 {
+                        return Err("route row count limit".into());
+                    }
+                }
+            }
+            let mut previous = None;
+            for (ix, kind) in rows {
+                let x = crate::orthogonal::number(&mut e, scope, &format!("Geometry1.X{ix}"), 0.);
+                let y = crate::orthogonal::number(&mut e, scope, &format!("Geometry1.Y{ix}"), 0.);
+                let point = transform * misterdiagram_geom::Point::new(x, y);
+                if !point.x.is_finite() || !point.y.is_finite() || point.x.abs() > 1e6 || point.y.abs() > 1e6 {
+                    return Err("route coordinate limit".into());
+                }
+                if kind.as_deref() != Some("MoveTo")
+                    && let Some(a) = previous
+                {
+                    let a: misterdiagram_geom::Point = a;
+                    if (a.y - point.y).abs() < 1e-9 {
+                        if horizontal_runs.len() >= 100000 {
+                            return Err("route segment limit".into());
+                        }
+                        horizontal_runs.push((page, a, point));
+                    }
+                }
+                previous = Some(point);
+            }
             continue;
         }
         let [bx, by, ex, ey] = ["BeginX", "BeginY", "EndX", "EndY"]
@@ -155,6 +191,25 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             }
         };
         let dirs = (direction(&mut e, begin, "BeginX")?, direction(&mut e, end, "EndX")?);
+        let static_normal = |e: &mut Evaluator<'_>, point, side: &str| -> Result<Option<misterdiagram_geom::Vec2>, String> {
+            let link = doc.pages.get(index).ok_or("route page")?.connects.iter().find(|c| c.from_sheet == id && c.from_cell.as_deref() == Some(side));
+            let Some(link) = link.filter(|c| !matches!(c.to_cell.as_deref(), Some("PinX" | "PinY"))) else { return Ok(None) };
+            let bounds = inverse.transform_rect_bbox(crate::orthogonal::bounds(e, Scope::PageShape { page, shape: link.to_sheet })?);
+            Ok(crate::stub::normal(bounds, point))
+        };
+        let mut normals = [static_normal(&mut e, begin, "BeginX")?, static_normal(&mut e, end, "EndX")?];
+        if normals.iter().any(Option::is_some) {
+            for (slot, point, side) in [(0, begin, "BeginX"), (1, end, "EndX")] {
+                if normals.get(slot).is_some_and(Option::is_none)
+                    && let Some(link) =
+                        doc.pages.get(index).ok_or("route page")?.connects.iter().find(|c| c.from_sheet == id && c.from_cell.as_deref() == Some(side))
+                {
+                    let bounds = inverse.transform_rect_bbox(crate::orthogonal::bounds(&mut e, Scope::PageShape { page, shape: link.to_sheet })?);
+                    *normals.get_mut(slot).ok_or("route endpoint index")? = crate::stub::normal(bounds, point);
+                }
+            }
+        }
+        let runs = horizontal_runs.iter().filter(|(p, _, _)| *p == page).map(|(_, a, b)| (inverse * *a, inverse * *b)).collect::<Vec<_>>();
         // B25 office-style-17 observes a vertical-first midpoint jog. Preserve
         // the existing obstacle router when that direct tree path is blocked.
         // https://learn.microsoft.com/en-us/office/client-developer/visio/shaperoutestyle-cell-shape-layout-section
@@ -195,7 +250,11 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
                 } else {
                     crate::orthogonal::path_with_axes(begin, end, &obstacles, dirs.0, dirs.1, projected)?
                 };
-                Ok(points)
+                if style == 1. && normals.iter().any(Option::is_some) {
+                    crate::stub::path(begin, end, normals, &obstacles, &runs, points)
+                } else {
+                    Ok(points)
+                }
             };
             match gathered {
                 Ok(obstacles) => solve(&obstacles, None),
@@ -221,6 +280,15 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             }
             Err(error) => return Err(error),
         };
+        for pair in points.windows(2) {
+            if let Some((a, b)) = pair.first().zip(pair.get(1)) {
+                let a = parent * *a;
+                let b = parent * *b;
+                if (a.y - b.y).abs() < 1e-9 && horizontal_runs.len() < 100000 {
+                    horizontal_runs.push((page, a, b));
+                }
+            }
+        }
         routes.push((index, id, bx, by, ex, ey, style, points, crate::orthogonal::inherited_zero(&e, scope), inherited_route));
         if routes.len() > 100000 {
             return Err("route count limit".into());
@@ -237,10 +305,24 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
         let shape = shape_mut(&mut page.shapes, id, 0).ok_or("route shape missing")?;
         let dx = ex - bx;
         let dy = ey - by;
-        let width = if dx.abs() < 1e-12 { 0.25 } else { dx };
-        let height = if dy.abs() < 1e-12 { 0.25 } else { dy };
-        let width_formula = if dx.abs() < 1e-12 { "GUARD(0.25DL)" } else { "GUARD(EndX-BeginX)" };
-        let height_formula = if dy.abs() < 1e-12 { "GUARD(0.25DL)" } else { "GUARD(EndY-BeginY)" };
+        // Preserve Visio's signed zero-axis frame. The asymmetric FlipX witness
+        // has Width=-0.25DL even though its page-space x delta is below 1e-15.
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/width-cell-shape-transform-section
+        let zero = |name: &str| {
+            if shape
+                .sheet
+                .cell(name)
+                .is_some_and(|c| c.value.as_deref() == Some("-0.25") && c.formula.as_deref().is_some_and(|f| f.starts_with("GUARD(-0.25")))
+            {
+                -0.25
+            } else {
+                0.25
+            }
+        };
+        let width = if dx.abs() < 1e-12 { zero("Width") } else { dx };
+        let height = if dy.abs() < 1e-12 { zero("Height") } else { dy };
+        let width_formula = if dx.abs() < 1e-12 { if width < 0. { "GUARD(-0.25DL)" } else { "GUARD(0.25DL)" } } else { "GUARD(EndX-BeginX)" };
+        let height_formula = if dy.abs() < 1e-12 { if height < 0. { "GUARD(-0.25DL)" } else { "GUARD(0.25DL)" } } else { "GUARD(EndY-BeginY)" };
         for (name, value, formula) in [
             ("PinX", (bx + ex) * 0.5, "Inh"),
             ("PinY", (by + ey) * 0.5, "Inh"),
@@ -283,8 +365,8 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             rows: {
                 let mut rows = Vec::new();
                 for (i, p) in points.iter().enumerate() {
-                    let x = p.x - bx + if dx.abs() < 1e-12 { 0.125 } else { 0. };
-                    let y = p.y - by + if dy.abs() < 1e-12 { 0.125 } else { 0. };
+                    let x = p.x - bx + if dx.abs() < 1e-12 { width / 2. } else { 0. };
+                    let y = p.y - by + if dy.abs() < 1e-12 { height / 2. } else { 0. };
                     let mut cells = vec![cell("Y", y, None)];
                     if i != 0 || x.abs() > 1e-12 {
                         cells.insert(0, cell("X", x, None));

@@ -149,7 +149,7 @@ fn point(
     id: u32,
     side: Side,
     fraction: f64,
-    used: &std::collections::BTreeSet<String>,
+    _used: &std::collections::BTreeSet<String>,
 ) -> Result<String> {
     let page_id = doc.pages.get(page).ok_or_else(|| operation("page missing"))?.id;
     let scope = Scope::PageShape { page: page_id, shape: id };
@@ -181,14 +181,18 @@ fn point(
             Ok((n.name.clone(), companion("Y")?, companion("Type")?))
         })
         .collect::<Result<Vec<_>>>()?;
+    let mut coincident = false;
     for (name, y_name, type_name) in points {
         let kind = e.evaluate(scope, &type_name).numeric().map_err(operation)?;
-        if used.contains(&name) || (kind != 0. && kind != 2.) {
-            continue;
+        if (number(&mut e, scope, &name)? - x).abs() <= 1e-6 && (number(&mut e, scope, &y_name)? - y).abs() <= 1e-6 {
+            coincident = true;
+            if kind == 0. || kind == 2. {
+                return Ok(name);
+            }
         }
-        if number(&mut e, scope, &name)? == x && number(&mut e, scope, &y_name)? == y {
-            return Ok(name);
-        }
+    }
+    if coincident {
+        return Err(operation("automatic connection position has no inbound point"));
     }
     drop(e);
     let coordinate = |name: &str, value: f64, formula: &str| cell(name, &value.to_string(), (formula != "0").then_some(formula));
@@ -648,6 +652,7 @@ pub(crate) fn parallel_plan(s: &Session, index: usize, from: u32, to: u32, newes
         let h = number(&mut e, scope, "Height")?;
         let all = e.resolved_named_cells(scope);
         let mut static_points = BTreeMap::new();
+        let mut inbound_points = BTreeSet::new();
         for x in all.iter().filter(|n| n.cell.name == "X" && n.section.is_some_and(|v| v.name == "Connection")) {
             let y = all
                 .iter()
@@ -657,6 +662,17 @@ pub(crate) fn parallel_plan(s: &Session, index: usize, from: u32, to: u32, newes
                         && n.row.zip(x.row).is_some_and(|(a, b)| a.name == b.name && a.index == b.index)
                 })
                 .ok_or_else(|| operation("incomplete connection row"))?;
+            let kind = all
+                .iter()
+                .find(|n| {
+                    n.cell.name == "Type"
+                        && n.section.is_some_and(|v| v.name == "Connection")
+                        && n.row.zip(x.row).is_some_and(|(a, b)| a.name == b.name && a.index == b.index)
+                })
+                .ok_or_else(|| operation("incomplete connection row"))?;
+            if matches!(number(&mut e, scope, &kind.name)?, 0. | 2.) {
+                inbound_points.insert(x.name.clone());
+            }
             static_points.insert(x.name.clone(), (number(&mut e, scope, &x.name)?, number(&mut e, scope, &y.name)?));
         }
         let mut occupied = Vec::new();
@@ -695,14 +711,23 @@ pub(crate) fn parallel_plan(s: &Session, index: usize, from: u32, to: u32, newes
                     Side::Bottom => (w * f, 0., format!("Width*{f}"), "0".to_owned()),
                     Side::Top => (w * f, h, format!("Width*{f}"), "Height".to_owned()),
                 };
-                if !occupied.iter().any(|(a, b)| *a == x && *b == y) {
+                let matching = |a: f64, b: f64| (a - x).abs() <= 1e-6 && (b - y).abs() <= 1e-6;
+                let unavailable = static_points.values().any(|(a, b)| matching(*a, *b))
+                    && !static_points.iter().any(|(name, (a, b))| matching(*a, *b) && inbound_points.contains(name));
+                if !unavailable && !occupied.iter().any(|(a, b)| (*a - x).abs() <= 1e-6 && (*b - y).abs() <= 1e-6) {
                     selected = Some((x, y, xf, yf));
                     break;
                 }
             }
             let (x, y, xf, yf) = selected.ok_or_else(|| operation("parallel connection point limit"))?;
             occupied.push((x, y));
-            result.push(json!({"id":id,"target":target,"end":if c.from_cell.as_deref()==Some("BeginX"){"begin"}else{"end"},"x":xf,"y":yf}));
+            let existing = static_points
+                .iter()
+                .find(|(name, (px, py))| inbound_points.contains(*name) && (*px - x).abs() <= 1e-6 && (*py - y).abs() <= 1e-6)
+                .map(|(name, _)| name);
+            result.push(
+                json!({"id":id,"target":target,"end":if c.from_cell.as_deref()==Some("BeginX"){"begin"}else{"end"},"x":xf,"y":yf,"point":existing}),
+            );
         }
     }
     // Route style is an ordinary cell, with no record of the creating command.

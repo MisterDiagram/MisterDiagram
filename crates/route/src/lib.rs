@@ -4,7 +4,9 @@
 mod static_glue;
 pub use static_glue::{ConnectionPoint, End, add_connection, connect_dynamic, connect_static};
 
+mod foreign_glue;
 mod glue_host;
+mod mixed_glue;
 pub use glue_host::GlueHost;
 
 mod fixed;
@@ -12,4 +14,5 @@ mod jumps;
 mod orthogonal;
 mod scope;
 mod straight;
+mod stub;
 pub use straight::reroute;

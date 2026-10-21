@@ -16395,3 +16395,25 @@ Primitive lines (`ObjType=0`, here `ConFixedCode=6`) attach independently at the
 facing side centers. In the real-master witness HOST begins at (2.5,5.9) and
 its offset rectangle ends at (2.52,4); DISK2 begins at (3.5,1.7) and ends at
 (3.5,3). This is separate from the existing `ConFixedCode=2` never-reroute rule.
+
+Brief26b validation distinguishes endpoint agreement from re-save agreement.
+The original main and supplemental checkers match 38 cases and 536 cells within
+1e-6. The unchanged repair checker nevertheless detects imported-master
+metadata/media rewrites and text-control decimal normalization in the fresh
+MCP-authored drawings. For example, a fixture Router connector's
+Controls.TextPosition.Y changes from -1.4500000000000002 to -1.45 on native save
+in `corpus/_vm/out/brief26b-final-oracle/original-affinity-Router/saved.vsdx`.
+These remain reported differences, not new exclusions or evidence of milestone
+closure. The original frozen route sweep and SAN closure witnesses are retained.
+
+The completed consolidated run opens and saves all 66 drawings. Its 141
+connectors retain all 3,450 checked frame/route cells within 1e-6, including every
+jump, but the unchanged repair checker exits 1: 505 differences on 57 drawings,
+131 of them in the private vendor repro. Office, SAN and fabric each have zero
+repair and route differences. The source native `glue-witness-v2/stub-default.vsdx`
+has Dynamic connector MasterType 0, which our save preserves; native re-save
+writes 541. Other retained differences include ClippingPath formula elision,
+style inheritance/themed spelling, named connection-row identifiers, image
+part paths/content types and small text-control/group formula rounding.
+No rewrite exclusion or frozen witness was changed to accept these differences.
+Full evidence: `corpus/_vm/out/brief26b-accept-results/final-accept-report.json`.

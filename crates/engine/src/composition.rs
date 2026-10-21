@@ -117,10 +117,17 @@ fn connector(s: &mut Session, p: &Value, page: usize) -> Result<Value> {
             if let Some(id) = edit.get("style") {
                 s.execute("sheet.set", &json!({"page":page+1,"id":id,"name":"ShapeRouteStyle","value":2}))?;
             } else {
-                let point = s.execute("shape.connection.add", &json!({"page":page+1,"id":edit.get("target"),"x":edit.get("x"),"y":edit.get("y")}))?;
+                let point = if let Some(point) = edit.get("point").filter(|p| p.is_string()) {
+                    point.clone()
+                } else {
+                    s.execute("shape.connection.add", &json!({"page":page+1,"id":edit.get("target"),"x":edit.get("x"),"y":edit.get("y")}))?
+                        .get("cell")
+                        .cloned()
+                        .ok_or_else(|| operation("connection cell missing"))?
+                };
                 s.execute(
                     "connect.static",
-                    &json!({"page":page+1,"id":edit.get("id"),"end":edit.get("end"),"target":edit.get("target"),"point":point.get("cell")}),
+                    &json!({"page":page+1,"id":edit.get("id"),"end":edit.get("end"),"target":edit.get("target"),"point":point}),
                 )?;
             }
         }

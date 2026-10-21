@@ -1,5 +1,43 @@
 # Gaps
 
+## Brief 26b: image groups and connector ends (2026-10-21)
+
+The M5.14 through M5.14d implementation addresses #60, #69, #67 and #66.
+The unchanged native checkers match all 26 main cases/440 cells and 12
+supplemental cases/96 cells within 1e-6. The private real-master MCP repro
+matches all eight endpoints. PNG groups use their alignment perimeter in the
+observed cases; EMFs use the clipped recording-device/frame ink envelope.
+Interior connection points no longer stop the dynamic perimeter walk. Existing
+inward connection rows retain their formulas and Prompt when reused, including
+occupied rows and rows sharing a position with an outward row. Right-angle
+routes enter perpendicular with the observed 0.1875-inch stub and native jump.
+The new test-only Unlicense fixture is pinned by size/hash and covers all 15
+masters plus Router/Servers glue. All eight local CI gates pass with 715 test
+passes. Route sweep remains 28/29 with the named jump-three-crossings gap; SAN
+closure remains 40 connectors, 1,344 cells and zero differences. The full
+original vendor inventory remains 6,678/6,742, zero blank and zero guard kills.
+All eight benchmark workloads and 18 saved packages remain byte-equal to the
+Brief28 baseline under the original masks, with zero exception cells.
+The full CLI corpus check exits 0: strict 15,105,590/15,105,590 cells, cached
+text 62,075/67,866, COM text 54,449/58,180, and nine generated outliers.
+See file-format-parity.md for observations.
+
+Closure is partial, with these blockers retained explicitly:
+
+- The unchanged M5.8 checker reports 0 office and 0 SAN violations, but 20 fabric
+  violations: each of ten connectors crosses its switch's containing background
+  box and label bounds. Brief27's reported exception does not satisfy Brief26b's
+  zero requirement. The recipe and checker remain unchanged.
+- The consolidated VM run opens/saves 66 drawings and retains all 3,450 route/frame
+  cells across 141 connectors within 1e-6, but the unchanged repair checker exits 1:
+  505 differences across 57 drawings, including 131 in the private vendor repro.
+  These include imported master metadata/media, styles, row identifiers and
+  connector text-control rounding. All three recipe saves have zero repair and
+  route differences. Per-cell evidence remains in the private acceptance report.
+- Two clean frozen review passes cannot be claimed while either acceptance
+  blocker remains. Six source-only seeds are detected and restored; the discovery
+  reroute-neighbor and coincident-row findings are corrected and tested.
+
 ## Review fixes, Brief 30 (2026-10-20)
 
 M5.27 addresses #72: composition/batch/delegation panics are caught without a

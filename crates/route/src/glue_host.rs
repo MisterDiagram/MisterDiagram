@@ -15,6 +15,7 @@ struct BoxShape {
     min: Point,
     max: Point,
     points: Vec<(Point, [f64; 2])>,
+    ink: Option<Vec<misterdiagram_geom::Rect>>,
 }
 fn number(e: &mut Evaluator<'_>, scope: Scope, name: &str) -> Result<f64, String> {
     let n = e.evaluate(scope, name).numeric().map_err(|e| e.to_string())?;
@@ -53,12 +54,22 @@ fn bounds(e: &mut Evaluator<'_>, page: u32, shape: u32) -> Result<BoxShape, Stri
         let dx = number(e, scope, &col("DirX")?)?;
         let dy = number(e, scope, &col("DirY")?)?;
         let kind = number(e, scope, &col("Type")?)?;
-        if kind == 0. || kind == 2. {
+        // Whole-shape glue walks the perimeter. Interior rows remain available
+        // to explicit static glue, but must not stop dynamic walking (#60, #69).
+        // Witness: Brief26b interior-one/two/cylinder and vendor-recalculated.
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section
+        let on_perimeter = x >= -1e-6
+            && x <= width + 1e-6
+            && y >= -1e-6
+            && y <= height + 1e-6
+            && [x.abs(), (x - width).abs(), y.abs(), (y - height).abs()].iter().any(|v| *v <= 1e-6);
+        if (kind == 0. || kind == 2.) && on_perimeter {
             let vector = transform * Point::new(dx, dy) - transform * Point::ORIGIN;
             points.push((transform * Point::new(x, y), [vector.x, vector.y]));
         }
     }
-    Ok(BoxShape { transform, width, height, min, max, points })
+    let ink = crate::foreign_glue::envelopes(e, page, shape)?;
+    Ok(BoxShape { transform, width, height, min, max, points, ink })
 }
 /// One target can serve hundreds of endpoints. Reuse its evaluated geometry only
 /// in the same evaluator epoch; assignments or contextual hooks prevent reuse.
@@ -81,7 +92,7 @@ impl TargetBounds {
         }
         let value = std::rc::Rc::new(bounds(e, page, shape)?);
         // Cache saturation falls back to ordinary computation, never an input refusal.
-        let points = self.points.checked_add(value.points.len());
+        let points = value.points.len().checked_add(value.ink.as_ref().map_or(0, Vec::len)).and_then(|n| self.points.checked_add(n));
         if e.evaluation_epoch() == epoch && self.values.len() < 4096 && points.is_some_and(|n| n <= 65536) {
             self.points = points.ok_or("target memo point overflow")?;
             self.values.insert((page, shape), value.clone());
@@ -245,7 +256,10 @@ impl GlueHost {
                     .into_iter()
                     .collect::<Result<Vec<_>, _>>()?;
                 let preference = number(&mut e, scope, "WalkPreference")?;
-                let planned = if number(&mut e, scope, "ConFixedCode")? != 2.
+                let fixed = number(&mut e, scope, "ConFixedCode")? == 2.;
+                let routable = number(&mut e, scope, "ObjType")? == 2.;
+                let planned = if !fixed
+                    && routable
                     && preference == 0.
                     && links.iter().all(|c| dynamic(*c))
                     && boxes.iter().flatten().all(|b| b.points.is_empty())
@@ -312,8 +326,12 @@ impl GlueHost {
                     let target = boxes.get(side).and_then(Option::as_deref).ok_or("glue target missing")?;
                     let old_target = prior_bounds.get(&mut old, page.id, link.to_sheet).ok();
                     let changed = inputs_changed
-                        || old_target.is_none_or(|o| {
-                            o.transform != target.transform || o.width != target.width || o.height != target.height || o.points != target.points
+                        || old_target.as_ref().is_none_or(|o| {
+                            o.transform != target.transform
+                                || o.width != target.width
+                                || o.height != target.height
+                                || o.points != target.points
+                                || o.ink != target.ink
                         })
                         || !before.pages.iter().find(|p| p.id == page.id).is_some_and(|p| p.connects.contains(link));
                     let prior = e.evaluate(scope, end.trigger()).numeric().map_err(|e| e.to_string())?;
@@ -336,13 +354,75 @@ impl GlueHost {
                             let x = number(&mut e, scope, &format!("{prefix}X"))?;
                             let y = number(&mut e, scope, &format!("{prefix}Y"))?;
                             let point = parent * Point::new(x, y);
-                            fallback = BoxShape { transform: Affine::IDENTITY, width: 0., height: 0., min: point, max: point, points: vec![] };
+                            fallback =
+                                BoxShape { transform: Affine::IDENTITY, width: 0., height: 0., min: point, max: point, points: vec![], ink: None };
                             &fallback
                         };
                         let vertical = link.to_cell.as_deref() == Some("PinY")
                             || if side == 0 { preference == 1. || preference == 3. } else { preference == 2. || preference == 3. };
-                        let point = parent.inverse()
-                            * if let Some(point) = planned.as_ref().and_then(|p| p.get(side)) { *point } else { endpoint(target, other, vertical)? };
+                        let point = if !fixed
+                            && routable
+                            && matches!(crate::orthogonal::style(&mut e, scope, page.id), 0. | 1.)
+                            && preference == 0.
+                            && target.points.is_empty()
+                            && links.get(1usize.saturating_sub(side)).is_some_and(|c| c.is_some() && !dynamic(*c))
+                        {
+                            let prefix = if side == 0 { "End" } else { "Begin" };
+                            let start =
+                                parent * Point::new(number(&mut e, scope, &format!("{prefix}X"))?, number(&mut e, scope, &format!("{prefix}Y"))?);
+                            let excluded = links.iter().flatten().map(|c| c.to_sheet).collect::<Vec<_>>();
+                            let obstacles = crate::orthogonal::obstacles(&mut e, page.id, &excluded);
+                            let clearance = (
+                                crate::orthogonal::number(&mut e, Scope::Page(page.id), "LineToLineX", 0.125) * 1.5,
+                                crate::orthogonal::number(&mut e, Scope::Page(page.id), "LineToLineY", 0.125) * 1.5,
+                            );
+                            let preferred = if old_target
+                                .as_ref()
+                                .is_some_and(|o| o.transform == target.transform && o.width == target.width && o.height == target.height)
+                                && before.pages.iter().find(|p| p.id == page.id).is_some_and(|p| p.connects.contains(link))
+                            {
+                                let prefix = if side == 0 { "Begin" } else { "End" };
+                                Some(
+                                    parent * Point::new(number(&mut e, scope, &format!("{prefix}X"))?, number(&mut e, scope, &format!("{prefix}Y"))?),
+                                )
+                            } else {
+                                None
+                            };
+                            let boxes = [
+                                misterdiagram_geom::Rect::new(other.min.x, other.min.y, other.max.x, other.max.y),
+                                misterdiagram_geom::Rect::new(target.min.x, target.min.y, target.max.x, target.max.y),
+                            ];
+                            let plan = obstacles
+                                .and_then(|obstacles| crate::mixed_glue::endpoint(&mut e, scope, start, boxes, &obstacles, clearance, preferred));
+                            match plan {
+                                Ok(point) => point,
+                                Err(error) if crate::orthogonal::capacity(&error) => {
+                                    host.outcomes.insert((page.id, id), Some(error));
+                                    endpoint(target, other, vertical)?
+                                }
+                                Err(error) => return Err(error),
+                            }
+                        } else if let Some(point) = planned.as_ref().and_then(|p| p.get(side)) {
+                            *point
+                        } else {
+                            endpoint(target, other, vertical)?
+                        };
+                        let point = if !routable && target.points.is_empty() {
+                            let c = center(target);
+                            let dx = (point.x - target.min.x).abs().min((point.x - target.max.x).abs());
+                            let dy = (point.y - target.min.y).abs().min((point.y - target.max.y).abs());
+                            if dx < dy { Point::new(point.x, c.y) } else { Point::new(c.x, point.y) }
+                        } else {
+                            point
+                        };
+                        let point = target.ink.as_ref().map_or(point, |ink| {
+                            crate::foreign_glue::project(
+                                point,
+                                misterdiagram_geom::Rect::new(target.min.x, target.min.y, target.max.x, target.max.y),
+                                ink,
+                            )
+                        });
+                        let point = parent.inverse() * point;
                         for axis in ["x", "y"] {
                             host.points.insert((page.id, id, format!("{}{axis}", end.prefix().to_ascii_lowercase())), point);
                         }

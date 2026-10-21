@@ -4,6 +4,8 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+# Third-party drawing is repository test input only, never a crate/release asset.
+exclude = ["tests/ntwrk-clean-and-flat/**"]
 
 [features]
 # Test-only fault injection; never enabled for release artifacts.
@@ -33,3 +35,4 @@ misterdiagram-route.workspace = true
 
 [dev-dependencies]
 hayro-syntax = { version = "0.7.2", default-features = false, features = ["std", "unsafe"] }
+sha2 = "0.10.9"

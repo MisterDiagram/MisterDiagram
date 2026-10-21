@@ -2,6 +2,7 @@
 
 | Local path | Source repo | Source path | Commit | Licence |
 |---|---|---|---|---|
+| `crates/engine/tests/ntwrk-clean-and-flat/affinity_native.vssx` | DukeNuke3D (Andrei Voinovich), https://github.com/DukeNuke3D/ntwrk-clean-and-flat, courtesy credit, based on ecceman/affinity | `affinity_native.vssx`, test fixture only; SHA-256 `5df59f8a80af6878d47418bbbc3100718b08f10b167e67a15ff514455e0ae4ae` | `211ba3c9e7f1ed895f6ad4d5dbd67e7cb4b731a5` | Unlicense; `licenses/ntwrk-clean-and-flat-Unlicense.txt` |
 | `crates/vsdx/tests/evalcell_cache.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/2a/vsdx_review_2a.rs` (EVALCELL doubling-chain regression) | `107ee4c3423dd4154bd3c59f60362801f638eabf` | MIT OR Apache-2.0, user-authorized port |
 | `crates/render/src/metafile/emf_bounds_tests.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/3b/render_review3b.rs` (scaled EMF record recipes and memory regressions) | `107ee4c3423dd4154bd3c59f60362801f638eabf` | MIT OR Apache-2.0, user-authorized port |
 | `crates/vsdx/src/relationship_tests.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/1a/vsdx_review_1a.rs` (adapted relationship regressions and package recipe) | `107ee4c3423dd4154bd3c59f60362801f638eabf` | MIT OR Apache-2.0, user-authorized port |
