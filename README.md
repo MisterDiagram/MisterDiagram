@@ -53,13 +53,39 @@ export of the same file, measured by the test harness; Visio's exports stay out 
   layout and layout checks. Filtered inspection bounds reply sizes. Unsaved-change
   protection, panic recovery and bounded malformed-line recovery keep sessions usable.
   CLI scripts can rebuild drawings from data with `run --batch FILE`.
+  The built-in network stencil provides eleven semantic device masters as native
+  editable geometry via `stencil.open {"builtin":"network"}`.
 
 M4 met its plan gates on 2026-10-15. Phase 5 is in progress and P5a is accepted;
 PowerPoint export remains next. CI runs all eight gates on Linux, Windows and
 macOS, plus an Ubuntu check at the declared Rust minimum.
 
 Known gaps are listed in [docs/gaps.md](docs/gaps.md). Text wrapping is the weakest area,
-EMF+ images are not drawn, and compound line patterns are approximate.
+EMF+ images are not drawn, and compound line patterns are approximate. Authoring large
+drawings is slow: strict mode publishes the whole document after every command, so a
+2,500-command drawing of about 380 shapes takes about 13 minutes
+([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39); timings in docs/gaps.md).
+
+## Testers wanted
+
+MisterDiagram has been checked against Visio 2021 on drawings its own scripts made. Real
+drawings are the next test, and that needs people who use Visio at work. There are no
+binaries yet, so you build it from source (see Try it below). The most useful things to try:
+
+- Open your own .vsdx, .vssx and .vstx files with `info` and `render`. Tell us which files
+  fail to open and where a render differs from what Visio shows.
+- If you have Visio, open the files MisterDiagram writes and tell us whether Visio repairs
+  anything or draws them differently.
+- Point an AI agent at the MCP server (in Claude Code:
+  `claude mcp add misterdiagram -- /path/to/misterdiagram mcp`) and ask it for a network or
+  SAN drawing. Tell us what it could not do, or did wrong.
+- Try vendor stencils (network, storage, server) and tell us which masters fail to drop,
+  glue or render.
+
+Report each finding as an [issue](https://github.com/MisterDiagram/MisterDiagram/issues),
+with the command you ran and what you expected. Please do not attach drawings that hold
+customer names, addresses or other private data: a small file that shows the same problem,
+or a screenshot and a description, is enough.
 
 ## Try it
 
@@ -74,6 +100,10 @@ cargo run --release -p misterdiagram-cli -- render drawing.vsdx --page 1 out.png
 Visio COM dump, so the two diff directly. `render` also takes `.svg` and `.pdf` output names,
 and `--masters stencil.vssx` draws a contact sheet of a stencil. No binaries are published yet;
 Rust stable with edition 2024 is required. There is no GUI and none is planned in this repo.
+
+Session retention defaults to a 2 GiB ceiling; use `--memory-limit <MiB>` or
+`MISTERDIAGRAM_MEMORY_LIMIT` (the flag wins) to change it without changing any per-file
+admission bound.
 
 ### Generate a drawing
 
@@ -118,7 +148,8 @@ dated in [ROADMAP.md](ROADMAP.md).
 ## What is coming
 
 - Phase 5b: PowerPoint export. The MCP server and layout commands are available;
-  the semantic SAN and office drawings pass Visio repair, route and render acceptance and await human review.
+  the semantic SAN and office drawings pass Visio repair, route and render acceptance and
+  their human review (2026-10-20).
 - Carried gaps, named in [docs/gaps.md](docs/gaps.md): the three-crossing packing shift,
   unwitnessed WalkPreference values, theme.apply (Visio refused the variant call under
   COM), connector stroke rendering, and export mapping for small images.
@@ -143,7 +174,8 @@ Code reused from the Craft apps is MIT OR Apache-2.0 and is listed per file in
 
 Pre-alpha. Milestones M0 to M4 (reading, evaluation, rendering, writing, authoring and
 routing) are met and independently reviewed, each under dated gate rulings recorded in the
-roadmap. Phase 5 adds MCP and layout; its visual review gates are pending. The canonical repository is
+roadmap. Phase 5 adds MCP and layout; its human review of the example drawings passed on
+2026-10-20. The canonical repository is
 [github.com/MisterDiagram/MisterDiagram](https://github.com/MisterDiagram/MisterDiagram).
 Issues, discussion and pull requests go to this repository.
 
@@ -160,7 +192,3 @@ Build gates, the oracle VM workflow, corpus pinning and contact sheets are in
 
 MIT OR Apache-2.0; see LICENSE-MIT, LICENSE-APACHE and NOTICE. The embedded fonts Carlito,
 Caladea, Arimo, Tinos and Cousine are under the SIL Open Font License 1.1.
-
-The built-in network stencil provides eleven semantic device masters as native editable geometry via `stencil.open {"builtin":"network"}`.
-
-Session retention defaults to a 2 GiB ceiling; use `--memory-limit <MiB>` or `MISTERDIAGRAM_MEMORY_LIMIT` (the flag wins) to change it without changing any per-file admission bound.

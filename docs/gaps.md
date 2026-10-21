@@ -205,6 +205,29 @@ cached text 62,075 and COM text 54,449, generated outliers 9/max 10. Inventory r
 rows retain their original exits and bounds. The unmet performance/heavy rows
 prevent two clean acceptance passes; they remain explicit open items for #39.
 
+### Brief 28 acceptance measurements (2026-10-20)
+
+Measured by the acceptance run on a quiet machine, instrumented release builds of
+27f6a35 and c97bfe0 through `tools/bench/measure.py --cli --harness` under the guard.
+These supply the quiet timings marked pending above.
+
+| Workload | 27f6a35 seconds | c97bfe0 seconds | Speedup | Target met |
+|---|---:|---:|---:|---|
+| ports-1900 | 589.90 | 253.53 | 2.33 | NO (>=5) |
+| san-large | 2039.77 | 790.00 | 2.58 | NO (<180) |
+| shapes-377, ten invocations | 1523.06 | 426.13 | 3.57 | NO (<60) |
+| shapes-377 last/first invocation | 294.78/20.87 (14.1) | 84.51/5.78 (14.6) | | NO (<=2) |
+| large-edit, 20 edits | 19.79 | 9.83 | 2.01 | YES (<10) |
+
+All 14 saved packages, and the office, SAN and fabric MCP examples rebuilt on both
+builds, are byte-equal under the original masks. The heavy real session, with its
+inspection filtered, completes all 39 edit events and the failing-last batch at
+the 2 GiB default with no refusal; peak RSS about 609 MiB, rollback byte-equal.
+History retains 16 snapshots, not 32: the history estimate (16 times nonmedia
+source plus 1 MiB per snapshot) likely still charges parts that M5.22 shares.
+shapes-377 keeps its per-invocation growth because every invocation reopens,
+evaluates and writes the whole growing file. #39 stays open.
+
 ### M5.21 conservative routing scope
 
 Strict publication records a weak identity for its validated predecessor. Proven
