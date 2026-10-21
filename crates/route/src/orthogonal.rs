@@ -8,6 +8,24 @@ use std::collections::BinaryHeap;
 const MAX_OBSTACLES: usize = 256;
 const MAX_GRID_VERTICES: usize = 16384;
 
+/// Work bounds are recoverable; invalid geometry retains its original error.
+pub(crate) fn capacity(error: &str) -> bool {
+    matches!(error, "route obstacle count limit" | "route grid limit" | "route queue limit" | "route obstacle closure limit")
+}
+
+/// Obstacle-free fallback: straight when aligned, otherwise one orthogonal elbow.
+/// Tree style retains its witnessed midpoint jog.
+pub(crate) fn fallback(start: Point, end: Point, style: f64) -> Vec<Point> {
+    if style == 2. || style == 16. || start.x == end.x || start.y == end.y {
+        vec![start, end]
+    } else if style == 17. {
+        let mid = (start.y + end.y) / 2.;
+        vec![start, Point::new(start.x, mid), Point::new(end.x, mid), end]
+    } else {
+        vec![start, Point::new(start.x, end.y), end]
+    }
+}
+
 pub(crate) fn number(e: &mut Evaluator<'_>, scope: Scope, name: &str, default: f64) -> f64 {
     e.evaluate(scope, name).numeric().ok().filter(|n| n.is_finite() && n.abs() <= 1e6).unwrap_or(default)
 }
@@ -123,15 +141,27 @@ pub(crate) fn endpoints(a: Rect, b: Rect, obs: &[Rect], style: f64, clearance: (
     let start = Point::new(if bc.x >= ac.x { a.x1 } else { a.x0 }, ac.y);
     let candidates = [Point::new(if bc.x >= ac.x { b.x0 } else { b.x1 }, bc.y), Point::new(bc.x, b.y1), Point::new(bc.x, b.y0)];
     let mut best = None;
+    let mut limit = None;
     for (side, end) in candidates.into_iter().enumerate() {
         let inflated = self::clearance(obs, clearance, [start, end]);
-        if let Ok(path) = path(start, end, &inflated, Some(0), Some(if side == 0 { 0 } else { 1 })) {
+        let candidate = path(start, end, &inflated, Some(0), Some(if side == 0 { 0 } else { 1 }));
+        if let Err(error) = &candidate
+            && capacity(error)
+        {
+            limit = Some(error.clone());
+        }
+        if let Ok(path) = candidate {
             let cost =
                 path.windows(2).map(|s| s.first().zip(s.get(1)).map_or(0., |(a, b)| (*b - *a).hypot())).sum::<f64>() + path.len() as f64 * 0.01;
             if best.as_ref().is_none_or(|(v, _)| cost < *v - 1e-9) {
                 best = Some((cost, end));
             }
         }
+    }
+    if best.is_none()
+        && let Some(error) = limit
+    {
+        return Err(error);
     }
     Ok([start, best.map(|(_, p)| p).unwrap_or(candidates[0])])
 }

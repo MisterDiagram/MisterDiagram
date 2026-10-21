@@ -279,15 +279,17 @@ moves away, then retains literal X=0 when it moves back. One late route leaves
 that inherited zero without a local cell. Batch mode is shelved until saving
 becomes independent of edit history; that refactor is future work.
 
-Router capacity: only orthogonal connectors gather obstacles. The obstacle cap is
-256, with finite coordinates bounded to 1,000,000 internal inches. The visibility
-grid remains capped at 16,384 vertices, with two direction states per vertex and
-at most 16 times the vertex count in its queue. When all obstacle edges would
-exceed the grid bound, only the endpoint corridor and the closure of overlapping
-obstacle boxes contribute grid edges. Every segment still checks all obstacles.
-Dense connected obstacle sets can still return a grid-limit error. Acceptance:
-500 placeable shapes plus two straight connectors save; 200 placeable shapes
-route an orthogonal connector around a barrier between two of them.
+Router capacity (M5.32, #76): orthogonal routing is bounded to 256 obstacles,
+16,384 grid vertices, two direction states per vertex and 16 times the vertex
+count in the queue. Finite coordinates remain bounded to 1,000,000 internal
+inches. Capacity exhaustion in endpoint planning or rerouting publishes the
+edit with `route_warnings`, preserving glue. Degraded orthogonal connectors use
+a straight segment when aligned, otherwise one vertical-first elbow; tree
+style 17 keeps its vertical-first midpoint jog. Straight styles 2 and 16 keep
+a straight segment and do not gather obstacles. Geometry errors still abort.
+Save includes outstanding degraded connectors in its warnings; `route.reroute`
+retries them. Undo restores both the drawing and degraded-route status in one
+ordinary step. Connector-local gathering above 256 candidates is M5.33 work.
 
 History admission: the 4,000,000-node retained limit remains unchanged. After
 successful publication (or opening a stencil), oldest undo then redo snapshots

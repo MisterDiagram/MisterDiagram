@@ -129,7 +129,7 @@ impl Session {
         }
         self.publish_batch(candidate, json!({"results":results,"references":references}))
     }
-    pub(crate) fn publish_batch(&mut self, mut candidate: Self, result: Value) -> Result<Value> {
+    pub(crate) fn publish_batch(&mut self, mut candidate: Self, mut result: Value) -> Result<Value> {
         let mut before = self.snapshot();
         // Immutable open stencils are already shared by Arc. A document-only
         // batch must not charge their sources again as undo state (#58).
@@ -170,6 +170,7 @@ impl Session {
             let hint = if inventory_changed { "; opening stencils in their own call avoids inventory rollback retention" } else { "" };
             return Err(operation(format!("{error}{hint}")));
         }
+        candidate.add_route_warnings(&mut result);
         if let Err(error) = crate::result_budget(&result) {
             self.observe_external_save(&candidate);
             return Err(error);

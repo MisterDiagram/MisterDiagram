@@ -13,6 +13,7 @@ fn snapshots_equal(a: &VecDeque<Snapshot>, b: &VecDeque<Snapshot>) {
     assert_eq!(a.len(), b.len());
     for (a, b) in a.iter().zip(b) {
         assert!(Arc::ptr_eq(&a.document, &b.document));
+        assert_eq!(a.route_warnings, b.route_warnings);
         assert_eq!(a.selection, b.selection);
         assert_eq!(a.path, b.path);
         assert_eq!(a.revision, b.revision);
@@ -23,6 +24,7 @@ fn snapshots_equal(a: &VecDeque<Snapshot>, b: &VecDeque<Snapshot>) {
 fn unchanged(a: &Session, b: &Session) {
     assert!(Arc::ptr_eq(&a.document, &b.document));
     assert_eq!(a.document(), b.document());
+    assert_eq!(a.route_warnings, b.route_warnings);
     stencils_equal(&a.stencils, &b.stencils);
     snapshots_equal(&a.undo, &b.undo);
     snapshots_equal(&a.redo, &b.redo);

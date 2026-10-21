@@ -74,6 +74,7 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
         }
     }
     let dirty_pages = doc.pages.iter().filter(|p| host.page_dirty(p.id)).map(|p| p.id).collect::<std::collections::BTreeSet<_>>();
+    let mut outcomes = host.outcomes.clone();
     let themes = misterdiagram_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
     let old_themes = misterdiagram_theme::Themes::from_document(before).map_err(|e| e.to_string())?;
     let text = misterdiagram_text::Host;
@@ -117,16 +118,16 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
         let parent = e.parent_to_page(scope).map_err(|v| v.to_string())?;
         let inverse = parent.inverse();
         let style = crate::orthogonal::style(&mut e, scope, page);
-        let obstacles = if style == 2. || style == 16. {
-            Vec::new()
+        let gathered = if style == 2. || style == 16. {
+            Ok(Vec::new())
         } else {
-            crate::orthogonal::obstacles(&mut e, page, &excluded)?.into_iter().map(|b| inverse.transform_rect_bbox(b)).collect::<Vec<_>>()
+            crate::orthogonal::obstacles(&mut e, page, &excluded)
+                .map(|boxes| boxes.into_iter().map(|b| inverse.transform_rect_bbox(b)).collect::<Vec<_>>())
         };
         let cx = crate::orthogonal::number(&mut e, Scope::Page(page), "LineToLineX", 0.125) * 1.5;
         let cy = crate::orthogonal::number(&mut e, Scope::Page(page), "LineToLineY", 0.125) * 1.5;
         let begin = misterdiagram_geom::Point::new(bx, by);
         let end = misterdiagram_geom::Point::new(ex, ey);
-        let obstacles = crate::orthogonal::clearance(&obstacles, if style == 17. { (0., 0.) } else { (cx, cy) }, [begin, end]);
         let direction = |e: &mut Evaluator<'_>, point: misterdiagram_geom::Point, side: &str| -> Result<Option<usize>, String> {
             let link = doc.pages.get(index).ok_or("route page")?.connects.iter().find(|c| c.from_sheet == id && c.from_cell.as_deref() == Some(side));
             if let Some(link) = link {
@@ -145,32 +146,50 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
         // B25 office-style-17 observes a vertical-first midpoint jog. Preserve
         // the existing obstacle router when that direct tree path is blocked.
         // https://learn.microsoft.com/en-us/office/client-developer/visio/shaperoutestyle-cell-shape-layout-section
-        let points = if style == 2. || style == 16. {
-            vec![begin, end]
-        } else if style == 17. {
-            let mid = (by + ey) / 2.;
-            let points = if bx == ex || by == ey {
+        let attempt = (|| {
+            if let Some(Some(error)) = outcomes.get(&(page, id)) {
+                return Err(error.clone());
+            }
+            let obstacles = crate::orthogonal::clearance(&gathered?, if style == 17. { (0., 0.) } else { (cx, cy) }, [begin, end]);
+            let points = if style == 2. || style == 16. {
                 vec![begin, end]
+            } else if style == 17. {
+                let mid = (by + ey) / 2.;
+                let points = if bx == ex || by == ey {
+                    vec![begin, end]
+                } else {
+                    vec![begin, misterdiagram_geom::Point::new(bx, mid), misterdiagram_geom::Point::new(ex, mid), end]
+                };
+                if points.windows(2).any(|pair| {
+                    obstacles.iter().any(|r| {
+                        let Some(a) = pair.first() else { return true };
+                        let Some(b) = pair.get(1) else { return true };
+                        if a.x == b.x {
+                            a.x > r.x0 && a.x < r.x1 && a.y.min(b.y) < r.y1 && a.y.max(b.y) > r.y0
+                        } else {
+                            a.y > r.y0 && a.y < r.y1 && a.x.min(b.x) < r.x1 && a.x.max(b.x) > r.x0
+                        }
+                    })
+                }) {
+                    crate::orthogonal::path(begin, end, &obstacles, dirs.0, dirs.1)?
+                } else {
+                    points
+                }
             } else {
-                vec![begin, misterdiagram_geom::Point::new(bx, mid), misterdiagram_geom::Point::new(ex, mid), end]
-            };
-            if points.windows(2).any(|pair| {
-                obstacles.iter().any(|r| {
-                    let Some(a) = pair.first() else { return true };
-                    let Some(b) = pair.get(1) else { return true };
-                    if a.x == b.x {
-                        a.x > r.x0 && a.x < r.x1 && a.y.min(b.y) < r.y1 && a.y.max(b.y) > r.y0
-                    } else {
-                        a.y > r.y0 && a.y < r.y1 && a.x.min(b.x) < r.x1 && a.x.max(b.x) > r.x0
-                    }
-                })
-            }) {
                 crate::orthogonal::path(begin, end, &obstacles, dirs.0, dirs.1)?
-            } else {
+            };
+            Ok(points)
+        })();
+        let points = match attempt {
+            Ok(points) => {
+                outcomes.insert((page, id), None);
                 points
             }
-        } else {
-            crate::orthogonal::path(begin, end, &obstacles, dirs.0, dirs.1)?
+            Err(error) if crate::orthogonal::capacity(&error) => {
+                outcomes.insert((page, id), Some(error));
+                crate::orthogonal::fallback(begin, end, style)
+            }
+            Err(error) => return Err(error),
         };
         routes.push((index, id, bx, by, ex, ey, style, points, crate::orthogonal::inherited_zero(&e, scope)));
         if routes.len() > 100000 {
@@ -178,6 +197,7 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
         }
     }
     drop(e);
+    host.outcomes = outcomes;
     let count = routes.len();
     let routed = routes.iter().map(|r| (r.0, r.1)).collect();
     crate::fixed::apply(doc, fixed)?;

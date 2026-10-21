@@ -64,10 +64,12 @@ pub(crate) fn dynamic_glue(s: &mut Session, p: &Value) -> Result<Value> {
 pub(crate) fn reroute(s: &mut Session, p: &Value) -> Result<Value> {
     let index = page_index(s, p)?;
     let id = p.get("id").map(|_| uint(p, "id")).transpose()?;
-    s.edit_document(|doc, _| {
+    let (result, host) = s.edit_document(|doc, _| {
         let before = doc.clone();
         let mut host = misterdiagram_route::GlueHost::prepare(&before, doc).map_err(operation)?;
         let count = misterdiagram_route::reroute(&before, doc, &mut host, Some((index, id))).map_err(operation)?;
-        Ok(json!({"routed":count}))
-    })
+        Ok((json!({"routed":count}), host))
+    })?;
+    s.apply_route_outcomes(&host);
+    Ok(result)
 }

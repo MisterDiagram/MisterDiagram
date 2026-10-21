@@ -344,3 +344,12 @@ within 1e-6). Every other cell, formula and structure stays exact. Both human
 visual gates are pending. No score increase for these
 examples. Discovery regressions cover dependent bounds, tiny fan points,
 text-sized layout and bounded aggregate MCP replies.
+
+## M5.32 routing capacity
+
+The orthogonal-routing row remains P. Capacity limits now publish connected
+obstacle-free routes with per-connector warnings, preserving ordinary undo and
+retry. `route_capacity` covers obstacle/grid exhaustion, glued endpoints,
+save warnings, retry recovery and geometry-error rollback. Route sweep and
+re-save numbers remain 28/29 and 40 connectors with zero differences.
+Reference: https://learn.microsoft.com/en-us/office/vba/api/visio.shape.reroute

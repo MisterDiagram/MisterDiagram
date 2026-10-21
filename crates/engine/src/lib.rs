@@ -54,6 +54,7 @@ pub struct Selection {
 }
 #[derive(Clone)]
 struct Snapshot {
+    route_warnings: std::collections::BTreeMap<(u32, u32), String>,
     stencils: Option<Vec<stencils::Stencil>>,
     document: Arc<Document>,
     selection: Selection,
@@ -68,6 +69,7 @@ pub struct JournalEntry {
 }
 #[derive(Clone)]
 pub struct Session {
+    route_warnings: std::collections::BTreeMap<(u32, u32), String>,
     memory: MemoryLimits,
     stencils: Vec<stencils::Stencil>,
     document: Arc<Document>,
@@ -90,6 +92,7 @@ pub struct Session {
 impl Default for Session {
     fn default() -> Self {
         Self {
+            route_warnings: Default::default(),
             memory: MemoryLimits::default(),
             document: Arc::new(files::blank_document(false)),
             stencils: Vec::new(),
@@ -164,6 +167,7 @@ impl Session {
     }
     fn snapshot(&self) -> Snapshot {
         Snapshot {
+            route_warnings: self.route_warnings.clone(),
             stencils: None,
             document: self.document.clone(),
             selection: self.selection.clone(),
@@ -172,6 +176,7 @@ impl Session {
         }
     }
     fn restore(&mut self, snapshot: Snapshot) {
+        self.route_warnings = snapshot.route_warnings;
         if let Some(stencils) = snapshot.stencils {
             self.stencils = stencils;
         }
@@ -203,21 +208,56 @@ impl Session {
         if id == "engine.execute" {
             return inspect::execute(self, params);
         }
-        self.edit(|s| {
-            (spec.enabled)(s).map_err(operation)?;
-            let before = s.snapshot();
-            let result = (spec.run)(s, params)?;
-            result_budget(&result)?;
-            if spec.undoable && !Arc::ptr_eq(&before.document, &s.document) {
-                s.undo.push_back(before);
-                s.redo.clear();
-                s.trim_history();
+        self.edit_finalized(
+            |s| {
+                (spec.enabled)(s).map_err(operation)?;
+                let before = s.snapshot();
+                let result = (spec.run)(s, params)?;
+                result_budget(&result)?;
+                if spec.undoable && !Arc::ptr_eq(&before.document, &s.document) {
+                    s.undo.push_back(before);
+                    s.redo.clear();
+                    s.trim_history();
+                }
+                if spec.journal {
+                    s.record(id, params, bytes);
+                }
+                Ok(result)
+            },
+            |s, result| {
+                s.add_route_warnings(result);
+                result_budget(result)
+            },
+        )
+    }
+    fn apply_route_outcomes(&mut self, host: &misterdiagram_route::GlueHost) {
+        for (key, outcome) in host.outcomes() {
+            if let Some(limit) = outcome {
+                self.route_warnings.insert(*key, limit.clone());
+            } else {
+                self.route_warnings.remove(key);
             }
-            if spec.journal {
-                s.record(id, params, bytes);
+        }
+        fn contains(shapes: &[misterdiagram_model::Shape], id: u32, depth: usize) -> bool {
+            depth <= 128 && shapes.iter().any(|s| s.id == id || contains(&s.shapes, id, depth + 1))
+        }
+        self.route_warnings.retain(|(page, id), _| self.document.pages.iter().any(|p| p.id == *page && contains(&p.shapes, *id, 0)));
+    }
+    fn add_route_warnings(&self, result: &mut Value) {
+        if let Some(object) = result.as_object_mut() {
+            object.remove("route_warnings");
+            if !self.route_warnings.is_empty() {
+                object.insert(
+                    "route_warnings".into(),
+                    serde_json::json!(
+                        self.route_warnings
+                            .iter()
+                            .map(|((page, id), limit)| serde_json::json!({"page":page,"connector":id,"limit":limit}))
+                            .collect::<Vec<_>>()
+                    ),
+                );
             }
-            Ok(result)
-        })
+        }
     }
     fn record(&mut self, id: &str, params: &Value, bytes: usize) {
         self.journal.push_back(JournalEntry { command: id.into(), params: Arc::new(params.clone()), bytes });
@@ -234,6 +274,9 @@ impl Session {
     /// https://learn.microsoft.com/en-us/office/vba/api/visio.application.endundoscope
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
     pub fn edit<T>(&mut self, f: impl FnOnce(&mut Self) -> Result<T>) -> Result<T> {
+        self.edit_finalized(f, |_, _| Ok(()))
+    }
+    fn edit_finalized<T>(&mut self, f: impl FnOnce(&mut Self) -> Result<T>, finish: impl FnOnce(&Self, &mut T) -> Result<()>) -> Result<T> {
         if self.editing {
             return Err(operation("nested session edits are not supported"));
         }
@@ -245,7 +288,7 @@ impl Session {
         self.editing = true;
         let mut published = false;
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            let result = f(self)?;
+            let mut result = f(self)?;
             self.check_retention(before.retention(), self.retention())?;
             if self.dirty {
                 let identities = |d: &Document| {
@@ -266,6 +309,7 @@ impl Session {
                 let mut glue = misterdiagram_route::GlueHost::prepare_scoped(&before.document, Arc::make_mut(&mut self.document), validated)
                     .map_err(operation)?;
                 misterdiagram_route::reroute(&before.document, Arc::make_mut(&mut self.document), &mut glue, None).map_err(operation)?;
+                self.apply_route_outcomes(&glue);
                 let theme = misterdiagram_theme::Themes::from_document(&self.document).map_err(operation)?;
                 let written = misterdiagram_vsdx::write::write_parts_with_glue_host(
                     &self.document,
@@ -296,6 +340,7 @@ impl Session {
             if published || self.stencils.len() > before.stencils.len() {
                 self.trim_history();
             }
+            finish(self, &mut result)?;
             Ok(result)
         }));
         match result {
@@ -542,7 +587,14 @@ mod tests {
         let mut doc = s.document.as_ref().clone();
         let part = doc.parts.values_mut().next().unwrap();
         part.bytes.resize(17 * 1024 * 1024, 0);
-        s.undo.push_back(Snapshot { stencils: None, document: Arc::new(doc), selection: Selection::default(), path: None, revision: s.revision });
+        s.undo.push_back(Snapshot {
+            route_warnings: Default::default(),
+            stencils: None,
+            document: Arc::new(doc),
+            selection: Selection::default(),
+            path: None,
+            revision: s.revision,
+        });
         s.trim_history();
         assert!(s.undo.is_empty());
     }
@@ -566,7 +618,14 @@ mod tests {
         for nodes in [40, 50] {
             let mut d = s.document.as_ref().clone();
             d.retained_xml_nodes = nodes;
-            let snapshot = Snapshot { stencils: None, document: Arc::new(d), selection: Selection::default(), path: None, revision: s.revision };
+            let snapshot = Snapshot {
+                route_warnings: Default::default(),
+                stencils: None,
+                document: Arc::new(d),
+                selection: Selection::default(),
+                path: None,
+                revision: s.revision,
+            };
             if nodes == 40 {
                 s.undo.push_back(snapshot);
             } else {

@@ -154,6 +154,7 @@ fn endpoint(b: &BoxShape, other: &BoxShape, vertical: bool) -> Result<Point, Str
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/walkpreference-cell-glue-info-section
 #[derive(Default)]
 pub struct GlueHost {
+    pub(crate) outcomes: BTreeMap<(u32, u32), Option<String>>,
     pub(crate) unaffected: bool,
     points: BTreeMap<Key, Point>,
     triggers: BTreeMap<Key, f64>,
@@ -177,6 +178,11 @@ impl HostHooks for GlueHost {
     }
 }
 impl GlueHost {
+    /// Page IDs, connector IDs and capacity outcomes of this routing pass.
+    pub fn outcomes(&self) -> &BTreeMap<(u32, u32), Option<String>> {
+        &self.outcomes
+    }
+
     pub(crate) fn page_dirty(&self, page: u32) -> bool {
         self.dirty_pages.contains(&page)
     }
@@ -247,18 +253,22 @@ impl GlueHost {
                         let excluded = links.iter().flatten().map(|c| c.to_sheet).collect::<Vec<_>>();
                         let style = crate::orthogonal::style(&mut e, scope, page.id);
                         let obstacles =
-                            if style == 2. || style == 16. { Vec::new() } else { crate::orthogonal::obstacles(&mut e, page.id, &excluded)? };
+                            if style == 2. || style == 16. { Ok(Vec::new()) } else { crate::orthogonal::obstacles(&mut e, page.id, &excluded) };
                         let clearance = (
                             crate::orthogonal::number(&mut e, Scope::Page(page.id), "LineToLineX", 0.125) * 1.5,
                             crate::orthogonal::number(&mut e, Scope::Page(page.id), "LineToLineY", 0.125) * 1.5,
                         );
-                        Some(crate::orthogonal::endpoints(
-                            misterdiagram_geom::Rect::new(a.min.x, a.min.y, a.max.x, a.max.y),
-                            misterdiagram_geom::Rect::new(b.min.x, b.min.y, b.max.x, b.max.y),
-                            &obstacles,
-                            style,
-                            clearance,
-                        )?)
+                        let a = misterdiagram_geom::Rect::new(a.min.x, a.min.y, a.max.x, a.max.y);
+                        let b = misterdiagram_geom::Rect::new(b.min.x, b.min.y, b.max.x, b.max.y);
+                        let plan = obstacles.and_then(|obstacles| crate::orthogonal::endpoints(a, b, &obstacles, style, clearance));
+                        Some(match plan {
+                            Ok(points) => points,
+                            Err(error) if crate::orthogonal::capacity(&error) => {
+                                host.outcomes.insert((page.id, id), Some(error));
+                                crate::orthogonal::endpoints(a, b, &[], style, clearance)?
+                            }
+                            Err(error) => return Err(error),
+                        })
                     } else {
                         None
                     }

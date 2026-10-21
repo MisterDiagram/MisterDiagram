@@ -85,3 +85,63 @@ fn two_hundred_obstacles_route_an_orthogonal_connector() {
         save(&mut s, &format!("orthogonal-{count}.vsdx"), connector as usize);
     }
 }
+
+#[test]
+fn capacity_degrades_with_glue_warnings_one_undo_step_and_retry() {
+    let mut s = page(260, 1);
+    let id = 261;
+    run(&mut s, "master.drop", json!({"master":2,"x":1,"y":0.5}));
+    for (end, target) in [("begin", 1), ("end", 2)] {
+        let result = run(&mut s, "connect.dynamic", json!({"id":id,"end":end,"target":target}));
+        assert_eq!(result["route_warnings"][0]["connector"], id);
+        assert_eq!(result["route_warnings"][0]["limit"], "route obstacle count limit");
+    }
+    let before = s.document().clone();
+    let result = run(&mut s, "shape.move", json!({"id":2,"x":12,"y":0}));
+    assert_eq!(result["route_warnings"].as_array().unwrap().len(), 1);
+    let mut e = Evaluator::new(s.document()).unwrap();
+    let scope = Scope::PageShape { page: 0, shape: id };
+    assert_eq!(e.evaluate(scope, "EndX").numeric().unwrap(), 11.5);
+    drop(e);
+    run(&mut s, "edit.undo", json!({}));
+    assert_eq!(s.document(), &before, "degraded edit must undo in one step");
+    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../plan/brief32");
+    std::fs::create_dir_all(&dir).unwrap();
+    let result = run(&mut s, "file.save", json!({"path":dir.join("degraded.vsdx")}));
+    assert!(result["warnings"].as_array().unwrap().iter().any(|v| v.as_str().unwrap().contains("connector 261")));
+    let result = run(&mut s, "route.reroute", json!({"id":id}));
+    assert_eq!(result["route_warnings"][0]["connector"], id);
+    s.edit_document(|doc, _| {
+        doc.pages[0].shapes.retain(|shape| shape.id <= 2 || shape.id == id);
+        Ok(())
+    })
+    .unwrap();
+    let result = run(&mut s, "route.reroute", json!({"id":id}));
+    assert!(result.get("route_warnings").is_none());
+}
+
+#[test]
+fn grid_capacity_publishes_but_bad_geometry_still_rolls_back() {
+    let mut s = Session::new();
+    s.edit_document(|doc, _| {
+        let page = &mut doc.pages[0];
+        for id in 1..=202 {
+            let (x, y, w, h) = match id {
+                1 => (0., 0., 1., 1.),
+                2 => (1000., 0., 1., 1.),
+                _ => (f64::from(id) * 4., -1. - f64::from(id) * 0.001, 1., 3. + f64::from(id) * 0.002),
+            };
+            let mut shape = skeleton::rectangle(id, x, y, w, h, "").map_err(EngineError::Operation)?;
+            shape.sheet.cells.push(Cell { name: "ObjType".into(), value: Some("1".into()), ..Default::default() });
+            page.shapes.push(shape);
+        }
+        skeleton::glue_dynamic(page, 203, 2, [1, 2], [[1., 0.5], [1000., 0.5]]).map_err(EngineError::Operation)?;
+        Ok(())
+    })
+    .unwrap();
+    let result = run(&mut s, "route.reroute", json!({"id":203}));
+    assert_eq!(result["route_warnings"][0]["limit"], "route grid limit");
+    let before = s.document().clone();
+    assert!(s.execute("sheet.set", &json!({"id":1,"name":"PinX","value":"NaN"})).is_err());
+    assert_eq!(s.document(), &before);
+}

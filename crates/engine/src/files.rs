@@ -118,6 +118,7 @@ pub(crate) fn new(s: &mut Session, p: &Value) -> Result<Value> {
     s.document = Arc::new(blank_document(metric));
     s.selection = Selection::default();
     s.path = None;
+    s.route_warnings.clear();
     s.undo.clear();
     s.redo.clear();
     Ok(json!({"pages":1,"metric":metric}))
@@ -135,6 +136,7 @@ pub(crate) fn open(s: &mut Session, p: &Value) -> Result<Value> {
     s.document = Arc::new(document);
     s.selection = Selection::default();
     s.path = Some(path.to_owned());
+    s.route_warnings.clear();
     s.undo.clear();
     s.redo.clear();
     Ok(json!({"pages":pages,"macros_removed":s.document.macros_removed}))
@@ -150,7 +152,11 @@ pub(crate) fn save(s: &mut Session, p: &Value) -> Result<Value> {
         _ => return Err(operation("save extension must be vsdx, vssx or vstx")),
     };
     let theme = misterdiagram_theme::Themes::from_document(&s.document).map_err(operation)?;
-    let written = misterdiagram_vsdx::write_as_with_hosts(&s.document, kind, Some(&theme), Some(&misterdiagram_text::Host)).map_err(operation)?;
+    let mut written = misterdiagram_vsdx::write_as_with_hosts(&s.document, kind, Some(&theme), Some(&misterdiagram_text::Host)).map_err(operation)?;
+    for ((page, id), limit) in &s.route_warnings {
+        written.warnings.push(format!("page {page} connector {id}: {limit}; obstacle-free fallback route"));
+        written.warning_count = written.warning_count.saturating_add(1);
+    }
     let saved_generation = s.save_generation.checked_add(1).ok_or_else(|| operation("save generation limit"))?;
     atomic_write(path, &written.bytes)?;
     s.save_generation = saved_generation;

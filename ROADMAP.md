@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-20: M5.32 routing capacity (#76): obstacle/grid/queue exhaustion publishes glued obstacle-free routes with command/save warnings and undo state. Ordinary geometry errors remain failures. Four focused capacity tests and all eight CI gates pass (692 tests, zero failures). The 260-placeable-shape edit now publishes with 128 warnings; a guarded 20,000-shape edit completes in 11.83 seconds. Connector-local gathering and the consolidated VM acceptance follow in M5.33; shared history accounting follows in M5.34.
+
 - 2026-10-20: M5.23 immutable evaluator resolution (#39): final ports-1900 239.03 s (2.47x baseline), san-large 787.70 s, shapes-377 quiet timing pending and large-edit quiet timing pending. Saved packages remain byte-equal across all workloads, corpus and recipes. CI passes all eight gates with 690 tests and zero failures; five source defects are detected and restored. Acceptance is partial: unmet speed and heavy-session targets remain open in the #39 tables, with all original bounds and regressions preserved.
 
 - 2026-10-20: M5.22 immutable publication (#39): unchanged serialized parts, admitted XML and page/master contents share allocations across strict publications. Pictures use copy-on-write ownership, and the session census charges each pinned picture allocation once. Original bounds and saved-package behavior remain fixed. The real session reaches all 39 edit events without refusal, but the required complete heavy run remains open at inspection and history limits. CI passes all eight gates (686 tests, zero failures), and all 18 workload packages plus 1,439 corpus/recipe packages compare byte-equal.

@@ -365,3 +365,22 @@ The Brief 27 final joint acceptance retains 18/80/20 Connects and every route
 for office/SAN/fabric after Visio re-save, with zero repair differences. Office
 and SAN pass all applicable layout checks. Fabric retains the documented box
 and heading hits; these ordinary shapes do not gain container semantics.
+
+### Routing capacity warnings
+
+Successful engine command results, including CLI commands and MCP `run_command`
+and `batch`, include `route_warnings` when the session contains degraded routes.
+The field is omitted when empty. Each entry contains `page` (the saved page ID,
+not the one-based command page ordinal), `connector` (shape ID), and `limit`
+(the named routing work bound). For example:
+
+```json
+{"route_warnings":[{"page":0,"connector":261,"limit":"route obstacle count limit"}]}
+```
+
+Capacity exhaustion publishes a connected obstacle-free fallback route. Invalid
+coordinates and other geometry errors retain their failure behavior. `file.save`
+also lists every still-degraded connector in its existing `warnings` and
+`warning_count`. `route.reroute` retries routing and clears warnings for recovered
+connectors. Degraded status is session state, restored with undo/redo; it is not
+extra package metadata. Opening a saved package preserves its stored geometry.
