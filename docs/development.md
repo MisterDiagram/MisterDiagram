@@ -106,3 +106,10 @@ predictions pass, but the general lane band and fan-out rules remain unresolved.
 M5.40 through M5.42 are not implemented; tools/check-layout.py does not yet
 claim the proposed no-shared-segments check. Existing thresholds and populations
 remain unchanged while discovery continues.
+
+The supplementary controls preserve failed predictions and failed COM trials.
+The original three hold-outs did not fail. Partial M5.39 must not be described as
+a triggered hold-out mismatch or a completed milestone. A passing restricted
+predictor does not authorize an implementation that misses the other required
+witnesses. The source-only lane/checker seeds and two clean closure passes remain
+unperformed because those implementations do not exist.

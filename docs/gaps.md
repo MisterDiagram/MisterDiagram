@@ -331,8 +331,12 @@ Connector lanes (M5.39, Brief 34, incomplete): 27 new discovery drawings and
 three preregistered hold-outs observe rows, columns, alternating directions,
 fan-outs, page spacing/style variants and three obstacle grids. The restricted
 lower-side insertion recurrence predicts all sixteen hold-out central-cut
-coordinates exactly. It does not explain the upper-side band, native-large-300's
-lane order/extent, or dynamic fan-out port placement. No general lane pass is
+coordinates exactly (fourteen in-gap lanes and two outside-gap crossings).
+It does not explain the upper-side band, native-large-300's lane order/extent,
+or dynamic fan-out port placement. Further controls refute a target-height band
+(up to0.625in error) and a symmetric opposite-direction insertion prediction
+(0.125in error at page spacing0.0625). Explicit ConFixedCode0 before Layout
+also changes order even though the final saved codes return6. No general lane pass is
 implemented. Baseline comparison matches 0/27 complete new discovery drawings
 (2/117 connectors); native-large-300 remains 0/10 with 333 route/frame-cell
 differences. Original route sweep remains 28/29. Exact measurements and the

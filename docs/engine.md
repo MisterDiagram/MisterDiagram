@@ -167,3 +167,41 @@ is (1.5,1.25), (1.6875,1.25), (1.6875,2N-1.1875),
 (2N-0.75,2N-1.1875), (2N-0.75,2N-1). The current router differs on all three.
 The private Brief 34 archive retains all drawings, PNGs, full COM dumps,
 Connects, generator inputs, frozen predictions and per-cell differences.
+
+
+Further private controls falsify two attempted generalizations. With the native
+300-box grid's target bottoms fixed at y=28, changing only target height from
+0.5 to either 0.25 or 1 inch leaves all ten lane coordinates unchanged. A proposed
+band whose width equals target height misses coordinates by as much as 0.40625
+and 0.625 inch respectively. A fixed half-inch band still fits that sequence,
+but its boundary is not derived from an obstacle or a supported geometric rule.
+
+In the alternating-direction five-connector control, page LineToLine X/Y=0.0625
+produces `[1.6875, 4.3125, 1.625, 4.25, 4.75]`. The attempted symmetric insertion
+predicts 4.375 for the fourth connector, an error of 0.125 inch. At page spacing
+0.25, that drawing retains `[1.6875, 4.3125, 1.625, 4.1875, 4.75]`. Thus the
+unchanged original 0.125/0.25 lanes do not establish that page spacing is ignored.
+
+Routing state also matters. Explicitly setting
+[ConFixedCode](https://learn.microsoft.com/en-us/office/client-developer/visio/confixedcode-cell-shape-layout-section)
+to 0 before the same nudge and Layout procedure yields, for the positive-direction
+five-connector drawing, `[1.5625, 1.6875, 1.625, 1.65625, 4.75]` at spacing 0.125
+and `[1.5625, 1.625, 1.6875, 1.65625, 4.75]` at spacing 0.25. Both final dumps
+return ConFixedCode 6. These controls expose a state-dependent ordering that the
+restricted creation-order recurrence does not predict. They are additional
+observations; none replaces the original witness or hold-out.
+
+Without the explicit routing-state change, initial glue, source nudge, first
+Layout and second Layout retain the measured routes. Halving or doubling
+LineToNode also leaves those particular routes unchanged. A trial originally
+labelled last-source nudge actually moved an unconnected box; its record is
+retained under that corrected description. A separate corrected last-source
+trial also retains the original lanes. Three optional attempts to write spacing
+through No Style failed with COM exceptions before producing drawings and supply
+no evidence about style control.
+
+M5.39 is incomplete. The original hold-outs have zero residual, comprising
+fourteen in-gap lane coordinates and two explicitly outside-gap crossings.
+They do not validate the unresolved band, rerouting order, opposite-direction
+behavior or fan-out ports. No production lane approximation, tie-break change or
+no-shared-segments checker is implemented from this partial result.
