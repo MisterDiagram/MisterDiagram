@@ -93,3 +93,16 @@ release measurement on the largest shipped stencil and a 500-shape page. The obs
 
 `plan/STATUS.md` (decisions), `plan/execution-plan.md` and `log/devlog.md` are local and
 gitignored; agents read them at the start of every session, per AGENTS.md.
+
+
+### Connector-lane discovery status
+
+Brief 34's M5.39 evidence is a prediction experiment, not a routing acceptance
+claim. Preserve the authored VM script, case manifest, written rule and numerical
+predictions before creating hold-outs. Compare coordinates in connector order
+at 1e-6 inch and retain every failed hypothesis. The private Brief 34 archive
+contains 27 discovery cases and three frozen hold-outs. Their central-cut
+predictions pass, but the general lane band and fan-out rules remain unresolved.
+M5.40 through M5.42 are not implemented; tools/check-layout.py does not yet
+claim the proposed no-shared-segments check. Existing thresholds and populations
+remain unchanged while discovery continues.

@@ -327,6 +327,20 @@ moves away, then retains literal X=0 when it moves back. One late route leaves
 that inherited zero without a local cell. Batch mode is shelved until saving
 becomes independent of edit history; that refactor is future work.
 
+Connector lanes (M5.39, Brief 34, incomplete): 27 new discovery drawings and
+three preregistered hold-outs observe rows, columns, alternating directions,
+fan-outs, page spacing/style variants and three obstacle grids. The restricted
+lower-side insertion recurrence predicts all sixteen hold-out central-cut
+coordinates exactly. It does not explain the upper-side band, native-large-300's
+lane order/extent, or dynamic fan-out port placement. No general lane pass is
+implemented. Baseline comparison matches 0/27 complete new discovery drawings
+(2/117 connectors); native-large-300 remains 0/10 with 333 route/frame-cell
+differences. Original route sweep remains 28/29. Exact measurements and the
+restricted pseudocode are in docs/engine.md; immutable evidence is in the private
+corpus Brief 34 state archive. Three grid witnesses (lattice-3, lattice-5,
+lattice-7) also retain the named equal-length-route choice gap. A horizontal-first
+rule is insufficient: sprig-2 has an equal-length vertical-first choice.
+
 Router capacity (M5.32 to M5.33, #76): connectors with at most 256
 placeable, non-permeable candidates retain the original obstacle set and order.
 Above that count, routing gathers candidates intersecting the union of the two

@@ -14,6 +14,13 @@ Every implemented element, cell and function cites its reference page in its doc
 
 ## 3. Third-party projects consulted
 
+Brief 34 (2026-10-21): Charles's local observation record
+`craft-apps/scope/visio/execute/32-router-capacity.md`, result section, supplied
+the native-large-300 lane finding and coordinates that motivated new synthetic
+VM witnesses. No third-party implementation or asset was copied. Public
+Microsoft ShapeSheet pages define the referenced routing cells; the lane
+recurrence and all experimental geometry are contributor-original observations.
+
 Brief 30 (2026-10-20): the outside review recorded in
 [MisterDiagram issue 77](https://github.com/MisterDiagram/MisterDiagram/issues/77)
 was consulted to locate the 32-bit EMF bitmap-offset overflow and define its
