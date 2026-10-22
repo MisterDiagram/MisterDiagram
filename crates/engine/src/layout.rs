@@ -4,6 +4,7 @@ use misterdiagram_geom::Point;
 use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use serde_json::{Value, json};
 mod check;
+mod shared;
 mod tree;
 pub(crate) use check::check;
 pub(crate) use tree::tree;

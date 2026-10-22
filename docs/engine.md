@@ -240,3 +240,18 @@ while its in-gap trunk has the exact required coordinate. Horizontal final
 connectors retain the documented outside-gap tie difference. Full-route parity
 is not implied. The 100-box generated page checks ten distinct lane heights,
 all connector pairs and physical box interiors.
+
+
+### Shared-segment inspection (M5.42)
+
+`layout.check` adds rule h for collinear straight-segment overlaps longer than
+1e-6 inch. Effective Flowchart/Tree styles 5, 6, 7, 8, 12, 13, 14, 15 and the
+separately witnessed office style 17 allow shared buses when both connectors
+qualify. The named fan-out exception requires matching actual glue targets and
+terminal points. The checker is read-only and does not change routing.
+
+The accepted office VM observation nudged all ten 2-D shapes by 0.01 inch and
+back. Visio preserved nine routes within 1e-6 inch, all 18 Connects and five
+shared intervals, including the style 17 trunk of connectors 14/15 at y=3.75,
+length 0.875 inch. This supplies the SimpleNS exemption evidence independently
+of the restricted style 0/1 lane rule.

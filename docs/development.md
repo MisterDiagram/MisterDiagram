@@ -117,5 +117,28 @@ clearance, matching the adopted band. It must never touch a physical non-permeab
 shape. Existing layout-checker thresholds stay fixed, even when they flag an
 observed Visio lane. Report the case, connector and lane coordinate explicitly.
 Source-only defects must fail the lane/checker assertions; never seed a witness,
-fixture, comparison mask or generated output. The standing overlap checker is
-tracked separately as M5.42.
+fixture, comparison mask or generated output.
+
+`python3 tools/check-layout.py DRAWING.vsdx --cli target/release/misterdiagram`
+also checks rule h: two connectors may not have collinear straight segments
+with more than 1e-6 inch of overlap. Both connectors must have an effective
+Flowchart/Tree style (5, 6, 7, 8, 12, 13, 14, 15) or the independently witnessed
+office style 17 to receive the shared-bus exemption. The named fan-out gap exempts
+terminal segments ending at the same actual glue target and point. Coincident
+coordinates without matching Connects do not qualify. Genuine curves are not
+straight segments; collinear Bezier encodings use their actual extrema.
+
+The result includes `shared_segments` counts: raw overlapping segment pairs,
+style exemptions, same-glue exemptions and violations. The categories partition
+the raw count; each violating connector pair gets one rule-h entry. Rules a-g
+and their tolerances remain unchanged. `--shared-only` runs rule h separately.
+If full a-g checking hits its existing comparison limit, the wrapper reports
+that error alongside rule-h counts and retains exit 2. It never presents a
+capacity refusal as a clean full check. Normal exits remain 0 for no violations,
+1 for violations, and 2 for refusal/error.
+
+`cargo test -p misterdiagram-engine --test layout_check` exercises the overlap
+rule, the witnessed office bus, the generated 100-box page, actual same-glue
+identity and read-only behavior. `cargo test -p misterdiagram-engine --lib layout::shared::tests` covers strict overlap tolerance and collinear Beziers.
+The wrapper's refusal contract is also checked by
+`python3 -m unittest discover -s tools -p test_check_layout.py`.

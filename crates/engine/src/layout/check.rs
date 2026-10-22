@@ -102,6 +102,9 @@ fn near_border(a: Point, b: Point, r: Rect) -> bool {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/text-transform-section
 pub(crate) fn check(s: &mut Session, p: &Value) -> Result<Value> {
+    if p.get("shared_only").and_then(Value::as_bool) == Some(true) {
+        return super::shared::inspect(s, p).map(|r| r.value());
+    }
     let index = page_index(s, p)?;
     let doc = s.document();
     let page = doc.pages.get(index).ok_or_else(|| operation("page missing"))?;
@@ -371,7 +374,15 @@ pub(crate) fn check(s: &mut Session, p: &Value) -> Result<Value> {
             )?;
         }
     }
-    Ok(json!({"page":index+1,"shapes":nodes.len(),"connectors":routes.len(),"violations":violations,"count":violations.len()}))
+    let shared = super::shared::inspect(s, p)?;
+    let stats = shared.stats();
+    if violations.len().saturating_add(shared.violations.len()) > 10000 {
+        return Err(operation("layout checker violation limit"));
+    }
+    violations.extend(shared.violations);
+    Ok(
+        json!({"page":index+1,"shapes":nodes.len(),"connectors":routes.len(),"violations":violations,"count":violations.len(),"shared_segments":stats}),
+    )
 }
 
 #[cfg(test)]

@@ -1858,3 +1858,35 @@ intentional0.0625in deviations from Visio. The native literals and private
 witnesses remain unchanged; the behavior regression now asserts the exact named
 departures, unchanged endpoints and remaining centerline coordinates, ordinary
 jump geometry, and no shared segment. The other native stub variants remain exact.
+
+M5.42 standing overlap check: routed lane witnesses and the 100-box page have
+no unexempted shared straight segment. The office's five style 17 bus intervals
+are preserved by the accepted Visio nudge/re-save witness. Existing a-g limits
+remain fixed; when jump-curve subdivision reaches the full-check comparison
+limit, rule-h counts are reported separately and the wrapper keeps exit 2.
+
+The unchanged `ports-1900` benchmark has seven collinear diagonal overlaps
+between style 2 connectors: 106/135, 107/136, 108/137, 118/147, 119/148,
+120/149 and 121/150. Rule h reports all seven before and after. Brief 34b explicitly leaves
+straight connectors untouched, so these are standing findings, not a new style
+exemption. The named same-glue terminal exception and bus exception
+for two qualifying connectors are the only overlap exemptions. Fabric retains its twenty existing
+container hits under b/g and acquires no rule-h hit.
+
+The generated 100-box page has zero rule-h overlaps and zero rule-b box-interior
+hits after lanes. Its full topology check still exits 1: twenty pre-existing
+rule-a dynamic-glue findings remain, and the tighter band produces six rule-c
+clearance flags. The previous forty-five rule-d shared-route findings disappear.
+These are reported separately from the shared-segment acceptance; the existing
+glue expectations and clearance thresholds remain unchanged.
+
+Final M5.42 coverage is 125 paired drawings (250 checks): 29 route-sweep,
+27 discovery, three hold-outs, one native-large-300, nine native stubs, eleven
+successful supplementary observations, three examples, eighteen benchmark
+packages and twenty-four generated lane/100-box drawings. Raw segment overlaps
+change from 957 to 80; unexempted overlaps from 884 to 7. The remaining 80
+partition into five style exemptions, sixty-eight same-glue exemptions and the
+seven unchanged style2 pairs. Every drawing has rule-h statistics. Full a-g
+comparison refusals change from three to twenty-five and remain explicit exit2
+results; none is counted as a clean full-layout check. Three failed M5.39
+NoStyle-write trials produced no drawing and are not counted as witnesses.

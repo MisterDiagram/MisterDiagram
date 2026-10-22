@@ -76,7 +76,7 @@ pub use cmd;
 pub fn command_specs() -> &'static [CommandSpec] {
     &[
         cmd!(query "layout.check", "Check topology", ["Layout"], None,
-            r#"{"type":"object","properties":{"page":{"type":"integer","minimum":1,"description":"One-based page ordinal; defaults to the current session page."},"root":{"type":"integer","minimum":0,"maximum":4294967294,"description":"Root shape ID on the selected page; batch accepts $name."},"fit_page":{"type":"boolean","description":"Resize or check page bounds for equal fitted margins around the selected tree."}},"additionalProperties":false}"#,
+            r#"{"type":"object","properties":{"shared_only":{"type":"boolean","description":"Check only straight collinear segment overlaps (rule h), without curve subdivision or topology rules a-g."},"page":{"type":"integer","minimum":1,"description":"One-based page ordinal; defaults to the current session page."},"root":{"type":"integer","minimum":0,"maximum":4294967294,"description":"Root shape ID on the selected page; batch accepts $name."},"fit_page":{"type":"boolean","description":"Resize or check page bounds for equal fitted margins around the selected tree."}},"additionalProperties":false}"#,
             always, crate::layout::check),
         cmd!(
             "layout.tree",

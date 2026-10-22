@@ -224,3 +224,137 @@ fn fan_keeps_incoming_isl_tracks_distinct_at_both_ends() {
     assert!(!has(&result, "d"), "ISLs must not share a segment: {result}");
     assert_eq!(result["count"], 0, "{result}");
 }
+
+#[test]
+fn overlap_rule_reports_ordinary_lines_and_preserves_read_only_state() {
+    let mut s = Session::new();
+    for (a, b) in [(1., 5.), (2., 4.)] {
+        run(&mut s, "shape.draw.line", json!({"x1":a,"y1":1,"x2":b,"y2":1}));
+    }
+    let before = s.document().clone();
+    for shared_only in [false, true] {
+        let result = run(&mut s, "layout.check", json!({"shared_only":shared_only}));
+        assert!(has(&result, "h"), "{result}");
+        assert_eq!(result["shared_segments"]["violating"], 1);
+        assert_eq!(result["shared_segments"]["raw"], 1);
+        assert_eq!(s.document(), &before);
+    }
+    for params in [json!({"shared_only":"true"}), json!({"shared_only":true,"page":0}), json!({"shared_only":true,"page":999})] {
+        assert!(s.execute("layout.check", &params).is_err());
+        assert_eq!(s.document(), &before);
+    }
+}
+#[test]
+fn office_style17_exemption_keeps_the_witnessed_shared_bus() {
+    let mut s = Session::new();
+    run(&mut s, "stencil.open", json!({"builtin":"network"}));
+    let masters = [
+        "network.cloud",
+        "network.firewall",
+        "network.router",
+        "network.switch.core",
+        "network.switch.access",
+        "network.switch.access",
+        "compute.server",
+        "network.wireless_ap",
+        "compute.desktop",
+        "compute.desktop",
+    ];
+    for master in masters {
+        run(&mut s, "master.drop", json!({"master":master}));
+    }
+    run(
+        &mut s,
+        "layout.tree",
+        json!({"root":1,"edges":[[1,2],[2,3],[3,4],[4,7],[4,5],[4,6],[5,9],[6,10],[6,8]],"gutter_x":2,"gutter_y":0.5,"fit_page":true}),
+    );
+    let result = run(&mut s, "layout.check", json!({"shared_only":true}));
+    assert_eq!(result["shared_segments"]["raw"], 5, "office bus geometry must stay witnessed: {result}");
+    assert_eq!(result["shared_segments"]["style_exempt"], 5, "{result}");
+    assert!(!has(&result, "h"), "{result}");
+    assert_eq!(s.document().pages[0].connects.len(), 18);
+}
+#[test]
+fn hundred_box_page_has_no_counted_shared_segments() {
+    let mut s = Session::new();
+    let mut commands = Vec::new();
+    commands.push(json!({"command":"sheet.set","params":{"scope":"page","name":"RouteStyle","value":1}}));
+    for row in 0..10 {
+        for col in 0..10 {
+            let id = row * 10 + col + 1;
+            commands.push(json!({"command":"shape.draw.rect","params":{"x":1+2*col,"y":1+3*row,"width":0.5,"height":0.5}}));
+            for (name, value) in [("ObjType", 1), ("ShapePermeableX", 0), ("ShapePermeableY", 0)] {
+                commands.push(json!({"command":"sheet.set","params":{"id":id,"name":name,"value":value}}));
+            }
+        }
+    }
+    for i in 0..10 {
+        commands.push(json!({"command":"connector.add","params":{"from":i+1,"to":100-i,"glue":"dynamic"}}));
+        commands.push(json!({"command":"sheet.set","params":{"id":101+i,"name":"ShapeRouteStyle","value":0}}));
+    }
+    commands.push(json!({"command":"route.reroute","params":{}}));
+    run(&mut s, "engine.batch", json!({"commands":commands}));
+    let result = run(&mut s, "layout.check", json!({"shared_only":true}));
+    assert_eq!(result["connectors"], 10);
+    assert_eq!(result["shared_segments"]["raw"], 0, "{result}");
+    assert!(!has(&result, "h"), "{result}");
+}
+#[test]
+fn duplicate_terminal_geometry_rows_keep_the_same_glue_exemption() {
+    use misterdiagram_model::{Cell, Row};
+    let mut s = tree();
+    let mut doc = s.document().clone();
+    for shape in doc.pages[0].shapes.iter_mut().filter(|s| [4, 5].contains(&s.id)) {
+        shape.sheet.cells.retain(|c| c.name != "ShapeRouteStyle");
+        shape.sheet.cells.push(Cell { name: "ShapeRouteStyle".into(), value: Some("1".into()), ..Default::default() });
+        let section = shape.sheet.sections.iter_mut().find(|s| s.name == "Geometry" && s.index.unwrap_or(0) == 0).unwrap();
+        section.rows = [
+            ("MoveTo", "0", "0"),
+            ("LineTo", "0", "0"),
+            ("LineTo", "0", "-0.25"),
+            ("LineTo", "Width", "-0.25"),
+            ("LineTo", "Width", "Height"),
+            ("LineTo", "Width", "Height"),
+        ]
+        .into_iter()
+        .enumerate()
+        .map(|(i, (kind, x, y))| Row {
+            index: Some(i as u32 + 1),
+            row_type: Some(kind.into()),
+            cells: [("X", x), ("Y", y)]
+                .into_iter()
+                .map(|(name, value)| Cell {
+                    name: name.into(),
+                    value: Some(if ["Width", "Height"].contains(&value) { "0" } else { value }.into()),
+                    formula: ["Width", "Height"].contains(&value).then(|| value.into()),
+                    ..Default::default()
+                })
+                .collect(),
+            ..Default::default()
+        })
+        .collect();
+    }
+    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/layout-check-tests");
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join("duplicate-glued-terminal.vsdx");
+    let themes = misterdiagram_theme::Themes::from_document(&doc).unwrap();
+    std::fs::write(&path, misterdiagram_vsdx::write_with_hosts(&doc, Some(&themes), Some(&misterdiagram_text::Host)).unwrap().bytes).unwrap();
+    run(&mut s, "file.open", json!({"path":path,"discard":true}));
+    let result = run(&mut s, "layout.check", json!({"shared_only":true}));
+    assert!(result["shared_segments"]["same_glue_exempt"].as_u64().unwrap() > 0, "{result}");
+    assert!(!has(&result, "h"), "{result}");
+}
+#[test]
+fn checker_wrapper_preserves_full_check_refusals() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let output = std::process::Command::new(if cfg!(windows) { "python" } else { "python3" })
+        .args(["-m", "unittest", "discover", "-s", "tools", "-p", "test_check_layout.py"])
+        .current_dir(root)
+        .output();
+    if output.as_ref().is_err_and(|e| e.kind() == std::io::ErrorKind::NotFound) && std::env::var_os("MISTERDIAGRAM_REQUIRE_PYTHON").is_none() {
+        eprintln!("Python wrapper test skipped: python3 missing");
+        return;
+    }
+    let output = output.unwrap();
+    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+}
