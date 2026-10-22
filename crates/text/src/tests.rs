@@ -31,6 +31,16 @@ fn hostile_text_layout_is_bounded() {
     assert!(layout(&body, &opts).is_err());
     assert!(Host.measure(&TextBody::default(), Some(f64::INFINITY)).is_err());
 }
+#[test]
+fn a_wrap_width_past_the_layout_ceiling_means_no_wrapping() {
+    // MisterDiagram#78: CFF Container headings measure TEXTHEIGHT(TheText,65535).
+    let mut body = TextBody::default();
+    body.paragraphs.push(Paragraph::new("E-Commerce Shopping Process Flow Diagram"));
+    let unwrapped = Host.measure(&body, None).unwrap();
+    let wide = Host.measure(&body, Some(65535. * 72.)).unwrap();
+    assert!((wide.0 - unwrapped.0).abs() < 1e-6 && (wide.1 - unwrapped.1).abs() < 1e-6, "{wide:?} {unwrapped:?}");
+    assert!(Host.measure(&body, Some(f64::NAN)).is_err());
+}
 
 #[test]
 fn report_default_font_substitutes() {

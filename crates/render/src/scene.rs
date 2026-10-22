@@ -43,10 +43,14 @@ pub struct Options {
     /// Page.Export uses visible geometry and a fixed canvas for empty documents.
     /// https://learn.microsoft.com/en-us/office/vba/api/visio.page.export
     pub visio_export: bool,
+    /// Cells the evaluator cannot compute take the value saved in the file, each one
+    /// reported in the scene's warnings. User-facing renders of opened files enable this;
+    /// oracle comparisons keep the error (MisterDiagram#78).
+    pub cached_fallback: bool,
 }
 impl Default for Options {
     fn default() -> Self {
-        Self { scale: 1., print: false, crop: true, visio_export: false }
+        Self { scale: 1., print: false, crop: true, visio_export: false, cached_fallback: false }
     }
 }
 impl Scene {
@@ -227,8 +231,18 @@ pub fn page(document: &Document, index: usize, options: Options) -> Result<Scene
 pub fn page_budgeted(document: &Document, index: usize, options: Options, budget: &mut SceneBudget) -> Result<Scene, String> {
     let themes = misterdiagram_theme::Themes::from_document(document).map_err(|e| e.to_string())?;
     let host = misterdiagram_text::Host;
-    let mut evaluator = Evaluator::new(document).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&host);
+    let evaluator = Evaluator::new(document).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&host);
+    let mut evaluator = if options.cached_fallback { evaluator.with_cached_fallback() } else { evaluator };
     page_prepared_budgeted(&mut evaluator, index, options, budget)
+}
+/// Cells the evaluator could not compute and filled from the file's saved values.
+fn fallback_warnings(evaluator: &mut Evaluator<'_>, scene: &mut Scene) {
+    let (messages, count) = evaluator.take_fallback_warnings();
+    let shown = messages.len();
+    scene.warnings.extend(messages);
+    if count > shown {
+        scene.warnings.push(format!("{} more cells used the value saved in the file", count - shown));
+    }
 }
 /// Render a page using a reusable index; evaluation effects are reset at the boundary.
 pub fn page_prepared(evaluator: &mut Evaluator<'_>, index: usize, options: Options) -> Result<Scene, String> {
@@ -267,6 +281,7 @@ fn page_prepared_budgeted(evaluator: &mut Evaluator<'_>, index: usize, options: 
         let ratio = number(evaluator, scope, "PageScale", 1.) / number(evaluator, scope, "DrawingScale", 1.).max(1e-12);
         shapes(evaluator, &p.shapes, scope, &p.part, Affine::scale(ratio), options, &mut scene, 0, budget)?;
     }
+    fallback_warnings(evaluator, &mut scene);
     budget.charge(std::mem::size_of::<Scene>().saturating_add(scene.warnings.iter().map(String::capacity).sum::<usize>()))?;
     finish_bounds(&mut scene, options.crop);
     if options.visio_export && p.shapes.is_empty() && !p.attributes.contains_key("BackPage") {
@@ -278,7 +293,8 @@ fn page_prepared_budgeted(evaluator: &mut Evaluator<'_>, index: usize, options: 
 pub fn master(document: &Document, index: usize, options: Options) -> Result<Scene, String> {
     let themes = misterdiagram_theme::Themes::from_document(document).map_err(|e| e.to_string())?;
     let host = misterdiagram_text::Host;
-    let mut evaluator = Evaluator::new(document).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&host);
+    let evaluator = Evaluator::new(document).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&host);
+    let mut evaluator = if options.cached_fallback { evaluator.with_cached_fallback() } else { evaluator };
     master_prepared(&mut evaluator, index, options)
 }
 /// Render a master using a reusable index; no state leaks from earlier masters.
@@ -293,6 +309,7 @@ pub fn master_prepared(evaluator: &mut Evaluator<'_>, index: usize, options: Opt
     let scope = Scope::Master(m.id);
     let ratio = number(evaluator, scope, "PageScale", 1.) / number(evaluator, scope, "DrawingScale", 1.).max(1e-12);
     shapes(evaluator, &m.shapes, scope, &m.part, Affine::scale(ratio), options, &mut scene, 0, &mut SceneBudget::default())?;
+    fallback_warnings(evaluator, &mut scene);
     finish_bounds(&mut scene, true);
     if options.visio_export && m.shapes.is_empty() {
         scene.bounds = Rect::new(0., 0., 5., 3.);

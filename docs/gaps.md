@@ -1,5 +1,33 @@
 # Gaps
 
+## Issue 78: a tester's flowchart rendered nothing (2026-10-22)
+
+The first tester report after 0.1.0-alpha.1: a public BPMN sample (an E-Commerce shopping
+flow built from the cross-functional flowchart and BPMN masters) failed with
+`shape 7 transform: #VALUE!`. Two causes, both reproduced with the release binary.
+
+- The CFF Container heading measures its text with `TEXTHEIGHT(TheText,65535)`, Visio's
+  "never wrap" idiom. The text host rejected a wrap width past its 1,000,000 pt layout
+  ceiling, so Scratch.Y1, Height and PinY of the heading all evaluated to `#VALUE!`. The width
+  is now clamped to the ceiling. The corpus had the witness all along
+  (BPMN_ADDRESS_CHANGE_PROCESS_M master 20 shape 7, Visio 0.4724 against our `Error(Value)`)
+  but filed under the text-metric tolerance bucket, where an error where Visio has a number
+  counted the same as a small metric difference. That bucket needs a separate count of error
+  cells with a ceiling that may only fall; open.
+- The pool, lane and phase shapes use `CONTAINERSHEETREF`, `LISTORDER` and `LISTMEMBERCOUNT`
+  (#33), none implemented: 115, 3 and 3 cells on the page, with 87 `DEPENDSON` Relationships
+  cells failing through them. Rather than stop the page on the first such shape, user-facing
+  renders (`render`, `convert`, MCP `export`) now run the evaluator with the cached fallback:
+  a cell that evaluates to an error and carries a saved value with no E attribute takes that
+  value, and the scene warns once per cell ("page 0 shape 12 User.FirstHeadingExtend: #NAME?
+  SHEET.5!LISTORDER; used the value saved in the file"). Oracle comparisons, `sheet`, the
+  inspection tools and the writer never enable it. On the sample, 10 cells fall back and the
+  page matches Visio's export on layout: title bar, both pools, every lane, task, gateway
+  and connector route. Two differences seen in that comparison are older rendering gaps, not
+  part of this fix: the shapes draw with a gradient where Visio fills them solid teal
+  (FillGradientEnabled=1 with FillForegnd=FillBkgnd), and the connector labels "Yes" and
+  "No" come out as a row of dots. Both open.
+
 ## Brief 26b: image groups and connector ends (2026-10-21)
 
 The M5.14 through M5.14d implementation addresses #60, #69, #67 and #66.

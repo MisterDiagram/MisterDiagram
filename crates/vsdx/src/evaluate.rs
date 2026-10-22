@@ -56,6 +56,9 @@ struct Snapshot {
 pub struct Evaluator<'a> {
     defer_text_metrics: bool,
     internal_cache_units: bool,
+    cached_fallback: bool,
+    fallbacks: Vec<String>,
+    fallback_count: usize,
     glue_host: Option<&'a mut dyn misterdiagram_sheet::HostHooks>,
     text_host: Option<&'a dyn misterdiagram_model::text::TextHost>,
     theme_host: Option<&'a dyn misterdiagram_sheet::host::ThemeHost>,
@@ -118,6 +121,9 @@ impl<'a> Evaluator<'a> {
             glue_host: None,
             defer_text_metrics: false,
             internal_cache_units: false,
+            cached_fallback: false,
+            fallbacks: Vec::new(),
+            fallback_count: 0,
             document,
             inheritance: Default::default(),
             baseline_lookup: Default::default(),
@@ -272,6 +278,49 @@ impl<'a> Evaluator<'a> {
         self.graph_limited = false;
         self.stack.clear();
         self.snapshot = None;
+        self.fallbacks.clear();
+        self.fallback_count = 0;
+    }
+    /// Substitute the file's saved value for a cell this evaluator cannot compute, and
+    /// record each substitution. Renders of unedited files then show what Visio last drew
+    /// where a function is still missing (MisterDiagram#78: CONTAINERSHEETREF, LISTORDER).
+    /// Authored cells without a saved value, and cells Visio itself saved as errors, keep
+    /// their error. Oracle comparisons and the writer never enable this.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+    pub fn with_cached_fallback(mut self) -> Self {
+        self.cached_fallback = true;
+        self.values.clear();
+        self
+    }
+    /// Substitutions since the last call: up to 100 messages, and the full count.
+    pub fn take_fallback_warnings(&mut self) -> (Vec<String>, usize) {
+        (std::mem::take(&mut self.fallbacks), std::mem::take(&mut self.fallback_count))
+    }
+    fn fallback_to_cached(&mut self, scope: Scope, key_name: &str, name: &str, value: Value) -> Value {
+        let Value::Error(error) = &value else { return value };
+        let Some(cell) = self.cell(scope, key_name) else { return value };
+        let source = self.local_inh_cell(scope, key_name).unwrap_or(cell);
+        // A cell without a V has nothing saved to fall back on: the reader would say 0.
+        if cell.error.is_some() || source.error.is_some() || source.value.is_none() {
+            return value;
+        }
+        let saved = self.cached_named_cell(scope, key_name, source);
+        if matches!(saved, Value::Error(_)) {
+            return value;
+        }
+        self.fallback_count = self.fallback_count.saturating_add(1);
+        if self.fallbacks.len() < 100 {
+            let label = match scope {
+                Scope::Document => "document".to_string(),
+                Scope::Page(page) => format!("page {page}"),
+                Scope::PageShape { page, shape } => format!("page {page} shape {shape}"),
+                Scope::Master(master) => format!("master {master}"),
+                Scope::MasterShape { master, shape } => format!("master {master} shape {shape}"),
+                Scope::Style(style) => format!("style {style}"),
+            };
+            self.fallbacks.push(format!("{label} {name}: {error}; used the value saved in the file"));
+        }
+        saved
     }
     /// Inject a theme resolver from the application composition layer.
     pub fn with_theme_host(mut self, host: &'a dyn misterdiagram_sheet::host::ThemeHost) -> Self {
@@ -783,6 +832,7 @@ impl<'a> Evaluator<'a> {
         self.stack.pop();
         self.active.remove(&key);
         let value = if self.graph_limited { Value::Error(Error::Limit) } else { value };
+        let value = if self.cached_fallback { self.fallback_to_cached(scope, &key.name, name, value) } else { value };
         // ARG reads and transient depth/work refusals taint enclosing evaluations,
         // including IFERROR fallbacks. Preserve their historical outside-frame cache,
         // but share only context-independent entries with EVALCELL frames.
@@ -1933,6 +1983,41 @@ mod tests {
         let mut deferred = Evaluator::new(&doc).unwrap().with_deferred_text_metrics();
         assert_eq!(deferred.evaluate(Scope::Document, "Dependent"), Value::Number(6.));
         assert!(matches!(deferred.evaluate(Scope::Document, "Bad"), Value::Error(Error::Unsupported(_))));
+    }
+    #[test]
+    fn cached_fallback_substitutes_the_saved_value_and_records_it() {
+        // MisterDiagram#78: a flowchart's phase separators need LISTORDER, which is not
+        // implemented; the file carries the values Visio saved.
+        let doc = Document {
+            document_sheet: sheet(vec![
+                cell("User.Order", "3", Some("LISTORDER()")),
+                cell("Width", "6", Some("User.Order*2")),
+                Cell { name: "Unsaved".into(), value: None, formula: Some("LISTORDER()".into()), ..Default::default() },
+                Cell {
+                    name: "SavedError".into(),
+                    value: Some("0".into()),
+                    formula: Some("1/0".into()),
+                    error: Some("#DIV/0!".into()),
+                    ..Default::default()
+                },
+            ]),
+            ..Default::default()
+        };
+        let mut plain = Evaluator::new(&doc).unwrap();
+        assert!(matches!(plain.evaluate(Scope::Document, "Width"), Value::Error(Error::Unsupported(_))));
+        assert_eq!(plain.take_fallback_warnings(), (vec![], 0));
+        let mut e = Evaluator::new(&doc).unwrap().with_cached_fallback();
+        assert_eq!(e.evaluate(Scope::Document, "Width"), Value::Number(6.));
+        assert!(matches!(e.evaluate(Scope::Document, "Unsaved"), Value::Error(Error::Unsupported(_))));
+        assert_eq!(e.evaluate(Scope::Document, "SavedError"), Value::Error(Error::Div0));
+        let (messages, count) = e.take_fallback_warnings();
+        assert_eq!(count, 1);
+        assert_eq!(messages.len(), 1);
+        assert!(
+            messages[0].starts_with("document User.Order: #NAME?") && messages[0].ends_with("; used the value saved in the file"),
+            "{messages:?}"
+        );
+        assert_eq!(e.take_fallback_warnings(), (vec![], 0));
     }
     #[test]
     fn cached_host_result_belongs_to_whole_cell_not_inner_call() {

@@ -9,6 +9,7 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-22: M5.43 (#78, the first tester report): the "never wrap" text measure `TEXTHEIGHT(TheText,65535)` is accepted, and user-facing renders take the file's saved value for a cell that cannot be computed, with a warning per cell, so flowcharts built on the container and list functions draw the way Visio last drew them. Ships as 0.1.0-alpha.2.
 - 2026-10-22: 0.1.0-alpha.1 released as a GitHub pre-release (macOS universal, Windows x64 and arm64, static Linux x64 and arm64, SHA256SUMS), after Codex verification and hand acceptance on all three platforms. The built-in network masters are now drawn as cards so connectors meet the outline on every side. Next: 0.1.0-alpha.2 with #68, #70 and #71.
 
 - 2026-10-22: M5.35 to M5.38 alpha release tooling: version 0.1.0-alpha.1 with build commit and target triple in `--version`, CHANGELOG.md, a tag-or-manual release workflow for five platforms, a standard-library smoke test run on every native target before and after packaging, and install notes (docs/install.md). No engine or saved-byte change; the office, SAN and fabric examples save byte-equal to 2bf22d8.

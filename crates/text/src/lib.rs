@@ -1795,7 +1795,14 @@ fn validate(body: &TextBody, rect: Rect) -> Result<(), String> {
 pub struct Host;
 impl misterdiagram_model::text::TextHost for Host {
     fn measure(&self, body: &TextBody, width: Option<f64>) -> Result<(f64, f64), String> {
-        let width = width.unwrap_or(100_000.0);
+        // TEXTHEIGHT(TheText,65535) is the "never wrap" idiom of the CFF Container heading
+        // (BPMN_ADDRESS_CHANGE_PROCESS_M master20 shape7, MisterDiagram#78): a finite width
+        // past the layout ceiling asks for no wrapping, it is not an invalid request.
+        let width = match width {
+            Some(w) if w.is_finite() => w.min(1_000_000.),
+            Some(w) => w,
+            None => 100_000.,
+        };
         validate(body, Rect::new(0., 0., width, 100_000.))?;
         if width <= 0. {
             return Err("text width must be positive".into());

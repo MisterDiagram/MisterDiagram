@@ -36,7 +36,7 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
     use misterdiagram_render::{contact, pdf, raster, scene, svg};
     let mut positional = Vec::new();
     let mut page = None;
-    let mut options = scene::Options::default();
+    let mut options = scene::Options { cached_fallback: true, ..Default::default() };
     let mut masters = false;
     let mut i = 1;
     while let Some(arg) = args.get(i) {

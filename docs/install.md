@@ -139,6 +139,13 @@ misterdiagram run --batch two-boxes.json --save two-boxes.vsdx
 `two-boxes.json` script. `misterdiagram commands` lists every authoring command with its
 parameters; the [README](../README.md) and [docs/mcp.md](mcp.md) cover the rest.
 
+A line like `warning: page 0 shape 12 User.FirstHeadingExtend: #NAME? SHEET.5!LISTORDER;
+used the value saved in the file` means a cell uses a ShapeSheet function MisterDiagram does
+not calculate yet (the container and list functions are the usual ones), so the render took
+the value Visio saved in the file. An unedited file still draws the way Visio last drew it;
+a cell you changed has no saved value and keeps its error. `misterdiagram sheet FILE` shows
+every such cell. Please report the function in an issue.
+
 ### Connectors and obstacles
 
 `connector.add` glues a dynamic connector (route style 0, the page's default right-angle
