@@ -24,10 +24,12 @@ carries THIRD-PARTY-LICENSES.txt, the licences of the Rust crates linked into th
 - **Author** drawings from commands: pages, layers, shapes, text, shape data, hyperlinks,
   formatting, stencils and master drops, connection points, glued connectors with orthogonal
   routing and line jumps, and tree, row and fan layouts. `run --batch FILE` rebuilds a drawing
-  from a script.
+  from a script. As in Visio, connectors route around placeable shapes: a shape a connector is
+  glued to, or one whose ObjType cell is 1 (docs/install.md, "Connectors and obstacles").
 - **Automate** through the MCP stdio server (`misterdiagram mcp`): sixteen tools for opening,
   building, inspecting, rendering and saving drawings.
-- A built-in network stencil with eleven device masters, and vendor stencils you already have.
+- A built-in network stencil with eleven device masters, drawn as cards so connectors meet
+  the outline on every side, and vendor stencils you already have.
 
 ### Known gaps
 
@@ -40,9 +42,6 @@ carries THIRD-PARTY-LICENSES.txt, the licences of the Rust crates linked into th
   separate lanes, spaced by a rule that matches Visio exactly on rows and columns of boxes and
   approximates it elsewhere. docs/gaps.md has the measurements (the paragraph that begins
   "Connector lanes").
-- **Connectors go around placeable shapes only.** A shape counts as an obstacle when a
-  connector is glued to it or its ObjType cell is 1; a shape with nothing glued to it is not
-  avoided. See docs/install.md, "Connectors and obstacles".
 - **Vendor masters drawn at another scale land too big.** A 1:10 rack master dropped on a 1:1
   page comes out ten times its size
   ([#68](https://github.com/MisterDiagram/MisterDiagram/issues/68)).

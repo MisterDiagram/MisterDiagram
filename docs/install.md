@@ -145,7 +145,7 @@ parameters; the [README](../README.md) and [docs/mcp.md](mcp.md) cover the rest.
 routing), and its route goes around shapes that count as obstacles. A shape counts when it is
 placeable: its `ObjType` cell is 1, which every shape a connector is glued to gets
 automatically. A shape with nothing glued to it keeps `ObjType` 0 and connectors may run
-straight through it. To make such a shape an obstacle, set the cell before adding connectors:
+straight through it; Visio 2021 does the same. To make such a shape an obstacle, set the cell before adding connectors:
 
 ```json
 {"command": "sheet.set", "params": {"id": 3, "name": "ObjType", "value": 1}}

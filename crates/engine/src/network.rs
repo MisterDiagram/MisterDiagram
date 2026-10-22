@@ -1,6 +1,9 @@
 //! Native redraws of ecceman/affinity square icons, public domain (Unlicense).
 //! Pinned source: 48d4a4fa87957cb542678ed5952227028b8657f5; see ATTRIBUTION.md.
 //! The FC switch is contributor-original, MIT OR Apache-2.0.
+//! Each master is drawn as a card: its outline is the shape's own box, with the
+//! glyph and the label inside, so every glue point on the box edge (side centres,
+//! tree and fan points, dynamic glue) lands on the drawn outline.
 //! https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section
 use crate::{Result, edit::*, operation};
 use misterdiagram_model::{Document, Row, Section};
@@ -8,7 +11,8 @@ use misterdiagram_model::{Document, Row, Section};
 // Each point is an integer on a 48-unit, 0.75-inch icon canvas. Paths are
 // centerline redraws, not embedded SVG outlines. A single weight applies to all.
 type Path = &'static [(i16, i16)];
-const FRAME: Path = &[(3, 0), (45, 0), (48, 3), (48, 45), (45, 48), (3, 48), (0, 45), (0, 3), (3, 0)];
+// The card's corner chamfer, the affinity tile's 3/48 of 0.75 inch.
+const CHAMFER: f64 = 3. / 64.;
 const CLOUD: &[Path] = &[&[
     (10, 14),
     (7, 16),
@@ -179,7 +183,27 @@ pub(crate) fn document() -> Result<Document> {
                 .collect(),
             ..Default::default()
         };
-        for path in std::iter::once(&FRAME).chain(paths.iter()) {
+        // The card outline, on the shape's box so it follows Width and Height.
+        let card = [
+            (CHAMFER, None, 0., None),
+            (1.5 - CHAMFER, Some(format!("Width-{CHAMFER}")), 0., None),
+            (1.5, Some("Width".to_string()), CHAMFER, None),
+            (1.5, Some("Width".to_string()), 1.25 - CHAMFER, Some(format!("Height-{CHAMFER}"))),
+            (1.5 - CHAMFER, Some(format!("Width-{CHAMFER}")), 1.25, Some("Height".to_string())),
+            (CHAMFER, None, 1.25, Some("Height".to_string())),
+            (0., None, 1.25 - CHAMFER, Some(format!("Height-{CHAMFER}"))),
+            (0., None, CHAMFER, None),
+            (CHAMFER, None, 0., None),
+        ];
+        for (at, (x, xf, y, yf)) in card.iter().enumerate() {
+            geometry.rows.push(Row {
+                index: Some(u32::try_from(geometry.rows.len() + 1).map_err(operation)?),
+                row_type: Some(if at == 0 { "MoveTo" } else { "LineTo" }.into()),
+                cells: vec![cell("X", &x.to_string(), xf.as_deref()), cell("Y", &y.to_string(), yf.as_deref())],
+                ..Default::default()
+            });
+        }
+        for path in paths.iter() {
             for (at, (x, y)) in path.iter().enumerate() {
                 let dx = (f64::from(*x) - 24.) / 64.;
                 let dy = (f64::from(*y) - 56.) / 64.;
