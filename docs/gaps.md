@@ -327,23 +327,38 @@ moves away, then retains literal X=0 when it moves back. One late route leaves
 that inherited zero without a local cell. Batch mode is shelved until saving
 becomes independent of edit history; that refactor is future work.
 
-Connector lanes (M5.39, Brief 34, incomplete): 27 new discovery drawings and
-three preregistered hold-outs observe rows, columns, alternating directions,
-fan-outs, page spacing/style variants and three obstacle grids. The restricted
-lower-side insertion recurrence predicts all sixteen hold-out central-cut
-coordinates exactly (fourteen in-gap lanes and two outside-gap crossings).
-It does not explain the upper-side band, native-large-300's lane order/extent,
-or dynamic fan-out port placement. Further controls refute a target-height band
-(up to0.625in error) and a symmetric opposite-direction insertion prediction
-(0.125in error at page spacing0.0625). Explicit ConFixedCode0 before Layout
-also changes order even though the final saved codes return6. No general lane pass is
-implemented. Baseline comparison matches 0/27 complete new discovery drawings
-(2/117 connectors); native-large-300 remains 0/10 with 333 route/frame-cell
-differences. Original route sweep remains 28/29. Exact measurements and the
-restricted pseudocode are in docs/engine.md; immutable evidence is in the private
-corpus Brief 34 state archive. Three grid witnesses (lattice-3, lattice-5,
-lattice-7) also retain the named equal-length-route choice gap. A horizontal-first
-rule is insufficient: sprig-2 has an equal-length vertical-first choice.
+Connector lanes (M5.39/M5.40, Brief 34b): Charles adopted the restricted
+recurrence as the lane rule: exact on the restricted family, approximation
+elsewhere. Generated CI tests cover 20 restricted cases and three hold-outs,
+with in-gap trunk coordinates within 1e-6. Horizontal final connectors keep
+our in-gap trunk where Visio chooses the target-row crossing; vertical terminal
+legs can also retain the existing tie/glue difference. No new general-rule
+explanation or native lane witness is claimed. Existing sweep remains 28/29;
+`jump-three-crossings` remains a separate endpoint-packing gap.
+
+Measured approximation differences (ours minus Visio, inches, connector ID
+order):
+
+- `counter-h-5-g3`: central-cut deltas -0.0625, 0, -0.0625, +0.1875,
+  -3.09375. The final value includes the known outside-gap route choice.
+- `counter-h-5-g0p75`: -0.0625, 0, -0.0625, +0.1875, -0.84375.
+- `sprig-2`: connector 3 endpoints agree; connector 5 begin differs by
+  (-0.125, 0), end by (0, +0.125). Fan-out port selection remains a named gap.
+- `sprig-6`: begin deltas for IDs 3/5/7/9/11/13 are (+0.25,+0.25),
+  (+0.25,+0.125), (0,0), (-0.125,0), (-0.25,+0.25), (-0.25,+0.125).
+  End deltas are (+0.25,+0.25), (+0.25,+0.25), (0,0), (0,+0.125),
+  (-0.25,+0.25), (-0.25,+0.25). These endpoint differences are not lane parity.
+- `native-large-300`: Visio's longest horizontal trunks are at y = 27.8125,
+  27.6875, 27.875, 27.75, 27.9375, 27.625, 27.5625, 27.84375, 27.78125,
+  27.90625. Our source-facing band gives 1.6875, 1.625, 1.5625, 1.65625,
+  1.59375, 1.53125, 1.671875, 1.640625, 1.609375, 1.578125. Absolute
+  displacement ranges from 25.890625 to 26.34375 inches. Full geometry still
+  matches 0/10 connectors, with 392 route/frame-cell differences (333 before).
+  The rule intentionally does not reproduce native-large-300's target-side band.
+
+The existing equal-length-route choices in `lattice-3`, `lattice-5`,
+`lattice-7` and `sprig-2` remain unresolved. Visio's state-dependent ordering
+and fan-out ports remain observation limits, not new reverse-engineering work.
 
 Router capacity (M5.32 to M5.33, #76): connectors with at most 256
 placeable, non-permeable candidates retain the original obstacle set and order.
@@ -1819,3 +1834,27 @@ zero newly rendered masters. Full corpus exits 0: strict round trip 15,105,590/1
 Full CI passes all eight gates: 667 tests passed, zero failed and three ignored.
 All three prescribed source seeds fail their intended assertions and pass after
 exact restoration. No oracle, threshold, witness, floor or denominator changed.
+
+M5.40 lane clearance versus layout rule c: the unchanged checker flags Visio's
+own `weave-v-3-g3` and `weave-v-3-g0p75`, connector15, at x=1.5625
+(two border hits each). It flags `weave-v-5-g3` and `weave-v-5-g0p75`,
+connector23, at x=1.5625 (six border hits each). The physical source-facing
+edge is x=1.5, leaving exactly1/16 inch. Rule c includes equality at1/16;
+these sixteen flags remain visible and are not lane-placement failures.
+Thirteen larger restricted/holdout Visio drawings hit the existing checker
+comparison bound after jump-curve subdivision. Those refusals are retained,
+not reported as clean full-layout checks. Neither the1/16 threshold nor the
+comparison ceiling has changed.
+
+The older native stub witnesses also contain shared style1 trunks and therefore
+change under Brief34b's explicit approximation policy. In
+`glue-witness-v2/stub-left`, connectors4/5 both use x=1.1875, overlapping
+on y=[2.75,3.5] for0.75in. We retain connector4 and move connector5 to
+x=1.125. The mirrored `stub-right` retains connector4 at x=4.8125 and moves
+connector5 to4.875. Both now acquire an ordinary1/24in-radius jump where their
+separated routes cross. `stub-tiny` overlaps horizontally for0.025in: connector5
+moves from y=5.8125 to5.875 while connector4 remains unchanged. These are
+intentional0.0625in deviations from Visio. The native literals and private
+witnesses remain unchanged; the behavior regression now asserts the exact named
+departures, unchanged endpoints and remaining centerline coordinates, ordinary
+jump geometry, and no shared segment. The other native stub variants remain exact.

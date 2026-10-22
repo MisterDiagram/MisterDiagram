@@ -11,6 +11,7 @@ pub use glue_host::GlueHost;
 
 mod fixed;
 mod jumps;
+mod lanes;
 mod orthogonal;
 mod scope;
 mod straight;

@@ -81,6 +81,10 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
     let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&text).with_glue_host(host);
     let mut old = Evaluator::new(before).map_err(|e| e.to_string())?.with_theme_host(&old_themes).with_text_host(&text);
     let mut routes = vec![];
+    let mut lane_routes = Vec::new();
+    let mut lane_context = Vec::new();
+    let mut lane_points = 0usize;
+    let mut lane_limited = false;
     let mut horizontal_runs = Vec::<(u32, misterdiagram_geom::Point, misterdiagram_geom::Point)>::new();
     let mut obstacles_memo = crate::orthogonal::ObstacleBounds::default();
     let mut fixed = vec![];
@@ -90,6 +94,12 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             continue;
         }
         let index = doc.pages.iter().position(|p| p.id == page).ok_or("route page missing")?;
+        let glue = ["BeginX", "EndX"].map(|end| {
+            let mut links =
+                doc.pages.get(index).into_iter().flat_map(|p| &p.connects).filter(|c| c.from_sheet == id && c.from_cell.as_deref() == Some(end));
+            let first = links.next().map(|c| c.to_sheet);
+            if links.next().is_none() { first } else { None }
+        });
         let forced = force.is_some_and(|(p, id2)| p == index && id2.is_none_or(|v| v == id));
         let current = e.shape(scope).ok_or("route shape missing")?;
         let previous = old.shape(scope);
@@ -97,7 +107,10 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             ["BeginX", "BeginY", "EndX", "EndY", "BegTrigger", "EndTrigger"].iter().any(|name| old.sheet.cell(name) != current.sheet.cell(name))
         });
         let changed = changed || ["BeginX", "BeginY", "EndX", "EndY"].iter().any(|name| e.evaluate(scope, name) != old.evaluate(scope, name));
-        if !forced && !changed && !dirty_pages.contains(&page) {
+        let requested = forced || changed || dirty_pages.contains(&page);
+        let resolved_style = crate::orthogonal::style(&mut e, scope, page);
+        let is_fixed = number(&mut e, scope, "ConFixedCode")? == 2.;
+        if is_fixed || (!requested && resolved_style != 0. && resolved_style != 1.) {
             // Targeted reroutes must see the unchanged preceding connectors too.
             // Reuse their serialized centerlines, including across jump arcs.
             let transform = e.shape_to_page(scope).map_err(|v| v.to_string())?;
@@ -113,6 +126,8 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
                 }
             }
             let mut previous = None;
+            let mut context_points = Vec::new();
+            let mut breaks = std::collections::BTreeSet::new();
             for (ix, kind) in rows {
                 let x = crate::orthogonal::number(&mut e, scope, &format!("Geometry1.X{ix}"), 0.);
                 let y = crate::orthogonal::number(&mut e, scope, &format!("Geometry1.Y{ix}"), 0.);
@@ -124,7 +139,7 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
                     && let Some(a) = previous
                 {
                     let a: misterdiagram_geom::Point = a;
-                    if (a.y - point.y).abs() < 1e-9 {
+                    if !is_fixed && (a.y - point.y).abs() < 1e-9 {
                         if horizontal_runs.len() >= 100000 {
                             return Err("route segment limit".into());
                         }
@@ -132,7 +147,44 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
                     }
                 }
                 previous = Some(point);
+                if !lane_limited && lane_points < 500000 {
+                    if kind.as_deref() == Some("MoveTo") && !context_points.is_empty() {
+                        breaks.insert(context_points.len() - 1);
+                    }
+                    context_points.push(point);
+                    lane_points += 1;
+                } else {
+                    lane_limited = true;
+                    context_points.clear();
+                }
             }
+            if is_fixed && changed {
+                let ends = ["BeginX", "BeginY", "EndX", "EndY"].map(|name| number(&mut e, scope, name)).into_iter().collect::<Result<Vec<_>, _>>()?;
+                let ends: [f64; 4] = ends.try_into().map_err(|_| "endpoint count")?;
+                fixed.extend(crate::fixed::end_updates(&mut e, index, scope, ends)?);
+                if fixed.len() > 200000 {
+                    return Err("fixed connector update limit".into());
+                }
+                let parent = e.parent_to_page(scope).map_err(|v| v.to_string())?;
+                let [bx, by, ex, ey] = ends;
+                if let Some(first) = context_points.first_mut() {
+                    *first = parent * misterdiagram_geom::Point::new(bx, by);
+                }
+                if let Some(last) = context_points.last_mut() {
+                    *last = parent * misterdiagram_geom::Point::new(ex, ey);
+                }
+            }
+            lane_context.push(crate::lanes::Route {
+                page,
+                id,
+                frame: transform,
+                points: context_points,
+                breaks,
+                eligible: false,
+                requested: false,
+                assigned: false,
+                glue,
+            });
             continue;
         }
         let [bx, by, ex, ey] = ["BeginX", "BeginY", "EndX", "EndY"]
@@ -141,15 +193,6 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             .collect::<Result<Vec<_>, _>>()?
             .try_into()
             .map_err(|_| "endpoint count")?;
-        if number(&mut e, scope, "ConFixedCode")? == 2. {
-            if changed {
-                fixed.extend(crate::fixed::end_updates(&mut e, index, scope, [bx, by, ex, ey])?);
-                if fixed.len() > 200000 {
-                    return Err("fixed connector update limit".into());
-                }
-            }
-            continue;
-        }
         let excluded =
             doc.pages.get(index).ok_or("route page missing")?.connects.iter().filter(|c| c.from_sheet == id).map(|c| c.to_sheet).collect::<Vec<_>>();
         let parent = e.parent_to_page(scope).map_err(|v| v.to_string())?;
@@ -289,11 +332,50 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
                 }
             }
         }
+        let retained = if !lane_limited && points.len() <= 500000usize.saturating_sub(lane_points) {
+            lane_points += points.len();
+            points.iter().map(|p| parent * *p).collect()
+        } else {
+            lane_limited = true;
+            Vec::new()
+        };
+        lane_routes.push(crate::lanes::Route {
+            page,
+            id,
+            frame: parent,
+            points: retained,
+            breaks: std::collections::BTreeSet::new(),
+            eligible: (style == 0. || style == 1.) && outcomes.get(&(page, id)).is_some_and(Option::is_none),
+            requested,
+            assigned: false,
+            glue,
+        });
         routes.push((index, id, bx, by, ex, ey, style, points, crate::orthogonal::inherited_zero(&e, scope), inherited_route));
         if routes.len() > 100000 {
             return Err("route count limit".into());
         }
     }
+    lane_routes.extend(lane_context);
+    if lane_limited {
+        for route in lane_routes.iter().filter(|r| r.eligible) {
+            outcomes.insert((route.page, route.id), Some(format!("route lane point limit: connector {}", route.id)));
+        }
+    } else {
+        crate::lanes::apply(&mut e, &mut lane_routes, &mut outcomes)?;
+    }
+    let mut published = Vec::new();
+    for (mut route, lane) in routes.into_iter().zip(lane_routes) {
+        if lane.requested || lane.assigned {
+            if lane.assigned {
+                let inverse = lane.frame.inverse();
+                route.7 = lane.points.into_iter().map(|p| inverse * p).collect();
+            }
+            published.push(route);
+        } else if outcomes.get(&(lane.page, lane.id)).is_some_and(Option::is_none) {
+            outcomes.remove(&(lane.page, lane.id));
+        }
+    }
+    let routes = published;
     drop(e);
     host.outcomes = outcomes;
     let count = routes.len();

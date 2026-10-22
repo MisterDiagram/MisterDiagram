@@ -95,21 +95,27 @@ release measurement on the largest shipped stencil and a 500-shape page. The obs
 gitignored; agents read them at the start of every session, per AGENTS.md.
 
 
-### Connector-lane discovery status
+### Connector lane checks
 
-Brief 34's M5.39 evidence is a prediction experiment, not a routing acceptance
-claim. Preserve the authored VM script, case manifest, written rule and numerical
-predictions before creating hold-outs. Compare coordinates in connector order
-at 1e-6 inch and retain every failed hypothesis. The private Brief 34 archive
-contains 27 discovery cases and three frozen hold-outs. Their central-cut
-predictions pass, but the general lane band and fan-out rules remain unresolved.
-M5.40 through M5.42 are not implemented; tools/check-layout.py does not yet
-claim the proposed no-shared-segments check. Existing thresholds and populations
-remain unchanged while discovery continues.
+Brief 34's M5.39 evidence remains a prediction experiment. Preserve its authored
+VM script, manifest, written rule, frozen predictions and failed hypotheses.
+The private archive contains 27 discovery cases and three hold-outs. Charles's
+Brief 34b adopts its restricted recurrence for production: exact on the restricted
+family, approximation elsewhere. The general Visio band and fan-out ports remain
+unresolved; the implementation makes no general parity claim.
 
-The supplementary controls preserve failed predictions and failed COM trials.
-The original three hold-outs did not fail. Partial M5.39 must not be described as
-a triggered hold-out mismatch or a completed milestone. A passing restricted
-predictor does not authorize an implementation that misses the other required
-witnesses. The source-only lane/checker seeds and two clean closure passes remain
-unperformed because those implementations do not exist.
+Run `cargo test -p misterdiagram-route --test lanes -- --nocapture` for the
+20 restricted cases, three hold-outs, 100-box page and untouched/targeted route
+checks. Tests generate contributor-authored drawings and use literal numeric
+observations. They do not load private corpus documents. In-gap bend-to-bend
+trunks use a 1e-6-inch tolerance. The printed final horizontal connector is the
+known outside-gap tie difference, not a failed lane coordinate. Vertical
+terminal-cut differences likewise remain distinct from internal trunk positions.
+
+The lane pass alone may use clearance smaller than the ordinary router's inflated
+clearance, matching the adopted band. It must never touch a physical non-permeable
+shape. Existing layout-checker thresholds stay fixed, even when they flag an
+observed Visio lane. Report the case, connector and lane coordinate explicitly.
+Source-only defects must fail the lane/checker assertions; never seed a witness,
+fixture, comparison mask or generated output. The standing overlap checker is
+tracked separately as M5.42.

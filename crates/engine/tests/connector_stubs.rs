@@ -15,6 +15,82 @@ fn close(s: &Session, id: u32, expected: &[(&str, f64)]) {
         assert!((got - want).abs() <= 1e-6, "connector {id} {n}: ours={got} Visio={want}");
     }
 }
+// Brief34b deliberately separates these observed shared trunks. Keep the native
+// witness values below intact and assert the exact, named approximation delta.
+// Private evidence: glue-witness-v2/stub-left, stub-right and stub-tiny.
+fn close_lane_approximation(s: &Session, id: u32, native: &[(&str, f64)], changes: &[(&str, f64)]) {
+    let expected = native
+        .iter()
+        .map(|&(name, value)| (name, value + changes.iter().find(|(cell, _)| *cell == name).map_or(0., |(_, delta)| *delta)))
+        .collect::<Vec<_>>();
+    for (name, _) in changes {
+        assert!(native.iter().any(|(cell, _)| cell == name));
+    }
+    close(s, id, &expected.iter().copied().filter(|(name, _)| !name.starts_with("Geometry")).collect::<Vec<_>>());
+    let mut e = Evaluator::new(s.document()).unwrap();
+    let scope = Scope::PageShape { page: s.document().pages[0].id, shape: id };
+    let rows = e
+        .resolved_named_cells(scope)
+        .into_iter()
+        .filter(|n| n.section.is_some_and(|s| s.name == "Geometry" && s.index.unwrap_or(0) == 0))
+        .filter_map(|n| n.row.filter(|r| !r.deleted).and_then(|r| r.index))
+        .collect::<std::collections::BTreeSet<_>>();
+    let mut points = Vec::<misterdiagram_geom::Point>::new();
+    for row in &rows {
+        let point = misterdiagram_geom::Point::new(
+            e.evaluate(scope, &format!("Geometry1.X{row}")).numeric().unwrap(),
+            e.evaluate(scope, &format!("Geometry1.Y{row}")).numeric().unwrap(),
+        );
+        while points.len() >= 2 && (points[points.len() - 1] - points[points.len() - 2]).cross(point - points[points.len() - 1]).abs() < 1e-9 {
+            points.pop();
+        }
+        points.push(point);
+    }
+    assert_eq!(points.len(), 4, "lane centerline must preserve the four native bend/end positions except its specified offset");
+    for (i, point) in points.iter().enumerate() {
+        for (axis, value) in [("X", point.x), ("Y", point.y)] {
+            let key = format!("Geometry1.{axis}{}", i + 1);
+            let want = expected.iter().find(|(name, _)| *name == key).unwrap().1;
+            assert!((value - want).abs() <= 1e-6, "connector{id} centerline {key}: {value} != {want}");
+        }
+    }
+    if changes[0].0 == "Geometry1.X2" {
+        assert_eq!(rows.len(), 6, "separated side lanes introduce one ordinary jump");
+        let sign = changes[0].1.signum();
+        close(s, id, &[("Geometry1.X4", -sign * 7. / 48.), ("Geometry1.X5", -sign * 11. / 48.), ("Geometry1.A5", sign / 24.)]);
+    } else {
+        assert_eq!(rows.len(), 4);
+    }
+    let mut paths = Vec::new();
+    for id in [4, 5] {
+        let scope = Scope::PageShape { page: s.document().pages[0].id, shape: id };
+        let frame = e.shape_to_page(scope).unwrap();
+        let segments = e
+            .geometry_paths(scope, misterdiagram_geom::Rect::new(-100., -100., 100., 100.))
+            .unwrap()
+            .into_iter()
+            .flat_map(|p| p.path.segments().map(|segment| frame * segment).collect::<Vec<_>>())
+            .collect::<Vec<_>>();
+        paths.push(segments);
+    }
+    for a in &paths[0] {
+        for b in &paths[1] {
+            if let (kurbo::PathSeg::Line(a), kurbo::PathSeg::Line(b)) = (a, b) {
+                let delta = a.p1 - a.p0;
+                let length = delta.hypot();
+                if length <= 1e-9 {
+                    continue;
+                }
+                let unit = delta / length;
+                if (b.p0 - a.p0).cross(unit).abs() < 1e-9 && (b.p1 - a.p0).cross(unit).abs() < 1e-9 {
+                    let lo = (b.p0 - a.p0).dot(unit);
+                    let hi = (b.p1 - a.p0).dot(unit);
+                    assert!(hi.max(lo).min(length) - hi.min(lo).max(0.) <= 1e-6, "shared trunk after lane assignment");
+                }
+            }
+        }
+    }
+}
 fn drawing(spacing: Option<&str>) -> Session {
     let mut s = Session::new();
     if let Some(n) = spacing {
@@ -180,7 +256,7 @@ fn native_other_sides_and_target_smaller_than_stub() {
                         ("Geometry1.Y4", 1.4999999999999947),
                     ],
                 );
-                close(
+                close_lane_approximation(
                     &s,
                     5,
                     &[
@@ -197,6 +273,7 @@ fn native_other_sides_and_target_smaller_than_stub() {
                         ("Geometry1.X4", 2.0000000000000027),
                         ("Geometry1.Y4", -2.7500000000000053),
                     ],
+                    &[("Geometry1.X2", -0.0625), ("Geometry1.X3", -0.0625)],
                 );
             }
             "right" => {
@@ -218,7 +295,7 @@ fn native_other_sides_and_target_smaller_than_stub() {
                         ("Geometry1.Y4", -1.4999999999999831),
                     ],
                 );
-                close(
+                close_lane_approximation(
                     &s,
                     5,
                     &[
@@ -235,6 +312,7 @@ fn native_other_sides_and_target_smaller_than_stub() {
                         ("Geometry1.X4", -2.000000000000008),
                         ("Geometry1.Y4", 2.7500000000000164),
                     ],
+                    &[("Geometry1.X2", 0.0625), ("Geometry1.X3", 0.0625)],
                 );
             }
             "tiny" => {
@@ -256,7 +334,7 @@ fn native_other_sides_and_target_smaller_than_stub() {
                         ("Geometry1.Y4", -2.9499999999999997),
                     ],
                 );
-                close(
+                close_lane_approximation(
                     &s,
                     5,
                     &[
@@ -273,6 +351,7 @@ fn native_other_sides_and_target_smaller_than_stub() {
                         ("Geometry1.X4", -2.025),
                         ("Geometry1.Y4", -2.9499999999999997),
                     ],
+                    &[("Geometry1.Y2", 0.0625), ("Geometry1.Y3", 0.0625)],
                 );
             }
             _ => panic!("unexpected test variant"),

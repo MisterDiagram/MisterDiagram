@@ -273,7 +273,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/shape-transform-section> | `crates/engine/src/inspect.rs`, `crates/geom/src/rows.rs`, `crates/vsdx/src/evaluate/transform.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/shapekeywords-cell-miscellaneous-section> | `crates/engine/src/stencils.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/shapepermeablex-cell-shape-layout-section> | `crates/route/src/orthogonal.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/shaperoutestyle-cell-shape-layout-section> | `crates/engine/src/layout.rs`, `crates/engine/src/layout/tree.rs`, `crates/engine/tests/connector_stubs.rs`, `crates/engine/tests/mixed_glue.rs`, `crates/route/src/orthogonal.rs`, `crates/route/src/stub.rs`, `tools/oracle/b25/layout-witness.ps1` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/shaperoutestyle-cell-shape-layout-section> | `crates/engine/src/layout.rs`, `crates/engine/src/layout/tree.rs`, `crates/engine/tests/connector_stubs.rs`, `crates/engine/tests/mixed_glue.rs`, `crates/route/src/lanes.rs`, `crates/route/src/orthogonal.rs`, `crates/route/src/stub.rs`, `crates/route/tests/lanes.rs`, `tools/oracle/b25/layout-witness.ps1` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/shapeshdwblur-cell-fill-format-section> | `crates/render/src/shadow.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/shapeshdwoffsetx-cell-fill-format-section> | `crates/render/src/shadow.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/shapetext-function> | `crates/sheet/src/functions/text_metrics.rs` |

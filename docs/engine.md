@@ -69,12 +69,13 @@ Entry and name-storage caps disable further caching when reached, then fall back
 to the original resolver. They do not reject additional input or alter an existing
 construction, recursion or file bound.
 
-## Connector lane observations (M5.39, incomplete)
+## Connector lane observations and lane pass (M5.39, M5.40)
 
 Brief 34 observes Visio build 16.0.20430.20182 on contributor-authored synthetic
 rows, columns, fan-outs and obstacle grids. Generated drawings and exports remain
-in the private corpus. These observations do not yet establish a general lane
-assignment algorithm; production routing is unchanged.
+in the private corpus. Charles adopted the restricted recurrence as the lane rule in Brief 34b:
+exact on the restricted family, approximation elsewhere. The observations do
+not establish Visio's general lane algorithm.
 
 The public [LineToLineX reference](https://learn.microsoft.com/en-us/office/client-developer/visio/linetolinex-cell-page-layout-section)
 and [LineToLineY reference](https://learn.microsoft.com/en-us/office/client-developer/visio/linetoliney-cell-page-layout-section)
@@ -84,7 +85,7 @@ changing those page cells from 0.125 to 0.25 inches leaves the lane coordinates
 unchanged. LineToNode remains 0.125. The experiment does not establish which
 of these settings determines the initial 0.1875-inch displacement.
 
-A restricted candidate describes the positive-direction two-row/column
+The implemented rule describes the positive-direction two-row/column
 fixtures. Two rows each have 2N placeable, non-permeable half-inch boxes at a
 2-inch pitch. Source i connects to opposite-row index 2N-1-i. The source-facing
 edge is 1.5 inches. The first trunk is 0.1875 inches from that edge. Subsequent
@@ -113,7 +114,7 @@ inside that gap; the last reported coordinate is explicitly an outside-gap
 crossing, not another horizontal lane. The vertical trunk of that connector
 still passes through the gap. This asymmetry is part of the observation.
 
-This candidate does not explain the whole discovery set. Alternating directions
+This rule does not explain the whole discovery set. Alternating directions
 produce lower-side lanes 1.6875/1.625 and upper-side lanes 4.3125/4.1875 for the
 3-inch gap (2.0625/1.9375 for the 0.75-inch gap). They do not mirror the lower-side
 insertion sequence. Fan-outs select distinct points on the shared source and
@@ -203,5 +204,39 @@ no evidence about style control.
 M5.39 is incomplete. The original hold-outs have zero residual, comprising
 fourteen in-gap lane coordinates and two explicitly outside-gap crossings.
 They do not validate the unresolved band, rerouting order, opposite-direction
-behavior or fan-out ports. No production lane approximation, tie-break change or
-no-shared-segments checker is implemented from this partial result.
+behavior or fan-out ports. Brief 34b separately adopts the restricted recurrence
+as the production approximation described below. It does not claim a general
+Visio explanation or change the equal-length route tie choice.
+
+### Lane implementation and limits
+
+After the ordinary router, effective styles 0 and 1 participate in shared,
+collinear bend-to-bend trunk groups. ShapeRouteStyle overrides the page style,
+except zero inherits RouteStyle. Shape IDs determine creation order. Each trunk
+uses the physical channel edge facing its begin shape, even for opposite-direction
+connectors. Occupied or physically blocked positions are skipped in the sequence
+above, down to 1/1024 inch. A lane must remain strictly outside every
+non-permeable shape; Visio's witnessed lanes may be closer than the ordinary
+router's inflated clearance. LineToLine does not scale this adopted band.
+
+Other styles, unshared routes and capacity fallback routes retain their previous
+geometry and clearance. Their segments still reserve occupied positions. Moving
+a bend can lengthen an endpoint leg into another connector. In the general-case
+approximation, a bounded internal jog shortens that leg on the same line while
+preserving its glue point. Subpath breaks are preserved, and new jogs cannot
+self-overlap. Failure restores the entire connector, checks dependent lane
+assignments and reports a route warning naming the connector.
+
+Lane work is bounded by 500,000 retained points, 16,384 candidate trunks per
+page and four million comparisons/candidate visits. Band enumeration stops at
+1/1024 inch. These are lane-pass bounds; the existing obstacle/grid/corridor
+limits remain unchanged. Warning fallbacks retain the pre-lane route.
+
+The generated CI tests compare the actual in-gap, bend-to-bend segment coordinates
+against the contributor's numeric M5.39 observations, at 1e-6 inch. They cover
+20 restricted cases and three hold-outs. A terminal leg crossing the central cut
+is not a trunk: the existing vertical endpoint/tie choice can differ from Visio
+while its in-gap trunk has the exact required coordinate. Horizontal final
+connectors retain the documented outside-gap tie difference. Full-route parity
+is not implied. The 100-box generated page checks ten distinct lane heights,
+all connector pairs and physical box interiors.
