@@ -16501,3 +16501,162 @@ The first two lines have endpoints (4.05,5) to (5.95,5) on NoScale 1:1
 and (-4.5,5) to (14.5,5) on Custom 1:10. The blade has endpoints
 (5,5.851) to (5,4.149), and (5,13.51) to (5,-3.51), respectively.
 The last master has several top-level shapes and remains an explicit drop gap.
+
+### Observed, undocumented: line patterns and subpixel dots (M5.30, #70)
+
+The synthetic native witness has 276 seven-inch lines: patterns 1 through 23,
+weights 0.25, 0.75, 1.25 and 3 pt, and LineCap 0 (round), 1 (butt) and 2 (square).
+Visio exported PNG at 96 and 300 dpi and PDF. Native PDF dash operators preserve
+zero-length dot marks. The table counts physical marks, including a mark at the
+end when aligned. Each ours column lists round/butt/square counts. A backend
+may omit an endpoint cap; the tolerance is one mark at each end.
+
+| Pattern | Weight (pt) | Visio | Ours before (0/1/2) | Ours after (0/1/2) |
+|---|---:|---:|---|---|
+| 1 | 0.25 | 1 | 1/1/1 | 1/1/1 |
+| 1 | 0.75 | 1 | 1/1/1 | 1/1/1 |
+| 1 | 1.25 | 1 | 1/1/1 | 1/1/1 |
+| 1 | 3 | 1 | 1/1/1 | 1/1/1 |
+| 2 | 0.25 | 169 | 56/56/56 | 168/168/168 |
+| 2 | 0.75 | 57 | 56/56/56 | 56/56/56 |
+| 2 | 1.25 | 34 | 34/34/34 | 34/34/34 |
+| 2 | 3 | 15 | 14/14/14 | 14/14/14 |
+| 3 | 0.25 | 404 | 37/0/37 | 403/403/403 |
+| 3 | 0.75 | 135 | 37/0/37 | 135/135/135 |
+| 3 | 1.25 | 81 | 25/0/25 | 81/81/81 |
+| 3 | 3 | 34 | 12/0/12 | 34/34/34 |
+| 4 | 0.25 | 237 | 54/40/54 | 237/237/237 |
+| 4 | 0.75 | 79 | 52/40/52 | 79/79/79 |
+| 4 | 1.25 | 48 | 29/24/29 | 47/47/47 |
+| 4 | 3 | 20 | 13/10/13 | 20/20/20 |
+| 5 | 0.25 | 275 | 50/31/50 | 274/274/274 |
+| 5 | 0.75 | 92 | 50/31/50 | 91/91/91 |
+| 5 | 1.25 | 55 | 30/19/30 | 55/55/55 |
+| 5 | 3 | 23 | 12/8/12 | 23/23/23 |
+| 6 | 0.25 | 209 | 54/47/54 | 208/208/208 |
+| 6 | 0.75 | 70 | 52/47/52 | 70/70/70 |
+| 6 | 1.25 | 42 | 28/28/28 | 42/42/42 |
+| 6 | 3 | 17 | 12/12/12 | 17/17/17 |
+| 7 | 0.25 | 113 | 37/37/37 | 112/112/112 |
+| 7 | 0.75 | 38 | 37/37/37 | 37/37/37 |
+| 7 | 1.25 | 23 | 23/23/23 | 23/23/23 |
+| 7 | 3 | 10 | 9/9/9 | 9/9/9 |
+| 8 | 0.25 | 127 | 42/42/42 | 126/126/126 |
+| 8 | 0.75 | 43 | 42/42/42 | 42/42/42 |
+| 8 | 1.25 | 25 | 25/25/25 | 25/25/25 |
+| 8 | 3 | 11 | 10/10/10 | 10/10/10 |
+| 9 | 0.25 | 337 | 112/112/112 | 336/336/336 |
+| 9 | 0.75 | 113 | 112/112/112 | 112/112/112 |
+| 9 | 1.25 | 68 | 68/68/68 | 68/68/68 |
+| 9 | 3 | 29 | 28/28/28 | 28/28/28 |
+| 10 | 0.25 | 673 | 43/0/43 | 671/671/671 |
+| 10 | 0.75 | 225 | 45/0/45 | 224/224/224 |
+| 10 | 1.25 | 135 | 37/0/37 | 135/135/135 |
+| 10 | 3 | 57 | 16/0/16 | 56/56/56 |
+| 11 | 0.25 | 449 | 88/75/88 | 447/447/447 |
+| 11 | 0.75 | 150 | 89/75/89 | 149/149/149 |
+| 11 | 1.25 | 90 | 59/45/59 | 90/90/90 |
+| 11 | 3 | 38 | 23/19/23 | 37/37/37 |
+| 12 | 0.25 | 505 | 80/56/80 | 503/503/503 |
+| 12 | 0.75 | 169 | 80/56/80 | 168/168/168 |
+| 12 | 1.25 | 101 | 53/34/53 | 101/101/101 |
+| 12 | 3 | 43 | 23/14/23 | 42/42/42 |
+| 13 | 0.25 | 404 | 104/90/104 | 403/403/403 |
+| 13 | 0.75 | 135 | 103/90/103 | 134/134/134 |
+| 13 | 1.25 | 81 | 59/54/59 | 81/81/81 |
+| 13 | 3 | 34 | 30/23/30 | 34/34/34 |
+| 14 | 0.25 | 225 | 75/75/75 | 224/224/224 |
+| 14 | 0.75 | 75 | 75/75/75 | 75/75/75 |
+| 14 | 1.25 | 45 | 45/45/45 | 45/45/45 |
+| 14 | 3 | 19 | 19/19/19 | 19/19/19 |
+| 15 | 0.25 | 253 | 84/84/84 | 252/252/252 |
+| 15 | 0.75 | 85 | 84/84/84 | 84/84/84 |
+| 15 | 1.25 | 51 | 51/51/51 | 51/51/51 |
+| 15 | 3 | 22 | 21/21/21 | 21/21/21 |
+| 16 | 0.25 | 85 | 28/28/28 | 84/84/84 |
+| 16 | 0.75 | 29 | 28/28/28 | 28/28/28 |
+| 16 | 1.25 | 17 | 17/17/17 | 17/17/17 |
+| 16 | 3 | 8 | 7/7/7 | 7/7/7 |
+| 17 | 0.25 | 225 | 22/0/22 | 224/224/224 |
+| 17 | 0.75 | 75 | 21/0/21 | 75/75/75 |
+| 17 | 1.25 | 45 | 10/0/10 | 45/45/45 |
+| 17 | 3 | 19 | 6/0/6 | 19/19/19 |
+| 18 | 0.25 | 123 | 26/21/26 | 122/122/122 |
+| 18 | 0.75 | 41 | 28/21/28 | 41/41/41 |
+| 18 | 1.25 | 25 | 16/13/16 | 25/25/25 |
+| 18 | 3 | 11 | 7/6/7 | 11/11/11 |
+| 19 | 0.25 | 145 | 24/16/24 | 144/144/144 |
+| 19 | 0.75 | 49 | 25/16/25 | 48/48/48 |
+| 19 | 1.25 | 29 | 15/10/15 | 29/29/29 |
+| 19 | 3 | 13 | 5/4/5 | 12/12/12 |
+| 20 | 0.25 | 106 | 26/24/26 | 106/106/106 |
+| 20 | 0.75 | 35 | 26/24/26 | 35/35/35 |
+| 20 | 1.25 | 22 | 17/15/17 | 22/22/22 |
+| 20 | 3 | 9 | 7/6/7 | 9/9/9 |
+| 21 | 0.25 | 57 | 19/19/19 | 56/56/56 |
+| 21 | 0.75 | 19 | 19/19/19 | 19/19/19 |
+| 21 | 1.25 | 11 | 11/11/11 | 11/11/11 |
+| 21 | 3 | 5 | 5/5/5 | 5/5/5 |
+| 22 | 0.25 | 64 | 21/21/21 | 63/63/63 |
+| 22 | 0.75 | 22 | 21/21/21 | 21/21/21 |
+| 22 | 1.25 | 13 | 13/13/13 | 13/13/13 |
+| 22 | 3 | 6 | 5/5/5 | 5/5/5 |
+| 23 | 0.25 | 673 | 224/224/224 | 671/671/671 |
+| 23 | 0.75 | 225 | 224/224/224 | 224/224/224 |
+| 23 | 1.25 | 135 | 135/135/135 | 135/135/135 |
+| 23 | 3 | 57 | 56/56/56 | 56/56/56 |
+
+For patterns 2 through 8, centerline short dash, long dash and gap lengths are
+7, 19 and 5 times the line weight. Patterns 9 through 15 use 3, 9 and 3;
+patterns 16 through 22 use 15, 39 and 9. Within each family the sequences are
+short, dot, short-dot, short-dot-dot, short-short-dot, long-short and
+long-short-short. Pattern 23 uses one weight on and two off. Round/square caps
+extend a visible mark by one weight, so dots have the line weight as diameter.
+Butt caps add one weight to each on segment and subtract one from the following
+gap, retaining the same period. Pattern 1 is solid. These lengths scale with
+weight, not with a one-pixel minimum.
+
+Two causes removed dots: the path stroker discards a zero-length subpath without
+a tangent, and the renderer inflated positive thin weights to a one-pixel floor.
+A positive lead of 0.0001 line weights gives each dot a tangent; subtracting it
+from the following gap preserves the observed period. Positive patterned-stroke
+weights now keep their physical size; the accepted solid hairline floor remains. Dash expansion is checked before raster, vector, shadow
+and compound-stroke expansion using the existing path budget.
+
+PDF physical counts were outside tolerance in 172 of 276 lines before the fix
+and zero afterward; SVG physical counts also have zero failures. Raster coverage
+and blank-run checks cover all 552 weight/cap/dpi cases, including marks whose
+pitch is too small for separate pixels. Native and ours have matching visible
+peak counts within tolerance in 514 of 516 resolvable PNG cases. The remaining
+36 cases have subpixel pitch and are counted geometrically.
+
+Two native 96 dpi exceptions are retained: pattern 19 at 0.25 pt with round caps
+has 128 visible peaks versus our 144; pattern 20 has 100 versus our 106.
+Native PDF has 145 (including an endpoint) and 106 physical marks; native
+300 dpi PNG has 144 and 106 visible peaks, matching ours. The original 96 dpi
+pixel profiles show zero ink at some interior dot positions and adjacent dots
+with only eight grayscale units of coverage. We retain complete marks rather
+than reproduce those missing native low-resolution pixels. This is an observed
+PNG disagreement, not a changed oracle or a claimed literal 552-case peak-count
+pass.
+
+Private evidence: `corpus/_vm/out/brief31-witness-v3/patterns.{vsdx,pdf}`,
+`patterns-96.png`, `patterns-300.png`; `plan/brief31/native-pdf-direct-counts.json`,
+`vector-counts-before-direct.json`, `pdf-counts-final-{1,3.125}.json`,
+`svg-counts-final-{1,3.125}.json`, `peak-counts-final.json` and
+`native-pattern-{19,20}-thin-profile.json`. Native PDF operators are read directly:
+converting that PDF to SVG merges some zero-length dash segments and loses their
+counts. The original files and the superseded converter trial remain unchanged.
+
+Corpus pixel changes for M5.30 are exactly these twelve pages:
+`generated/line/pattern-03.vsdx`, `pattern-04.vsdx`, `pattern-05.vsdx`,
+`pattern-06.vsdx`, `pattern-10.vsdx`, `pattern-11.vsdx`, `pattern-12.vsdx`,
+`pattern-13.vsdx`, `pattern-17.vsdx`, `pattern-18.vsdx`, `pattern-19.vsdx`,
+and `pattern-20.vsdx` (all in the same directory). Each gains the formerly
+missing dot segments. Raster registration differences mean that adding the
+marks does not reduce every pixel-error statistic: the line group remains
+within its frozen limits at MAD 0.905706 and 1.071292% pixels over 16.
+The unchanged render gate passes with nine generated outliers (maximum ten),
+the same count as before. All other current corpus page pixels are unchanged.
+The initial solid-line floor-removal trial failed the master group; it was
+reverted in favor of preserving solid hairline behavior. No oracle changed.

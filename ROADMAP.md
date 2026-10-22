@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-22: M5.30 (#70) preserves physical dash periods and gives dot strokes a finite tangent. The 276-pattern PDF and SVG measurements match native physical mark counts within one mark per end; the exact three-line repro and both raster scales have complete coverage. Two faint native 96 dpi PNG exceptions are documented. The frozen corpus render gate passes with nine outliers; only twelve dotted-pattern pages change pixels.
+
 - 2026-10-22: M5.29 (#68) implements master drawing scale on drop and reports page-specific drop sizes. The 190-case native matrix matches all 4,370 numeric cells through MCP, and six guarded vendor faceplate drops match all 60 measured cells. All 11 built-in and 15 network fixture masters retain package bytes under the existing masks. The native cutoff is strictly beyond eightfold when exactly one side is NoScale; like scale types keep drawing size. The multi-root Read-Me master remains deferred.
 
 - 2026-10-22: M5.43 (#78, the first tester report): the "never wrap" text measure `TEXTHEIGHT(TheText,65535)` is accepted, and user-facing renders take the file's saved value for a cell that cannot be computed, with a warning per cell, so flowcharts built on the container and list functions draw the way Visio last drew them. Released as 0.1.0-alpha.2 (tag on bd5b886, GitHub pre-release the same day). Next: 0.1.0-alpha.3 with #68, #70 and #71.

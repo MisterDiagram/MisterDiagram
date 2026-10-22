@@ -221,6 +221,21 @@ pub struct Line {
 impl Line {
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/linecap-cell-line-format-section
     pub fn stroke(&self) -> Stroke {
+        let mut dashes = dash_pattern(self.pattern, self.weight);
+        for [mark, gap] in dashes.as_chunks_mut::<2>().0 {
+            if self.cap != 0 && self.cap != 2 {
+                // Native butt-cap patterns include one weight in the mark and
+                // remove it from the gap, keeping the same period.
+                *mark += self.weight;
+                *gap -= self.weight;
+            } else if *mark == 0. {
+                // A degenerate dash has no tangent and kurbo drops its caps.
+                // Give the tangent a subpixel lead without changing the period.
+                let lead = self.weight * 1e-4;
+                *mark = lead;
+                *gap -= lead;
+            }
+        }
         Stroke::new(self.weight)
             .with_caps(match self.cap {
                 0 => Cap::Round,
@@ -232,7 +247,7 @@ impl Line {
                 2 => Join::Bevel,
                 _ => Join::Round,
             })
-            .with_dashes(0., dash_pattern(self.pattern, self.weight))
+            .with_dashes(0., dashes)
     }
     /// Compound bands are fractions of the nominal line width.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/compoundtype-cell-line-format-section

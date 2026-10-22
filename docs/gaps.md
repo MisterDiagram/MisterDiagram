@@ -1,5 +1,14 @@
 # Gaps
 
+## Dotted-line raster observations (M5.30)
+
+The missing-dot problem in #70 is corrected in PNG, SVG and PDF, including the
+three-line repro. All 276 physical mark counts are within one mark per end.
+Two native 96 dpi thin-line exports omit faint interior dots that are present
+in their PDF and 300 dpi output; our output keeps those marks. The exact pixel
+exceptions and the twelve changed corpus pages are recorded under the M5.30
+observation in docs/file-format-parity.md. No frozen render ceiling changed.
+
 ## Multiple top-level shapes in a master (Brief 31b)
 
 `master.drop` requires one top-level shape. The read-only Lenovo SAN master

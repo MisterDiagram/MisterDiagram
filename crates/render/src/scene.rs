@@ -121,6 +121,12 @@ impl Scene {
             {
                 return Err("scene stroke limit".into());
             }
+            if let Op::Stroke { path, stroke, .. } = op {
+                elements = elements.saturating_add(dash_elements(path, stroke)?);
+                if elements > 4_000_000 {
+                    return Err("scene path limit (dash expansion)".into());
+                }
+            }
             match op {
                 Op::Clip { .. } => {
                     depth += 1;
@@ -493,10 +499,12 @@ fn shapes(
         };
         let weight = line_weight(e, scope);
         let nominal_weight = weight.max(0.) / scale.determinant().abs().sqrt().max(1e-12);
+        let pattern = number(e, scope, "LinePattern", 1.).max(0.) as u32;
         let line = Line {
             color: color(e, scope, "LineColor", "LineColorTrans"),
-            weight: weight.max(1. / (96. * options.scale)) / scale.determinant().abs().sqrt().max(1e-12),
-            pattern: number(e, scope, "LinePattern", 1.).max(0.) as u32,
+            weight: (if pattern > 1 && weight > 0. { weight } else { weight.max(1. / (96. * options.scale)) })
+                / scale.determinant().abs().sqrt().max(1e-12),
+            pattern,
             cap: number(e, scope, "LineCap", 0.).max(0.) as u32,
             join: number(e, scope, "LineJoin", 0.).max(0.) as u32,
             rounding: number(e, scope, "Rounding", 0.),
@@ -517,6 +525,21 @@ fn shapes(
         }
         if number(e, scope, "ShdwPattern", 0.) == 1. && number(e, scope, "ShapeShdwType", 1.) <= 1. {
             let mut silhouette = BezPath::new();
+            let mut shadow_elements = 0usize;
+            for geometry in &geometries {
+                let path = style::round_rectangle(&geometry.path, line.rounding);
+                if geometry.filled() && fill.pattern != 0 {
+                    shadow_elements = shadow_elements.saturating_add(path.elements().len());
+                }
+                if geometry.stroked() && line.pattern != 0 {
+                    let mut stroke = line.stroke();
+                    stroke.width = nominal_weight;
+                    shadow_elements = shadow_elements.saturating_add(dash_elements(&path, &stroke)?);
+                }
+                if shadow_elements > 4_000_000 {
+                    return Err("scene path limit (shadow dash expansion)".into());
+                }
+            }
             for geometry in &geometries {
                 let path = style::round_rectangle(&geometry.path, line.rounding);
                 if geometry.filled() && fill.pattern != 0 {
@@ -599,6 +622,9 @@ fn shapes(
                     // Double lines have a transparent central third, not a white overpaint.
                     // https://learn.microsoft.com/en-us/office/client-developer/visio/compoundtype-cell-line-format-section
                     let shaft = transform * shaft;
+                    if dash_elements(&shaft, &stroke)?.saturating_mul(2) > 4_000_000 {
+                        return Err("scene path limit (compound dash expansion)".into());
+                    }
                     let mut outline = kurbo::stroke(shaft.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-5);
                     stroke.width /= 3.;
                     let inner = kurbo::stroke(shaft.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-5).reverse_subpaths();
@@ -814,6 +840,48 @@ fn foreign_relationship(rel: &misterdiagram_model::XmlElement) -> Option<&String
                 && rel.attribute_namespaces.get(name).is_some_and(|ns| ns == "http://schemas.openxmlformats.org/officeDocument/2006/relationships")
         })
         .map(|(_, value)| value)
+}
+
+/// Bound dash expansion with the existing four-million path-element budget.
+/// The control polygon bounds curve length without recursive subdivision.
+fn dash_elements(path: &BezPath, stroke: &kurbo::Stroke) -> Result<usize, String> {
+    if stroke.dash_pattern.is_empty() {
+        return Ok(0);
+    }
+    let mut length = 0.;
+    let mut previous = Point::ZERO;
+    let mut start = Point::ZERO;
+    let mut moves = 0usize;
+    for element in path.elements() {
+        let mut segment = |next: Point| {
+            length += previous.distance(next);
+            previous = next;
+        };
+        match *element {
+            kurbo::PathEl::MoveTo(point) => {
+                previous = point;
+                start = point;
+                moves += 1;
+            }
+            kurbo::PathEl::LineTo(point) => segment(point),
+            kurbo::PathEl::QuadTo(control, point) => {
+                segment(control);
+                segment(point);
+            }
+            kurbo::PathEl::CurveTo(a, b, point) => {
+                segment(a);
+                segment(b);
+                segment(point);
+            }
+            kurbo::PathEl::ClosePath => segment(start),
+        }
+    }
+    let period: f64 = stroke.dash_pattern.iter().sum();
+    let elements = (length / period + moves as f64 + 1.).ceil() * stroke.dash_pattern.len() as f64 * 32.;
+    if !elements.is_finite() || elements < 0. || elements > 4_000_000. {
+        return Err("scene path limit (dash expansion)".into());
+    }
+    Ok(elements as usize)
 }
 
 #[cfg(test)]
