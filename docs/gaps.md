@@ -12,7 +12,7 @@ flow built from the cross-functional flowchart and BPMN masters) failed with
   is now clamped to the ceiling. The corpus had the witness all along
   (BPMN_ADDRESS_CHANGE_PROCESS_M master 20 shape 7, Visio 0.4724 against our `Error(Value)`)
   but filed under the text-metric tolerance bucket, where an error where Visio has a number
-  counted the same as a small metric difference. That bucket needs a separate count of error
+  counted the same as a small metric difference (#81). That bucket needs a separate count of error
   cells with a ceiling that may only fall; open.
 - The pool, lane and phase shapes use `CONTAINERSHEETREF`, `LISTORDER` and `LISTMEMBERCOUNT`
   (#33), none implemented: 115, 3 and 3 cells on the page, with 87 `DEPENDSON` Relationships
@@ -26,7 +26,8 @@ flow built from the cross-functional flowchart and BPMN masters) failed with
   and connector route. Two differences seen in that comparison are older rendering gaps, not
   part of this fix: the shapes draw with a gradient where Visio fills them solid teal
   (FillGradientEnabled=1 with FillForegnd=FillBkgnd), and the connector labels "Yes" and
-  "No" come out as a row of dots. Both open.
+  "No" come out as a row of dots. Filed as #79 (fill) and #80 (label colour: the text is
+  white on the white text background, a THEMEVAL Char.Color resolution for connectors).
 
 ## Brief 26b: image groups and connector ends (2026-10-21)
 
