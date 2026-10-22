@@ -16417,3 +16417,87 @@ style inheritance/themed spelling, named connection-row identifiers, image
 part paths/content types and small text-control/group formula rounding.
 No rewrite exclusion or frozen witness was changed to accept these differences.
 Full evidence: `corpus/_vm/out/brief26b-accept-results/final-accept-report.json`.
+
+### Observed, undocumented: master drop scale (M5.29, #68)
+
+The Brief 31b synthetic matrix has 120 drops: a 10 x 4 in rectangle and a
+10 in horizontal line for each master scale below, onto five destinations.
+All masters use DrawingScaleType=3 (Custom). The values below are the dropped
+Width in inches; rectangle Height is Width*0.4 and line Height is zero.
+
+| Master PageScale:DrawingScale | Page 1:1, type 0 | Page 1:1, type 3 | Page 1:4, type 3 | Page 1:10, type 3 | Page 1:100, type 3 |
+|---|---:|---:|---:|---:|---:|
+| 1:0.1 | 100 | 10 | 10 | 10 | 10 |
+| 1:0.125 | 10 | 10 | 10 | 10 | 10 |
+| 1:0.2 | 10 | 10 | 10 | 10 | 10 |
+| 1:0.25 | 10 | 10 | 10 | 10 | 10 |
+| 1:0.5 | 10 | 10 | 10 | 10 | 10 |
+| 1:1 | 10 | 10 | 10 | 10 | 10 |
+| 1:2 | 10 | 10 | 10 | 10 | 10 |
+| 1:4 | 10 | 10 | 10 | 10 | 10 |
+| 1:5 | 10 | 10 | 10 | 10 | 10 |
+| 1:8 | 10 | 10 | 10 | 10 | 10 |
+| 1:10 | 1 | 10 | 10 | 10 | 10 |
+| 1:16 | 0.625 | 10 | 10 | 10 | 10 |
+
+The cutoff is strictly outside an eightfold difference, symmetric in either
+direction. A supplemental 40-drop boundary witness measures 1:0.124999 as
+Width=80.00064000512, 1:0.125001 as 10, 1:7.999999 as 10, 1:8.000001 as
+1.24999984375, and 1:9 as 1.11111111111 on the NoScale destination. Those
+same masters retain Width=10 on Custom 1:1. Exactly 1:0.125 and 1:8 do not
+convert. DrawingScaleType therefore matters even when the numeric page ratio
+is identical. The earlier 28-drop control with NoScale masters and destinations retained drawing
+size everywhere, and the metric 1 cm:10 cm custom master matches 1 in:10 in.
+
+When exactly one of the master and destination is NoScale, let f be the master
+PageScale/DrawingScale divided by the destination PageScale/DrawingScale.
+Conversion occurs only when f < 0.125 or f > 8. Conversion keeps paper size,
+multiplies drawing lengths by f and writes DropOnPageScale=f. Otherwise the
+original drawing size is retained. Like scale types retain drawing size regardless of ratio. A further 30-drop
+NoScale-source control confirms the reverse direction:
+
+| NoScale master ratio | NoScale 1:1 | Custom 1:1 | Custom 1:4 | Custom 1:10 | Custom 1:100 |
+|---|---:|---:|---:|---:|---:|
+| 1:0.1 | 10 | 100 | 400 | 1000 | 10000 |
+| 1:1 | 10 | 10 | 10 | 100 | 1000 |
+| 1:10 | 10 | 1 | 10 | 10 | 100 |
+
+These are rectangle and line Widths in inches; every DropOnPageScale is Width/10.
+Evidence: `corpus/_vm/out/brief31-noscale-control/matrix.json`.
+ Converted rectangles receive literal Width
+and Height; their LocPin and Geometry formulas retain their original expressions
+and evaluate against the new dimensions. Converted lines retain the endpoint
+length formula for Width and receive scaled literal endpoints about the drop
+point. For a horizontal width W dropped at (5,5), the endpoints are
+(5-W/2,5) and (5+W/2,5). LineWeight stays 1.25 pt and Char.Size stays 12 pt.
+The snapshots include every Geometry cell value, formula and unit, including
+literal zero and flag cells. They do not change those literals.
+
+The [DropOnPageScale reference](https://learn.microsoft.com/en-us/office/client-developer/visio/droponpagescale-cell-miscellaneous-section)
+describes measured/unmeasured conversion and says measured-to-measured drops
+use 100%. It gives no numeric threshold. The matrix agrees on measured-to-measured
+drops and supplies the undocumented cutoff for conversions in either direction.
+[DrawingScaleType](https://learn.microsoft.com/en-us/office/client-developer/visio/drawingscaletype-cell-page-properties-section)
+defines 0 as NoScale and 3 as Custom.
+
+Private evidence: `corpus/_vm/out/brief31-scale-matrix/matrix.json`,
+`corpus/_vm/out/brief31-scale-boundary/matrix.json`, and the earlier full-cell
+snapshots under `corpus/_vm/out/brief31-witness-v3/`. The source oracle scripts
+use only contributor-original rectangles and lines.
+
+The read-only Lenovo SAN stencil provides the real-world check. Source size
+4,913,316 bytes, SHA-256
+`d215724a85286cc39b6a400f23c85a1569f3eb421aa25ac93ea89a659392a96d`.
+No vendor drawing or artwork is included in the project.
+
+| Master | Master scale | Visio on NoScale 1:1, Width x Height (in) | Visio on Custom 1:10 |
+|---|---|---|---|
+| DB610S Front | 1:10 | 1.9 x 0.0001 | 19 x 0.001 |
+| X7-8 Director Front | 1:10 | 1.9 x 0.0001 | 19 x 0.001 |
+| FC64-48 Port Blade (X7-8) | 1:10 | 1.702 x 0.0000895789473684 | 17.02 x 0.000895789473684 |
+| Read-Me 25-Sep-25 | 1:15 | 2.84 x 3.66666666667 | 42.6 x 55 |
+
+The first two lines have endpoints (4.05,5) to (5.95,5) on NoScale 1:1
+and (-4.5,5) to (14.5,5) on Custom 1:10. The blade has endpoints
+(5,5.851) to (5,4.149), and (5,13.51) to (5,-3.51), respectively.
+The last master has several top-level shapes and remains an explicit drop gap.
