@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-22: 0.1.0-alpha.1 released as a GitHub pre-release (macOS universal, Windows x64 and arm64, static Linux x64 and arm64, SHA256SUMS), after Codex verification and hand acceptance on all three platforms. The built-in network masters are now drawn as cards so connectors meet the outline on every side. Next: 0.1.0-alpha.2 with #68, #70 and #71.
+
 - 2026-10-22: M5.35 to M5.38 alpha release tooling: version 0.1.0-alpha.1 with build commit and target triple in `--version`, CHANGELOG.md, a tag-or-manual release workflow for five platforms, a standard-library smoke test run on every native target before and after packaging, and install notes (docs/install.md). No engine or saved-byte change; the office, SAN and fabric examples save byte-equal to 2bf22d8.
 
 - 2026-10-22: M5.40 implements the adopted connector lane rule, exact on the restricted family and an approximation elsewhere. Twenty restricted cases and three hold-outs have generated coordinate tests; the 100-box test has ten distinct heights and no shared trunk or box hit. Physical no-touch checks replace inflated clearance only for assigned lanes. Other styles, unshared routes and capacity fallbacks keep their geometry. General Visio band, fan-out ports and equal-length route choices remain named gaps. M5.42 adds a standing overlap check with the witnessed bus and actual same-glue exemptions. Local CI passes all eight gates and 737 tests. All 98 in-gap witness values match exactly; 125 paired checker drawings reduce unexempted overlaps from 884 to the seven unchanged style-2 benchmark pairs. The original regression and quiet benchmark bounds pass.
