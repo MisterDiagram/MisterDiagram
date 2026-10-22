@@ -14,12 +14,17 @@ PDF, writes files that Visio opens without repair, and authors drawings from com
 masters, shape data, glued connectors with orthogonal routing and line jumps. AI agents can use the same commands through the MCP stdio server. PowerPoint export is next. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and is offered to that project.
 
+**Download:** [MisterDiagram 0.1.0-alpha.1](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.1),
+the first alpha, for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
+warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
+
 ![Four drawings made by this repo's scripts, rendered by MisterDiagram](docs/images/misterdiagram-renders.png)
 
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-10-20)
+## What works today (2026-10-22, 0.1.0-alpha.1)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
