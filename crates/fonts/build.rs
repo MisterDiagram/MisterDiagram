@@ -22,7 +22,8 @@ fn main() {
     }
     embedded(&mut src, &local.join("arimo/Arimo[wght].ttf"), "Arimo", "Variable");
     embedded(&mut src, &local.join("arimo/Arimo-Italic[wght].ttf"), "Arimo", "Variable Italic");
-    if let Some(dir) = std::env::var_os("CRAFT_FONTS_DIR").map(PathBuf::from) {
+    // An empty CRAFT_FONTS_DIR (the release workflow) means none: only the pinned Latin faces.
+    if let Some(dir) = std::env::var_os("CRAFT_FONTS_DIR").filter(|d| !d.is_empty()).map(PathBuf::from) {
         match craft_fonts(&dir) {
             Ok(entries) => src.push_str(&entries),
             Err(e) if std::env::var_os("CRAFT_FONTS_REQUIRED").is_some() => {

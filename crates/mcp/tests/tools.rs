@@ -23,6 +23,8 @@ fn lifecycle_and_all_sixteen_tools_honor_parameters() {
     let mut s = Server::new(Box::new(Headless::new()));
     let init = rpc(&mut s, "initialize", json!({"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"test","version":"1"}}));
     assert_eq!(init["serverInfo"]["name"], "misterdiagram");
+    assert_eq!(init["serverInfo"]["version"], env!("CARGO_PKG_VERSION"));
+    assert!(init["serverInfo"]["version"].as_str().is_some_and(|v| !v.is_empty() && !v.contains('(')));
     assert_eq!(init["protocolVersion"], "2025-06-18");
     assert!(s.handle(json!({"jsonrpc":"2.0","method":"notifications/initialized"})).is_none());
     assert!(s.is_initialized());

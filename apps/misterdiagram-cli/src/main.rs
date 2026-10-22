@@ -112,6 +112,11 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
         _ => Err("render output extension must be png, svg or pdf".into()),
     }
 }
+/// `misterdiagram 0.1.0-alpha.1 (0123456789ab, aarch64-apple-darwin)`; the commit comes from the
+/// release workflow (build.rs), so source builds say "unknown commit".
+fn version_line(commit: Option<&str>, target: &str) -> String {
+    format!("misterdiagram {} ({}, {target})", env!("CARGO_PKG_VERSION"), commit.unwrap_or("unknown commit"))
+}
 fn execute(args: &[std::ffi::OsString], out: &mut impl Write) -> Result<(), String> {
     if args.len() > 4096 || args.iter().try_fold(0usize, |n, arg| n.checked_add(arg.as_encoded_bytes().len())).is_none_or(|n| n > 8 * 1024 * 1024) {
         return Err("argument count or byte limit".into());
@@ -119,7 +124,9 @@ fn execute(args: &[std::ffi::OsString], out: &mut impl Write) -> Result<(), Stri
     let (arguments, memory) = settings::parse(args, std::env::var_os("MISTERDIAGRAM_MEMORY_LIMIT"))?;
     let args = arguments.as_slice();
     match args.first().and_then(|a| a.to_str()) {
-        Some("--version") if args.len() == 1 => writeln!(out, "misterdiagram {}", env!("CARGO_PKG_VERSION")).map_err(|e| e.to_string()),
+        Some("--version") if args.len() == 1 => {
+            writeln!(out, "{}", version_line(option_env!("MISTERDIAGRAM_COMMIT"), env!("MISTERDIAGRAM_TARGET"))).map_err(|e| e.to_string())
+        }
         Some("info") if args.len() == 2 => info(Path::new(args.get(1).ok_or("missing file")?), out),
         Some("sheet") if matches!(args.len(), 2..=4) => {
             use misterdiagram_vsdx::dump::Selection;
@@ -184,8 +191,21 @@ mod tests {
     fn version_is_the_crate_version() {
         let mut out = Vec::new();
         execute(&["--version".into()], &mut out).unwrap();
-        assert_eq!(out, format!("misterdiagram {}\n", env!("CARGO_PKG_VERSION")).as_bytes());
-        assert!(execute(&["--version".into(), "extra".into()], &mut out).is_err());
+        let expected = format!(
+            "misterdiagram {} ({}, {})\n",
+            env!("CARGO_PKG_VERSION"),
+            option_env!("MISTERDIAGRAM_COMMIT").unwrap_or("unknown commit"),
+            env!("MISTERDIAGRAM_TARGET")
+        );
+        assert_eq!(String::from_utf8(out).unwrap(), expected);
+        assert!(!env!("MISTERDIAGRAM_TARGET").is_empty());
+        assert!(execute(&["--version".into(), "extra".into()], &mut Vec::new()).is_err());
+    }
+    #[test]
+    fn version_line_forms() {
+        let v = env!("CARGO_PKG_VERSION");
+        assert_eq!(version_line(None, "x86_64-unknown-linux-musl"), format!("misterdiagram {v} (unknown commit, x86_64-unknown-linux-musl)"));
+        assert_eq!(version_line(Some("0123456789ab"), "aarch64-apple-darwin"), format!("misterdiagram {v} (0123456789ab, aarch64-apple-darwin)"));
     }
     #[test]
     fn hostile_cli_selectors() {

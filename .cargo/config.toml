@@ -1,5 +1,7 @@
 # Local development builds embed the craft-fonts checkout next to this repo when it exists
-# (build.rs warns and continues without it). CI and releases set CRAFT_FONTS_DIR explicitly.
+# (build.rs warns and continues without it). CI runners have no such checkout, and the release
+# workflow sets CRAFT_FONTS_DIR empty, so CI builds and released binaries embed only the five
+# Latin families whose licences ship in the archive.
 [env]
 CRAFT_FONTS_DIR = { value = "../craft-apps/craft-fonts/src", relative = true }
 
