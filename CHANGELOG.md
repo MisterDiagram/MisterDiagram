@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.0-alpha.2
+
+The first fix from a tester report.
+
+- **A file that uses Visio's container and list functions renders.** A BPMN diagram or
+  cross-functional flowchart stopped the whole render with `shape 7 transform: #VALUE!`
+  ([#78](https://github.com/MisterDiagram/MisterDiagram/issues/78)). Two changes. The
+  "never wrap" text measure a container heading uses, `TEXTHEIGHT(TheText,65535)`, is now
+  accepted. And when a cell cannot be computed (the container and list functions
+  `CONTAINERSHEETREF`, `LISTORDER` and `LISTMEMBERCOUNT` are still missing), `render`,
+  `convert` and the MCP `export` take the value Visio saved in the file and print a warning
+  naming the cell, so an unedited file draws the way Visio last drew it. Cells you changed
+  have no saved value and still report their error; `sheet` and the MCP inspection tools keep
+  showing the error.
+
 ## 0.1.0-alpha.1
 
 The first binaries. This is an alpha for testers: it is checked against Visio 2021 on drawings
