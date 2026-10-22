@@ -1,0 +1,63 @@
+MisterDiagram quick start
+=========================
+
+MisterDiagram reads, renders and writes Microsoft Visio files (.vsdx, .vssx, .vstx) without
+Visio. It is a command-line tool and an MCP server for AI agents; there is no window to open.
+This is an alpha: please report what goes wrong (see the end of this file).
+
+1. Install
+----------
+Put the misterdiagram binary (misterdiagram.exe on Windows) in a folder on your PATH, or run
+it from the folder you unpacked. The binary is not signed, so macOS and Windows warn the first
+time. The full install notes, including how to check SHA256SUMS and get past those warnings:
+https://github.com/MisterDiagram/MisterDiagram/blob/master/docs/install.md
+
+  macOS:    xattr -d com.apple.quarantine misterdiagram
+  Linux:    chmod +x misterdiagram
+  Windows:  if SmartScreen stops it, choose "More info", then "Run anyway"
+
+2. First three commands
+-----------------------
+  misterdiagram --version
+  misterdiagram render drawing.vsdx --page 1 drawing.png
+  misterdiagram run --batch two-boxes.json --save two-boxes.vsdx
+
+The first prints the version. The second renders page 1 of one of your drawings to PNG (.svg
+and .pdf work too). The third builds a drawing from a script. Save this as two-boxes.json:
+
+  {"commands": [
+    {"command": "stencil.open", "params": {"builtin": "network"}},
+    {"command": "master.drop", "params": {"master": "network.router", "x": 2, "y": 4}, "as": "a"},
+    {"command": "master.drop", "params": {"master": "compute.server", "x": 5, "y": 4}, "as": "b"},
+    {"command": "connector.add", "params": {"from": "$a", "to": "$b"}}
+  ]}
+
+Then open two-boxes.vsdx in Visio, or render it. "misterdiagram commands" lists every command
+with its parameters, and "misterdiagram sheet FILE --page 1" prints every evaluated cell.
+
+3. Use it from an AI agent (MCP)
+--------------------------------
+Claude Code:
+
+  claude mcp add misterdiagram -- /full/path/to/misterdiagram mcp
+
+Claude Desktop and other MCP clients: add a stdio server whose command is the full path to the
+binary and whose only argument is "mcp". docs/install.md has the Claude Desktop config entry.
+Then ask the agent for a network diagram and to save it as a .vsdx file.
+
+4. A stencil to try
+-------------------
+The built-in network stencil has eleven device masters. For more, try the public-domain
+ntwrk-clean-and-flat stencil (affinity_native.vssx, Unlicense):
+https://github.com/DukeNuke3D/ntwrk-clean-and-flat
+Open it with {"command": "stencil.open", "params": {"path": "/full/path/to/affinity_native.vssx"}};
+its masters include Router and Servers. Use full paths: a relative path resolves from the folder
+the program (or the MCP client that started it) runs in.
+
+5. Report what goes wrong
+-------------------------
+https://github.com/MisterDiagram/MisterDiagram/issues
+Include the output of "misterdiagram --version", the command you ran and what you expected.
+Please do not attach drawings with customer names or other private data; a small file that
+shows the same problem, or a screenshot and a description, is enough. Known gaps are listed in
+CHANGELOG.md, next to this file.

@@ -1,0 +1,220 @@
+name: release
+
+# Release binaries: five archives (macOS universal, Windows x64 and arm64, static Linux x64 and
+# arm64) and SHA256SUMS. Every binary is smoke-tested on a native runner before packaging and
+# again after unpacking its archive (tools/ci/smoke.py). A manual run (workflow_dispatch) uploads
+# the archives as workflow artifacts and makes no release; a pushed v* tag also makes a DRAFT
+# pre-release, which a maintainer reviews and publishes by hand. Unsigned (see docs/install.md).
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  # Empty: release binaries embed only the five Latin font families whose licences ship in the
+  # archive, never a local craft-fonts checkout (.cargo/config.toml, crates/fonts/build.rs).
+  CRAFT_FONTS_DIR: ''
+
+jobs:
+  identity:
+    name: version and tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.id.outputs.version }}
+      commit: ${{ steps.id.outputs.commit }}
+      epoch: ${{ steps.id.outputs.epoch }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: id
+        shell: bash
+        run: |
+          version=$(python3 -c "import tomllib; print(tomllib.load(open('Cargo.toml', 'rb'))['workspace']['package']['version'])")
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            python3 tools/ci/package.py notes "$GITHUB_REF_NAME" > /dev/null
+          else
+            python3 tools/ci/package.py notes > /dev/null
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "commit=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+          echo "epoch=$(git log -1 --format=%ct)" >> "$GITHUB_OUTPUT"
+          echo "Version $version, commit ${GITHUB_SHA::12}, ref $GITHUB_REF" >> "$GITHUB_STEP_SUMMARY"
+
+  build:
+    name: ${{ matrix.platform }}
+    needs: identity
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { platform: linux-x64, os: ubuntu-latest, target: x86_64-unknown-linux-musl, exe: '', rustflags: '' }
+          - { platform: linux-arm64, os: ubuntu-24.04-arm, target: aarch64-unknown-linux-musl, exe: '', rustflags: '' }
+          # Static C runtime: the binary runs without the Visual C++ Redistributable installed.
+          - { platform: windows-x64, os: windows-latest, target: x86_64-pc-windows-msvc, exe: .exe, rustflags: '-C target-feature=+crt-static' }
+          - { platform: windows-arm64, os: windows-11-arm, target: aarch64-pc-windows-msvc, exe: .exe, rustflags: '-C target-feature=+crt-static' }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    env:
+      RUSTFLAGS: ${{ matrix.rustflags }}
+      MISTERDIAGRAM_COMMIT: ${{ needs.identity.outputs.commit }}
+      SOURCE_DATE_EPOCH: ${{ needs.identity.outputs.epoch }}
+      VERSION: ${{ needs.identity.outputs.version }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f # v1
+        with:
+          toolchain: stable
+          targets: ${{ matrix.target }}
+      - name: Build (release, locked)
+        run: cargo build --release --locked -p misterdiagram-cli --target ${{ matrix.target }}
+      - name: Static linking (Linux)
+        if: startsWith(matrix.platform, 'linux')
+        run: |
+          file target/${{ matrix.target }}/release/misterdiagram
+          file target/${{ matrix.target }}/release/misterdiagram | grep -qE 'statically linked|static-pie linked'
+      - name: No Visual C++ runtime dependency (Windows)
+        if: startsWith(matrix.platform, 'windows')
+        run: python3 tools/ci/pe_imports.py target/${{ matrix.target }}/release/misterdiagram.exe
+      - name: Smoke test the built binary
+        run: python3 tools/ci/smoke.py target/${{ matrix.target }}/release/misterdiagram${{ matrix.exe }} --version "$VERSION" --commit "$MISTERDIAGRAM_COMMIT" --target ${{ matrix.target }}
+      - name: Third-party licences
+        run: python3 tools/ci/third_party.py notices/THIRD-PARTY-LICENSES.txt ${{ matrix.target }}
+      - name: Package
+        run: python3 tools/ci/package.py archive ${{ matrix.platform }} target/${{ matrix.target }}/release/misterdiagram${{ matrix.exe }} notices/THIRD-PARTY-LICENSES.txt dist
+      - name: Smoke test the packaged binary
+        run: |
+          mkdir unpacked
+          name="misterdiagram-$VERSION-${{ matrix.platform }}"
+          if [[ "${{ matrix.platform }}" == linux-* ]]; then tar -xzf "dist/$name.tar.gz" -C unpacked; else python3 -m zipfile -e "dist/$name.zip" unpacked; fi
+          python3 tools/ci/smoke.py "unpacked/$name/misterdiagram${{ matrix.exe }}" --version "$VERSION" --commit "$MISTERDIAGRAM_COMMIT" --target ${{ matrix.target }}
+          echo "${{ matrix.platform }}: smoke test passed on a native ${{ matrix.os }} runner, before and after packaging" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: archive-${{ matrix.platform }}
+          path: dist/*
+          if-no-files-found: error
+
+  macos:
+    name: macos-universal
+    needs: identity
+    runs-on: macos-latest
+    timeout-minutes: 60
+    env:
+      MISTERDIAGRAM_COMMIT: ${{ needs.identity.outputs.commit }}
+      SOURCE_DATE_EPOCH: ${{ needs.identity.outputs.epoch }}
+      VERSION: ${{ needs.identity.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f # v1
+        with:
+          toolchain: stable
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+      - name: Build both slices (release, locked)
+        run: |
+          cargo build --release --locked -p misterdiagram-cli --target aarch64-apple-darwin
+          cargo build --release --locked -p misterdiagram-cli --target x86_64-apple-darwin
+      - name: Join into one universal binary
+        run: |
+          mkdir -p target/universal
+          lipo -create -output target/universal/misterdiagram target/aarch64-apple-darwin/release/misterdiagram target/x86_64-apple-darwin/release/misterdiagram
+          lipo -archs target/universal/misterdiagram
+          [ "$(lipo -archs target/universal/misterdiagram)" = "x86_64 arm64" ]
+      - name: Smoke test the universal binary (arm64 slice)
+        run: python3 tools/ci/smoke.py target/universal/misterdiagram --version "$VERSION" --commit "$MISTERDIAGRAM_COMMIT" --target aarch64-apple-darwin
+      - name: Third-party licences
+        run: python3 tools/ci/third_party.py notices/THIRD-PARTY-LICENSES.txt aarch64-apple-darwin x86_64-apple-darwin
+      - name: Package
+        run: python3 tools/ci/package.py archive macos-universal target/universal/misterdiagram notices/THIRD-PARTY-LICENSES.txt dist
+      - name: Smoke test the packaged binary (arm64 slice)
+        run: |
+          mkdir unpacked
+          ditto -x -k "dist/misterdiagram-$VERSION-macos-universal.zip" unpacked
+          python3 tools/ci/smoke.py "unpacked/misterdiagram-$VERSION-macos-universal/misterdiagram" --version "$VERSION" --commit "$MISTERDIAGRAM_COMMIT" --target aarch64-apple-darwin
+          echo "macos-universal: arm64 slice smoke-tested on a native macos-latest runner before and after packaging; the x86_64 slice is cross-compiled here and smoke-tested natively in the macos-intel job" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: archive-macos-universal
+          path: dist/*
+          if-no-files-found: error
+
+  macos-intel:
+    name: macos-universal (x86_64 slice)
+    needs: [identity, macos]
+    runs-on: macos-15-intel
+    timeout-minutes: 20
+    env:
+      VERSION: ${{ needs.identity.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: archive-macos-universal
+          path: dist
+      - name: Smoke test the packaged binary on Intel
+        run: |
+          mkdir unpacked
+          ditto -x -k "dist/misterdiagram-$VERSION-macos-universal.zip" unpacked
+          python3 tools/ci/smoke.py "unpacked/misterdiagram-$VERSION-macos-universal/misterdiagram" --version "$VERSION" --commit "${{ needs.identity.outputs.commit }}" --target x86_64-apple-darwin
+          echo "macos-universal: x86_64 slice smoke-tested on a native macos-15-intel runner after packaging" >> "$GITHUB_STEP_SUMMARY"
+
+  checksums:
+    name: SHA256SUMS
+    needs: [build, macos, macos-intel]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: archive-*
+          path: dist
+          merge-multiple: true
+      - name: Write SHA256SUMS
+        run: python3 tools/ci/package.py sums dist
+      - name: Verify SHA256SUMS independently
+        working-directory: dist
+        run: |
+          sha256sum -c --strict SHA256SUMS
+          [ "$(wc -l < SHA256SUMS)" -eq 5 ]
+          [ "$(ls | wc -l)" -eq 6 ]
+          { echo '```'; cat SHA256SUMS; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-files
+          path: dist/*
+          if-no-files-found: error
+
+  draft:
+    name: draft pre-release
+    # Only a pushed tag drafts a release; a manual run, even on a tag ref, never does.
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: [identity, checksums]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release-files
+          path: dist
+      - name: Verify, then create the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          (cd dist && sha256sum -c --strict SHA256SUMS)
+          python3 tools/ci/package.py notes "$GITHUB_REF_NAME" > notes.md
+          gh release create "$GITHUB_REF_NAME" --draft --prerelease --verify-tag \
+            --title "MisterDiagram ${{ needs.identity.outputs.version }}" --notes-file notes.md dist/*
