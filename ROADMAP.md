@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-22: M5.35 to M5.38 alpha release tooling: version 0.1.0-alpha.1 with build commit and target triple in `--version`, CHANGELOG.md, a tag-or-manual release workflow for five platforms, a standard-library smoke test run on every native target before and after packaging, and install notes (docs/install.md). No engine or saved-byte change; the office, SAN and fabric examples save byte-equal to 2bf22d8.
+
 - 2026-10-22: M5.40 implements the adopted connector lane rule, exact on the restricted family and an approximation elsewhere. Twenty restricted cases and three hold-outs have generated coordinate tests; the 100-box test has ten distinct heights and no shared trunk or box hit. Physical no-touch checks replace inflated clearance only for assigned lanes. Other styles, unshared routes and capacity fallbacks keep their geometry. General Visio band, fan-out ports and equal-length route choices remain named gaps. M5.42 adds a standing overlap check with the witnessed bus and actual same-glue exemptions. Local CI passes all eight gates and 737 tests. All 98 in-gap witness values match exactly; 125 paired checker drawings reduce unexempted overlaps from 884 to the seven unchanged style-2 benchmark pairs. The original regression and quiet benchmark bounds pass.
 
 - 2026-10-21: M5.39 connector-lane discovery is incomplete. Twenty-seven new Visio drawings and three frozen hold-outs measure spacing, order, direction, fan-out and equal-length-route choices. A restricted recurrence predicts 16/16 central-cut coordinates exactly (14 in-gap lanes, two outside-gap crossings), but later controls refute proposed generalizations and expose routing-state-dependent order. The general band and fan-out rules remain unresolved. Production routing is unchanged; original sweep 28/29, native-large-300 0/10. Baseline CI passes all eight gates and 715 tests; strict round trip remains 15,105,590/15,105,590.
@@ -516,7 +518,8 @@ connector stroke rendering and small-image export mapping. Phase 5 estimate:
 
 ## What is coming
 
-- Release staging: CI build artifacts now; a tagged alpha pre-release with checksums and licence files immediately after P5a; a real release and crates.io after M5 is met and stable.
+- Release staging, level 2 (alpha, M5.35 to M5.38): tagged pre-releases in v0.1.0-alpha.N form on the GitHub Releases page, built by `.github/workflows/release.yml` for macOS (universal), Windows x64 and arm64 and static Linux x64 and arm64, each smoke-tested on a native runner before and after packaging, with SHA256SUMS, licence files, CHANGELOG.md and a quick start, unsigned (docs/install.md explains the first-run warnings). The workflow only drafts a release; a maintainer publishes it. 0.1.0-alpha.2 follows with brief 31 (#68, #70, #71).
+- Release staging, level 3 (later): a real release and crates.io after M5 is met and stable, with signing (SignPath Foundation or Azure Trusted Signing) revisited then; PowerPoint export arrives in a later release.
 - Fonts: Latin faces live in the repository; non-Latin faces will be fetched by pinned SHA256 at release.
 
 Brief 25 M5.6 meets Charles's addendum acceptance: native network library 11/11,

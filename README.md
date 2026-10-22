@@ -69,8 +69,12 @@ drawings is slow: strict mode publishes the whole document after every command, 
 ## Testers wanted
 
 MisterDiagram has been checked against Visio 2021 on drawings its own scripts made. Real
-drawings are the next test, and that needs people who use Visio at work. There are no
-binaries yet, so you build it from source (see Try it below). The most useful things to try:
+drawings are the next test, and that needs people who use Visio at work. Alpha binaries for
+macOS, Windows and Linux are on the
+[Releases page](https://github.com/MisterDiagram/MisterDiagram/releases);
+[docs/install.md](docs/install.md) covers download, checksums, the first-run warnings for
+unsigned binaries and MCP setup. Building from source (see Try it below) works too. The most
+useful things to try:
 
 - Open your own .vsdx, .vssx and .vstx files with `info` and `render`. Tell us which files
   fail to open and where a render differs from what Visio shows.
@@ -98,8 +102,9 @@ cargo run --release -p misterdiagram-cli -- render drawing.vsdx --page 1 out.png
 
 `info` lists the package parts. `sheet` prints every evaluated cell in the same columns as a
 Visio COM dump, so the two diff directly. `render` also takes `.svg` and `.pdf` output names,
-and `--masters stencil.vssx` draws a contact sheet of a stencil. No binaries are published yet;
-Rust stable with edition 2024 is required. There is no GUI and none is planned in this repo.
+and `--masters stencil.vssx` draws a contact sheet of a stencil. Prebuilt binaries are on the
+[Releases page](https://github.com/MisterDiagram/MisterDiagram/releases) (see
+[docs/install.md](docs/install.md)); building from source needs Rust stable with edition 2024. There is no GUI and none is planned in this repo.
 
 Session retention defaults to a 2 GiB ceiling; use `--memory-limit <MiB>` or
 `MISTERDIAGRAM_MEMORY_LIMIT` (the flag wins) to change it without changing any per-file
