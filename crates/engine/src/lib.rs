@@ -13,6 +13,9 @@ mod glue;
 pub mod guard;
 mod inspect;
 mod layout;
+mod master_scale;
+#[cfg(test)]
+mod master_scale_tests;
 mod masters;
 mod network;
 mod pages;

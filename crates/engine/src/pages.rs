@@ -102,6 +102,7 @@ pub(crate) fn size(s: &mut Session, p: &Value) -> Result<Value> {
 }
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/pagescale-cell-page-properties-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/drawingscale-cell-page-properties-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/drawingscaletype-cell-page-properties-section
 pub(crate) fn scale(s: &mut Session, p: &Value) -> Result<Value> {
     let index = page_index(s, p)?;
     let page_scale = number(p, "page_scale")?;
@@ -113,6 +114,7 @@ pub(crate) fn scale(s: &mut Session, p: &Value) -> Result<Value> {
         let sheet = &mut page_mut(doc, index)?.sheet;
         set_number(sheet, "PageScale", page_scale)?;
         set_number(sheet, "DrawingScale", drawing_scale)?;
+        set_number(sheet, "DrawingScaleType", if page_scale == drawing_scale { 0. } else { 3. })?;
         Ok(json!({}))
     })
 }

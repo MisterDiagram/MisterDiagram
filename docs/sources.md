@@ -92,7 +92,9 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/displaymode-cell-group-properties-section> | `crates/render/src/scene.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/documentsettings-element-visiodocument_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/documentsheet-element-visiodocument_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/drawingscale-cell-page-properties-section> | `crates/engine/src/pages.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/drawingscale-cell-page-properties-section> | `crates/engine/src/master_scale.rs`, `crates/engine/src/pages.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/drawingscaletype-cell-page-properties-section> | `crates/engine/src/master_scale.rs`, `crates/engine/src/pages.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/droponpagescale-cell-miscellaneous-section> | `crates/engine/src/master_scale.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/effectschemeindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/ellipse-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/vsdx/src/evaluate/path.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/ellipticalarcto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/vsdx/src/evaluate/path.rs`, `crates/vsdx/tests/zero_width.rs`, `tools/oracle/vendor-stencils/zero-height-classes.ps1`, `tools/oracle/vendor-stencils/zero-width-recalc.ps1`, `tools/oracle/vendor-stencils/zero-width-witness.ps1` |

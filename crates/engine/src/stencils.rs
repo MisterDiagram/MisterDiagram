@@ -87,7 +87,13 @@ pub(crate) fn find<'a>(document: &'a Document, p: &Value) -> Result<&'a Master> 
         })
         .ok_or_else(|| operation("master not found"))
 }
-fn entries(document: &Document, stencil: usize, query: Option<&str>, limit: usize) -> Result<Value> {
+fn entries(
+    document: &Document,
+    stencil: usize,
+    query: Option<&str>,
+    limit: usize,
+    page_scale: Option<crate::master_scale::DrawingScale>,
+) -> Result<Value> {
     let themes = misterdiagram_theme::Themes::from_document(document).map_err(operation)?;
     let mut e = Evaluator::new(document).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
     let words = query.map(|s| s.to_lowercase().split_whitespace().map(str::to_owned).collect::<Vec<_>>()).unwrap_or_default();
@@ -105,27 +111,54 @@ fn entries(document: &Document, stencil: usize, query: Option<&str>, limit: usiz
             continue;
         }
         let dimension = |e: &mut Evaluator<'_>, name: &str| scope.map(|scope| e.evaluate(scope, name).numeric().map_err(operation)).transpose();
-        result.push(json!({"stencil":stencil,"id":master.id,"name":master.name,"name_u":master.name_u,"width":dimension(&mut e,"Width")?,"height":dimension(&mut e,"Height")?,"keywords":keywords}));
+        let width = dimension(&mut e, "Width")?;
+        let height = dimension(&mut e, "Height")?;
+        let scale = crate::master_scale::DrawingScale::read(&mut e, Scope::Master(master.id))?;
+        let drop_size = if let Some(page_scale) = page_scale {
+            let factor = scale.factor(page_scale)?;
+            let scaled = |v: Option<f64>| -> Result<Option<f64>> {
+                v.map(|v| {
+                    let n = v * factor;
+                    if n.is_finite() && n.abs() <= 1e6 { Ok(n) } else { Err(operation("computed master dimension limit")) }
+                })
+                .transpose()
+            };
+            json!({"width":scaled(width)?,"height":scaled(height)?,"factor":factor})
+        } else {
+            json!("page-dependent")
+        };
+        result.push(json!({"stencil":stencil,"id":master.id,"name":master.name,"name_u":master.name_u,"width":width,"height":height,"scale":scale.json(),"drop_size":drop_size,"keywords":keywords}));
     }
     Ok(json!({"masters":result,"matched":matched}))
+}
+fn current_scale(s: &Session) -> Result<Option<crate::master_scale::DrawingScale>> {
+    s.document
+        .pages
+        .get(s.selection.page)
+        .map(|page| {
+            let mut e = Evaluator::new(&s.document).map_err(operation)?;
+            crate::master_scale::DrawingScale::read(&mut e, Scope::Page(page.id))
+        })
+        .transpose()
 }
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.document.masters
 pub(crate) fn masters(s: &mut Session, p: &Value) -> Result<Value> {
     let limit = p.get("limit").map(|_| uint(p, "limit")).transpose()?.unwrap_or(1000).min(1000) as usize;
-    entries(document(s, p)?.as_ref(), p.get("stencil").and_then(Value::as_u64).unwrap_or(0) as usize, None, limit)
+    entries(document(s, p)?.as_ref(), p.get("stencil").and_then(Value::as_u64).unwrap_or(0) as usize, None, limit, current_scale(s)?)
 }
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/shapekeywords-cell-miscellaneous-section
 pub(crate) fn search(s: &mut Session, p: &Value) -> Result<Value> {
     let query = name(p, "query")?;
     let limit = p.get("limit").map(|_| uint(p, "limit")).transpose()?.unwrap_or(1000).min(1000) as usize;
+    let page_scale = current_scale(s)?;
     if p.get("stencil").is_some() {
         let index = usize::try_from(uint(p, "stencil")?).map_err(operation)?;
-        return entries(document(s, p)?.as_ref(), index, Some(query), limit);
+        return entries(document(s, p)?.as_ref(), index, Some(query), limit, page_scale);
     }
     let mut masters = Vec::new();
     let mut matched = 0usize;
     for (index, doc) in std::iter::once(&s.document).chain(s.stencils.iter().map(|stencil| &stencil.document)).enumerate() {
-        let result = entries(doc, index, Some(query), limit.saturating_sub(masters.len()))?;
+        let result = entries(doc, index, Some(query), limit.saturating_sub(masters.len()), page_scale)?;
         matched = matched.saturating_add(result.get("matched").and_then(Value::as_u64).unwrap_or(0) as usize);
         if let Some(rows) = result.get("masters").and_then(Value::as_array) {
             masters.extend(rows.iter().cloned());

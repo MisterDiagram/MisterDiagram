@@ -450,6 +450,20 @@ pub(crate) fn drop_master(s: &mut Session, p: &Value) -> Result<Value> {
         let ids = map_shape_ids(std::slice::from_ref(root), first)?;
         let mut shape = instance(root, &ids, master_id, true, 0)?;
         let page = doc.pages.get(page_index).ok_or_else(|| operation("page missing"))?;
+        let themes = misterdiagram_theme::Themes::from_document(doc).map_err(operation)?;
+        let mut e = Evaluator::new(doc).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
+        let scale = crate::master_scale::DrawingScale::read(&mut e, Scope::Master(master_id))?
+            .factor(crate::master_scale::DrawingScale::read(&mut e, Scope::Page(page.id))?)?;
+        let scope = Scope::MasterShape { master: master_id, shape: root.id };
+        let line = e.cell(scope, "BeginX").is_some();
+        let source_width = if (scale != 1. && width.is_none()) || (line && width.is_some()) {
+            Some(e.evaluate(scope, "Width").numeric().map_err(operation)?)
+        } else {
+            None
+        };
+        let dropped_width = width.or(source_width.map(|v| v * scale));
+        let dropped_height =
+            if scale != 1. && height.is_none() { Some(e.evaluate(scope, "Height").numeric().map_err(operation)? * scale) } else { height };
         let mut existing = page.shapes.iter().collect::<Vec<_>>();
         let mut first_instance = true;
         while let Some(candidate) = existing.pop() {
@@ -466,29 +480,40 @@ pub(crate) fn drop_master(s: &mut Session, p: &Value) -> Result<Value> {
 
         set_number(&mut shape.sheet, "PinX", x)?;
         set_number(&mut shape.sheet, "PinY", y)?;
-        if let Some(width) = width {
+        if let Some(width) = dropped_width.filter(|_| !line || p.get("width").is_some()) {
             set_number(&mut shape.sheet, "Width", width)?;
         }
-        if let Some(height) = height {
+        if let Some(height) = dropped_height {
             set_number(&mut shape.sheet, "Height", height)?;
+        }
+        if scale != 1. {
+            set_number(&mut shape.sheet, "DropOnPageScale", scale)?;
         }
         for cell in &mut shape.sheet.cells {
             if matches!(cell.name.as_str(), "Width" | "Height") {
                 cell.units = Some("IN".into());
             }
         }
-        let scope = Scope::MasterShape { master: master_id, shape: root.id };
-        let mut e = Evaluator::new(doc).map_err(operation)?;
         // A source master layer is not a layer assignment in the destination page.
         // https://learn.microsoft.com/en-us/office/client-developer/visio/layermember-cell-layer-membership-section
         if e.cell(scope, "LayerMember").is_some_and(|c| c.value.as_deref().is_some_and(|v| !v.is_empty())) {
             set(&mut shape.sheet, "LayerMember", "", None)?;
         }
-        if e.cell(scope, "BeginX").is_some() {
+        if line {
             let px = e.evaluate(scope, "PinX").numeric().map_err(operation)?;
             let py = e.evaluate(scope, "PinY").numeric().map_err(operation)?;
+            let endpoint_scale = if let (Some(width), Some(source_width)) = (width, source_width) {
+                if source_width <= 0. {
+                    return Err(operation("cannot resize a zero-length master line"));
+                }
+                width / source_width
+            } else {
+                scale
+            };
             for (name, offset) in [("BeginX", x - px), ("BeginY", y - py), ("EndX", x - px), ("EndY", y - py)] {
-                let value = e.evaluate(scope, name).numeric().map_err(operation)? + offset;
+                let original = e.evaluate(scope, name).numeric().map_err(operation)?;
+                let pin = if name.ends_with('X') { px } else { py };
+                let value = if endpoint_scale == 1. { original + offset } else { (original - pin) * endpoint_scale + pin + offset };
                 set_number(&mut shape.sheet, name, value)?;
             }
         }
@@ -503,6 +528,18 @@ pub(crate) fn drop_master(s: &mut Session, p: &Value) -> Result<Value> {
         let page = page_mut(doc, page_index)?;
         page.connects.extend(connects);
         page.shapes.push(shape);
+        // Normal 1-D masters derive Width from their endpoints. Keep that formula;
+        // a literal or fixed formula needs an override to represent the new width.
+        if line && scale != 1. && width.is_none() {
+            let expected = dropped_width.ok_or_else(|| operation("scaled master width missing"))?;
+            let page_id = doc.pages.get(page_index).ok_or_else(|| operation("page missing"))?.id;
+            let mut e = Evaluator::new(doc).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
+            let actual = e.evaluate(Scope::PageShape { page: page_id, shape: id }, "Width").numeric();
+            if !actual.is_ok_and(|actual| (actual - expected).abs() <= expected.abs().max(1.) * 1e-12) {
+                let shape = page_mut(doc, page_index)?.shapes.last_mut().ok_or_else(|| operation("dropped shape missing"))?;
+                set_number(&mut shape.sheet, "Width", expected)?;
+            }
+        }
         selection.page = page_index;
         selection.shapes = vec![ShapeId(id)];
         Ok(json!({"id":id,"master":master_id}))

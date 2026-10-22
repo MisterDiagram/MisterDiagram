@@ -1,5 +1,14 @@
 # Gaps
 
+## Multiple top-level shapes in a master (Brief 31b)
+
+`master.drop` requires one top-level shape. The read-only Lenovo SAN master
+`Read-Me 25-Sep-25` has several and is refused. Native Visio drops it at
+2.84 x 3.66666666667 in on NoScale 1:1 and 42.6 x 55 in on Custom 1:10
+(master scale 1:15). Charles explicitly deferred this case from M5.29; the
+three single-root faceplates remain its vendor acceptance cases. See the
+M5.29 observation in docs/file-format-parity.md.
+
 ## Issue 78: a tester's flowchart rendered nothing (2026-10-22)
 
 The first tester report after 0.1.0-alpha.1: a public BPMN sample (an E-Commerce shopping
@@ -1919,3 +1928,16 @@ seven unchanged style2 pairs. Every drawing has rule-h statistics. Full a-g
 comparison refusals change from three to twenty-five and remain explicit exit2
 results; none is counted as a clean full-layout check. Three failed M5.39
 NoStyle-write trials produced no drawing and are not counted as witnesses.
+
+## Synthetic drop re-save representation (Brief 31)
+
+The M5.29 scale values agree with the native matrix, but the first strict re-save
+trial has not met the zero-difference gate. Eight synthetic drawings open and save;
+the unchanged checker reports 321 differences: 80 imported 1-D master flags,
+80 redundant PinX removals, 138 redundant endpoint removals, 16 window-size
+metadata changes against the historical blank baseline, and seven rounding
+changes smaller than 1e-6 in the supplemental boundary cases. The redundant
+cells also occur in unchanged-scale drops. The 1:1 package preservation contract
+remains in force; no checker, mask, threshold or volatile-list exception was
+added. Private evidence: `plan/brief31/vm-accept-report.json` and
+`corpus/_vm/out/brief31-accept/`.

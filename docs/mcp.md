@@ -396,3 +396,21 @@ obstacles above the unchanged 256-candidate path), `route grid limit`
 (16,384 vertices), `route queue limit`, `route obstacle closure limit`, and
 `route corridor growth limit` (32 attempts). Corridor selection uses the page
 LineToNode and LineToLine spacing and grows before declaring a geometric failure.
+
+### Master drawing scale
+
+`stencil.masters` and `stencil.search` keep `width` and `height` in master drawing
+units. Each result also includes `scale` (`page_scale`, `drawing_scale`,
+`drawing_scale_type`) and `drop_size` (`width`, `height`, `factor`) for the current
+page. With no current page, `drop_size` is `"page-dependent"`.
+
+`master.drop`, the `drop_master` tool and layouts that drop masters use the same
+observed Visio rule. When exactly one of the master and page is NoScale, the drop keeps its
+paper size only when the relative scale exceeds eightfold in either direction.
+Exactly eightfold is unchanged, as are drops between like scale types. Explicit
+`width` or `height` overrides that dimension. Line endpoints follow the dropped
+width. A missing master PageSheet or scale declaration uses the unscaled 1:1
+default. Built-in 1:1 masters on the default 1:1 page keep their original saved representation.
+`page.scale` selects NoScale for equal PageScale and DrawingScale, otherwise
+Custom. See the M5.29 matrix in `docs/file-format-parity.md` for the measured
+boundary and the multi-root master limitation.
