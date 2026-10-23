@@ -356,3 +356,9 @@ Connector-local gathering preserves all 1,439 corpus/recipe packages and all
 600 generated connector routes match the full obstacle set within 1e-9.
 The four layouts include a far barrier requiring corridor growth.
 Reference: https://learn.microsoft.com/en-us/office/vba/api/visio.shape.reroute
+
+- M5.44, Themes and variants: P unchanged. The strict `themeval_sweep` gate
+  covers 264,405 private rows with no cached fallback; baseline 147,346 equal.
+  Font faces compare by name; unresolved style rules remain explicit failures.
+  Test: `themeval_sweep::tests::hostile_rows_and_exact_comparison`. Reference:
+  <https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function>.

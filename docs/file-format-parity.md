@@ -234,6 +234,38 @@ the other measured files use 2012/main. Container inspection accepts both exact 
 
 ## Observed, undocumented
 
+### M5.44: strict theme sweep baseline and host font identities (#79, #80, #82)
+
+`themeval_sweep` compares all 264,405 rows from the five private
+`field/themeval-2026-10-22` sweeps. Baseline equal counts are 23,925/39,943
+(theme 34), 23,569/39,943 and 38,018/72,288 (theme 43), and 23,618/39,943
+and 38,216/72,288 (theme 45). These are failures, not parity acceptance.
+The strict evaluator uses the package theme and never enables cached fallback.
+The 148,320 gradient rows remain part of the denominator.
+
+The native synthetic control `field/themeval-2026-10-22/synthetic-brief36/themeval-single-case-v3`
+sets the same theme, matrix and colour on a rectangle and a connector, without
+opening a field sample. Theme 34, matrix 1, colour 100 gives background
+RGB(77,77,77) for the rectangle and RGB(0,0,0) for the connector. Theme 45,
+variation 3/3, matrix 5, colour 100 gives a white rectangle background.
+These match the supplied TSV, but a general XML-derived background rule has
+not yet been established.
+
+The same control resolves Segoe UI to font ID 216 and Franklin Gothic Book
+to 107, on both shapes. The supplied theme-34/theme-43 TSVs use 115 and 162.
+The saved theme parts identify the same font names. Microsoft documents
+[font IDs as system-specific](https://learn.microsoft.com/en-us/office/vba/api/visio.font.id).
+The strict gate compares every Char.Font row by face name, resolving the
+expected name from the selected theme font scheme and style. It prints both
+names on a mismatch. Font IDs are never compared across installations.
+This follows the explicit Brief 36 ruling of 2026-10-23.
+
+The theme-43 rectangle at matrix 100, colour 100 has gradient stop RGB(44,119,125)
+at position 0 and RGB(29,76,79) at position 1 in the TSV. The second value
+supersedes the rounded RGB(29,76,80) claim in the private findings/brief.
+No resolver rule, threshold or oracle file was changed in M5.44.
+
+
 ### M5.10: passive Action values, stored-value counterexample (2026-10-17)
 
 M5.10 is paused before changing Action evaluation; M5.11 to M5.13 continue. The existing evaluator already

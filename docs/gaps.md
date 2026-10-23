@@ -26,6 +26,16 @@ observation in docs/file-format-parity.md. No frozen render ceiling changed.
 three single-root faceplates remain its vendor acceptance cases. See the
 M5.29 observation in docs/file-format-parity.md.
 
+## THEMEVAL resolution (#79, #80, #82)
+
+M5.44 adds the strict `themeval_sweep` corpus example. It compares every row
+of the five private theme sweeps, including all ten fill-gradient slots per
+shape, without cached fallback. The fixed population is 264,405 rows.
+The baseline has 147,346 equal rows and 117,059 unequal rows. Fill and colour
+index resolution, connector styles and absent theme font faces remain open.
+Char.Font compares face names, retaining every row in the population.
+No private theme XML or sample document is included in the public tests.
+
 ## Issue 78: a tester's flowchart rendered nothing (2026-10-22)
 
 The first tester report after 0.1.0-alpha.1: a public BPMN sample (an E-Commerce shopping
