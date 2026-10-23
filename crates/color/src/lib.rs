@@ -78,54 +78,11 @@ impl Rgba {
         (hi + 0.05) / (lo + 0.05)
     }
     pub fn to_hsl(self) -> (f64, f64, f64) {
-        let r = self.r as f64 / 255.0;
-        let g = self.g as f64 / 255.0;
-        let b = self.b as f64 / 255.0;
-        let max = r.max(g).max(b);
-        let min = r.min(g).min(b);
-        let l = (max + min) / 2.0;
-        if (max - min).abs() < 1e-12 {
-            return (0.0, 0.0, l);
-        }
-        let d = max - min;
-        let s = if l > 0.5 { d / (2.0 - max - min) } else { d / (max + min) };
-        let h = if (max - r).abs() < 1e-12 {
-            (g - b) / d + if g < b { 6.0 } else { 0.0 }
-        } else if (max - g).abs() < 1e-12 {
-            (b - r) / d + 2.0
-        } else {
-            (r - g) / d + 4.0
-        };
-        (h * 60.0, s, l)
+        rgb_hsl([f64::from(self.r) / 255., f64::from(self.g) / 255., f64::from(self.b) / 255.])
     }
     pub fn from_hsl(h: f64, s: f64, l: f64, a: u8) -> Self {
-        let h = ((h % 360.0) + 360.0) % 360.0 / 360.0;
-        let s = s.clamp(0.0, 1.0);
-        let l = l.clamp(0.0, 1.0);
-        if s == 0.0 {
-            return Rgba::from_f64(l, l, l, a as f64 / 255.0);
-        }
-        let q = if l < 0.5 { l * (1.0 + s) } else { l + s - l * s };
-        let p = 2.0 * l - q;
-        let f = |t: f64| {
-            let t = if t < 0.0 {
-                t + 1.0
-            } else if t > 1.0 {
-                t - 1.0
-            } else {
-                t
-            };
-            if t < 1.0 / 6.0 {
-                p + (q - p) * 6.0 * t
-            } else if t < 0.5 {
-                q
-            } else if t < 2.0 / 3.0 {
-                p + (q - p) * (2.0 / 3.0 - t) * 6.0
-            } else {
-                p
-            }
-        };
-        Rgba::from_f64(f(h + 1.0 / 3.0), f(h), f(h - 1.0 / 3.0), a as f64 / 255.0)
+        let [r, g, b] = hsl_rgb(h, s.clamp(0., 1.), l);
+        Self::from_f64(r, g, b, f64::from(a) / 255.)
     }
     /// Linear interpolation (straight alpha).
     pub fn lerp(self, o: Rgba, t: f64) -> Rgba {
@@ -133,6 +90,54 @@ impl Rgba {
         let m = |a: u8, b: u8| (a as f64 + (b as f64 - a as f64) * t).round().clamp(0.0, 255.0) as u8;
         Rgba { r: m(self.r, o.r), g: m(self.g, o.g), b: m(self.b, o.b), a: m(self.a, o.a) }
     }
+}
+
+fn rgb_hsl([r, g, b]: [f64; 3]) -> (f64, f64, f64) {
+    let max = r.max(g).max(b);
+    let min = r.min(g).min(b);
+    let l = (max + min) / 2.0;
+    if (max - min).abs() < 1e-12 {
+        return (0.0, 0.0, l);
+    }
+    let d = max - min;
+    let s = if l > 0.5 { d / (2.0 - max - min) } else { d / (max + min) };
+    let h = if (max - r).abs() < 1e-12 {
+        (g - b) / d + if g < b { 6.0 } else { 0.0 }
+    } else if (max - g).abs() < 1e-12 {
+        (b - r) / d + 2.0
+    } else {
+        (r - g) / d + 4.0
+    };
+    (h * 60.0, s, l)
+}
+fn hsl_rgb(h: f64, s: f64, l: f64) -> [f64; 3] {
+    let h = ((h % 360.0) + 360.0) % 360.0 / 360.0;
+    let s = if s < 0.0 { 0.0 } else { s };
+    let l = l.clamp(0.0, 1.0);
+    if s == 0.0 {
+        return [l, l, l];
+    }
+    let q = if l < 0.5 { l * (1.0 + s) } else { l + s - l * s };
+    let p = 2.0 * l - q;
+    let f = |t: f64| {
+        let t = if t < 0.0 {
+            t + 1.0
+        } else if t > 1.0 {
+            t - 1.0
+        } else {
+            t
+        };
+        if t < 1.0 / 6.0 {
+            p + (q - p) * 6.0 * t
+        } else if t < 0.5 {
+            q
+        } else if t < 2.0 / 3.0 {
+            p + (q - p) * (2.0 / 3.0 - t) * 6.0
+        } else {
+            p
+        }
+    };
+    [f(h + 1.0 / 3.0), f(h), f(h - 1.0 / 3.0)]
 }
 
 /// The twelve theme colour slots, plus the mapped aliases (`bg1`, `tx1`…) and `phClr` (the
@@ -363,81 +368,70 @@ impl ColorTransform {
 
 /// Apply transforms to a base colour.
 pub fn apply(base: Rgba, transforms: &[ColorTransform]) -> Rgba {
-    let mut c = base;
+    // Visio's DrawingML colours round through linear RGB percentage channels at
+    // sequence boundaries, not through 8-bit sRGB after each individual transform.
+    // https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.rgbcolormodelpercentage
+    let mut rgb = [base.r, base.g, base.b].map(|v| percentage_channel(f64::from(v) / 255.));
+    let mut alpha = base.a;
     for t in transforms {
-        c = apply_one(c, *t);
+        match *t {
+            ColorTransform::Tint(v) => {
+                let k = pct(v).clamp(0., 1.);
+                rgb = rgb.map(|x| from_lin(to_lin(x) * k + 1. - k));
+            }
+            ColorTransform::Shade(v) => {
+                let k = pct(v).clamp(0., 1.);
+                rgb = rgb.map(|x| from_lin(to_lin(x) * k));
+            }
+            ColorTransform::LumMod(_)
+            | ColorTransform::LumOff(_)
+            | ColorTransform::SatMod(_)
+            | ColorTransform::SatOff(_)
+            | ColorTransform::HueMod(_)
+            | ColorTransform::HueOff(_)
+            | ColorTransform::Comp => {
+                let (mut h, mut sat, mut lum) = rgb_hsl(rgb);
+                match *t {
+                    ColorTransform::LumMod(v) => lum *= pct(v),
+                    ColorTransform::LumOff(v) => lum += pct(v),
+                    ColorTransform::SatMod(v) => sat *= pct(v),
+                    ColorTransform::SatOff(v) => sat += pct(v),
+                    ColorTransform::HueMod(v) => h *= pct(v),
+                    ColorTransform::HueOff(v) => h += f64::from(v) / 60000.,
+                    ColorTransform::Comp => h += 180.,
+                    _ => {}
+                }
+                rgb = hsl_rgb(h, sat, lum).map(|v| v.clamp(0., 1.));
+            }
+            ColorTransform::Alpha(v) => alpha = (pct(v).clamp(0., 1.) * 255.).round() as u8,
+            ColorTransform::AlphaMod(v) => alpha = (f64::from(alpha) * pct(v)).round().clamp(0., 255.) as u8,
+            ColorTransform::AlphaOff(v) => alpha = (f64::from(alpha) + pct(v) * 255.).round().clamp(0., 255.) as u8,
+            ColorTransform::Inv => rgb = rgb.map(|v| 1. - v),
+            ColorTransform::Gray => {
+                let [r, g, b] = rgb;
+                let y = 0.299 * r + 0.587 * g + 0.114 * b;
+                rgb = [y; 3];
+            }
+            ColorTransform::RedMod(v) => rgb[0] = (rgb[0] * pct(v)).clamp(0., 1.),
+            ColorTransform::GreenMod(v) => rgb[1] = (rgb[1] * pct(v)).clamp(0., 1.),
+            ColorTransform::BlueMod(v) => rgb[2] = (rgb[2] * pct(v)).clamp(0., 1.),
+        }
     }
-    c
+    let [r, g, b] = rgb.map(percentage_channel);
+    Rgba::from_f64(r, g, b, f64::from(alpha) / 255.)
 }
-
 fn pct(v: i32) -> f64 {
-    v as f64 / 100_000.0
+    f64::from(v) / 100000.
 }
-
-fn apply_one(c: Rgba, t: ColorTransform) -> Rgba {
-    match t {
-        // tint: towards white by (1 - value); shade: towards black by (1 - value). Office applies
-        // these in linear light, which keeps mid-tones from washing out.
-        ColorTransform::Tint(v) => {
-            let k = pct(v).clamp(0.0, 1.0);
-            map_linear(c, |x| x * k + (1.0 - k))
-        }
-        ColorTransform::Shade(v) => {
-            let k = pct(v).clamp(0.0, 1.0);
-            map_linear(c, |x| x * k)
-        }
-        ColorTransform::LumMod(v) => {
-            let (h, s, l) = c.to_hsl();
-            Rgba::from_hsl(h, s, l * pct(v), c.a)
-        }
-        ColorTransform::LumOff(v) => {
-            let (h, s, l) = c.to_hsl();
-            Rgba::from_hsl(h, s, l + pct(v), c.a)
-        }
-        ColorTransform::SatMod(v) => {
-            let (h, s, l) = c.to_hsl();
-            Rgba::from_hsl(h, s * pct(v), l, c.a)
-        }
-        ColorTransform::SatOff(v) => {
-            let (h, s, l) = c.to_hsl();
-            Rgba::from_hsl(h, s + pct(v), l, c.a)
-        }
-        ColorTransform::HueMod(v) => {
-            let (h, s, l) = c.to_hsl();
-            Rgba::from_hsl(h * pct(v), s, l, c.a)
-        }
-        ColorTransform::HueOff(v) => {
-            let (h, s, l) = c.to_hsl();
-            Rgba::from_hsl(h + v as f64 / 60_000.0, s, l, c.a)
-        }
-        ColorTransform::Alpha(v) => c.with_alpha((pct(v).clamp(0.0, 1.0) * 255.0).round() as u8),
-        ColorTransform::AlphaMod(v) => c.with_alpha((c.a as f64 * pct(v)).round().clamp(0.0, 255.0) as u8),
-        ColorTransform::AlphaOff(v) => c.with_alpha((c.a as f64 + pct(v) * 255.0).round().clamp(0.0, 255.0) as u8),
-        ColorTransform::Comp => {
-            let (h, s, l) = c.to_hsl();
-            Rgba::from_hsl(h + 180.0, s, l, c.a)
-        }
-        ColorTransform::Inv => Rgba { r: 255 - c.r, g: 255 - c.g, b: 255 - c.b, a: c.a },
-        ColorTransform::Gray => {
-            let y = (0.299 * c.r as f64 + 0.587 * c.g as f64 + 0.114 * c.b as f64).round().clamp(0.0, 255.0) as u8;
-            Rgba { r: y, g: y, b: y, a: c.a }
-        }
-        ColorTransform::RedMod(v) => Rgba { r: (c.r as f64 * pct(v)).round().clamp(0.0, 255.0) as u8, ..c },
-        ColorTransform::GreenMod(v) => Rgba { g: (c.g as f64 * pct(v)).round().clamp(0.0, 255.0) as u8, ..c },
-        ColorTransform::BlueMod(v) => Rgba { b: (c.b as f64 * pct(v)).round().clamp(0.0, 255.0) as u8, ..c },
-    }
-}
-
-fn to_lin(v: u8) -> f64 {
-    let v = v as f64 / 255.0;
+fn to_lin(v: f64) -> f64 {
     if v <= 0.04045 { v / 12.92 } else { ((v + 0.055) / 1.055).powf(2.4) }
 }
 fn from_lin(v: f64) -> f64 {
-    let v = v.clamp(0.0, 1.0);
-    if v <= 0.003_130_8 { v * 12.92 } else { 1.055 * v.powf(1.0 / 2.4) - 0.055 }
+    let v = v.clamp(0., 1.);
+    if v <= 0.0031308 { v * 12.92 } else { 1.055 * v.powf(1. / 2.4) - 0.055 }
 }
-fn map_linear(c: Rgba, f: impl Fn(f64) -> f64) -> Rgba {
-    Rgba::from_f64(from_lin(f(to_lin(c.r))), from_lin(f(to_lin(c.g))), from_lin(f(to_lin(c.b))), c.a as f64 / 255.0)
+fn percentage_channel(v: f64) -> f64 {
+    from_lin((to_lin(v.clamp(0., 1.)) * 100000.).round() / 100000.)
 }
 
 /// The colour-picker grid shown under each theme colour: lighter 80/60/40%, darker 25/50%
@@ -519,6 +513,44 @@ pub fn preset(name: &str) -> Option<Rgba> {
 mod tests {
     use super::*;
 
+    /// Native synthetic controls exercise low channels, half values and transform order.
+    /// https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.rgbcolormodelpercentage
+    #[test]
+    fn percentage_precision_preserves_native_transform_sequence() {
+        assert_eq!(Rgba::from_hsl(30., f64::NAN, 0.5, 255), Rgba::BLACK);
+        assert_eq!(apply(Rgba::BLACK.with_alpha(1), &[ColorTransform::AlphaMod(50000), ColorTransform::AlphaMod(50000)]).a, 1);
+        let linear_half = from_lin(0.5);
+        assert_eq!(Rgba::from_f64(linear_half, linear_half, linear_half, 1.), Rgba::rgb(188, 188, 188));
+        for channel in 0..=255 {
+            let c = Rgba::rgb(channel, 255 - channel, 128);
+            assert_eq!(apply(c, &[]), c);
+        }
+        let transforms = [ColorTransform::SatMod(99000), ColorTransform::LumMod(147000)];
+        for (input, expected) in [
+            ([30, 81, 85], [44, 119, 125]),
+            ([175, 74, 13], [238, 114, 38]),
+            ([47, 103, 90], [70, 151, 132]),
+            ([0, 1, 2], [0, 1, 3]),
+            ([72, 35, 14], [105, 52, 21]),
+            ([75, 226, 217], [197, 245, 243]),
+        ] {
+            let [r, g, b] = input;
+            let [er, eg, eb] = expected;
+            assert_eq!(apply(Rgba::rgb(r, g, b), &transforms), Rgba::rgb(er, eg, eb));
+            assert_eq!(apply(Rgba::rgb(r, g, b), &[transforms[1], transforms[0]]), Rgba::rgb(er, eg, eb));
+        }
+        assert_eq!(apply(Rgba::rgb(4, 157, 145), &[ColorTransform::Shade(63000), ColorTransform::SatMod(120000)]), Rgba::rgb(0, 140, 128));
+        assert_eq!(
+            apply(
+                Rgba::rgb(103, 156, 252),
+                &[ColorTransform::Tint(93000), ColorTransform::SatMod(150000), ColorTransform::Shade(98000), ColorTransform::LumMod(102000)]
+            ),
+            Rgba::rgb(96, 157, 253)
+        );
+        assert_eq!(apply(Rgba::WHITE, &[ColorTransform::LumMod(50000)]), Rgba::rgb(127, 127, 127));
+        assert_eq!(apply(Rgba::WHITE, &[ColorTransform::LumMod(70000)]), Rgba::rgb(179, 179, 179));
+        assert_eq!(apply(Rgba::rgb(30, 81, 85), &[ColorTransform::SatMod(98000), ColorTransform::LumMod(94000)]), Rgba::rgb(29, 76, 79));
+    }
     #[test]
     fn hex_roundtrip() {
         assert_eq!(Rgba::from_hex("#156082"), Some(Rgba::rgb(0x15, 0x60, 0x82)));

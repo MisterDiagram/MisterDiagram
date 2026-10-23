@@ -145,15 +145,13 @@ fn captures(doc: &Document, e: &mut Evaluator<'_>, scope: Scope, invalid: &impl 
         cell.cell.value = Some(match value {
             misterdiagram_sheet::Value::Color { rgb: [r, g, b], .. } => format!("#{r:02x}{g:02x}{b:02x}"),
             misterdiagram_sheet::Value::Bool(value) => u8::from(value).to_string(),
-            misterdiagram_sheet::Value::Number(value) => {
-                let serialized = e.serialized_number(scope, &named.name, &cell.cell, value).map_err(operation)?;
-                if cell.cell.name == "Font" {
-                    let ordinal = serialized.parse::<usize>().map_err(operation)?;
-                    doc.face_names.values().nth(ordinal).cloned().ok_or_else(|| operation("captured font missing"))?
-                } else {
-                    serialized
+            misterdiagram_sheet::Value::Number(value) if cell.cell.name == "Font" => {
+                if !value.is_finite() || !(0. ..=f64::from(u32::MAX)).contains(&value) || value.fract() != 0. {
+                    return Err(operation("invalid captured font identity"));
                 }
+                e.font_name(value as u32).ok_or_else(|| operation("captured font missing"))?.to_owned()
             }
+            misterdiagram_sheet::Value::Number(value) => e.serialized_number(scope, &named.name, &cell.cell, value).map_err(operation)?,
             v => v.text(),
         });
         cell.cell.formula = None;
@@ -321,5 +319,45 @@ mod tests {
         );
         assert!(referenced_shapes(&e, scope, &"x".repeat(65537)).is_err());
         assert!(referenced_shapes(&e, scope, "Sheet.99999999999999999!Width").is_err());
+    }
+}
+
+#[cfg(test)]
+mod theme_font_tests {
+    use super::*;
+    use misterdiagram_model::{Part, Row, Section, skeleton};
+
+    /// Freezing a theme-only font reference retains its face rather than a process-local ID.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section
+    #[test]
+    fn copied_and_removed_theme_font_references_keep_the_face_name() {
+        let mut document = skeleton::document(false);
+        let xml = b"<theme><fontScheme><minorFont><latin typeface='Contributor Theme Face'/></minorFont></fontScheme></theme>";
+        document.parts.insert("visio/theme/theme1.xml".into(), Part { bytes: xml.to_vec().into(), ..Default::default() });
+        for (id, formula) in [(1, "FONT(\"Contributor Theme Face\")"), (2, "Sheet.1!Char.Font")] {
+            let mut shape = skeleton::rectangle(id, 1., 1., 2., 1., "Label").unwrap();
+            shape.sheet.sections.push(Section {
+                name: "Character".into(),
+                rows: vec![Row {
+                    index: Some(0),
+                    cells: vec![Cell { name: "Font".into(), formula: Some(formula.into()), value: Some("0".into()), ..Default::default() }],
+                    ..Default::default()
+                }],
+                ..Default::default()
+            });
+            document.pages[0].shapes.push(shape);
+        }
+        let mut copied = document.pages[0].shapes[1].clone();
+        isolate(&document, 0, &mut copied).unwrap();
+        let font = copied.sheet.sections.iter().find(|s| s.name == "Character").unwrap().rows[0].cells.iter().find(|c| c.name == "Font").unwrap();
+        assert_eq!(font.value.as_deref(), Some("Contributor Theme Face"));
+        assert!(font.formula.is_none());
+        let captured = removing(&document, 0, 1).unwrap();
+        assert!(captured.iter().any(|(scope, capture)| matches!(
+            (scope, capture),
+            (Scope::PageShape { page: 0, shape: 2 }, Capture::Active(address))
+                if address.cell.name == "Font" && address.cell.value.as_deref() == Some("Contributor Theme Face") && address.cell.formula.is_none()
+        )));
+        assert!(!document.face_names.values().any(|name| name == "Contributor Theme Face"));
     }
 }

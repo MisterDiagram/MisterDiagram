@@ -206,8 +206,13 @@ impl<'a> Evaluator<'a> {
         }
         if cell.name == "Font" {
             let face = self.fonts.get(&index()?).ok_or(Error::Value)?;
-            let ordinal = self.document.face_names.values().position(|f| f.eq_ignore_ascii_case(face)).ok_or(Error::Value)?;
-            return Ok(ordinal.to_string());
+            // Named Font values also preserve theme-only faces without inventing a saved ordinal.
+            return Ok(self
+                .document
+                .face_names
+                .values()
+                .position(|f| f.eq_ignore_ascii_case(face))
+                .map_or_else(|| face.clone(), |ordinal| ordinal.to_string()));
         }
         if Self::baseline_metadata(scope, name).is_some_and(|m| m.3 == 251) {
             let mut index = index()?;
@@ -1532,6 +1537,16 @@ impl Context for BoundContext<'_, '_> {
     /// Page inheritance for the theme component sentinel.
     /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/1e7e9b7e-d116-41c0-9c53-5e57c26042a4
     fn theme_selector(&mut self, name: &str) -> Value {
+        // OneD is a shape property, represented by the source/inherited endpoints,
+        // not a ShapeSheet cell. Guides and foreign objects are always two-dimensional.
+        // https://learn.microsoft.com/en-us/office/vba/api/visio.shape.oned
+        if name.eq_ignore_ascii_case("OneD") {
+            let shape = self.evaluator.shape(self.scope);
+            let one_d = shape.is_some_and(|s| !matches!(s.shape_type.as_deref(), Some("Guide" | "Foreign")))
+                && self.evaluator.cell(self.scope, "BeginX").is_some();
+            self.evaluator.add_dependency_key(Key { scope: self.scope, name: "beginx".into() });
+            return Value::Bool(one_d);
+        }
         let value = self.resolve(name);
         if value.numeric() != Ok(65534.) {
             return value;

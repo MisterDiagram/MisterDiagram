@@ -272,8 +272,8 @@ its transformed stops. `THEMECBV` and stop colours use the same bounded
 transform parser in XML order. The numeric controls
 `field/themeval-2026-10-22/synthetic-brief36/themeval-single-case-v5` and `-v6`
 confirm RGB(30,81,85) becomes RGB(44,119,125) and RGB(29,76,79) for the two
-observed stop transforms. Exact transform precision on other inputs remains
-open; these two examples do not establish complete gradient parity.
+observed stop transforms. These two examples alone did not establish complete
+gradient parity; M5.47 below supplies broader controls and the precision rule.
 
 ShapeSheet exposes ten gradient slots even when the selected theme defines
 fewer stops. Sorting unused white slots at position zero washed out the
@@ -292,8 +292,6 @@ then changes that background to RGB(124,162,199). Thus explicit numerical XML
 alone does not determine these secondary backgrounds. IDs and names changed
 together, so this control does not isolate their individual effects.
 These identity-specific values remain failures in the strict sweep.
-
-
 
 ### M5.46: quick colour and style index tables (#82)
 
@@ -322,11 +320,59 @@ connector rows at matrices 4, 5, 6 and 101 witness this fall-through.
 
 Theme-requested font faces absent from the saved FaceNames part receive
 bounded evaluator-local IDs. The source FaceNames and existing IDs remain
-unchanged. Explicit style faces and major/minor placeholders select their
-requested names. The synthetic font-identity control named in M5.44 witnesses
+unchanged. Formula caches and copied references retain a face-name value when
+that face has no saved ordinal. Explicit style faces and major/minor
+placeholders select their requested names. The synthetic font-identity control named in M5.44 witnesses
 why a saved installation ID cannot substitute for the requested face name.
 The post-index sweep has 244,299/264,405 equal rows and no evaluator errors;
 remaining numerical differences are still reported, not accepted.
+
+
+### M5.47: colour precision and connector styles (#79, #80)
+
+The synthetic `field/themeval-2026-10-22/synthetic-brief36/themeval-single-case-v12`
+control uses 32 contributor-chosen RGB inputs and six numerical transform
+sequences, giving 288 rectangle/connector results. `themeval-single-case-v13`
+adds 288 mixed tint, shade, saturation and luminance results. Both match this
+rule: round linear RGB channels to the DrawingML 100,000-unit percentage
+scale at sequence boundaries, retain floating precision between transforms,
+and apply transforms in XML order. Saturation may exceed 100%; clip the
+resulting RGB channels after conversion rather than clipping saturation first.
+The [DrawingML percentage colour representation](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.rgbcolormodelpercentage)
+specifies linear RGB. The exact transform-boundary rounding rule is a native
+observation, not a claim that the reference prescribes it. Alpha byte rounding
+retains its previous behaviour. Public tests contain only original numeric
+inputs and expected results, including the reference's half-linear gray example.
+
+Connector selection follows `QuickStyleType` first, then the shape's OneD
+property. The paired `themeval-single-case-v15` control checks all four type
+values: 0 is automatic, 1 and 3 select connector styles, and 2 selects normal
+styles on both rectangles and connectors. This agrees with the ShapeSheet
+reference's 1D/2D/connector labels. It contradicts the MS-VSDX QuickStyleType
+table that groups 1 with 2 as an effect scheme; the native values govern. OneD is represented by source or inherited endpoint cells, not by
+a cell named OneD; guides and foreign objects remain two-dimensional. Shape text uses the selected
+`fontStyles` colour and connector text uses `connectorFontStyles`, applying
+its transforms to the quick font colour. Lines use the corresponding normal
+or connector format scheme. The five sweeps and the paired synthetic controls
+witness this distinction. Connector fills do not use the shape-only
+`fillStyles` extension. Missing gradient angles use the blank 90-degree value.
+
+The current sweep has 261,855/264,405 equal rows. All 148,320 gradient rows,
+all text-colour rows and all line rows match. The remaining 2,550 rows comprise
+2,198 secondary backgrounds and 352 dormant gradient angles. These remain
+failures. The `themeval-single-case-v14` control gives 84 degrees for native
+identity 43, rectangle matrix 3, and 90 degrees for the connector. Renamed
+identity 65001 with identical numerical style XML gives 90 degrees on both.
+This joins the secondary-background identity difference described in M5.45;
+no built-in theme palette or angle table is embedded to hide the gap.
+
+The three private first-page render comparisons (themes 34, 43 and 45) improve
+from 2.049125,
+20.235571 and 60.413252 to 1.900283, 8.336794 and 56.972371 mean absolute RGB
+channel distance, respectively. References contain 192 dpi metadata and are
+BOX-resampled in memory to the 96 dpi output dimensions; no oracle PNG changes.
+The scale-4 label check shows dark connector text on white backgrounds.
+Detailed changed-page inventories remain in private Brief36 observation state.
 
 
 ### M5.10: passive Action values, stored-value counterexample (2026-10-17)

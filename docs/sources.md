@@ -15,6 +15,7 @@ that the page was consulted during this session.
 | <http://schemas.openxmlformats.org/package/2006/relationships> | `tools/oracle/accept_report.py`, `tools/oracle/route_geometry.py`, `tools/oracle/test_accept_report.py` |
 | <https://git-scm.com/docs/git#Documentation/git.txt---exec-pathltpathgt> | `apps/misterdiagram-cli/tests/examples.rs` |
 | <https://github.com/storytold/craft-fonts> | `crates/fonts/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.rgbcolormodelpercentage> | `crates/color/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references> | `crates/engine/src/arrange.rs`, `crates/engine/src/reference_cleanup.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/lookup.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-date-time-and-duration-values> | `crates/sheet/src/functions/text.rs`, `crates/sheet/src/units.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-error-values> | `crates/sheet/src/value.rs` |
@@ -117,7 +118,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/flipx-cell-shape-transform-section> | `crates/engine/src/shapes.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/evaluate/transform.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/flipy-cell-shape-transform-section> | `crates/engine/src/shapes.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/evaluate/transform.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/floor-function> | `crates/sheet/src/functions/numeric.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section> | `crates/theme/src/resolve.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/text.rs`, `crates/vsdx/tests/theme_fonts.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section> | `crates/engine/src/reference_cleanup.rs`, `crates/theme/src/resolve.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/text.rs`, `crates/vsdx/tests/theme_fonts.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/font-function> | `crates/sheet/src/functions/color.rs`, `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fontschemeindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fonttoid-function> | `crates/sheet/src/functions/color.rs` |
@@ -242,6 +243,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/prompt-cell-actions-section> | `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/prompt-cell-shape-data-section> | `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/quickstylefillcolor-cell-quick-style-section> | `crates/vsdx/src/evaluate.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/quickstyletype-cell-quick-style-section> | `crates/theme/src/resolve.rs`, `crates/vsdx/tests/theme_connectors.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rad-function> | `crates/sheet/src/functions/extras.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rectsect-function> | `crates/sheet/src/functions/spatial.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/red-function> | `crates/sheet/src/functions/color.rs` |
@@ -400,6 +402,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.duplicate> | `crates/engine/src/arrange.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.mastershape> | `tools/oracle/b25/dell-instance-witness.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.nameu> | `crates/vsdx/src/dump.rs` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.oned> | `crates/vsdx/tests/theme_connectors.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.reroute> | `apps/misterdiagram-corpus/examples/route_sweep.rs`, `crates/engine/src/glue.rs`, `crates/engine/src/layout.rs`, `crates/route/src/orthogonal.rs`, `crates/route/src/straight.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.rowcount> | `tools/oracle/common.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.rowscellcount> | `crates/vsdx/src/evaluate.rs`, `tools/oracle/common.ps1` |

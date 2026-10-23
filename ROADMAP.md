@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-23: M5.44 through M5.47 (#79, #80, #82) add a strict five-document theme sweep, preserve real gradient stops and native colour precision, resolve variant indexes and requested font faces, and select connector text and line styles. Equality improves from 147,346 to 261,855 of 264,405 rows; all gradient stops match. Secondary backgrounds and dormant gradient angles still differ in 2,550 rows, so complete THEMEVAL parity remains open. All three measured field render distances decrease.
+
 - 2026-10-22: M5.29e to M5.29g (#68) closes the scaled-drop native re-save representation gate: all 13 synthetic drawings save with zero strict differences, down from 375. New instances omit redundant inherited literals with the witnessed unit/style/layer exceptions; ordinary 1-D masters use stable MasterType 1; converted numeric caches match native decimals. The blank window control is captured and hashed in the same run, with every other comparison rule unchanged.
 
 - 2026-10-22: M5.31 (#71) adds ordered stencil folders via the platform path separator, a CLI/MCP flag that overrides the environment, bare-name resolution with optional extension, absolute open paths, and metadata-only discovery. Admission and session ceilings are unchanged; configuration memory is accounted for.

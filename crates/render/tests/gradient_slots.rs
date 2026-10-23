@@ -65,7 +65,7 @@ fn real_theme_white_stop_and_implicit_themed_slots_are_distinct() {
         ("ColorSchemeIndex", "123"),
         ("QuickStyleFillMatrix", "1"),
         ("QuickStyleFillColor", "0"),
-        ("QuickStyleType", "1"),
+        ("QuickStyleType", "2"),
     ] {
         shape.sheet.cells.retain(|cell| cell.name != name);
         shape.sheet.cells.push(literal(name, value));

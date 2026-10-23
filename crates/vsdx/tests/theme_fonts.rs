@@ -9,7 +9,10 @@ fn document(face: &str) -> Document {
     latin.attributes.insert("typeface".into(), face.into());
     let root = element("theme", vec![element("fontScheme", vec![element("minorFont", vec![latin])])]);
     let mut document = skeleton::document(false);
-    document.parts.insert("visio/theme/theme1.xml".into(), Part { xml: Some(root.into()), ..Default::default() });
+    document.parts.insert(
+        "visio/theme/theme1.xml".into(),
+        Part { xml: Some(root.into()), content_type: Some("application/vnd.openxmlformats-officedocument.theme+xml".into()), ..Default::default() },
+    );
     document
 }
 
@@ -60,7 +63,7 @@ fn raw_theme_faces_resolve_with_colliding_saved_ids() {
             ("FontSchemeIndex", "123"),
             ("QuickStyleFontColor", "0"),
             ("QuickStyleFontMatrix", "1"),
-            ("QuickStyleType", "1"),
+            ("QuickStyleType", "2"),
         ] {
             shape.sheet.cells.retain(|cell| cell.name != name);
             shape.sheet.cells.push(Cell { name: name.into(), value: Some(value.into()), ..Default::default() });
@@ -79,4 +82,38 @@ fn raw_theme_faces_resolve_with_colliding_saved_ids() {
     let mut hostile = skeleton::document(false);
     hostile.parts.insert("visio/theme/theme1.xml".into(), Part { bytes: b"<theme><broken>".to_vec().into(), ..Default::default() });
     assert!(Evaluator::new(&hostile).is_err());
+}
+
+/// A formula cache can name a requested theme face missing from FaceNames.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section
+#[test]
+fn theme_only_font_formula_cache_roundtrips_by_name() {
+    use misterdiagram_model::{Cell, Row, Section};
+    let mut document = document("Contributor Theme Face");
+    let mut shape = skeleton::rectangle(1, 1., 1., 2., 1., "Label").unwrap();
+    shape.sheet.sections.push(Section {
+        name: "Character".into(),
+        rows: vec![Row {
+            index: Some(0),
+            cells: vec![Cell {
+                name: "Font".into(),
+                formula: Some("FONT(\"Contributor Theme Face\")".into()),
+                value: Some("0".into()),
+                ..Default::default()
+            }],
+            ..Default::default()
+        }],
+        ..Default::default()
+    });
+    document.pages[0].shapes.push(shape);
+    let written = misterdiagram_vsdx::write_with_hosts(&document, None, Some(&misterdiagram_text::Host)).unwrap();
+    assert_eq!(written.warning_count, 0, "{:?}", written.warnings);
+    let reopened = misterdiagram_vsdx::import(&written.bytes).unwrap();
+    assert_eq!(reopened.face_names, document.face_names);
+    let cell = &reopened.pages[0].shapes[0].sheet.sections.iter().find(|s| s.name == "Character").unwrap().rows[0].cells[0];
+    assert_eq!(cell.value.as_deref(), Some("Contributor Theme Face"));
+    assert_eq!(cell.formula.as_deref(), Some("FONT(\"Contributor Theme Face\")"));
+    let mut evaluator = Evaluator::new(&reopened).unwrap();
+    let value = evaluator.evaluate(misterdiagram_vsdx::evaluate::Scope::PageShape { page: 0, shape: 1 }, "Char.Font");
+    assert_eq!(evaluator.font_name(value.numeric().unwrap() as u32), Some("Contributor Theme Face"));
 }

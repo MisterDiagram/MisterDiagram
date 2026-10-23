@@ -362,3 +362,10 @@ Reference: https://learn.microsoft.com/en-us/office/vba/api/visio.shape.reroute
   Font faces compare by name; unresolved style rules remain explicit failures.
   Test: `themeval_sweep::tests::hostile_rows_and_exact_comparison`. Reference:
   <https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function>.
+
+- M5.47, Themes and variants: P unchanged. The same strict population now has
+  261,855 equal rows, including all 148,320 gradient rows, with no evaluator
+  errors. Secondary backgrounds and dormant angles keep full parity open.
+  Contributor-written transform, connector and font save/capture tests cover
+  the implemented rules. Reference:
+  <https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function>.

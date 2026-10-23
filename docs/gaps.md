@@ -28,22 +28,23 @@ M5.29 observation in docs/file-format-parity.md.
 
 ## THEMEVAL resolution (#79, #80, #82)
 
-M5.44 adds the strict `themeval_sweep` corpus example. It compares every row
-of the five private theme sweeps, including all ten fill-gradient slots per
-shape, without cached fallback. The fixed population is 264,405 rows.
-The baseline has 147,346 equal rows and 117,059 unequal rows. Fill and colour
-index resolution and connector styles are being corrected; complete equality
-remains open.
-Char.Font compares face names, retaining every row in the population.
-No private theme XML or sample document is included in the public tests.
-Gradient foreground selection, shared `THEMECBV` transform parsing and unused
-render-stop handling now have contributor-written regression tests. Exact
-composite transform precision and identity-specific secondary backgrounds
-remain open. The latter have native synthetic controls showing that identical
-numerical style XML can produce different backgrounds under different theme
-identities. Colour indexes, variant matrices and requested theme font faces
-now resolve without an error in the five sweeps: 244,299/264,405 rows equal.
-Connector classification and the remaining numerical differences are open.
+M5.44 adds the strict `themeval_sweep` corpus example. It compares all 264,405
+rows of the five private sweeps without cached fallback. Char.Font compares
+requested face names, retaining every row. Public tests use contributor-written
+numerical themes and controls, with no private theme XML or sample documents.
+
+M5.45 through M5.47 correct gradient base selection and real-stop rendering,
+percentage-precision colour transforms, colour and style variant indexes,
+missing theme font registration, and connector text/line selection. The sweep
+improves from 147,346 to 261,855 equal rows. All gradient, text-colour and line
+rows match; there are no evaluator errors in the sweep. All three field render
+distances decrease and connector labels are dark on white backgrounds.
+
+Full THEMEVAL parity remains open: 2,198 secondary-background rows and 352
+dormant gradient-angle rows differ. Synthetic native controls show different
+results for identical numerical style XML under different theme identities.
+The two checked Process shapes have no style-cell errors, but one still has
+a different secondary background. These failures are reported, never masked.
 
 ## Issue 78: a tester's flowchart rendered nothing (2026-10-22)
 
@@ -68,11 +69,10 @@ flow built from the cross-functional flowchart and BPMN masters) failed with
   SHEET.5!LISTORDER; used the value saved in the file"). Oracle comparisons, `sheet`, the
   inspection tools and the writer never enable it. On the sample, 10 cells fall back and the
   page matches Visio's export on layout: title bar, both pools, every lane, task, gateway
-  and connector route. Two differences seen in that comparison are older rendering gaps, not
-  part of this fix: the shapes draw with a gradient where Visio fills them solid teal
-  (FillGradientEnabled=1 with FillForegnd=FillBkgnd), and the connector labels "Yes" and
-  "No" come out as a row of dots. Filed as #79 (fill) and #80 (label colour: the text is
-  white on the white text background, a THEMEVAL Char.Color resolution for connectors).
+  and connector route. The later native sweeps correct the initial fill diagnosis: these task fills have
+  subtle gradients. M5.45 through M5.47 correct the washed-out gradient rendering
+  (#79) and white connector label colour (#80). Remaining THEMEVAL differences
+  are listed above.
 
 ## Brief 26b: image groups and connector ends (2026-10-21)
 

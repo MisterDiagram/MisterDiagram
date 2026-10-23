@@ -362,16 +362,16 @@ impl Themes {
                 }
                 "fillforegndtrans" | "fillbkgndtrans" => Ok(Value::number(1. - f64::from(color(fill, colors, ph, 0)?.a) / 255.)),
                 "fillpattern" => Ok(Value::Number(f64::from(
-                    root.find("fillStyles").and_then(|e| e.elements().nth(index)).and_then(|e| e.u32("pattern")).unwrap_or(if fill.is("noFill") {
-                        0
-                    } else {
-                        1
-                    }),
+                    (if connector { None } else { root.find("fillStyles") })
+                        .and_then(|e| e.elements().nth(index))
+                        .and_then(|e| e.u32("pattern"))
+                        .unwrap_or(if fill.is("noFill") { 0 } else { 1 }),
                 ))),
                 "fillgradientenabled" => Ok(Value::Bool(fill.is("gradFill"))),
-                "fillgradientangle" => {
-                    Ok(Value::number(fill.child("lin").and_then(|e| e.f64("ang")).unwrap_or(0.) / 60000. * std::f64::consts::PI / 180.))
-                }
+                "fillgradientangle" => match fill.child("lin").and_then(|e| e.f64("ang")) {
+                    Some(angle) => Ok(Value::number(angle / 60000. * std::f64::consts::PI / 180.)),
+                    None => Ok(cx.theme_default(&cell)),
+                },
                 "rotategradientwithshape" => Ok(Value::Bool(fill.bool("rotWithShape").unwrap_or(true))),
                 _ => Ok(cx.theme_default(&cell)),
             };
@@ -442,12 +442,13 @@ fn font_face<'a>(component: &'a El, props: Option<&'a El>, script: &str) -> Opti
     };
     component.path(&[scheme, script]).and_then(|p| p.attr("typeface")).filter(|s| !s.is_empty())
 }
+/// Explicit 1D and connector styles select the connector scheme; 2D selects normal.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/quickstyletype-cell-quick-style-section
 fn is_connector(cx: &mut dyn Context) -> Result<bool, Error> {
-    let one_d = cx.resolve("OneD").numeric().is_ok_and(|v| v != 0.);
     Ok(match selector(cx, "QuickStyleType")? {
-        1 => false,
-        2 => true,
-        _ => one_d,
+        1 | 3 => true,
+        2 => false,
+        _ => cx.theme_selector("OneD").numeric().is_ok_and(|v| v != 0.),
     })
 }
 /// A theme supplies at most ten stop slots, with omitted slots using blank defaults.
