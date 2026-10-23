@@ -5,6 +5,12 @@ use crate::{Context, Error, Value};
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function
 pub trait ThemeHost {
     fn theme(&self, name: &str, args: &[Value], context: &mut dyn Context) -> Value;
+    /// Number of real theme fill stops, excluding the unused ShapeSheet slots.
+    /// None means this host does not provide stop provenance.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/fillgradient-section
+    fn fill_gradient_stop_count(&self, _context: &mut dyn Context) -> Result<Option<usize>, Error> {
+        Ok(None)
+    }
 }
 
 /// Translate public THEMEVAL names to universal cell names.

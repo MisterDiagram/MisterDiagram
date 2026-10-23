@@ -361,6 +361,13 @@ impl<'a> Evaluator<'a> {
         self.values.clear();
         self
     }
+    /// Resolve theme stop provenance separately from the ten evaluated slot values.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/fillgradient-section
+    pub fn theme_fill_gradient_stop_count(&mut self, scope: Scope) -> Result<Option<usize>, Error> {
+        let Some(host) = self.theme_host else { return Ok(Some(0)) };
+        let mut context = BoundContext { evaluator: self, scope, origin: scope, cached: Value::Number(0.) };
+        host.fill_gradient_stop_count(&mut context)
+    }
     pub fn with_text_host(mut self, host: &'a dyn misterdiagram_model::text::TextHost) -> Self {
         self.text_host = Some(host);
         self.values.clear();

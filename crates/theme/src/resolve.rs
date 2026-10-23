@@ -154,15 +154,7 @@ impl Themes {
         let line = cell.starts_with("line")
             || matches!(cell.as_str(), "beginarrow" | "endarrow" | "beginarrowsize" | "endarrowsize" | "rounding" | "compoundtype");
         let fill = cell.starts_with("fill") || matches!(cell.as_str(), "rotategradientwithshape" | "usegroupgradient");
-        let one_d = cx.resolve("OneD").numeric().is_ok_and(|v| v != 0.);
-        let quick_type = selector(cx, "QuickStyleType")?;
-        let connector = if quick_type == 1 {
-            false
-        } else if quick_type == 2 {
-            true
-        } else {
-            one_d
-        };
+        let connector = is_connector(cx)?;
         let scheme_name = if font {
             "FontSchemeIndex"
         } else if connector {
@@ -349,19 +341,14 @@ impl Themes {
                         cx.color(n as u32).ok_or(Error::Ref)?
                     }
                 };
-                let mut c = Rgba::rgb(rgb[0], rgb[1], rgb[2]);
-                for t in el.elements().take(64) {
-                    let n = t.i32("val").ok_or(Error::Value)?;
-                    match t.local() {
-                        "tint" => c = apply(c, &[ColorTransform::Tint(n)]),
-                        "shade" => c = apply(c, &[ColorTransform::Shade(n)]),
-                        _ => {}
-                    }
-                }
+                let c = apply(Rgba::rgb(rgb[0], rgb[1], rgb[2]), &transforms(el)?);
                 return color_value(c, cx);
             }
             return match cell.as_str() {
                 "fillforegnd" | "fillbkgnd" => {
+                    if fill.is("gradFill") && cell == "fillforegnd" {
+                        return color_value(ph, cx);
+                    }
                     let selected =
                         if fill.is("pattFill") { fill.child(if cell == "fillbkgnd" { "bgClr" } else { "fgClr" }).ok_or(Error::Value)? } else { fill };
                     color_value(color(selected, colors, ph, 0)?, cx)
@@ -420,10 +407,30 @@ impl Themes {
     }
 }
 impl ThemeHost for Themes {
+    fn fill_gradient_stop_count(&self, cx: &mut dyn Context) -> Result<Option<usize>, Error> {
+        let connector = is_connector(cx)?;
+        let id = selector(cx, if connector { "ConnectorSchemeIndex" } else { "EffectSchemeIndex" })?;
+        if id == 0 {
+            return Ok(Some(0));
+        }
+        let (root, component) = self.component(if connector { "fmtConnectorScheme" } else { "fmtScheme" }, id).ok_or(Error::Ref)?;
+        let matrix = matrix_index(root, selector(cx, "QuickStyleFillMatrix")?, selector(cx, "VariationStyleIndex")?, "fillIdx")?;
+        let fill = matrix.checked_sub(1).and_then(|i| component.child("fillStyleLst")?.elements().nth(i as usize));
+        let count = fill.filter(|e| e.is("gradFill")).and_then(|e| e.child("gsLst")).map_or(0, |e| e.elements().take(10).count());
+        Ok(Some(count))
+    }
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function
     fn theme(&self, name: &str, args: &[Value], context: &mut dyn Context) -> Value {
         self.resolve(name, args, context).and_then(|value| self.contrast_variant(name, args, value, context)).unwrap_or_else(Value::Error)
     }
+}
+fn is_connector(cx: &mut dyn Context) -> Result<bool, Error> {
+    let one_d = cx.resolve("OneD").numeric().is_ok_and(|v| v != 0.);
+    Ok(match selector(cx, "QuickStyleType")? {
+        1 => false,
+        2 => true,
+        _ => one_d,
+    })
 }
 /// A theme supplies at most ten stop slots, with omitted slots using blank defaults.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function
@@ -540,12 +547,17 @@ fn color(el: &El, scheme: Option<&El>, ph: Rgba, depth: usize) -> Result<Rgba, E
             return color(child, scheme, ph, depth + 1);
         }
     };
+    Ok(apply(c, &transforms(el)?))
+}
+/// Shared transform sequence for themed colours and explicit gradient base colours.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/themecbv-function
+fn transforms(el: &El) -> Result<Vec<ColorTransform>, Error> {
     let mut transforms = Vec::new();
     for t in el.elements() {
         if transforms.len() >= 64 {
             return Err(Error::Limit);
         }
-        let value = t.i32("val").unwrap_or(0);
+        let value = if matches!(t.local(), "comp" | "inv" | "gray") { 0 } else { t.i32("val").ok_or(Error::Value)? };
         let transform = match t.local() {
             "tint" => ColorTransform::Tint(value),
             "shade" => ColorTransform::Shade(value),
@@ -565,7 +577,7 @@ fn color(el: &El, scheme: Option<&El>, ph: Rgba, depth: usize) -> Result<Rgba, E
         };
         transforms.push(transform);
     }
-    Ok(apply(c, &transforms))
+    Ok(transforms)
 }
 
 #[cfg(test)]
@@ -591,7 +603,36 @@ mod tests {
     }
     // Contributor-original numerical fixture, not a shipped visual theme.
     fn theme() -> Themes {
-        Themes { themes: vec![Themes::parse(br#"<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:v="http://schemas.microsoft.com/office/visio/2012/theme"><a:themeElements><a:clrScheme><a:dk1><a:srgbClr val="010305"/></a:dk1><a:accent3><a:srgbClr val="214365"/></a:accent3><a:extLst><a:ext><v:schemeID schemeEnum="123"/><v:variationClrSchemeLst><v:variationClrScheme><v:varColor1><a:srgbClr val="426384"/></v:varColor1></v:variationClrScheme></v:variationClrSchemeLst></a:ext></a:extLst></a:clrScheme><a:fmtScheme><a:fillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:fillStyleLst></a:fmtScheme><a:extLst><a:ext><v:fmtSchemeEx><v:schemeID schemeEnum="123"/></v:fmtSchemeEx><v:variationStyleSchemeLst><v:variationStyleScheme><v:varStyle fillIdx="1"/></v:variationStyleScheme></v:variationStyleSchemeLst></a:ext></a:extLst></a:themeElements></a:theme>"#).unwrap()] }
+        Themes { themes: vec![Themes::parse(br#"<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:v="http://schemas.microsoft.com/office/visio/2012/theme"><a:themeElements><a:clrScheme><a:dk1><a:srgbClr val="010305"/></a:dk1><a:accent3><a:srgbClr val="214365"/></a:accent3><a:extLst><a:ext><v:schemeID schemeEnum="123"/><v:variationClrSchemeLst><v:variationClrScheme><v:varColor1><a:srgbClr val="426384"/></v:varColor1></v:variationClrScheme></v:variationClrSchemeLst></a:ext></a:extLst></a:clrScheme><a:fmtScheme><a:fillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:fillStyleLst></a:fmtScheme><a:extLst><a:ext><v:fillStyles><v:fillProps pattern="7"/></v:fillStyles><v:fmtSchemeEx><v:schemeID schemeEnum="123"/></v:fmtSchemeEx><v:variationStyleSchemeLst><v:variationStyleScheme><v:varStyle fillIdx="1"/></v:variationStyleScheme></v:variationStyleSchemeLst></a:ext></a:extLst></a:themeElements></a:theme>"#).unwrap()] }
+    }
+    #[test]
+    fn malformed_transform_values_are_errors() {
+        for input in ["<srgbClr val='14283C'><shade/></srgbClr>", "<srgbClr val='14283C'><lumMod val='bad'/></srgbClr>"] {
+            let doc = xml::parse(input.as_bytes()).unwrap();
+            assert_eq!(transforms(&doc.root), Err(Error::Value));
+            assert_eq!(color(&doc.root, None, Rgba::BLACK, 0), Err(Error::Value));
+        }
+    }
+    #[test]
+    fn observed_gradient_transform_numbers() {
+        let base = Rgba::rgb(30, 81, 85);
+        assert_eq!(apply(base, &[ColorTransform::SatMod(99000), ColorTransform::LumMod(147000)]), Rgba::rgb(44, 119, 125));
+        assert_eq!(apply(base, &[ColorTransform::SatMod(98000), ColorTransform::LumMod(94000)]), Rgba::rgb(29, 76, 79));
+    }
+    #[test]
+    fn authored_gradient_placeholder_and_explicit_base_share_transforms() {
+        let mut theme = theme();
+        let root = &mut theme.themes[0].root;
+        // A separate contributor-original theme provides one gradient with numerical transforms.
+        *root = xml::parse(br#"<theme><clrScheme><dk1><srgbClr val="14283C"/></dk1><schemeID schemeEnum="123"/></clrScheme><fmtScheme><fillStyleLst><gradFill><gsLst><gs pos="0"><schemeClr val="phClr"><satMod val="50000"/><lumMod val="160000"/></schemeClr></gs><gs pos="100000"><schemeClr val="phClr"><lumMod val="80000"/></schemeClr></gs></gsLst></gradFill></fillStyleLst></fmtScheme><fmtSchemeEx><schemeID schemeEnum="123"/></fmtSchemeEx></theme>"#).unwrap().root;
+        let mut cx = TestContext {
+            cells: BTreeMap::from([("ColorSchemeIndex".into(), 123.), ("EffectSchemeIndex".into(), 123.), ("QuickStyleFillMatrix".into(), 1.)]),
+        };
+        let base = Value::Color { index: 24, rgb: [20, 40, 60], hsl: None };
+        assert_eq!(theme.theme("THEMEVAL", &[Value::Text("FillForegnd".into())], &mut cx), base);
+        let expected = theme.theme("THEMEVAL", &[Value::Text("FillGradientStops.GradientStopColor".into())], &mut cx);
+        assert_ne!(expected, base);
+        assert_eq!(theme.theme("THEMECBV", &[base, Value::Number(1.)], &mut cx), expected);
     }
     #[test]
     fn microsoft_themeval_examples_and_variant_selectors() {
@@ -606,6 +647,8 @@ mod tests {
         };
         assert_eq!(theme.theme("THEMEVAL", &[Value::Text("5".into())], &mut cx), Value::Color { index: 24, rgb: [0x21, 0x43, 0x65], hsl: None });
         assert_eq!(theme.theme("THEMEVAL", &[], &mut cx), Value::Color { index: 24, rgb: [0x42, 0x63, 0x84], hsl: None });
+        assert_eq!(theme.theme("THEMEVAL", &[Value::Text("FillGradientEnabled".into())], &mut cx), Value::Bool(false));
+        assert_eq!(theme.theme("THEMEVAL", &[Value::Text("FillPattern".into())], &mut cx), Value::Number(7.));
         cx.cells.clear();
         assert_eq!(
             theme.theme("THEMEVAL", &[Value::Text("LineWeight".into()), Value::Text("0.7 pt.".into())], &mut cx),

@@ -265,6 +265,35 @@ at position 0 and RGB(29,76,79) at position 1 in the TSV. The second value
 supersedes the rounded RGB(29,76,80) claim in the private findings/brief.
 No resolver rule, threshold or oracle file was changed in M5.44.
 
+### M5.45: gradient slots and secondary backgrounds (#79)
+
+A gradient's `FillForegnd` is its quick-style base colour, independently of
+its transformed stops. `THEMECBV` and stop colours use the same bounded
+transform parser in XML order. The numeric controls
+`field/themeval-2026-10-22/synthetic-brief36/themeval-single-case-v5` and `-v6`
+confirm RGB(30,81,85) becomes RGB(44,119,125) and RGB(29,76,79) for the two
+observed stop transforms. Exact transform precision on other inputs remains
+open; these two examples do not establish complete gradient parity.
+
+ShapeSheet exposes ten gradient slots even when the selected theme defines
+fewer stops. Sorting unused white slots at position zero washed out the
+rendered gradient. Rendering now asks the theme for its actual stop count,
+retains explicit cell overrides, and excludes unused themed slots before
+sorting. Genuine theme-authored white stops at zero remain present. Implicit themed
+cells follow the same provenance rule. Contributor-written tests cover both
+representations.
+
+The private synthetic `themeval-single-case-v8` controls preserve numerical
+style XML while changing five component/page indexes and theme names. In
+separate Visio instances, native identity 43 gives background RGB(30,81,85)
+on the rectangle and white on the connector; identity 65001 with the same
+numerical XML gives RGB(76,183,192) on both. A separate colour-only change
+then changes that background to RGB(124,162,199). Thus explicit numerical XML
+alone does not determine these secondary backgrounds. IDs and names changed
+together, so this control does not isolate their individual effects.
+These identity-specific values remain failures in the strict sweep.
+
+
 
 ### M5.10: passive Action values, stored-value counterexample (2026-10-17)
 

@@ -206,14 +206,33 @@ fn gradient(e: &mut Evaluator<'_>, scope: Scope) -> Option<style::Gradient> {
     if number(e, scope, "FillGradientEnabled", 0.) == 0. {
         return None;
     }
+    let themed_count = e.theme_fill_gradient_stop_count(scope).ok().flatten();
     let mut stops = Vec::new();
+    let mut fallback = Vec::new();
     for index in 0..10 {
         let suffix = if index == 0 { String::new() } else { format!("[{}]", index + 1) };
-        let name = format!("FillGradientStops.GradientStopPosition{suffix}");
-        let position = number(e, scope, &name, if index == 0 { 0. } else { 1. });
-        let c =
-            color(e, scope, &format!("FillGradientStops.GradientStopColor{suffix}"), &format!("FillGradientStops.GradientStopColorTrans{suffix}"));
-        stops.push((position, c));
+        let position_name = format!("FillGradientStops.GradientStopPosition{suffix}");
+        let color_name = format!("FillGradientStops.GradientStopColor{suffix}");
+        let trans_name = format!("FillGradientStops.GradientStopColorTrans{suffix}");
+        let position = number(e, scope, &position_name, if index == 0 { 0. } else { 1. });
+        let c = color(e, scope, &color_name, &trans_name);
+        let themed = [&position_name, &color_name, &trans_name].iter().all(|name| {
+            e.cell(scope, name).is_none()
+                || e.effective_formula(scope, name).is_some_and(|formula| {
+                    formula.bytes().filter(|b| !b.is_ascii_whitespace()).map(|b| b.to_ascii_uppercase()).eq(b"THEMEVAL()".iter().copied())
+                })
+        });
+        if index < 2 {
+            fallback.push((position, c));
+        }
+        // Theme metadata distinguishes genuine white-at-zero stops from unused slots.
+        // Explicit cell overrides remain part of the gradient beyond the theme's list.
+        if !themed || themed_count.is_none_or(|count| index < count) {
+            stops.push((position, c));
+        }
+    }
+    if stops.is_empty() {
+        stops = fallback;
     }
     stops.sort_by(|a, b| a.0.total_cmp(&b.0));
     Some(style::Gradient { stops, radial: number(e, scope, "FillGradientDir", 0.) != 0., angle: number(e, scope, "FillGradientAngle", 0.) })
