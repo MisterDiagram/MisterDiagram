@@ -14,6 +14,16 @@ Every implemented element, cell and function cites its reference page in its doc
 
 ## 3. Third-party projects consulted
 
+Brief 36 (2026-10-23): the private observation records
+`field/themeval-2026-10-22/README.md` and `FINDINGS.md`, plus
+[MisterDiagram issue 79](https://github.com/MisterDiagram/MisterDiagram/issues/79),
+[issue 80](https://github.com/MisterDiagram/MisterDiagram/issues/80) and
+[issue 82](https://github.com/MisterDiagram/MisterDiagram/issues/82), supplied
+reported symptoms and experiment leads. Immutable TSV values and fresh
+synthetic native controls govern the implementation where the notes disagree.
+No sample, theme XML, artwork or third-party implementation was copied into
+this repository. Public tests use contributor-written numerical themes.
+
 Brief 34 (2026-10-21): Charles's local observation record
 `craft-apps/scope/visio/execute/32-router-capacity.md`, result section, supplied
 the native-large-300 lane finding and coordinates that motivated new synthetic
