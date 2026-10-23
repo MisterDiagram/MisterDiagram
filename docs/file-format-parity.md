@@ -16511,6 +16511,11 @@ zero-length dot marks. The table counts physical marks, including a mark at the
 end when aligned. Each ours column lists round/butt/square counts. A backend
 may omit an endpoint cap; the tolerance is one mark at each end.
 Marks per inch are the listed seven-inch counts divided by seven.
+The native witness remains one page. Our full-page 300 dpi export exceeds the
+existing pixel-allocation cap, so measurements use 23 translated sections,
+one per pattern with all twelve weight/cap cases. The same sections are
+exported through the final CLI at both scales in all three backends. No cap
+was raised, and no native export was altered.
 
 | Pattern | Weight (pt) | Visio | Ours before (0/1/2) | Ours after (0/1/2) |
 |---|---:|---:|---|---|
@@ -16519,49 +16524,49 @@ Marks per inch are the listed seven-inch counts divided by seven.
 | 1 | 1.25 | 1 | 1/1/1 | 1/1/1 |
 | 1 | 3 | 1 | 1/1/1 | 1/1/1 |
 | 2 | 0.25 | 169 | 56/56/56 | 168/168/168 |
-| 2 | 0.75 | 57 | 56/56/56 | 56/56/56 |
+| 2 | 0.75 | 57 | 56/56/56 | 57/56/57 |
 | 2 | 1.25 | 34 | 34/34/34 | 34/34/34 |
 | 2 | 3 | 15 | 14/14/14 | 14/14/14 |
-| 3 | 0.25 | 404 | 37/0/37 | 403/403/403 |
+| 3 | 0.25 | 404 | 37/0/37 | 404/404/404 |
 | 3 | 0.75 | 135 | 37/0/37 | 135/135/135 |
 | 3 | 1.25 | 81 | 25/0/25 | 81/81/81 |
 | 3 | 3 | 34 | 12/0/12 | 34/34/34 |
 | 4 | 0.25 | 237 | 54/40/54 | 237/237/237 |
 | 4 | 0.75 | 79 | 52/40/52 | 79/79/79 |
-| 4 | 1.25 | 48 | 29/24/29 | 47/47/47 |
+| 4 | 1.25 | 48 | 29/24/29 | 48/48/48 |
 | 4 | 3 | 20 | 13/10/13 | 20/20/20 |
-| 5 | 0.25 | 275 | 50/31/50 | 274/274/274 |
-| 5 | 0.75 | 92 | 50/31/50 | 91/91/91 |
+| 5 | 0.25 | 275 | 50/31/50 | 275/275/275 |
+| 5 | 0.75 | 92 | 50/31/50 | 92/91/92 |
 | 5 | 1.25 | 55 | 30/19/30 | 55/55/55 |
 | 5 | 3 | 23 | 12/8/12 | 23/23/23 |
-| 6 | 0.25 | 209 | 54/47/54 | 208/208/208 |
+| 6 | 0.25 | 209 | 54/47/54 | 209/209/209 |
 | 6 | 0.75 | 70 | 52/47/52 | 70/70/70 |
 | 6 | 1.25 | 42 | 28/28/28 | 42/42/42 |
 | 6 | 3 | 17 | 12/12/12 | 17/17/17 |
 | 7 | 0.25 | 113 | 37/37/37 | 112/112/112 |
-| 7 | 0.75 | 38 | 37/37/37 | 37/37/37 |
+| 7 | 0.75 | 38 | 37/37/37 | 38/37/38 |
 | 7 | 1.25 | 23 | 23/23/23 | 23/23/23 |
 | 7 | 3 | 10 | 9/9/9 | 9/9/9 |
 | 8 | 0.25 | 127 | 42/42/42 | 126/126/126 |
-| 8 | 0.75 | 43 | 42/42/42 | 42/42/42 |
+| 8 | 0.75 | 43 | 42/42/42 | 43/42/43 |
 | 8 | 1.25 | 25 | 25/25/25 | 25/25/25 |
 | 8 | 3 | 11 | 10/10/10 | 10/10/10 |
 | 9 | 0.25 | 337 | 112/112/112 | 336/336/336 |
 | 9 | 0.75 | 113 | 112/112/112 | 112/112/112 |
 | 9 | 1.25 | 68 | 68/68/68 | 68/68/68 |
 | 9 | 3 | 29 | 28/28/28 | 28/28/28 |
-| 10 | 0.25 | 673 | 43/0/43 | 671/671/671 |
+| 10 | 0.25 | 673 | 43/0/43 | 672/672/672 |
 | 10 | 0.75 | 225 | 45/0/45 | 224/224/224 |
 | 10 | 1.25 | 135 | 37/0/37 | 135/135/135 |
-| 10 | 3 | 57 | 16/0/16 | 56/56/56 |
-| 11 | 0.25 | 449 | 88/75/88 | 447/447/447 |
+| 10 | 3 | 57 | 16/0/16 | 57/56/57 |
+| 11 | 0.25 | 449 | 88/75/88 | 448/448/448 |
 | 11 | 0.75 | 150 | 89/75/89 | 149/149/149 |
 | 11 | 1.25 | 90 | 59/45/59 | 90/90/90 |
 | 11 | 3 | 38 | 23/19/23 | 37/37/37 |
-| 12 | 0.25 | 505 | 80/56/80 | 503/503/503 |
+| 12 | 0.25 | 505 | 80/56/80 | 504/504/504 |
 | 12 | 0.75 | 169 | 80/56/80 | 168/168/168 |
 | 12 | 1.25 | 101 | 53/34/53 | 101/101/101 |
-| 12 | 3 | 43 | 23/14/23 | 42/42/42 |
+| 12 | 3 | 43 | 23/14/23 | 43/42/43 |
 | 13 | 0.25 | 404 | 104/90/104 | 403/403/403 |
 | 13 | 0.75 | 135 | 103/90/103 | 134/134/134 |
 | 13 | 1.25 | 81 | 59/54/59 | 81/81/81 |
@@ -16574,7 +16579,7 @@ Marks per inch are the listed seven-inch counts divided by seven.
 | 15 | 0.75 | 85 | 84/84/84 | 84/84/84 |
 | 15 | 1.25 | 51 | 51/51/51 | 51/51/51 |
 | 15 | 3 | 22 | 21/21/21 | 21/21/21 |
-| 16 | 0.25 | 85 | 28/28/28 | 84/84/84 |
+| 16 | 0.25 | 85 | 28/28/28 | 85/84/85 |
 | 16 | 0.75 | 29 | 28/28/28 | 28/28/28 |
 | 16 | 1.25 | 17 | 17/17/17 | 17/17/17 |
 | 16 | 3 | 8 | 7/7/7 | 7/7/7 |
@@ -16582,7 +16587,7 @@ Marks per inch are the listed seven-inch counts divided by seven.
 | 17 | 0.75 | 75 | 21/0/21 | 75/75/75 |
 | 17 | 1.25 | 45 | 10/0/10 | 45/45/45 |
 | 17 | 3 | 19 | 6/0/6 | 19/19/19 |
-| 18 | 0.25 | 123 | 26/21/26 | 122/122/122 |
+| 18 | 0.25 | 123 | 26/21/26 | 123/123/123 |
 | 18 | 0.75 | 41 | 28/21/28 | 41/41/41 |
 | 18 | 1.25 | 25 | 16/13/16 | 25/25/25 |
 | 18 | 3 | 11 | 7/6/7 | 11/11/11 |
@@ -16594,15 +16599,15 @@ Marks per inch are the listed seven-inch counts divided by seven.
 | 20 | 0.75 | 35 | 26/24/26 | 35/35/35 |
 | 20 | 1.25 | 22 | 17/15/17 | 22/22/22 |
 | 20 | 3 | 9 | 7/6/7 | 9/9/9 |
-| 21 | 0.25 | 57 | 19/19/19 | 56/56/56 |
+| 21 | 0.25 | 57 | 19/19/19 | 57/56/57 |
 | 21 | 0.75 | 19 | 19/19/19 | 19/19/19 |
 | 21 | 1.25 | 11 | 11/11/11 | 11/11/11 |
 | 21 | 3 | 5 | 5/5/5 | 5/5/5 |
-| 22 | 0.25 | 64 | 21/21/21 | 63/63/63 |
+| 22 | 0.25 | 64 | 21/21/21 | 64/63/64 |
 | 22 | 0.75 | 22 | 21/21/21 | 21/21/21 |
 | 22 | 1.25 | 13 | 13/13/13 | 13/13/13 |
-| 22 | 3 | 6 | 5/5/5 | 5/5/5 |
-| 23 | 0.25 | 673 | 224/224/224 | 671/671/671 |
+| 22 | 3 | 6 | 5/5/5 | 6/5/6 |
+| 23 | 0.25 | 673 | 224/224/224 | 672/672/672 |
 | 23 | 0.75 | 225 | 224/224/224 | 224/224/224 |
 | 23 | 1.25 | 135 | 135/135/135 | 135/135/135 |
 | 23 | 3 | 57 | 56/56/56 | 56/56/56 |
@@ -16643,22 +16648,37 @@ pass.
 
 Private evidence: `corpus/_vm/out/brief31-witness-v3/patterns.{vsdx,pdf}`,
 `patterns-96.png`, `patterns-300.png`; `plan/brief31/native-pdf-direct-counts.json`,
-`vector-counts-before-direct.json`, `pdf-counts-final-{1,3.125}.json`,
-`svg-counts-final-{1,3.125}.json`, `peak-counts-final.json` and
+`vector-counts-before-direct.json`, `pdf-counts-fitted-{1,3.125}.json`,
+`svg-counts-fitted-{1,3.125}.json`, `peak-counts-fitted.json` and
 `native-pattern-{19,20}-thin-profile.json`. Native PDF operators are read directly:
 converting that PDF to SVG merges some zero-length dash segments and loses their
 counts. The original files and the superseded converter trial remain unchanged.
 
-Corpus pixel changes for M5.30 are exactly these twelve pages:
-`generated/line/pattern-03.vsdx`, `pattern-04.vsdx`, `pattern-05.vsdx`,
-`pattern-06.vsdx`, `pattern-10.vsdx`, `pattern-11.vsdx`, `pattern-12.vsdx`,
-`pattern-13.vsdx`, `pattern-17.vsdx`, `pattern-18.vsdx`, `pattern-19.vsdx`,
-and `pattern-20.vsdx` (all in the same directory). Each gains the formerly
-missing dot segments. Raster registration differences mean that adding the
-marks does not reduce every pixel-error statistic: the line group remains
-within its frozen limits at MAD 0.905706 and 1.071292% pixels over 16.
-The unchanged render gate passes with nine generated outliers (maximum ten),
-the same count as before. All other current corpus page pixels are unchanged.
+Corpus pixel changes for M5.30 are exactly these 22 pages, all under
+`generated/line/`: `pattern-02.vsdx`, `pattern-03.vsdx`, `pattern-04.vsdx`,
+`pattern-05.vsdx`, `pattern-06.vsdx`, `pattern-07.vsdx`, `pattern-08.vsdx`,
+`pattern-09.vsdx`, `pattern-10.vsdx`, `pattern-11.vsdx`, `pattern-12.vsdx`,
+`pattern-13.vsdx`, `pattern-14.vsdx`, `pattern-15.vsdx`, `pattern-16.vsdx`,
+`pattern-17.vsdx`, `pattern-18.vsdx`, `pattern-19.vsdx`, `pattern-20.vsdx`,
+`pattern-21.vsdx`, `pattern-22.vsdx` and `pattern-23.vsdx`.
+The dot-bearing patterns regain their missing segments; all patterned lines
+now scale their dash periods and offsets with the fitted centerline transform.
+Pen width keeps its existing physical treatment. Native dot pitches for
+patterns 03, 10 and 17 are 4.97913, 2.98805 and 8.96133 pixels, respectively;
+the fitted transform predicts 4.97921, 2.98753 and 8.96258. Nominal-DPI dash
+spacing had produced 5, 3 and 9 pixels, accumulating phase error along the line.
+
+The initial dot restoration alone worsened the line report (MAD 0.905706,
+1.071292% pixels over 16). Correcting the fitted dash scale improves both
+starting-tree measures: MAD 0.892763 to 0.823705, differing pixels 1.045524%
+to 1.023187%. The unchanged render gate has nine generated outliers, including
+three in the line group, as before. All other corpus page pixels are unchanged.
+Individual page errors are not monotonic: patterns 03, 04, 06, 10, 11, 12,
+17, 18, 19 and 23 have a higher MAD or differing-pixel fraction than before,
+while remaining below both individual ceilings. These residual raster differences
+are disclosed in `plan/brief31/fitted-per-page-comparison.json`; complete marks
+do not imply pixel-identical antialiasing or registration. The nonworsening
+comparison above uses the plan's frozen group aggregation and outlier count.
 The initial solid-line floor-removal trial failed the master group; it was
 reverted in favor of preserving solid hairline behavior. No oracle changed.
 
@@ -16670,3 +16690,14 @@ Directory-bearing names, `..`, NUL and drive prefixes retain explicit-path
 handling. Metadata-only listing never parses a stencil; actual opens use the
 existing bounded reader and session reservation. Resolved paths are captured
 at open/save, so later host working-directory changes do not relabel a document.
+
+### Final synthetic re-save observation (Brief 31b)
+
+One consolidated native run opened and saved all 13 final engine-generated
+drawings: twelve scale/control pages and the three-line repro. The unchanged strict repair
+checker reports 375 representation differences, including the same 321 in the
+original eight-file subset. These are 95 imported 1-D MasterType flags, 95
+redundant PinX cells, 152 redundant endpoint cells, 26 window-height metadata
+changes and 7 one-ULP boundary cache changes. The cell-value scale comparisons
+still pass within 1e-6. This is not a zero-repair-difference acceptance result;
+see the named gap in docs/gaps.md and private vm-final-accept-report.json.

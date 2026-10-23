@@ -397,9 +397,10 @@ fn finish_bounds(scene: &mut Scene, crop: bool) {
 pub(crate) fn stroke_path(path: &BezPath, stroke: &kurbo::Stroke, view: Affine, dpi: f64) -> BezPath {
     let mut stroke = stroke.clone();
     stroke.width *= dpi;
-    stroke.dash_offset *= dpi;
+    let dash_scale = view.determinant().abs().sqrt();
+    stroke.dash_offset *= dash_scale;
     for dash in &mut stroke.dash_pattern {
-        *dash *= dpi;
+        *dash *= dash_scale;
     }
     let path = view * path;
     kurbo::stroke(path.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-4)

@@ -14,7 +14,7 @@ The missing-dot problem in #70 is corrected in PNG, SVG and PDF, including the
 three-line repro. All 276 physical mark counts are within one mark per end.
 Two native 96 dpi thin-line exports omit faint interior dots that are present
 in their PDF and 300 dpi output; our output keeps those marks. The exact pixel
-exceptions and the twelve changed corpus pages are recorded under the M5.30
+exceptions and the 22 changed corpus pages are recorded under the M5.30
 observation in docs/file-format-parity.md. No frozen render ceiling changed.
 
 ## Multiple top-level shapes in a master (Brief 31b)
@@ -1958,3 +1958,12 @@ cells also occur in unchanged-scale drops. The 1:1 package preservation contract
 remains in force; no checker, mask, threshold or volatile-list exception was
 added. Private evidence: `plan/brief31/vm-accept-report.json` and
 `corpus/_vm/out/brief31-accept/`.
+
+The final consolidated run includes all 13 synthetic outputs, including the
+five reverse-direction controls. All 13 open and save, with 375 strict differences:
+95 MasterType flags, 95 PinX removals, 152 endpoint removals, 26 window-height changes
+and the same seven boundary rounding changes. The original eight-file subset
+still has exactly 321 differences. The 54 additional observations have the same
+known causes; no existing comparison changed. Evidence:
+`plan/brief31/vm-final-accept-report.json` and
+`corpus/_vm/out/brief31-final-accept/`.

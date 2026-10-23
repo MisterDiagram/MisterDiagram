@@ -93,8 +93,9 @@ pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
                         kurbo::Join::Bevel => "bevel",
                     };
                     let dpi = 96. * options.scale;
-                    let dashes = stroke.dash_pattern.iter().map(|v| (v * dpi).to_string()).collect::<Vec<_>>().join(" ");
-                    write!(out,"<path d=\"{}\" fill=\"none\" stroke=\"#{:02x}{:02x}{:02x}\" stroke-opacity=\"{}\" stroke-width=\"{}\" stroke-linecap=\"{cap}\" stroke-linejoin=\"{join}\" stroke-miterlimit=\"{}\" stroke-dasharray=\"{}\" stroke-dashoffset=\"{}\"/>",(view*p).to_svg(),color.r,color.g,color.b,f64::from(color.a)/255.,stroke.width*dpi,stroke.miter_limit,if dashes.is_empty(){"none"}else{&dashes},stroke.dash_offset*dpi).map_err(|e|e.to_string())?;
+                    let dash_scale = view.determinant().abs().sqrt();
+                    let dashes = stroke.dash_pattern.iter().map(|v| (v * dash_scale).to_string()).collect::<Vec<_>>().join(" ");
+                    write!(out,"<path d=\"{}\" fill=\"none\" stroke=\"#{:02x}{:02x}{:02x}\" stroke-opacity=\"{}\" stroke-width=\"{}\" stroke-linecap=\"{cap}\" stroke-linejoin=\"{join}\" stroke-miterlimit=\"{}\" stroke-dasharray=\"{}\" stroke-dashoffset=\"{}\"/>",(view*p).to_svg(),color.r,color.g,color.b,f64::from(color.a)/255.,stroke.width*dpi,stroke.miter_limit,if dashes.is_empty(){"none"}else{&dashes},stroke.dash_offset*dash_scale).map_err(|e|e.to_string())?;
                 }
             }
             Op::Image { pixels, transform } => image(&mut out, pixels, view * *transform, false)?,

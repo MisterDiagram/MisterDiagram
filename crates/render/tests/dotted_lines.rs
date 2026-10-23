@@ -199,3 +199,36 @@ fn hostile_tiny_dash_weights_are_bounded_before_expansion() {
     set(&mut doc.pages[0].shapes[0].sheet, "ShapeShdwType", 1);
     assert!(scene::page(&doc, 0, options).unwrap_err().contains("dash expansion"));
 }
+
+#[test]
+fn cropped_dot_pitch_tracks_fitted_geometry_through_the_last_mark() {
+    // Synthetic five-inch line: native pattern-03 has a five-pixel period at 96 dpi and
+    // 0.75 pt. Cropping fits its centerline at 95.6 px/in, so nominal 96 dpi
+    // dash spacing accumulates almost two pixels of error at the last dot.
+    let mut path = kurbo::BezPath::new();
+    path.move_to((0., 2.5));
+    path.line_to((5., 2.5));
+    let drawing = scene::Scene {
+        warnings: vec![],
+        ops: vec![scene::Op::Stroke {
+            path,
+            stroke: kurbo::Stroke::new(1. / 96.).with_caps(kurbo::Cap::Round).with_dashes(0., [1e-6, 5. / 96. - 1e-6]),
+            color: misterdiagram_color::Rgba::BLACK,
+        }],
+        bounds: kurbo::Rect::new(0., 0., 5., 5.),
+        page_size: (5., 5.),
+    };
+    for scale in [1., 3.125] {
+        let options = scene::Options { scale, ..Default::default() };
+        let (_, _, view) = drawing.canvas(options).unwrap();
+        for (backend, pixels) in [("PNG", raster::render(&drawing, options).unwrap()), ("SVG", svg_pixels(&drawing, options))] {
+            let marks = runs(&pixels);
+            assert!(marks.len() >= 96, "{backend}: incomplete cropped line");
+            for (index, (left, right)) in marks.iter().take(96).enumerate() {
+                let expected = (view * kurbo::Point::new(index as f64 * 5. / 96., 2.5)).x;
+                let center = (*left + *right) as f64 / 2.;
+                assert!((center - expected).abs() < 0.6, "{backend}, scale={scale}, mark={index}: center={center}, expected={expected}");
+            }
+        }
+    }
+}
