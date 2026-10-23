@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.1.0-alpha.3
+
+Scaled stencil drops, complete dotted lines and reusable stencil folders.
+
+- **Rack and other scaled masters land at the size Visio uses.** Dropping a 19-inch
+  1:10 faceplate onto a normal 1:1 page produces a 1.9-inch shape. Drawing-scale
+  types and the observed eightfold threshold control conversion; explicit width
+  and height still win. Master discovery reports scale and the size on the current
+  page before a drop ([#68](https://github.com/MisterDiagram/MisterDiagram/issues/68)).
+- **Dotted lines keep their marks in PNG, SVG and PDF.** Dots no longer disappear,
+  and thin patterned strokes keep the correct spacing across export scales
+  ([#70](https://github.com/MisterDiagram/MisterDiagram/issues/70)).
+- **Open stencils by name from your own folders.** Set `MISTERDIAGRAM_STENCIL_PATH`
+  or `--stencil-path`, then use `stencil.open` with a filename, optionally without
+  `.vssx`. `stencil.available` and the MCP `stencil_available` tool list filenames,
+  folders and sizes without opening files. `stencil.list` reports resolved paths
+  ([#71](https://github.com/MisterDiagram/MisterDiagram/issues/71)).
+
+These remove the scale-drop, missing-dot and missing-search-path limitations
+listed for alpha.1. Masters containing several top-level shapes remain unsupported.
+The new scale drawings open in Visio, but their strict re-save representation
+comparison still has differences; zero-difference acceptance remains open. Two
+faint-dot differences in Visio's own 96 dpi export are documented in
+[docs/file-format-parity.md](docs/file-format-parity.md). Other previously listed
+gaps remain, including container/list formulas, text wrapping, legacy formats,
+EMF+, shadows and PowerPoint export.
+
 ## 0.1.0-alpha.2
 
 The first fix from a tester report.
@@ -46,7 +73,10 @@ carries THIRD-PARTY-LICENSES.txt, the licences of the Rust crates linked into th
 - A built-in network stencil with eleven device masters, drawn as cards so connectors meet
   the outline on every side, and vendor stencils you already have.
 
-### Known gaps
+### Known gaps in alpha.1
+
+The scale-drop, missing-dot and stencil-search-path gaps below were addressed
+in alpha.3; this list records the limitations of alpha.1.
 
 - **Large drawings are slow to build.** Every command republishes the whole drawing, so a
   2,500-command drawing of about 380 shapes takes about 13 minutes
