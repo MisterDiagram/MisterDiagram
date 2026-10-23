@@ -14,8 +14,8 @@ PDF, writes files that Visio opens without repair, and authors drawings from com
 masters, shape data, glued connectors with orthogonal routing and line jumps. AI agents can use the same commands through the MCP stdio server. PowerPoint export is next. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and is offered to that project.
 
-**Download:** [MisterDiagram 0.1.0-alpha.2](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.2),
-the second alpha (the first tester fix, #78), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+**Download:** [MisterDiagram 0.1.0-alpha.3](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.3),
+the third alpha (scaled stencil drops, dotted lines and stencil folders: #68, #70, #71), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -24,15 +24,15 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-10-22, 0.1.0-alpha.2)
+## What works today (2026-10-23, 0.1.0-alpha.3)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
 - **Evaluate** the ShapeSheet: 117 functions including 3 internal functions, from
   `crates/sheet/src/functions/mod.rs`'s `IMPLEMENTED` registry. Inheritance covers
   masters, style sheets and document defaults, with dirty-set recalculation. The full
-  oracle check passes its fixed floors, including 62,075/67,866 cached text metrics
-  and 54,449/58,180 COM text metrics.
+  oracle check passes its fixed floors, including 62,145/67,866 cached text metrics
+  and 54,497/58,180 COM text metrics.
 - **Render** PNG, SVG and vector PDF. All aggregate feature groups of the test corpus pass their fixed
   pixel ceilings against Visio's own 96 dpi export. Individual connector comparisons
   remain above their ceilings and are tracked as a renderer gap. All 1,108 masters in the
@@ -72,20 +72,22 @@ drawings is slow: strict mode publishes the whole document after every command, 
 2,500-command drawing of about 380 shapes takes about 13 minutes
 ([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39); timings in docs/gaps.md).
 
-## Unreleased source changes
+## New in 0.1.0-alpha.3
 
-The source tree adds scaled master drops, complete dotted-line marks in PNG, SVG
+This release adds scaled master drops, complete dotted-line marks in PNG, SVG
 and PDF, and a seventeenth MCP tool for stencil filename discovery. A 19-inch
 1:10 faceplate lands at 1.9 inches on a normal 1:1 page; master search reports
-its page-specific size before a drop.
+its page-specific size before a drop. Masters with several top-level shapes
+are still refused.
 
 Set `MISTERDIAGRAM_STENCIL_PATH` or `--stencil-path` to your stencil folders
 (colon-separated on macOS/Linux, semicolon-separated on Windows), then open
 a bare filename with optional `.vssx`. `stencil.available` lists filenames and
 sizes without opening them; `stencil.list` reports resolved absolute paths.
-See [stencil folders](docs/mcp.md#stencil-folders). The new synthetic re-save
-comparison and two faint native PNG differences remain disclosed in
-[the gaps](docs/gaps.md); release acceptance is still pending.
+See [stencil folders](docs/mcp.md#stencil-folders). The thirteen synthetic scale
+and dotted-line drawings open and save in Visio 2021 with zero strict differences;
+two faint-dot differences in Visio's own 96 dpi export are disclosed in
+[the gaps](docs/gaps.md).
 
 ## Testers wanted
 
