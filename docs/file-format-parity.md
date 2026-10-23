@@ -295,6 +295,40 @@ These identity-specific values remain failures in the strict sweep.
 
 
 
+### M5.46: quick colour and style index tables (#82)
+
+The five private `field/themeval-2026-10-22` sweeps witness these index rules:
+
+| Quick colour index | Selected colour |
+|---|---|
+| 0, 1 | `dk1`, `lt1` |
+| 2 through 7 | `accent1` through `accent6` |
+| 100 through 106 | `varColor1` through `varColor7` of `VariationColorIndex`; a monotone variant selects `varColor1` for all seven |
+| 200 through 206 | `varColor1` through `varColor7`, including in a monotone variant |
+| 107, 207 | `accent1` |
+
+The theme-45 variant sweep at colour variant 0 is the distinguishing witness:
+rectangle matrix 1, colours 100/101/102 share RGB(131,153,42), whereas
+200/201/202 select RGB(131,153,42), RGB(68,112,157) and RGB(217,120,40).
+Thus mapping the entire 200 range onto the 100 range is incorrect. The
+named `VariantColor` properties select the raw variant slots.
+
+Matrices 1 through 6 select their direct entries. Matrices 100 through 103
+use `fillIdx`, `lineIdx`, `fontIdx` or `effectIdx` from the corresponding
+`VariationStyleIndex` table; 104 through 106 select entry 1. These rules
+apply separately to each component. An absent line/fill entry uses the
+no-theme fallback instead of returning a reference error. The theme-43
+connector rows at matrices 4, 5, 6 and 101 witness this fall-through.
+
+Theme-requested font faces absent from the saved FaceNames part receive
+bounded evaluator-local IDs. The source FaceNames and existing IDs remain
+unchanged. Explicit style faces and major/minor placeholders select their
+requested names. The synthetic font-identity control named in M5.44 witnesses
+why a saved installation ID cannot substitute for the requested face name.
+The post-index sweep has 244,299/264,405 equal rows and no evaluator errors;
+remaining numerical differences are still reported, not accepted.
+
+
 ### M5.10: passive Action values, stored-value counterexample (2026-10-17)
 
 M5.10 is paused before changing Action evaluation; M5.11 to M5.13 continue. The existing evaluator already

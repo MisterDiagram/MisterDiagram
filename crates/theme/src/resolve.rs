@@ -190,7 +190,7 @@ impl Themes {
         let direct = direct.or_else(|| requested.parse::<u32>().ok().filter(|n| (100..=106).contains(n)));
         if let Some(index) = direct {
             let (_, colors) = color_component.ok_or(Error::Ref)?;
-            return color_value(quick_color(colors, index, variant)?, cx);
+            return color_value(quick_color(colors, if (100..=106).contains(&index) { index + 100 } else { index }, variant)?, cx);
         }
         let color_selector = if font {
             "QuickStyleFontColor"
@@ -252,7 +252,10 @@ impl Themes {
         if font {
             let props = root.find(if connector { "connectorFontStyles" } else { "fontStyles" }).and_then(|e| e.elements().nth(index));
             return match cell.as_str() {
-                "char.color" => color_value(props.and_then(|p| p.child("color")).map(|e| color(e, colors, ph, 0)).transpose()?.unwrap_or(ph), cx),
+                "char.color" => match props {
+                    Some(props) => color_value(props.child("color").map(|e| color(e, colors, ph, 0)).transpose()?.unwrap_or(ph), cx),
+                    None => Ok(cx.theme_default(&cell)),
+                },
                 "char.style" => Ok(Value::Number(f64::from(props.and_then(|p| p.u32("style")).unwrap_or(0)))),
                 "char.font" | "char.asianfont" | "char.complexscriptfont" => {
                     let script = match cell.as_str() {
@@ -260,7 +263,7 @@ impl Themes {
                         "char.complexscriptfont" => "cs",
                         _ => "latin",
                     };
-                    let face = component.path(&["minorFont", script]).and_then(|p| p.attr("typeface")).filter(|s| !s.is_empty());
+                    let face = font_face(component, props, script);
                     match face {
                         Some(face) => cx.font_index(face).map(|n| Value::Number(f64::from(n))).ok_or(Error::Ref),
                         None => Ok(cx.theme_default(&cell)),
@@ -270,7 +273,9 @@ impl Themes {
             };
         }
         if line {
-            let ln = component.child("lnStyleLst").and_then(|e| e.elements().nth(index)).ok_or(Error::Ref)?;
+            let Some(ln) = component.child("lnStyleLst").and_then(|e| e.elements().nth(index)) else {
+                return Ok(no_theme(name, args, cx));
+            };
             if let Some(value) = gradient_value(ln.child("gradFill"), &cell, colors, ph, cx)? {
                 return Ok(value);
             }
@@ -315,7 +320,9 @@ impl Themes {
             };
         }
         if fill {
-            let fill = component.child("fillStyleLst").and_then(|e| e.elements().nth(index)).ok_or(Error::Ref)?;
+            let Some(fill) = component.child("fillStyleLst").and_then(|e| e.elements().nth(index)) else {
+                return Ok(no_theme(name, args, cx));
+            };
             if let Some(value) = gradient_value(Some(fill).filter(|e| e.is("gradFill")), &cell, colors, ph, cx)? {
                 return Ok(value);
             }
@@ -424,6 +431,17 @@ impl ThemeHost for Themes {
         self.resolve(name, args, context).and_then(|value| self.contrast_variant(name, args, value, context)).unwrap_or_else(Value::Error)
     }
 }
+/// Font style overrides select a face or a major/minor font-scheme placeholder.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section
+fn font_face<'a>(component: &'a El, props: Option<&'a El>, script: &str) -> Option<&'a str> {
+    let explicit = props.and_then(|p| p.find(script)).and_then(|p| p.attr("typeface")).filter(|s| !s.is_empty());
+    let scheme = match explicit {
+        Some("+mj-lt" | "+mj-ea" | "+mj-cs") => "majorFont",
+        Some("+mn-lt" | "+mn-ea" | "+mn-cs") | None => "minorFont",
+        Some(face) => return Some(face),
+    };
+    component.path(&[scheme, script]).and_then(|p| p.attr("typeface")).filter(|s| !s.is_empty())
+}
 fn is_connector(cx: &mut dyn Context) -> Result<bool, Error> {
     let one_d = cx.resolve("OneD").numeric().is_ok_and(|v| v != 0.);
     Ok(match selector(cx, "QuickStyleType")? {
@@ -468,6 +486,9 @@ fn matrix_index(root: &El, index: u32, variant: u32, attr: &str) -> Result<u32, 
     if index < 100 {
         return Ok(index);
     }
+    if (104..=106).contains(&index) && variant <= 3 {
+        return Ok(1);
+    }
     if index > 103 || variant > 3 {
         return Err(Error::Value);
     }
@@ -486,14 +507,13 @@ fn matrix_index(root: &El, index: u32, variant: u32, attr: &str) -> Result<u32, 
 /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/723529ce-4ac3-416d-b7be-362aa28be341
 fn quick_color(colors: &El, index: u32, variant: u32) -> Result<Rgba, Error> {
     let names = ["dk1", "lt1", "accent1", "accent2", "accent3", "accent4", "accent5", "accent6", "bkgnd"];
-    let index = if index == 100 && colors.find("variationClrSchemeLst").is_none() { 2 } else { index };
+    let index = if matches!(index, 107 | 207) || (matches!(index, 100 | 200) && colors.find("variationClrSchemeLst").is_none()) { 2 } else { index };
     let element = if let Some(name) = names.get(index as usize) {
         colors.child(name).or_else(|| colors.find(name))
-    } else if (100..=106).contains(&index) && variant < 4 {
-        colors
-            .find("variationClrSchemeLst")
-            .and_then(|e| e.elements().nth(variant as usize))
-            .and_then(|e| e.child(&format!("varColor{}", index - 99)))
+    } else if ((100..=106).contains(&index) || (200..=206).contains(&index)) && variant < 4 {
+        let variation = colors.find("variationClrSchemeLst").and_then(|e| e.elements().nth(variant as usize)).ok_or(Error::Ref)?;
+        let slot = if index < 200 && variation.bool("monotone").unwrap_or(false) { 1 } else { index % 100 + 1 };
+        variation.child(&format!("varColor{slot}"))
     } else {
         None
     }
@@ -661,6 +681,68 @@ mod tests {
         assert_eq!(matrix_index(&root, 100, 0, "fillIdx"), Ok(1));
         assert_eq!(quick_color(root.child("clrScheme").unwrap(), 100, 0), Ok(Rgba::rgb(0x17, 0x39, 0x5b)));
         assert_eq!(matrix_index(&root, 101, 0, "fillIdx"), Err(Error::Ref));
+    }
+    #[test]
+    fn authored_style_face_overrides_and_font_placeholders() {
+        let doc = xml::parse(b"<fontScheme><majorFont><latin typeface='Contributor Major'/></majorFont><minorFont><latin typeface='Contributor Minor'/></minorFont></fontScheme>").unwrap();
+        assert_eq!(font_face(&doc.root, None, "latin"), Some("Contributor Minor"));
+        for (value, expected) in [("+mj-lt", "Contributor Major"), ("+mn-lt", "Contributor Minor"), ("Contributor Explicit", "Contributor Explicit")]
+        {
+            let props = xml::parse(format!("<fontProps><latin typeface='{value}'/></fontProps>").as_bytes()).unwrap();
+            assert_eq!(font_face(&doc.root, Some(&props.root), "latin"), Some(expected));
+        }
+    }
+    #[test]
+    fn authored_color_and_style_index_tables() {
+        let mut xml = String::from("<theme><clrScheme>");
+        for (i, name) in ["dk1", "lt1", "accent1", "accent2", "accent3", "accent4", "accent5", "accent6"].iter().enumerate() {
+            xml.push_str(&format!("<{name}><srgbClr val='{i:02X}0102'/></{name}>"));
+        }
+        xml.push_str("<variationClrSchemeLst>");
+        for vc in 0..4 {
+            xml.push_str(if vc == 0 { "<variationClrScheme monotone='1'>" } else { "<variationClrScheme>" });
+            for slot in 1..=7 {
+                xml.push_str(&format!("<varColor{slot}><srgbClr val='{:02X}0304'/></varColor{slot}>", 16 + vc * 8 + slot));
+            }
+            xml.push_str("</variationClrScheme>");
+        }
+        xml.push_str("</variationClrSchemeLst></clrScheme><variationStyleSchemeLst>");
+        for vs in 0..4 {
+            xml.push_str("<variationStyleScheme>");
+            for index in 0..4 {
+                let n = 1 + (vs + index) % 6;
+                xml.push_str(&format!("<varStyle fillIdx='{n}' lineIdx='{n}' fontIdx='{n}' effectIdx='{n}'/>"));
+            }
+            xml.push_str("</variationStyleScheme>");
+        }
+        xml.push_str("</variationStyleSchemeLst></theme>");
+        let doc = xml::parse(xml.as_bytes()).unwrap();
+        let colors = doc.root.child("clrScheme").unwrap();
+        for vc in 0..4 {
+            for index in 0..8 {
+                assert_eq!(quick_color(colors, index, vc), Ok(Rgba::rgb(index as u8, 1, 2)));
+            }
+            for start in [100, 200] {
+                for offset in 0..7 {
+                    let slot = if start == 100 && vc == 0 { 1 } else { offset + 1 };
+                    assert_eq!(quick_color(colors, start + offset, vc), Ok(Rgba::rgb((16 + vc * 8 + slot) as u8, 3, 4)));
+                }
+                assert_eq!(quick_color(colors, start + 7, vc), Ok(Rgba::rgb(2, 1, 2)));
+            }
+        }
+        for vs in 0..4 {
+            for attr in ["fillIdx", "lineIdx", "fontIdx", "effectIdx"] {
+                for index in 1..=6 {
+                    assert_eq!(matrix_index(&doc.root, index, vs, attr), Ok(index));
+                }
+                for index in 100..=103 {
+                    assert_eq!(matrix_index(&doc.root, index, vs, attr), Ok(1 + (vs + index - 100) % 6));
+                }
+                for index in 104..=106 {
+                    assert_eq!(matrix_index(&doc.root, index, vs, attr), Ok(1));
+                }
+            }
+        }
     }
     #[test]
     fn hostile_theme_xml_and_color_cycles_are_bounded() {

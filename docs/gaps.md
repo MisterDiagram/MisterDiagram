@@ -32,7 +32,8 @@ M5.44 adds the strict `themeval_sweep` corpus example. It compares every row
 of the five private theme sweeps, including all ten fill-gradient slots per
 shape, without cached fallback. The fixed population is 264,405 rows.
 The baseline has 147,346 equal rows and 117,059 unequal rows. Fill and colour
-index resolution, connector styles and absent theme font faces remain open.
+index resolution and connector styles are being corrected; complete equality
+remains open.
 Char.Font compares face names, retaining every row in the population.
 No private theme XML or sample document is included in the public tests.
 Gradient foreground selection, shared `THEMECBV` transform parsing and unused
@@ -40,7 +41,9 @@ render-stop handling now have contributor-written regression tests. Exact
 composite transform precision and identity-specific secondary backgrounds
 remain open. The latter have native synthetic controls showing that identical
 numerical style XML can produce different backgrounds under different theme
-identities.
+identities. Colour indexes, variant matrices and requested theme font faces
+now resolve without an error in the five sweeps: 244,299/264,405 rows equal.
+Connector classification and the remaining numerical differences are open.
 
 ## Issue 78: a tester's flowchart rendered nothing (2026-10-22)
 

@@ -111,6 +111,12 @@ impl<'a> Evaluator<'a> {
         Some(index)
     }
 
+    /// The evaluator's font identity is a face name, independent of installation IDs.
+    /// https://learn.microsoft.com/en-us/office/vba/api/visio.font.id
+    pub fn font_name(&self, index: u32) -> Option<&str> {
+        self.fonts.get(&index).map(String::as_str)
+    }
+
     pub fn new(document: &'a Document) -> Result<Self, Error> {
         if document.colors.len() > 65536 {
             return Err(Error::Limit);
@@ -1806,6 +1812,60 @@ fn font_ids(document: &Document) -> Result<BTreeMap<u32, String>, Error> {
             id = id.checked_add(1).ok_or(Error::Limit)?;
         }
         fonts.insert(id, name.clone());
+    }
+    // Theme faces can be absent from the saved FaceNames table when the capture host
+    // substituted a font. Register the requested names without changing saved ordinals.
+    let mut registered = fonts.values().map(|name| name.to_ascii_lowercase()).collect::<BTreeSet<_>>();
+    let mut next_id = 5u32;
+    let mut visited = 0usize;
+    let mut theme_bytes = 0usize;
+    let mut theme_count = 0usize;
+    for (path, part) in &document.parts {
+        if !path.starts_with("visio/theme/") || !path.ends_with(".xml") {
+            continue;
+        }
+        theme_count += 1;
+        theme_bytes = theme_bytes.checked_add(part.bytes.len()).ok_or(Error::Limit)?;
+        if theme_count > 256 || theme_bytes > 32 * 1024 * 1024 || part.bytes.len() > 4 * 1024 * 1024 {
+            return Err(Error::Limit);
+        }
+        let parsed;
+        let root = match part.xml.as_deref() {
+            Some(root) => root,
+            None => {
+                parsed = crate::parse_xml(&part.bytes).map_err(|e| Error::Parse(e.to_string()))?;
+                &parsed
+            }
+        };
+        let mut stack = vec![(root, 0usize)];
+        while let Some((node, depth)) = stack.pop() {
+            visited += 1;
+            if visited > 1_000_000 || depth > 128 {
+                return Err(Error::Limit);
+            }
+            if matches!(node.name.as_str(), "latin" | "ea" | "cs")
+                && let Some(name) = node.attr("typeface").filter(|name| !name.is_empty() && !name.starts_with('+'))
+            {
+                if name.len() > 4096 {
+                    return Err(Error::Limit);
+                }
+                if registered.insert(name.to_ascii_lowercase()) {
+                    while fonts.contains_key(&next_id) {
+                        next_id = next_id.checked_add(1).ok_or(Error::Limit)?;
+                    }
+                    if next_id > 65535 || fonts.len() >= 65536 {
+                        return Err(Error::Limit);
+                    }
+                    fonts.insert(next_id, name.to_owned());
+                }
+            }
+            for child in node.elements() {
+                if stack.len() >= MAX_CELLS {
+                    return Err(Error::Limit);
+                }
+                stack.push((child, depth + 1));
+            }
+        }
     }
     Ok(fonts)
 }

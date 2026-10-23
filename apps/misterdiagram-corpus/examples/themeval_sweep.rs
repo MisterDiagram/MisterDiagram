@@ -237,15 +237,7 @@ fn compare(path: &Path) -> Result<(usize, usize, (u32, bool))> {
                 kind == "conn",
                 selector(evaluator.evaluate(Scope::Page(page.id), "FontSchemeIndex"))?,
             )?;
-            let ours = actual
-                .numeric()
-                .ok()
-                .and_then(|n| {
-                    let cell = evaluator.cell(scope, &name)?;
-                    let ordinal = evaluator.serialized_number(scope, &name, cell, n).ok()?.parse::<usize>().ok()?;
-                    document.face_names.values().nth(ordinal).cloned()
-                })
-                .unwrap_or_else(|| actual.text());
+            let ours = selector(actual.clone()).ok().and_then(|id| evaluator.font_name(id)).map(str::to_owned).unwrap_or_else(|| actual.text());
             Some((expected, ours))
         } else {
             None

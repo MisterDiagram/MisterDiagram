@@ -117,7 +117,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/flipx-cell-shape-transform-section> | `crates/engine/src/shapes.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/evaluate/transform.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/flipy-cell-shape-transform-section> | `crates/engine/src/shapes.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/evaluate/transform.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/floor-function> | `crates/sheet/src/functions/numeric.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section> | `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/text.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section> | `crates/theme/src/resolve.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/text.rs`, `crates/vsdx/tests/theme_fonts.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/font-function> | `crates/sheet/src/functions/color.rs`, `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fontschemeindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fonttoid-function> | `crates/sheet/src/functions/color.rs` |
@@ -361,7 +361,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.documents.add> | `crates/engine/src/files.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.documents.open> | `crates/engine/src/files.rs`, `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.documents.openex> | `crates/engine/src/retention.rs`, `crates/engine/src/stencils.rs`, `crates/engine/tests/stencil_limits.rs`, `tools/oracle/accept.ps1`, `tools/oracle/scaled-drop-accept.ps1`, `tools/oracle/vendor-stencils/vendor-three-witness.ps1` |
-| <https://learn.microsoft.com/en-us/office/vba/api/visio.font.id> | `apps/misterdiagram-corpus/examples/themeval_sweep.rs` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.font.id> | `apps/misterdiagram-corpus/examples/themeval_sweep.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/tests/theme_fonts.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.hyperlinks.add> | `crates/engine/src/content.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.layer.delete> | `crates/engine/src/pages.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.layer.name> | `crates/engine/src/pages.rs` |
