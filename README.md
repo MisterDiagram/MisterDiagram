@@ -14,8 +14,8 @@ PDF, writes files that Visio opens without repair, and authors drawings from com
 masters, shape data, glued connectors with orthogonal routing and line jumps. AI agents can use the same commands through the MCP stdio server. PowerPoint export is next. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and is offered to that project.
 
-**Download:** [MisterDiagram 0.1.0-alpha.3](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.3),
-the third alpha (scaled stencil drops, dotted lines and stencil folders: #68, #70, #71), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+**Download:** [MisterDiagram 0.1.0-alpha.4](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.4),
+the fourth alpha (themed gradients, connector labels and colour variants: #79, #80, #82), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -24,7 +24,7 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-10-23, 0.1.0-alpha.3)
+## What works today (2026-10-23, 0.1.0-alpha.4)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
@@ -66,7 +66,7 @@ M4 met its plan gates on 2026-10-15. Phase 5 is in progress and P5a is accepted;
 PowerPoint export remains next. CI runs all eight gates on Linux, Windows and
 macOS, plus an Ubuntu check at the declared Rust minimum.
 
-Known gaps are listed in [docs/gaps.md](docs/gaps.md). The current source corrects
+Known gaps are listed in [docs/gaps.md](docs/gaps.md). This release corrects
 washed-out theme gradients and connector label colours (#79, #80), and resolves
 colour/style variant indexes (#82). Some themes still have different secondary
 fill backgrounds and dormant gradient angles; THEMEVAL parity remains incomplete.
@@ -77,22 +77,21 @@ drawings is slow: strict mode publishes the whole document after every command, 
 2,500-command drawing of about 380 shapes takes about 13 minutes
 ([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39); timings in docs/gaps.md).
 
-## New in 0.1.0-alpha.3
+## New in 0.1.0-alpha.4
 
-This release adds scaled master drops, complete dotted-line marks in PNG, SVG
-and PDF, and a seventeenth MCP tool for stencil filename discovery. A 19-inch
-1:10 faceplate lands at 1.9 inches on a normal 1:1 page; master search reports
-its page-specific size before a drop. Masters with several top-level shapes
-are still refused.
-
-Set `MISTERDIAGRAM_STENCIL_PATH` or `--stencil-path` to your stencil folders
-(colon-separated on macOS/Linux, semicolon-separated on Windows), then open
-a bare filename with optional `.vssx`. `stencil.available` lists filenames and
-sizes without opening them; `stencil.list` reports resolved absolute paths.
-See [stencil folders](docs/mcp.md#stencil-folders). The thirteen synthetic scale
-and dotted-line drawings open and save in Visio 2021 with zero strict differences;
-two faint-dot differences in Visio's own 96 dpi export are disclosed in
-[the gaps](docs/gaps.md).
+This release fixes themed fills and connector labels. Themed gradients keep
+their real colours: unused stop slots no longer wash a fill toward white, and
+colour transforms (tint, shade, lumMod, lumOff, satMod) keep the precision
+Visio uses, including saturation above 100% (#79). Connector labels take the
+theme's connector text style, so "Yes" and "No" on a flowchart are readable
+instead of white on white, and connector lines follow their own style entries
+(#80). Colour indexes 0 to 7, 100 to 107 and 200 to 207 and style matrices 1 to 6
+and 100 to 106 resolve under every variant without reference errors, and theme
+font names survive installation-specific font IDs (#82). Checked against two
+Visio 2021 sweeps of 264,405 resolved cells over three themes and their
+variants: 261,855 equal. The 2,550 that differ are secondary fill backgrounds
+and dormant gradient angles that Visio derives from the theme's identity rather
+than from anything in the file; they are listed as a known gap, not masked.
 
 ## Testers wanted
 
