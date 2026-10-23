@@ -9,6 +9,10 @@ Scaled stencil drops, complete dotted lines and reusable stencil folders.
   types and the observed eightfold threshold control conversion; explicit width
   and height still win. Master discovery reports scale and the size on the current
   page before a drop ([#68](https://github.com/MisterDiagram/MisterDiagram/issues/68)).
+- **Newly dropped shapes save without redundant inherited values.** Matching
+  literals use the native inherited representation, while explicit units and
+  destination-page layer membership remain intact
+  ([#68](https://github.com/MisterDiagram/MisterDiagram/issues/68)).
 - **Dotted lines keep their marks in PNG, SVG and PDF.** Dots no longer disappear,
   and thin patterned strokes keep the correct spacing across export scales
   ([#70](https://github.com/MisterDiagram/MisterDiagram/issues/70)).

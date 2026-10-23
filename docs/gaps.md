@@ -1967,3 +1967,10 @@ still has exactly 321 differences. The 54 additional observations have the same
 known causes; no existing comparison changed. Evidence:
 `plan/brief31/vm-final-accept-report.json` and
 `corpus/_vm/out/brief31-final-accept/`.
+
+Brief 31c M5.29e implements the witnessed authored root-literal elision rule,
+including LayerMember, unit-override and style-provider exceptions. A fresh
+13-drawing native run removes all 247 inherited-literal differences. The remaining
+128 differences are 95 MasterType changes, 26 window attributes and seven numeric
+strings. Native zero-difference closure remains pending M5.29f/g; the historical
+375-difference receipt is retained.

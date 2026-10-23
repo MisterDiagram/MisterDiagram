@@ -16701,3 +16701,39 @@ redundant PinX cells, 152 redundant endpoint cells, 26 window-height metadata
 changes and 7 one-ULP boundary cache changes. The cell-value scale comparisons
 still pass within 1e-6. This is not a zero-repair-difference acceptance result;
 see the named gap in docs/gaps.md and private vm-final-accept-report.json.
+
+### Observed, undocumented: authored instance literal elision (M5.29e, #68)
+
+Visio removes an authored root Cell when it repeats the inherited literal with
+identical units. The rule applies to 1-D and 2-D instances, both converted and
+unconverted drops. The expanded 48-instance witness removes 624 literals across
+pins, endpoints, Width/Height, Angle, FlipX/Y, ResizeMode, line/fill settings and
+QuickStyle settings. A literal does not inherit a master formula merely because
+its current result is equal. Unit overrides remain meaningful: the original
+converted 1-D Height=0 with U=IN stays local, while copying the master's unitless
+Height=0 is elided. Errors and extension metadata are retained conservatively.
+
+LayerMember is a witnessed exception. The office and fabric controls retain all
+nine and ten local LayerMember=0 cells even though the master also stores 0.
+Those indices refer to destination-page layers, so deleting them changes layer
+membership. The writer preserves them. Untouched imported instances retain their
+source representation; this canonicalization applies to newly authored instances.
+
+Private observations: `corpus/_vm/out/brief31c-elision/`,
+`corpus/_vm/out/brief31c-layer-control/`, and
+`plan/brief31c/expanded-elision.json`. The existing final scale suite has 247
+such redundant literals: 95 PinX, 76 BeginX and 76 EndX. Its original eight-file
+subset has the previously reported 218. All inputs are contributor-original.
+The [Cell reference](https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml)
+describes the literal/formula/unit fields; these pruning details are observed.
+
+Elision uses a literal supplied by the master shape, never merely by the master's
+style. An instance can select a different style, so an explicit formatting
+override matching the master style still carries meaning. The style-provider
+regression preserves that local override.
+
+A fresh native save of the 13 current drawings eliminates all 247 original
+literal removals. Its 128 remaining strict differences are 95 MasterType changes,
+26 window attributes and seven numeric strings, handled by M5.29f and M5.29g.
+Evidence: `plan/brief31c/elision-native-diagnostic.json` and
+`corpus/_vm/out/brief31c-elision-accept/`.

@@ -12,6 +12,9 @@ impl model::Writer<'_> {
                 let Some(provider) = self.evaluator.cell(master, &cell.name) else {
                     return true;
                 };
+                if matches!(self.evaluator.formula_origin(master, &cell.name), Some(Scope::MasterShape { .. })) && redundant_literal(cell, provider) {
+                    return false;
+                }
                 let inherited = cell.formula.as_deref() == Some("Inh") || cell.formula.is_some() && cell.formula == provider.formula;
                 if !inherited || cell.units != provider.units {
                     return true;
@@ -237,6 +240,26 @@ impl model::Writer<'_> {
         super::validate::sheet(&result)?;
         Ok(result)
     }
+}
+
+/// Native saves omit identical authored root literals, including transform and
+/// formatting cells. Unit overrides and formulas remain distinct. LayerMember
+/// identifies destination-page layers and remains local even when the number
+/// matches the master's layer index (Brief 31c equal-cell and layer witnesses).
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/layer-membership-section
+fn redundant_literal(cell: &Cell, provider: &Cell) -> bool {
+    !cell.name.eq_ignore_ascii_case("LayerMember")
+        && cell.formula.is_none()
+        && provider.formula.is_none()
+        && cell.error.is_none()
+        && provider.error.is_none()
+        && cell.units == provider.units
+        && cell.attributes.is_empty()
+        && provider.attributes.is_empty()
+        && cell.ref_by.is_empty()
+        && cell.value.is_some()
+        && cell.value == provider.value
 }
 
 fn same_cached_value(value: &Value, cached: &Value) -> bool {
