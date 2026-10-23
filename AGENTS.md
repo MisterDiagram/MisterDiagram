@@ -146,7 +146,7 @@ The `misterdiagram` CLI implements every subcommand below:
   commands in one session, with strict atomic batches and an optional final save.
 - `commands` and `describe ID`: registered commands and JSON parameter schemas.
 - `corpus check`: full cached/COM, round-trip and render oracle checks.
-- `mcp`: the sixteen-tool JSON-RPC stdio server, with engine commands, batches,
+- `mcp`: the seventeen-tool JSON-RPC stdio server, with engine commands, batches,
   inspection, stencils, glue, saves and exports (see `docs/mcp.md`).
 
 `--version` prints the package version. `--memory-limit MiB` or

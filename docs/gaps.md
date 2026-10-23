@@ -1,5 +1,13 @@
 # Gaps
 
+## Stencil discovery (#71)
+
+M5.31 adds filename discovery through `MISTERDIAGRAM_STENCIL_PATH` and
+`--stencil-path`, plus metadata-only `stencil.available` and its MCP tool.
+The folders are top-level searches in configured order; package admission
+bounds are unchanged. The master-content index from stencil strategy part 3
+remains later work.
+
 ## Dotted-line raster observations (M5.30)
 
 The missing-dot problem in #70 is corrected in PNG, SVG and PDF, including the

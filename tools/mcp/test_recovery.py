@@ -100,7 +100,7 @@ class Recovery(unittest.TestCase):
         self.assertEqual(reply['id'], None)
         self.assertEqual(reply['error']['message'], 'MCP message exceeds cap')
         self.assertEqual(reply['error']['code'], -32700)
-        self.assertEqual(len(wire.request('tools/list')['result']['tools']), 16)
+        self.assertEqual(len(wire.request('tools/list')['result']['tools']), 17)
         self.preserved(wire, *state)
 
     def test_invalid_utf8_then_tools_list(self):
@@ -108,7 +108,7 @@ class Recovery(unittest.TestCase):
         reply = wire.send(b'\xff\xfe\n')
         self.assertEqual(reply['id'], None)
         self.assertEqual(reply['error']['code'], -32700)
-        self.assertEqual(len(wire.request('tools/list')['result']['tools']), 16)
+        self.assertEqual(len(wire.request('tools/list')['result']['tools']), 17)
         self.preserved(wire, *state)
 
     @unittest.skipUnless(os.environ.get('MISTERDIAGRAM_TEST_INJECTIONS') == '1', 'requires test-panic-injection binary')

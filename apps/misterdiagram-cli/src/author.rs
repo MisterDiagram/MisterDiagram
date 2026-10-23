@@ -31,7 +31,7 @@ pub fn describe(args: &[OsString], out: &mut impl Write) -> Result<(), String> {
 }
 /// Execute a bounded sequence in one session, with optional open and final save.
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.application.beginundoscope
-pub fn run(args: &[OsString], out: &mut impl Write, memory: MemoryLimits) -> Result<(), String> {
+pub fn run(args: &[OsString], out: &mut impl Write, memory: MemoryLimits, stencil_path: Vec<std::path::PathBuf>) -> Result<(), String> {
     let mut open = None;
     let mut save = None;
     let mut commands = Vec::<(&str, Value)>::new();
@@ -81,6 +81,7 @@ pub fn run(args: &[OsString], out: &mut impl Write, memory: MemoryLimits) -> Res
         return Err("usage: run [--open FILE] [--cmd ID=JSON | --batch FILE] ... [--save FILE]".into());
     }
     let mut session = Session::with_memory_limits(memory);
+    session.set_stencil_path(stencil_path).map_err(|e| e.to_string())?;
     if let Some(path) = open {
         session.execute("file.open", &json!({"path":path})).map_err(|e| e.to_string())?;
     }

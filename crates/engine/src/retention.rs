@@ -174,7 +174,13 @@ impl Session {
         let stencils: HashSet<_> = self.retained_stencils().iter().map(Arc::as_ptr).collect();
         let history: HashSet<_> = self.undo.iter().chain(&self.redo).map(|s| Arc::as_ptr(&s.document)).collect();
         let mut seen = HashSet::new();
-        let mut usage = Usage::default();
+        let mut usage = Usage {
+            raw: self
+                .stencil_path
+                .iter()
+                .fold(self.stencil_path.capacity().saturating_mul(std::mem::size_of::<std::path::PathBuf>()), |n, p| n.saturating_add(p.capacity())),
+            ..Usage::default()
+        };
         let mut pictures = Pictures::new();
         let mut history_parts = HashSet::new();
         let mut contents = Contents::new();

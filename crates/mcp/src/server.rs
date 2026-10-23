@@ -325,9 +325,9 @@ mod tests {
         assert!(reply.contains("MCP response exceeds cap"));
     }
     #[test]
-    fn sixteen_headless_tools() {
+    fn seventeen_headless_tools() {
         let mut s = Server::new(Box::new(Headless::new()));
         let v = s.handle(json!({"id":1,"method":"tools/list"})).unwrap();
-        assert_eq!(v["result"]["tools"].as_array().unwrap().len(), 16);
+        assert_eq!(v["result"]["tools"].as_array().unwrap().len(), 17);
     }
 }

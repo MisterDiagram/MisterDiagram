@@ -122,6 +122,7 @@ fn execute(args: &[std::ffi::OsString], out: &mut impl Write) -> Result<(), Stri
         return Err("argument count or byte limit".into());
     }
     let (arguments, memory) = settings::parse(args, std::env::var_os("MISTERDIAGRAM_MEMORY_LIMIT"))?;
+    let (arguments, stencil_path) = settings::stencil_path(&arguments, std::env::var_os("MISTERDIAGRAM_STENCIL_PATH"))?;
     let args = arguments.as_slice();
     match args.first().and_then(|a| a.to_str()) {
         Some("--version") if args.len() == 1 => {
@@ -160,18 +161,18 @@ fn execute(args: &[std::ffi::OsString], out: &mut impl Write) -> Result<(), Stri
         Some("render") => render(args),
         Some("commands") => author::commands(args, out),
         Some("describe") => author::describe(args, out),
-        Some("run") => author::run(args, out, memory),
+        Some("run") => author::run(args, out, memory, stencil_path),
         Some("convert") => author::convert(args, out, memory),
         Some("mcp") => {
             if args.len() != 1 {
-                return Err("usage: misterdiagram mcp [--memory-limit MiB]".into());
+                return Err("usage: misterdiagram mcp [--memory-limit MiB] [--stencil-path FOLDERS]".into());
             }
-            let mut server = misterdiagram_mcp::server::Server::new(Box::new(misterdiagram_mcp::headless::Headless {
-                session: misterdiagram_engine::Session::with_memory_limits(memory),
-            }));
+            let mut session = misterdiagram_engine::Session::with_memory_limits(memory);
+            session.set_stencil_path(stencil_path).map_err(|e| e.to_string())?;
+            let mut server = misterdiagram_mcp::server::Server::new(Box::new(misterdiagram_mcp::headless::Headless { session }));
             server.serve(std::io::stdin().lock(), out).map_err(|e| e.to_string())
         }
-        _ => Err("usage: misterdiagram [--memory-limit MiB] <info FILE|sheet FILE|corpus check|render|convert|run|commands|describe|mcp>".into()),
+        _ => Err("usage: misterdiagram [--memory-limit MiB] [--stencil-path FOLDERS] <info FILE|sheet FILE|corpus check|render|convert|run|commands|describe|mcp>".into()),
     }
 }
 fn main() -> ExitCode {

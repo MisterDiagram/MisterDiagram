@@ -47,7 +47,7 @@ without it and checked for the absence of all injection markers.
 
 Initialize with `initialize` (`protocolVersion: "2025-06-18"`, clientInfo and
 capabilities), then send `notifications/initialized`. `tools/list` returns the
-sixteen tools and their JSON Schemas. Each example below is the `params` of a
+seventeen tools and their JSON Schemas. Each example below is the `params` of a
 `tools/call` request, wrapped as:
 
 ```json
@@ -77,6 +77,7 @@ page. Every mutating command uses the engine's strict write-and-reimport path.
 | sheet_get | `{"name":"sheet_get","arguments":{"id":1,"name":"Width"}}` | Evaluated value, cached value, formula and units. |
 | sheet_set | `{"name":"sheet_set","arguments":{"id":1,"name":"Width","formula":"2 in"}}` | Changes a cell and publishes its dependencies. GUARD requires force. |
 | stencil_list | `{"name":"stencil_list","arguments":{}}` | Lists stencil index, name, canonical display path and master count. Index 0 is the document stencil. |
+| stencil_available | `{"name":"stencil_available","arguments":{}}` | Lists `.vssx` filenames, folders and byte sizes on the configured search path without opening packages. |
 | stencil_close | `{"name":"stencil_close","arguments":{"stencil":1}}` | Closes external stencil 1; later external indices shift down by one. |
 | stencil_search | `{"name":"stencil_search","arguments":{"query":"Dynamic","limit":10}}` | Searches the selected stencil, or the document and every open stencil when omitted. Every result includes its stencil index. |
 | drop_master | `{"name":"drop_master","arguments":{"master":2,"x":0,"y":0}}` | Drops the contributor-original Dynamic connector master and returns its shape ID. |
@@ -414,3 +415,42 @@ default. Built-in 1:1 masters on the default 1:1 page keep their original saved 
 `page.scale` selects NoScale for equal PageScale and DrawingScale, otherwise
 Custom. See the M5.29 matrix in `docs/file-format-parity.md` for the measured
 boundary and the multi-root master limitation.
+
+### Stencil folders
+
+Set `MISTERDIAGRAM_STENCIL_PATH` to an ordered list of folders. macOS and Linux
+use a colon; Windows uses a semicolon. `--stencil-path` accepts the same list and
+replaces the environment setting, including on `misterdiagram mcp`.
+
+```sh
+export MISTERDIAGRAM_STENCIL_PATH="$HOME/Stencils:$HOME/TeamStencils"
+misterdiagram run --cmd 'stencil.available={}'
+misterdiagram run --cmd 'stencil.open={"path":"affinity_native"}'
+misterdiagram mcp --stencil-path "$HOME/Stencils:$HOME/TeamStencils"
+```
+
+```powershell
+$env:MISTERDIAGRAM_STENCIL_PATH = 'C:\Stencils;D:\TeamStencils'
+misterdiagram mcp --stencil-path 'C:\Stencils;D:\TeamStencils'
+```
+
+In an MCP client config, for example:
+`"args": ["mcp", "--stencil-path", "/Users/you/Stencils:/Users/you/TeamStencils"]`.
+Use semicolons and doubled JSON backslashes for Windows paths.
+
+A bare filename searches each folder's top level in order. Within a folder, the
+exact filename is tried first, then the name with `.vssx` appended if omitted.
+The first match wins, and `stencil.open` returns its resolved absolute `path`.
+A missing filename reports every folder searched. A path containing a directory
+separator, `..`, NUL or a drive prefix uses the existing explicit-path route and
+never searches these folders. Without a configured list, the working directory
+is searched; an empty list entry also means the working directory.
+
+`stencil.available` (MCP tool `stencil_available`) returns `files` with `name`,
+`folder` and byte `size`, plus the configured `folders`. It lists `.vssx` files
+without opening or parsing them, including a file that would fail admission when
+opened. It does not recurse or build a master index. `stencil.list` reports each
+open external stencil's resolved absolute path; the document stencil has no path
+until opened or saved, and the built-in library retains `builtin:network`.
+Files found by name pass the same per-file and session memory checks as explicit
+paths. The search setting persists across document replacement.

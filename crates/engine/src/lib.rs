@@ -25,6 +25,9 @@ mod reference_cleanup;
 mod retention;
 mod shapes;
 mod sheet;
+mod stencil_path;
+#[cfg(test)]
+mod stencil_path_tests;
 mod stencils;
 pub use cmd::{command_specs, find_command};
 use misterdiagram_model::{Document, ShapeId};
@@ -75,6 +78,7 @@ pub struct Session {
     route_warnings: std::collections::BTreeMap<(u32, u32), String>,
     memory: MemoryLimits,
     stencils: Vec<stencils::Stencil>,
+    stencil_path: Vec<PathBuf>,
     document: Arc<Document>,
     selection: Selection,
     path: Option<PathBuf>,
@@ -99,6 +103,7 @@ impl Default for Session {
             memory: MemoryLimits::default(),
             document: Arc::new(files::blank_document(false)),
             stencils: Vec::new(),
+            stencil_path: Vec::new(),
             selection: Selection::default(),
             path: None,
             undo: VecDeque::new(),

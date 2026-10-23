@@ -127,8 +127,8 @@ pub(crate) fn new(s: &mut Session, p: &Value) -> Result<Value> {
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.documents.open
 pub(crate) fn open(s: &mut Session, p: &Value) -> Result<Value> {
     require_discard(s, p)?;
-    let path = path(p, "path")?;
-    let document = s.read_document(path, false)?;
+    let path = path(p, "path")?.canonicalize().map_err(operation)?;
+    let document = s.read_document(&path, false)?;
     s.reserve(Some((&document, false)))?;
     let pages = document.pages.len();
     s.advance_revision()?;
@@ -145,6 +145,7 @@ pub(crate) fn open(s: &mut Session, p: &Value) -> Result<Value> {
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.document.saveas
 pub(crate) fn save(s: &mut Session, p: &Value) -> Result<Value> {
     let path = path(p, "path")?;
+    let absolute = std::path::absolute(path).map_err(operation)?;
     let kind = match extension(path)?.as_str() {
         "vsdx" => SaveKind::Drawing,
         "vssx" => SaveKind::Stencil,
@@ -158,10 +159,10 @@ pub(crate) fn save(s: &mut Session, p: &Value) -> Result<Value> {
         written.warning_count = written.warning_count.saturating_add(1);
     }
     let saved_generation = s.save_generation.checked_add(1).ok_or_else(|| operation("save generation limit"))?;
-    atomic_write(path, &written.bytes)?;
+    atomic_write(&absolute, &written.bytes)?;
     s.save_generation = saved_generation;
     s.saved_revision = Some(s.revision);
-    s.path = Some(path.to_owned());
+    s.path = Some(absolute.canonicalize().unwrap_or(absolute));
     Ok(json!({"bytes":written.bytes.len(),"warnings":written.warnings,"warning_count":written.warning_count}))
 }
 /// Export a page through the established renderer. PDF without a page includes

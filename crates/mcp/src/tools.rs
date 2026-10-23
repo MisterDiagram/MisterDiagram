@@ -69,6 +69,11 @@ const TOOLS: &[(&str, &str, &str)] = &[
     ("inspect_shape", "shape.inspect", "Use for focused shape inspection with cells/sections filters; equivalent to run_command shape.inspect."),
     ("sheet_get", "sheet.get", "Use for one evaluated ShapeSheet cell with formula/cache/units; equivalent to run_command sheet.get."),
     ("sheet_set", "sheet.set", "Use for a direct ShapeSheet cell edit; equivalent to run_command sheet.set."),
+    (
+        "stencil_available",
+        "stencil.available",
+        "Use to list .vssx filenames, folders and sizes on the search path without opening packages; equivalent to run_command stencil.available.",
+    ),
     ("stencil_list", "stencil.list", "Use to discover current stencil indices before dropping/searching; equivalent to run_command stencil.list."),
     (
         "stencil_close",

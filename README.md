@@ -61,6 +61,7 @@ export of the same file, measured by the test harness; Visio's exports stay out 
   The built-in network stencil provides eleven semantic device masters as native
   editable geometry via `stencil.open {"builtin":"network"}`.
 
+
 M4 met its plan gates on 2026-10-15. Phase 5 is in progress and P5a is accepted;
 PowerPoint export remains next. CI runs all eight gates on Linux, Windows and
 macOS, plus an Ubuntu check at the declared Rust minimum.
@@ -70,6 +71,21 @@ EMF+ images are not drawn, and compound line patterns are approximate. Authoring
 drawings is slow: strict mode publishes the whole document after every command, so a
 2,500-command drawing of about 380 shapes takes about 13 minutes
 ([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39); timings in docs/gaps.md).
+
+## Unreleased source changes
+
+The source tree adds scaled master drops, complete dotted-line marks in PNG, SVG
+and PDF, and a seventeenth MCP tool for stencil filename discovery. A 19-inch
+1:10 faceplate lands at 1.9 inches on a normal 1:1 page; master search reports
+its page-specific size before a drop.
+
+Set `MISTERDIAGRAM_STENCIL_PATH` or `--stencil-path` to your stencil folders
+(colon-separated on macOS/Linux, semicolon-separated on Windows), then open
+a bare filename with optional `.vssx`. `stencil.available` lists filenames and
+sizes without opening them; `stencil.list` reports resolved absolute paths.
+See [stencil folders](docs/mcp.md#stencil-folders). The new synthetic re-save
+comparison and two faint native PNG differences remain disclosed in
+[the gaps](docs/gaps.md); release acceptance is still pending.
 
 ## Testers wanted
 

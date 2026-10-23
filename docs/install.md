@@ -198,7 +198,7 @@ On Windows, double every backslash in the path:
 `"command": "C:\\Users\\you\\AppData\\Local\\Programs\\misterdiagram\\misterdiagram.exe"`.
 
 **Any other stdio MCP client:** the command is the full path to the binary and the only argument
-is `mcp`. The server offers sixteen tools (open, save, export, render, batch, inspection,
+is `mcp`. The server offers seventeen tools (open, save, export, render, batch, inspection,
 stencils, connect); [docs/mcp.md](mcp.md) describes each one.
 
 Relative file paths resolve from the folder the client starts the server in, which is often
@@ -260,3 +260,42 @@ Open an [issue](https://github.com/MisterDiagram/MisterDiagram/issues) with the
 `misterdiagram --version` line, the command you ran and what you expected. Please do not attach
 drawings that hold customer names, addresses or other private data: a small file that shows the
 same problem, or a screenshot and a description, is enough.
+
+### Stencil folders
+
+Set `MISTERDIAGRAM_STENCIL_PATH` to an ordered list of folders. macOS and Linux
+use a colon; Windows uses a semicolon. `--stencil-path` accepts the same list and
+replaces the environment setting, including on `misterdiagram mcp`.
+
+```sh
+export MISTERDIAGRAM_STENCIL_PATH="$HOME/Stencils:$HOME/TeamStencils"
+misterdiagram run --cmd 'stencil.available={}'
+misterdiagram run --cmd 'stencil.open={"path":"affinity_native"}'
+misterdiagram mcp --stencil-path "$HOME/Stencils:$HOME/TeamStencils"
+```
+
+```powershell
+$env:MISTERDIAGRAM_STENCIL_PATH = 'C:\Stencils;D:\TeamStencils'
+misterdiagram mcp --stencil-path 'C:\Stencils;D:\TeamStencils'
+```
+
+In an MCP client config, for example:
+`"args": ["mcp", "--stencil-path", "/Users/you/Stencils:/Users/you/TeamStencils"]`.
+Use semicolons and doubled JSON backslashes for Windows paths.
+
+A bare filename searches each folder's top level in order. Within a folder, the
+exact filename is tried first, then the name with `.vssx` appended if omitted.
+The first match wins, and `stencil.open` returns its resolved absolute `path`.
+A missing filename reports every folder searched. A path containing a directory
+separator, `..`, NUL or a drive prefix uses the existing explicit-path route and
+never searches these folders. Without a configured list, the working directory
+is searched; an empty list entry also means the working directory.
+
+`stencil.available` (MCP tool `stencil_available`) returns `files` with `name`,
+`folder` and byte `size`, plus the configured `folders`. It lists `.vssx` files
+without opening or parsing them, including a file that would fail admission when
+opened. It does not recurse or build a master index. `stencil.list` reports each
+open external stencil's resolved absolute path; the document stencil has no path
+until opened or saved, and the built-in library retains `builtin:network`.
+Files found by name pass the same per-file and session memory checks as explicit
+paths. The search setting persists across document replacement.

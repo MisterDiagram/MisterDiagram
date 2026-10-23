@@ -18,9 +18,13 @@ pub(crate) fn open(s: &mut Session, p: &Value) -> Result<Value> {
     if builtin.is_some_and(|name| name != "network") {
         return Err(operation("unknown built-in stencil"));
     }
-    let path = if builtin.is_some() { PathBuf::from("builtin:network") } else { crate::files::path(p, "path")?.canonicalize().map_err(operation)? };
+    let path = if builtin.is_some() {
+        PathBuf::from("builtin:network")
+    } else {
+        crate::stencil_path::resolve(&s.stencil_path, crate::files::path(p, "path")?)?
+    };
     if let Some(index) = s.stencils.iter().position(|stencil| stencil.path == path) {
-        return Ok(json!({"stencil":index+1,"masters":s.stencils.get(index).map(|s|s.document.masters.len())}));
+        return Ok(json!({"stencil":index+1,"masters":s.stencils.get(index).map(|s|s.document.masters.len()),"path":path.to_string_lossy()}));
     }
     if s.stencils.len() >= 64 {
         return Err(crate::retention::fixed_admission_error("stencil count", 1, s.stencils.len(), 64, "stencil"));
@@ -41,14 +45,16 @@ pub(crate) fn open(s: &mut Session, p: &Value) -> Result<Value> {
     }
     s.reserve(Some((&document, true)))?;
     let count = document.masters.len();
+    let resolved = path.to_string_lossy().into_owned();
     s.stencils.push(Stencil { path, document: Arc::new(document) });
-    Ok(json!({"stencil":s.stencils.len(),"masters":count}))
+    Ok(json!({"stencil":s.stencils.len(),"masters":count,"path":resolved}))
 }
 /// Open stencils survive file.new and file.open; index zero is the document stencil.
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.documents
 pub(crate) fn list(s: &mut Session, _: &Value) -> Result<Value> {
+    let document_path = s.path.as_ref().map(|path| path.canonicalize().or_else(|_| std::path::absolute(path))).transpose().map_err(operation)?;
     let mut rows = vec![
-        json!({"stencil":0,"name":"Document stencil","path":s.path.as_ref().map(|path| path.to_string_lossy()),"masters":s.document.masters.len()}),
+        json!({"stencil":0,"name":"Document stencil","path":document_path.as_ref().map(|path| path.to_string_lossy()),"masters":s.document.masters.len()}),
     ];
     rows.extend(s.stencils.iter().enumerate().map(|(index, stencil)| {
         json!({"stencil":index+1,"name":stencil.path.file_name().unwrap_or(stencil.path.as_os_str()).to_string_lossy(),"path":stencil.path.to_string_lossy(),"masters":stencil.document.masters.len()})
@@ -167,6 +173,11 @@ pub(crate) fn search(s: &mut Session, p: &Value) -> Result<Value> {
     Ok(json!({"masters":masters,"matched":matched}))
 }
 
+/// Enumerate filenames and metadata only; package admission happens in open.
+pub(crate) fn available(s: &mut Session, _: &Value) -> Result<Value> {
+    crate::stencil_path::available(&s.stencil_path)
+}
+
 #[cfg(test)]
 mod retained_tests {
     use super::*;
@@ -205,7 +216,9 @@ mod retained_tests {
         s.path = Some(path.clone());
         s.stencils.push(Stencil { path, document: s.document.clone() });
         let result = list(&mut s, &json!({})).unwrap();
-        assert_eq!(result["stencils"][0]["path"], "original-\u{fffd}.vssx");
+        let displayed = result["stencils"][0]["path"].as_str().unwrap();
+        assert!(std::path::Path::new(displayed).is_absolute());
+        assert!(displayed.ends_with("original-\u{fffd}.vssx"));
         assert_eq!(result["stencils"][1]["path"], "original-\u{fffd}.vssx");
         assert_eq!(result["stencils"][1]["name"], "original-\u{fffd}.vssx");
     }

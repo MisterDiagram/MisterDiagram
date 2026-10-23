@@ -16510,6 +16510,7 @@ Visio exported PNG at 96 and 300 dpi and PDF. Native PDF dash operators preserve
 zero-length dot marks. The table counts physical marks, including a mark at the
 end when aligned. Each ours column lists round/butt/square counts. A backend
 may omit an endpoint cap; the tolerance is one mark at each end.
+Marks per inch are the listed seven-inch counts divided by seven.
 
 | Pattern | Weight (pt) | Visio | Ours before (0/1/2) | Ours after (0/1/2) |
 |---|---:|---:|---|---|
@@ -16660,3 +16661,12 @@ The unchanged render gate passes with nine generated outliers (maximum ten),
 the same count as before. All other current corpus page pixels are unchanged.
 The initial solid-line floor-removal trial failed the master group; it was
 reverted in favor of preserving solid hairline behavior. No oracle changed.
+
+### Stencil search paths (M5.31, #71)
+
+Filename discovery changes no package semantics. Bare names search configured
+folders in order, exact name before optional `.vssx`, without recursion.
+Directory-bearing names, `..`, NUL and drive prefixes retain explicit-path
+handling. Metadata-only listing never parses a stencil; actual opens use the
+existing bounded reader and session reservation. Resolved paths are captured
+at open/save, so later host working-directory changes do not relabel a document.
