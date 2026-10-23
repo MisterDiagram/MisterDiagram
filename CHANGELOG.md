@@ -11,7 +11,8 @@ Scaled stencil drops, complete dotted lines and reusable stencil folders.
   page before a drop ([#68](https://github.com/MisterDiagram/MisterDiagram/issues/68)).
 - **Newly dropped shapes save without redundant inherited values.** Matching
   literals use the native inherited representation, while explicit units and
-  destination-page layer membership remain intact
+  destination-page layer membership remain intact. Scaled drops use the native
+  numeric cache representation and ordinary line-master classification
   ([#68](https://github.com/MisterDiagram/MisterDiagram/issues/68)).
 - **Dotted lines keep their marks in PNG, SVG and PDF.** Dots no longer disappear,
   and thin patterned strokes keep the correct spacing across export scales
@@ -24,9 +25,9 @@ Scaled stencil drops, complete dotted lines and reusable stencil folders.
 
 These remove the scale-drop, missing-dot and missing-search-path limitations
 listed for alpha.1. Masters containing several top-level shapes remain unsupported.
-The new scale drawings open in Visio, but their strict re-save representation
-comparison still has differences; zero-difference acceptance remains open. Two
-faint-dot differences in Visio's own 96 dpi export are documented in
+All 13 synthetic scale and dotted-line drawings now open and save in Visio
+with zero strict representation differences. Two faint-dot differences in
+Visio's own 96 dpi export are documented in
 [docs/file-format-parity.md](docs/file-format-parity.md). Other previously listed
 gaps remain, including container/list formulas, text wrapping, legacy formats,
 EMF+, shadows and PowerPoint export.

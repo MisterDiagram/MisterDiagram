@@ -1946,10 +1946,10 @@ comparison refusals change from three to twenty-five and remain explicit exit2
 results; none is counted as a clean full-layout check. Three failed M5.39
 NoStyle-write trials produced no drawing and are not counted as witnesses.
 
-## Synthetic drop re-save representation (Brief 31)
+## Synthetic drop re-save representation (Brief 31, resolved by Brief 31c)
 
 The M5.29 scale values agree with the native matrix, but the first strict re-save
-trial has not met the zero-difference gate. Eight synthetic drawings open and save;
+trial did not meet the zero-difference gate. Eight synthetic drawings open and save;
 the unchanged checker reports 321 differences: 80 imported 1-D master flags,
 80 redundant PinX removals, 138 redundant endpoint removals, 16 window-size
 metadata changes against the historical blank baseline, and seven rounding
@@ -1959,21 +1959,21 @@ remains in force; no checker, mask, threshold or volatile-list exception was
 added. Private evidence: `plan/brief31/vm-accept-report.json` and
 `corpus/_vm/out/brief31-accept/`.
 
-The final consolidated run includes all 13 synthetic outputs, including the
+The original Brief 31b consolidated run included all 13 synthetic outputs, including the
 five reverse-direction controls. All 13 open and save, with 375 strict differences:
 95 MasterType flags, 95 PinX removals, 152 endpoint removals, 26 window-height changes
 and the same seven boundary rounding changes. The original eight-file subset
 still has exactly 321 differences. The 54 additional observations have the same
 known causes; no existing comparison changed. Evidence:
-`plan/brief31/vm-final-accept-report.json` and
+`plan/brief31c/before-vm-final-accept-report.json` and
 `corpus/_vm/out/brief31-final-accept/`.
 
 Brief 31c M5.29e implements the witnessed authored root-literal elision rule,
 including LayerMember, unit-override and style-provider exceptions. A fresh
 13-drawing native run removes all 247 inherited-literal differences. The remaining
 128 differences are 95 MasterType changes, 26 window attributes and seven numeric
-strings. Native zero-difference closure remains pending M5.29f/g; the historical
-375-difference receipt is retained.
+strings. At this intermediate step native zero-difference closure remained pending
+M5.29f/g; the historical 375-difference receipt is retained.
 
 M5.29f also removes all 95 ordinary 1-D MasterType differences. The next native
 13-drawing diagnostic has exactly 33 remaining: 26 window attributes and seven
@@ -1985,5 +1985,16 @@ three frozen example packages remain unchanged. Evidence:
 M5.29g replaces only the historical blank window control with a hashed blank
 captured in the same scheduled run. Comparing identical post-f inputs removes
 all 26 window differences: 33 become seven, with no drawing changes. Numeric
-canonicalization remains open. The old capture and both comparisons are retained
+canonicalization was the remaining step. The old capture and both comparisons are retained
 in `plan/brief31c/control-before-report.json` and `control-after-report.json`.
+
+The final M5.29g scoped writer run opens and saves all 13 drawings with zero
+strict differences: 247 inherited-literal elisions, 95 MasterType flags, 26
+window-control differences and seven numeric strings are all resolved. The
+existing strict comparison and non-window control rules remain unchanged. The
+new numeric representation is limited to generated/recomputed converted-instance
+caches; untouched imports and accepted unconverted authoring retain source bytes.
+Evidence: `plan/brief31/vm-final-accept-report.json`, the hashed same-run control
+receipt in `plan/brief31c/window-control-receipt.json`, and the native rules in
+`docs/file-format-parity.md`. The multi-root master and other named gaps above
+remain open.

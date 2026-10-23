@@ -214,7 +214,40 @@ impl<'a> Evaluator<'a> {
             let rgb = self.palette.get(&index).copied().or_else(|| misterdiagram_sheet::functions::default_color(index)).ok_or(Error::Value)?;
             return Ok(format!("#{:02x}{:02x}{:02x}", rgb[0], rgb[1], rgb[2]));
         }
-        misterdiagram_model::skeleton::number_text(number).ok_or(Error::Num)
+        if self.converted_instance(scope) {
+            misterdiagram_model::skeleton::native_number_text(number).ok_or(Error::Num)
+        } else {
+            misterdiagram_model::skeleton::number_text(number).ok_or(Error::Num)
+        }
+    }
+    /// Converted master instances and their descendants use native decimal caches.
+    /// Existing unconverted authoring retains its accepted representation.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/droponpagescale-cell-miscellaneous-section
+    pub(crate) fn converted_instance(&self, mut scope: Scope) -> bool {
+        for _ in 0..=128 {
+            if !matches!(scope, Scope::PageShape { .. }) {
+                return false;
+            }
+            if self.shape(scope).is_some_and(|shape| {
+                shape.master.is_some()
+                    && shape
+                        .sheet
+                        .cell("DropOnPageScale")
+                        .filter(|c| {
+                            c.formula.as_deref().is_none_or(|f| f.is_empty() || f.eq_ignore_ascii_case("No Formula"))
+                                && c.error.is_none()
+                                && c.units.as_deref().is_none_or(|u| u.eq_ignore_ascii_case("NUM"))
+                        })
+                        .and_then(|c| c.value.as_deref())
+                        .and_then(|v| v.parse::<f64>().ok())
+                        .is_some_and(|v| v.is_finite() && v > 0. && v != 1.)
+            }) {
+                return true;
+            }
+            let Some(parent) = self.parents.get(&scope).copied() else { return false };
+            scope = parent;
+        }
+        false
     }
     /// Resolve omitted length units from the owning metric drawing or master.
     /// Witnesses: scratch metric Para.IndFirst and SOCIAL_DISTANCING_M PageSheet.

@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-22: M5.29e to M5.29g (#68) closes the scaled-drop native re-save representation gate: all 13 synthetic drawings save with zero strict differences, down from 375. New instances omit redundant inherited literals with the witnessed unit/style/layer exceptions; ordinary 1-D masters use stable MasterType 1; converted numeric caches match native decimals. The blank window control is captured and hashed in the same run, with every other comparison rule unchanged.
+
 - 2026-10-22: M5.31 (#71) adds ordered stencil folders via the platform path separator, a CLI/MCP flag that overrides the environment, bare-name resolution with optional extension, absolute open paths, and metadata-only discovery. Admission and session ceilings are unchanged; configuration memory is accounted for.
 
 - 2026-10-22: M5.30 (#70) preserves physical dash periods and gives dot strokes a finite tangent. The 276-pattern PDF and SVG measurements match native physical mark counts within one mark per end; the exact three-line repro and both raster scales have complete coverage. Two faint native 96 dpi PNG exceptions are documented. Dash spacing follows the fitted centerline scale. The corpus line report improves to MAD 0.823705 and 1.023187% differing pixels with nine total outliers; only the 22 patterned-line pages change pixels.

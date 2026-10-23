@@ -28,6 +28,67 @@ pub fn number_text(value: f64) -> Option<String> {
     format!("{value:.15e}").parse::<f64>().ok().map(|n| n.to_string())
 }
 
+/// Observed native XML numeric representation, Brief31c synthetic witnesses.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+pub fn native_number_text(value: f64) -> Option<String> {
+    if !value.is_finite() {
+        return None;
+    }
+    if value == 0. {
+        return Some("0".into());
+    }
+    let scientific = format!("{:.16e}", value.abs());
+    let (mantissa, exponent) = scientific.split_once('e')?;
+    let mut exponent = exponent.parse::<i32>().ok()?;
+    let digits = mantissa.replace('.', "").parse::<u64>().ok()?;
+    let mut long = digits.checked_add(5)? / 10;
+    if long >= 10_000_000_000_000_000 {
+        long /= 10;
+        exponent = exponent.checked_add(1)?;
+    }
+    let mut short = long.checked_add(5)? / 10;
+    let mut short_exponent = exponent;
+    if short >= 1_000_000_000_000_000 {
+        short /= 10;
+        short_exponent = short_exponent.checked_add(1)?;
+    }
+    let short = short.to_string();
+    let short = short.trim_end_matches('0');
+    let long = long.to_string();
+    let digits = if short.len() <= 11 {
+        exponent = short_exponent;
+        short
+    } else {
+        long.trim_end_matches('0')
+    };
+    let mut result = if value.is_sign_negative() { "-".to_owned() } else { String::new() };
+    if !(-4..16).contains(&exponent) {
+        result.push_str(digits.get(..1)?);
+        let rest = digits.get(1..)?;
+        if !rest.is_empty() {
+            result.push('.');
+            result.push_str(rest);
+        }
+        result.push('E');
+        result.push_str(&exponent.to_string());
+    } else if exponent < 0 {
+        result.push_str("0.");
+        result.push_str(&"0".repeat(usize::try_from(exponent.checked_neg()?.checked_sub(1)?).ok()?));
+        result.push_str(digits);
+    } else {
+        let place = usize::try_from(exponent.checked_add(1)?).ok()?;
+        if place >= digits.len() {
+            result.push_str(digits);
+            result.push_str(&"0".repeat(place.checked_sub(digits.len())?));
+        } else {
+            result.push_str(digits.get(..place)?);
+            result.push('.');
+            result.push_str(digits.get(place..)?);
+        }
+    }
+    result.parse::<f64>().ok().filter(|n| n.is_finite()).map(|_| result)
+}
+
 /// Complete layer cells observed in generated/page/layers.vsdx; values follow
 /// scratch__metric-background-layers/saved.vsdx, including its No Formula defaults.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/layer-section
@@ -717,5 +778,52 @@ mod authored_decimal_regression {
         assert!(super::number_text(f64::NAN).is_none());
         assert!(super::number_text(f64::INFINITY).is_none());
         assert_ne!(super::number_text(0.85000001).as_deref(), Some("0.85"));
+    }
+}
+
+#[cfg(test)]
+mod native_decimal_regression {
+    /// Contributor-original native XML/COM witnesses, including repeated saves.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+    #[test]
+    fn native_one_pass_decimal_rounding_and_notation() {
+        for (value, expected) in [
+            (8.000064000512, "8.000064000511999"),
+            (80.00064000512, "80.00064000512001"),
+            (-8.000064000512, "-8.000064000511999"),
+            (-80.00064000512, "-80.00064000512001"),
+            (8.3, "8.3"),
+            (8.000064000512005, "8.000064000512005"),
+            (1e-5, "1E-5"),
+            (1e-4, "0.0001"),
+            (1e15, "1000000000000000"),
+            (1e16, "1E16"),
+            (0., "0"),
+            (-0., "0"),
+        ] {
+            assert_eq!(super::native_number_text(value).as_deref(), Some(expected));
+        }
+        for invalid in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY, f64::MAX, -f64::MAX] {
+            assert!(super::native_number_text(invalid).is_none());
+        }
+        for finite in [f64::MIN_POSITIVE, f64::from_bits(1), -f64::from_bits(1), 1e308, -1e308] {
+            assert!(super::native_number_text(finite).unwrap().parse::<f64>().unwrap().is_finite());
+        }
+    }
+
+    #[test]
+    fn native_itself_can_take_two_saves_to_reach_a_stable_decimal() {
+        for (value, stages) in [
+            (8120746228.4992485, ["8120746228.499249", "8120746228.49925", "8120746228.49925"]),
+            (-8120746228.4992485, ["-8120746228.499249", "-8120746228.49925", "-8120746228.49925"]),
+            (8.120746228499252e-10, ["8.120746228499253E-10", "8.120746228499254E-10", "8.120746228499254E-10"]),
+            (8.120746228499249e24, ["8.12074622849925E24", "8.120746228499251E24", "8.120746228499251E24"]),
+        ] {
+            let mut value = value;
+            for expected in stages {
+                assert_eq!(super::native_number_text(value).as_deref(), Some(expected));
+                value = expected.parse().unwrap();
+            }
+        }
     }
 }

@@ -115,7 +115,8 @@ impl Writer<'_> {
             }
         }
         // Literal spelling is already valid V data. Only color and language identities
-        // require conversion; parsing other literals destroys numeric-looking strings.
+        // require conversion generally; converted instances also canonicalize typed numbers.
+        // Declared string cells retain their spelling, including numeric-looking text.
         // https://learn.microsoft.com/en-us/office/client-developer/visio/label-cell-shape-data-section
         // Authored/edited literals also carry a type. Font literals retain their
         // supplied name or numeric identity; neither is an evaluated FONT result.
@@ -127,9 +128,11 @@ impl Writer<'_> {
             && c.error.is_none()
             && c.units.as_deref() != Some("STR")
             && c.name != "Font"
-            && (Evaluator::baseline_metadata(scope, name).is_some_and(|m| m.3 == 251) || matches!(c.name.as_str(), "LangID" | "DocLangID"))
+            && (Evaluator::baseline_metadata(scope, name).is_some_and(|m| m.3 == 251)
+                || matches!(c.name.as_str(), "LangID" | "DocLangID")
+                || self.evaluator.converted_instance(scope))
         {
-            match self.evaluator.cached_cell(c) {
+            match self.evaluator.cached_named_cell(scope, &name.to_ascii_lowercase(), c) {
                 // Preserve explicit standard palette indexes. Converting 0/1 to RGB changes
                 // ResultIU when the drawing also contains a custom black/white entry.
                 // Witness: generated/basic/0001-probe.vsdx StyleSheet 0 LineColor=0, FillForegnd=1.

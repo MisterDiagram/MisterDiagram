@@ -16693,14 +16693,14 @@ at open/save, so later host working-directory changes do not relabel a document.
 
 ### Final synthetic re-save observation (Brief 31b)
 
-One consolidated native run opened and saved all 13 final engine-generated
+The initial Brief 31b consolidated native run opened and saved all 13 engine-generated
 drawings: twelve scale/control pages and the three-line repro. The unchanged strict repair
 checker reports 375 representation differences, including the same 321 in the
 original eight-file subset. These are 95 imported 1-D MasterType flags, 95
 redundant PinX cells, 152 redundant endpoint cells, 26 window-height metadata
 changes and 7 one-ULP boundary cache changes. The cell-value scale comparisons
 still pass within 1e-6. This is not a zero-repair-difference acceptance result;
-see the named gap in docs/gaps.md and private vm-final-accept-report.json.
+see the historical receipt in plan/brief31c/before-vm-final-accept-report.json.
 
 ### Observed, undocumented: authored instance literal elision (M5.29e, #68)
 
@@ -16773,3 +16773,52 @@ stale or substituted evidence. The first control run is retained privately in
 `corpus/_vm/out/brief31c-control-before-numeric/`; its blank saved SHA-256 is
 `ba76eee27872332c3f75ee37a25605a83317b5aec0fae713f5e048a524d5de91`.
 A final acceptance run recaptures its own blank alongside the final drawings.
+
+### Observed, undocumented: native numeric cache formatting (M5.29g, #68)
+
+The seven strict boundary differences were decimal serialization differences,
+not evaluator or XML-parser differences. XML import, ResultIU and FormulaU probes
+have the same IEEE double bits before save. Visio writes
+`8.000064000512` as `8.000064000511999` and `80.00064000512` as
+`80.00064000512001`. The strict cell comparator compares literal strings; its
+separate COM numeric tolerance did not exempt these changes.
+
+The synthetic observations match this one-pass rule: round the double correctly
+to 17 significant decimal digits, then decimal half-up to 16. Derive a 15-digit
+candidate from the 16-digit result and use it only when its normalized mantissa
+needs at most 11 digits. Otherwise retain 16. Use scientific notation below
+exponent -4 or at exponent 16 and above, uppercase E without a positive sign.
+The rule matches all 615 initial observations, including 180 held-out values,
+both signs, adjacent doubles, short constants and scientific notation. Their
+second native saves are unchanged. The [Cell reference](https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml)
+describes V but does not specify this decimal algorithm.
+
+This is not a universal idempotence claim. A review-discovered counterexample
+also occurs in Visio: `8120746228.4992485` saves as `8120746228.499249`, then
+`8120746228.49925`, which is stable on saves three and four. Positive and negative
+scientific cases show the same two-step behavior. The formatter follows the
+native one-pass rule rather than inventing fixed-point normalization. These
+observations do not alter the strict comparator or exempt an acceptance case.
+
+Private evidence: `plan/brief31c/rounding-complete-analysis.json`,
+`plan/brief31c/rounding-repeat-analysis.json`, and the corresponding synthetic
+`corpus/_vm/out/brief31c-rounding-*` captures. Generated and recomputed numeric values of converted master instances and their
+descendants use this formatter, including subsequent edits. The conversion marker
+must be a valid numeric literal. Untouched imported caches, master definitions,
+unconverted authoring, font identities and declared text keep their accepted
+representation. This scope preserves the frozen example, unit-master and benchmark
+package contracts. A reverted global trial changed the affinity master16.xml
+Shape7 TxtHeight cache from 0.0874311023622028 to 0.08743110236220281; it is not
+part of this change.
+
+Final Brief 31c native acceptance: all 13 synthetic drawings open and save with
+zero strict differences. Category counts are 247/95/26/7 before and 0/0/0/0
+after for inherited literals, MasterType, window control and numeric strings.
+The same-run blank is `corpus/_vm/out/scaled-drop-accept/blank-window-control/`,
+run `ca2b96d592264e82bfddbf7cc06cd677`. Input SHA-256:
+`acd3e9a301a5b7ca458526aa46a1b4c7d87cd44ebee97c914a2bc417f0a3ec34`.
+Native saved SHA-256:
+`ebfc2782b3477bde8e97ff824f14e8a6f654fbcc699493b7e081258d80c57f56`.
+The full hashed receipt and strict results are retained in
+`plan/brief31c/window-control-receipt.json` and
+`plan/brief31/vm-final-accept-report.json`.
