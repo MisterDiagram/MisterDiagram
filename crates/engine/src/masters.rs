@@ -272,6 +272,21 @@ fn collect_colors(sheet: &Sheet, colors: &mut BTreeSet<String>) {
         }
     }
 }
+/// Native post-save type for an ordinary 1-D master is 1. Special connector
+/// types and passive imported documents retain their source attributes.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml
+fn canonical_imported_type(master: &mut misterdiagram_model::Master, source: &Document) -> Result<()> {
+    if master.attributes.get("MasterType").is_some_and(|v| v == "2") {
+        let mut roots = master.shapes.iter().filter(|s| !s.sheet.attributes.get("Del").is_some_and(|v| v == "1" || v == "true"));
+        if let Some(root) = roots.next().filter(|_| roots.next().is_none()) {
+            let e = Evaluator::new(source).map_err(operation)?;
+            if e.cell(Scope::MasterShape { master: master.id, shape: root.id }, "BeginX").is_some() {
+                master.attributes.insert("MasterType".into(), "1".into());
+            }
+        }
+    }
+    Ok(())
+}
 fn import_master(
     doc: &mut Document,
     source: &Document,
@@ -312,6 +327,7 @@ fn import_master(
     let id = next_master(doc)?;
     let part = part_name(doc)?;
     let mut copy = master.clone();
+    canonical_imported_type(&mut copy, source)?;
     copy.id = id;
     copy.icon = None;
     copy.part = part.clone();
@@ -525,6 +541,12 @@ pub(crate) fn drop_master(s: &mut Session, p: &Value) -> Result<Value> {
             connects.push(copy);
         }
         let id = shape.id;
+        if line {
+            let master = doc.masters.iter_mut().find(|m| m.id == master_id).ok_or_else(|| operation("master missing"))?;
+            if master.attributes.get("MasterType").is_some_and(|v| v == "2") {
+                master.attributes.insert("MasterType".into(), "1".into());
+            }
+        }
         let page = page_mut(doc, page_index)?;
         page.connects.extend(connects);
         page.shapes.push(shape);
@@ -568,6 +590,7 @@ pub(crate) fn new_from_shape(s: &mut Session, p: &Value) -> Result<Value> {
     let mut shape = e.shape(scope).ok_or_else(|| operation("shape missing"))?.clone();
     let page_id = s.document.pages.get(index).ok_or_else(|| operation("page not found"))?.id;
     crate::reference_cleanup::isolate(&s.document, page_id, &mut shape)?;
+    let one_d = e.cell(scope, "BeginX").is_some();
     let width = e.evaluate(scope, "Width").numeric().map_err(operation)?;
     let height = e.evaluate(scope, "Height").numeric().map_err(operation)?;
     let stroke = if e.evaluate(scope, "LinePattern").numeric().map_err(operation)? == 0. {
@@ -585,7 +608,7 @@ pub(crate) fn new_from_shape(s: &mut Session, p: &Value) -> Result<Value> {
         master.name = title.clone();
         master.name_u = title;
         master.icon = None;
-        master.attributes.insert("MasterType".into(), "2".into());
+        master.attributes.insert("MasterType".into(), if one_d { "1" } else { "2" }.into());
         master.attributes.insert("Prompt".into(), String::new());
         master.attributes.insert("MatchByName".into(), "0".into());
         master.sheet.sections.clear();

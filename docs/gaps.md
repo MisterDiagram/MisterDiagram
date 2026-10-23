@@ -1974,3 +1974,10 @@ including LayerMember, unit-override and style-provider exceptions. A fresh
 128 differences are 95 MasterType changes, 26 window attributes and seven numeric
 strings. Native zero-difference closure remains pending M5.29f/g; the historical
 375-difference receipt is retained.
+
+M5.29f also removes all 95 ordinary 1-D MasterType differences. The next native
+13-drawing diagnostic has exactly 33 remaining: 26 window attributes and seven
+numeric strings. MasterType=1 is stable after native reopen/save; 2-D and special
+master types retain their observed classifications. Numeric scale cases and the
+three frozen example packages remain unchanged. Evidence:
+`plan/brief31c/mastertype-native-diagnostic.json`.

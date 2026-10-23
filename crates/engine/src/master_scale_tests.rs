@@ -217,3 +217,72 @@ fn omitted_master_pagesheet_keeps_default_drop_and_discovery() {
     near(&s, "Height", 4.);
     near(&s, "DropOnPageScale", 1.);
 }
+
+#[test]
+fn imported_simple_master_types_match_native_post_save_without_changing_special_types() {
+    for scale in [1., 10.] {
+        for line in [false, true] {
+            let source = session(scale, 1., 0., line);
+            let mut doc = source.document().clone();
+            doc.masters[0].attributes.insert("MasterType".into(), "2".into());
+            doc.masters[0].attributes.insert("MatchByName".into(), "0".into());
+            doc.masters[0].name_u = "Original type witness".into();
+            doc.masters[0].unique_id = None;
+            // Passive import/save must not normalize historical source attributes.
+            let imported = misterdiagram_vsdx::import(&misterdiagram_vsdx::write(&doc).unwrap().bytes).unwrap();
+            let resaved = misterdiagram_vsdx::import(&misterdiagram_vsdx::write(&imported).unwrap().bytes).unwrap();
+            assert_eq!(resaved.masters[0].attributes.get("MasterType").unwrap().as_str(), "2");
+            let mut destination = Session::new();
+            destination.stencils.push(crate::stencils::Stencil { path: "synthetic-native-master-type".into(), document: Arc::new(doc) });
+            let result = destination.execute("master.drop", &json!({"stencil":1,"master":2,"x":5,"y":5})).unwrap();
+            let id = result["master"].as_u64().unwrap();
+            let written = misterdiagram_vsdx::import(&misterdiagram_vsdx::write(destination.document()).unwrap().bytes).unwrap();
+            let master = written.masters.iter().find(|m| u64::from(m.id) == id).unwrap();
+            assert_eq!(master.attributes.get("MasterType").unwrap().as_str(), if line { "1" } else { "2" }, "line={line}, scale={scale}");
+            assert_eq!(written.masters.iter().find(|m| m.id == 2).unwrap().attributes.get("MasterType").unwrap().as_str(), "541");
+        }
+    }
+    for kind in ["541", "101"] {
+        let mut source = session(10., 1., 0., true).document().clone();
+        source.masters[0].attributes.insert("MasterType".into(), kind.into());
+        source.masters[0].attributes.insert("MatchByName".into(), "0".into());
+        source.masters[0].unique_id = None;
+        source.masters[0].name_u = "Original special type witness".into();
+        let mut destination = Session::new();
+        destination.stencils.push(crate::stencils::Stencil { path: "synthetic-special-master-type".into(), document: Arc::new(source) });
+        let result = destination.execute("master.drop", &json!({"stencil":1,"master":2})).unwrap();
+        let id = result["master"].as_u64().unwrap();
+        assert_eq!(
+            destination.document().masters.iter().find(|m| u64::from(m.id) == id).unwrap().attributes.get("MasterType").unwrap().as_str(),
+            kind
+        );
+    }
+}
+
+#[test]
+fn active_own_master_drops_and_drag_created_masters_use_native_dimension_type() {
+    for line in [false, true] {
+        let mut s = session(1., 1., 0., line);
+        Arc::make_mut(&mut s.document).masters[0].attributes.insert("MasterType".into(), "2".into());
+        s.execute("master.drop", &json!({"master":2,"x":5,"y":5})).unwrap();
+        assert_eq!(s.document().masters[0].attributes.get("MasterType").unwrap().as_str(), if line { "1" } else { "2" });
+        let result = s.execute("master.new_from_shape", &json!({"id":1,"name":"Inherited native type"})).unwrap();
+        let id = result["master"].as_u64().unwrap();
+        assert_eq!(
+            s.document().masters.iter().find(|m| u64::from(m.id) == id).unwrap().attributes.get("MasterType").unwrap().as_str(),
+            if line { "1" } else { "2" }
+        );
+        let mut s = Session::new();
+        if line {
+            s.execute("shape.draw.line", &json!({"x1":0,"y1":0,"x2":10,"y2":0})).unwrap();
+        } else {
+            s.execute("shape.draw.rect", &json!({"x":0,"y":0,"width":10,"height":4})).unwrap();
+        }
+        let result = s.execute("master.new_from_shape", &json!({"id":1,"name":"Direct native type"})).unwrap();
+        let id = result["master"].as_u64().unwrap();
+        assert_eq!(
+            s.document().masters.iter().find(|m| u64::from(m.id) == id).unwrap().attributes.get("MasterType").unwrap().as_str(),
+            if line { "1" } else { "2" }
+        );
+    }
+}

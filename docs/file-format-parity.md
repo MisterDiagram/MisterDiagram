@@ -16737,3 +16737,21 @@ literal removals. Its 128 remaining strict differences are 95 MasterType changes
 26 window attributes and seven numeric strings, handled by M5.29f and M5.29g.
 Evidence: `plan/brief31c/elision-native-diagnostic.json` and
 `corpus/_vm/out/brief31c-elision-accept/`.
+
+### Observed, undocumented: ordinary MasterType after native save (M5.29f, #68)
+
+A simple 1-D master has canonical MasterType=1; a 2-D master has MasterType=2.
+The creation route can hide this: Masters.Add followed by DrawLine initially
+writes 2, and the first document importing it also writes 2. Reopening and
+saving that document changes the line master to 1, which remains 1 on a second
+save. Creating the master by Masters.Drop of a page line writes 1 immediately.
+Both rectangle routes write 2 throughout. Drawing scale does not determine type.
+
+Active master import/drop and master.new_from_shape use this native post-save
+form. Passive imported documents retain source bytes, and special master types
+such as the dynamic connector's 541 are preserved. The type-2 conversion requires
+one live root with an inherited or local BeginX cell. Evidence is the synthetic
+`corpus/_vm/out/brief31c-mastertype/` and `brief31c-mastertype-resave/` runs,
+combined in `plan/brief31c/mastertype-complete.json`.
+The [Master reference](https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml)
+does not document this post-save classification detail.
