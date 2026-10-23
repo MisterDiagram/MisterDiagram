@@ -16755,3 +16755,21 @@ one live root with an inherited or local BeginX cell. Evidence is the synthetic
 combined in `plan/brief31c/mastertype-complete.json`.
 The [Master reference](https://learn.microsoft.com/en-us/office/client-developer/visio/master-element-masters_type-complextypevisio-xml)
 does not document this post-save classification detail.
+
+### Observed, undocumented: same-run blank window control (M5.29g, #68)
+
+The historical blank window was captured at a different desktop window height.
+A blank captured in the same scheduled Visio run as all 13 synthetic drawings
+removes exactly the 26 window-height differences without changing any drawing.
+On identical post-M5.29f inputs, the historical control leaves 33 differences;
+the same-run control leaves the seven numeric strings. All non-window historical
+control differences, strict comparisons, allowed rewrites and route checks remain
+unchanged.
+
+The capture retains every opened input and native output beside its receipt,
+with a shared run identifier, script/helper hashes and artifact hashes. Validation
+requires the blank and all 13 exact, unique case names and rejects incomplete,
+stale or substituted evidence. The first control run is retained privately in
+`corpus/_vm/out/brief31c-control-before-numeric/`; its blank saved SHA-256 is
+`ba76eee27872332c3f75ee37a25605a83317b5aec0fae713f5e048a524d5de91`.
+A final acceptance run recaptures its own blank alongside the final drawings.

@@ -7,7 +7,7 @@ that the page was consulted during this session.
 | URL | Citing files |
 |---|---|
 | <http://schemas.microsoft.com/office/visio/2011/1/core> | `tools/oracle/accept_report.py` |
-| <http://schemas.microsoft.com/office/visio/2012/main> | `tools/oracle/accept_report.py`, `tools/oracle/route_geometry.py`, `tools/oracle/test_accept_report.py`, `tools/oracle/vendor-stencils/action-witness.ps1`, `tools/oracle/vendor-stencils/knot-precision-witness.ps1`, `tools/oracle/vendor-stencils/knot-serialization-confirmation.ps1`, `tools/oracle/vendor-stencils/nested-action-witness.ps1`, `tools/oracle/vendor-stencils/zero-height-classes.ps1`, `tools/oracle/vendor-stencils/zero-width-recalc.ps1`, `tools/oracle/vendor-stencils/zero-width-witness.ps1` |
+| <http://schemas.microsoft.com/office/visio/2012/main> | `tools/oracle/accept_report.py`, `tools/oracle/route_geometry.py`, `tools/oracle/test_accept_report.py`, `tools/oracle/test_scaled_drop_run.py`, `tools/oracle/vendor-stencils/action-witness.ps1`, `tools/oracle/vendor-stencils/knot-precision-witness.ps1`, `tools/oracle/vendor-stencils/knot-serialization-confirmation.ps1`, `tools/oracle/vendor-stencils/nested-action-witness.ps1`, `tools/oracle/vendor-stencils/zero-height-classes.ps1`, `tools/oracle/vendor-stencils/zero-width-recalc.ps1`, `tools/oracle/vendor-stencils/zero-width-witness.ps1` |
 | <http://schemas.microsoft.com/visio/2010/relationships/master> | `tools/oracle/route_geometry.py`, `tools/oracle/test_route_geometry.py` |
 | <http://schemas.openxmlformats.org/officeDocument/2006/relationships> | `tools/oracle/route_geometry.py` |
 | <http://schemas.openxmlformats.org/package/2006/content-types> | `tools/oracle/accept_report.py`, `tools/oracle/test_accept_report.py` |
@@ -356,11 +356,11 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.close> | `crates/engine/src/stencils.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.exportasfixedformat> | `crates/engine/src/files.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.masters> | `crates/engine/src/stencils.rs` |
-| <https://learn.microsoft.com/en-us/office/vba/api/visio.document.saveas> | `apps/misterdiagram-cli/src/author.rs`, `apps/misterdiagram-corpus/examples/route_resave.rs`, `crates/engine/src/files.rs`, `tools/oracle/accept.ps1` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.document.saveas> | `apps/misterdiagram-cli/src/author.rs`, `apps/misterdiagram-corpus/examples/route_resave.rs`, `crates/engine/src/files.rs`, `tools/oracle/accept.ps1`, `tools/oracle/scaled-drop-accept.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.documents> | `crates/engine/src/stencils.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.documents.add> | `crates/engine/src/files.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.documents.open> | `crates/engine/src/files.rs`, `crates/vsdx/src/lib.rs` |
-| <https://learn.microsoft.com/en-us/office/vba/api/visio.documents.openex> | `crates/engine/src/retention.rs`, `crates/engine/src/stencils.rs`, `crates/engine/tests/stencil_limits.rs`, `tools/oracle/accept.ps1`, `tools/oracle/vendor-stencils/vendor-three-witness.ps1` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.documents.openex> | `crates/engine/src/retention.rs`, `crates/engine/src/stencils.rs`, `crates/engine/tests/stencil_limits.rs`, `tools/oracle/accept.ps1`, `tools/oracle/scaled-drop-accept.ps1`, `tools/oracle/vendor-stencils/vendor-three-witness.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.hyperlinks.add> | `crates/engine/src/content.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.layer.delete> | `crates/engine/src/pages.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.layer.name> | `crates/engine/src/pages.rs` |

@@ -1981,3 +1981,9 @@ numeric strings. MasterType=1 is stable after native reopen/save; 2-D and specia
 master types retain their observed classifications. Numeric scale cases and the
 three frozen example packages remain unchanged. Evidence:
 `plan/brief31c/mastertype-native-diagnostic.json`.
+
+M5.29g replaces only the historical blank window control with a hashed blank
+captured in the same scheduled run. Comparing identical post-f inputs removes
+all 26 window differences: 33 become seven, with no drawing changes. Numeric
+canonicalization remains open. The old capture and both comparisons are retained
+in `plan/brief31c/control-before-report.json` and `control-after-report.json`.
