@@ -66,7 +66,12 @@ M4 met its plan gates on 2026-10-15. Phase 5 is in progress and P5a is accepted;
 PowerPoint export remains next. CI runs all eight gates on Linux, Windows and
 macOS, plus an Ubuntu check at the declared Rust minimum.
 
-Known gaps are listed in [docs/gaps.md](docs/gaps.md). Text wrapping is the weakest area,
+Known gaps are listed in [docs/gaps.md](docs/gaps.md). The current source corrects
+washed-out theme gradients and connector label colours (#79, #80), and resolves
+colour/style variant indexes (#82). Some themes still have different secondary
+fill backgrounds and dormant gradient angles; THEMEVAL parity remains incomplete.
+Container/list formulas, larger-page routing, legacy formats, shadows, PowerPoint
+export and masters with several top-level shapes also remain limited. Text wrapping is the weakest area,
 EMF+ images are not drawn, and compound line patterns are approximate. Authoring large
 drawings is slow: strict mode publishes the whole document after every command, so a
 2,500-command drawing of about 380 shapes takes about 13 minutes

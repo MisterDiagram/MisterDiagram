@@ -112,7 +112,7 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
         _ => Err("render output extension must be png, svg or pdf".into()),
     }
 }
-/// `misterdiagram 0.1.0-alpha.3 (0123456789ab, aarch64-apple-darwin)`; the commit comes from the
+/// `misterdiagram 0.1.0-alpha.4 (0123456789ab, aarch64-apple-darwin)`; the commit comes from the
 /// release workflow (build.rs), so source builds say "unknown commit".
 fn version_line(commit: Option<&str>, target: &str) -> String {
     format!("misterdiagram {} ({}, {target})", env!("CARGO_PKG_VERSION"), commit.unwrap_or("unknown commit"))

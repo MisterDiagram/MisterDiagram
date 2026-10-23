@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.1.0-alpha.4
+
+Clearer themed fills, readable connector labels and working colour variants.
+
+- **Themed gradients keep their actual colours.** Unused stop slots no longer
+  wash the fill toward white. Colour transforms retain the precision Visio
+  uses, including saturation above 100%
+  ([#79](https://github.com/MisterDiagram/MisterDiagram/issues/79)).
+- **Connector labels use connector text styles.** Labels that were white on
+  white backgrounds are readable, and connector line colours and weights
+  follow their own style entries
+  ([#80](https://github.com/MisterDiagram/MisterDiagram/issues/80)).
+- **Colour and style variants resolve without reference errors in the theme
+  sweeps.** The 200-range colours retain their distinct behaviour in monotone
+  variants, and theme font names survive installation-specific font IDs
+  ([#82](https://github.com/MisterDiagram/MisterDiagram/issues/82)).
+
+Known gaps: some themes still produce different secondary fill backgrounds
+and dormant gradient angles. The strict theme sweep has 261,855 of 264,405
+rows equal; the remaining 2,550 are visible failures. This is not complete
+THEMEVAL parity. Existing limitations remain in container/list formulas,
+text wrapping, larger-page routing, legacy formats, EMF+, compound line patterns,
+shadows, PowerPoint export, large-drawing authoring speed and masters with several
+top-level shapes.
+
+
 ## 0.1.0-alpha.3
 
 Scaled stencil drops, complete dotted lines and reusable stencil folders.
