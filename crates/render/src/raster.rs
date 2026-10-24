@@ -12,7 +12,7 @@ pub fn decode(bytes: &[u8]) -> Result<image::RgbaImage, String> {
         return Err("image byte limit".into());
     }
     let header = image::ImageReader::new(std::io::Cursor::new(bytes)).with_guessed_format().map_err(|e| e.to_string())?;
-    let (width, height) = header.into_dimensions().map_err(|e| e.to_string())?;
+    let (width, height) = header.into_dimensions().map_err(decode_error)?;
     if width == 0 || height == 0 || width > 16384 || height > 16384 || u64::from(width) * u64::from(height) > MAX_PIXELS as u64 {
         return Err("image pixel limit (header)".into());
     }
@@ -22,11 +22,14 @@ pub fn decode(bytes: &[u8]) -> Result<image::RgbaImage, String> {
     limits.max_image_height = Some(16384);
     limits.max_alloc = Some((MAX_PIXELS * 8) as u64);
     reader.limits(limits);
-    let image = reader.decode().map_err(|e| e.to_string())?.into_rgba8();
+    let image = reader.decode().map_err(decode_error)?.into_rgba8();
     if u64::from(image.width()) * u64::from(image.height()) > MAX_PIXELS as u64 {
         return Err("image pixel limit".into());
     }
     Ok(image)
+}
+fn decode_error(error: image::ImageError) -> String {
+    if matches!(error, image::ImageError::Limits(_)) { format!("image decoder limit: {error}") } else { error.to_string() }
 }
 fn pixmap(img: &image::RgbaImage) -> Result<Arc<Pixmap>, String> {
     let (w, h) = img.dimensions();

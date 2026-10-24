@@ -180,3 +180,72 @@ fn empty_metafile_preview_uses_the_next_picture_or_placeholder() {
         assert!(result.warnings.iter().any(|w| w.contains(if later_picture { "cached picture" } else { "placeholder" })), "{:?}", result.warnings);
     }
 }
+
+#[test]
+fn foreign_recovery_preserves_primary_metafile_resource_refusals() {
+    fn record(bytes: &mut Vec<u8>, kind: u32, values: &[u32]) {
+        bytes.extend(kind.to_le_bytes());
+        bytes.extend((8 + values.len() as u32 * 4).to_le_bytes());
+        for value in values {
+            bytes.extend(value.to_le_bytes());
+        }
+    }
+    // Original dotted zigzag: its expansion exceeds the operation cap
+    // without allocating the expanded path. This is a resource refusal, not an
+    // unknown embedded-object format.
+    let mut emf = vec![0u8; 88];
+    record(&mut emf, 95, &[1, 0, 0, 0, 0, 2, 0, 0, 0xff, 0, 0]);
+    record(&mut emf, 37, &[1]);
+    let mut points = vec![0, 0, 96, 96, 40];
+    for i in 0..40 {
+        points.extend([if i % 2 == 0 { 0 } else { 100_000 }, i * 10]);
+    }
+    record(&mut emf, 4, &points);
+    record(&mut emf, 14, &[0, 0, 20]);
+    let size = emf.len() as u32;
+    for (offset, value) in [
+        (0, 1u32),
+        (4, 88),
+        (16, 96),
+        (20, 96),
+        (32, 2540),
+        (36, 2540),
+        (40, 0x464d4520),
+        (44, 0x10000),
+        (48, size),
+        (52, 5),
+        (56, 2),
+        (72, 96),
+        (76, 96),
+        (80, 25),
+        (84, 25),
+    ] {
+        emf[offset..offset + 4].copy_from_slice(&value.to_le_bytes());
+    }
+    for kind in ["EnhMetaFile", "Object"] {
+        let mut doc = document(false, true);
+        doc.pages[0].shapes[0].foreign_data.as_mut().unwrap().attributes.insert("ForeignType".into(), kind.into());
+        doc.parts.get_mut("visio/embeddings/original.bin").unwrap().bytes = emf.clone().into();
+        let strict = scene::page(&doc, 0, Options::default()).unwrap_err();
+        assert!(strict.contains("metafile operation limit"), "{strict}");
+        let error = scene::page(&doc, 0, Options { cached_fallback: true, ..Default::default() }).unwrap_err();
+        assert!(error.contains("shape 7") && error.contains("metafile operation limit"), "{error}");
+    }
+}
+
+#[test]
+fn foreign_recovery_preserves_primary_image_resource_refusals() {
+    // Original BMP header declares a width beyond the renderer's allocation cap.
+    let mut bmp = vec![0u8; 54];
+    bmp[..2].copy_from_slice(b"BM");
+    for (offset, value) in [(2, 54u32), (10, 54), (14, 40), (18, 20_000), (22, 1)] {
+        bmp[offset..offset + 4].copy_from_slice(&value.to_le_bytes());
+    }
+    bmp[26..28].copy_from_slice(&1u16.to_le_bytes());
+    bmp[28..30].copy_from_slice(&24u16.to_le_bytes());
+    assert!(raster::decode(&bmp).unwrap_err().contains("image pixel limit"));
+    let mut doc = document(false, true);
+    doc.parts.get_mut("visio/embeddings/original.bin").unwrap().bytes = bmp.into();
+    let error = scene::page(&doc, 0, Options { cached_fallback: true, ..Default::default() }).unwrap_err();
+    assert!(error.contains("shape 7") && error.contains("image pixel limit"), "{error}");
+}

@@ -236,6 +236,12 @@ the other measured files use 2012/main. Container inspection accepts both exact 
 
 ### M5.52: cached foreign-object pictures and icons (#86)
 
+Primary image decoder resource refusals remain errors: operation, memory, byte
+and pixel caps cannot become successful placeholders. This preserves the hostile
+EMF dash/text guards. Undecodable opaque objects still recover; bounded cached
+preview attempts may fail over to another picture or a placeholder. Original
+zigzag and oversized BMP controls cover this boundary.
+
 The three private #86 witnesses in `field/oss-2026-10-22/manifest.tsv` have
 ForeignType Object. Two ActiveX objects (ObjectType33792, ShowAsIcon0) point to
 an opaque control part whose own image relationship identifies a cached EMF.

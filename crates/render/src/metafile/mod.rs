@@ -948,8 +948,11 @@ fn crop(img: Rgba, src: Rect) -> Rgba {
 /// Retargeted EMF record reader. Unknown records are skipped, malformed sizes cannot loop.
 /// https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/
 pub fn import(bytes: &[u8]) -> Result<Imported, String> {
-    if bytes.len() > 128 * 1024 * 1024 || bytes.get(40..44) != Some(&b" EMF"[..]) {
-        return Err("invalid EMF header or size limit".into());
+    if bytes.len() > 128 * 1024 * 1024 {
+        return Err("metafile byte limit".into());
+    }
+    if bytes.get(40..44) != Some(&b" EMF"[..]) {
+        return Err("invalid EMF header".into());
     }
     emf::play(bytes)
 }
@@ -958,8 +961,11 @@ pub fn import(bytes: &[u8]) -> Result<Imported, String> {
 /// The ordinary strict importer retains its established unsupported-operation policy.
 /// https://learn.microsoft.com/en-us/windows/win32/gdi/ternary-raster-operations
 pub(crate) fn import_cached_picture(bytes: &[u8]) -> Result<Imported, String> {
-    if bytes.len() > 128 * 1024 * 1024 || bytes.get(40..44) != Some(&b" EMF"[..]) {
-        return Err("invalid EMF header or size limit".into());
+    if bytes.len() > 128 * 1024 * 1024 {
+        return Err("metafile byte limit".into());
+    }
+    if bytes.get(40..44) != Some(&b" EMF"[..]) {
+        return Err("invalid EMF header".into());
     }
     let imported = emf::play_cached_picture(bytes)?;
     if imported.warnings.iter().any(|warning| warning == SKIPPED_ROPS || warning == BAD_IMAGE) {

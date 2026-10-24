@@ -811,7 +811,7 @@ fn foreign_image(
         Err(error) => Err(error.clone()),
     };
     let Err(error) = result else { return Ok(()) };
-    if !recover {
+    if !recover || foreign_resource_failure(&error) {
         return Err(format!("{label}: {error}"));
     }
     // The object's own image relationship identifies the cached presentation.
@@ -854,6 +854,21 @@ fn foreign_image(
     let detail = preview_error.map(|error| format!("; last cached picture error: {error}")).unwrap_or_default();
     scene.warnings.push(format!("{label}: {error}; drew sized placeholder ({reason}{detail})"));
     Ok(())
+}
+/// Resource refusals remain errors even when an undecodable object may recover.
+/// These prefixes are emitted by our bounded decoders, not read from the file.
+fn foreign_resource_failure(error: &str) -> bool {
+    [
+        "metafile operation limit",
+        "metafile byte limit",
+        "export scene memory limit",
+        "export operation limit",
+        "image byte limit",
+        "image pixel limit",
+        "image decoder limit:",
+    ]
+    .iter()
+    .any(|prefix| error.starts_with(prefix))
 }
 fn foreign_target<'a>(document: &'a Document, part: &str, foreign: &misterdiagram_model::XmlElement) -> Result<&'a str, String> {
     let rel = foreign.child("Rel").and_then(foreign_relationship).ok_or("foreign object lacks relationship")?;
