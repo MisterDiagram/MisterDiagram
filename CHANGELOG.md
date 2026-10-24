@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.6
+
+Four small fixes from the first week of tester files, each verified against the corpus and
+the field gate.
 
 - **CHAR() is implemented.** A Unicode code point becomes its character, so shape labels
   built with `CHAR(10)` line breaks evaluate instead of reporting `#NAME?`
@@ -15,6 +18,20 @@
   binary .vsd, an empty file or a PDF now says so, quoting the first bytes, instead of the ZIP
   reader's "Could not find EOCD"; render, convert, info and the MCP server print the same line
   ([#94](https://github.com/MisterDiagram/MisterDiagram/issues/94)).
+
+Known gaps, new since alpha.5 and filed from Microsoft's template catalogue: a text field
+whose picture is feet-and-inches (`<,FEET/INCH>0 u`) fails and a text-field error still stops
+the render ([#95](https://github.com/MisterDiagram/MisterDiagram/issues/95)); a master
+shape's Height saved as `GUARD(REF())` stops the page shape that inherits it
+([#96](https://github.com/MisterDiagram/MisterDiagram/issues/96)); a 2,780-shape template
+trips the evaluator's construction budget before any page draws
+([#97](https://github.com/MisterDiagram/MisterDiagram/issues/97)); `THEME()` with a colour
+argument ([#88](https://github.com/MisterDiagram/MisterDiagram/issues/88)), the Text Callout
+cycle ([#91](https://github.com/MisterDiagram/MisterDiagram/issues/91)), the `sheet` command's
+budget on very large templates ([#92](https://github.com/MisterDiagram/MisterDiagram/issues/92))
+and arrowheads on thin lines drawn about half Visio's size
+([#93](https://github.com/MisterDiagram/MisterDiagram/issues/93)). The alpha.5 gaps below
+still stand; locale-specific number and date pictures are an en-US approximation.
 
 ## 0.1.0-alpha.5
 
