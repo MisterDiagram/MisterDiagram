@@ -11,6 +11,10 @@
   approximation listed in the gaps ([#90](https://github.com/MisterDiagram/MisterDiagram/issues/90)).
 - **Corpus ceilings fall.** The errors-where-the-witness-has-a-number count drops from
   31,386 to 29,115 cached and from 1,095,070 to 1,094,960 COM; the pinned ceilings follow it down.
+- **A file that is not a ZIP is named for what it is.** An HTML page saved as .vsdx, a legacy
+  binary .vsd, an empty file or a PDF now says so, quoting the first bytes, instead of the ZIP
+  reader's "Could not find EOCD"; render, convert, info and the MCP server print the same line
+  ([#94](https://github.com/MisterDiagram/MisterDiagram/issues/94)).
 
 ## 0.1.0-alpha.5
 

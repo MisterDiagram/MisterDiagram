@@ -125,11 +125,17 @@ impl Session {
     /// The reader independently enforces all unchanged hostile-input bounds.
     pub(crate) fn read_document(&self, path: &std::path::Path, stencil: bool) -> Result<Document> {
         use misterdiagram_opc::{MAX_ENTRIES, MAX_PART, MAX_TOTAL};
-        let file = std::fs::File::open(path).map_err(operation)?;
+        use std::io::{Read, Seek};
+        let mut file = std::fs::File::open(path).map_err(operation)?;
         if file.metadata().map_err(operation)?.len() > MAX_PART {
             return Err(operation("compressed file exceeds cap"));
         }
-        let mut archive = zip::ZipArchive::new(file).map_err(operation)?;
+        // The head only words the refusal of a file that is not a ZIP at all (#94).
+        let mut head = Vec::new();
+        (&mut file).take(misterdiagram_opc::CONTAINER_HEAD as u64).read_to_end(&mut head).map_err(operation)?;
+        file.seek(std::io::SeekFrom::Start(0)).map_err(operation)?;
+        let mut archive =
+            zip::ZipArchive::new(file).map_err(|e| operation(misterdiagram_opc::container_error(&head).unwrap_or_else(|| e.to_string())))?;
         if archive.len() > MAX_ENTRIES {
             return Err(operation("too many package entries"));
         }

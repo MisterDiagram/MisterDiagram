@@ -44,9 +44,52 @@ fn zip_error(context: &str, error: zip::result::ZipError) -> OpcError {
     OpcError::InvalidPackage(format!("{context}: {cause}"))
 }
 
+/// The compound-file signature every legacy binary Visio file (.vsd, .vss, .vst) starts with.
+/// https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/9d33df18-7aee-4a4e-b4f6-5a01e5aea5a1
+const OLE_SIGNATURE: [u8; 8] = [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
+/// Bytes of the file head examined when the container does not open: enough for an XML
+/// declaration and its root element name.
+pub const CONTAINER_HEAD: usize = 256;
+
+/// Explain, from its first bytes, a file that the ZIP reader has already refused: an HTML page
+/// saved as .vsdx, a legacy binary Visio file, an empty file. `None` when the head carries a ZIP
+/// signature, so the archive error itself is the explanation. Consulted only after the ZIP open
+/// has failed: a ZIP with a leading stub still opens as before, since the reader locates the
+/// directory from the end of the file.
+/// https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
+pub fn container_error(head: &[u8]) -> Option<String> {
+    if head.is_empty() {
+        return Some("not a Visio package: the file is empty".into());
+    }
+    if head.starts_with(b"PK") {
+        return None;
+    }
+    if head.starts_with(&OLE_SIGNATURE) {
+        return Some("legacy binary Visio file (.vsd, .vss or .vst) is not supported: open it in Visio and save it as .vsdx or .vssx".into());
+    }
+    let shown: String = head.iter().take(32).flat_map(|b| std::ascii::escape_default(*b)).map(char::from).collect();
+    let more = if head.len() > 32 { "..." } else { "" };
+    let lower = String::from_utf8_lossy(head).to_ascii_lowercase();
+    let hint = if ["<!doctype", "<html", "<!--", "<head", "<script"].iter().any(|tag| lower.contains(tag)) {
+        " (looks like HTML)"
+    } else if lower.contains("<visiodocument") {
+        " (a Visio 2003 XML drawing, .vdx, which is not supported)"
+    } else if lower.contains("<?xml") {
+        " (looks like XML)"
+    } else if lower.starts_with("%pdf") {
+        " (a PDF)"
+    } else {
+        ""
+    };
+    Some(format!("not a Visio package: file starts with \"{shown}{more}\"{hint}"))
+}
+
 impl Package {
     pub fn open(bytes: &[u8]) -> Result<Self, OpcError> {
-        let mut zip = zip::ZipArchive::new(Cursor::new(bytes)).map_err(|e| zip_error("ZIP directory", e))?;
+        let mut zip = zip::ZipArchive::new(Cursor::new(bytes)).map_err(|e| match container_error(&bytes[..bytes.len().min(CONTAINER_HEAD)]) {
+            Some(message) => OpcError::NotPackage(message),
+            None => zip_error("ZIP directory", e),
+        })?;
         if zip.len() > MAX_ENTRIES {
             return Err(OpcError::InvalidPackage(format!("too many entries ({})", zip.len())));
         }
@@ -475,6 +518,28 @@ mod tests {
             let Err(error) = Package::open(bytes) else { panic!("truncated ZIP accepted") };
             assert!(error.to_string().contains("ZIP directory:"));
         }
+    }
+    #[test]
+    fn non_zip_input_is_described_from_its_head() {
+        let html = b"\r\n\r\n<!-- Copyright (C) Microsoft Corporation. All rights reserved. -->";
+        let Err(error) = Package::open(html) else { panic!("HTML accepted") };
+        let text = error.to_string();
+        assert_eq!(text, "not a Visio package: file starts with \"\\r\\n\\r\\n<!-- Copyright (C) Microsoft...\" (looks like HTML)");
+        let mut ole = OLE_SIGNATURE.to_vec();
+        ole.extend_from_slice(&[0; 504]);
+        let Err(error) = Package::open(&ole) else { panic!("compound file accepted") };
+        assert!(error.to_string().starts_with("legacy binary Visio file (.vsd, .vss or .vst) is not supported"));
+        let Err(error) = Package::open(b"") else { panic!("empty file accepted") };
+        assert_eq!(error.to_string(), "not a Visio package: the file is empty");
+        assert_eq!(container_error(b"\x00\x01\xff\"\\"), Some("not a Visio package: file starts with \"\\x00\\x01\\xff\\\"\\\\\"".into()));
+        assert_eq!(container_error(b"%PDF-1.7"), Some("not a Visio package: file starts with \"%PDF-1.7\" (a PDF)".into()));
+        assert!(container_error(&[b'x'; 40]).is_some_and(|m| m.ends_with("xxxx...\"")));
+        let vdx =
+            b"<?xml version=\"1.0\" encoding=\"utf-8\"?><VisioDocument metric='0' version='11' xmlns='http://schemas.microsoft.com/visio/2003/core'>";
+        assert!(container_error(vdx).is_some_and(|m| m.ends_with("(a Visio 2003 XML drawing, .vdx, which is not supported)")));
+        assert!(container_error(b"<?xml version=\"1.0\"?><svg/>").is_some_and(|m| m.ends_with("\" (looks like XML)")));
+        assert_eq!(container_error(b"PK\x05\x06"), None);
+        assert_eq!(container_error(b"PK"), None);
     }
     #[test]
     fn path_resolution() {

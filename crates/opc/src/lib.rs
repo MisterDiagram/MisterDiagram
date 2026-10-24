@@ -7,6 +7,10 @@ pub use opc::*;
 pub enum OpcError {
     #[error("invalid OPC package: {0}")]
     InvalidPackage(String),
+    /// The bytes are not a ZIP container at all (an HTML page saved as .vsdx, a legacy binary
+    /// file, an empty file); the message already names what they are.
+    #[error("{0}")]
+    NotPackage(String),
     #[error("invalid XML: {0}")]
     Xml(String),
     #[error("package write failed: {0}")]

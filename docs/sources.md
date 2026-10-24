@@ -443,6 +443,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/bd72b8b3-fbf7-4463-ad23-cd8a5cc4acfd> | `crates/sheet/src/functions/theme.rs`, `crates/theme/src/resolve.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/c5e4da4b-c1d0-4cdd-a418-04fccbc098ae> | `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/f91b1356-cff1-4c71-8a04-247007cbe4c9> | `crates/sheet/src/language.rs`, `tools/oracle/accept_report.py` |
+| <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/9d33df18-7aee-4a4e-b4f6-5a01e5aea5a1> | `crates/opc/src/opc.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/> | `crates/render/src/metafile/mod.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/e4a35c41-e8e3-43f9-bc07-a18e99bb866d> | `crates/route/src/foreign_glue.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/ba5458c6-e885-41e6-b5d7-d54ef9e1065f> | `crates/render/tests/vendor_patterns.rs` |
@@ -450,3 +451,4 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-stretchblt> | `crates/render/src/metafile/emf/masked.rs` |
 | <https://learn.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-stretchdibits> | `crates/render/src/metafile/emf/masked.rs` |
 | <https://learn.microsoft.com/en-us/windows/win32/gdi/ternary-raster-operations> | `crates/render/src/metafile/emf/masked.rs`, `crates/render/src/metafile/mod.rs` |
+| <https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT> | `crates/opc/src/opc.rs` |
