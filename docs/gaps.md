@@ -54,8 +54,12 @@ on every page, with named refusals and a per-page RGB distance ratchet of
 Visio-opened files render, 13 fail; all ten native refusals are refused.
 M5.50 raises this to 79 of 85: the seven #84 packages render every source
 page, with contextual evaluation errors and named ZIP causes. All previously
-rendering distances remain unchanged. Three geometry packages and three foreign
-objects still fail. Repeated-master strict evaluation, date labels and two
+rendering distances remain unchanged. M5.51 renders the three geometry packages,
+raising the count to 82 of 85; only three foreign-object packages still fail.
+REF() returns the native #REF!, LocalName User rows resolve page scales, and
+geometry recovers saved values or skips invalid rows with warnings. The full
+master-cell comparison still differs in reserved cells, theme defaults, text
+metrics and currency evaluation. Repeated-master strict evaluation, date labels and two
 near-white milestone captions remain open; successful rendering is not a claim
 of complete appearance parity. No specimen is shipped.
 

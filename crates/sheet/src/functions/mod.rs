@@ -53,6 +53,7 @@ pub const IMPLEMENTED: &[&str] = &[
     "ISERRNA",
     "IFERROR",
     "NA",
+    "REF",
     "MAGNITUDE",
     "BITXOR",
     "BITAND",

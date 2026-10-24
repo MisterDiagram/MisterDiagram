@@ -37,5 +37,5 @@ fn render_uses_the_saved_value_where_a_function_is_missing_and_says_so() {
     let scene = scene::page(&doc, 0, Options { cached_fallback: true, ..Default::default() }).unwrap();
     assert_eq!(scene.warnings.len(), 1, "{:?}", scene.warnings);
     let warning = scene.warnings[0].to_ascii_lowercase();
-    assert!(warning.starts_with("page 7 shape 1 pinx: #name?") && warning.ends_with("; used the value saved in the file"), "{warning}");
+    assert!(warning.starts_with("page 7 shape 1 (separator) pinx: #name?") && warning.ends_with("; used the value saved in the file"), "{warning}");
 }

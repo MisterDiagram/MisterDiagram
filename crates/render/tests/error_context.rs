@@ -50,9 +50,22 @@ fn errors_name_shape_page_document_master_style_and_layer_cells() {
     d.pages[0].shapes[0].master = Some(9);
     assert_context(&d, &["page 1 shape 7", "Badge", "master 9 shape 2", "Source", "PinX"]);
     let mut d = doc();
-    d.styles.push(Style { id: 4, sheet: Sheet { cells: vec![formula("LineWeight", "1/0")], ..Default::default() }, ..Default::default() });
-    d.pages[0].shapes[0].sheet.cells.push(formula("PinX", "Styles!Sheet.4!LineWeight"));
-    assert_context(&d, &["page 1 shape 7", "Badge", "style sheet 4", "LineWeight"]);
+    // Drawing style cells now recover their default in cached mode. A User cell on
+    // the style sheet still tests a stopping error from that provider in both modes.
+    d.styles.push(Style {
+        id: 4,
+        sheet: Sheet {
+            sections: vec![Section {
+                name: "User".into(),
+                rows: vec![Row { name: Some("Fault".into()), cells: vec![formula("Value", "1/0")], ..Default::default() }],
+                ..Default::default()
+            }],
+            ..Default::default()
+        },
+        ..Default::default()
+    });
+    d.pages[0].shapes[0].sheet.cells.push(formula("PinX", "Styles!Sheet.4!User.Fault"));
+    assert_context(&d, &["page 1 shape 7", "Badge", "style sheet 4", "User.Fault"]);
     let mut d = doc();
     d.pages[0].sheet.sections.push(Section {
         name: "Layer".into(),

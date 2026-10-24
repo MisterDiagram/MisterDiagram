@@ -24,7 +24,7 @@ fn unresolved_ref_in_text_angle_is_a_named_render_gap() {
     let bytes = misterdiagram_vsdx::write_as(&doc, misterdiagram_vsdx::SaveKind::Stencil).unwrap().bytes;
     let reopened = misterdiagram_vsdx::import(&bytes).unwrap();
     let error = scene::master(&reopened, 0, scene::Options::default()).unwrap_err();
-    assert!(error.contains("#NAME? REF"), "{error}");
+    assert!(error.contains("#REF!") && error.contains("shape 5") && error.contains("TxtAngle"), "{error}");
 }
 
 /// Non-finite coordinates must never reach a rasterizer, even on a small canvas.

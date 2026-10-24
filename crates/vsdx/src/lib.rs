@@ -625,7 +625,9 @@ pub fn parse_sheet(e: &XmlElement) -> Result<Sheet, ReadError> {
                     s.cells.push(cell(r)?);
                 } else if r.is_visio("Row") {
                     let mut row = Row {
-                        name: r.attr("N").map(str::to_string),
+                        // Local-only named rows are accepted on import; universal N wins when both exist.
+                        // https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-connection-sectionvisio-xml
+                        name: r.attr("N").or_else(|| r.attr("LocalName")).map(str::to_string),
                         index: uint(r, "IX")?,
                         row_type: r.attr("T").map(str::to_string),
                         deleted: boolean(r, "Del")?,

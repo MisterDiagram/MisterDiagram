@@ -339,8 +339,9 @@ impl<'a> Evaluator<'a> {
     /// Substitute the file's saved value for a cell this evaluator cannot compute, and
     /// record each substitution. Renders of unedited files then show what Visio last drew
     /// where a function is still missing (MisterDiagram#78: CONTAINERSHEETREF, LISTORDER).
-    /// Authored cells without a saved value, and cells Visio itself saved as errors, keep
-    /// their error. Oracle comparisons and the writer never enable this.
+    /// Geometry and Connections may use a numeric cache alongside an error attribute;
+    /// style cells without a usable cache use their default. Other uncached errors remain
+    /// errors. Oracle comparisons, route hosts and the writer never enable this.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
     pub fn with_cached_fallback(mut self) -> Self {
         self.cached_fallback = true;
@@ -351,31 +352,44 @@ impl<'a> Evaluator<'a> {
     pub fn take_fallback_warnings(&mut self) -> (Vec<String>, usize) {
         (std::mem::take(&mut self.fallbacks), std::mem::take(&mut self.fallback_count))
     }
-    fn fallback_to_cached(&mut self, scope: Scope, key_name: &str, name: &str, value: Value) -> Value {
-        let Value::Error(error) = &value else { return value };
-        let Some(cell) = self.cell(scope, key_name) else { return value };
-        let source = self.local_inh_cell(scope, key_name).unwrap_or(cell);
-        // A cell without a V has nothing saved to fall back on: the reader would say 0.
-        if cell.error.is_some() || source.error.is_some() || source.value.is_none() {
-            return value;
-        }
-        let saved = self.cached_named_cell(scope, key_name, source);
-        if matches!(saved, Value::Error(_)) {
-            return value;
-        }
+    fn fallback_warning(&mut self, scope: Scope, name: &str, error: &impl std::fmt::Display, action: &str) {
         self.fallback_count = self.fallback_count.saturating_add(1);
         if self.fallbacks.len() < 100 {
-            let label = match scope {
-                Scope::Document => "document".to_string(),
-                Scope::Page(page) => format!("page {page}"),
-                Scope::PageShape { page, shape } => format!("page {page} shape {shape}"),
-                Scope::Master(master) => format!("master {master}"),
-                Scope::MasterShape { master, shape } => format!("master {master} shape {shape}"),
-                Scope::Style(style) => format!("style {style}"),
-            };
-            self.fallbacks.push(format!("{label} {name}: {error}; used the value saved in the file"));
+            self.fallbacks.push(format!("{} {name}: {error}; {action}", self.scope_label(scope)));
         }
-        saved
+    }
+    fn fallback_to_cached(&mut self, scope: Scope, key_name: &str, name: &str, value: Value) -> Value {
+        let Value::Error(error) = &value else { return value };
+        let style = inherit::style_cell(key_name);
+        let geometry = key_name.starts_with("geometry") || key_name.starts_with("connections.");
+        if let Some(cell) = self.cell(scope, key_name) {
+            let source = self.local_inh_cell(scope, key_name).unwrap_or(cell);
+            if source.value.is_some() && ((style || geometry) || (cell.error.is_none() && source.error.is_none())) {
+                if source.value.as_ref().is_some_and(|v| v.len() > 65536) {
+                    return value;
+                }
+                let source = Cell {
+                    name: source.name.clone(),
+                    value: source.value.clone(),
+                    units: source.units.clone(),
+                    error: if style || geometry { None } else { source.error.clone() },
+                    ..Default::default()
+                };
+                let saved = self.cached_named_cell(scope, key_name, &source);
+                if saved.error().is_none() {
+                    self.fallback_warning(scope, name, error, "used the value saved in the file");
+                    return saved;
+                }
+            }
+        }
+        if style && let Some(cell) = defaults::cell(scope, key_name) {
+            let saved = self.cached_named_cell(scope, key_name, cell);
+            if saved.error().is_none() {
+                self.fallback_warning(scope, name, error, "used the style cell default (no usable saved value)");
+                return saved;
+            }
+        }
+        value
     }
     /// Inject a theme resolver from the application composition layer.
     pub fn with_theme_host(mut self, host: &'a dyn misterdiagram_sheet::host::ThemeHost) -> Self {
@@ -767,6 +781,11 @@ impl<'a> Evaluator<'a> {
             self.eval_work = 0;
         }
         let result = self.evaluate_inner(scope, name);
+        let result = if self.cached_fallback && name.len() <= 65536 && result.error().is_some() {
+            self.fallback_to_cached(scope, &name.to_ascii_lowercase(), name, result)
+        } else {
+            result
+        };
         self.note_result(scope, name, &result, diagnostic_serial);
         if result.error().is_none() && self.stack.is_empty() {
             self.failure_cell = None;
@@ -2179,7 +2198,7 @@ mod tests {
         assert_eq!(count, 1);
         assert_eq!(messages.len(), 1);
         assert!(
-            messages[0].starts_with("document User.Order: #NAME?") && messages[0].ends_with("; used the value saved in the file"),
+            messages[0].starts_with("document sheet User.Order: #NAME?") && messages[0].ends_with("; used the value saved in the file"),
             "{messages:?}"
         );
         assert_eq!(e.take_fallback_warnings(), (vec![], 0));

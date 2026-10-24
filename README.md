@@ -28,7 +28,7 @@ export of the same file, measured by the test harness; Visio's exports stay out 
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
-- **Evaluate** the ShapeSheet: 117 functions including 3 internal functions, from
+- **Evaluate** the ShapeSheet: 118 functions including 3 internal functions, from
   `crates/sheet/src/functions/mod.rs`'s `IMPLEMENTED` registry. Inheritance covers
   masters, style sheets and document defaults, with dirty-set recalculation. The full
   oracle check passes its fixed floors, including 62,145/67,866 cached text metrics

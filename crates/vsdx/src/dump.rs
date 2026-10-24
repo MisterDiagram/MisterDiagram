@@ -105,6 +105,11 @@ fn selected(doc: &Document, selection: Selection) -> Result<Vec<(Scope, u32, Str
                 return Err("dump identity limit".into());
             }
             let prefix = format!("master:{}:{}", master.id, name(&master.name_u, &master.name));
+            // Master.PageSheet is a distinct sheet with ID0, just like Page.PageSheet.
+            // https://learn.microsoft.com/en-us/office/vba/api/visio.master.pagesheet
+            if matches!(selection, Selection::Master(_)) {
+                result.push((Scope::Master(master.id), 0, format!("{prefix}/ThePage")))?;
+            }
             add_shapes(doc, &master.shapes, &prefix, None, Some(master.id), None, &mut result)?;
         }
     }

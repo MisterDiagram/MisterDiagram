@@ -387,6 +387,11 @@ impl<'a> Evaluator<'a> {
         if let Some(names) = locals.get(&scope) {
             for named in names {
                 let key: Rc<str> = named.name.to_ascii_lowercase().into();
+                if named.cell.formula.is_none() && named.cell.value.is_none() && named.cell.error.is_none() && effective.cells.contains_key(&key) {
+                    // A units-only override contributes no formula or value to replace its provider.
+                    // https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/74428617-9833-4d73-aa7f-f3a6f043a12d
+                    continue;
+                }
                 if named.cell.formula.as_deref() == Some("Inh") {
                     if let std::collections::btree_map::Entry::Vacant(slot) = effective.cells.entry(key) {
                         if let Some(cell) = super::defaults::cell(scope, &named.name)
@@ -628,7 +633,9 @@ fn merge_geometry<'a>(geometry: &mut BTreeMap<u32, BTreeMap<u32, GeometryRow<'a>
             effective.row_type = Some(kind);
         }
         for cell in &row.cells {
-            if cell.formula.as_deref() == Some("Inh") && effective.cells.iter().any(|c| c.name.eq_ignore_ascii_case(&cell.name)) {
+            if (cell.formula.as_deref() == Some("Inh") || (cell.formula.is_none() && cell.value.is_none() && cell.error.is_none()))
+                && effective.cells.iter().any(|c| c.name.eq_ignore_ascii_case(&cell.name))
+            {
                 continue;
             }
             effective.cells.retain(|c| !c.name.eq_ignore_ascii_case(&cell.name));
@@ -1091,4 +1098,8 @@ mod audit {
         println!("inheritance files={} errors={} omitted_children={} omitted_files={}", files.len(), failures.len(), omitted, omitted_files);
         assert!(failures.is_empty(), "{failures:?}");
     }
+}
+
+pub(super) fn style_cell(name: &str) -> bool {
+    category(name).is_some()
 }

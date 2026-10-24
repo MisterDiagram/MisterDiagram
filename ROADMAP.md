@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-23: M5.51 (#85) recovers individual geometry and connection rows for rendering, implements REF(), and resolves LocalName User rows and metadata-only inherited cells. Rendering reaches 82 of 85 native-opened files with no baseline distance changes. Broad strict master parity remains incomplete.
+
 - 2026-10-23: M5.49 and M5.50 (#84) add the private field gate and contextual errors, accept native first-occurrence shape identities, detached Inh literals and indexed Field rows, and render all seven formerly rejected #84 packages. Overall rendering rises from 72 to 79 of 85 native-opened files; all ten native refusals have ZIP causes. Date, caption colour and repeated-master strict semantics remain explicit gaps.
 
 - 2026-10-23: M5.48 prepares 0.1.0-alpha.4 for #79, #80 and #82, with the remaining THEMEVAL backgrounds and dormant angles explicitly disclosed. Version preparation only: no tag or release.

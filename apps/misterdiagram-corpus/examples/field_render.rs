@@ -230,7 +230,7 @@ fn run() -> Result<bool, String> {
                             .warnings
                             .iter()
                             .map(|w| {
-                                if w.ends_with(" more cells used the value saved in the file") {
+                                if w.ends_with(" more cells used the value saved in the file") || w.ends_with(" more drawing recovery warnings") {
                                     w.split_whitespace().next().and_then(|n| n.parse::<usize>().ok()).unwrap_or(1)
                                 } else {
                                     1

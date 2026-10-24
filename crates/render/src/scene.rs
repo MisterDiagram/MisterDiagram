@@ -266,7 +266,7 @@ fn fallback_warnings(evaluator: &mut Evaluator<'_>, scene: &mut Scene) {
     let shown = messages.len();
     scene.warnings.extend(messages);
     if count > shown {
-        scene.warnings.push(format!("{} more cells used the value saved in the file", count - shown));
+        scene.warnings.push(format!("{} more drawing recovery warnings", count - shown));
     }
 }
 /// Render a page using a reusable index; evaluation effects are reset at the boundary.

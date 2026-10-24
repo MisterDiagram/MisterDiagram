@@ -234,6 +234,45 @@ the other measured files use 2012/main. Container inspection accepts both exact 
 
 ## Observed, undocumented
 
+### M5.51: REF, page scales and recoverable geometry (#85)
+
+The private Brief 37 #85 shapesheet.tsv witnesses identify four LineWeight
+formulas `REF()*User.ScaleAdj` in the FAS2240-4 rear empty and FAS2220 open
+masters. Visio reports Error 55 (#REF!), with ResultIU zero or the retained
+numeric cache. [REF()](https://learn.microsoft.com/en-us/office/client-developer/visio/ref-function)
+therefore returns #REF!, not #NAME?. Strict inspection preserves that error.
+Rendering uses a saved style value when available, otherwise its documented
+cell default, with a warning naming page, shape and cell.
+
+User.ScaleAdj is an ordinary named User row with a page-scale IF formula.
+The same witnesses contain LocalName-only rows. Reading LocalName when N is
+absent restores that row's universal lookup and its ThePage!PageScale and
+DrawingScale references. All 103 selected User.ScaleAdj cells match within
+1e-6. Metadata-only local cells do not erase inherited NURBS constructor
+values. The detached Connections rows on page 1 shape 27 have empty native
+formulas and numeric results: all 56 inspected cells now match. Its orphan
+LineTo-only geometry has no native SVG path, so recovery skips those invalid
+rows rather than inventing an origin.
+
+Geometry and Connections recovery is limited to drawing consumers. Error cells
+use saved numbers even when an error attribute accompanies the cache; absent
+values skip the affected row or section with a named warning. Conversion failure
+rolls back that row's partial path and continues with valid rows. Strict sheet,
+route, writer and corpus evaluation retain errors. Original hostile and mixed-row
+tests cover those boundaries. Explicit master inspection includes its PageSheet;
+the default full dump retains its existing output contract.
+
+Private evidence: the #85 rows of `field/oss-2026-10-22/manifest.tsv`, their
+`visio/` shapesheet.tsv and SVG witnesses, and the local Brief 37 cell-comparison
+and image-bound records. Broad master parity remains incomplete: reserved cell
+enumeration, theme defaults, text metrics and currency evaluation still differ.
+The original `synthetic-brief37/embellishment-results.json` control returns65534
+for all nine native page/master/instance shape observations, matching our default;
+both PageSheets return0. A global default change to0 would therefore contradict
+the original control and is not used to conceal imported selector differences.
+Rendering rises to 82 of 85 native-opened files; all 72 baseline files retain
+exactly their measured distances. Three foreign-object failures remain.
+
 ### M5.50: retained identities and detached cells (#84)
 
 The private Brief 37 baseline contains seven packages rejected during evaluator

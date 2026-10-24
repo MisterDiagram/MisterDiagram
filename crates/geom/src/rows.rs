@@ -166,6 +166,29 @@ fn scale_flag(flag: f64, size: f64) -> Result<f64> {
 /// Convert evaluated rows, clipping infinite lines to the supplied local page bounds.
 /// A repeated endpoint closes a subpath so stroke joins match the closed outline.
 pub fn geometry(rows: &[GeometryRow], width: f64, height: f64, clip: Rect, flags: GeometryFlags) -> Result<GeometryPath> {
+    convert_rows(rows, width, height, clip, flags, None)
+}
+/// Drawing-only recovery retains the path before a malformed row and continues after it.
+/// Strict geometry consumers use `geometry` and receive the original error.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section
+pub fn geometry_resilient(
+    rows: &[GeometryRow],
+    width: f64,
+    height: f64,
+    clip: Rect,
+    flags: GeometryFlags,
+    skipped: &mut dyn FnMut(usize, GeometryError),
+) -> Result<GeometryPath> {
+    convert_rows(rows, width, height, clip, flags, Some(skipped))
+}
+fn convert_rows(
+    rows: &[GeometryRow],
+    width: f64,
+    height: f64,
+    clip: Rect,
+    flags: GeometryFlags,
+    mut skipped: Option<&mut dyn FnMut(usize, GeometryError)>,
+) -> Result<GeometryPath> {
     if rows.len() > MAX_ROWS {
         return Err(GeometryError::Limit);
     }
@@ -176,143 +199,171 @@ pub fn geometry(rows: &[GeometryRow], width: f64, height: f64, clip: Rect, flags
     let mut current = None;
     let mut start = None;
     let mut i = 0;
+    let mut attempted_elements = 0usize;
+    let mut constructor_bytes = 0usize;
     while let Some(row) = rows.get(i) {
-        for n in [row.x, row.y, row.a, row.b, row.c, row.d] {
-            scalar(n)?;
+        let before = (path.elements().len(), current, start, i);
+        if skipped.is_some() {
+            constructor_bytes = constructor_bytes.checked_add(row.data.len()).ok_or(GeometryError::Limit)?;
+            if constructor_bytes > 64 * 1024 * 1024 {
+                return Err(GeometryError::Limit);
+            }
         }
-        let relative =
-            matches!(row.kind, RowKind::RelMoveTo | RowKind::RelLineTo | RowKind::RelCubBezTo | RowKind::RelQuadBezTo | RowKind::RelEllipticalArcTo);
-        let (sx, sy) = if relative { (width, height) } else { (1., 1.) };
-        let end = point(row.x * sx, row.y * sy)?;
-        match row.kind {
-            RowKind::MoveTo | RowKind::RelMoveTo => {
-                path.move_to(end);
-                start = Some(end);
+        let result = (|| -> Result<()> {
+            for n in [row.x, row.y, row.a, row.b, row.c, row.d] {
+                scalar(n)?;
             }
-            RowKind::LineTo | RowKind::RelLineTo => {
-                current.ok_or(GeometryError::Invalid)?;
-                path.line_to(end);
-            }
-            RowKind::RelCubBezTo => {
-                current.ok_or(GeometryError::Invalid)?;
-                path.curve_to(point(row.a * width, row.b * height)?, point(row.c * width, row.d * height)?, end);
-            }
-            RowKind::RelQuadBezTo => {
-                current.ok_or(GeometryError::Invalid)?;
-                path.quad_to(point(row.a * width, row.b * height)?, end);
-            }
-            RowKind::ArcTo => {
-                let from: Point = current.ok_or(GeometryError::Invalid)?;
-                let chord = end - from;
-                let length = chord.hypot();
-                if row.a.abs() < 1e-12 || length < 1e-12 {
+            let relative = matches!(
+                row.kind,
+                RowKind::RelMoveTo | RowKind::RelLineTo | RowKind::RelCubBezTo | RowKind::RelQuadBezTo | RowKind::RelEllipticalArcTo
+            );
+            let (sx, sy) = if relative { (width, height) } else { (1., 1.) };
+            let end = point(row.x * sx, row.y * sy)?;
+            match row.kind {
+                RowKind::MoveTo | RowKind::RelMoveTo => {
+                    path.move_to(end);
+                    start = Some(end);
+                }
+                RowKind::LineTo | RowKind::RelLineTo => {
+                    current.ok_or(GeometryError::Invalid)?;
                     path.line_to(end);
-                } else {
-                    // Bow is a distance. Convert to dimensionless tan(sweep/4).
-                    let bulge = 2. * row.a / length;
-                    let center = checked(from + chord * 0.5 + Vec2::new(-chord.y, chord.x) * ((1. - bulge * bulge) / (4. * bulge)))?;
-                    let radius = (from - center).hypot();
-                    let angle = (from - center).atan2();
-                    arc(&mut path, center, Vec2::new(radius, 0.), Vec2::new(0., radius), angle, 4. * bulge.atan())?;
                 }
-            }
-            RowKind::EllipticalArcTo | RowKind::RelEllipticalArcTo => {
-                let from = current.ok_or(GeometryError::Invalid)?;
-                let control = point(row.a * sx, row.b * sy)?;
-                if row.d == 0. && width > 0. && height > 0. {
-                    // Native positive-size D=0 arcs draw the chord, including an off-chord control.
-                    // https://learn.microsoft.com/en-us/office/client-developer/visio/ellipticalarcto-row-geometry-section
-                    path.line_to(end);
-                } else if row.d == 0. {
-                    collapsed_ellipse_arc(&mut path, from, control, end, width, height)?;
-                } else {
-                    ellipse_arc(&mut path, from, control, end, row.c, row.d)?;
+                RowKind::RelCubBezTo => {
+                    current.ok_or(GeometryError::Invalid)?;
+                    path.curve_to(point(row.a * width, row.b * height)?, point(row.c * width, row.d * height)?, end);
                 }
-            }
-            RowKind::Ellipse => {
-                let u = point(row.a, row.b)? - end;
-                let v = point(row.c, row.d)? - end;
-                let first = checked(end + u)?;
-                path.move_to(first);
-                arc(&mut path, end, u, v, 0., TAU)?;
-                path.close_path();
-                current = Some(first);
-                start = Some(first);
-                i += 1;
-                continue;
-            }
-            RowKind::InfiniteLine => {
-                if let Some((a, b)) = clip_line(end, point(row.a, row.b)?, clip)? {
-                    path.move_to(a);
-                    path.line_to(b);
+                RowKind::RelQuadBezTo => {
+                    current.ok_or(GeometryError::Invalid)?;
+                    path.quad_to(point(row.a * width, row.b * height)?, end);
                 }
-                current = None;
-                start = None;
-                i += 1;
-                continue;
-            }
-            RowKind::PolylineTo => {
-                current.ok_or(GeometryError::Invalid)?;
-                let data = constructor(&row.data, "POLYLINE")?;
-                if data.len() < 4 || !data.len().is_multiple_of(2) {
-                    return Err(GeometryError::Invalid);
+                RowKind::ArcTo => {
+                    let from: Point = current.ok_or(GeometryError::Invalid)?;
+                    let chord = end - from;
+                    let length = chord.hypot();
+                    if row.a.abs() < 1e-12 || length < 1e-12 {
+                        path.line_to(end);
+                    } else {
+                        // Bow is a distance. Convert to dimensionless tan(sweep/4).
+                        let bulge = 2. * row.a / length;
+                        let center = checked(from + chord * 0.5 + Vec2::new(-chord.y, chord.x) * ((1. - bulge * bulge) / (4. * bulge)))?;
+                        let radius = (from - center).hypot();
+                        let angle = (from - center).atan2();
+                        arc(&mut path, center, Vec2::new(radius, 0.), Vec2::new(0., radius), angle, 4. * bulge.atan())?;
+                    }
                 }
-                let x = scale_flag(at(&data, 0)?, width)?;
-                let y = scale_flag(at(&data, 1)?, height)?;
-                for pair in data.get(2..).ok_or(GeometryError::Invalid)?.as_chunks::<2>().0 {
-                    path.line_to(point(at(pair, 0)? * x, at(pair, 1)? * y)?);
+                RowKind::EllipticalArcTo | RowKind::RelEllipticalArcTo => {
+                    let from = current.ok_or(GeometryError::Invalid)?;
+                    let control = point(row.a * sx, row.b * sy)?;
+                    if row.d == 0. && width > 0. && height > 0. {
+                        // Native positive-size D=0 arcs draw the chord, including an off-chord control.
+                        // https://learn.microsoft.com/en-us/office/client-developer/visio/ellipticalarcto-row-geometry-section
+                        path.line_to(end);
+                    } else if row.d == 0. {
+                        collapsed_ellipse_arc(&mut path, from, control, end, width, height)?;
+                    } else {
+                        ellipse_arc(&mut path, from, control, end, row.c, row.d)?;
+                    }
                 }
-                path.line_to(end);
-            }
-            RowKind::NURBSTo => {
-                let from = current.ok_or(GeometryError::Invalid)?;
-                let data = constructor(&row.data, "NURBS")?;
-                if data.len() < 8 || !data.len().is_multiple_of(4) {
-                    return Err(GeometryError::Invalid);
-                }
-                let degree = degree(at(&data, 1)?)?;
-                let x = scale_flag(at(&data, 2)?, width)?;
-                let y = scale_flag(at(&data, 3)?, height)?;
-                let mut control = vec![from];
-                let mut weights = vec![row.d];
-                let mut knots = vec![row.c];
-                for p in data.get(4..).ok_or(GeometryError::Invalid)?.as_chunks::<4>().0 {
-                    control.push(point(at(p, 0)? * x, at(p, 1)? * y)?);
-                    knots.push(at(p, 2)?);
-                    weights.push(at(p, 3)?);
-                }
-                control.push(end);
-                weights.push(row.b);
-                knots.push(row.a);
-                knots.extend(std::iter::repeat_n(at(&data, 0)?, degree + 1));
-                canonicalize_constructor_knots(&mut knots)?;
-                spline(&mut path, &control, &weights, &knots, degree)?;
-            }
-            RowKind::SplineStart => {
-                let from = current.ok_or(GeometryError::Invalid)?;
-                let degree = degree(row.d)?;
-                let mut control = vec![from, end];
-                let mut knots = vec![row.b, row.a];
-                while let Some(next) = rows.get(i + 1).filter(|r| r.kind == RowKind::SplineKnot) {
-                    control.push(point(next.x, next.y)?);
-                    knots.push(scalar(next.a)?);
+                RowKind::Ellipse => {
+                    let u = point(row.a, row.b)? - end;
+                    let v = point(row.c, row.d)? - end;
+                    let first = checked(end + u)?;
+                    path.move_to(first);
+                    arc(&mut path, end, u, v, 0., TAU)?;
+                    path.close_path();
+                    current = Some(first);
+                    start = Some(first);
                     i += 1;
+                    return Ok(());
                 }
-                knots.extend(std::iter::repeat_n(row.c, degree + 1));
-                spline(&mut path, &control, &vec![1.; control.len()], &knots, degree)?;
-                current = control.last().copied();
-                i += 1;
-                continue;
+                RowKind::InfiniteLine => {
+                    if let Some((a, b)) = clip_line(end, point(row.a, row.b)?, clip)? {
+                        path.move_to(a);
+                        path.line_to(b);
+                    }
+                    current = None;
+                    start = None;
+                    i += 1;
+                    return Ok(());
+                }
+                RowKind::PolylineTo => {
+                    current.ok_or(GeometryError::Invalid)?;
+                    let data = constructor(&row.data, "POLYLINE")?;
+                    if data.len() < 4 || !data.len().is_multiple_of(2) {
+                        return Err(GeometryError::Invalid);
+                    }
+                    let x = scale_flag(at(&data, 0)?, width)?;
+                    let y = scale_flag(at(&data, 1)?, height)?;
+                    for pair in data.get(2..).ok_or(GeometryError::Invalid)?.as_chunks::<2>().0 {
+                        path.line_to(point(at(pair, 0)? * x, at(pair, 1)? * y)?);
+                    }
+                    path.line_to(end);
+                }
+                RowKind::NURBSTo => {
+                    let from = current.ok_or(GeometryError::Invalid)?;
+                    let data = constructor(&row.data, "NURBS")?;
+                    if data.len() < 8 || !data.len().is_multiple_of(4) {
+                        return Err(GeometryError::Invalid);
+                    }
+                    let degree = degree(at(&data, 1)?)?;
+                    let x = scale_flag(at(&data, 2)?, width)?;
+                    let y = scale_flag(at(&data, 3)?, height)?;
+                    let mut control = vec![from];
+                    let mut weights = vec![row.d];
+                    let mut knots = vec![row.c];
+                    for p in data.get(4..).ok_or(GeometryError::Invalid)?.as_chunks::<4>().0 {
+                        control.push(point(at(p, 0)? * x, at(p, 1)? * y)?);
+                        knots.push(at(p, 2)?);
+                        weights.push(at(p, 3)?);
+                    }
+                    control.push(end);
+                    weights.push(row.b);
+                    knots.push(row.a);
+                    knots.extend(std::iter::repeat_n(at(&data, 0)?, degree + 1));
+                    canonicalize_constructor_knots(&mut knots)?;
+                    spline(&mut path, &control, &weights, &knots, degree)?;
+                }
+                RowKind::SplineStart => {
+                    let from = current.ok_or(GeometryError::Invalid)?;
+                    let degree = degree(row.d)?;
+                    let mut control = vec![from, end];
+                    let mut knots = vec![row.b, row.a];
+                    while let Some(next) = rows.get(i + 1).filter(|r| r.kind == RowKind::SplineKnot) {
+                        control.push(point(next.x, next.y)?);
+                        knots.push(scalar(next.a)?);
+                        i += 1;
+                    }
+                    knots.extend(std::iter::repeat_n(row.c, degree + 1));
+                    spline(&mut path, &control, &vec![1.; control.len()], &knots, degree)?;
+                    current = control.last().copied();
+                    i += 1;
+                    return Ok(());
+                }
+                RowKind::SplineKnot => return Err(GeometryError::Invalid),
             }
-            RowKind::SplineKnot => return Err(GeometryError::Invalid),
+            if start == Some(end) && current.is_some() && !matches!(row.kind, RowKind::MoveTo | RowKind::RelMoveTo) {
+                path.close_path();
+            }
+            current = Some(end);
+            i += 1;
+            if path.elements().len() > MAX_ELEMENTS {
+                return Err(GeometryError::Limit);
+            }
+            Ok(())
+        })();
+        if skipped.is_some() {
+            attempted_elements = attempted_elements.checked_add(path.elements().len().saturating_sub(before.0)).ok_or(GeometryError::Limit)?;
+            if attempted_elements > MAX_ELEMENTS {
+                return Err(GeometryError::Limit);
+            }
         }
-        if start == Some(end) && current.is_some() && !matches!(row.kind, RowKind::MoveTo | RowKind::RelMoveTo) {
-            path.close_path();
-        }
-        current = Some(end);
-        i += 1;
-        if path.elements().len() > MAX_ELEMENTS {
-            return Err(GeometryError::Limit);
+        if let Err(error) = result {
+            let Some(recover) = skipped.as_mut() else { return Err(error) };
+            path.truncate(before.0);
+            current = before.1;
+            start = before.2;
+            i = before.3.checked_add(1).ok_or(GeometryError::Limit)?;
+            recover(before.3, error);
         }
     }
     Ok(GeometryPath { path, flags })
@@ -832,5 +883,21 @@ mod tests {
         let mut extremes = [-f64::MAX, -f64::MAX, f64::MAX, f64::MAX];
         canonicalize_constructor_knots(&mut extremes).unwrap();
         assert!(extremes.iter().all(|v| v.is_finite()));
+    }
+}
+
+#[cfg(test)]
+mod recovery_tests {
+    use super::*;
+    #[test]
+    fn malformed_polyline_rolls_back_partial_output_and_keeps_the_valid_tail() {
+        let r = |kind, x, data: &str| GeometryRow { kind, x, y: 0., a: 0., b: 0., c: 0., d: 0., data: data.into() };
+        let rows = vec![r(RowKind::MoveTo, 0., ""), r(RowKind::PolylineTo, 3., "POLYLINE(1,1,1,0,2000000000,0)"), r(RowKind::LineTo, 2., "")];
+        let bounds = Rect::new(-10., -10., 10., 10.);
+        let mut skipped = Vec::new();
+        assert!(geometry(&rows, 1., 1., bounds, GeometryFlags::default()).is_err());
+        let path = geometry_resilient(&rows, 1., 1., bounds, GeometryFlags::default(), &mut |i, e| skipped.push((i, e))).unwrap();
+        assert_eq!(skipped, vec![(1, GeometryError::Limit)]);
+        assert_eq!(path.path.elements(), &[kurbo::PathEl::MoveTo(Point::ZERO), kurbo::PathEl::LineTo(Point::new(2., 0.))]);
     }
 }

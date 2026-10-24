@@ -2,7 +2,7 @@
 use crate::{Context, Error, Value, eval::eval, parser::Expr};
 
 pub(super) const NAMES: &[&str] =
-    &["ISERROR", "ISERRVALUE", "ISERR", "ISERRNA", "IFERROR", "NA", "MAGNITUDE", "BITXOR", "BITAND", "BITOR", "BITNOT", "DEG", "RAD", "SIGN"];
+    &["ISERROR", "ISERRVALUE", "ISERR", "ISERRNA", "IFERROR", "NA", "REF", "MAGNITUDE", "BITXOR", "BITAND", "BITOR", "BITNOT", "DEG", "RAD", "SIGN"];
 pub(super) fn call(name: &str, args: &[Expr], context: &mut dyn Context, budget: &mut usize, depth: usize) -> Option<Value> {
     if !NAMES.contains(&name) {
         return None;
@@ -11,7 +11,7 @@ pub(super) fn call(name: &str, args: &[Expr], context: &mut dyn Context, budget:
 }
 fn dispatch(name: &str, args: &[Expr], context: &mut dyn Context, budget: &mut usize, depth: usize) -> Result<Value, Error> {
     let valid = match name {
-        "NA" => args.is_empty(),
+        "NA" | "REF" => args.is_empty(),
         "MAGNITUDE" => args.len() == 4,
         "BITXOR" | "BITAND" | "BITOR" | "IFERROR" => args.len() == 2,
         "SIGN" => (1..=2).contains(&args.len()),
@@ -19,6 +19,9 @@ fn dispatch(name: &str, args: &[Expr], context: &mut dyn Context, budget: &mut u
     };
     if !valid {
         return Err(Error::Value);
+    }
+    if name == "REF" {
+        return Ok(reference_error());
     }
     if name == "NA" {
         return Ok(na());
@@ -220,5 +223,29 @@ mod tests {
             assert_eq!(result(f), Value::Error(Error::Num), "{f}");
         }
         assert_eq!(result("BITNOT(65535)"), Value::Number(0.0));
+    }
+}
+
+/// Explicit invalid reference, including when multiplied by a valid User cell.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/ref-function
+fn reference_error() -> Value {
+    Value::Error(Error::Ref)
+}
+
+#[cfg(test)]
+mod reference_error_tests {
+    use super::*;
+    #[test]
+    fn reference_error_matches_the_microsoft_example_and_checks_arity() {
+        struct Empty;
+        impl Context for Empty {
+            fn resolve(&mut self, _: &str) -> Value {
+                Value::Number(1.)
+            }
+        }
+        for f in ["REF()", "REF()*User.ScaleAdj"] {
+            assert_eq!(crate::formula(f, &mut Empty), Value::Error(Error::Ref));
+        }
+        assert_eq!(crate::formula("REF(1)", &mut Empty), Value::Error(Error::Value));
     }
 }
