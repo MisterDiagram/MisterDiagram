@@ -31,6 +31,10 @@ fn dispatch(name: &str, args: &[Expr], context: &mut dyn Context, budget: &mut u
         first = Value::Error(error);
     }
 
+    if matches!(name, "ISERROR" | "ISERRVALUE" | "ISERR" | "ISERRNA" | "IFERROR") && first.error().is_some() {
+        engine_failure(&first)?;
+        context.error_handled();
+    }
     match name {
         "ISERROR" => return iserror(first),
         "ISERRVALUE" => return iserrvalue(first),

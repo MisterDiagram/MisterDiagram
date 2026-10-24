@@ -52,7 +52,12 @@ M5.49 adds `field_render`, a private-corpus gate using the CLI render options
 on every page, with named refusals and a per-page RGB distance ratchet of
 0.05. The pre-fix baseline is versioned in the private corpus: 72 of 85
 Visio-opened files render, 13 fail; all ten native refusals are refused.
-One archive refusal still lacks a specific ZIP cause. No specimen is shipped.
+M5.50 raises this to 79 of 85: the seven #84 packages render every source
+page, with contextual evaluation errors and named ZIP causes. All previously
+rendering distances remain unchanged. Three geometry packages and three foreign
+objects still fail. Repeated-master strict evaluation, date labels and two
+near-white milestone captions remain open; successful rendering is not a claim
+of complete appearance parity. No specimen is shipped.
 
 The first tester report after 0.1.0-alpha.1: a public BPMN sample (an E-Commerce shopping
 flow built from the cross-functional flowchart and BPMN masters) failed with

@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-23: M5.49 and M5.50 (#84) add the private field gate and contextual errors, accept native first-occurrence shape identities, detached Inh literals and indexed Field rows, and render all seven formerly rejected #84 packages. Overall rendering rises from 72 to 79 of 85 native-opened files; all ten native refusals have ZIP causes. Date, caption colour and repeated-master strict semantics remain explicit gaps.
+
 - 2026-10-23: M5.48 prepares 0.1.0-alpha.4 for #79, #80 and #82, with the remaining THEMEVAL backgrounds and dormant angles explicitly disclosed. Version preparation only: no tag or release.
 
 - 2026-10-23: M5.44 through M5.47 (#79, #80, #82) add a strict five-document theme sweep, preserve real gradient stops and native colour precision, resolve variant indexes and requested font faces, and select connector text and line styles. Equality improves from 147,346 to 261,855 of 264,405 rows; all gradient stops match. Secondary backgrounds and dormant gradient angles still differ in 2,550 rows, so complete THEMEVAL parity remains open. All three measured field render distances decrease.

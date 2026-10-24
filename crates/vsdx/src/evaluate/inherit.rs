@@ -15,6 +15,7 @@ pub(super) struct Inheritance<'a> {
     pub(super) masters: BTreeMap<Scope, Scope>,
     instances: BTreeMap<Scope, (Scope, u32)>,
     remapping: BTreeMap<(Scope, u32), Scope>,
+    repeated: BTreeSet<(Scope, u32)>,
     geometry: BTreeMap<(Scope, u32), Vec<GeometryRow<'a>>>,
     named_rows: BTreeMap<(Scope, Rc<str>, u32, Rc<str>), u32>,
     pub(super) omitted_master_children: usize,
@@ -187,7 +188,8 @@ impl<'a> Evaluator<'a> {
         Ok(())
     }
     fn master_links(&mut self) -> Result<(), Error> {
-        for (&scope, shape) in &self.shapes {
+        for &scope in &self.shape_order {
+            let Some(shape) = self.shapes.get(&scope) else { continue };
             let mut current = scope;
             let mut instance = None;
             for _ in 0..128 {
@@ -211,7 +213,7 @@ impl<'a> Evaluator<'a> {
                 if self.shapes.contains_key(&source) {
                     self.inheritance.masters.insert(scope, source);
                     if self.inheritance.remapping.insert((root, id), scope).is_some() {
-                        return Err(Error::Value);
+                        self.inheritance.repeated.insert((root, id));
                     }
                 } else {
                     self.inheritance.errors.insert(scope, Error::Ref);
@@ -324,6 +326,9 @@ impl<'a> Evaluator<'a> {
                     continue;
                 }
                 for (position, row) in section.rows.iter().enumerate() {
+                    if section.name == "Field" && row.index.is_none() {
+                        continue;
+                    }
                     if let Some(name) = row.name.as_ref() {
                         if name.len() > 65536 {
                             return Err(Error::Limit);
@@ -458,6 +463,9 @@ impl<'a> Evaluator<'a> {
                         return false;
                     }
                     for (position, row) in section.rows.iter().enumerate() {
+                        if section.name == "Field" && row.index.is_none() {
+                            continue;
+                        }
                         if row_matches(&section.name, row, position, tail) {
                             return !row.deleted;
                         }
@@ -524,7 +532,7 @@ impl<'a> Evaluator<'a> {
             .errors
             .get(&scope)
             .cloned()
-            .or_else(|| self.cell(scope, name).filter(|c| c.formula.as_deref() == Some("Inh")).map(|_| Error::Ref))
+            .or_else(|| self.cell(scope, name).filter(|c| c.formula.as_deref() == Some("Inh") && c.value.is_none()).map(|_| Error::Ref))
     }
     /// Named row indexes follow the merged sheet, not the position within a sparse
     /// local provider section. Explicit IX stays explicit; new named rows append.
@@ -539,12 +547,34 @@ impl<'a> Evaluator<'a> {
     pub(super) fn geometry_indices(&self, scope: Scope) -> impl Iterator<Item = u32> + '_ {
         self.inheritance.geometry.range((scope, 0)..=(scope, u32::MAX)).map(|((_, index), _)| *index)
     }
+    pub(super) fn geometry_row_type(&self, scope: Scope, index: u32, row: u32) -> Option<&str> {
+        self.inheritance.geometry.get(&(scope, index))?.iter().find(|r| r.index == row)?.row_type
+    }
     pub(super) fn effective_geometry(&self, scope: Scope, index: u32) -> Result<Vec<GeometryRow<'a>>, Error> {
         self.inheritance.geometry.get(&(scope, index)).cloned().ok_or(Error::Ref)
+    }
+    /// A repeated source has native retained import values, not an unambiguous formula instance.
+    /// The original synthetic repeated-master witness preserves distinct caches after edits/reopen.
+    /// Keep strict evaluation explicit; user-facing rendering may use its recorded cache policy.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
+    pub(super) fn repeated_inherited_source(&self, current: Scope, source: Scope) -> bool {
+        let Scope::MasterShape { master, shape } = source else { return false };
+        current != source
+            && self
+                .inheritance
+                .instances
+                .get(&current)
+                .is_some_and(|(root, instance)| *instance == master && self.inheritance.repeated.contains(&(*root, shape)))
+    }
+    pub(super) fn display_master_reference(&self, current: Scope, source: Scope, reference: &str) -> Result<String, Error> {
+        self.master_reference(current, source, reference, true)
     }
     /// Rebind master-local Sheet IDs only while executing a formula supplied by that master.
     /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/74428617-9833-4d73-aa7f-f3a6f043a12d
     pub(super) fn remap_master_reference(&self, current: Scope, source: Scope, reference: &str) -> Result<String, Error> {
+        self.master_reference(current, source, reference, false)
+    }
+    fn master_reference(&self, current: Scope, source: Scope, reference: &str, display: bool) -> Result<String, Error> {
         if reference.len() > 65536 {
             return Err(Error::Limit);
         }
@@ -564,6 +594,9 @@ impl<'a> Evaluator<'a> {
             return Ok(reference.into());
         }
         let Ok(id) = id.parse::<u32>() else { return Ok(reference.into()) };
+        if !display && self.inheritance.repeated.contains(&(root, id)) {
+            return Err(Error::Unsupported(format!("repeated MasterShape reference Sheet.{id}")));
+        }
         if let Some(target) = self.inheritance.remapping.get(&(root, id)) {
             let number = match target {
                 Scope::PageShape { shape, .. } | Scope::MasterShape { shape, .. } => *shape,

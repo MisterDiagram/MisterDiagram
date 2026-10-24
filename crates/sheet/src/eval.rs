@@ -30,6 +30,8 @@ impl HostHooks for CachedHooks {}
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/colors-element-visiodocument_type-complextypevisio-xml
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/facenames-element-visiodocument_type-complextypevisio-xml
 pub trait Context {
+    /// A formula consumed its error argument; discard diagnostic attribution to it.
+    fn error_handled(&mut self) {}
     fn resolve(&mut self, reference: &str) -> Value;
     /// Preserve a referenced cell's error independently of its last valid numeric V.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml

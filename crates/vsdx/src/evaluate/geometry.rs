@@ -2,7 +2,40 @@
 use super::{Error, Evaluator, Scope};
 use misterdiagram_geom::{GeometryFlags, GeometryPath, GeometryRow, Rect, RowKind};
 
+static ZERO_CELLS: std::sync::LazyLock<Vec<super::Cell>> = std::sync::LazyLock::new(|| {
+    ["X", "Y", "A", "B", "C", "D", "E"]
+        .into_iter()
+        .map(|name| super::Cell { name: name.into(), value: Some("0".into()), ..Default::default() })
+        .collect()
+});
 impl Evaluator<'_> {
+    /// Numeric coordinates omitted from an existing geometry row default to zero.
+    /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/47b8caad-1ea2-4119-84c7-4d9901100b03
+    pub(super) fn geometry_default(&self, scope: Scope, name: &str) -> Option<&'static super::Cell> {
+        if name.len() > 64 {
+            return None;
+        }
+        let lower = name.to_ascii_lowercase();
+        let (section, coordinate) = lower.strip_prefix("geometry")?.split_once('.')?;
+        let index = section.parse::<u32>().ok()?.checked_sub(1)?;
+        let column = coordinate.get(..1)?;
+        let row = coordinate.get(1..)?.parse::<u32>().ok()?;
+        let kind = self.geometry_row_type(scope, index, row)?;
+        let columns = match kind {
+            "MoveTo" | "LineTo" | "RelMoveTo" | "RelLineTo" => "xy",
+            "ArcTo" | "SplineKnot" => "xya",
+            "InfiniteLine" | "RelQuadBezTo" => "xyab",
+            "Ellipse" | "EllipticalArcTo" | "RelEllipticalArcTo" | "RelCubBezTo" | "SplineStart" => "xyabcd",
+            "NURBSTo" => "xyabcd",
+            "PolylineTo" => "xy",
+            _ => return None,
+        };
+        if !columns.contains(column) {
+            return None;
+        }
+        ZERO_CELLS.iter().find(|cell| cell.name.eq_ignore_ascii_case(column))
+    }
+
     /// Resolve inherited rows and formulas before building shape-local paths.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section
     pub fn geometry_paths(&mut self, scope: Scope, clip: Rect) -> Result<Vec<GeometryPath>, Error> {

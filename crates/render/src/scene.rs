@@ -256,7 +256,7 @@ pub fn page(document: &Document, index: usize, options: Options) -> Result<Scene
 pub fn page_budgeted(document: &Document, index: usize, options: Options, budget: &mut SceneBudget) -> Result<Scene, String> {
     let themes = misterdiagram_theme::Themes::from_document(document).map_err(|e| e.to_string())?;
     let host = misterdiagram_text::Host;
-    let evaluator = Evaluator::new(document).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&host);
+    let evaluator = Evaluator::new(document).map_err(|e| format!("document sheet index: {e}"))?.with_theme_host(&themes).with_text_host(&host);
     let mut evaluator = if options.cached_fallback { evaluator.with_cached_fallback() } else { evaluator };
     page_prepared_budgeted(&mut evaluator, index, options, budget)
 }
@@ -277,16 +277,17 @@ fn page_prepared_budgeted(evaluator: &mut Evaluator<'_>, index: usize, options: 
     if evaluator.text_metrics_deferred() {
         return Err("deferred text metrics cannot render".into());
     }
+    evaluator.enable_render_diagnostics();
     evaluator.reset_evaluation();
     let document = evaluator.document;
     let p = document.pages.get(index).ok_or("page index out of range")?;
     let scope = Scope::Page(p.id);
-    let ratio = number(evaluator, scope, "PageScale", 1.) / number(evaluator, scope, "DrawingScale", 1.).max(1e-12);
+    let ratio = evaluator.render_number(scope, "PageScale")? / evaluator.render_number(scope, "DrawingScale")?.max(1e-12);
     let mut scene = Scene {
         warnings: vec![],
         ops: vec![],
         bounds: Rect::ZERO,
-        page_size: (number(evaluator, scope, "PageWidth", 8.5) * ratio, number(evaluator, scope, "PageHeight", 11.) * ratio),
+        page_size: (evaluator.render_number(scope, "PageWidth")? * ratio, evaluator.render_number(scope, "PageHeight")? * ratio),
     };
     let mut pages = vec![];
     let mut current = p;
@@ -303,7 +304,7 @@ fn page_prepared_budgeted(evaluator: &mut Evaluator<'_>, index: usize, options: 
     for id in pages.into_iter().rev() {
         let p = document.pages.iter().find(|p| p.id == id).ok_or("missing page")?;
         let scope = Scope::Page(id);
-        let ratio = number(evaluator, scope, "PageScale", 1.) / number(evaluator, scope, "DrawingScale", 1.).max(1e-12);
+        let ratio = evaluator.render_number(scope, "PageScale")? / evaluator.render_number(scope, "DrawingScale")?.max(1e-12);
         shapes(evaluator, &p.shapes, scope, &p.part, Affine::scale(ratio), options, &mut scene, 0, budget)?;
     }
     fallback_warnings(evaluator, &mut scene);
@@ -318,7 +319,7 @@ fn page_prepared_budgeted(evaluator: &mut Evaluator<'_>, index: usize, options: 
 pub fn master(document: &Document, index: usize, options: Options) -> Result<Scene, String> {
     let themes = misterdiagram_theme::Themes::from_document(document).map_err(|e| e.to_string())?;
     let host = misterdiagram_text::Host;
-    let evaluator = Evaluator::new(document).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&host);
+    let evaluator = Evaluator::new(document).map_err(|e| format!("document sheet index: {e}"))?.with_theme_host(&themes).with_text_host(&host);
     let mut evaluator = if options.cached_fallback { evaluator.with_cached_fallback() } else { evaluator };
     master_prepared(&mut evaluator, index, options)
 }
@@ -327,12 +328,13 @@ pub fn master_prepared(evaluator: &mut Evaluator<'_>, index: usize, options: Opt
     if evaluator.text_metrics_deferred() {
         return Err("deferred text metrics cannot render".into());
     }
+    evaluator.enable_render_diagnostics();
     evaluator.reset_evaluation();
     let document = evaluator.document;
     let m = document.masters.get(index).ok_or("master index out of range")?;
     let mut scene = Scene { warnings: vec![], ops: vec![], bounds: Rect::ZERO, page_size: (1., 1.) };
     let scope = Scope::Master(m.id);
-    let ratio = number(evaluator, scope, "PageScale", 1.) / number(evaluator, scope, "DrawingScale", 1.).max(1e-12);
+    let ratio = evaluator.render_number(scope, "PageScale")? / evaluator.render_number(scope, "DrawingScale")?.max(1e-12);
     shapes(evaluator, &m.shapes, scope, &m.part, Affine::scale(ratio), options, &mut scene, 0, &mut SceneBudget::default())?;
     fallback_warnings(evaluator, &mut scene);
     finish_bounds(&mut scene, true);
@@ -495,6 +497,10 @@ fn shapes(
             Scope::Master(master) => Scope::MasterShape { master, shape: shape.id },
             _ => return Err("invalid shape scope".into()),
         };
+        // Duplicate IDs retain the first source occurrence, as in the native imported drawing.
+        if e.shape(scope).is_some_and(|indexed| !std::ptr::eq(indexed, shape)) {
+            continue;
+        }
         if !visible(e, scope, parent, options.print) {
             continue;
         }
@@ -509,7 +515,7 @@ fn shapes(
             continue;
         }
         let first_op = scene.ops.len();
-        let transform = scale * e.shape_to_page(scope).map_err(|e| format!("shape {} transform: {e}", shape.id))?;
+        let transform = scale * e.shape_to_page(scope).map_err(|error| e.render_error(scope, "transform", error))?;
         let width = number(e, scope, "Width", 1.);
         let height = number(e, scope, "Height", 1.);
         let fill = Fill {
@@ -534,7 +540,7 @@ fn shapes(
             begin_size: number(e, scope, "BeginArrowSize", 2.).max(0.) as u32,
             end_size: number(e, scope, "EndArrowSize", 2.).max(0.) as u32,
         };
-        let geometries = e.geometry_paths(scope, Rect::new(-1e4, -1e4, 1e4, 1e4)).map_err(|e| format!("shape {} geometry: {e}", shape.id))?;
+        let geometries = e.geometry_paths(scope, Rect::new(-1e4, -1e4, 1e4, 1e4)).map_err(|error| e.render_error(scope, "geometry", error))?;
         // Visible Geometry sections form one fill, including oppositely wound holes.
         // https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section
         let mut combined_fill = BezPath::new();
@@ -699,13 +705,14 @@ fn shapes(
             foreign_image(e, scope, owner, foreign, transform, width, height, scene)?;
         }
         if number(e, scope, "HideText", 0.) == 0. {
-            let body = e.text_body(scope).map_err(|e| format!("shape {} text: {e}", shape.id))?;
+            let body = e.text_body(scope).map_err(|error| e.render_error(scope, "text", error))?;
             if body.paragraphs.iter().flat_map(|p| &p.runs).any(|r| !r.text.is_empty()) {
-                let block = e.text_block(scope).map_err(|e| format!("shape {} text block: {e}", shape.id))?;
+                let block = e.text_block(scope).map_err(|error| e.render_error(scope, "text block", error))?;
                 let drawing_scale = scale.determinant().abs().sqrt().max(1e-12);
                 let original_height = block.height * drawing_scale;
                 let measured =
-                    misterdiagram_model::text::TextHost::measure(&misterdiagram_text::Host, &block.body, Some(block.width * drawing_scale))?;
+                    misterdiagram_model::text::TextHost::measure(&misterdiagram_text::Host, &block.body, Some(block.width * drawing_scale))
+                        .map_err(|error| e.render_error(scope, "text metrics (TxtWidth/Char.Size)", error))?;
                 let height = original_height.max(measured.1);
                 let shift = match block.body.body.anchor.unwrap_or(misterdiagram_model::text::Anchor::Middle) {
                     misterdiagram_model::text::Anchor::Top => 0.,
@@ -725,7 +732,7 @@ fn shapes(
                     &block.body,
                     &Opts { rect: Rect::new(0., 0., block.width * drawing_scale, height), fields: &NoFields, prompt_color: None, no_shrink: false },
                 )
-                .map_err(|e| e.to_string())?;
+                .map_err(|error| e.render_error(scope, "text layout (TxtWidth/Char.Size)", error))?;
                 if !layout.runs.is_empty() {
                     if height > original_height {
                         let x = block.width * drawing_scale * 0.5;

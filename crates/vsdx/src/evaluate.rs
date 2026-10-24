@@ -3,6 +3,7 @@ use misterdiagram_model::{Cell, Document, Row, Section, Shape, Sheet};
 use misterdiagram_sheet::{Context, Error, Value};
 use std::collections::{BTreeMap, BTreeSet};
 mod defaults;
+mod diagnostics;
 mod geometry;
 mod inherit;
 mod interval;
@@ -59,6 +60,10 @@ pub struct Evaluator<'a> {
     cached_fallback: bool,
     fallbacks: Vec<String>,
     fallback_count: usize,
+    failure_cell: Option<(Key, Error)>,
+    diagnostic_serial: u64,
+    last_cell: Option<Key>,
+    render_diagnostics: bool,
     glue_host: Option<&'a mut dyn misterdiagram_sheet::HostHooks>,
     text_host: Option<&'a dyn misterdiagram_model::text::TextHost>,
     theme_host: Option<&'a dyn misterdiagram_sheet::host::ThemeHost>,
@@ -68,6 +73,7 @@ pub struct Evaluator<'a> {
     pub document: &'a Document,
     sheets: BTreeMap<Scope, &'a Sheet>,
     shapes: BTreeMap<Scope, &'a Shape>,
+    shape_order: Vec<Scope>,
     parents: BTreeMap<Scope, Scope>,
     cells: BTreeMap<Key, &'a Cell>,
     names: BTreeMap<Scope, Vec<NamedCell<'a>>>,
@@ -130,12 +136,17 @@ impl<'a> Evaluator<'a> {
             cached_fallback: false,
             fallbacks: Vec::new(),
             fallback_count: 0,
+            failure_cell: None,
+            diagnostic_serial: 0,
+            last_cell: None,
+            render_diagnostics: false,
             document,
             inheritance: Default::default(),
             baseline_lookup: Default::default(),
             lookup_ready: false,
             sheets: BTreeMap::new(),
             shapes: BTreeMap::new(),
+            shape_order: Vec::new(),
             parents: BTreeMap::new(),
             cells: BTreeMap::new(),
             names: BTreeMap::new(),
@@ -410,7 +421,7 @@ impl<'a> Evaluator<'a> {
         if shapes.len() > MAX_SCOPES {
             return Err(Error::Limit);
         }
-        let mut pending: Vec<_> = shapes.iter().map(|s| (s, 0usize, parent)).collect();
+        let mut pending: Vec<_> = shapes.iter().rev().map(|s| (s, 0usize, parent)).collect();
         while let Some((shape, depth, shape_parent)) = pending.pop() {
             // Deleted master-child markers have no live sheet identity. Visio may repeat
             // ID=4294967295 for several such markers in a single page.
@@ -425,10 +436,17 @@ impl<'a> Evaluator<'a> {
                 Scope::Master(master) => Scope::MasterShape { master, shape: shape.id },
                 _ => return Err(Error::Ref),
             };
+            // Visio retains the first XML-order shape for a repeated page-scoped ID.
+            // Keep the source document intact; later occurrences have no evaluator identity.
+            // https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
+            if self.shapes.contains_key(&scope) {
+                continue;
+            }
+            self.shape_order.push(scope);
             self.shapes.insert(scope, shape);
             self.parents.insert(scope, shape_parent);
             self.add_sheet(scope, &shape.sheet)?;
-            for s in &shape.shapes {
+            for s in shape.shapes.iter().rev() {
                 if pending.len() >= MAX_SCOPES {
                     return Err(Error::Limit);
                 }
@@ -457,7 +475,10 @@ impl<'a> Evaluator<'a> {
                 self.add_cell(scope, format!("{prefix}.{}", c.name), c, Some(section), None, &mut names)?;
             }
             for (position, row) in section.rows.iter().enumerate() {
-                if row.deleted {
+                // Native import ignores unindexed Field rows, preserving the inherited field.
+                // Original synthetic field-indexed/field-unindexed witness distinguishes the cases.
+                // https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-field-sectionvisio-xml
+                if row.deleted || (section.name == "Field" && row.index.is_none()) {
                     continue;
                 }
                 for c in &row.cells {
@@ -549,7 +570,10 @@ impl<'a> Evaluator<'a> {
         if !self.sheets.contains_key(&scope) || !self.defaults_allowed(scope, name) {
             return None;
         }
-        let baseline = defaults::cell(scope, name).or_else(|| self.reserved_default(scope, name)).or_else(|| self.virtual_path(scope, name))?;
+        let baseline = defaults::cell(scope, name)
+            .or_else(|| self.reserved_default(scope, name))
+            .or_else(|| self.virtual_path(scope, name))
+            .or_else(|| self.geometry_default(scope, name))?;
         self.baseline_provider(scope, name)
             .and_then(|p| self.cells.get(&Key { scope: p, name: name.to_ascii_lowercase() }).copied())
             .or(Some(baseline))
@@ -706,7 +730,7 @@ impl<'a> Evaluator<'a> {
     }
     pub fn display_reference(&self, scope: Scope, name: &str, reference: &str) -> Result<String, Error> {
         let origin = self.formula_origin(scope, name).unwrap_or(scope);
-        self.remap_master_reference(scope, origin, reference)
+        self.display_master_reference(scope, origin, reference)
     }
     /// Presence is independent of evaluation success. XML constants omit F but still
     /// have a COM formula; the explicit No Formula sentinel does not.
@@ -733,6 +757,8 @@ impl<'a> Evaluator<'a> {
         self.values.clear();
     }
     pub fn evaluate(&mut self, scope: Scope, name: &str) -> Value {
+        self.begin_diagnostic();
+        let diagnostic_serial = self.diagnostic_serial;
         if self.internal_cache_units {
             self.add_dependency_key(Key { scope, name: name.to_ascii_lowercase() });
         }
@@ -740,7 +766,12 @@ impl<'a> Evaluator<'a> {
             self.work = 0;
             self.eval_work = 0;
         }
-        self.evaluate_inner(scope, name)
+        let result = self.evaluate_inner(scope, name);
+        self.note_result(scope, name, &result, diagnostic_serial);
+        if result.error().is_none() && self.stack.is_empty() {
+            self.failure_cell = None;
+        }
+        result
     }
     /// Evaluate against the original overlay snapshot. SETF runs normally within the
     /// query, then its changes are rolled back; caches touched by a write are discarded.
@@ -864,16 +895,29 @@ impl<'a> Evaluator<'a> {
                 self.add_dependency_key(provider.clone());
             }
             let formula = self.overrides.get(&key).or_else(|| self.overrides.get(&provider)).cloned().or_else(|| cell.formula.clone());
-            match formula.as_deref() {
-                None if cell.value.as_deref() == Some("Themed")
+            let executable = formula.as_deref().is_some_and(|f| !matches!(f, "No Formula" | "Inh"))
+                || (formula.is_none()
+                    && cell.value.as_deref() == Some("Themed")
                     && cell.units.as_deref() != Some("STR")
-                    && !string_cells::is_string(&key.name, cell) =>
-                {
-                    self.compute_formula(scope, origin, cached, "THEMEVAL()")
+                    && !string_cells::is_string(&key.name, cell));
+            if executable && self.repeated_inherited_source(scope, origin) {
+                Value::Error(Error::Unsupported("repeated MasterShape inheritance".into()))
+            } else {
+                match formula.as_deref() {
+                    None if cell.value.as_deref() == Some("Themed")
+                        && cell.units.as_deref() != Some("STR")
+                        && !string_cells::is_string(&key.name, cell) =>
+                    {
+                        self.compute_formula(scope, origin, cached, "THEMEVAL()")
+                    }
+                    None | Some("No Formula") => self.cached_named_cell(scope, &key.name, cell),
+                    // A detached Inh with V imports as a constant with no native formula.
+                    // Original geometry/Connections witnesses have empty FormulaU and numeric ResultIU.
+                    // https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+                    Some("Inh") if cell.value.is_some() => self.cached_named_cell(scope, &key.name, cell),
+                    Some("Inh") => Value::Error(Error::Ref),
+                    Some(formula) => self.compute_formula(scope, origin, cached, formula),
                 }
-                None | Some("No Formula") => self.cached_named_cell(scope, &key.name, cell),
-                Some("Inh") => Value::Error(Error::Ref),
-                Some(formula) => self.compute_formula(scope, origin, cached, formula),
             }
         } else {
             Value::Error(Error::Ref)
@@ -1182,10 +1226,13 @@ impl<'a> Evaluator<'a> {
     /// Resolve local, cross-shape, document, named page/master and style-qualified references.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references
     pub fn resolve(&mut self, scope: Scope, reference: &str) -> Value {
+        self.begin_diagnostic();
+        let diagnostic_serial = self.diagnostic_serial;
         self.add_dependency(scope, reference);
         match self.reference_target(scope, reference) {
             Ok((scope, name)) => {
                 let value = self.evaluate_inner(scope, &name);
+                self.note_result(scope, &name, &value, diagnostic_serial);
                 // E retains the current error while V is the last valid numeric value.
                 // ARROWS_M master2 Scratch.A1 exposes V through numeric references.
                 // https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
@@ -1519,6 +1566,9 @@ impl BoundContext<'_, '_> {
     }
 }
 impl Context for BoundContext<'_, '_> {
+    fn error_handled(&mut self) {
+        self.evaluator.failure_cell = None;
+    }
     fn hook(&mut self, name: &str, args: &[Value]) -> Value {
         let cell = self.host_cell();
         let (page, shape) = match self.scope {
@@ -2510,8 +2560,8 @@ mod tests {
         assert_eq!(e.evaluate(scope, "CycleA"), Value::Error(Error::Cycle));
         assert_eq!(e.evaluate(scope, "missing"), Value::Error(Error::Ref));
         assert_eq!(e.evaluate(scope, "Hook"), Value::Number(42.));
-        // Step 4 removes the temporary Inh cached-value path: no provider is #REF.
-        assert_eq!(e.evaluate(scope, "Inherited"), Value::Error(Error::Ref));
+        // Detached Inh imports as the stored literal, as witnessed by native empty FormulaU.
+        assert_eq!(e.evaluate(scope, "Inherited"), Value::Number(7.));
         e.clear_cache();
         assert_eq!(e.evaluate(scope, "CycleB"), Value::Error(Error::Cycle));
     }

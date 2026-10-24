@@ -219,7 +219,11 @@ pub fn geometry(rows: &[GeometryRow], width: f64, height: f64, clip: Rect, flags
             RowKind::EllipticalArcTo | RowKind::RelEllipticalArcTo => {
                 let from = current.ok_or(GeometryError::Invalid)?;
                 let control = point(row.a * sx, row.b * sy)?;
-                if row.d == 0. {
+                if row.d == 0. && width > 0. && height > 0. {
+                    // Native positive-size D=0 arcs draw the chord, including an off-chord control.
+                    // https://learn.microsoft.com/en-us/office/client-developer/visio/ellipticalarcto-row-geometry-section
+                    path.line_to(end);
+                } else if row.d == 0. {
                     collapsed_ellipse_arc(&mut path, from, control, end, width, height)?;
                 } else {
                     ellipse_arc(&mut path, from, control, end, row.c, row.d)?;
@@ -335,7 +339,7 @@ fn arc(path: &mut BezPath, center: Point, u: Vec2, v: Vec2, start: f64, sweep: f
 }
 /// Visio's witnessed zero-axis arc visits its control point even when endpoints coincide.
 /// Only an axis collapse with a live positive dimension and on-axis points is accepted.
-/// Controls outside unequal endpoints remain unwitnessed, and D=0 on a normal shape is invalid.
+/// Controls outside unequal endpoints remain unwitnessed. Positive-size shapes use the chord.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/ellipticalarcto-row-geometry-section
 fn collapsed_ellipse_arc(path: &mut BezPath, from: Point, control: Point, end: Point, width: f64, height: f64) -> Result<()> {
     let (a, b, c) = if width == 0. && height > 0. && from.x == 0. && control.x == 0. && end.x == 0. {
@@ -690,6 +694,15 @@ mod tests {
         assert!(shape_transform((0., 0.).into(), (0., 0.).into(), f64::INFINITY, false, false).is_err());
     }
     #[test]
+    fn zero_ratio_on_positive_shape_draws_chord_instead_of_off_axis_control() {
+        let mut arc = row(RowKind::EllipticalArcTo, 2., 3.);
+        arc.a = 4.;
+        arc.b = 1.;
+        arc.d = 0.;
+        let path = geometry(&[row(RowKind::MoveTo, 2., 0.), arc], 5., 4., Rect::new(-10., -10., 10., 10.), GeometryFlags::default()).unwrap().path;
+        assert_eq!(path.elements(), &[PathEl::MoveTo(Point::new(2., 0.)), PathEl::LineTo(Point::new(2., 3.))]);
+    }
+    #[test]
     fn collapsed_ellipse_arc_keeps_the_control_and_all_existing_limits() {
         for horizontal in [false, true] {
             for top in [false, true] {
@@ -713,7 +726,8 @@ mod tests {
                         bad[1].d = invalid;
                         assert!(build(&bad, width, height).is_err(), "ratio {invalid}");
                     }
-                    assert!(build(&rows, 2., 2.).is_err(), "D=0 with positive dimensions");
+                    let ordinary = build(&rows, 2., 2.).unwrap().path;
+                    assert_eq!(ordinary.elements().get(1), Some(&PathEl::LineTo(end)));
                     assert!(build(&rows, 0., 0.).is_err(), "both dimensions zero are unwitnessed");
                     assert!(build(&rows, -2., height).is_err());
                     let mut bad = rows.clone();

@@ -234,6 +234,43 @@ the other measured files use 2012/main. Container inspection accepts both exact 
 
 ## Observed, undocumented
 
+### M5.50: retained identities and detached cells (#84)
+
+The private Brief 37 baseline contains seven packages rejected during evaluator
+construction. Six repeat page-scoped shape IDs; native re-saves retain the first
+XML-order occurrence. Source bytes remain preserved, while evaluation and painting
+use that first identity. The seventh repeats MasterShape bindings inside one
+instance. The original `synthetic-brief37/context-v2.vsdx` and reversed-order
+witness (under `field/oss-2026-10-22`) prove last-XML-order reference display, with
+separate retained import values after edits and native save/reopen. Strict evaluation
+reports unsupported ambiguous inherited formulas; rendering uses its existing,
+explicit saved-value fallback. Inherited constants still evaluate normally.
+
+The same private timeline observations have detached `Inh` geometry cells whose
+native FormulaU is empty: NoShow retains its numeric V. This is a literal import
+rule, not an oracle fallback. Missing coordinates on an existing geometry row
+are zero, consistent with the [cell-default specification](https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/47b8caad-1ea2-4119-84c7-4d9901100b03).
+A positive-size EllipticalArcTo with D=0 draws the endpoint chord in the native
+SVG, including when its A/B control is off the chord. Existing collapsed-axis
+behavior and hostile coordinate bounds remain separate.
+
+The original private `synthetic-brief37/field-unindexed.vsdx` and
+`field-indexed.vsdx` distinguish Field row import: without IX, Visio retains the
+inherited DATE(2020,1,2), ResultIU 43832 and units 40; IX=0 applies the local
+45600 and units 32. Unindexed Field overrides therefore do not replace the
+inherited field. Neither synthetic contains third-party document bytes.
+
+All seven packages now render every source page. This is not full appearance
+parity: two milestone captions compute a near-white THEMEVAL colour where the
+native witness retains black, date labels differ, and one literal page-number
+pair compares different native/source page orders. Private bounds and page
+inspection records retain these differences, without masks or remapping.
+The contributor-original `synthetic-brief37/font-group-results.json` probe sets
+page components33, child components65534, font colour/matrix100 and variation0.
+Both native children return colour29 for parent FontSchemeIndex65534,0,33, matching
+our recomputation. Parent font-selector propagation therefore does not explain
+the imported black caption cache. That discrepancy remains visible in the gate.
+
 ### M5.44: strict theme sweep baseline and host font identities (#79, #80, #82)
 
 `themeval_sweep` compares all 264,405 rows from the five private

@@ -35,16 +35,25 @@ pub struct Package {
     content_types: std::sync::OnceLock<Option<ContentTypes>>,
 }
 
+// ZipError's Display hides the underlying I/O cause. Preserve it for damaged archives.
+fn zip_error(context: &str, error: zip::result::ZipError) -> OpcError {
+    let cause = match error {
+        zip::result::ZipError::Io(cause) => cause.to_string(),
+        other => other.to_string(),
+    };
+    OpcError::InvalidPackage(format!("{context}: {cause}"))
+}
+
 impl Package {
     pub fn open(bytes: &[u8]) -> Result<Self, OpcError> {
-        let mut zip = zip::ZipArchive::new(Cursor::new(bytes)).map_err(|e| OpcError::InvalidPackage(format!("{e}")))?;
+        let mut zip = zip::ZipArchive::new(Cursor::new(bytes)).map_err(|e| zip_error("ZIP directory", e))?;
         if zip.len() > MAX_ENTRIES {
             return Err(OpcError::InvalidPackage(format!("too many entries ({})", zip.len())));
         }
         let mut parts = HashMap::new();
         let mut total: u64 = 0;
         for i in 0..zip.len() {
-            let mut f = zip.by_index(i).map_err(|e| OpcError::InvalidPackage(e.to_string()))?;
+            let mut f = zip.by_index(i).map_err(|e| zip_error("ZIP entry", e))?;
             if f.is_dir() {
                 continue;
             }
@@ -64,7 +73,7 @@ impl Package {
                 }
                 Ok(_) => {}
                 Err(e) => {
-                    return Err(OpcError::InvalidPackage(format!("cannot read {name}: {e}")));
+                    return Err(OpcError::InvalidPackage(format!("cannot read ZIP part {name}: {e}")));
                 }
             }
             total = total.saturating_add(data.len() as u64);
@@ -457,6 +466,16 @@ impl PackageOut {
 mod tests {
     use super::*;
 
+    #[test]
+    fn damaged_zip_keeps_archive_context_and_underlying_io_cause() {
+        let error =
+            zip_error("ZIP directory", zip::result::ZipError::Io(std::io::Error::new(std::io::ErrorKind::UnexpectedEof, "truncated directory")));
+        assert!(error.to_string().contains("ZIP directory: truncated directory"));
+        for bytes in [b"PK".as_slice(), b"PK\x05\x06\x00\x00".as_slice()] {
+            let Err(error) = Package::open(bytes) else { panic!("truncated ZIP accepted") };
+            assert!(error.to_string().contains("ZIP directory:"));
+        }
+    }
     #[test]
     fn path_resolution() {
         assert_eq!(resolve("ppt/slides", "../media/image1.png"), "ppt/media/image1.png");

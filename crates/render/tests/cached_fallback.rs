@@ -33,7 +33,7 @@ fn render_uses_the_saved_value_where_a_function_is_missing_and_says_so() {
         ..Default::default()
     };
     let error = scene::page(&doc, 0, Options::default()).unwrap_err();
-    assert!(error.contains("shape 1 transform"), "{error}");
+    assert!(error.contains("page 7 shape 1") && error.contains("Separator") && error.contains("transform PinX"), "{error}");
     let scene = scene::page(&doc, 0, Options { cached_fallback: true, ..Default::default() }).unwrap();
     assert_eq!(scene.warnings.len(), 1, "{:?}", scene.warnings);
     let warning = scene.warnings[0].to_ascii_lowercase();
