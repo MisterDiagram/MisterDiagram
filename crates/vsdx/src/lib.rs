@@ -650,10 +650,30 @@ pub fn parse_sheet(e: &XmlElement) -> Result<Sheet, ReadError> {
     sheet.sections.shrink_to_fit();
     Ok(sheet)
 }
+/// Cell attributes are authoritative; native import also accepts a bare numeric body
+/// for an untyped cell without V. This undocumented import form is observed with
+/// contributor-original controls, and does not interpret nested extension elements.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
 fn cell(e: &XmlElement) -> Result<Cell, ReadError> {
+    let value = if let Some(value) = e.attr("V") {
+        Some(value.to_owned())
+    } else if e.attr("U").is_none() {
+        let mut body = String::new();
+        for child in &e.children {
+            if let XmlNode::Text(text) = child {
+                if body.len().checked_add(text.len()).is_none_or(|len| len > 65536) {
+                    return Err(bad("Cell body exceeds value limit"));
+                }
+                body.push_str(text);
+            }
+        }
+        body.parse::<f64>().ok().filter(|n| n.is_finite()).map(|_| body)
+    } else {
+        None
+    };
     Ok(Cell {
         name: e.attr("N").ok_or_else(|| bad("Cell missing N"))?.into(),
-        value: e.attr("V").map(str::to_string),
+        value,
         formula: e.attr("F").map(str::to_string),
         units: e.attr("U").map(str::to_string),
         error: e.attr("E").map(str::to_string),

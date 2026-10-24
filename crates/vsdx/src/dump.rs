@@ -270,21 +270,16 @@ fn dump_sheet(evaluator: &mut Evaluator<'_>, scope: Scope, id: u32, identity: &s
                 None => constant_formula(cell, slot.units),
             },
             None => {
-                if slot.name.ends_with(".Path") || slot.units == 231 {
+                if slot.name.ends_with(".Path") || matches!(slot.units, 141 | 231) {
                     String::new()
+                } else if let Some(Value::Number(value)) = slot.synthetic {
+                    value.to_string()
                 } else {
                     "0".into()
                 }
             }
         };
-        let numeric = match value {
-            Value::Text(_) => "0".into(),
-            Value::Point(..) => "0".into(),
-            v => match v.numeric() {
-                Ok(v) => v.to_string(),
-                Err(e) => e.to_string(),
-            },
-        };
+        let numeric = result_iu(&value);
         writeln!(
             out,
             "{id}\t{}\t{}\t{}\t{}\t{}\t{}\t{numeric}\t{}",
@@ -299,6 +294,37 @@ fn dump_sheet(evaluator: &mut Evaluator<'_>, scope: Scope, id: u32, identity: &s
         .map_err(io_error)?;
     }
     Ok(())
+}
+/// ResultIU coerces numeric text even for string columns; it does not evaluate
+/// strings as formulas. Original sparse-property-text native controls cover
+/// decimals, exponents, units, booleans and nonnumeric strings.
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.cell.resultiu
+fn result_iu(value: &Value) -> String {
+    let number = match value {
+        Value::Point(..) => Ok(0.),
+        Value::Text(text) => {
+            if text.len() > 65536 {
+                Err(misterdiagram_sheet::Error::Limit)
+            } else if text.trim().eq_ignore_ascii_case("TRUE") {
+                Ok(1.)
+            } else if text.contains(',') {
+                // Universal numeric strings do not admit locale group separators.
+                Ok(0.)
+            } else {
+                match misterdiagram_sheet::units::numeric_text(text) {
+                    Ok(number) => Ok(number),
+                    // The whole text is already bounded above. A long unknown
+                    // unit suffix is nonnumeric text, not a cell-size failure.
+                    Err(_) => Ok(0.),
+                }
+            }
+        }
+        value => value.numeric(),
+    };
+    match number {
+        Ok(number) => number.to_string(),
+        Err(error) => error.to_string(),
+    }
 }
 fn display_name(name: &str) -> String {
     if let Some(tail) = name.strip_prefix("Layers.Lock")
@@ -634,6 +660,7 @@ fn unit_code(cell: &Cell, fallback: u16) -> u16 {
     }
 }
 fn supplement(slots: &mut BTreeMap<(u16, u16, u16), Slot<'_>>) -> Result<(), String> {
+    supplement_sparse_rows(slots)?;
     let existing: Vec<_> = slots.values().cloned().collect();
     for item in existing {
         let (s, r, _) = item.src;
@@ -757,6 +784,57 @@ fn supplement(slots: &mut BTreeMap<(u16, u16, u16), Slot<'_>>) -> Result<(), Str
                 units: 231,
                 synthetic: Some(Value::Text(String::new())),
             });
+        }
+    }
+    Ok(())
+}
+
+/// Absent columns of existing rows still exist in the live ShapeSheet surface.
+/// Column identities follow the public enums and cell reference pages:
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.viscellindices
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/ask-cell-shape-data-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/langid-cell-shape-data-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/flyoutchild-cell-actions-section
+/// Empty/zero defaults, en-US language and reserved Field units are observed in
+/// generated/data/property-rows and generated/text/fields. As with the baseline
+/// table, the absent language default is the headless host's en-US setting.
+/// Existing local or inherited slots (including errors) always take precedence.
+fn supplement_sparse_rows(slots: &mut BTreeMap<(u16, u16, u16), Slot<'_>>) -> Result<(), String> {
+    let mut rows = BTreeMap::new();
+    for (&(section, row, column), item) in slots.iter().filter(|(src, _)| matches!(src.0, 8 | 240 | 243)) {
+        let base = if column == 0 || section == 8 { item.name.as_str() } else { item.name.rsplit_once('.').map_or(item.name.as_str(), |x| x.0) };
+        rows.entry((section, row)).or_insert_with(|| base.to_owned());
+    }
+    let mut name_bytes = slots.values().try_fold(0usize, |total, slot| total.checked_add(slot.name.len()).ok_or("dump name limit"))?;
+    for ((section, row), base) in rows {
+        let columns: &[(u16, &str, u16, f64)] = match section {
+            8 => &[(1, "_Unused1", 32, 0.), (8, "G", 32, 0.), (9, "H", 141, 0.)],
+            240 => &[(9, "FlyoutChild", 32, 0.), (14, "TagName", 231, 0.), (15, "ButtonFace", 231, 0.), (16, "SortKey", 231, 0.)],
+            243 => &[(3, "Format", 231, 0.), (7, "Verify", 32, 0.), (8, "DataLinked", 32, 0.), (14, "LangID", 32, 1033.), (15, "Calendar", 32, 0.)],
+            _ => &[],
+        };
+        for &(column, field, units, number) in columns {
+            if slots.contains_key(&(section, row, column)) {
+                continue;
+            }
+            let name = if section == 8 {
+                let one = u32::from(row) + 1;
+                if column != 1 {
+                    format!("Fields.{field}{one}")
+                } else if row == 0 {
+                    format!("Fields.{field}")
+                } else {
+                    format!("Fields.{field}[{one}]")
+                }
+            } else {
+                format!("{base}.{field}")
+            };
+            name_bytes = name_bytes.checked_add(name.len()).ok_or("dump name limit")?;
+            if name.len() > 65536 || name_bytes > 64 * 1024 * 1024 || slots.len() >= 1_000_000 {
+                return Err("dump supplement limit".into());
+            }
+            let value = if units == 231 { Value::Text(String::new()) } else { Value::Number(number) };
+            slots.insert((section, row, column), Slot { name, cell: None, src: (section, row, column), units, synthetic: Some(value) });
         }
     }
     Ok(())
@@ -895,6 +973,157 @@ mod tests {
             assert_eq!(rows[column][7], *expected);
         }
         assert_eq!(rows[4][5], "ClippingPath");
+    }
+    #[test]
+    fn sparse_property_action_and_field_rows_expose_live_default_columns() {
+        use misterdiagram_model::{Row, Section};
+        let mut doc = misterdiagram_model::skeleton::document(false);
+        let mut shape = misterdiagram_model::skeleton::rectangle(7, 1., 1., 2., 1., "").unwrap();
+        for (section, field, name, index) in [
+            ("Property", "Value", Some("Dock"), 0),
+            ("Property", "Prompt", Some("Dock.Port"), 1),
+            ("Action", "Menu", Some("Launch"), 0),
+            ("Action", "Checked", Some("Launch.Port"), 1),
+            ("Field", "Value", None, 0),
+            ("Field", "Value", None, 1),
+        ] {
+            shape.sheet.sections.push(Section {
+                name: section.into(),
+                rows: vec![Row {
+                    name: name.map(str::to_owned),
+                    index: Some(index),
+                    cells: vec![Cell { name: field.into(), value: Some("0".into()), ..Default::default() }],
+                    ..Default::default()
+                }],
+                ..Default::default()
+            });
+        }
+        doc.pages[0].shapes.push(shape);
+        let mut out = Vec::new();
+        dump(&doc, Selection::Shape(7), &mut out).unwrap();
+        let text = String::from_utf8(out).unwrap();
+        let mut rows = BTreeMap::new();
+        for line in text.lines().skip(1) {
+            let fields: Vec<_> = line.split('\t').collect();
+            assert!(rows.insert((fields[2], fields[3], fields[4]), fields).is_none());
+        }
+        for (section, row, column, name, value, units) in [
+            ("243", "0", "3", "Prop.Dock.Format", "0", "231"),
+            ("243", "0", "7", "Prop.Dock.Verify", "0", "32"),
+            ("243", "0", "8", "Prop.Dock.DataLinked", "0", "32"),
+            ("243", "0", "14", "Prop.Dock.LangID", "1033", "32"),
+            ("243", "0", "15", "Prop.Dock.Calendar", "0", "32"),
+            ("243", "1", "7", "Prop.Dock.Port.Verify", "0", "32"),
+            ("240", "0", "9", "Actions.Launch.FlyoutChild", "0", "32"),
+            ("240", "0", "14", "Actions.Launch.TagName", "0", "231"),
+            ("240", "0", "15", "Actions.Launch.ButtonFace", "0", "231"),
+            ("240", "0", "16", "Actions.Launch.SortKey", "0", "231"),
+            ("240", "1", "9", "Actions.Launch.Port.FlyoutChild", "0", "32"),
+            ("8", "0", "1", "Fields._Unused1", "0", "32"),
+            ("8", "0", "8", "Fields.G1", "0", "32"),
+            ("8", "0", "9", "Fields.H1", "0", "141"),
+            ("8", "1", "1", "Fields._Unused1[2]", "0", "32"),
+            ("8", "1", "8", "Fields.G2", "0", "32"),
+            ("8", "1", "9", "Fields.H2", "0", "141"),
+        ] {
+            let fields = rows.get(&(section, row, column)).unwrap();
+            assert_eq!((fields[5], fields[7], fields[8]), (name, value, units));
+        }
+        assert_eq!(rows.get(&("243", "0", "14")).unwrap()[6], "1033");
+    }
+    #[test]
+    fn sparse_defaults_preserve_inherited_values_local_errors_and_deleted_rows() {
+        use misterdiagram_model::{Master, Row, Section};
+        let mut doc = misterdiagram_model::skeleton::document(false);
+        let mut shape = misterdiagram_model::skeleton::rectangle(7, 1., 1., 2., 1., "").unwrap();
+        let row = Row {
+            name: Some("Dock".into()),
+            cells: vec![
+                Cell { name: "Value".into(), value: Some("4".into()), ..Default::default() },
+                Cell { name: "Verify".into(), value: Some("1".into()), ..Default::default() },
+                Cell { name: "LangID".into(), value: Some("de-DE".into()), ..Default::default() },
+                Cell { name: "Calendar".into(), value: Some("2".into()), ..Default::default() },
+            ],
+            ..Default::default()
+        };
+        let section = |rows| Section { name: "Property".into(), rows, ..Default::default() };
+        let master_shape = Shape { id: 2, sheet: Sheet { sections: vec![section(vec![row])], ..Default::default() }, ..Default::default() };
+        doc.masters.push(Master { id: 3, shapes: vec![master_shape].into(), ..Default::default() });
+        shape.master = Some(3);
+        shape.sheet.sections.push(section(vec![Row {
+            name: Some("Dock".into()),
+            cells: vec![Cell { name: "DataLinked".into(), value: Some("0".into()), formula: Some("1/0".into()), ..Default::default() }],
+            ..Default::default()
+        }]));
+        doc.pages[0].shapes.push(shape);
+        let mut out = Vec::new();
+        dump(&doc, Selection::Shape(7), &mut out).unwrap();
+        let text = String::from_utf8(out).unwrap();
+        for (name, value) in [("Verify", "1"), ("LangID", "1031"), ("Calendar", "2"), ("DataLinked", "#DIV/0!")] {
+            let fields: Vec<_> =
+                text.lines().find(|line| line.split('\t').nth(5) == Some(&format!("Prop.Dock.{name}"))).unwrap().split('\t').collect();
+            assert_eq!(fields[7], value);
+        }
+        doc.pages[0].shapes[0].sheet.sections.iter_mut().find(|section| section.name == "Property").unwrap().rows[0].deleted = true;
+        let mut out = Vec::new();
+        dump(&doc, Selection::Shape(7), &mut out).unwrap();
+        assert!(!String::from_utf8(out).unwrap().contains("Prop.Dock"));
+    }
+    #[test]
+    fn sparse_supplement_rejects_oversized_generated_names() {
+        let name = format!("Prop.{}", "x".repeat(65530));
+        let mut slots = BTreeMap::from([((243, 0, 0), Slot { name, cell: None, src: (243, 0, 0), units: 32, synthetic: Some(Value::Number(0.)) })]);
+        assert!(supplement_sparse_rows(&mut slots).is_err());
+    }
+    #[test]
+    fn result_iu_coerces_text_literals_without_evaluating_formulas_or_masking_errors() {
+        for (text, expected) in [
+            ("6", 6.),
+            (" 6.25 ", 6.25),
+            ("1e2", 100.),
+            ("3 cm", 3. / 2.54),
+            ("4 ft", 48.),
+            ("TRUE", 1.),
+            ("true", 1.),
+            ("FALSE", 0.),
+            ("hello", 0.),
+            ("NaN", 0.),
+            ("inf", 0.),
+            ("1,234", 0.),
+            ("1,234.5", 0.),
+            ("1.234,5", 0.),
+            ("SETF(GETREF(Width),9)", 0.),
+        ] {
+            let actual = result_iu(&Value::Text(text.into())).parse::<f64>().unwrap();
+            assert!((actual - expected).abs() < 1e-12, "{text}: {actual} != {expected}");
+        }
+        assert_eq!(result_iu(&Value::Text("1".repeat(65537))), "#LIMIT!");
+        assert_eq!(result_iu(&Value::Text("0;red;green;blue;".repeat(100))), "0");
+        assert_eq!(result_iu(&Value::Error(misterdiagram_sheet::Error::Div0)), "#DIV/0!");
+        assert_eq!(result_iu(&Value::Error(misterdiagram_sheet::Error::Num)), "#NUM!");
+        let mut doc = misterdiagram_model::skeleton::document(false);
+        let mut shape = misterdiagram_model::skeleton::rectangle(7, 1., 1., 2., 1., "").unwrap();
+        shape.sheet.sections.push(misterdiagram_model::Section {
+            name: "Property".into(),
+            rows: vec![misterdiagram_model::Row {
+                name: Some("Dock".into()),
+                cells: vec![
+                    Cell { name: "Value".into(), units: Some("STR".into()), value: Some("6".into()), ..Default::default() },
+                    Cell { name: "Label".into(), units: Some("STR".into()), value: Some("7".into()), ..Default::default() },
+                    Cell { name: "Type".into(), formula: Some("\"5\"".into()), value: Some("5".into()), ..Default::default() },
+                ],
+                ..Default::default()
+            }],
+            ..Default::default()
+        });
+        doc.pages[0].shapes.push(shape);
+        let mut out = Vec::new();
+        dump(&doc, Selection::Shape(7), &mut out).unwrap();
+        let text = String::from_utf8(out).unwrap();
+        for (name, value) in [("Prop.Dock", "6"), ("Prop.Dock.Label", "7"), ("Prop.Dock.Type", "5")] {
+            let line = text.lines().find(|line| line.split('\t').nth(5) == Some(name)).unwrap();
+            assert_eq!(line.split('\t').nth(7), Some(value));
+        }
     }
     #[test]
     fn invalid_selection_and_writer_errors_are_returned() {

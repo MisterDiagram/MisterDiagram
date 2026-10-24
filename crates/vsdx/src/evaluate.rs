@@ -104,9 +104,11 @@ pub struct Evaluator<'a> {
 }
 impl<'a> Evaluator<'a> {
     /// Register literal colours without requiring a serialized palette entry.
+    /// RGB values use custom entries from 24 onward, even when their colour also
+    /// matches a standard index. Numeric colour constants retain their identity.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/colors-element-visiodocument_type-complextypevisio-xml
     fn intern_color(&mut self, rgb: [u8; 3]) -> Option<u32> {
-        if let Some(index) = self.palette.iter().find_map(|(index, value)| (*value == rgb).then_some(*index)) {
+        if let Some(index) = self.palette.range(24..).find_map(|(index, value)| (*value == rgb).then_some(*index)) {
             return Some(index);
         }
         if self.palette.len() >= 65536 {
@@ -1211,7 +1213,7 @@ impl<'a> Evaluator<'a> {
         if cell.units.as_deref() != Some("STR")
             && cell.error.is_none()
             && let Some(rgb) = cell.value.as_deref().and_then(parse_color)
-            && let Some(index) = self.document.colors.iter().find_map(|(i, v)| (parse_color(v) == Some(rgb)).then_some(*i))
+            && let Some(index) = self.document.colors.range(24..).find_map(|(i, v)| (parse_color(v) == Some(rgb)).then_some(*i))
         {
             return Value::Number(f64::from(index) + if cell.name == "TextBkgnd" { 1. } else { 0. });
         }
@@ -1223,10 +1225,12 @@ impl<'a> Evaluator<'a> {
             // RGB-bearing values carry their colour independently of an optional index.
             let index = self
                 .palette
-                .iter()
+                .range(24..)
                 .find_map(|(i, c)| (*c == rgb).then_some(*i))
+                // A speculative cache read cannot register a new custom entry.
+                // Keep a resolvable standard identity when no custom match exists.
                 .or_else(|| (0..24).find(|i| misterdiagram_sheet::functions::default_color(*i) == Some(rgb)))
-                .or_else(|| self.palette.last_key_value().map_or(Some(24), |(i, _)| i.checked_add(1)))
+                .or_else(|| self.palette.last_key_value().map_or(Some(24), |(i, _)| i.checked_add(1).map(|i| i.max(24))))
                 .unwrap_or(0);
             return if cell.name == "TextBkgnd" {
                 index.checked_add(1).map_or(Value::Error(Error::Limit), |n| Value::Number(f64::from(n)))
@@ -2245,6 +2249,39 @@ mod tests {
         assert!(matches!(e.cached_cell(&cell("FillForegnd", "#123456", Some("RGB(1,2,3)"))), Value::Color { rgb: [18, 52, 86], .. }));
         assert!(e.palette.is_empty());
         assert_eq!(e.intern_color([1, 2, 3]), Some(24));
+    }
+    #[test]
+    fn rgb_literals_use_custom_palette_identity_but_numeric_constants_do_not() {
+        let doc = Document {
+            colors: BTreeMap::from([
+                (0, "#000000".into()),
+                (1, "#FFFFFF".into()),
+                (16, "#C0C0C0".into()),
+                (25, "#FFFFFF".into()),
+                (26, "#000000".into()),
+                (27, "#C0C0C0".into()),
+            ]),
+            ..Default::default()
+        };
+        let mut e = Evaluator::new(&doc).unwrap();
+        for (rgb, text, index) in [([0, 0, 0], "#000000", 26), ([255, 255, 255], "#FFFFFF", 25), ([192, 192, 192], "#C0C0C0", 27)] {
+            assert_eq!(e.intern_color(rgb), Some(index));
+            assert_eq!(e.cached_cell(&cell("FillForegnd", text, None)), Value::Number(f64::from(index)));
+            assert_eq!(e.cached_cell(&cell("TextBkgnd", text, None)), Value::Number(f64::from(index + 1)));
+        }
+        assert_eq!(e.cached_cell(&cell("FillForegnd", "0", None)), Value::Number(0.));
+        assert_eq!(e.cached_cell(&cell("TextBkgnd", "0", None)), Value::Number(0.));
+    }
+    #[test]
+    fn speculative_standard_text_background_keeps_a_resolvable_identity() {
+        let doc = Document {
+            document_sheet: sheet(vec![cell("TextBkgnd", "#FFFFFF", None), cell("User.Check", "0", Some("BLUE(TextBkgnd-1)"))]),
+            ..Default::default()
+        };
+        let mut e = Evaluator::new(&doc).unwrap();
+        assert!(e.palette.is_empty());
+        assert_eq!(e.evaluate(Scope::Document, "User.Check"), Value::Number(255.));
+        assert!(e.palette.is_empty(), "reading a cache must not allocate speculative palette entries");
     }
     #[test]
     fn language_cells_use_lcid_not_text_zero() {

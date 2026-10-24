@@ -62,11 +62,12 @@ warned placeholder. Stored ActiveX previews can differ from live control size,
 caption and bevel state; this remains an appearance gap.
 REF() returns the native #REF!, LocalName User rows resolve page scales, and
 geometry recovers saved values or skips invalid rows with warnings. The full
-master-cell comparison still differs in row enumeration, theme, geometry,
-action and data cells, including currency evaluation. Named Connections, image
+master-cell comparison still differs in reserved row aliases, theme and retained
+geometry/action results. Supported currency amounts, sparse columns, numeric-text
+inspection, custom colour identities and additional style selectors are repaired. Named Connections, image
 metadata, omitted style selector inheritance and the specified master font
-identity/text-width differences are repaired. Repeated-master strict evaluation, date labels and two
-near-white milestone captions remain open; successful rendering is not a claim
+identity/text-width differences are repaired. Repeated-master strict evaluation,
+date labels, retained milestone positions and two near-white captions remain open; successful rendering is not a claim
 of complete appearance parity. No specimen is shipped.
 
 The first tester report after 0.1.0-alpha.1: a public BPMN sample (an E-Commerce shopping

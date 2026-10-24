@@ -82,6 +82,8 @@ enum Category {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/variationcolorindex-cell-theme-properties-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/variationstyleindex-cell-theme-properties-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/embellishmentindex-cell-theme-properties-section
+/// QuickStyleVariation follows the fill chain in the original split-chain native control.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/quickstylevariation-cell-quick-style-section
 fn category(name: &str) -> Option<Category> {
     let name = name.to_ascii_lowercase();
     if name.starts_with("char.")
@@ -127,7 +129,15 @@ fn category(name: &str) -> Option<Category> {
         || name.starts_with("sketch")
         || matches!(
             name.as_str(),
-            "softedgessize" | "quickstyleeffectsmatrix" | "perspective" | "effectschemeindex" | "variationstyleindex" | "embellishmentindex"
+            "softedgessize"
+                | "quickstyleeffectsmatrix"
+                | "quickstylevariation"
+                | "enablelineprops"
+                | "enabletextprops"
+                | "perspective"
+                | "effectschemeindex"
+                | "variationstyleindex"
+                | "embellishmentindex"
         )
     {
         Some(Category::Fill)
@@ -305,6 +315,16 @@ impl<'a> Evaluator<'a> {
                     continue;
                 }
                 for (name, entry) in &style_sheet.cells {
+                    // Original split-chain native control: shapes read these flags
+                    // from their selected fill style. An intermediate style with
+                    // omitted flags stays enabled, even when its parent is disabled.
+                    // Do not propagate the parent's flags into that intermediate style.
+                    // https://learn.microsoft.com/en-us/office/client-developer/visio/enablelineprops-cell-style-properties-section
+                    // https://learn.microsoft.com/en-us/office/client-developer/visio/enabletextprops-cell-style-properties-section
+                    if matches!(name.as_ref(), "enablelineprops" | "enabletextprops") && (matches!(scope, Scope::Style(_)) || entry.origin != parent)
+                    {
+                        continue;
+                    }
                     if category(name) == Some(cat)
                         && self.defaults_allowed(scope, name)
                         && effective.cells.get(name).is_none_or(|old| matches!(old.origin, Scope::Style(_) | Scope::Document))

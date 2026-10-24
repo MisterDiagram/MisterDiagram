@@ -638,7 +638,7 @@ fn fraction_picture(value: f64, picture: &str) -> Result<String, Error> {
 }
 fn date_picture(picture: &str) -> bool {
     picture.starts_with("{{")
-        || picture.chars().all(|c| matches!(c, 'd' | 'M' | 'y' | 'w' | 'h' | 'H' | 'm' | 's' | 't' | '/' | ':' | ' ' | ',' | '-' | '.'))
+        || picture.chars().all(|c| matches!(c, 'c' | 'C' | 'd' | 'M' | 'y' | 'w' | 'h' | 'H' | 'm' | 's' | 't' | '/' | ':' | ' ' | ',' | '-' | '.'))
             && picture.chars().any(|c| c.is_ascii_alphabetic())
 }
 /// Serial dates use 1899-12-30; Gregorian arithmetic is bounded to years 1 through 9999.
@@ -704,6 +704,18 @@ fn format_date(serial: f64, picture: &str) -> Result<String, Error> {
                     }
                 } else {
                     match (*c, n) {
+                        // General date pictures include the time only when present.
+                        // https://learn.microsoft.com/en-us/office/client-developer/visio/about-format-pictures
+                        ('c' | 'C', 1) if !office => {
+                            let mut general =
+                                if *c == 'c' { format!("{}/{day}/{year}", month + 1) } else { format!("{day_name}, {month_name} {day}, {year}") };
+                            if seconds != 0 {
+                                let clock_hour = if hour % 12 == 0 { 12 } else { hour % 12 };
+                                let meridiem = if hour < 12 { "AM" } else { "PM" };
+                                general.push_str(&format!(" {clock_hour}:{minute:02}:{second:02} {meridiem}"));
+                            }
+                            general
+                        }
                         ('d' | 'D', 1) => day.to_string(),
                         ('d' | 'D', 2) => format!("{day:02}"),
                         ('d', 3) | ('w', 1) => day_name.chars().take(3).collect(),
@@ -881,6 +893,21 @@ mod tests {
         assert_eq!(run("FORMAT(2,\"'Q'#\")"), Value::Text("Q2".into()));
         assert_eq!(run("FORMATEX(1in,\"0.0 u\",\"cm\",\"mm\")"), Value::Text("25.4 mm.".into()));
         assert_eq!(run("FORMATEX(Width,\"0.0 u\",\"cm\",\"mm\")"), Value::Text("25.4 mm.".into()));
+    }
+    #[test]
+    fn general_date_pictures_use_short_or_long_dates_and_optional_time() {
+        for (formula, expected) in [
+            (r#"FORMAT(2,"c")"#, "1/1/1900"),
+            (r#"FORMAT(2,"C")"#, "Monday, January 1, 1900"),
+            (r#"FORMAT(2.5,"c")"#, "1/1/1900 12:00:00 PM"),
+            (r#"FORMATEX(2.25,"C",,,1033,0)"#, "Monday, January 1, 1900 6:00:00 AM"),
+            (r#"FORMAT(2,"'c'#")"#, "c2"),
+        ] {
+            assert_eq!(run(formula), Value::Text(expected.into()), "{formula}");
+        }
+        for formula in [r#"FORMAT(3000000,"c")"#, r#"FORMATEX(2,"C",,,1031)"#, r#"FORMAT(2,"cc")"#] {
+            assert!(matches!(run(formula), Value::Error(_)), "{formula}");
+        }
     }
     #[test]
     fn unicode_empty_items_and_documented_negative_mid() {

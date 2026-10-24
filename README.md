@@ -28,7 +28,7 @@ export of the same file, measured by the test harness; Visio's exports stay out 
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
-- **Evaluate** the ShapeSheet: 118 functions including 3 internal functions, from
+- **Evaluate** the ShapeSheet: 119 functions including 3 internal functions, from
   `crates/sheet/src/functions/mod.rs`'s `IMPLEMENTED` registry. Inheritance covers
   masters, style sheets and document defaults, with dirty-set recalculation. The full
   oracle check passes its fixed floors, including 62,145/67,866 cached text metrics
@@ -68,7 +68,7 @@ macOS, plus an Ubuntu check at the declared Rust minimum.
 
 Known gaps are listed in [docs/gaps.md](docs/gaps.md). All 85 native-opened field
 files now render, but this is not complete appearance or cell parity. Timeline
-date labels and two caption colours, stored ActiveX versus live-control appearance,
+date labels, milestone positions and two caption colours, stored ActiveX versus live-control appearance,
 3D rotation, fine equipment details, repeated-master strict evaluation and some
 master cells still differ. THEMEVAL
 retains 2,550 unequal secondary backgrounds and dormant gradient angles.

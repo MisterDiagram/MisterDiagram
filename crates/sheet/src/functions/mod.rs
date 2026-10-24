@@ -3,6 +3,7 @@ use crate::{Context, Error, Value, eval::eval, parser::Expr};
 mod color;
 mod color_adjust;
 mod constructors;
+mod currency;
 mod ellipse;
 mod extras;
 mod numeric;
@@ -16,6 +17,7 @@ mod text_metrics;
 mod theme;
 pub use color::default_color;
 pub const IMPLEMENTED: &[&str] = &[
+    "CY",
     "TEXTWIDTH",
     "TEXTHEIGHT",
     "SHAPETEXT",
@@ -173,6 +175,7 @@ pub(crate) fn call(name: &str, args: &[Expr], context: &mut dyn Context, budget:
         return value;
     }
     match name {
+        "CY" => currency::call(args, context, budget, depth),
         "LANGUAGE" => language(args, context, budget, depth),
         "GUARD" => guard(args, context, budget, depth),
         "IF" => conditional(args, context, budget, depth),

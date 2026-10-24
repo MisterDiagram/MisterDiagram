@@ -344,6 +344,56 @@ now match177,532/179,237 and27,994/28,819; the separate Connections check matche
 action and data cells, including currency evaluation. Private evidence is in
 Brief37's `cell-comparison-m553-trial.json` and original missing-style control.
 
+### M5.50/M5.51 follow-up: literal values and retained native results (#84, #85)
+
+Contributor-original controls under private `synthetic-brief37/` distinguish
+import rules from retained calculation state. `literal-body-results.json` proves
+that an untyped numeric Cell body supplies a literal when V is absent, while an
+explicit V wins. Unsupported body text remains absent; import bounds its size.
+`palette-identity-results.json` shows that RGB literals use custom palette
+identities from 24 onward even when standard entries have identical colours.
+Numeric palette constants retain their original indices.
+
+`style-inheritance-results.json` places QuickStyleVariation on the FillStyle
+chain. EnableLineProps and EnableTextProps use a directly selected fill style's
+local flags. Omitted intermediate style flags retain ResultIU 1 despite a FALSE
+inherited formula, so this observation does not justify recursive flag evaluation.
+Local and master overrides keep precedence. `sparse-property-defaults-results.json`
+confirms absent row columns, including en-US LangID 1033; an explicit de-DE control
+remains 1031. `sparse-property-text-results.json` confirms numeric ResultIU coercion
+of string values, numeric text formulas, units and booleans. Non-numeric text
+coerces to zero, while actual evaluation errors remain errors. Dump supplementation
+preserves explicit and inherited columns. Reserved native aliases still differ
+from generated names even where their section/row/column identities agree.
+
+CY now evaluates supported numeric currency amounts and validates the documented
+currency identifiers. Locale-specific strings and unverified rounding remain
+explicitly unsupported. FORMAT supports the documented c/C general date pictures;
+DATE fields and hosted formulas retain their existing imported-display contract.
+A trial expanding DATE displays lost 52 cached and 52 COM text-metric matches and
+was reverted; no floor, denominator or witness was changed.
+
+Native successful results are not necessarily recalculations of their formulas.
+The original `geometry-retained-results.json` opens with Width 10, Marker 125,
+Begin 100 and Finish 200 but a stored clamped-offset result 8, rather than 2.5.
+Reassigning the same formula changes it to 2.5 and its dependent position to 3.5;
+an untouched Width/2 position remains its stored 7. The corresponding private
+field timeline retains an offset 2.967032967 while its recorded inputs recompute
+to 9. The native drawing therefore places the milestone differently. This is an
+unresolved imported calculation-state gap, not an error-recovery case.
+
+The original ellipse v2 control uses the exact two remaining field input tuples.
+Native reassignment returns approximately zero for both angles, agreeing with
+our evaluator within 1e-6, rather than the field's retained negative-pi and
+-0.0795059963368088 values. Original caption controls distinguish a master-local Inh value
+from an explicit master formula. In `caption-imported-results.json`, the instance
+opens black from its master value provider while its formula comes from the style;
+reassigning the same formula locally produces near-white. The provider-stage
+control also keeps a fresh drop black until master formula reassignment. This
+identifies a separate formula/value-provenance gap; its correction is still pending.
+These differences remain visible; no successful result is replaced with a cache
+solely to satisfy a comparison. Full visual and strict master parity are not met.
+
 ### M5.50: retained identities and detached cells (#84)
 
 The private Brief 37 baseline contains seven packages rejected during evaluator

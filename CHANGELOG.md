@@ -12,7 +12,9 @@ More real-world drawings render, with useful errors when evaluation fails.
 - **One bad geometry row no longer stops the drawing.** Render, convert and
   export use saved geometry and connection values when available, or skip the
   affected row with a named warning. REF() reports the native reference error;
-  named User cells resolve page-scale references. Strict inspection keeps errors
+  named User cells resolve page-scale references. Currency amounts, imported
+  numeric cell text, palette identities and sparse inspection columns are handled
+  more accurately. Strict inspection keeps errors
   visible ([#85](https://github.com/MisterDiagram/MisterDiagram/issues/85)).
 - **Unsupported embedded objects keep a visible representation.** Their cached
   picture or icon is drawn when available; otherwise a sized rectangle marks
@@ -26,7 +28,8 @@ More real-world drawings render, with useful errors when evaluation fails.
 
 Known gaps: rendering succeeds on all 85 native-opened field files, but complete
 appearance and cell parity remain open. Imported timeline date labels and two
-caption colours differ; stored ActiveX pictures differ from live controls;
+caption colours differ; imported successful transform results can retain positions
+that differ from formula recalculation. Stored ActiveX pictures differ from live controls;
 3D rotation, fine equipment detail, repeated-master strict evaluation and some
 master cells still differ. The theme sweep retains
 2,550 unequal secondary backgrounds and dormant gradient angles. Container/list
