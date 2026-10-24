@@ -14,8 +14,8 @@ PDF, writes files that Visio opens without repair, and authors drawings from com
 masters, shape data, glued connectors with orthogonal routing and line jumps. AI agents can use the same commands through the MCP stdio server. PowerPoint export is next. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and is offered to that project.
 
-**Download:** [MisterDiagram 0.1.0-alpha.5](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.5),
-the fifth alpha (real-file resilience: embedded objects, broken geometry rows and errors that name their cell: #84, #85, #86, #81), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+**Download:** [MisterDiagram 0.1.0-alpha.6](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.6),
+the sixth alpha (tester fixes: CHAR(), FORMAT language IDs, and a file that is not a ZIP is named for what it is: #89, #90, #94), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -24,15 +24,15 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-10-24, 0.1.0-alpha.5)
+## What works today (2026-10-24, 0.1.0-alpha.6)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
 - **Evaluate** the ShapeSheet: 120 functions including 3 internal functions, from
   `crates/sheet/src/functions/mod.rs`'s `IMPLEMENTED` registry. Inheritance covers
   masters, style sheets and document defaults, with dirty-set recalculation. The full
-  oracle check passes its fixed floors, including 62,145/67,866 cached text metrics
-  and 54,497/58,180 COM text metrics.
+  oracle check passes its fixed floors, including 62,348/67,866 cached text metrics
+  and 54,510/58,180 COM text metrics.
 - **Render** PNG, SVG and vector PDF. All aggregate feature groups of the test corpus pass their fixed
   pixel ceilings against Visio's own 96 dpi export. Individual connector comparisons
   remain above their ceilings and are tracked as a renderer gap. All 1,108 masters in the
@@ -76,26 +76,24 @@ Container/list formulas, text wrapping, larger-page routing, legacy formats,
 EMF+, compound line patterns, shadows, PowerPoint export and masters with several
 top-level shapes remain limited. Large-drawing authoring is slow
 ([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39); measurements in docs/gaps.md).
+From Microsoft's template catalogue, filed and open: a feet-and-inches text-field picture
+(#95), a master Height saved as `GUARD(REF())` (#96), the construction budget on a
+2,780-shape template (#97), `THEME()` with a colour argument (#88), the Text Callout cycle
+(#91), the `sheet` budget on very large templates (#92) and thin-line arrowheads (#93).
 
-## New in 0.1.0-alpha.5
+## New in 0.1.0-alpha.6
 
-This release makes real-world files survive what used to stop them. Imported
-drawings with duplicate shape identities and detached cells now render every
-page, and an evaluation error that does stop a render names its page, shape and
-cell, including dependencies in document, master, style and layer sheets (#84).
-A bad geometry or connection row no longer aborts the drawing: render, convert
-and export use the value saved in the file, or skip the row, with a warning that
-names it; REF() reports Visio's own reference error and named User cells resolve
-page-scale references (#85). An embedded OLE object or ActiveX control whose
-picture cannot be decoded draws its cached picture or icon, or a sized
-placeholder, instead of failing the page (#86). The corpus checker counts errors
-where Visio has a number separately from text-metric differences, with ceilings
-that may only fall (#81). On the private field gate, 85 of 85 files Visio opens
-now render (alpha.4: 72), the ten files Visio refuses are still refused for a
-named reason, and every previously rendering page stays within its frozen
-distance allowance. Rendering is not yet appearance parity on all of them: the
-timeline date labels and milestone positions, stored ActiveX pictures against
-live controls, and some master cells still differ, as listed above.
+Four small fixes from the first week of tester files. `CHAR()` is implemented, so labels
+built with `CHAR(10)` line breaks evaluate instead of reporting `#NAME?` (#89). `FORMAT` and
+`FORMATEX` accept every language ID, so files saved by a non-US Visio format their fields
+with the en-US picture rules instead of failing (#90); locale-specific pictures remain an
+approximation. A file that is not a ZIP at all, such as an HTML page saved as .vsdx, a
+legacy binary .vsd, an empty file or a PDF, is now named for what it is, quoting its first
+bytes, instead of the ZIP reader's "Could not find EOCD"; render, convert, info and the MCP
+server print the same line, and nothing that opened before is refused (#94). The corpus
+error-where-number ceilings fall to 29,115 cached and 1,094,960 COM. Everything else is
+unchanged from alpha.5: 85 of 85 native-opened field files render, every measured page
+distance is identical, and the hostile set's 27 exits are the same.
 
 ## Testers wanted
 
