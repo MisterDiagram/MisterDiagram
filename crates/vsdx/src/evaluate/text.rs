@@ -147,9 +147,32 @@ impl<'a> Evaluator<'a> {
     fn text_number(&mut self, scope: Scope, name: &str, default: f64) -> f64 {
         self.evaluate(scope, name).numeric().ok().filter(|v| v.is_finite() && v.abs() <= 1e6).unwrap_or(default)
     }
+    /// Host-local font IDs can outlive their FaceNames table in imported formulas.
+    /// Preserve the serialized family when a successful ID has no local identity.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section
+    /// https://learn.microsoft.com/en-us/office/vba/api/visio.font.id
     fn text_font(&mut self, scope: Scope, name: &str) -> String {
-        let id = self.text_number(scope, name, 0.);
-        if (0. ..=65535.).contains(&id) { self.fonts.get(&(id as u32)).cloned().unwrap_or_else(|| "Calibri".into()) } else { "Calibri".into() }
+        let number = self.evaluate(scope, name).numeric().ok().filter(|id| id.is_finite() && id.abs() <= 1e6);
+        let id = number.unwrap_or(0.);
+        if (0. ..=65535.).contains(&id) {
+            if let Some(family) = self.fonts.get(&(id as u32)) {
+                return family.clone();
+            }
+            if number.is_some()
+                && id.fract() == 0.
+                && let Some(family) = self.cell(scope, name).and_then(|cell| cell.value.as_deref()).filter(|family| {
+                    family.len() <= 4096
+                        && !family.trim().is_empty()
+                        && family.parse::<f64>().is_err()
+                        && !family.starts_with('#')
+                        && !family.eq_ignore_ascii_case("Themed")
+                        && !family.eq_ignore_ascii_case("Inh")
+                })
+            {
+                return family.to_owned();
+            }
+        }
+        "Calibri".into()
     }
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/size-cell-character-section
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section

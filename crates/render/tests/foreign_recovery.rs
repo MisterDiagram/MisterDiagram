@@ -136,3 +136,47 @@ fn hostile_preview_fanout_stops_with_a_named_placeholder() {
     assert!(!result.ops.iter().any(|op| matches!(op, Op::Image { .. })));
     assert!(result.warnings.iter().any(|w| w.contains("shape 7") && w.contains("placeholder") && w.contains("preview recovery limit")));
 }
+
+#[test]
+fn empty_metafile_preview_uses_the_next_picture_or_placeholder() {
+    let mut emf = vec![0u8; 116];
+    for (offset, value) in [
+        (0, 1u32),
+        (4, 88),
+        (16, 96),
+        (20, 96),
+        (32, 2540),
+        (36, 2540),
+        (40, 0x464d4520),
+        (44, 0x10000),
+        (48, 116),
+        (52, 3),
+        (56, 1),
+        (72, 96),
+        (76, 96),
+        (80, 25),
+        (84, 25),
+        (88, 9999),
+        (92, 8),
+        (96, 14),
+        (100, 20),
+    ] {
+        emf[offset..offset + 4].copy_from_slice(&value.to_le_bytes());
+    }
+    for later_picture in [false, true] {
+        let mut doc = document(false, later_picture);
+        doc.parts.insert("visio/media/empty.emf".into(), Part { bytes: emf.clone().into(), ..Default::default() });
+        doc.parts.get_mut("visio/embeddings/original.bin").unwrap().relationships.insert(
+            0,
+            Relationship {
+                id: "empty".into(),
+                type_uri: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image".into(),
+                target: "visio/media/empty.emf".into(),
+                external: false,
+            },
+        );
+        let result = scene::page(&doc, 0, Options { cached_fallback: true, ..Default::default() }).unwrap();
+        assert_eq!(result.ops.iter().any(|op| matches!(op, Op::Image { .. })), later_picture);
+        assert!(result.warnings.iter().any(|w| w.contains(if later_picture { "cached picture" } else { "placeholder" })), "{:?}", result.warnings);
+    }
+}

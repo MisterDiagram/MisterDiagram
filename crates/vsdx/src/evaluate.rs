@@ -773,6 +773,7 @@ impl<'a> Evaluator<'a> {
     pub fn evaluate(&mut self, scope: Scope, name: &str) -> Value {
         self.begin_diagnostic();
         let diagnostic_serial = self.diagnostic_serial;
+        let previous_failure = self.failure_cell.clone();
         if self.internal_cache_units {
             self.add_dependency_key(Key { scope, name: name.to_ascii_lowercase() });
         }
@@ -787,8 +788,8 @@ impl<'a> Evaluator<'a> {
             result
         };
         self.note_result(scope, name, &result, diagnostic_serial);
-        if result.error().is_none() && self.stack.is_empty() {
-            self.failure_cell = None;
+        if result.error().is_none() {
+            self.failure_cell = previous_failure;
         }
         result
     }
@@ -1247,11 +1248,11 @@ impl<'a> Evaluator<'a> {
     pub fn resolve(&mut self, scope: Scope, reference: &str) -> Value {
         self.begin_diagnostic();
         let diagnostic_serial = self.diagnostic_serial;
+        let previous_failure = self.failure_cell.clone();
         self.add_dependency(scope, reference);
         match self.reference_target(scope, reference) {
             Ok((scope, name)) => {
                 let value = self.evaluate_inner(scope, &name);
-                self.note_result(scope, &name, &value, diagnostic_serial);
                 // E retains the current error while V is the last valid numeric value.
                 // ARROWS_M master2 Scratch.A1 exposes V through numeric references.
                 // https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
@@ -1261,9 +1262,15 @@ impl<'a> Evaluator<'a> {
                 {
                     let saved = misterdiagram_sheet::units::cached(c.value.as_deref(), c.units.as_deref(), None);
                     if matches!(saved, Value::Number(_)) {
+                        self.failure_cell = previous_failure;
+                        self.note_result(scope, &name, &saved, diagnostic_serial);
                         return saved;
                     }
                 }
+                if value.error().is_none() {
+                    self.failure_cell = previous_failure;
+                }
+                self.note_result(scope, &name, &value, diagnostic_serial);
                 value
             }
             Err(e) => Value::Error(e),

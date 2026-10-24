@@ -62,8 +62,10 @@ warned placeholder. Stored ActiveX previews can differ from live control size,
 caption and bevel state; this remains an appearance gap.
 REF() returns the native #REF!, LocalName User rows resolve page scales, and
 geometry recovers saved values or skips invalid rows with warnings. The full
-master-cell comparison still differs in reserved cells, theme defaults, text
-metrics and currency evaluation. Repeated-master strict evaluation, date labels and two
+master-cell comparison still differs in row enumeration, theme, geometry,
+action and data cells, including currency evaluation. Named Connections, image
+metadata, omitted style selector inheritance and the specified master font
+identity/text-width differences are repaired. Repeated-master strict evaluation, date labels and two
 near-white milestone captions remain open; successful rendering is not a claim
 of complete appearance parity. No specimen is shipped.
 
@@ -77,8 +79,8 @@ flow built from the cross-functional flowchart and BPMN masters) failed with
   is now clamped to the ceiling. The corpus had the witness all along
   (BPMN_ADDRESS_CHANGE_PROCESS_M master 20 shape 7, Visio 0.4724 against our `Error(Value)`)
   but filed under the text-metric tolerance bucket, where an error where Visio has a number
-  counted the same as a small metric difference (#81). That bucket needs a separate count of error
-  cells with a ceiling that may only fall; open.
+  counted the same as a small metric difference (#81). M5.53 now counts numerical
+  errors separately and gates both witnesses at the pinned ceilings below.
 - The pool, lane and phase shapes use `CONTAINERSHEETREF`, `LISTORDER` and `LISTMEMBERCOUNT`
   (#33), none implemented: 115, 3 and 3 cells on the page, with 87 `DEPENDSON` Relationships
   cells failing through them. Rather than stop the page on the first such shape, user-facing
@@ -92,6 +94,22 @@ flow built from the cross-functional flowchart and BPMN masters) failed with
   subtle gradients. M5.45 through M5.47 correct the washed-out gradient rendering
   (#79) and white connector label colour (#80). Remaining THEMEVAL differences
   are listed above.
+
+## Issue 81: errors where the witness has a number (2026-10-24)
+
+M5.53 pins full-corpus ceilings at **31,386 cached** and **1,095,070 COM**
+errors. The measured numeric populations are 4,718,107 and 76,153,083 respectively.
+These ceilings may only fall. Each count has its own witness-prefixed cell
+histogram and fails the checker when it exceeds its ceiling. Error values no
+longer enter the text-metric tolerance diagnostics; the existing match floors,
+exclusions and pinned COM population are unchanged.
+
+Before M5.50 to M5.52 and on the landing tree, both error counts are unchanged.
+The separate open-licence field gate is not added to the existing pinned corpus
+population to manufacture a reduction. Numeric text-metric matches improve
+from 62,145 to 62,147 cached and 54,497 to 54,499 COM, with unchanged denominators.
+The new count exposes a substantial remaining evaluation gap rather than
+claiming that drawing recovery corrected strict numerical evaluation.
 
 ## Brief 26b: image groups and connector ends (2026-10-21)
 

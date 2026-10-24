@@ -281,6 +281,19 @@ impl<'a> Evaluator<'a> {
         } else {
             Effective::default()
         };
+        // A missing style selector inherits the style baseline, not the shape's
+        // themed sentinel. Explicit style/master/local values still replace it.
+        // Original native witness: synthetic-brief37/embellishment-missing-style.
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/embellishmentindex-cell-theme-properties-section
+        if matches!(scope, Scope::Style(_))
+            && self.sheets.contains_key(&scope)
+            && let Some(cell) = super::defaults::cell(scope, "EmbellishmentIndex")
+        {
+            effective
+                .cells
+                .entry("embellishmentindex".into())
+                .or_insert_with(|| Entry { named: Rc::new(NamedCell { name: cell.name.clone(), cell, section: None, row: None }), origin: scope });
+        }
         for cat in [Category::Line, Category::Fill, Category::Text] {
             if let Some(style) = self.style_link(scope, cat) {
                 let parent = Scope::Style(style);
@@ -921,6 +934,32 @@ mod tests {
         for selector in selectors {
             assert_eq!(e.evaluate(Scope::PageShape { page: 0, shape: 1 }, selector), super::super::Value::Number(65534.));
             assert_eq!(e.evaluate(Scope::Style(0), selector), super::super::Value::Number(0.));
+        }
+    }
+    #[test]
+    fn omitted_style_embellishment_uses_zero_without_overriding_explicit_values() {
+        for explicit in [None, Some("65534"), Some("7")] {
+            let doc = Document {
+                styles: vec![
+                    Style { id: 0, ..Default::default() },
+                    Style {
+                        id: 6,
+                        fill_style: Some(0),
+                        sheet: sheet(explicit.map(|v| vec![c("EmbellishmentIndex", v, None)]).unwrap_or_default()),
+                        ..Default::default()
+                    },
+                ],
+                pages: vec![Page {
+                    id: 0,
+                    shapes: vec![Shape { id: 1, fill_style: Some(6), ..Default::default() }, Shape { id: 2, ..Default::default() }].into(),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            };
+            let mut e = Evaluator::new(&doc).unwrap();
+            let expected = explicit.map(|v| v.parse::<f64>().unwrap()).unwrap_or(0.);
+            assert_eq!(e.evaluate(Scope::PageShape { page: 0, shape: 1 }, "EmbellishmentIndex"), super::super::Value::Number(expected));
+            assert_eq!(e.evaluate(Scope::PageShape { page: 0, shape: 2 }, "EmbellishmentIndex"), super::super::Value::Number(0.));
         }
     }
     #[test]

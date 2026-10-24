@@ -965,6 +965,9 @@ pub(crate) fn import_cached_picture(bytes: &[u8]) -> Result<Imported, String> {
     if imported.warnings.iter().any(|warning| warning == SKIPPED_ROPS || warning == BAD_IMAGE) {
         return Err("cached EMF has unsupported or damaged bitmap drawing".into());
     }
+    if !imported.ops.iter().any(|op| matches!(op, Op::Path { .. } | Op::Stroke { .. } | Op::Image { .. } | Op::Text { .. })) {
+        return Err("cached EMF presentation produced no drawing".into());
+    }
     Ok(imported)
 }
 

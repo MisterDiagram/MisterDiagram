@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-24: M5.53 (#81) separates errors where numeric witnesses exist and pins cached/COM ceilings at 31,386/1,095,070. Strict identity and font corrections improve selected cells; native visual and broad master parity remain incomplete. Original regression tests cover three discovery findings.
+
 - 2026-10-23: M5.52 (#86) renders unsupported foreign objects through their own cached pictures/icons or a sized placeholder, with named warnings and strict inspection errors. The field gate passes85/85 with ten named refusals and unchanged baseline distances. ActiveX live-control state and complete visual parity remain open.
 
 - 2026-10-23: M5.51 (#85) recovers individual geometry and connection rows for rendering, implements REF(), and resolves LocalName User rows and metadata-only inherited cells. Rendering reaches 82 of 85 native-opened files with no baseline distance changes. Broad strict master parity remains incomplete.

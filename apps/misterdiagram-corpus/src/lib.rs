@@ -50,8 +50,31 @@ pub struct Witness {
     pub expected: String,
     pub actual: String,
 }
+/// Numeric witness rows whose evaluated value is an error, independent of tolerance.
+#[derive(Debug, Default)]
+pub struct ErrorNumbers {
+    pub count: u64,
+    pub total: u64,
+}
+impl ErrorNumbers {
+    fn record(&mut self, number: bool, actual: &Value) -> bool {
+        if !number {
+            return false;
+        }
+        self.total = self.total.saturating_add(1);
+        let error = matches!(actual, Value::Error(_));
+        self.count = self.count.saturating_add(u64::from(error));
+        error
+    }
+}
+// Full-corpus ceilings are measured, pinned in docs/gaps.md, and may only fall.
+const CACHED_ERROR_CEILING: u64 = 31_386;
+const COM_ERROR_CEILING: u64 = 1_095_070;
 #[derive(Debug, Default)]
 pub struct Report {
+    pub cached_error_numbers: ErrorNumbers,
+    pub com_error_numbers: ErrorNumbers,
+    pub error_number_cells: Vec<(String, u64)>,
     pub small_image_observations: Vec<String>,
     pub render: Option<render::Report>,
     pub roundtrip: Option<roundtrip::Report>,
@@ -105,7 +128,8 @@ impl Report {
     }
     /// Cell accuracy is reported separately; the complete gate also requires rendering.
     pub fn cells_passed(&self) -> bool {
-        (!self.text_promotion_sticky || self.text_gate_passed())
+        self.error_number_gate_passed()
+            && (!self.text_promotion_sticky || self.text_gate_passed())
             && self.shipped_cached.total > 0
             && self.com.total > 0
             && self.shipped_cached.percent() >= self.cached_floor
@@ -113,6 +137,9 @@ impl Report {
     }
 }
 impl Report {
+    fn error_number_gate_passed(&self) -> bool {
+        self.cached_error_numbers.count <= CACHED_ERROR_CEILING && self.com_error_numbers.count <= COM_ERROR_CEILING
+    }
     fn text_gate_passed(&self) -> bool {
         self.cached_hosts[1].total > 0
             && self.com_hosts[1].total > 0
@@ -188,6 +215,17 @@ impl fmt::Display for Report {
             self.text_com_floor,
             if self.text_gate_passed() { "PASS" } else { "FAIL" }
         )?;
+        writeln!(
+            f,
+            "error-where-number: cached {} of {}, COM {} of {} (ceiling cached {}, COM {}); gate={}",
+            self.cached_error_numbers.count,
+            self.cached_error_numbers.total,
+            self.com_error_numbers.count,
+            self.com_error_numbers.total,
+            CACHED_ERROR_CEILING,
+            COM_ERROR_CEILING,
+            if self.error_number_gate_passed() { "PASS" } else { "FAIL" }
+        )?;
         writeln!(f, "diagnostics below use fully evaluated text, including deferred text rows and their dependents")?;
         writeln!(
             f,
@@ -197,6 +235,7 @@ impl fmt::Display for Report {
         for (kind, entries) in [
             ("cell", &self.top_failures),
             ("text-metric cell", &self.text_cell_failures),
+            ("error-where-number cell", &self.error_number_cells),
             ("text-metric delta (ours minus Visio, IU)", &self.text_delta_failures),
             ("function", &self.function_failures),
             ("cached source cell", &self.cached_cell_failures),
@@ -520,6 +559,7 @@ fn normalized_cell(name: &str) -> String {
 }
 #[derive(Default)]
 struct Diagnostics {
+    error_numbers: Histogram,
     text_cells: Histogram,
     text_deltas: Histogram,
     cells: Histogram,
@@ -529,18 +569,23 @@ struct Diagnostics {
     cached_formula: Histogram,
 }
 impl Diagnostics {
-    fn failure(&mut self, calls: &BTreeSet<String>, source_cell: &str, w: Witness) {
+    fn failure(&mut self, calls: &BTreeSet<String>, source_cell: &str, w: Witness, error_number: bool) {
+        if error_number {
+            self.error_numbers.add(&format!("{} {}", w.oracle, normalized_cell(&w.cell)), &w);
+        }
         self.cells.add(&normalized_cell(&w.cell), &w);
-        if calls.iter().any(|n| misterdiagram_sheet::is_text_metric(n)) {
+        if calls.iter().any(|n| misterdiagram_sheet::is_text_metric(n)) && !w.actual.starts_with("Error(") {
             self.text_cells.add(&format!("{} {}", w.oracle, normalized_cell(&w.cell)), &w);
             let number = |s: &str| {
                 s.strip_prefix("Number(").or_else(|| s.strip_prefix("Some(")).and_then(|s| s.strip_suffix(')')).and_then(|s| s.parse::<f64>().ok())
             };
-            let delta = match (number(&w.actual), number(&w.expected)) {
-                (Some(a), Some(e)) => format!("{:.6}", a - e),
-                _ => w.actual.clone(),
-            };
-            self.text_deltas.add(&format!("{} {} {}", w.oracle, normalized_cell(&w.cell), delta), &w);
+            if let (Some(actual), Some(expected)) = (number(&w.actual), number(&w.expected))
+                && actual.is_finite()
+                && expected.is_finite()
+                && (actual - expected).is_finite()
+            {
+                self.text_deltas.add(&format!("{} {} {:.6}", w.oracle, normalized_cell(&w.cell), actual - expected), &w);
+            }
         }
         let formula_kind = if w.formula == "Inh" {
             "Inh"
@@ -563,6 +608,7 @@ impl Diagnostics {
         }
     }
     fn finish(self, report: &mut Report) {
+        report.error_number_cells = self.error_numbers.finish("error-where-number cell", &mut report.witnesses);
         report.text_cell_failures = self.text_cells.finish("text-metric cell", &mut report.witnesses);
         report.text_delta_failures = self.text_deltas.finish("text-metric delta", &mut report.witnesses);
         report.top_failures = self.cells.finish("cell", &mut report.witnesses);
@@ -805,6 +851,9 @@ fn run_pass_with_coverage(root: &Path, quick: bool, deferred: bool, mut coverage
         text_cached_floor: floor(frozen, "text-cached-floor")? * 100.,
         text_com_floor: floor(frozen, "text-com-floor")? * 100.,
         text_metrics_included: false,
+        cached_error_numbers: ErrorNumbers::default(),
+        com_error_numbers: ErrorNumbers::default(),
+        error_number_cells: vec![],
         cached_hosts: Default::default(),
         com_hosts: Default::default(),
         cached_classes: Default::default(),
@@ -910,6 +959,7 @@ fn run_pass_with_coverage(root: &Path, quick: bool, deferred: bool, mut coverage
                 if !measure_cached {
                     continue;
                 }
+                let error_number = report.cached_error_numbers.record(matches!(&expected, Value::Number(n) if n.is_finite()), &actual);
                 record_hosts(&mut report.cached_hosts, &calls, matched);
                 report.cached_classes[formula_class(effective)].record(matched);
                 report.cached.record(matched);
@@ -930,6 +980,7 @@ fn run_pass_with_coverage(root: &Path, quick: bool, deferred: bool, mut coverage
                             expected: short(&format!("{expected:?}")),
                             actual: short(&format!("{actual:?}")),
                         },
+                        error_number,
                     );
                 }
             }
@@ -967,6 +1018,7 @@ fn run_pass_with_coverage(root: &Path, quick: bool, deferred: bool, mut coverage
                         (Some(a), Ok(b)) => (a - b).abs() <= TOLERANCE,
                         _ => false,
                     };
+                    let error_number = in_pin && report.com_error_numbers.record(row.result.is_some_and(f64::is_finite), &actual);
                     report.record_com(&calls, &row.formula, matched, in_pin);
                     if is_shipped {
                         report.shipped_com.record(matched);
@@ -989,7 +1041,7 @@ fn run_pass_with_coverage(root: &Path, quick: bool, deferred: bool, mut coverage
                         if let Some(c) = coverage.as_deref_mut() {
                             c.record(population, false, &calls, Some(&witness));
                         }
-                        diagnostics.failure(&calls, &row.name, witness);
+                        diagnostics.failure(&calls, &row.name, witness, error_number);
                     }
                     Ok(())
                 })?;
@@ -1147,6 +1199,9 @@ mod tests {
             text_cached_floor: 90.,
             text_com_floor: 90.,
             text_metrics_included: false,
+            cached_error_numbers: ErrorNumbers::default(),
+            com_error_numbers: ErrorNumbers::default(),
+            error_number_cells: vec![],
             cached_hosts: Default::default(),
             com_hosts: Default::default(),
             cached_classes: Default::default(),
@@ -1327,5 +1382,62 @@ mod small_image_tests {
         for bytes in [b"{}".to_vec(), vec![b'['; 1000], vec![0; 8 * 1024 * 1024 + 1]] {
             assert!(super::small_image_observations(&bytes).is_err());
         }
+    }
+}
+
+#[cfg(test)]
+mod error_number_tests {
+    use super::*;
+    #[test]
+    fn errors_where_numbers_are_separate_from_metric_deltas_and_gate_both_witnesses() {
+        let mut report = Report::default();
+        let error = Value::Error(misterdiagram_sheet::Error::Ref);
+        assert!(!report.cached_error_numbers.record(false, &error));
+        assert!(!report.cached_error_numbers.record(true, &Value::Number(2.)));
+        assert!(report.cached_error_numbers.record(true, &error));
+        assert!(report.com_error_numbers.record(true, &error));
+        assert_eq!((report.cached_error_numbers.count, report.cached_error_numbers.total), (1, 2));
+        assert_eq!((report.com_error_numbers.count, report.com_error_numbers.total), (1, 1));
+        let mut diagnostics = Diagnostics::default();
+        let calls = BTreeSet::from(["TEXTWIDTH".to_owned()]);
+        for (oracle, actual, number_error) in
+            [("cached", "Error(Ref)", true), ("COM", "Error(Ref)", true), ("cached", "Number(1.5)", false), ("cached", "Text(\"word\")", false)]
+        {
+            diagnostics.failure(
+                &calls,
+                "TxtWidth",
+                Witness {
+                    oracle,
+                    category: String::new(),
+                    file: "original".into(),
+                    scope: "page 1 shape 7".into(),
+                    cell: "TxtWidth".into(),
+                    formula: "TEXTWIDTH(TheText)".into(),
+                    expected: "Number(1.0)".into(),
+                    actual: actual.into(),
+                },
+                number_error,
+            );
+        }
+        diagnostics.finish(&mut report);
+        assert_eq!(report.error_number_cells.iter().map(|(_, count)| count).sum::<u64>(), 2);
+        assert_eq!(report.text_cell_failures.iter().map(|(_, count)| count).sum::<u64>(), 2);
+        assert_eq!(report.text_delta_failures.iter().map(|(_, count)| count).sum::<u64>(), 1);
+        assert!(report.error_number_cells.iter().any(|(name, _)| name == "COM TxtWidth"));
+        assert!(report.error_number_cells.iter().any(|(name, _)| name == "cached TxtWidth"));
+        report.shipped_cached = Rate { matched: 1, total: 1, ..Default::default() };
+        report.com = Rate { matched: 1, total: 1, ..Default::default() };
+        report.cached_error_numbers.total = CACHED_ERROR_CEILING + 1;
+        report.com_error_numbers.total = COM_ERROR_CEILING + 1;
+        report.cached_error_numbers.count = CACHED_ERROR_CEILING;
+        report.com_error_numbers.count = COM_ERROR_CEILING;
+        assert!(report.cells_passed());
+        report.cached_error_numbers.count += 1;
+        assert!(!report.cells_passed());
+        report.cached_error_numbers.count = CACHED_ERROR_CEILING;
+        report.com_error_numbers.count += 1;
+        assert!(!report.cells_passed());
+        let output = report.to_string();
+        assert!(output.contains("error-where-number: cached") && output.contains("COM") && output.contains("gate=FAIL"));
     }
 }

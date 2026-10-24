@@ -108,3 +108,22 @@ fn handled_dependency_does_not_name_a_later_literal_arithmetic_failure() {
     assert!(error.contains("PinX") && error.contains("#DIV/0!"), "{error}");
     assert!(!error.contains("User.A"), "{error}");
 }
+
+#[test]
+fn saved_error_reference_does_not_blame_a_consumed_dependency() {
+    let mut d = doc();
+    let mut saved = formula("Value", "1/0");
+    saved.value = Some("5".into());
+    saved.error = Some("133".into());
+    d.document_sheet.sections.push(Section {
+        name: "User".into(),
+        rows: vec![Row { name: Some("Recovered".into()), cells: vec![saved], ..Default::default() }],
+        ..Default::default()
+    });
+    d.pages[0].shapes[0].sheet.cells.push(formula("PinX", "TheDoc!User.Recovered+1/0"));
+    for cached_fallback in [false, true] {
+        let error = scene::page(&d, 0, Options { cached_fallback, ..Default::default() }).unwrap_err();
+        assert!(error.contains("PinX") && error.contains("#DIV/0!"), "{error}");
+        assert!(!error.contains("User.Recovered"), "{error}");
+    }
+}

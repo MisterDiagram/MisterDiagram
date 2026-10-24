@@ -117,3 +117,63 @@ fn theme_only_font_formula_cache_roundtrips_by_name() {
     let value = evaluator.evaluate(misterdiagram_vsdx::evaluate::Scope::PageShape { page: 0, shape: 1 }, "Char.Font");
     assert_eq!(evaluator.font_name(value.numeric().unwrap() as u32), Some("Contributor Theme Face"));
 }
+
+#[test]
+fn unmapped_successful_font_id_keeps_its_recorded_family() {
+    use misterdiagram_model::{Cell, Row, Section};
+    use misterdiagram_vsdx::evaluate::Scope;
+    for (formula, family, expected) in [
+        ("21", "Contributor Requested", "Contributor Requested"),
+        ("4", "Contributor Requested", "Calibri"),
+        ("REF()", "Contributor Requested", "Calibri"),
+        ("\"Different family\"", "Contributor Requested", "Calibri"),
+        ("21", "65535", "Calibri"),
+        ("21", "Themed", "Calibri"),
+        ("21", "Inh", "Calibri"),
+        ("21", &"x".repeat(4097), "Calibri"),
+    ] {
+        let mut doc = skeleton::document(false);
+        let mut shape = skeleton::rectangle(7, 1., 1., 2., 1., "Original text").unwrap();
+        shape.sheet.sections.retain(|section| section.name != "Character");
+        shape.sheet.sections.push(Section {
+            name: "Character".into(),
+            rows: vec![Row {
+                index: Some(0),
+                cells: vec![Cell { name: "Font".into(), formula: Some(formula.into()), value: Some(family.into()), ..Default::default() }],
+                ..Default::default()
+            }],
+            ..Default::default()
+        });
+        doc.pages[0].shapes.push(shape);
+        let scope = Scope::PageShape { page: 0, shape: 7 };
+        let mut e = Evaluator::new(&doc).unwrap();
+        let before = e.evaluate(scope, "Char.Font");
+        let body = e.text_body(scope).unwrap();
+        assert_eq!(body.paragraphs[0].runs[0].props.font.as_deref(), Some(expected));
+        assert_eq!(e.evaluate(scope, "Char.Font"), before);
+    }
+}
+
+#[test]
+fn erroneous_font_formula_retains_the_documents_mapped_default() {
+    use misterdiagram_model::{Cell, Row, Section};
+    use misterdiagram_vsdx::evaluate::Scope;
+    let mut doc = skeleton::document(false);
+    doc.face_names.clear();
+    doc.face_names.insert(0, "Contributor Default".into());
+    let mut shape = skeleton::rectangle(7, 1., 1., 2., 1., "Original label").unwrap();
+    shape.sheet.sections.retain(|section| section.name != "Character");
+    shape.sheet.sections.push(Section {
+        name: "Character".into(),
+        rows: vec![Row {
+            index: Some(0),
+            cells: vec![Cell { name: "Font".into(), formula: Some("REF()".into()), value: Some("Contributor Stale".into()), ..Default::default() }],
+            ..Default::default()
+        }],
+        ..Default::default()
+    });
+    doc.pages[0].shapes.push(shape);
+    let mut e = Evaluator::new(&doc).unwrap();
+    let body = e.text_body(Scope::PageShape { page: 0, shape: 7 }).unwrap();
+    assert_eq!(body.paragraphs[0].runs[0].props.font.as_deref(), Some("Contributor Default"));
+}

@@ -413,6 +413,11 @@ fn metadata(evaluator: &Evaluator<'_>, scope: Scope, n: &NamedCell<'_>) -> Optio
             "EndX" => (4, 2, 73),
             "EndY" => (4, 3, 73),
             "LayerMember" => (6, 0, 231),
+            "ImgOffsetX" => (9, 0, 73),
+            "ImgOffsetY" => (9, 1, 73),
+            "ImgWidth" => (9, 2, 73),
+            "ImgHeight" => (9, 3, 73),
+            "ClippingPath" => (9, 4, 231),
             "TxtPinX" => (12, 0, 73),
             "TxtPinY" => (12, 1, 73),
             "TxtWidth" => (12, 2, 73),
@@ -644,6 +649,15 @@ fn supplement(slots: &mut BTreeMap<(u16, u16, u16), Slot<'_>>) -> Result<(), Str
                 });
             }
         }
+        if s == 1 && r == 9 {
+            slots.entry((s, r, 4)).or_insert_with(|| Slot {
+                name: "ClippingPath".into(),
+                cell: None,
+                src: (s, r, 4),
+                units: 231,
+                synthetic: Some(Value::Text(String::new())),
+            });
+        }
         if s == 1 && r == 12 {
             for (c, name) in [(7, "TxtFlipX"), (8, "TxtFlipY"), (9, "Sect1.H13")] {
                 slots.entry((s, r, c)).or_insert_with(|| Slot {
@@ -659,7 +673,14 @@ fn supplement(slots: &mut BTreeMap<(u16, u16, u16), Slot<'_>>) -> Result<(), Str
             // Visio exposes all fourteen columns even where XML omits empty cells.
             for (c, field) in ["X", "Y", "DirX", "DirY", "Type", "AutoGen", "Prompt", "F", "G", "H", "I", "J", "K", "L"].iter().enumerate() {
                 let c = u16::try_from(c).map_err(|_| "connection column limit")?;
-                let name = crate::evaluate::connection_name(u32::from(r), field).map_err(|e| e.to_string())?;
+                // Named connection rows keep their universal name on omitted columns.
+                // https://learn.microsoft.com/en-us/office/vba/api/visio.cell.name
+                let prefix = item.name.rsplit_once('.').map(|(prefix, _)| prefix).filter(|prefix| *prefix != "Connections");
+                let name = if let Some(prefix) = prefix {
+                    format!("{prefix}.{field}")
+                } else {
+                    crate::evaluate::connection_name(u32::from(r), field).map_err(|e| e.to_string())?
+                };
                 slots.entry((s, r, c)).or_insert_with(|| Slot {
                     name,
                     cell: None,
@@ -817,6 +838,63 @@ mod tests {
         assert_eq!(crate::evaluate::connection_name(1, "DirX").unwrap(), "Connections.DirX[2]");
         assert_eq!(crate::evaluate::connection_name(0, "H").unwrap(), "Connections.H1");
         assert!(crate::evaluate::connection_name(u32::MAX, "X").is_err());
+    }
+    #[test]
+    fn named_connection_reserved_columns_keep_the_row_identity() {
+        use misterdiagram_model::{Row, Section};
+        let mut doc = misterdiagram_model::skeleton::document(false);
+        let mut shape = misterdiagram_model::skeleton::rectangle(7, 1., 1., 2., 1., "").unwrap();
+        shape.sheet.sections.push(Section {
+            name: "Connection".into(),
+            rows: [Some("Dock"), Some("Dock.Port"), None]
+                .into_iter()
+                .enumerate()
+                .map(|(index, name)| Row {
+                    index: Some(index as u32),
+                    name: name.map(str::to_owned),
+                    cells: vec![Cell { name: "X".into(), value: Some("0.75".into()), ..Default::default() }],
+                    ..Default::default()
+                })
+                .collect(),
+            ..Default::default()
+        });
+        doc.pages[0].shapes.push(shape);
+        let mut out = Vec::new();
+        dump(&doc, Selection::Shape(7), &mut out).unwrap();
+        let text = String::from_utf8(out).unwrap();
+        for (row, prefix) in [(0, "Connections.Dock"), (1, "Connections.Dock.Port"), (2, "Connections")] {
+            for (column, field) in (7..14).zip(["F", "G", "H", "I", "J", "K", "L"]) {
+                let fields: Vec<_> = text
+                    .lines()
+                    .skip(1)
+                    .map(|line| line.split('\t').collect::<Vec<_>>())
+                    .find(|fields| fields[2] == "7" && fields[3] == row.to_string() && fields[4] == column.to_string())
+                    .unwrap();
+                let name = if row == 2 { format!("{prefix}.{field}3") } else { format!("{prefix}.{field}") };
+                assert_eq!(fields[5], name);
+                assert_eq!(fields[7], "0");
+            }
+        }
+    }
+    #[test]
+    fn foreign_image_cells_keep_their_real_evaluated_values_and_src() {
+        let mut doc = misterdiagram_model::skeleton::document(false);
+        let mut shape = misterdiagram_model::skeleton::rectangle(7, 1., 1., 2., 1., "").unwrap();
+        for (name, value) in [("ImgOffsetX", "0.25"), ("ImgOffsetY", "0.5"), ("ImgWidth", "2.5"), ("ImgHeight", "1.25")] {
+            shape.sheet.cells.push(Cell { name: name.into(), value: Some(value.into()), ..Default::default() });
+        }
+        doc.pages[0].shapes.push(shape);
+        let mut out = Vec::new();
+        dump(&doc, Selection::Shape(7), &mut out).unwrap();
+        let text = String::from_utf8(out).unwrap();
+        let rows: Vec<_> =
+            text.lines().skip(1).map(|line| line.split('\t').collect::<Vec<_>>()).filter(|fields| fields[2] == "1" && fields[3] == "9").collect();
+        assert_eq!(rows.len(), 5);
+        for (column, expected) in ["0.25", "0.5", "2.5", "1.25", "0"].iter().enumerate() {
+            assert_eq!(rows[column][4], column.to_string());
+            assert_eq!(rows[column][7], *expected);
+        }
+        assert_eq!(rows[4][5], "ClippingPath");
     }
     #[test]
     fn invalid_selection_and_writer_errors_are_returned() {

@@ -311,6 +311,33 @@ the original control and is not used to conceal imported selector differences.
 Rendering rises to 82 of 85 native-opened files; all 72 baseline files retain
 exactly their measured distances. Three foreign-object failures remain.
 
+### M5.51 follow-up: omitted style defaults and strict identities (#85)
+
+A second original native control distinguishes a missing style value from an
+explicit themed sentinel. The private
+`synthetic-brief37/embellishment-missing-style-results.json` contains 62
+observations without cell errors. Removing only the two explicit style
+EmbellishmentIndex cells changes the rectangle, master and instance from65534
+to0. Twenty other observations per case remain unchanged. The native re-save
+materializes Style0's zero and an inherited zero on Style6. The evaluator now
+propagates the existing style baseline through the actual style chain; explicit
+style, master and local values keep precedence. Baseline data is unchanged.
+
+Named Connections retain their row names on reserved columns, including names
+containing dots. Image positioning cells retain their actual values at Object
+row9, and its omitted ClippingPath is empty. These are strict dump identity and
+metadata corrections, without any change to the comparison keys or witnesses.
+
+A successful font formula can return a host-specific ID absent from FaceNames.
+The serialized family remains its portable identity in that case. Text layout
+uses that bounded family through the existing open-font substitutions; mapped
+IDs and formula errors keep their prior behavior. No font asset was added.
+The specified master text-width differences are resolved. Selected comparisons
+now match177,532/179,237 and27,994/28,819; the separate Connections check matches
+56/56. Broad parity remains incomplete in row enumeration, theme, geometry,
+action and data cells, including currency evaluation. Private evidence is in
+Brief37's `cell-comparison-m553-trial.json` and original missing-style control.
+
 ### M5.50: retained identities and detached cells (#84)
 
 The private Brief 37 baseline contains seven packages rejected during evaluator
