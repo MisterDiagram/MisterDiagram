@@ -14,6 +14,15 @@ Every implemented element, cell and function cites its reference page in its doc
 
 ## 3. Third-party projects consulted
 
+Brief 37 (2026-10-23): the private field observation README and read-only
+[MisterDiagram issue 84](https://github.com/MisterDiagram/MisterDiagram/issues/84),
+[issue 85](https://github.com/MisterDiagram/MisterDiagram/issues/85),
+[issue 86](https://github.com/MisterDiagram/MisterDiagram/issues/86) and
+[issue 81](https://github.com/MisterDiagram/MisterDiagram/issues/81) supplied
+failure reports. Private PNG and ShapeSheet witnesses define the comparisons.
+No third-party sample bytes, XML, artwork or implementation are copied;
+public tests use contributor-written documents and numerical values.
+
 Brief 36 (2026-10-23): the private observation records
 `field/themeval-2026-10-22/README.md` and `FINDINGS.md`, plus
 [MisterDiagram issue 79](https://github.com/MisterDiagram/MisterDiagram/issues/79),
