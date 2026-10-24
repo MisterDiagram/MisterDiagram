@@ -525,8 +525,10 @@ mod tests {
         let Err(error) = Package::open(html) else { panic!("HTML accepted") };
         let text = error.to_string();
         assert_eq!(text, "not a Visio package: file starts with \"\\r\\n\\r\\n<!-- Copyright (C) Microsoft...\" (looks like HTML)");
-        let mut ole = OLE_SIGNATURE.to_vec();
+        // The literal MS-CFB signature, not the constant under test, so a corrupted constant fails here.
+        let mut ole = vec![0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
         ole.extend_from_slice(&[0; 504]);
+        assert_eq!(&ole[..8], &OLE_SIGNATURE);
         let Err(error) = Package::open(&ole) else { panic!("compound file accepted") };
         assert!(error.to_string().starts_with("legacy binary Visio file (.vsd, .vss or .vst) is not supported"));
         let Err(error) = Package::open(b"") else { panic!("empty file accepted") };
