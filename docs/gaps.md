@@ -55,7 +55,11 @@ Visio-opened files render, 13 fail; all ten native refusals are refused.
 M5.50 raises this to 79 of 85: the seven #84 packages render every source
 page, with contextual evaluation errors and named ZIP causes. All previously
 rendering distances remain unchanged. M5.51 renders the three geometry packages,
-raising the count to 82 of 85; only three foreign-object packages still fail.
+raising the count to 82 of 85. M5.52 renders the remaining three foreign-object
+packages using their attached cached pictures/icons, reaching 85 of 85. All ten
+native refusals still have named ZIP causes. Missing pictures use a sized,
+warned placeholder. Stored ActiveX previews can differ from live control size,
+caption and bevel state; this remains an appearance gap.
 REF() returns the native #REF!, LocalName User rows resolve page scales, and
 geometry recovers saved values or skips invalid rows with warnings. The full
 master-cell comparison still differs in reserved cells, theme defaults, text

@@ -702,7 +702,7 @@ fn shapes(
                 }
                 _ => part,
             };
-            foreign_image(e, scope, owner, foreign, transform, width, height, scene)?;
+            foreign_image(e, scope, owner, foreign, transform, width, height, scene, options.cached_fallback)?;
         }
         if number(e, scope, "HideText", 0.) == 0. {
             let body = e.text_body(scope).map_err(|error| e.render_error(scope, "text", error))?;
@@ -794,26 +794,93 @@ fn foreign_image(
     width: f64,
     height: f64,
     scene: &mut Scene,
+    recover: bool,
 ) -> Result<(), String> {
     let w = number(e, scope, "ImgWidth", width);
     let h = number(e, scope, "ImgHeight", height);
     let x = number(e, scope, "ImgOffsetX", 0.);
     let y = number(e, scope, "ImgOffsetY", 0.);
-    // A hidden picture does not decode its media. Vendor masters intentionally
-    // select overlays with zero-valued picture dimensions.
     if w == 0. || h == 0. || width == 0. || height == 0. {
         return Ok(());
     }
+    let object_type: String = foreign.attr("ObjectType").unwrap_or("unspecified").chars().take(64).filter(|c| !c.is_control()).collect();
+    let label = format!("{} ForeignData ObjectType={object_type}", e.scope_label(scope));
+    let target = foreign_target(e.document, part, foreign);
+    let result = match target.as_ref() {
+        Ok(target) => paint_foreign(e, scope, target, transform, width, height, w, h, x, y, scene, false),
+        Err(error) => Err(error.clone()),
+    };
+    let Err(error) = result else { return Ok(()) };
+    if !recover {
+        return Err(format!("{label}: {error}"));
+    }
+    // The object's own image relationship identifies the cached presentation.
+    // https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/c5a5df0c-02e6-4e72-9042-d5766f614cf5
+    let mut preview_limit = false;
+    let mut preview_error = None;
+    if let Ok(target) = target
+        && let Some(object) = e.document.parts.get(target)
+    {
+        for (attempted, picture) in object
+            .relationships
+            .iter()
+            .filter(|r| !r.external && r.type_uri == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image")
+            .enumerate()
+        {
+            if attempted == 32 {
+                preview_limit = true;
+                break;
+            }
+            match paint_foreign(e, scope, &picture.target, transform, width, height, w, h, x, y, scene, true) {
+                Ok(()) => {
+                    let kind = if matches!(foreign.attr("ShowAsIcon"), Some("1" | "true")) { "icon" } else { "picture" };
+                    scene.warnings.push(format!("{label}: {error}; drew cached {kind}"));
+                    return Ok(());
+                }
+                Err(error) => preview_error = Some(error.chars().take(256).collect::<String>()),
+            }
+        }
+    }
+    // The sized placeholder is an explicit product recovery policy, not a native import claim.
+    // https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml
+    let extent = |name, fallback| {
+        foreign.attr(name).and_then(|s| s.parse::<f64>().ok()).filter(|v| v.is_finite() && (0. ..=1e6).contains(v)).unwrap_or(fallback)
+    };
+    let rect = Rect::new(0., 0., extent("ObjectWidth", width), extent("ObjectHeight", height));
+    let path = transform * rect.to_path(1e-5);
+    scene.ops.push(Op::Bounds(path.bounding_box()));
+    scene.ops.push(Op::Stroke { path, stroke: kurbo::Stroke::new(1. / 96.), color: Rgba::BLACK });
+    let reason = if preview_limit { "preview recovery limit" } else { "no decodable cached picture" };
+    let detail = preview_error.map(|error| format!("; last cached picture error: {error}")).unwrap_or_default();
+    scene.warnings.push(format!("{label}: {error}; drew sized placeholder ({reason}{detail})"));
+    Ok(())
+}
+fn foreign_target<'a>(document: &'a Document, part: &str, foreign: &misterdiagram_model::XmlElement) -> Result<&'a str, String> {
     let rel = foreign.child("Rel").and_then(foreign_relationship).ok_or("foreign object lacks relationship")?;
-    let target = e
-        .document
+    document
         .parts
         .get(part)
         .and_then(|p| p.relationships.iter().find(|r| r.id == *rel && !r.external))
-        .ok_or("missing foreign relationship")?;
-    let bytes = &e.document.parts.get(&target.target).ok_or("missing foreign part")?.bytes;
+        .map(|r| r.target.as_str())
+        .ok_or_else(|| "missing foreign relationship".into())
+}
+fn paint_foreign(
+    e: &Evaluator<'_>,
+    scope: Scope,
+    target: &str,
+    transform: Affine,
+    width: f64,
+    height: f64,
+    w: f64,
+    h: f64,
+    x: f64,
+    y: f64,
+    scene: &mut Scene,
+    cached_picture: bool,
+) -> Result<(), String> {
+    let bytes = &e.document.parts.get(target).ok_or("missing foreign part")?.bytes;
     if bytes.get(40..44) == Some(&b" EMF"[..]) {
-        let imported = crate::metafile::import(bytes)?;
+        let imported = if cached_picture { crate::metafile::import_cached_picture(bytes)? } else { crate::metafile::import(bytes)? };
         let m = transform
             * Affine::translate((x, y + h))
             * Affine::scale_non_uniform(w / imported.frame.width().max(1e-12), -h / imported.frame.height().max(1e-12))
@@ -821,7 +888,7 @@ fn foreign_image(
         scene.ops.push(Op::Clip { path: transform * Rect::new(0., 0., width, height).to_path(1e-5), even_odd: false });
         scene.ops.push(Op::Bounds(m.transform_rect_bbox(imported.frame)));
         if !imported.ops.iter().any(|op| matches!(op, Op::Path { .. } | Op::Stroke { .. } | Op::Image { .. } | Op::Text { .. })) {
-            scene.warnings.push(format!("foreign object {scope:?} {} produced no drawing", target.target));
+            scene.warnings.push(format!("foreign object {scope:?} {} produced no drawing", target));
         }
         scene.warnings.extend(imported.warnings);
         for op in imported.ops {
@@ -909,6 +976,57 @@ fn dash_elements(path: &BezPath, stroke: &kurbo::Stroke) -> Result<usize, String
         return Err("scene path limit (dash expansion)".into());
     }
     Ok(elements as usize)
+}
+
+/// Sheet inspection validates the selected foreign parts without using drawing recovery.
+/// A full numeric dump is still available even when its opaque objects are unsupported.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml
+pub fn validate_foreign_parts(document: &Document, selection: misterdiagram_vsdx::dump::Selection) -> Result<(), String> {
+    use misterdiagram_vsdx::dump::Selection;
+    let e = Evaluator::new(document).map_err(|error| format!("document sheet index: {error}"))?;
+    let page = if let Selection::Page(n) = selection {
+        Some(
+            document
+                .pages
+                .get(usize::try_from(n.checked_sub(1).ok_or("page ordinal must start at 1")?).map_err(|_| "page ordinal too large")?)
+                .ok_or("page ordinal not found")?
+                .id,
+        )
+    } else {
+        None
+    };
+    for scope in e.scopes() {
+        let selected = match (selection, scope) {
+            (Selection::All | Selection::Page(_), Scope::MasterShape { .. }) => true,
+            (Selection::All, Scope::PageShape { .. }) => true,
+            (Selection::Page(_), Scope::PageShape { page: p, .. }) => page == Some(p),
+            (Selection::Master(n), Scope::MasterShape { master, .. }) => n == master,
+            (Selection::Shape(n), Scope::PageShape { shape, .. }) => n == shape,
+            _ => false,
+        };
+        if !selected {
+            continue;
+        }
+        let Some((source, foreign)) = foreign_source(&e, scope)? else { continue };
+        let object_type: String = foreign.attr("ObjectType").unwrap_or("unspecified").chars().take(64).filter(|c| !c.is_control()).collect();
+        let result = (|| -> Result<(), String> {
+            let owner = match source {
+                Scope::MasterShape { master, .. } => document.masters.iter().find(|m| m.id == master).map(|m| m.part.as_str()),
+                Scope::PageShape { page, .. } => document.pages.iter().find(|p| p.id == page).map(|p| p.part.as_str()),
+                _ => None,
+            }
+            .ok_or("foreign owner part missing")?;
+            let target = foreign_target(document, owner, foreign)?;
+            let bytes = &document.parts.get(target).ok_or("missing foreign part")?.bytes;
+            if bytes.get(40..44) == Some(&b" EMF"[..]) {
+                crate::metafile::import(bytes).map(|_| ())
+            } else {
+                crate::raster::decode(bytes).map(|_| ())
+            }
+        })();
+        result.map_err(|error| format!("{} ForeignData ObjectType={object_type}: {error}", e.scope_label(scope)))?;
+    }
+    Ok(())
 }
 
 #[cfg(test)]

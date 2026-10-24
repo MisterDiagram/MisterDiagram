@@ -443,4 +443,6 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/e4a35c41-e8e3-43f9-bc07-a18e99bb866d> | `crates/route/src/foreign_glue.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/ba5458c6-e885-41e6-b5d7-d54ef9e1065f> | `crates/render/tests/vendor_patterns.rs` |
 | <https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw> | `apps/misterdiagram-cli/tests/authoring.rs` |
-| <https://learn.microsoft.com/en-us/windows/win32/gdi/ternary-raster-operations> | `crates/render/src/metafile/mod.rs` |
+| <https://learn.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-stretchblt> | `crates/render/src/metafile/emf/masked.rs` |
+| <https://learn.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-stretchdibits> | `crates/render/src/metafile/emf/masked.rs` |
+| <https://learn.microsoft.com/en-us/windows/win32/gdi/ternary-raster-operations> | `crates/render/src/metafile/emf/masked.rs`, `crates/render/src/metafile/mod.rs` |

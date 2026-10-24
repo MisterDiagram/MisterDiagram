@@ -954,6 +954,20 @@ pub fn import(bytes: &[u8]) -> Result<Imported, String> {
     emf::play(bytes)
 }
 
+/// Cached OLE presentations may combine a binary mask with XOR/OR colour pixels.
+/// The ordinary strict importer retains its established unsupported-operation policy.
+/// https://learn.microsoft.com/en-us/windows/win32/gdi/ternary-raster-operations
+pub(crate) fn import_cached_picture(bytes: &[u8]) -> Result<Imported, String> {
+    if bytes.len() > 128 * 1024 * 1024 || bytes.get(40..44) != Some(&b" EMF"[..]) {
+        return Err("invalid EMF header or size limit".into());
+    }
+    let imported = emf::play_cached_picture(bytes)?;
+    if imported.warnings.iter().any(|warning| warning == SKIPPED_ROPS || warning == BAD_IMAGE) {
+        return Err("cached EMF has unsupported or damaged bitmap drawing".into());
+    }
+    Ok(imported)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

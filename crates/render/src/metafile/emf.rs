@@ -9,6 +9,8 @@ use super::bytes::{Reader, slice};
 use super::dib::{self, Alpha};
 use super::{ArcKind, BrushObj, FontObj, Obj, PenObj, Player};
 use super::{Imported, Kind};
+#[path = "emf/masked.rs"]
+mod masked;
 
 /// Points per millimetre.
 const PT_PER_MM: f64 = 72.0 / 25.4;
@@ -160,7 +162,13 @@ pub(super) fn frame(bytes: &[u8]) -> Option<(Affine, f64, Rect)> {
 pub(super) fn play(bytes: &[u8]) -> Result<Imported, String> {
     play_budgeted(bytes, super::SceneBudget::default())
 }
+pub(super) fn play_cached_picture(bytes: &[u8]) -> Result<Imported, String> {
+    play_options(bytes, super::SceneBudget::default(), true)
+}
 fn play_budgeted(bytes: &[u8], budget: super::SceneBudget) -> Result<Imported, String> {
+    play_options(bytes, budget, false)
+}
+fn play_options(bytes: &[u8], budget: super::SceneBudget, recover_masks: bool) -> Result<Imported, String> {
     let (dev_to_doc, mm_per_px, artboard) = frame(bytes).ok_or("the EMF header is damaged")?;
     let mut p = Player::new(Kind::Emf, dev_to_doc, mm_per_px, artboard);
     p.budget = budget;
@@ -176,6 +184,18 @@ fn play_budgeted(bytes: &[u8], budget: super::SceneBudget) -> Result<Imported, S
         }
         if !matches!(kind, 27 | 54 | 5 | 6 | 88 | 89) {
             p.flush();
+        }
+        if recover_masks
+            && let Some(next) = at.checked_add(size).and_then(|next| bytes.get(next..))
+            && let Some((pixels, dest, consumed)) = masked::pair(rec, next)
+        {
+            let src = Rect::new(0., 0., f64::from(pixels.width), f64::from(pixels.height));
+            p.image(Ok(pixels), src, dest, super::SRCCOPY, 1.);
+            if let Some(error) = p.failure.take() {
+                return Err(error);
+            }
+            at = at.checked_add(size).and_then(|at| at.checked_add(consumed)).ok_or("EMF record offset limit")?;
+            continue;
         }
         if record(&mut p, kind, rec).is_none() {
             p.skip();

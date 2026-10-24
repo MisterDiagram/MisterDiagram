@@ -151,7 +151,8 @@ fn execute(args: &[std::ffi::OsString], out: &mut impl Write) -> Result<(), Stri
             };
             let doc = misterdiagram_vsdx::read(Path::new(args.get(1).ok_or("missing file")?)).map_err(|e| e.to_string())?;
             let themes = misterdiagram_theme::Themes::from_document(&doc).map_err(|e| e.to_string())?;
-            misterdiagram_vsdx::dump::dump_with_hosts(&doc, selection, Some(&themes), Some(&misterdiagram_text::Host), out)
+            misterdiagram_vsdx::dump::dump_with_hosts(&doc, selection, Some(&themes), Some(&misterdiagram_text::Host), out)?;
+            misterdiagram_render::scene::validate_foreign_parts(&doc, selection)
         }
         Some("corpus") if args.get(1).and_then(|a| a.to_str()) == Some("check") && args.len() == 2 => {
             let report = misterdiagram_corpus::run(Path::new("corpus"), false)?;

@@ -234,6 +234,44 @@ the other measured files use 2012/main. Container inspection accepts both exact 
 
 ## Observed, undocumented
 
+### M5.52: cached foreign-object pictures and icons (#86)
+
+The three private #86 witnesses in `field/oss-2026-10-22/manifest.tsv` have
+ForeignType Object. Two ActiveX objects (ObjectType33792, ShowAsIcon0) point to
+an opaque control part whose own image relationship identifies a cached EMF.
+The OLE witness (ObjectType33280, ShowAsIcon1) identifies an icon EMF through
+its embedded object's image relationship. This agrees with the
+[ForeignData specification](https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/c5a5df0c-02e6-4e72-9042-d5766f614cf5).
+Only attached internal image relationships are candidates; no unrelated thumbnail
+is substituted. Attempts are bounded and a failed first preview does not hide a
+later valid one. A missing or undecodable picture gets an ObjectWidth by
+ObjectHeight hairline rectangle and a named warning. That placeholder is an
+explicit product recovery policy; the format specification instead permits an
+invisible unsupported object. Strict sheet inspection and corpus rendering
+continue to report unsupported object data.
+
+The OLE icon's cached EMF uses adjacent SRCAND and SRCINVERT bitmap transfers.
+A binary mask followed by XOR or OR with black transparent pixels reduces to
+alpha copy. Cached-preview decoding supports this constrained pair, with identical
+destinations, identity source transforms, checked offsets and bounded bitmaps.
+The restricted path requires signed-height bitmap headers; cropped legacy core
+headers are rejected. A preview with unsupported or damaged bitmap drawing is
+not accepted as a complete icon, so recovery tries another picture or a placeholder.
+Original pixel and hostile-record tests cover the rule from the
+[raster-operation reference](https://learn.microsoft.com/en-us/windows/win32/gdi/ternary-raster-operations).
+General destination-dependent raster operations remain unsupported.
+
+All three files now render every page. Stored ActiveX pictures do not reproduce
+live control state: one native control expands from the source's1 by0.33346inches
+to2.87992 by2.87992inches and gains a caption on native open, while its stored
+picture remains blank and small. The native shapesheet.tsv and PNG are the rubric;
+this difference is recorded, not called visual parity or replaced with witness
+bytes. The other button has different bevel shading. The OLE icon and label are
+now visible at their stored position, with rasterization differences. Private
+Brief37 object-witness, bound and page-inspection records retain all three cases.
+The field gate reaches85/85, with ten named native/ours refusals and all72 prior
+files' distances unchanged.
+
 ### M5.51: REF, page scales and recoverable geometry (#85)
 
 The private Brief 37 #85 shapesheet.tsv witnesses identify four LineWeight
