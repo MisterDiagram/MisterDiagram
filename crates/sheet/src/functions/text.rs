@@ -347,8 +347,10 @@ fn format_value(name: &str, args: &[Expr], values: &[Value], context: &dyn Conte
     if let Some(language) = optional(args, values, 4) {
         // A language ID is accepted as given (LangID cells resolve to the numeric LCID); the
         // en-GB (2057) template behind #90 formats its "@ " and value pictures like en-US.
-        let language = language.numeric()?;
-        if !language.is_finite() || language < 0. {
+        if let Some(e) = language.error() {
+            return Err(e);
+        }
+        if !matches!(language.numeric(), Ok(id) if id.is_finite() && id >= 0.) {
             return Err(Error::Value);
         }
     }
@@ -976,6 +978,14 @@ mod tests {
         }
         assert_eq!(run("FORMATEX(1.5,\"0.00\",,,2057,)"), run("FORMATEX(1.5,\"0.00\",,,1033,)"));
         assert_eq!(run("FORMATEX(\"x\",\"@\",,,-1,)"), Value::Error(Error::Value));
+        // A non-finite number is #NUM! everywhere in the evaluator (units::number), so a NaN or
+        // infinite language ID arrives as that error and propagates like any other error
+        // argument (brief 39 S1).
+        for id in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+            let args = [Expr::Text("x".into()), Expr::Text("@".into()), Expr::Missing, Expr::Missing, Expr::Number(id, None)];
+            assert_eq!(call("FORMATEX", &args, &mut Host, &mut 100, 0), Some(Value::Error(Error::Num)), "{id}");
+        }
+        assert_eq!(run("FORMATEX(\"x\",\"@\",,,Nope,)"), Value::Error(Error::Ref));
         assert!(matches!(run("FORMATEX(\"x\",\"@\",,,2057,2)"), Value::Error(Error::Unsupported(_))));
     }
 }
