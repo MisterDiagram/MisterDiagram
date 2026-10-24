@@ -14,8 +14,8 @@ PDF, writes files that Visio opens without repair, and authors drawings from com
 masters, shape data, glued connectors with orthogonal routing and line jumps. AI agents can use the same commands through the MCP stdio server. PowerPoint export is next. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and is offered to that project.
 
-**Download:** [MisterDiagram 0.1.0-alpha.4](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.4),
-the fourth alpha (themed gradients, connector labels and colour variants: #79, #80, #82), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+**Download:** [MisterDiagram 0.1.0-alpha.5](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.5),
+the fifth alpha (real-file resilience: embedded objects, broken geometry rows and errors that name their cell: #84, #85, #86, #81), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -24,7 +24,7 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-10-24, 0.1.0-alpha.5 source preparation)
+## What works today (2026-10-24, 0.1.0-alpha.5)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
@@ -77,20 +77,25 @@ EMF+, compound line patterns, shadows, PowerPoint export and masters with severa
 top-level shapes remain limited. Large-drawing authoring is slow
 ([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39); measurements in docs/gaps.md).
 
-## Prepared for 0.1.0-alpha.5
+## New in 0.1.0-alpha.5
 
-Real-file resilience improves across imported identities and contextual errors
-(#84), geometry and connection-row recovery with REF() and page-scale resolution
-(#85), and cached pictures or sized placeholders for unsupported foreign objects
-(#86). The corpus checker separately counts errors where native witnesses have
-numbers, with pinned ceilings (#81). Drawing recovery warns about every affected
-cell or object; strict inspection still exposes evaluation errors. The private
-field gate moves from 72 to 85 successful files out of 85 native-opened files,
-with all ten native refusals still rejected for named ZIP/XML causes. All
-previously rendering pages remain within their frozen distance allowance.
-
-This is version preparation. The download above remains the published alpha.4
-until the alpha.5 acceptance and release gates are complete.
+This release makes real-world files survive what used to stop them. Imported
+drawings with duplicate shape identities and detached cells now render every
+page, and an evaluation error that does stop a render names its page, shape and
+cell, including dependencies in document, master, style and layer sheets (#84).
+A bad geometry or connection row no longer aborts the drawing: render, convert
+and export use the value saved in the file, or skip the row, with a warning that
+names it; REF() reports Visio's own reference error and named User cells resolve
+page-scale references (#85). An embedded OLE object or ActiveX control whose
+picture cannot be decoded draws its cached picture or icon, or a sized
+placeholder, instead of failing the page (#86). The corpus checker counts errors
+where Visio has a number separately from text-metric differences, with ceilings
+that may only fall (#81). On the private field gate, 85 of 85 files Visio opens
+now render (alpha.4: 72), the ten files Visio refuses are still refused for a
+named reason, and every previously rendering page stays within its frozen
+distance allowance. Rendering is not yet appearance parity on all of them: the
+timeline date labels and milestone positions, stored ActiveX pictures against
+live controls, and some master cells still differ, as listed above.
 
 ## Testers wanted
 
