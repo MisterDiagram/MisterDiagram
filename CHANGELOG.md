@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- **CHAR() is implemented.** A Unicode code point becomes its character, so shape labels
+  built with `CHAR(10)` line breaks evaluate instead of reporting `#NAME?`
+  ([#89](https://github.com/MisterDiagram/MisterDiagram/issues/89)).
+- **FORMAT and FORMATEX accept every language ID.** Files saved by a non-US Visio carry
+  their LangID (2057 for en-GB) in every formatted field; those cells now format with the
+  en-US picture rules instead of failing. Locale-specific number and date pictures remain an
+  approximation listed in the gaps ([#90](https://github.com/MisterDiagram/MisterDiagram/issues/90)).
+- **Corpus ceilings fall.** The errors-where-the-witness-has-a-number count drops from
+  31,386 to 29,115 cached and from 1,095,070 to 1,094,960 COM; the pinned ceilings follow it down.
+
 ## 0.1.0-alpha.5
 
 More real-world drawings render, with useful errors when evaluation fails.

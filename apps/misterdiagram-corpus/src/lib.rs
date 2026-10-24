@@ -68,8 +68,9 @@ impl ErrorNumbers {
     }
 }
 // Full-corpus ceilings are measured, pinned in docs/gaps.md, and may only fall.
-const CACHED_ERROR_CEILING: u64 = 31_386;
-const COM_ERROR_CEILING: u64 = 1_095_070;
+// M5.53 measured 31,386 / 1,095,070; M5.60 (CHAR, FORMAT language IDs) lowered them.
+const CACHED_ERROR_CEILING: u64 = 29_115;
+const COM_ERROR_CEILING: u64 = 1_094_960;
 #[derive(Debug, Default)]
 pub struct Report {
     pub cached_error_numbers: ErrorNumbers,

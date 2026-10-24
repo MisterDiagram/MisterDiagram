@@ -99,6 +99,7 @@ pub const IMPLEMENTED: &[&str] = &[
     "INDEX",
     "LOOKUP",
     "LISTSEP",
+    "CHAR",
     "RED",
     "GREEN",
     "BLUE",

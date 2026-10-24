@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-24: M5.60 (#89, #90) implements CHAR() and accepts every FORMAT language ID (en-US picture rules); the error-where-number ceilings fall to 29,115 cached and 1,094,960 COM, cached text-metric matches 62,147 to 62,348.
+
 - 2026-10-24: M5.53 (#81) separates errors where numeric witnesses exist and pins cached/COM ceilings at 31,386/1,095,070. Strict identity and font corrections improve selected cells; native visual and broad master parity remain incomplete. Original regression tests cover three discovery findings.
 
 - 2026-10-23: M5.52 (#86) renders unsupported foreign objects through their own cached pictures/icons or a sized placeholder, with named warnings and strict inspection errors. The field gate passes85/85 with ten named refusals and unchanged baseline distances. ActiveX live-control state and complete visual parity remain open.

@@ -5,7 +5,7 @@ use crate::{
     parser::{BinaryOp, Expr},
     units,
 };
-pub const NAMES: &[&str] = &["FORMAT", "FORMATEX", "STRSAME", "TRIM", "LEN", "FIND", "LEFT", "RIGHT", "MID", "INDEX", "LOOKUP", "LISTSEP"];
+pub const NAMES: &[&str] = &["FORMAT", "FORMATEX", "STRSAME", "TRIM", "LEN", "FIND", "LEFT", "RIGHT", "MID", "INDEX", "LOOKUP", "LISTSEP", "CHAR"];
 const LIMIT: usize = 65536;
 fn text(value: &Value) -> Result<String, Error> {
     if matches!(value, Value::Text(s) if s.len() > LIMIT) {
@@ -69,8 +69,24 @@ pub(super) fn call(name: &str, args: &[Expr], context: &mut dyn Context, budget:
             }
         }
         "FORMAT" | "FORMATEX" => result(format_value(name, args, &values, context)),
+        "CHAR" => result(char_code(args, &values)),
         _ => Value::Error(Error::Value),
     })
+}
+/// CHAR returns the character for a Unicode scalar value; zero, surrogates and values past
+/// U+10FFFF are errors, and a fractional code is truncated like the other integer arguments.
+/// Witness: the Space shapes of a Microsoft floor-plan template label themselves with
+/// Prop.Name&CHAR(10)&User.visFMAreaDisplay (#89).
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/char-function
+fn char_code(args: &[Expr], values: &[Value]) -> Result<String, Error> {
+    if args.len() != 1 {
+        return Err(Error::Value);
+    }
+    let code = num(values, 0)?;
+    if !code.is_finite() || !(1.0..=1_114_111.0).contains(&code) {
+        return Err(Error::Value);
+    }
+    char::from_u32(code.trunc() as u32).map(String::from).ok_or(Error::Value)
 }
 /// Normalize the explicit MS-VSDX v20150316 section 2.5.3.166 whitespace set.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/trim-function
@@ -291,7 +307,9 @@ fn clean_unit(s: &str) -> String {
     s.trim().trim_matches(['[', ']']).split(',').next().unwrap_or("").trim().to_ascii_uppercase()
 }
 /// FORMAT preserves expression units; FORMATEX scales untyped expressions using srcUnit.
-/// Non-English locales and non-Gregorian calendars are explicit unsupported values.
+/// Every language ID formats with the en-US picture rules: text pictures do not depend on the
+/// locale, and locale-specific number and date pictures are an approximation recorded in
+/// docs/gaps.md (#90). Non-Gregorian calendars are explicit unsupported values.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/format-function
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/formatex-function
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-format-pictures
@@ -327,9 +345,11 @@ fn format_value(name: &str, args: &[Expr], values: &[Value], context: &dyn Conte
         return Err(Error::Limit);
     }
     if let Some(language) = optional(args, values, 4) {
+        // A language ID is accepted as given (LangID cells resolve to the numeric LCID); the
+        // en-GB (2057) template behind #90 formats its "@ " and value pictures like en-US.
         let language = language.numeric()?;
-        if language != 0. && language != 1033. {
-            return Err(Error::Unsupported(format!("format locale {language}")));
+        if !language.is_finite() || language < 0. {
+            return Err(Error::Value);
         }
     }
     if let Some(calendar) = optional(args, values, 5) {
@@ -874,7 +894,7 @@ mod tests {
         }
         for formula in [
             r#"FORMATEX(1,FIELDPICTURE(0),"invalid")"#,
-            r#"FORMATEX(1,FIELDPICTURE(0),,,1031)"#,
+            r#"FORMATEX(1,FIELDPICTURE(0),,,-1)"#,
             r#"FORMATEX(1,FIELDPICTURE(0),,,,999)"#,
             r#"FORMATEX(1/0,FIELDPICTURE(0))"#,
         ] {
@@ -905,7 +925,7 @@ mod tests {
         ] {
             assert_eq!(run(formula), Value::Text(expected.into()), "{formula}");
         }
-        for formula in [r#"FORMAT(3000000,"c")"#, r#"FORMATEX(2,"C",,,1031)"#, r#"FORMAT(2,"cc")"#] {
+        for formula in [r#"FORMAT(3000000,"c")"#, r#"FORMATEX(2,"C",,,-1)"#, r#"FORMAT(2,"cc")"#] {
             assert!(matches!(run(formula), Value::Error(_)), "{formula}");
         }
     }
@@ -928,7 +948,7 @@ mod tests {
             "FORMAT(1,\"# #/0\")",
             "FORMAT(1,\"0x\")",
             "FORMATEX(1,\"0\",\"invalid\")",
-            "FORMATEX(1,\"{{dddd}}\",,,1031)",
+            "FORMATEX(1,\"{{dddd}}\",,,-1)",
         ] {
             assert!(matches!(run(s), Value::Error(_)), "{s}")
         }
@@ -936,5 +956,26 @@ mod tests {
         assert_eq!(run("INDEX(1e99,\"abc\")"), Value::Text(String::new()));
         let args = [Expr::Text("a".repeat(LIMIT + 1))];
         assert_eq!(call("LEN", &args, &mut Host, &mut 100, 0), Some(Value::Error(Error::Limit)));
+    }
+    #[test]
+    fn char_codes_and_format_language_ids() {
+        // CHAR: Unicode scalar values, fractional codes truncated; zero, surrogates and
+        // out-of-range codes are errors (#89).
+        assert_eq!(run("CHAR(65)"), Value::Text("A".into()));
+        assert_eq!(run("CHAR(10)"), Value::Text("\n".into()));
+        assert_eq!(run("CHAR(228.9)"), Value::Text("ä".into()));
+        assert_eq!(run("CHAR(128512)"), Value::Text("\u{1F600}".into()));
+        for s in ["CHAR(0)", "CHAR(-1)", "CHAR(55296)", "CHAR(1114112)", "CHAR()", "CHAR(1,2)", "CHAR(\"a\")"] {
+            assert_eq!(run(s), Value::Error(Error::Value), "{s}");
+        }
+        assert_eq!(crate::formula("\"a\"&CHAR(10)&\"b\"", &mut Host), Value::Text("a\nb".into()));
+        // FORMATEX: every language ID formats with the en-US rules (#90); the calendar guard stays.
+        for (lang, expected) in [("", "Jane Doe "), ("1033", "Jane Doe "), ("2057", "Jane Doe "), ("1036", "Jane Doe ")] {
+            let s = format!("FORMATEX(\"Jane Doe\",\"@ \",,,{lang},)");
+            assert_eq!(run(&s), Value::Text(expected.into()), "{s}");
+        }
+        assert_eq!(run("FORMATEX(1.5,\"0.00\",,,2057,)"), run("FORMATEX(1.5,\"0.00\",,,1033,)"));
+        assert_eq!(run("FORMATEX(\"x\",\"@\",,,-1,)"), Value::Error(Error::Value));
+        assert!(matches!(run("FORMATEX(\"x\",\"@\",,,2057,2)"), Value::Error(Error::Unsupported(_))));
     }
 }

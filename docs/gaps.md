@@ -114,6 +114,12 @@ from 62,145 to 62,147 cached and 54,497 to 54,499 COM, with unchanged denominato
 The new count exposes a substantial remaining evaluation gap rather than
 claiming that drawing recovery corrected strict numerical evaluation.
 
+M5.60 (2026-10-24, #89 CHAR and #90 FORMAT language IDs) lowers the ceilings to
+**29,115 cached** and **1,094,960 COM**: the cells that reported `#NAME? CHAR` or the
+unsupported locale now evaluate, and the populations are unchanged (4,718,107 and
+76,153,083). Cached text-metric matches move from 62,147 to 62,348 and COM from 54,499 to
+54,510, same denominators.
+
 ## Brief 26b: image groups and connector ends (2026-10-21)
 
 The M5.14 through M5.14d implementation addresses #60, #69, #67 and #66.
@@ -705,7 +711,7 @@ proof that every row has that cause. Phase 3 must complete that attribution.
 |---|---|---|
 | Segoe font identity and compatible metrics | Dominant User.Width delta bucket: 360 cached, 180 COM; User.MenuItemTextSize: 262 cached, 90 COM. MWFNAVCTRL_M master 17 shape 464 and MWFCONCTRL_M master 125 shape 221 | Resolve portable font identity and compatible metrics; no system font scan |
 | Date formatting | #VALUE! buckets: 309 cached TxtHeight, 108 User.TextHeight, 80 Height (497 cells); CALNDR_M master 9 shape 7 is a confirmed DATE/FORMATEX witness | Convert ISO-date hook values for formatting and implement missing date-picture tokens; classify the rest of the error bucket |
-| Locale2057 | 96 cached TxtHeight failures explicitly report unsupported FORMAT locale 2057 | Implement witnessed locale handling |
+| Locale2057 | FORMAT and FORMATEX accept every language ID and format with the en-US picture rules (#90, 2026-10-24); the 96 cached TxtHeight cells that reported the unsupported locale now evaluate. Locale-specific number and date pictures (en-GB dates, decimal separators) are an approximation until witnessed | Witness en-GB date and number pictures on the VM, then locale rules |
 | Fine rounding | 87 cached TxtWidth failures in the -0.000916-inch bucket; AZURECLOUD_M master 422 shape 5 | Resolve remaining metric quantization; broader TxtWidth bucket 1124 is not all rounding |
 | Master-scale context | 1 confirmed failing witness: APPL_M master 7 shape 5, within 1054 cached TxtHeight failures; master 2 shape 5 is a matching counterexample | Attribute remaining scale failures and model the master-specific context without breaking correct scaled text |
 
