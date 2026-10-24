@@ -18,7 +18,7 @@ fn calculate(name: &str, args: &[Expr], context: &mut dyn Context, budget: &mut 
         return lumdiff(&a, &b, context);
     }
     let amount = b.numeric()?;
-    if amount.fract() != 0.0 {
+    if matches!(name, "MSOTINT" | "MSOSHADE") && amount.fract() != 0.0 {
         return Err(Error::Num);
     }
     match name {
@@ -28,22 +28,30 @@ fn calculate(name: &str, args: &[Expr], context: &mut dyn Context, budget: &mut 
         _ => msoshade(&a, amount, context),
     }
 }
-/// Add a signed luminosity amount, clamping the result to the 0 through 240 range.
+/// Add a signed luminosity adjustment in the 0 through 240 range.
+/// Native adjustments within 100 steps of the approached endpoint scale by
+/// that remaining distance, then truncate the signed adjustment to an integer.
+/// Fractional inputs truncate before this scaling.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/tint-function
 fn tint(value: &Value, amount: f64, context: &mut dyn Context) -> Result<Value, Error> {
-    legacy(value, amount, context)
+    legacy(value, amount.trunc(), context)
 }
-/// Subtract a signed luminosity amount, clamping the result to the 0 through 240 range.
+/// Apply TINT's observed endpoint rule with the opposite signed adjustment.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/shade-function
 fn shade(value: &Value, amount: f64, context: &mut dyn Context) -> Result<Value, Error> {
-    legacy(value, -amount, context)
+    legacy(value, -amount.trunc(), context)
 }
 fn legacy(value: &Value, amount: f64, context: &mut dyn Context) -> Result<Value, Error> {
     if amount == 0.0 {
         return Ok(color::intern(color::rgb_components(value, context).ok_or(Error::Value)?, None, context));
     }
     let [h, s, l] = color::components(value, context).ok_or(Error::Value)?;
-    let values = [Value::Number(h.round().rem_euclid(240.0)), Value::Number(s.round()), Value::Number((l.round() + amount).clamp(0.0, 240.0))];
+    let l = l.round().clamp(0.0, 240.0);
+    let distance = if amount > 0.0 { 240.0 - l } else { l };
+    // Beyond 240 steps every nonzero distance saturates at the approached endpoint.
+    // Multiply bounded integers before dividing to avoid losing an exact step.
+    let adjustment = (amount.clamp(-240.0, 240.0) * distance.min(100.0) / 100.0).trunc();
+    let values = [Value::Number(h.round().rem_euclid(240.0)), Value::Number(s.round()), Value::Number((l + adjustment).clamp(0.0, 240.0))];
     color::call("HSL", &values, context).ok_or(Error::Value)
 }
 /// Positive percentages move luminosity toward white; negative percentages toward black.
@@ -128,6 +136,40 @@ mod tests {
         assert_eq!(crate::formula("LUMDIFF(0,1)", &mut Palette), Value::Number(-240.0));
     }
     #[test]
+    fn observed_legacy_adjustments_near_black_and_white() {
+        // Contributor-original fresh native rectangles, with no imported formula caches.
+        for (formula, expected) in [
+            ("TINT(RGB(225,225,225),1)", [225; 3]),
+            ("TINT(RGB(225,225,225),12)", [228; 3]),
+            ("TINT(RGB(225,225,225),28)", [233; 3]),
+            ("TINT(RGB(64,64,64),-1)", [64; 3]),
+            ("TINT(RGB(64,64,64),-12)", [56; 3]),
+            ("TINT(RGB(64,64,64),-28)", [47; 3]),
+            ("SHADE(RGB(225,225,225),-28)", [233; 3]),
+            ("SHADE(RGB(64,64,64),71)", [19; 3]),
+        ] {
+            assert_eq!(rgb(formula), Some(expected), "{formula}");
+        }
+    }
+    #[test]
+    fn legacy_fractional_amounts_truncate_before_endpoint_scaling() {
+        for (formula, expected) in [
+            ("LUM(TINT(HSL(0,0,99),-1.5))", 99.0),
+            ("LUM(TINT(HSL(0,0,141),1.5))", 141.0),
+            ("LUM(SHADE(HSL(0,0,99),1.5))", 99.0),
+            ("LUM(SHADE(HSL(0,0,141),-1.5))", 141.0),
+            ("LUM(TINT(HSL(0,0,100),1.5))", 101.0),
+            ("LUM(TINT(HSL(0,0,211),100))", 240.0),
+            ("LUM(SHADE(HSL(0,0,29),100))", 0.0),
+            ("LUM(SHADE(HSL(0,0,57),100))", 0.0),
+            ("LUM(TINT(HSL(0,0,182),50))", 211.0),
+            ("LUM(SHADE(HSL(0,0,140),1.5))", 139.0),
+        ] {
+            assert_eq!(crate::formula(formula, &mut Palette), Value::Number(expected), "{formula}");
+        }
+        assert_eq!(rgb("TINT(RGB(19,111,227),0.5)"), Some([19, 111, 227]));
+    }
+    #[test]
     fn observed_office_percentage_adjustments() {
         // HIERARCHICALORGCHART_U.vstx page1 and step_infographic_shapes_u.vssx masters1/21/22.
         for (formula, expected) in [
@@ -155,7 +197,7 @@ mod tests {
         for formula in ["TINT()", "MSOTINT(1)", "SHADE(1,2,3)", "LUMDIFF(999,1)"] {
             assert_eq!(crate::formula(formula, &mut Palette), Value::Error(Error::Value), "{formula}");
         }
-        assert_eq!(crate::formula("TINT(1,0.5)", &mut Palette), Value::Error(Error::Num));
+        assert_eq!(crate::formula("MSOTINT(1,0.5)", &mut Palette), Value::Error(Error::Num));
         assert_eq!(crate::formula("MSOSHADE(1,1/0)", &mut Palette), Value::Error(Error::Div0));
         assert_eq!(rgb("MSOTINT(2,1e300)"), Some([255, 255, 255]));
         let bad = Value::Color { index: 24, rgb: [0; 3], hsl: Some([0.0, 0.0, f64::NAN]) };

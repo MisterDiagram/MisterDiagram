@@ -394,6 +394,36 @@ identifies a separate formula/value-provenance gap; its correction is still pend
 These differences remain visible; no successful result is replaced with a cache
 solely to satisfy a comparison. Full visual and strict master parity are not met.
 
+### Observed, undocumented: luminosity adjustments near endpoints (M5.51c, #85)
+
+The public TINT and SHADE descriptions specify signed luminosity adjustments.
+Contributor-original fresh rectangles in private
+`synthetic-brief37/shade-fresh-arithmetic-results.json` show an additional
+endpoint rule, independently of imported formula caches. All 100 arithmetic
+cases have matching direct and referenced RGB/luminosity observations; the
+20 repeated cases agree under theme indices 0 and 33. The original
+`shade-hsl-boundaries-results.json` and `shade-hsl-fractions-v2-results.json`
+controls cover 84 more cases, including the 100-step boundary and fractional
+amounts. Fractional amounts truncate before endpoint scaling, so
+`TINT(HSL(0,0,99),-1.5)` retains luminosity 99. Five further original
+`shade-precision-gridpoints-results.json` cases establish multiplication before
+division at exact integer boundaries, avoiding a one-step floating-point loss.
+All 189 original arithmetic cases agree with their direct/reference observations.
+
+For rounded luminosity L in 0 through 240, let d be TINT's signed amount
+truncated toward zero (or SHADE's negated, truncated amount), and let distance be the remaining luminosity
+toward the approached endpoint. The observed adjustment is
+`trunc(d * min(1, distance / 100))`, followed by clamping the new luminosity.
+For example, TINT of RGB(225,225,225) by 28 yields RGB(233,233,233), and
+TINT of RGB(64,64,64) by -28 yields RGB(47,47,47). The central range retains
+ordinary additive adjustments. No vendor graphic or theme is embedded.
+
+This corrects arithmetic, not native theme selection or retained calculation
+state. The separate original `fill-background-channels-results.json` exposes
+different master and page theme inputs; the remaining master background
+comparison is still reported. References: [TINT](https://learn.microsoft.com/en-us/office/client-developer/visio/tint-function),
+[SHADE](https://learn.microsoft.com/en-us/office/client-developer/visio/shade-function).
+
 ### M5.50: retained identities and detached cells (#84)
 
 The private Brief 37 baseline contains seven packages rejected during evaluator

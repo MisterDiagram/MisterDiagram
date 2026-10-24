@@ -14,8 +14,8 @@ More real-world drawings render, with useful errors when evaluation fails.
   affected row with a named warning. REF() reports the native reference error;
   named User cells resolve page-scale references. Currency amounts, imported
   numeric cell text, palette identities and sparse inspection columns are handled
-  more accurately. Strict inspection keeps errors
-  visible ([#85](https://github.com/MisterDiagram/MisterDiagram/issues/85)).
+  more accurately. Colour shading near black and white follows Visio more closely.
+  Strict inspection keeps errors visible ([#85](https://github.com/MisterDiagram/MisterDiagram/issues/85)).
 - **Unsupported embedded objects keep a visible representation.** Their cached
   picture or icon is drawn when available; otherwise a sized rectangle marks
   the object. A warning identifies the shape and object type. Primary media
