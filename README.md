@@ -24,7 +24,7 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-10-23, 0.1.0-alpha.4)
+## What works today (2026-10-24, 0.1.0-alpha.5 source preparation)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
@@ -66,32 +66,31 @@ M4 met its plan gates on 2026-10-15. Phase 5 is in progress and P5a is accepted;
 PowerPoint export remains next. CI runs all eight gates on Linux, Windows and
 macOS, plus an Ubuntu check at the declared Rust minimum.
 
-Known gaps are listed in [docs/gaps.md](docs/gaps.md). This release corrects
-washed-out theme gradients and connector label colours (#79, #80), and resolves
-colour/style variant indexes (#82). Some themes still have different secondary
-fill backgrounds and dormant gradient angles; THEMEVAL parity remains incomplete.
-Container/list formulas, larger-page routing, legacy formats, shadows, PowerPoint
-export and masters with several top-level shapes also remain limited. Text wrapping is the weakest area,
-EMF+ images are not drawn, and compound line patterns are approximate. Authoring large
-drawings is slow: strict mode publishes the whole document after every command, so a
-2,500-command drawing of about 380 shapes takes about 13 minutes
-([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39); timings in docs/gaps.md).
+Known gaps are listed in [docs/gaps.md](docs/gaps.md). All 85 native-opened field
+files now render, but this is not complete appearance or cell parity. Timeline
+date labels and two caption colours, stored ActiveX versus live-control appearance,
+3D rotation, fine equipment details, repeated-master strict evaluation and some
+master cells still differ. THEMEVAL
+retains 2,550 unequal secondary backgrounds and dormant gradient angles.
+Container/list formulas, text wrapping, larger-page routing, legacy formats,
+EMF+, compound line patterns, shadows, PowerPoint export and masters with several
+top-level shapes remain limited. Large-drawing authoring is slow
+([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39); measurements in docs/gaps.md).
 
-## New in 0.1.0-alpha.4
+## Prepared for 0.1.0-alpha.5
 
-This release fixes themed fills and connector labels. Themed gradients keep
-their real colours: unused stop slots no longer wash a fill toward white, and
-colour transforms (tint, shade, lumMod, lumOff, satMod) keep the precision
-Visio uses, including saturation above 100% (#79). Connector labels take the
-theme's connector text style, so "Yes" and "No" on a flowchart are readable
-instead of white on white, and connector lines follow their own style entries
-(#80). Colour indexes 0 to 7, 100 to 107 and 200 to 207 and style matrices 1 to 6
-and 100 to 106 resolve under every variant without reference errors, and theme
-font names survive installation-specific font IDs (#82). Checked against two
-Visio 2021 sweeps of 264,405 resolved cells over three themes and their
-variants: 261,855 equal. The 2,550 that differ are secondary fill backgrounds
-and dormant gradient angles that Visio derives from the theme's identity rather
-than from anything in the file; they are listed as a known gap, not masked.
+Real-file resilience improves across imported identities and contextual errors
+(#84), geometry and connection-row recovery with REF() and page-scale resolution
+(#85), and cached pictures or sized placeholders for unsupported foreign objects
+(#86). The corpus checker separately counts errors where native witnesses have
+numbers, with pinned ceilings (#81). Drawing recovery warns about every affected
+cell or object; strict inspection still exposes evaluation errors. The private
+field gate moves from 72 to 85 successful files out of 85 native-opened files,
+with all ten native refusals still rejected for named ZIP/XML causes. All
+previously rendering pages remain within their frozen distance allowance.
+
+This is version preparation. The download above remains the published alpha.4
+until the alpha.5 acceptance and release gates are complete.
 
 ## Testers wanted
 

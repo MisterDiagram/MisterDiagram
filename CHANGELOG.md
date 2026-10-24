@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.1.0-alpha.5
+
+More real-world drawings render, with useful errors when evaluation fails.
+
+- **Imported diagrams survive duplicate shape identities and detached cells.**
+  Seven formerly rejected packages now render every source page. A stopping
+  evaluation error identifies its page, shape and cell, including dependencies
+  in document, master, style and layer sheets
+  ([#84](https://github.com/MisterDiagram/MisterDiagram/issues/84)).
+- **One bad geometry row no longer stops the drawing.** Render, convert and
+  export use saved geometry and connection values when available, or skip the
+  affected row with a named warning. REF() reports the native reference error;
+  named User cells resolve page-scale references. Strict inspection keeps errors
+  visible ([#85](https://github.com/MisterDiagram/MisterDiagram/issues/85)).
+- **Unsupported embedded objects keep a visible representation.** Their cached
+  picture or icon is drawn when available; otherwise a sized rectangle marks
+  the object. A warning identifies the shape and object type. Primary media
+  byte, pixel, allocation and operation limits still return errors
+  ([#86](https://github.com/MisterDiagram/MisterDiagram/issues/86)).
+- **Numerical evaluation failures have their own regression count.** Cached and
+  Visio numeric witnesses that evaluate to errors are counted separately from
+  text-metric differences, with ceilings that may only fall
+  ([#81](https://github.com/MisterDiagram/MisterDiagram/issues/81)).
+
+Known gaps: rendering succeeds on all 85 native-opened field files, but complete
+appearance and cell parity remain open. Imported timeline date labels and two
+caption colours differ; stored ActiveX pictures differ from live controls;
+3D rotation, fine equipment detail, repeated-master strict evaluation and some
+master cells still differ. The theme sweep retains
+2,550 unequal secondary backgrounds and dormant gradient angles. Container/list
+formulas, text wrapping, larger-page routing, legacy formats, EMF+, compound line
+patterns, shadows, PowerPoint export, large-drawing authoring speed and masters
+with several top-level shapes remain limited. No third-party specimen is shipped.
+
 ## 0.1.0-alpha.4
 
 Clearer themed fills, readable connector labels and working colour variants.
