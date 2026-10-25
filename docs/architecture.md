@@ -150,6 +150,23 @@ are checked for overflow. This setting never enters a file/parser/render limit.
 | Transient-work margin | Not derived | 512 MiB | C / 4 |
 | History count | 32 snapshots | 32 snapshots | Fixed |
 
+The evaluator admits at most 2,000,000 effective cells (including named-row
+charges) and 2,000,000 indexed cells, independently of session retention. On
+Apple Silicon, release CLI measurements with `/usr/bin/time -l` used an original
+400-cell master and 4,873 instances: 1,949,602 effective/indexed cells, 4,877
+scopes. PNG rendering peaked at 991,199,232 bytes (508.4 bytes/effective cell),
+and full `sheet` inspection at 1,459,847,168 bytes (748.8 bytes/cell). A locally
+observed two-page template had 1,117,833 effective cells, 1,077,919 indexed cells
+and 3,738 scopes: PNG peaks were 786,825,216 and 842,563,584 bytes (703.9 and
+753.7 bytes/effective cell), SVG 793,526,272 bytes (709.9 bytes/cell), and `sheet`
+1,428,422,656 bytes (1,277.8 bytes/cell). The worst observed peak was 1,392.22
+MiB, below a rounded 1,400 MiB measurement envelope and the 2,048 MiB default
+ceiling, but well above the 512 MiB transient reserve. These process peaks
+include parsing and rendering or evaluation; they are not isolated evaluator
+allocations or a universal upper bound. Retained session state can coexist with
+this work, so the retention estimator plus its reserve does not guarantee a
+2,048 MiB RSS maximum. Name, depth, theme and other independent limits remain.
+
 Each unique `Arc<Document>` contributes its retained nodes, actual picture bytes,
 twice its nonmedia source bytes, and 1 MiB of document overhead to the aggregate
 estimate. M5.34 charges shared PageContents/MasterContents nodes once across
@@ -158,7 +175,7 @@ all retain their original allocation identities. Metadata and detached contents
 remain separately charged. The same census applies to aggregate node retention;
 the reader still charges every file its full logical node count. Nodes reserve 320 bytes each, conservatively above the compact 88-byte
 XML node alone to include attributes, typed data, strings and allocator overhead.
-The 512 MiB remainder covers in-flight package, writer, evaluator and routing work.
+The 512 MiB remainder reserves space for in-flight package, writer, evaluator and routing work; it is not a process RSS limit.
 The component allowances overlap the aggregate estimate; they are not added to it.
 History independently estimates 16 times each unique nonmedia source allocation
 plus 1 MiB per unique historical document, excluding shared external stencil

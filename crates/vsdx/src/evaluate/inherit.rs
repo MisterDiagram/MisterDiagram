@@ -51,13 +51,13 @@ struct ConstructionBudget {
     name_bytes: usize,
 }
 impl ConstructionBudget {
-    fn charge(&mut self, sheet: &Effective<'_>) -> Result<(), Error> {
+    fn charge(&mut self, sheet: &Effective<'_>, cell_cap: usize) -> Result<(), Error> {
         let row_count = sheet.named_rows.values().try_fold(0usize, |n, rows| n.checked_add(rows.len()).ok_or(Error::Limit))?;
         let cells = self.cells.checked_add(sheet.cells.len()).and_then(|n| n.checked_add(row_count)).ok_or(Error::Limit)?;
         let bytes = sheet.cells.values().try_fold(self.name_bytes, |total, entry| total.checked_add(entry.named.name.len()).ok_or(Error::Limit))?;
         let bytes = sheet.named_rows.values().flatten().try_fold(bytes, |total, row| total.checked_add(row.name.len()).ok_or(Error::Limit))?;
         let bytes = sheet.named_rows.keys().try_fold(bytes, |total, (section, _)| total.checked_add(section.len()).ok_or(Error::Limit))?;
-        if cells > MAX_CELLS || bytes > MAX_EFFECTIVE_NAME_BYTES {
+        if cells > cell_cap || bytes > MAX_EFFECTIVE_NAME_BYTES {
             return Err(Error::Limit);
         }
         self.cells = cells;
@@ -275,7 +275,7 @@ impl<'a> Evaluator<'a> {
         if let Some(sheet) = memo.get(&scope) {
             return Ok(sheet.clone());
         }
-        if depth > 128 || count.cells > MAX_CELLS {
+        if depth > 128 || count.cells > self.effective_cell_cap {
             return Err(Error::Limit);
         }
         if !visiting.insert(scope) {
@@ -446,7 +446,7 @@ impl<'a> Evaluator<'a> {
         // Names are shared before any memo/ancestor clone, so fan-out cannot allocate
         // copies proportional to name length. Charge each persisted effective sheet
         // against the same aggregate logical-name bound used by the final index.
-        count.charge(&effective)?;
+        count.charge(&effective, self.effective_cell_cap)?;
         visiting.remove(&scope);
         let effective = Rc::new(effective);
         memo.insert(scope, effective.clone());
@@ -791,6 +791,25 @@ mod tests {
         Sheet { cells, ..Default::default() }
     }
     #[test]
+    fn effective_and_indexed_cell_caps_are_injected_without_large_fixtures() {
+        let doc = Document {
+            masters: vec![Master {
+                id: 1,
+                shapes: vec![Shape { id: 1, sheet: sheet(vec![c("Width", "1", None), c("Height", "1", None)]), ..Default::default() }].into(),
+                ..Default::default()
+            }],
+            pages: vec![Page {
+                id: 1,
+                shapes: (1..=2).map(|id| Shape { id, master: Some(1), ..Default::default() }).collect(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        assert!(Evaluator::with_cell_caps(&doc, 6, 6).is_ok());
+        assert!(matches!(Evaluator::with_cell_caps(&doc, 5, 6), Err(Error::Limit)));
+        assert!(matches!(Evaluator::with_cell_caps(&doc, 6, 5), Err(Error::Limit)));
+    }
+    #[test]
     fn hostile_style_fanout_is_bounded_before_memo_name_clones() {
         let cell = c(&format!("Line{}", "x".repeat(60000)), "1", None);
         let doc = Document {
@@ -815,8 +834,8 @@ mod tests {
         assert!(Rc::ptr_eq(&key, cloned_key));
         assert!(Rc::ptr_eq(&entry.named, &cloned_entry.named));
         let mut budget = ConstructionBudget { cells: 0, name_bytes: MAX_EFFECTIVE_NAME_BYTES - source.name.len() };
-        assert!(budget.charge(&effective).is_ok());
-        assert_eq!(budget.charge(&effective), Err(Error::Limit));
+        assert!(budget.charge(&effective, MAX_CELLS).is_ok());
+        assert_eq!(budget.charge(&effective, MAX_CELLS), Err(Error::Limit));
         assert_eq!(budget.name_bytes, MAX_EFFECTIVE_NAME_BYTES);
     }
     #[test]

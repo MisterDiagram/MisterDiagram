@@ -14,7 +14,8 @@ mod string_cells;
 mod text;
 mod transform;
 pub use text::TextBlock;
-const MAX_CELLS: usize = 1_000_000;
+const MAX_CELLS: usize = 2_000_000;
+const MAX_THEME_NODES: usize = 1_000_000;
 const MAX_SCOPES: usize = 100_000;
 
 /// IDs are document/page/master IDs, never vector positions. Shape IDs are scoped to their page.
@@ -87,6 +88,8 @@ pub struct Evaluator<'a> {
     eval_depth: usize,
     eval_work: usize,
     indexed_name_bytes: usize,
+    effective_cell_cap: usize,
+    indexed_cell_cap: usize,
     palette: BTreeMap<u32, [u8; 3]>,
     fonts: BTreeMap<u32, String>,
     overrides: BTreeMap<Key, String>,
@@ -129,6 +132,9 @@ impl<'a> Evaluator<'a> {
     }
 
     pub fn new(document: &'a Document) -> Result<Self, Error> {
+        Self::with_cell_caps(document, MAX_CELLS, MAX_CELLS)
+    }
+    fn with_cell_caps(document: &'a Document, effective_cell_cap: usize, indexed_cell_cap: usize) -> Result<Self, Error> {
         if document.colors.len() > 65536 {
             return Err(Error::Limit);
         }
@@ -163,6 +169,8 @@ impl<'a> Evaluator<'a> {
             eval_depth: 0,
             eval_work: 0,
             indexed_name_bytes: 0,
+            effective_cell_cap,
+            indexed_cell_cap,
             overrides: BTreeMap::new(),
             override_bytes: 0,
             arguments: Vec::new(),
@@ -543,7 +551,7 @@ impl<'a> Evaluator<'a> {
         Ok(())
     }
     fn index_cell(&mut self, scope: Scope, name: String, cell: &'a Cell) -> Result<(), Error> {
-        if self.cells.len() >= MAX_CELLS || name.len() > 65536 {
+        if self.cells.len() >= self.indexed_cell_cap || name.len() > 65536 {
             return Err(Error::Limit);
         }
         self.indexed_name_bytes = self.indexed_name_bytes.checked_add(name.len()).ok_or(Error::Limit)?;
@@ -1971,7 +1979,7 @@ fn font_ids(document: &Document) -> Result<BTreeMap<u32, String>, Error> {
         let mut stack = vec![(root, 0usize)];
         while let Some((node, depth)) = stack.pop() {
             visited += 1;
-            if visited > 1_000_000 || depth > 128 {
+            if visited > MAX_THEME_NODES || depth > 128 {
                 return Err(Error::Limit);
             }
             if matches!(node.name.as_str(), "latin" | "ea" | "cs")
@@ -1991,7 +1999,7 @@ fn font_ids(document: &Document) -> Result<BTreeMap<u32, String>, Error> {
                 }
             }
             for child in node.elements() {
-                if stack.len() >= MAX_CELLS {
+                if stack.len() >= MAX_THEME_NODES {
                     return Err(Error::Limit);
                 }
                 stack.push((child, depth + 1));

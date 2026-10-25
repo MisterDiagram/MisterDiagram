@@ -1,5 +1,14 @@
 # Gaps
 
+## Evaluator construction limits (#97)
+
+M5.63 raises the effective-cell and indexed-cell bounds to 2,000,000. An
+original 1,949,602-cell inheritance workload renders and can be inspected,
+with a worst measured process peak of 1,392.22 MiB. The retention discussion
+in architecture records the measurements and their limits. Larger inheritance
+products still refuse construction; detailed structural refusal messages are
+the next milestone. Individual evaluated cell limits are unchanged.
+
 ## Stencil discovery (#71)
 
 M5.31 adds filename discovery through `MISTERDIAGRAM_STENCIL_PATH` and
