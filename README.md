@@ -8,10 +8,21 @@ Formerly DiagramCraft; renamed on 2026-10-16 out of respect for
 [DiagramCraft](https://github.com/DiagramCraft/diagram-craft), an older open-source diagram
 editor with that name.
 
-A clean-room, headless Rust core of Microsoft Visio. It opens .vsdx, .vssx and .vstx files, and their macro-enabled .vsdm, .vssm and .vstm variants with the VBA payload dropped,
-evaluates the ShapeSheet the way Visio does, renders pages and stencils to PNG, SVG and
+Tell Claude what you want drawn, in plain English, and get a real Visio .vsdx back.
+MisterDiagram has no GUI. Its interface is an MCP server (and a CLI for scripts), and its output
+is a file that opens in Visio without a repair prompt. "Make a flowchart of our onboarding
+process", "draw the org chart for these twelve people", "a network diagram with two offices, a
+firewall each and a VPN between them" become shapes dropped from stencils, glued connectors
+routed the way Visio routes them, and a .vsdx you can hand to whoever still has Visio.
+
+Under the hood it is a clean-room, headless Rust core of Microsoft Visio. It opens .vsdx, .vssx
+and .vstx files (and their macro-enabled .vsdm, .vssm and .vstm variants with the VBA payload
+dropped), evaluates the ShapeSheet the way Visio does, renders pages and stencils to PNG, SVG and
 PDF, writes files that Visio opens without repair, and authors drawings from commands: shapes,
-masters, shape data, glued connectors with orthogonal routing and line jumps. AI agents can use the same commands through the MCP stdio server. PowerPoint export is next. It is built in the mould of the Craft apps (deckcraft,
+masters, shape data, glued connectors with orthogonal routing and line jumps. Everything it
+claims is measured against Visio 2021's own output on the same files. PowerPoint export is next.
+Anyone who wants a GUI on top is welcome to build one: the licence is MIT or Apache-2.0, and the
+core is the part that has to be right. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and is offered to that project.
 
 **Download:** [MisterDiagram 0.1.0-alpha.6](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.6),
