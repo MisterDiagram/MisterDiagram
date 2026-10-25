@@ -25,8 +25,8 @@ Anyone who wants a GUI on top is welcome to build one: the licence is MIT or Apa
 core is the part that has to be right. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and shares their conventions.
 
-**Download:** [MisterDiagram 0.1.0-alpha.6](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.6),
-the sixth alpha (tester fixes: CHAR(), FORMAT language IDs, and a file that is not a ZIP is named for what it is: #89, #90, #94), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+**Download:** [MisterDiagram 0.1.0-alpha.7](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.7),
+the seventh alpha (two more recoveries from Microsoft's template catalogue: a shape whose size cannot be computed keeps the saved one, a text field that cannot be formatted draws the saved text: #96, #95), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -35,7 +35,7 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-10-24, 0.1.0-alpha.6)
+## What works today (2026-10-25, 0.1.0-alpha.7)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
@@ -87,24 +87,23 @@ Container/list formulas, text wrapping, larger-page routing, legacy formats,
 EMF+, compound line patterns, shadows, PowerPoint export and masters with several
 top-level shapes remain limited. Large-drawing authoring is slow
 ([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39); measurements in docs/gaps.md).
-From Microsoft's template catalogue, filed and open: a feet-and-inches text-field picture
-(#95), a master Height saved as `GUARD(REF())` (#96), the construction budget on a
-2,780-shape template (#97), `THEME()` with a colour argument (#88), the Text Callout cycle
-(#91), the `sheet` budget on very large templates (#92) and thin-line arrowheads (#93).
+From Microsoft's template catalogue, filed and open: the feet-and-inches text-field picture
+itself (#95; the field now draws its saved text), the construction budget on a 2,780-shape
+template (#97), `THEME()` with a colour argument (#88), the Text Callout cycle (#91), the
+`sheet` budget on very large templates (#92) and thin-line arrowheads (#93).
 
-## New in 0.1.0-alpha.6
+## New in 0.1.0-alpha.7
 
-Four small fixes from the first week of tester files. `CHAR()` is implemented, so labels
-built with `CHAR(10)` line breaks evaluate instead of reporting `#NAME?` (#89). `FORMAT` and
-`FORMATEX` accept every language ID, so files saved by a non-US Visio format their fields
-with the en-US picture rules instead of failing (#90); locale-specific pictures remain an
-approximation. A file that is not a ZIP at all, such as an HTML page saved as .vsdx, a
-legacy binary .vsd, an empty file or a PDF, is now named for what it is, quoting its first
-bytes, instead of the ZIP reader's "Could not find EOCD"; render, convert, info and the MCP
-server print the same line, and nothing that opened before is refused (#94). The corpus
-error-where-number ceilings fall to 29,115 cached and 1,094,960 COM. Everything else is
-unchanged from alpha.5: 85 of 85 native-opened field files render, every measured page
-distance is identical, and the hostile set's 27 exits are the same.
+Two more recoveries, so a page draws what Visio drew instead of stopping on a cell it cannot
+compute. A shape whose position or size formula errors keeps the value saved in the file, even
+where Visio itself recorded the error, because that is what Visio draws: the database-modelling
+masters' attribute rows (`Height=GUARD(REF())`) render instead of stopping the page (#96). A
+text field that cannot be formatted draws the text saved in the file, with one warning per
+field, under render, convert and export; strict evaluation still reports the error, and the
+feet-and-inches picture itself is still unimplemented (#95). The oracle never enables the
+fallback, so every corpus number is unchanged from alpha.6, as are the 85 of 85 field renders,
+their measured distances and the hostile set's 27 exits. Alpha.6 brought `CHAR()`, every
+FORMAT language ID, and a plain-words message for a file that is not a Visio package.
 
 ## Testers wanted
 
