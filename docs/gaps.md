@@ -13,6 +13,15 @@ strict sheet inspection and MCP retain this detail. Individual evaluated cell
 limits still print the ShapeSheet value `#LIMIT!`. Earlier independent theme
 and package-writer admission errors retain their own diagnostics.
 
+## Dependency graph saturation (#92)
+
+M5.66 keeps evaluation running when the dependency graph fills. New edges stop
+at the unchanged edge and name-byte caps; edits invalidate all cached values,
+and saves conservatively recompute queried caches. Small-cap original tests
+cover literals, inheritance, formulas, edit invalidation, snapshot rollback and
+save/re-read. M5.67 measures the full dumps and process memory. Formula-local
+work and depth refusals remain real cell errors; no evaluation guard was raised.
+
 ## Stencil discovery (#71)
 
 M5.31 adds filename discovery through `MISTERDIAGRAM_STENCIL_PATH` and

@@ -168,6 +168,20 @@ allocations or a universal upper bound. Retained session state can coexist with
 this work, so the retention estimator plus its reserve does not guarantee a
 2,048 MiB RSS maximum. Name, depth, theme and other independent limits remain.
 
+The dependency graph records at most 2,000,000 edges and 256 MiB of charged
+cell names. Reaching either cap stops new edge recording and marks the graph
+incomplete; evaluation continues. An edit then invalidates the whole value
+cache, and the writer conservatively recomputes queried caches. The
+indexed-cell cap bounds source-cell entries, but lazy default and virtual-cell
+aliases can also enter the value cache, which has no separate aggregate entry
+or byte cap. On Apple Silicon, full `sheet` inspection of two locally observed
+templates took 20.29/25.48 seconds and peaked at 1,357.56/1,381.00 MiB;
+`render --page 1` took 2.26/2.20 seconds and peaked at 813.33/754.23 MiB.
+The same original 1,949,602-cell synthetic took 28.60 seconds and 1,685.44 MiB
+for `sheet`, and 5.06 seconds and 1,039.09 MiB for rendering. All six peaks
+were below 2,048 MiB; these are measured workloads, not a universal cache or
+process-memory bound. Per-evaluation work and depth guards are unchanged.
+
 Each unique `Arc<Document>` contributes its retained nodes, actual picture bytes,
 twice its nonmedia source bytes, and 1 MiB of document overhead to the aggregate
 estimate. M5.34 charges shared PageContents/MasterContents nodes once across
