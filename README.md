@@ -23,7 +23,7 @@ masters, shape data, glued connectors with orthogonal routing and line jumps. Ev
 claims is measured against Visio 2021's own output on the same files. PowerPoint export is next.
 Anyone who wants a GUI on top is welcome to build one: the licence is MIT or Apache-2.0, and the
 core is the part that has to be right. It is built in the mould of the Craft apps (deckcraft,
-vectorcraft and their siblings) and is offered to that project.
+vectorcraft and their siblings) and shares their conventions.
 
 **Download:** [MisterDiagram 0.1.0-alpha.6](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.6),
 the sixth alpha (tester fixes: CHAR(), FORMAT language IDs, and a file that is not a ZIP is named for what it is: #89, #90, #94), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
