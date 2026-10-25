@@ -243,7 +243,7 @@ plain shape or dropped instance; no section/row creation is needed (#61).
 `MM`, `CM` or `FT`. Weight is converted to internal inches and its display unit
 is retained; `{"id":1,"weight":1.5,"units":"PT"}` writes a 1.5 point line. Units
 require weight. CLI `misterdiagram --version` prints the crate version, the build commit and the
-target triple (`misterdiagram 0.1.0-alpha.6 (0123456789ab, aarch64-apple-darwin)`; source builds say
+target triple (`misterdiagram 0.1.0-alpha.7 (0123456789ab, aarch64-apple-darwin)`; source builds say
 `unknown commit`); MCP serverInfo.version is the crate version alone. The office and SAN examples use the built-in semantic library.
 
 `layout.tree` accepts `root` plus ordered `edges: [[parent,child],...]`, or `root`

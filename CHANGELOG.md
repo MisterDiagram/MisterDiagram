@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.7
+
+Two more recoveries from the template catalogue, so a page draws what Visio drew instead of
+stopping on a cell it cannot compute.
 
 - **A shape whose position or size cannot be evaluated keeps the one saved in the file.**
   The transform cells (Width, Height, pins, angle, flips, 1-D endpoints and the text block's)
@@ -13,6 +16,12 @@
   stopping the page; strict evaluation still reports the error. The feet-and-inches picture
   itself is still unimplemented
   ([#95](https://github.com/MisterDiagram/MisterDiagram/issues/95)).
+
+Known gaps: the feet-and-inches picture family is still unimplemented (#95 stays open for it);
+the construction budget on a 2,780-shape template ([#97](https://github.com/MisterDiagram/MisterDiagram/issues/97)),
+`THEME()` with a colour argument (#88), the Text Callout cycle (#91), the `sheet` budget on very
+large templates (#92) and thin-line arrowheads (#93) are as listed under alpha.6; the alpha.5
+gaps still stand.
 
 ## 0.1.0-alpha.6
 
