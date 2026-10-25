@@ -88,9 +88,9 @@ EMF+, compound line patterns, shadows, PowerPoint export and masters with severa
 top-level shapes remain limited. Large-drawing authoring is slow
 ([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39); measurements in docs/gaps.md).
 From Microsoft's template catalogue, filed and open: the feet-and-inches text-field picture
-itself (#95; the field now draws its saved text), the construction budget on a 2,780-shape
-template (#97), `THEME()` with a colour argument (#88), the Text Callout cycle (#91), the
-`sheet` budget on very large templates (#92) and thin-line arrowheads (#93).
+itself (#95; the field now draws its saved text), `THEME()` with a colour argument (#88),
+the Text Callout cycle (#91), the `sheet` budget on very large templates (#92) and
+thin-line arrowheads (#93).
 
 ## New in 0.1.0-alpha.7
 

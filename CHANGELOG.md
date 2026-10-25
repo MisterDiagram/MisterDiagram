@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.1.0-alpha.8
+
+Larger inherited drawings render, and evaluator construction failures explain the limit
+([#97](https://github.com/MisterDiagram/MisterDiagram/issues/97)).
+
+- **The evaluator admits up to 2 million effective cells and 2 million indexed cells.**
+  A contributor-original drawing with 1,949,602 effective cells rendered successfully;
+  its largest measured process peak was 1,525.19 MiB during `sheet`, below the 2,048 MiB
+  default session ceiling. This is a measured workload, not a universal process-memory
+  guarantee; evaluator work is separate from the session's retention budget.
+- **A larger inheritance product still fails with a useful message.** Render, convert,
+  export, sheet and MCP name the construction limit, attempted count, cap and stage,
+  so the count shows how far the request exceeded the cap. Individual evaluated cells
+  still report the ShapeSheet value `#LIMIT!` when their own evaluation hits a limit.
+
+Known gaps: the feet-and-inches picture family is still unimplemented (#95 stays open for it);
+`THEME()` with a colour argument (#88), the Text Callout cycle (#91), the `sheet` budget on very
+large templates (#92) and thin-line arrowheads (#93) remain open. The alpha.5 gaps still stand;
+locale-specific number and date pictures remain an en-US approximation.
+
 ## 0.1.0-alpha.7
 
 Two more recoveries from the template catalogue, so a page draws what Visio drew instead of
