@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+- **A shape whose position or size cannot be evaluated keeps the one saved in the file.**
+  The transform cells (Width, Height, pins, angle, flips, 1-D endpoints and the text block's)
+  now take the saved value when their formula errors, even where Visio itself recorded the
+  error, because Visio draws the retained value in that case: the database-modelling masters'
+  attribute rows (`Height=GUARD(REF())`) render instead of stopping the page
+  ([#96](https://github.com/MisterDiagram/MisterDiagram/issues/96)).
+- **A text field that cannot be formatted draws the text saved in the file.** Render, convert
+  and export show what Visio last displayed, with a warning naming the field, instead of
+  stopping the page; strict evaluation still reports the error. The feet-and-inches picture
+  itself is still unimplemented
+  ([#95](https://github.com/MisterDiagram/MisterDiagram/issues/95)).
+
 ## 0.1.0-alpha.6
 
 Four small fixes from the first week of tester files, each verified against the corpus and

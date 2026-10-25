@@ -118,7 +118,7 @@ impl<'a> Evaluator<'a> {
         }
         let value = self.evaluate(scope, &reference);
         if let Some(e) = value.error() {
-            return Err(e);
+            return self.field_text_fallback(scope, &reference, e, saved);
         }
         let format = self.evaluate(scope, &indexed("Fields", "Format", row)).text();
         let text = if matches!(value, Value::Text(_)) || format.is_empty() || format == "esc(0)" {
@@ -126,7 +126,7 @@ impl<'a> Evaluator<'a> {
         } else {
             let expression = misterdiagram_sheet::Expr::Call {
                 name: "FORMAT".into(),
-                args: vec![misterdiagram_sheet::Expr::Reference(reference), misterdiagram_sheet::Expr::Text(format)],
+                args: vec![misterdiagram_sheet::Expr::Reference(reference.clone()), misterdiagram_sheet::Expr::Text(format)],
             };
             let mut context = super::BoundContext { evaluator: self, scope, origin: scope, cached: Value::Text(saved.into()) };
             let formatted = misterdiagram_sheet::evaluate(&expression, &mut context);
@@ -134,7 +134,7 @@ impl<'a> Evaluator<'a> {
                 saved.into()
             } else {
                 if let Some(e) = formatted.error() {
-                    return Err(e);
+                    return self.field_text_fallback(scope, &reference, e, saved);
                 }
                 formatted.text()
             }
@@ -143,6 +143,20 @@ impl<'a> Evaluator<'a> {
             return Err(Error::Limit);
         }
         Ok(text)
+    }
+    /// A text field that cannot be evaluated or formatted stops a strict evaluation; under
+    /// the cached fallback (render, convert, export) it draws the field text saved in the
+    /// file, the text Visio last displayed, and records the substitution (MisterDiagram#95:
+    /// a feet-and-inches picture the formatter does not know yet).
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/fld-element-text_type-complextypevisio-xml
+    fn field_text_fallback(&mut self, scope: Scope, reference: &str, error: Error, saved: &str) -> Result<String, Error> {
+        if !self.cached_fallback {
+            return Err(error);
+        }
+        if self.field_fallbacks.insert((scope, reference.to_string())) {
+            self.fallback_warning(scope, reference, &error, "used the field text saved in the file");
+        }
+        Ok(saved.into())
     }
     fn text_number(&mut self, scope: Scope, name: &str, default: f64) -> f64 {
         self.evaluate(scope, name).numeric().ok().filter(|v| v.is_finite() && v.abs() <= 1e6).unwrap_or(default)
@@ -507,6 +521,41 @@ mod tests {
         assert_eq!(e.text_string(scope, 0).unwrap(), "Total: 2.0");
         e.set_formula(scope, "Fields.Value", "3.5").unwrap();
         assert_eq!(e.text_body(scope).unwrap().paragraphs[0].text(), "Total: 3.5");
+    }
+    #[test]
+    fn unformattable_field_draws_the_saved_text_under_the_cached_fallback() {
+        // MisterDiagram#95: the Floor plan template's Distancing Circle formats Width with
+        // `<,FEET/INCH>0 u`; Visio saved "6 ft 0 in" in the field run.
+        use misterdiagram_model::{Cell, Row, Section};
+        let mut doc = document("<Text><fld IX='0'>6 ft 0 in</fld>\n</Text>");
+        doc.pages[0].shapes[0].sheet.cells.push(Cell { name: "Width".into(), value: Some("72".into()), ..Default::default() });
+        doc.pages[0].shapes[0].sheet.sections.push(Section {
+            name: "Field".into(),
+            rows: vec![Row {
+                index: Some(0),
+                cells: vec![
+                    Cell {
+                        name: "Value".into(),
+                        value: Some("72".into()),
+                        units: Some("FT".into()),
+                        formula: Some("Width".into()),
+                        ..Default::default()
+                    },
+                    Cell { name: "Format".into(), value: Some("<,FEET/INCH>0 u".into()), units: Some("STR".into()), ..Default::default() },
+                ],
+                ..Default::default()
+            }],
+            ..Default::default()
+        });
+        let scope = Scope::PageShape { page: 1, shape: 1 };
+        let mut strict = Evaluator::new(&doc).unwrap();
+        assert!(strict.text_body(scope).is_err());
+        assert_eq!(strict.take_fallback_warnings(), (vec![], 0));
+        let mut e = Evaluator::new(&doc).unwrap().with_cached_fallback();
+        assert_eq!(e.text_body(scope).unwrap().paragraphs[0].text(), "6 ft 0 in");
+        let (messages, count) = e.take_fallback_warnings();
+        assert_eq!(count, 1);
+        assert!(messages[0].ends_with(" Fields.Value: #VALUE!; used the field text saved in the file"), "{messages:?}");
     }
     #[test]
     fn indented_empty_field_keeps_composition_without_layout_whitespace() {

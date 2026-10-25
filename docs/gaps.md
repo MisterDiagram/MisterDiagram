@@ -91,7 +91,15 @@ flow built from the cross-functional flowchart and BPMN masters) failed with
   a cell that evaluates to an error and carries a saved value with no E attribute takes that
   value, and the scene warns once per cell ("page 0 shape 12 User.FirstHeadingExtend: #NAME?
   SHEET.5!LISTORDER; used the value saved in the file"). Oracle comparisons, `sheet`, the
-  inspection tools and the writer never enable it. On the sample, 10 cells fall back and the
+  inspection tools and the writer never enable it. Two classes take the saved value even
+  beside an E attribute, because Visio draws the retained value there: geometry and
+  Connections rows (#85), and from M5.62 the shape and text-block transform cells (#96: the
+  HR Management System template's Primary Key Attribute has `Height=GUARD(REF())` saved with
+  `#REF!` and 0.3889 in, and Visio lays the row out at 0.3889 in). A text field that cannot be
+  evaluated or formatted draws the field text saved in the `fld` run under the same fallback
+  (#95: the Floor plan template's `<,FEET/INCH>0 u` picture, saved as "6 ft 0 in"); the
+  picture itself stays unimplemented until Visio witnesses for the feet-and-inches family
+  exist. On the sample, 10 cells fall back and the
   page matches Visio's export on layout: title bar, both pools, every lane, task, gateway
   and connector route. The later native sweeps correct the initial fill diagnosis: these task fills have
   subtle gradients. M5.45 through M5.47 correct the washed-out gradient rendering

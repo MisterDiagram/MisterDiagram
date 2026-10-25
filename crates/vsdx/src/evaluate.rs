@@ -60,6 +60,9 @@ pub struct Evaluator<'a> {
     cached_fallback: bool,
     fallbacks: Vec<String>,
     fallback_count: usize,
+    /// Text fields already reported: field text is rebuilt on every measurement, and one
+    /// warning per field is the useful count.
+    field_fallbacks: BTreeSet<(Scope, String)>,
     failure_cell: Option<(Key, Error)>,
     diagnostic_serial: u64,
     last_cell: Option<Key>,
@@ -138,6 +141,7 @@ impl<'a> Evaluator<'a> {
             cached_fallback: false,
             fallbacks: Vec::new(),
             fallback_count: 0,
+            field_fallbacks: BTreeSet::new(),
             failure_cell: None,
             diagnostic_serial: 0,
             last_cell: None,
@@ -337,6 +341,7 @@ impl<'a> Evaluator<'a> {
         self.snapshot = None;
         self.fallbacks.clear();
         self.fallback_count = 0;
+        self.field_fallbacks.clear();
     }
     /// Substitute the file's saved value for a cell this evaluator cannot compute, and
     /// record each substitution. Renders of unedited files then show what Visio last drew
@@ -360,10 +365,41 @@ impl<'a> Evaluator<'a> {
             self.fallbacks.push(format!("{} {name}: {error}; {action}", self.scope_label(scope)));
         }
     }
+    /// Shape and text-block transform cells: Visio keeps the last computed position when the
+    /// formula errors (a master Height of `GUARD(REF())` is saved with `E="#REF!"` and the
+    /// retained value, and the shape is drawn at that height), so these take the saved value
+    /// even alongside an error attribute, like geometry rows (MisterDiagram#96).
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-transform-section
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/text-transform-section
+    fn transform_cell(key_name: &str) -> bool {
+        matches!(
+            key_name,
+            "width"
+                | "height"
+                | "pinx"
+                | "piny"
+                | "locpinx"
+                | "locpiny"
+                | "angle"
+                | "flipx"
+                | "flipy"
+                | "beginx"
+                | "beginy"
+                | "endx"
+                | "endy"
+                | "txtwidth"
+                | "txtheight"
+                | "txtpinx"
+                | "txtpiny"
+                | "txtlocpinx"
+                | "txtlocpiny"
+                | "txtangle"
+        )
+    }
     fn fallback_to_cached(&mut self, scope: Scope, key_name: &str, name: &str, value: Value) -> Value {
         let Value::Error(error) = &value else { return value };
         let style = inherit::style_cell(key_name);
-        let geometry = key_name.starts_with("geometry") || key_name.starts_with("connections.");
+        let geometry = key_name.starts_with("geometry") || key_name.starts_with("connections.") || Self::transform_cell(key_name);
         if let Some(cell) = self.cell(scope, key_name) {
             let source = self.local_inh_cell(scope, key_name).unwrap_or(cell);
             if source.value.is_some() && ((style || geometry) || (cell.error.is_none() && source.error.is_none())) {
@@ -2195,23 +2231,35 @@ mod tests {
                     error: Some("#DIV/0!".into()),
                     ..Default::default()
                 },
+                // MisterDiagram#96: a database-modelling master's attribute Height is
+                // `GUARD(REF())`, saved with E="#REF!" and the retained height Visio draws.
+                Cell {
+                    name: "Height".into(),
+                    value: Some("0.388939397515191".into()),
+                    formula: Some("GUARD(REF())".into()),
+                    error: Some("#REF!".into()),
+                    ..Default::default()
+                },
             ]),
             ..Default::default()
         };
         let mut plain = Evaluator::new(&doc).unwrap();
         assert!(matches!(plain.evaluate(Scope::Document, "Width"), Value::Error(Error::Unsupported(_))));
+        assert_eq!(plain.evaluate(Scope::Document, "Height"), Value::Error(Error::Ref));
         assert_eq!(plain.take_fallback_warnings(), (vec![], 0));
         let mut e = Evaluator::new(&doc).unwrap().with_cached_fallback();
         assert_eq!(e.evaluate(Scope::Document, "Width"), Value::Number(6.));
         assert!(matches!(e.evaluate(Scope::Document, "Unsaved"), Value::Error(Error::Unsupported(_))));
         assert_eq!(e.evaluate(Scope::Document, "SavedError"), Value::Error(Error::Div0));
+        assert_eq!(e.evaluate(Scope::Document, "Height"), Value::Number(0.388939397515191));
         let (messages, count) = e.take_fallback_warnings();
-        assert_eq!(count, 1);
-        assert_eq!(messages.len(), 1);
+        assert_eq!(count, 2);
+        assert_eq!(messages.len(), 2);
         assert!(
             messages[0].starts_with("document sheet User.Order: #NAME?") && messages[0].ends_with("; used the value saved in the file"),
             "{messages:?}"
         );
+        assert_eq!(messages[1], "document sheet Height: #REF!; used the value saved in the file");
         assert_eq!(e.take_fallback_warnings(), (vec![], 0));
     }
     #[test]
