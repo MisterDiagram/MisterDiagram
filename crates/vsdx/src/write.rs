@@ -88,6 +88,9 @@ fn build_parts_with_glue_host<'a>(
     if let Some(host) = glue {
         evaluator = evaluator.with_glue_host(host);
     }
+    build_parts_with_evaluator(doc, evaluator)
+}
+fn build_parts_with_evaluator<'a>(doc: &'a Document, evaluator: Evaluator<'a>) -> Result<WrittenParts, WriteError> {
     let source_state = source::SourceState::new(doc, &evaluator)?;
     let mut w = model::Writer { evaluator, source_state, warnings: vec![], warning_count: 0 };
     let mut parts = doc.parts.clone();
@@ -635,4 +638,34 @@ fn page_relation_id(page: &XmlElement) -> Option<&str> {
         .iter()
         .find(|(key, _)| key.rsplit(':').next() == Some("id") && rel.attribute_namespaces.get(key).is_some_and(|ns| ns == crate::ATTR_REL_NS))
         .map(|(_, value)| value.as_str())
+}
+
+#[cfg(test)]
+mod dependency_tests {
+    use super::*;
+
+    /// Contributor-original imported drawing: an unrelated formula fills the tiny
+    /// graph before the dependent formula is written after an edit.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+    #[test]
+    fn incomplete_graph_save_recomputes_cache_past_cap_without_limit_warning() {
+        fn cell(name: &str, value: &str, formula: Option<&str>) -> Cell {
+            Cell { name: name.into(), value: Some(value.into()), formula: formula.map(str::to_string), ..Default::default() }
+        }
+        let mut original = Document { main_part: "visio/document.xml".into(), ..Default::default() };
+        original.document_sheet.cells =
+            vec![cell("Width", "2", None), cell("Height", "3", None), cell("Fill", "4", Some("Height+1")), cell("Read", "4", Some("Width*2"))];
+        let bytes = write(&original).unwrap().bytes;
+        let mut edited = crate::import(&bytes).unwrap();
+        edited.document_sheet.cells.iter_mut().find(|c| c.name == "Width").unwrap().value = Some("7".into());
+        let mut evaluator = Evaluator::with_dependency_caps(&edited, 1, usize::MAX).unwrap().with_internal_cache_units();
+        assert_eq!(evaluator.evaluate_snapshot(Scope::Document, "Fill"), misterdiagram_sheet::Value::Number(4.));
+        let parts = build_parts_with_evaluator(&edited, evaluator).unwrap();
+        assert_eq!(parts.warning_count, 0, "{:?}", parts.warnings);
+        let reread = crate::import(&zip_parts::bytes(&parts.files).unwrap()).unwrap();
+        let dependent = reread.document_sheet.cells.iter().find(|c| c.name == "Read").unwrap();
+        assert_eq!(dependent.formula.as_deref(), Some("Width*2"));
+        assert_eq!(dependent.value.as_deref(), Some("14"));
+        assert_eq!(dependent.error, None);
+    }
 }

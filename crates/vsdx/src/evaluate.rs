@@ -57,6 +57,8 @@ struct Snapshot {
 }
 /// Local document evaluation with cached hooks, bounded dependencies and explicit error values.
 /// Master/style/default inheritance is layered on these scopes separately.
+/// An incomplete dependency graph never limits values. It costs whole-cache
+/// invalidation on edits and conservative dependency answers when saving.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references
 pub struct Evaluator<'a> {
     defer_text_metrics: bool,
@@ -108,7 +110,9 @@ pub struct Evaluator<'a> {
     dirty: BTreeSet<Key>,
     dependency_count: usize,
     dependency_bytes: usize,
-    graph_limited: bool,
+    graph_incomplete: bool,
+    dependency_edge_cap: usize,
+    dependency_name_cap: usize,
     stack: Vec<Key>,
     snapshot: Option<Snapshot>,
 }
@@ -133,6 +137,14 @@ impl<'a> Evaluator<'a> {
     /// https://learn.microsoft.com/en-us/office/vba/api/visio.font.id
     pub fn font_name(&self, index: u32) -> Option<&str> {
         self.fonts.get(&index).map(String::as_str)
+    }
+
+    #[cfg(test)]
+    pub(crate) fn with_dependency_caps(document: &'a Document, edges: usize, name_bytes: usize) -> Result<Self, BuildError> {
+        let mut evaluator = Self::new(document)?;
+        evaluator.dependency_edge_cap = edges;
+        evaluator.dependency_name_cap = name_bytes;
+        Ok(evaluator)
     }
 
     pub fn new(document: &'a Document) -> Result<Self, BuildError> {
@@ -186,7 +198,9 @@ impl<'a> Evaluator<'a> {
             dirty: BTreeSet::new(),
             dependency_count: 0,
             dependency_bytes: 0,
-            graph_limited: false,
+            graph_incomplete: false,
+            dependency_edge_cap: 2_000_000,
+            dependency_name_cap: 256 * 1024 * 1024,
             stack: Vec::new(),
             snapshot: None,
             fonts: font_ids(document)?,
@@ -347,7 +361,7 @@ impl<'a> Evaluator<'a> {
         self.dirty.clear();
         self.dependency_count = 0;
         self.dependency_bytes = 0;
-        self.graph_limited = false;
+        self.graph_incomplete = false;
         self.stack.clear();
         self.snapshot = None;
         self.fallbacks.clear();
@@ -842,7 +856,7 @@ impl<'a> Evaluator<'a> {
         if self.snapshot.is_some() || self.eval_depth != 0 {
             return Value::Error(Error::Value);
         }
-        let before = (self.override_bytes, self.assignments, self.revision, self.graph_limited);
+        let before = (self.override_bytes, self.assignments, self.revision, self.graph_incomplete);
         let dirty = self.dirty.clone();
         self.snapshot = Some(Snapshot::default());
         let result = self.evaluate(scope, name);
@@ -870,14 +884,14 @@ impl<'a> Evaluator<'a> {
             self.dependents.retain(|_, edges| !edges.is_empty());
             self.values.clear();
             self.dirty = dirty;
-            (self.override_bytes, self.assignments, self.revision, self.graph_limited) = before;
+            (self.override_bytes, self.assignments, self.revision, self.graph_incomplete) = before;
         }
         result
     }
     /// Whether the evaluated dependency closure intersects changed serialized inputs.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references
     pub(crate) fn depends_on_changed(&self, scope: Scope, name: &str, changed: &BTreeSet<(Scope, String)>, contexts: &BTreeSet<Scope>) -> bool {
-        if self.graph_limited {
+        if self.graph_incomplete {
             return true;
         }
         let mut pending = vec![Key { scope, name: name.to_ascii_lowercase() }];
@@ -903,7 +917,7 @@ impl<'a> Evaluator<'a> {
         self.context_epoch.set(self.context_epoch.get().saturating_add(1));
     }
     fn evaluate_inner(&mut self, scope: Scope, name: &str) -> Value {
-        if self.graph_limited || name.len() > 65536 || self.active.len() >= 128 || self.work >= 100_000 {
+        if name.len() > 65536 || self.active.len() >= 128 || self.work >= 100_000 {
             self.mark_context_dependent();
             return Value::Error(Error::Limit);
         }
@@ -988,7 +1002,6 @@ impl<'a> Evaluator<'a> {
         let value = self.coerce_numeric_cell(scope, &key.name, value);
         self.stack.pop();
         self.active.remove(&key);
-        let value = if self.graph_limited { Value::Error(Error::Limit) } else { value };
         let value = if self.cached_fallback { self.fallback_to_cached(scope, &key.name, name, value) } else { value };
         // ARG reads and transient depth/work refusals taint enclosing evaluations,
         // including IFERROR fallbacks. Preserve their historical outside-frame cache,
@@ -1027,6 +1040,10 @@ impl<'a> Evaluator<'a> {
         Ok(())
     }
     fn invalidate(&mut self, key: &Key) {
+        if self.graph_incomplete {
+            // A missing edge can connect any cached value to the edited cell.
+            self.values.clear();
+        }
         let mut pending = vec![key.clone()];
         let mut visited = BTreeSet::new();
         while let Some(key) = pending.pop() {
@@ -1205,22 +1222,25 @@ impl<'a> Evaluator<'a> {
         }
     }
     fn add_dependency_key(&mut self, target: Key) {
+        if self.graph_incomplete {
+            return;
+        }
         if let Some(caller) = self.stack.last().cloned() {
-            let edges = self.dependencies.entry(caller.clone()).or_default();
-            if !edges.contains(&target) {
-                let bytes = caller.name.len().saturating_add(target.name.len());
-                if self.dependency_count >= 2_000_000 || self.dependency_bytes.saturating_add(bytes) > 256 * 1024 * 1024 {
-                    self.graph_limited = true;
-                    return;
-                }
-                edges.insert(target.clone());
-                if let Some(snapshot) = self.snapshot.as_mut() {
-                    snapshot.edges.push((caller.clone(), target.clone()));
-                }
-                self.dependents.entry(target).or_default().insert(caller);
-                self.dependency_count += 1;
-                self.dependency_bytes += bytes;
+            if self.dependencies.get(&caller).is_some_and(|edges| edges.contains(&target)) {
+                return;
             }
+            let bytes = caller.name.len().saturating_add(target.name.len());
+            if self.dependency_count >= self.dependency_edge_cap || self.dependency_bytes.saturating_add(bytes) > self.dependency_name_cap {
+                self.graph_incomplete = true;
+                return;
+            }
+            self.dependencies.entry(caller.clone()).or_default().insert(target.clone());
+            if let Some(snapshot) = self.snapshot.as_mut() {
+                snapshot.edges.push((caller.clone(), target.clone()));
+            }
+            self.dependents.entry(target).or_default().insert(caller);
+            self.dependency_count += 1;
+            self.dependency_bytes += bytes;
         }
     }
     /// The V attribute is already in internal units. Character font names resolve to FaceNames indices.
@@ -2372,6 +2392,77 @@ mod tests {
         assert_eq!(e.evaluate(scope, "Width"), Value::Number(9.));
     }
     #[test]
+    fn incomplete_graph_keeps_literal_inherited_and_formula_values() {
+        let mut doc = fixture();
+        doc.pages[0].shapes[0].master = Some(5);
+        doc.pages[0].shapes[0].sheet.cells = vec![cell("Read", "0", Some("Width+1")), cell("Literal", "17", Some("17"))];
+        let scope = Scope::PageShape { page: 7, shape: 1 };
+        // Exercise both independent caps, including exact admission at the byte cap.
+        for (edges, bytes) in [(1, usize::MAX), (usize::MAX, 9)] {
+            let mut e = Evaluator::with_dependency_caps(&doc, edges, bytes).unwrap();
+            let first = e.evaluate(scope, "Read");
+            assert!(e.graph_incomplete);
+            assert_eq!(e.dependency_count, 1);
+            assert_eq!(e.dependency_bytes, 9);
+            let graph = (e.dependencies.clone(), e.dependents.clone());
+            e.clear_cache();
+            assert_eq!(e.evaluate(scope, "Literal"), Value::Number(17.));
+            assert_eq!(first, Value::Number(9.));
+            assert_eq!(e.evaluate(scope, "Width"), Value::Number(8.));
+            assert_eq!(e.evaluate(scope, "Read"), Value::Number(9.));
+            assert_eq!((e.dependencies.clone(), e.dependents.clone()), graph);
+            assert!(e.depends_on_changed(scope, "Literal", &BTreeSet::new(), &BTreeSet::new()));
+        }
+    }
+    #[test]
+    fn incomplete_graph_edit_discards_unrecorded_cached_dependents() {
+        let doc = Document {
+            document_sheet: sheet(vec![
+                cell("Width", "2", None),
+                cell("Height", "3", None),
+                cell("Read", "0", Some("Width+Height")),
+                cell("Other", "19", None),
+            ]),
+            ..Default::default()
+        };
+        let scope = Scope::Document;
+        let mut e = Evaluator::with_dependency_caps(&doc, 1, usize::MAX).unwrap();
+        assert_eq!(e.evaluate(scope, "Other"), Value::Number(19.));
+        assert!(!e.graph_incomplete);
+        assert_eq!(e.evaluate(scope, "Read"), Value::Number(5.));
+        assert!(e.graph_incomplete);
+        assert!(!e.dependents.contains_key(&Key { scope, name: "height".into() }));
+        e.set_formula(scope, "Height", "7").unwrap();
+        let discarded_all_values = e.values.is_empty();
+        assert_eq!(e.recalculate_dirty().iter().map(|r| r.1.as_str()).collect::<Vec<_>>(), vec!["height"]);
+        assert_eq!(e.evaluate(scope, "Read"), Value::Number(9.), "unrecorded dependency must not retain the old cached result");
+        assert!(discarded_all_values);
+        // Recorded dependencies still participate in the dirty closure.
+        e.set_formula(scope, "Width", "11").unwrap();
+        assert!(e.values.is_empty());
+        let dirty = e.recalculate_dirty();
+        assert_eq!(dirty.iter().map(|r| r.1.as_str()).collect::<Vec<_>>(), vec!["width", "read"]);
+        assert_eq!(e.evaluate(scope, "Read"), Value::Number(18.));
+    }
+    #[test]
+    fn incomplete_graph_snapshot_restores_flag_and_edges() {
+        let doc = Document {
+            document_sheet: sheet(vec![cell("Width", "2", None), cell("Query", "0", Some("SETF(GETREF(Width),9)+Width"))]),
+            ..Default::default()
+        };
+        for edges in [0, 1] {
+            let mut e = Evaluator::with_dependency_caps(&doc, edges, usize::MAX).unwrap();
+            for _ in 0..2 {
+                assert_eq!(e.evaluate_snapshot(Scope::Document, "Query"), Value::Number(9.));
+                assert!(!e.graph_incomplete);
+                assert!(e.dependencies.is_empty() && e.dependents.is_empty());
+                assert_eq!((e.dependency_count, e.dependency_bytes), (0, 0));
+                assert_eq!(e.evaluate(Scope::Document, "Width"), Value::Number(2.));
+            }
+        }
+    }
+
+    #[test]
     fn dirty_recalc_orders_dependencies_and_retains_unrelated_cache() {
         let mut doc = fixture();
         doc.pages[0].shapes[0].sheet.cells.extend([
@@ -2697,12 +2788,12 @@ mod tests {
         e.evaluate(scope, "Assign");
         assert_eq!(e.evaluate(scope, "Width"), Value::Number(9.));
         e.palette.insert(300, [1, 2, 3]);
-        e.graph_limited = true;
+        e.graph_incomplete = true;
         e.reset_evaluation();
         let mut fresh = Evaluator::new(&doc).unwrap();
         assert_eq!(e.palette, fresh.palette);
         assert!(e.overrides.is_empty() && e.dependencies.is_empty() && e.dirty.is_empty());
-        assert!(!e.graph_limited);
+        assert!(!e.graph_incomplete);
         assert_eq!(e.evaluate(scope, "Width"), fresh.evaluate(scope, "Width"));
         assert_eq!(e.evaluate(scope, "Height"), fresh.evaluate(scope, "Height"));
     }
