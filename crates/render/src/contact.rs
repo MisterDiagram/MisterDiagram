@@ -175,7 +175,7 @@ mod tests {
             ..Default::default()
         };
         doc.parts.insert("visio/theme/theme1.xml".into(), misterdiagram_model::Part { bytes: b"<notTheme/>".to_vec().into(), ..Default::default() });
-        for error in ["#VALUE!", "#LIMIT!"] {
+        for error in ["#VALUE!", "evaluator: colours cap of 65,536 exceeded while reading document colours (65,537 colours)"] {
             let (pixels, report) = render(&doc).unwrap();
             assert_eq!((report.rendered, report.blank, report.failed), (0, 0, 2));
             assert_eq!(report.warnings, [format!("master 1 M1: {error}"), format!("master 2 M2: {error}")]);

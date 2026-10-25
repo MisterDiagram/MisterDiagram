@@ -1,5 +1,6 @@
 //! Effective ShapeSheets retain borrowed source cells and explicit formula provenance.
-use super::{Cell, Error, Evaluator, Key, MAX_CELLS, MAX_SCOPES, NamedCell, Row, Scope, Section};
+use super::construction::{Bound, INHERIT_STAGE};
+use super::{BuildError, Cell, Error, Evaluator, Key, MAX_CELLS, MAX_SCOPES, NamedCell, Row, Scope, Section};
 use std::{
     cell::RefCell,
     collections::{BTreeMap, BTreeSet},
@@ -51,15 +52,16 @@ struct ConstructionBudget {
     name_bytes: usize,
 }
 impl ConstructionBudget {
-    fn charge(&mut self, sheet: &Effective<'_>, cell_cap: usize) -> Result<(), Error> {
-        let row_count = sheet.named_rows.values().try_fold(0usize, |n, rows| n.checked_add(rows.len()).ok_or(Error::Limit))?;
-        let cells = self.cells.checked_add(sheet.cells.len()).and_then(|n| n.checked_add(row_count)).ok_or(Error::Limit)?;
-        let bytes = sheet.cells.values().try_fold(self.name_bytes, |total, entry| total.checked_add(entry.named.name.len()).ok_or(Error::Limit))?;
-        let bytes = sheet.named_rows.values().flatten().try_fold(bytes, |total, row| total.checked_add(row.name.len()).ok_or(Error::Limit))?;
-        let bytes = sheet.named_rows.keys().try_fold(bytes, |total, (section, _)| total.checked_add(section.len()).ok_or(Error::Limit))?;
-        if cells > cell_cap || bytes > MAX_EFFECTIVE_NAME_BYTES {
-            return Err(Error::Limit);
-        }
+    fn charge(&mut self, sheet: &Effective<'_>, cell_cap: usize, scopes: usize) -> Result<(), BuildError> {
+        let cells_bound = Bound::new("effective cell budget", cell_cap, "cells", INHERIT_STAGE).scopes(scopes);
+        let names_bound = Bound::new("effective-name byte cap", MAX_EFFECTIVE_NAME_BYTES, "bytes", INHERIT_STAGE).scopes(scopes);
+        let row_count = sheet.named_rows.values().try_fold(0usize, |n, rows| cells_bound.add(n, rows.len()))?;
+        let cells = cells_bound.add(cells_bound.add(self.cells, sheet.cells.len())?, row_count)?;
+        let bytes = sheet.cells.values().try_fold(self.name_bytes, |total, entry| names_bound.add(total, entry.named.name.len()))?;
+        let bytes = sheet.named_rows.values().flatten().try_fold(bytes, |total, row| names_bound.add(total, row.name.len()))?;
+        let bytes = sheet.named_rows.keys().try_fold(bytes, |total, (section, _)| names_bound.add(total, section.len()))?;
+        cells_bound.check(cells)?;
+        names_bound.check(bytes)?;
         self.cells = cells;
         self.name_bytes = bytes;
         Ok(())
@@ -150,7 +152,7 @@ impl<'a> Evaluator<'a> {
     /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/74428617-9833-4d73-aa7f-f3a6f043a12d
     /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/59214758-549c-4f99-a4de-de2bf5fb08d3
     /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/64509af3-e393-4ac1-9474-949c50d4b06f
-    pub(super) fn install_inheritance(&mut self) -> Result<(), Error> {
+    pub(super) fn install_inheritance(&mut self) -> Result<(), BuildError> {
         self.inheritance.local_cells = self.cells.clone();
         self.master_links()?;
         let local_names = std::mem::take(&mut self.names);
@@ -161,6 +163,7 @@ impl<'a> Evaluator<'a> {
         for scope in &scopes {
             self.effective(*scope, &local_names, &mut resolved, &mut visiting, &mut count, 0)?;
         }
+        self.indexing_effective = true;
         self.cells.clear();
         self.names.clear();
         self.indexed_name_bytes = 0;
@@ -182,10 +185,10 @@ impl<'a> Evaluator<'a> {
                         index
                     } else {
                         while used.contains(&next) {
-                            next = next.checked_add(1).ok_or(Error::Limit)?;
+                            next = Bound::new("named-row slot cap", u32::MAX as usize, "slots", "indexing inherited rows").increment_id(next)?;
                         }
                         let index = next;
-                        next = next.checked_add(1).ok_or(Error::Limit)?;
+                        next = Bound::new("named-row slot cap", u32::MAX as usize, "slots", "indexing inherited rows").increment_id(next)?;
                         index
                     };
                     self.inheritance.named_rows.insert((scope, section.clone(), index, row.name), slot);
@@ -197,7 +200,7 @@ impl<'a> Evaluator<'a> {
         }
         Ok(())
     }
-    fn master_links(&mut self) -> Result<(), Error> {
+    fn master_links(&mut self) -> Result<(), BuildError> {
         for &scope in &self.shape_order {
             let Some(shape) = self.shapes.get(&scope) else { continue };
             let mut current = scope;
@@ -235,9 +238,8 @@ impl<'a> Evaluator<'a> {
             let Some(master) = self.document.masters.iter().find(|m| m.id == master_id) else { continue };
             let mut pending: Vec<_> = master.shapes.iter().collect();
             while let Some(shape) = pending.pop() {
-                if pending.len() >= MAX_SCOPES {
-                    return Err(Error::Limit);
-                }
+                // Include the current popped shape in the traversal frontier.
+                Bound::new("master traversal scope cap", MAX_SCOPES, "scopes", "linking master shapes").next(pending.len())?;
                 if !self.inheritance.remapping.contains_key(&(root, shape.id)) {
                     let deleted = self.shapes.get(&root).is_some_and(|instance| {
                         let mut stack: Vec<_> = instance.shapes.iter().collect();
@@ -255,7 +257,9 @@ impl<'a> Evaluator<'a> {
                         false
                     });
                     if !deleted {
-                        self.inheritance.omitted_master_children = self.inheritance.omitted_master_children.checked_add(1).ok_or(Error::Limit)?;
+                        self.inheritance.omitted_master_children =
+                            Bound::new("omitted master child count cap", usize::MAX, "children", "linking master shapes")
+                                .add(self.inheritance.omitted_master_children, 1)?;
                     }
                 }
                 pending.extend(shape.shapes.iter());
@@ -271,13 +275,12 @@ impl<'a> Evaluator<'a> {
         visiting: &mut BTreeSet<Scope>,
         count: &mut ConstructionBudget,
         depth: usize,
-    ) -> Result<Rc<Effective<'a>>, Error> {
+    ) -> Result<Rc<Effective<'a>>, BuildError> {
         if let Some(sheet) = memo.get(&scope) {
             return Ok(sheet.clone());
         }
-        if depth > 128 || count.cells > self.effective_cell_cap {
-            return Err(Error::Limit);
-        }
+        Bound::new("inheritance depth cap", 128, "levels", INHERIT_STAGE).scopes(self.sheets.len()).check(depth)?;
+        Bound::new("effective cell budget", self.effective_cell_cap, "cells", INHERIT_STAGE).scopes(self.sheets.len()).check(count.cells)?;
         if !visiting.insert(scope) {
             self.inheritance.errors.insert(scope, Error::Cycle);
             return Ok(Rc::new(Effective::default()));
@@ -335,14 +338,12 @@ impl<'a> Evaluator<'a> {
             }
         }
         if let Some(sheet) = self.sheets.get(&scope).copied() {
-            let mut row_name_bytes =
-                effective.named_rows.values().flatten().try_fold(0usize, |total, row| total.checked_add(row.name.len()).ok_or(Error::Limit))?;
-            row_name_bytes =
-                effective.named_rows.keys().try_fold(row_name_bytes, |total, (section, _)| total.checked_add(section.len()).ok_or(Error::Limit))?;
+            let names_bound = Bound::new("effective-name byte cap", MAX_EFFECTIVE_NAME_BYTES, "bytes", INHERIT_STAGE).scopes(self.sheets.len());
+            let name_bound = Bound::new("effective name byte cap", 65536, "bytes", INHERIT_STAGE).scopes(self.sheets.len());
+            let mut row_name_bytes = effective.named_rows.values().flatten().try_fold(0usize, |total, row| names_bound.add(total, row.name.len()))?;
+            row_name_bytes = effective.named_rows.keys().try_fold(row_name_bytes, |total, (section, _)| names_bound.add(total, section.len()))?;
             for section in &sheet.sections {
-                if section.name.len() > 65536 {
-                    return Err(Error::Limit);
-                }
+                name_bound.check(section.name.len())?;
                 let section_index = section.index.unwrap_or(0);
                 let section_key: (Rc<str>, u32) = (section.name.to_ascii_lowercase().into(), section_index);
                 if section.deleted {
@@ -363,15 +364,11 @@ impl<'a> Evaluator<'a> {
                         continue;
                     }
                     if let Some(name) = row.name.as_ref() {
-                        if name.len() > 65536 {
-                            return Err(Error::Limit);
-                        }
+                        name_bound.check(name.len())?;
                         let name = name.to_ascii_lowercase();
                         if !effective.named_rows.contains_key(&section_key) {
-                            row_name_bytes = row_name_bytes.checked_add(section_key.0.len()).ok_or(Error::Limit)?;
-                            if row_name_bytes > MAX_EFFECTIVE_NAME_BYTES {
-                                return Err(Error::Limit);
-                            }
+                            row_name_bytes = names_bound.add(row_name_bytes, section_key.0.len())?;
+                            names_bound.check(row_name_bytes)?;
                         }
                         let order = effective.named_rows.entry(section_key.clone()).or_default();
                         if row.deleted {
@@ -388,13 +385,9 @@ impl<'a> Evaluator<'a> {
                                 existing.index = row.index;
                             }
                         } else {
-                            if order.len() >= MAX_CELLS {
-                                return Err(Error::Limit);
-                            }
-                            row_name_bytes = row_name_bytes.checked_add(name.len()).ok_or(Error::Limit)?;
-                            if row_name_bytes > MAX_EFFECTIVE_NAME_BYTES {
-                                return Err(Error::Limit);
-                            }
+                            Bound::new("named-row cap", MAX_CELLS, "rows", INHERIT_STAGE).next(order.len())?;
+                            row_name_bytes = names_bound.add(row_name_bytes, name.len())?;
+                            names_bound.check(row_name_bytes)?;
                             order.push(NamedRow { name: name.into(), index: row.index });
                         }
                     }
@@ -446,7 +439,7 @@ impl<'a> Evaluator<'a> {
         // Names are shared before any memo/ancestor clone, so fan-out cannot allocate
         // copies proportional to name length. Charge each persisted effective sheet
         // against the same aggregate logical-name bound used by the final index.
-        count.charge(&effective, self.effective_cell_cap)?;
+        count.charge(&effective, self.effective_cell_cap, self.sheets.len())?;
         visiting.remove(&scope);
         let effective = Rc::new(effective);
         memo.insert(scope, effective.clone());
@@ -653,10 +646,13 @@ fn same_section(original: Option<&Section>, local: &Section) -> bool {
     original.is_some_and(|s| s.name.eq_ignore_ascii_case(&local.name) && s.index.unwrap_or(0) == local.index.unwrap_or(0))
 }
 
-fn merge_geometry<'a>(geometry: &mut BTreeMap<u32, BTreeMap<u32, GeometryRow<'a>>>, section: &'a Section) -> Result<(), Error> {
+fn merge_geometry<'a>(geometry: &mut BTreeMap<u32, BTreeMap<u32, GeometryRow<'a>>>, section: &'a Section) -> Result<(), BuildError> {
     let rows = geometry.entry(section.index.unwrap_or(0)).or_default();
     for (position, row) in section.rows.iter().enumerate() {
-        let index = row.index.unwrap_or(u32::try_from(position).map_err(|_| Error::Limit)?);
+        let index = row.index.unwrap_or(
+            u32::try_from(position)
+                .map_err(|_| Bound::new("geometry row index cap", u32::MAX as usize, "indices", INHERIT_STAGE).exceeded(position as u128))?,
+        );
         if row.deleted {
             rows.remove(&index);
             continue;
@@ -674,9 +670,7 @@ fn merge_geometry<'a>(geometry: &mut BTreeMap<u32, BTreeMap<u32, GeometryRow<'a>
             effective.cells.retain(|c| !c.name.eq_ignore_ascii_case(&cell.name));
             effective.cells.push(cell);
         }
-        if rows.len() > MAX_CELLS {
-            return Err(Error::Limit);
-        }
+        Bound::new("geometry row cap", MAX_CELLS, "rows", INHERIT_STAGE).check(rows.len())?;
     }
     Ok(())
 }
@@ -806,8 +800,14 @@ mod tests {
             ..Default::default()
         };
         assert!(Evaluator::with_cell_caps(&doc, 6, 6).is_ok());
-        assert!(matches!(Evaluator::with_cell_caps(&doc, 5, 6), Err(Error::Limit)));
-        assert!(matches!(Evaluator::with_cell_caps(&doc, 6, 5), Err(Error::Limit)));
+        assert!(matches!(Evaluator::with_cell_caps(&doc, 5, 6).map_err(Error::from), Err(Error::Limit)));
+        assert!(matches!(Evaluator::with_cell_caps(&doc, 6, 5).map_err(Error::from), Err(Error::Limit)));
+        let effective = Evaluator::with_cell_caps(&doc, 5, 6).err().unwrap().to_string();
+        assert_eq!(effective, "evaluator: effective cell budget of 5 exceeded while building shape inheritance (6 scopes, 6 cells)");
+        let indexed = Evaluator::with_cell_caps(&doc, 6, 5).err().unwrap().to_string();
+        assert_eq!(indexed, "evaluator: indexed cell cap of 5 exceeded while indexing effective cells (6 scopes, 6 cells)");
+        let source = Evaluator::with_cell_caps(&doc, 6, 1).err().unwrap().to_string();
+        assert_eq!(source, "evaluator: indexed cell cap of 1 exceeded while indexing source cells (6 scopes, 2 cells)");
     }
     #[test]
     fn hostile_style_fanout_is_bounded_before_memo_name_clones() {
@@ -821,7 +821,10 @@ mod tests {
             }],
             ..Default::default()
         };
-        assert!(matches!(Evaluator::new(&doc), Err(Error::Limit)));
+        assert!(matches!(Evaluator::new(&doc).map_err(Error::from), Err(Error::Limit)));
+        let error = Evaluator::new(&doc).err().unwrap().to_string();
+        assert!(error.contains("effective-name byte cap of 67,108,864 exceeded while building shape inheritance"), "{error}");
+        assert!(error.contains("1,503 scopes") && error.contains("67,144,494 bytes"), "{error}");
         // A memo clone shares both the normalized map key and canonical name, including
         // while a child is still under construction and has not charged its quota yet.
         let source = &doc.styles.first().unwrap().sheet.cells[0];
@@ -834,8 +837,8 @@ mod tests {
         assert!(Rc::ptr_eq(&key, cloned_key));
         assert!(Rc::ptr_eq(&entry.named, &cloned_entry.named));
         let mut budget = ConstructionBudget { cells: 0, name_bytes: MAX_EFFECTIVE_NAME_BYTES - source.name.len() };
-        assert!(budget.charge(&effective, MAX_CELLS).is_ok());
-        assert_eq!(budget.charge(&effective, MAX_CELLS), Err(Error::Limit));
+        assert!(budget.charge(&effective, MAX_CELLS, 1).map_err(Error::from).is_ok());
+        assert_eq!(budget.charge(&effective, MAX_CELLS, 1).map_err(Error::from), Err(Error::Limit));
         assert_eq!(budget.name_bytes, MAX_EFFECTIVE_NAME_BYTES);
     }
     #[test]
@@ -1094,7 +1097,7 @@ mod tests {
     fn hostile_style_chain_is_bounded() {
         let styles = (0..140).map(|id| Style { id, line_style: (id < 139).then_some(id + 1), ..Default::default() }).collect();
         let doc = Document { styles, ..Default::default() };
-        assert!(matches!(Evaluator::new(&doc), Err(Error::Limit)));
+        assert!(matches!(Evaluator::new(&doc).map_err(Error::from), Err(Error::Limit)));
     }
     #[test]
     fn corpus_basic_rect_and_probe_inheritance_witnesses() {

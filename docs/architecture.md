@@ -154,13 +154,14 @@ The evaluator admits at most 2,000,000 effective cells (including named-row
 charges) and 2,000,000 indexed cells, independently of session retention. On
 Apple Silicon, release CLI measurements with `/usr/bin/time -l` used an original
 400-cell master and 4,873 instances: 1,949,602 effective/indexed cells, 4,877
-scopes. PNG rendering peaked at 991,199,232 bytes (508.4 bytes/effective cell),
-and full `sheet` inspection at 1,459,847,168 bytes (748.8 bytes/cell). A locally
+scopes. Across the initial and repeat measurements, PNG rendering peaked at
+1,105,526,784 bytes (567.1 bytes/effective cell),
+and full `sheet` inspection at 1,599,275,008 bytes (820.3 bytes/cell). A locally
 observed two-page template had 1,117,833 effective cells, 1,077,919 indexed cells
-and 3,738 scopes: PNG peaks were 786,825,216 and 842,563,584 bytes (703.9 and
-753.7 bytes/effective cell), SVG 793,526,272 bytes (709.9 bytes/cell), and `sheet`
-1,428,422,656 bytes (1,277.8 bytes/cell). The worst observed peak was 1,392.22
-MiB, below a rounded 1,400 MiB measurement envelope and the 2,048 MiB default
+and 3,738 scopes: PNG peaks were 797,179,904 and 856,817,664 bytes (713.1 and
+766.5 bytes/effective cell), SVG 803,864,576 bytes (719.1 bytes/cell), and `sheet`
+1,428,422,656 bytes (1,277.8 bytes/cell). The worst observed peak was 1,525.19
+MiB, below a rounded 1,536 MiB measurement envelope and the 2,048 MiB default
 ceiling, but well above the 512 MiB transient reserve. These process peaks
 include parsing and rendering or evaluation; they are not isolated evaluator
 allocations or a universal upper bound. Retained session state can coexist with

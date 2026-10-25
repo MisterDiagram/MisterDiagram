@@ -256,7 +256,7 @@ pub fn page(document: &Document, index: usize, options: Options) -> Result<Scene
 pub fn page_budgeted(document: &Document, index: usize, options: Options, budget: &mut SceneBudget) -> Result<Scene, String> {
     let themes = misterdiagram_theme::Themes::from_document(document).map_err(|e| e.to_string())?;
     let host = misterdiagram_text::Host;
-    let evaluator = Evaluator::new(document).map_err(|e| format!("document sheet index: {e}"))?.with_theme_host(&themes).with_text_host(&host);
+    let evaluator = Evaluator::new(document).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&host);
     let mut evaluator = if options.cached_fallback { evaluator.with_cached_fallback() } else { evaluator };
     page_prepared_budgeted(&mut evaluator, index, options, budget)
 }
@@ -319,7 +319,7 @@ fn page_prepared_budgeted(evaluator: &mut Evaluator<'_>, index: usize, options: 
 pub fn master(document: &Document, index: usize, options: Options) -> Result<Scene, String> {
     let themes = misterdiagram_theme::Themes::from_document(document).map_err(|e| e.to_string())?;
     let host = misterdiagram_text::Host;
-    let evaluator = Evaluator::new(document).map_err(|e| format!("document sheet index: {e}"))?.with_theme_host(&themes).with_text_host(&host);
+    let evaluator = Evaluator::new(document).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&host);
     let mut evaluator = if options.cached_fallback { evaluator.with_cached_fallback() } else { evaluator };
     master_prepared(&mut evaluator, index, options)
 }
@@ -998,7 +998,7 @@ fn dash_elements(path: &BezPath, stroke: &kurbo::Stroke) -> Result<usize, String
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml
 pub fn validate_foreign_parts(document: &Document, selection: misterdiagram_vsdx::dump::Selection) -> Result<(), String> {
     use misterdiagram_vsdx::dump::Selection;
-    let e = Evaluator::new(document).map_err(|error| format!("document sheet index: {error}"))?;
+    let e = Evaluator::new(document).map_err(|error| error.to_string())?;
     let page = if let Selection::Page(n) = selection {
         Some(
             document

@@ -2,6 +2,9 @@
 use misterdiagram_model::{Cell, Document, Row, Section, Shape, Sheet};
 use misterdiagram_sheet::{Context, Error, Value};
 use std::collections::{BTreeMap, BTreeSet};
+mod construction;
+pub use construction::BuildError;
+use construction::{Bound, FONT_STAGE, SOURCE_STAGE};
 mod defaults;
 mod diagnostics;
 mod geometry;
@@ -90,6 +93,7 @@ pub struct Evaluator<'a> {
     indexed_name_bytes: usize,
     effective_cell_cap: usize,
     indexed_cell_cap: usize,
+    indexing_effective: bool,
     palette: BTreeMap<u32, [u8; 3]>,
     fonts: BTreeMap<u32, String>,
     overrides: BTreeMap<Key, String>,
@@ -131,13 +135,11 @@ impl<'a> Evaluator<'a> {
         self.fonts.get(&index).map(String::as_str)
     }
 
-    pub fn new(document: &'a Document) -> Result<Self, Error> {
+    pub fn new(document: &'a Document) -> Result<Self, BuildError> {
         Self::with_cell_caps(document, MAX_CELLS, MAX_CELLS)
     }
-    fn with_cell_caps(document: &'a Document, effective_cell_cap: usize, indexed_cell_cap: usize) -> Result<Self, Error> {
-        if document.colors.len() > 65536 {
-            return Err(Error::Limit);
-        }
+    fn with_cell_caps(document: &'a Document, effective_cell_cap: usize, indexed_cell_cap: usize) -> Result<Self, BuildError> {
+        Bound::new("colours cap", 65536, "colours", "reading document colours").check(document.colors.len())?;
         let mut result = Self {
             theme_host: None,
             text_host: None,
@@ -171,6 +173,7 @@ impl<'a> Evaluator<'a> {
             indexed_name_bytes: 0,
             effective_cell_cap,
             indexed_cell_cap,
+            indexing_effective: false,
             overrides: BTreeMap::new(),
             override_bytes: 0,
             arguments: Vec::new(),
@@ -477,10 +480,9 @@ impl<'a> Evaluator<'a> {
         self.values.clear();
         self
     }
-    fn add_shapes(&mut self, shapes: &'a [Shape], parent: Scope) -> Result<(), Error> {
-        if shapes.len() > MAX_SCOPES {
-            return Err(Error::Limit);
-        }
+    fn add_shapes(&mut self, shapes: &'a [Shape], parent: Scope) -> Result<(), BuildError> {
+        let scopes = Bound::new("scope cap", MAX_SCOPES, "scopes", "registering shape scopes");
+        scopes.check(shapes.len())?;
         let mut pending: Vec<_> = shapes.iter().rev().map(|s| (s, 0usize, parent)).collect();
         while let Some((shape, depth, shape_parent)) = pending.pop() {
             // Deleted master-child markers have no live sheet identity. Visio may repeat
@@ -488,13 +490,12 @@ impl<'a> Evaluator<'a> {
             if shape.sheet.attributes.get("Del").is_some_and(|v| v == "1" || v == "true") {
                 continue;
             }
-            if depth > 128 || self.shapes.len() >= MAX_SCOPES {
-                return Err(Error::Limit);
-            }
+            Bound::new("shape depth cap", 128, "levels", "registering shape scopes").check(depth)?;
+            scopes.next(self.shapes.len())?;
             let scope = match parent {
                 Scope::Page(page) => Scope::PageShape { page, shape: shape.id },
                 Scope::Master(master) => Scope::MasterShape { master, shape: shape.id },
-                _ => return Err(Error::Ref),
+                _ => return Err(BuildError::other(Error::Ref)),
             };
             // Visio retains the first XML-order shape for a repeated page-scoped ID.
             // Keep the source document intact; later occurrences have no evaluator identity.
@@ -507,20 +508,16 @@ impl<'a> Evaluator<'a> {
             self.parents.insert(scope, shape_parent);
             self.add_sheet(scope, &shape.sheet)?;
             for s in shape.shapes.iter().rev() {
-                if pending.len() >= MAX_SCOPES {
-                    return Err(Error::Limit);
-                }
+                Bound::new("pending shape scope cap", MAX_SCOPES, "scopes", "registering shape scopes").next(pending.len())?;
                 pending.push((s, depth + 1, scope));
             }
         }
         Ok(())
     }
-    fn add_sheet(&mut self, scope: Scope, sheet: &'a Sheet) -> Result<(), Error> {
-        if self.sheets.len() >= MAX_SCOPES {
-            return Err(Error::Limit);
-        }
+    fn add_sheet(&mut self, scope: Scope, sheet: &'a Sheet) -> Result<(), BuildError> {
+        Bound::new("scope cap", MAX_SCOPES, "scopes", "registering sheets").next(self.sheets.len())?;
         if self.sheets.insert(scope, sheet).is_some() {
-            return Err(Error::Value);
+            return Err(BuildError::other(Error::Value));
         }
         let mut names = vec![];
         for c in &sheet.cells {
@@ -530,7 +527,7 @@ impl<'a> Evaluator<'a> {
             if section.deleted {
                 continue;
             }
-            let prefix = section_prefix(section)?;
+            let prefix = section_prefix(section).map_err(|e| construction::section_error(e, section))?;
             for c in &section.cells {
                 self.add_cell(scope, format!("{prefix}.{}", c.name), c, Some(section), None, &mut names)?;
             }
@@ -542,7 +539,7 @@ impl<'a> Evaluator<'a> {
                     continue;
                 }
                 for c in &row.cells {
-                    let name = cell_name(section, row, position, c)?;
+                    let name = cell_name(section, row, position, c).map_err(|e| construction::cell_name_error(e, section, row, position))?;
                     self.add_cell(scope, name.clone(), c, Some(section), Some(row), &mut names)?;
                 }
             }
@@ -550,14 +547,13 @@ impl<'a> Evaluator<'a> {
         self.names.insert(scope, names);
         Ok(())
     }
-    fn index_cell(&mut self, scope: Scope, name: String, cell: &'a Cell) -> Result<(), Error> {
-        if self.cells.len() >= self.indexed_cell_cap || name.len() > 65536 {
-            return Err(Error::Limit);
-        }
-        self.indexed_name_bytes = self.indexed_name_bytes.checked_add(name.len()).ok_or(Error::Limit)?;
-        if self.indexed_name_bytes > 64 * 1024 * 1024 {
-            return Err(Error::Limit);
-        }
+    fn index_cell(&mut self, scope: Scope, name: String, cell: &'a Cell) -> Result<(), BuildError> {
+        let stage = if self.indexing_effective { "indexing effective cells" } else { SOURCE_STAGE };
+        Bound::new("indexed cell cap", self.indexed_cell_cap, "cells", stage).scopes(self.sheets.len()).next(self.cells.len())?;
+        Bound::new("cell name byte cap", 65536, "bytes", stage).check(name.len())?;
+        let names = Bound::new("indexed-name byte cap", 64 * 1024 * 1024, "bytes", stage).scopes(self.sheets.len());
+        self.indexed_name_bytes = names.add(self.indexed_name_bytes, name.len())?;
+        names.check(self.indexed_name_bytes)?;
         let key = Key { scope, name: name.to_ascii_lowercase() };
         self.cells.insert(key, cell);
         Ok(())
@@ -570,7 +566,7 @@ impl<'a> Evaluator<'a> {
         section: Option<&'a Section>,
         row: Option<&'a Row>,
         names: &mut Vec<NamedCell<'a>>,
-    ) -> Result<(), Error> {
+    ) -> Result<(), BuildError> {
         self.index_cell(scope, name.clone(), cell)?;
         names.push(NamedCell { name, cell, section, row });
         Ok(())
@@ -1934,10 +1930,10 @@ fn project_cell_point(cell: &Cell, value: Value) -> Value {
 /// identify Calibri as 4. Other FaceNames retain collision-free document-local IDs; those
 /// IDs are not yet a complete Windows font-profile observation.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/font-function
-fn font_ids(document: &Document) -> Result<BTreeMap<u32, String>, Error> {
-    if document.face_names.len() > 65536 {
-        return Err(Error::Limit);
-    }
+fn font_ids(document: &Document) -> Result<BTreeMap<u32, String>, BuildError> {
+    let faces = Bound::new("face cap", 65536, "faces", FONT_STAGE);
+    let ids = Bound::new("face identity cap", u32::MAX as usize, "identities", FONT_STAGE);
+    faces.check(document.face_names.len())?;
     let mut fonts = BTreeMap::new();
     if let Some(name) = document.face_names.values().find(|n| n.eq_ignore_ascii_case("Calibri")) {
         fonts.insert(4, name.clone());
@@ -1948,7 +1944,7 @@ fn font_ids(document: &Document) -> Result<BTreeMap<u32, String>, Error> {
         }
         let mut id = *preferred;
         while fonts.contains_key(&id) {
-            id = id.checked_add(1).ok_or(Error::Limit)?;
+            id = ids.increment_id(id)?;
         }
         fonts.insert(id, name.clone());
     }
@@ -1964,44 +1960,39 @@ fn font_ids(document: &Document) -> Result<BTreeMap<u32, String>, Error> {
             continue;
         }
         theme_count += 1;
-        theme_bytes = theme_bytes.checked_add(part.bytes.len()).ok_or(Error::Limit)?;
-        if theme_count > 256 || theme_bytes > 32 * 1024 * 1024 || part.bytes.len() > 4 * 1024 * 1024 {
-            return Err(Error::Limit);
-        }
+        let bytes = Bound::new("theme byte cap", 32 * 1024 * 1024, "bytes", FONT_STAGE);
+        theme_bytes = bytes.add(theme_bytes, part.bytes.len())?;
+        Bound::new("theme count cap", 256, "themes", FONT_STAGE).check(theme_count)?;
+        bytes.check(theme_bytes)?;
+        Bound::new("individual theme byte cap", 4 * 1024 * 1024, "bytes", FONT_STAGE).check(part.bytes.len())?;
         let parsed;
         let root = match part.xml.as_deref() {
             Some(root) => root,
             None => {
-                parsed = crate::parse_xml(&part.bytes).map_err(|e| Error::Parse(e.to_string()))?;
+                parsed = crate::parse_xml(&part.bytes).map_err(|e| BuildError::other(Error::Parse(e.to_string())))?;
                 &parsed
             }
         };
         let mut stack = vec![(root, 0usize)];
         while let Some((node, depth)) = stack.pop() {
             visited += 1;
-            if visited > MAX_THEME_NODES || depth > 128 {
-                return Err(Error::Limit);
-            }
+            Bound::new("theme node cap", MAX_THEME_NODES, "nodes", FONT_STAGE).check(visited)?;
+            Bound::new("theme depth cap", 128, "levels", FONT_STAGE).check(depth)?;
             if matches!(node.name.as_str(), "latin" | "ea" | "cs")
                 && let Some(name) = node.attr("typeface").filter(|name| !name.is_empty() && !name.starts_with('+'))
             {
-                if name.len() > 4096 {
-                    return Err(Error::Limit);
-                }
+                Bound::new("face name byte cap", 4096, "bytes", FONT_STAGE).check(name.len())?;
                 if registered.insert(name.to_ascii_lowercase()) {
                     while fonts.contains_key(&next_id) {
-                        next_id = next_id.checked_add(1).ok_or(Error::Limit)?;
+                        next_id = ids.increment_id(next_id)?;
                     }
-                    if next_id > 65535 || fonts.len() >= 65536 {
-                        return Err(Error::Limit);
-                    }
+                    Bound::new("theme face identity cap", 65535, "identities", FONT_STAGE).check(next_id as usize)?;
+                    faces.next(fonts.len())?;
                     fonts.insert(next_id, name.to_owned());
                 }
             }
             for child in node.elements() {
-                if stack.len() >= MAX_THEME_NODES {
-                    return Err(Error::Limit);
-                }
+                Bound::new("pending theme node cap", MAX_THEME_NODES, "nodes", FONT_STAGE).next(stack.len())?;
                 stack.push((child, depth + 1));
             }
         }
