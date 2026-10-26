@@ -31,6 +31,8 @@ fn generated_svg_resvg_and_pdf_text() {
             let xml = svg::render(&scene, options).unwrap();
             let tree = resvg::usvg::Tree::from_str(&xml, &resvg::usvg::Options::default()).unwrap();
             let mut pixels = resvg::tiny_skia::Pixmap::new(png.width(), png.height()).unwrap();
+            // The SVG page is transparent like Visio's export; the raster paints a white page.
+            pixels.fill(resvg::tiny_skia::Color::WHITE);
             resvg::render(&tree, resvg::tiny_skia::Transform::identity(), &mut pixels.as_mut());
             let sum: u64 = png
                 .pixels()
@@ -98,6 +100,7 @@ fn svg_thin_closed_stroke_matches_the_raster_pen() {
     let xml = svg::render(&scene, options).unwrap();
     let tree = resvg::usvg::Tree::from_str(&xml, &resvg::usvg::Options::default()).unwrap();
     let mut pixels = resvg::tiny_skia::Pixmap::new(png.width(), png.height()).unwrap();
+    pixels.fill(resvg::tiny_skia::Color::WHITE);
     resvg::render(&tree, resvg::tiny_skia::Transform::identity(), &mut pixels.as_mut());
     let error: u64 = png.pixels().zip(pixels.pixels()).map(|(a, b)| u64::from(a.0[0].abs_diff(b.red()))).sum();
     let mad = error as f64 / (f64::from(png.width()) * f64::from(png.height()));

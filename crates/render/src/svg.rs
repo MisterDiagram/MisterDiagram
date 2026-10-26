@@ -49,9 +49,9 @@ fn image(out: &mut String, pixels: &image::RgbaImage, m: Affine, nearest: bool) 
 }
 pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
     let (w, h, view) = scene.canvas(options)?;
-    let mut out = format!(
-        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{w}\" height=\"{h}\" viewBox=\"0 0 {w} {h}\"><rect width=\"100%\" height=\"100%\" fill=\"white\"/>"
-    );
+    // No background element: Visio's SVG export leaves the page transparent
+    // (private corpus field/vahegan-2026-10-26 x2.svg, MisterDiagram#101).
+    let mut out = format!("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{w}\" height=\"{h}\" viewBox=\"0 0 {w} {h}\">");
     for (i, op) in scene.ops.iter().enumerate() {
         match op {
             Op::Bounds(_) => {}

@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+Three render fixes from the first batch of real company files
+([#87](https://github.com/MisterDiagram/MisterDiagram/issues/87)), each checked against Visio.
+
+- **Guides are no longer drawn.** A page with a guide (a view-only `Guide` shape with an
+  infinite dotted line) failed `render` and `convert` outright with `scene path limit (dash
+  expansion)`, because the line was expanded over a 20,000 in extent. Visio never prints or
+  exports guides, so the scene skips them; an infinite line on an ordinary shape is now
+  clipped to the page before its dashes are counted
+  ([#107](https://github.com/MisterDiagram/MisterDiagram/issues/107)).
+- **No line ends on closed paths.** A rectangle whose sheet carries `EndArrow` or
+  `BeginArrow` drew an arrowhead at its corner. Visio draws line ends on open paths only
+  ([#105](https://github.com/MisterDiagram/MisterDiagram/issues/105)).
+- **Transparent SVG page.** `convert` and the MCP `export` tool wrote a page-sized white
+  rectangle behind the drawing; Visio's own SVG export has none, so it is gone. PNG output
+  keeps its white page ([#101](https://github.com/MisterDiagram/MisterDiagram/issues/101)).
+
 ## 0.1.0-alpha.9
 
 Very large templates no longer report `#LIMIT!` just because dependency tracking is full

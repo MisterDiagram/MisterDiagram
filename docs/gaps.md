@@ -2077,6 +2077,29 @@ master types retain their observed classifications. Numeric scale cases and the
 three frozen example packages remain unchanged. Evidence:
 `plan/brief31c/mastertype-native-diagnostic.json`.
 
+## Field batch 2026-10-26: guides, closed-path line ends, SVG background (#107, #105, #101)
+
+Three findings from a tester's company files (MisterDiagram#87), each witnessed in Visio 2021
+build 16.0.20430 before the fix (private corpus `field/vahegan-2026-10-26/`):
+
+- Visio's page export omits `Type="Guide"` shapes (the witness SVG lists every other shape
+  on the page and neither guide). The scene now skips guides. Their `InfiniteLine` row,
+  dotted (`LinePattern` 23) and hairline, had been expanded over the renderer's 20,000 in
+  extent and exceeded the four-million dash budget, failing the whole file. Infinite lines on
+  ordinary shapes are clipped to the page (seen through the inverse shape transform, widened
+  by one inch) before dash counting; masters and non-invertible transforms keep the old
+  extent. Guide alignment cells (`AlignCenter`, `AlignTop`, `AlignBottom`) use `INTERSECTX`
+  and `INTERSECTY`, which are not implemented; under the cached fallback they take the saved
+  value with a warning, strict evaluation reports `#NAME?`.
+- Visio draws no line ends on a closed geometry path: the tester's rectangle with
+  `EndArrow=5` has a clean corner in Visio, and a synthetic box with both arrows set shows
+  none while a 1-D line beside it shows its arrow. The scene drops the arrow cells for any
+  geometry whose path closes.
+- Visio's SVG export has no background element. The SVG writer no longer emits the
+  page-sized white rectangle; the raster page stays white.
+
+Regression tests: `crates/render/tests/guides_line_ends.rs`.
+
 M5.29g replaces only the historical blank window control with a hashed blank
 captured in the same scheduled run. Comparing identical post-f inputs removes
 all 26 window differences: 33 become seven, with no drawing changes. Numeric

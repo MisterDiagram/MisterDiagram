@@ -171,6 +171,22 @@ impl Scene {
         ))
     }
 }
+/// Local-coordinate extent an InfiniteLine row is clipped to: the page, seen through the
+/// inverse shape transform and widened by one inch, or the historical 20,000 in square when
+/// there is no page (masters) or the transform cannot be inverted.
+fn infinite_line_clip(shape_to_page: Affine, page: Option<Rect>) -> Rect {
+    const FALLBACK: Rect = Rect::new(-1e4, -1e4, 1e4, 1e4);
+    let Some(page) = page.filter(|r| r.width() > 0. && r.height() > 0. && r.width().is_finite() && r.height().is_finite()) else {
+        return FALLBACK;
+    };
+    let det = shape_to_page.determinant();
+    if !det.is_finite() || det.abs() < 1e-12 {
+        return FALLBACK;
+    }
+    let local = shape_to_page.inverse().transform_rect_bbox(page).inflate(1., 1.);
+    let inside = [local.x0, local.y0, local.x1, local.y1].iter().all(|v| v.is_finite() && v.abs() <= 1e4);
+    if inside { local } else { FALLBACK }
+}
 fn number(e: &mut Evaluator<'_>, scope: Scope, name: &str, default: f64) -> f64 {
     e.evaluate(scope, name).numeric().ok().filter(|n| n.is_finite() && n.abs() <= 1e6).unwrap_or(default)
 }
@@ -489,6 +505,12 @@ fn shapes(
         if shape.sheet.attributes.get("Del").is_some_and(|d| d == "1") {
             continue;
         }
+        // Guides are view-only: Visio's page export omits them (private corpus
+        // field/vahegan-2026-10-26 reg.svg, MisterDiagram#107).
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
+        if shape.shape_type.as_deref() == Some("Guide") {
+            continue;
+        }
         if scene.ops.len() > 100_000 {
             return Err("render operation limit".into());
         }
@@ -540,7 +562,16 @@ fn shapes(
             begin_size: number(e, scope, "BeginArrowSize", 2.).max(0.) as u32,
             end_size: number(e, scope, "EndArrowSize", 2.).max(0.) as u32,
         };
-        let geometries = e.geometry_paths(scope, Rect::new(-1e4, -1e4, 1e4, 1e4)).map_err(|error| e.render_error(scope, "geometry", error))?;
+        // Infinite lines only need to reach the page edges; clipping them there keeps a
+        // dotted one inside the dash budget (MisterDiagram#107).
+        let page_clip = match parent {
+            Scope::Page(page) => {
+                Some(Rect::new(0., 0., number(e, Scope::Page(page), "PageWidth", 0.), number(e, Scope::Page(page), "PageHeight", 0.)))
+            }
+            _ => None,
+        };
+        let clip = infinite_line_clip(e.shape_to_page(scope).map_err(|error| e.render_error(scope, "transform", error))?, page_clip);
+        let geometries = e.geometry_paths(scope, clip).map_err(|error| e.render_error(scope, "geometry", error))?;
         // Visible Geometry sections form one fill, including oppositely wound holes.
         // https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section
         let mut combined_fill = BezPath::new();
@@ -600,6 +631,12 @@ fn shapes(
         }
         for geometry in geometries {
             let path = style::round_rectangle(&geometry.path, line.rounding);
+            // Line ends belong to open paths: Visio draws none on a closed one, whatever
+            // BeginArrow and EndArrow say (private corpus field/vahegan-2026-10-26
+            // closed-arrow.vsdx, MisterDiagram#105).
+            // https://learn.microsoft.com/en-us/office/client-developer/visio/endarrow-cell-line-format-section
+            let closed = path.elements().iter().any(|el| matches!(el, kurbo::PathEl::ClosePath));
+            let line = if closed { Line { begin_arrow: 0, end_arrow: 0, ..line.clone() } } else { line.clone() };
             if !path.elements().is_empty() && (geometry.filled() && fill.pattern != 0 || geometry.stroked() && line.pattern != 0) {
                 let bounds = if geometry.stroked() && line.pattern != 0 {
                     let mut solid = line.stroke();

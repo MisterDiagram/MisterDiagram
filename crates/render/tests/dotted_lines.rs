@@ -32,7 +32,7 @@ fn svg_pixels(drawing: &scene::Scene, options: scene::Options) -> image::RgbaIma
 fn runs(pixels: &image::RgbaImage) -> Vec<(usize, usize)> {
     let mut ink = vec![false; pixels.width() as usize];
     for (x, _, pixel) in pixels.enumerate_pixels() {
-        if pixel[0] < 254 {
+        if pixel[3] > 0 && pixel[0] < 254 {
             ink[x as usize] = true;
         }
     }
