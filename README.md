@@ -25,8 +25,8 @@ Anyone who wants a GUI on top is welcome to build one: the licence is MIT or Apa
 core is the part that has to be right. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and shares their conventions.
 
-**Download:** [MisterDiagram 0.1.0-alpha.9](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.9),
-the eighth alpha (the evaluator admits 2 million effective cells, so the last failing file from the template batch renders, and a file past the cap is told which limit and by how much: #97), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+**Download:** [MisterDiagram 0.1.0-alpha.10](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.10),
+the ninth alpha (three render fixes from the first batch of real company files: a guide no longer fails the whole file, closed shapes carry no arrowheads, the SVG page is transparent: #107, #105, #101), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -35,7 +35,7 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-10-26, 0.1.0-alpha.9)
+## What works today (2026-10-26, 0.1.0-alpha.10)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
@@ -90,20 +90,25 @@ top-level shapes remain limited. Large-drawing authoring is slow
 From Microsoft's template catalogue, filed and open: the feet-and-inches text-field picture
 itself (#95; the field now draws its saved text), `THEME()` with a colour argument (#88),
 the Text Callout cycle (#91), thin-line arrowheads (#93) and the `sheet` exit status after a
-complete dump of a drawing with an undeterminable embedded picture (#100).
+complete dump of a drawing with an undeterminable embedded picture (#100). From the first batch
+of real company files, filed and open: an edit reroutes every connector on its page, including
+unglued ones, and drops their line jumps (#104); symbol characters set in Segoe UI Symbol draw
+as the missing-glyph box (#106); SVG text is exported as outlines rather than `<text>` (#102).
 
-## New in 0.1.0-alpha.9
+## New in 0.1.0-alpha.10
 
-Very large templates no longer report `#LIMIT!` just because dependency tracking is full (#92).
-The evaluator records at most 2 million dependency edges; reaching that cap used to make every
-later cell report `#LIMIT!` (336,253 cells of Microsoft's social-distancing template, 1,068,519
-of the Floor plans template, every cell from one shape onward). Now the graph is marked
-incomplete and evaluation continues: both `sheet` dumps come out with no `#LIMIT!` at all and
-every earlier row unchanged, in 20 to 25 seconds at under 1.4 GB. Edits under an incomplete
-graph discard the whole value cache and saves recompute what they query, so nothing stale is
-written. Per-formula limits are unchanged. Every corpus number, the 85 of 85 field renders and
-the hostile set's 27 exits are unchanged from alpha.8, which raised the cell caps to 2 million
-and named the limit, count and stage when a file exceeds them (#97).
+Three render fixes from a tester's working drawings, each checked against Visio 2021 before
+and after. A page with a guide (a view-only `Guide` shape with an infinite dotted line) used to
+fail `render` and `convert` outright with `scene path limit (dash expansion)`; Visio never
+prints or exports guides, so they are skipped, and an infinite line on an ordinary shape is
+clipped to the page before its dashes are counted (#107; the same change makes 22 masters in
+11 Microsoft stencils render that had failed before). A closed shape whose sheet carries
+`EndArrow` or `BeginArrow` drew an arrowhead at its corner; Visio draws line ends on open paths
+only, and so do we now (#105). The SVG writer no longer puts a page-sized white rectangle
+behind the drawing, matching Visio's transparent export; PNG keeps its white page (#101). Every
+corpus number is unchanged from alpha.9 apart from those 22 recovered masters; alpha.9 itself
+made evaluation continue when the dependency graph fills, so very large templates no longer
+report `#LIMIT!` (#92).
 
 ## Testers wanted
 

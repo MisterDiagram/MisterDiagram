@@ -1,9 +1,15 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.10
 
 Three render fixes from the first batch of real company files
 ([#87](https://github.com/MisterDiagram/MisterDiagram/issues/87)), each checked against Visio.
+Still open from that batch: an edit reroutes every connector on its page
+([#104](https://github.com/MisterDiagram/MisterDiagram/issues/104)), symbol characters set in
+Segoe UI Symbol draw as the missing-glyph box
+([#106](https://github.com/MisterDiagram/MisterDiagram/issues/106)), SVG text is exported as
+outlines ([#102](https://github.com/MisterDiagram/MisterDiagram/issues/102)), and
+`INTERSECTX`/`INTERSECTY` on guide-aligned shapes take the saved value with a warning.
 
 - **Guides are no longer drawn.** A page with a guide (a view-only `Guide` shape with an
   infinite dotted line) failed `render` and `convert` outright with `scene path limit (dash
