@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.1.0-alpha.9
+
+Very large templates no longer report `#LIMIT!` just because dependency tracking is full
+([#92](https://github.com/MisterDiagram/MisterDiagram/issues/92)).
+
+- **Formula evaluation continues when the dependency graph fills.** The evaluator records at
+  most 2 million dependency edges (and 256 MiB of cell names). Before, reaching that cap made
+  every later cell report `#LIMIT!`: on Microsoft's social-distancing template `sheet` printed
+  it for 336,253 cells, on the Floor plans template for 1,068,519, every cell from one shape
+  onward. Now the graph is marked incomplete and evaluation goes on; both dumps come out with
+  no `#LIMIT!` at all and every earlier row unchanged. After an edit under an incomplete graph
+  the whole value cache is discarded rather than trusting a partial dependency record, and
+  saving recomputes the caches it queries. Per-formula work and depth limits are unchanged, so
+  a cell whose own formula hits a limit still reports `#LIMIT!`.
+- **Measured, not asserted.** On Apple Silicon `sheet` on the two templates takes 20 and 25
+  seconds and peaks at 1,358 and 1,381 MiB; `render --page 1` takes about 2 seconds; a
+  1,949,602-cell synthetic dump peaks at 1,685 MiB. These are measured workloads, not a
+  guarantee. Every corpus number, the 85 of 85 field renders and the hostile set's 27 exits are
+  unchanged from alpha.8.
+
+Known gaps: `sheet` still exits 1 after writing a complete dump when an embedded picture's
+format cannot be determined, where render recovers with a warning
+([#100](https://github.com/MisterDiagram/MisterDiagram/issues/100)). The feet-and-inches
+picture family is still unimplemented (#95 stays open for it); `THEME()` with a colour argument
+(#88), the Text Callout cycle (#91) and thin-line arrowheads (#93) remain open. The alpha.5
+gaps still stand; locale-specific number and date pictures remain an en-US approximation.
+
 ## 0.1.0-alpha.8
 
 Larger inherited drawings render, and evaluator construction failures explain the limit

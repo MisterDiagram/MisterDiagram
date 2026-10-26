@@ -25,7 +25,7 @@ Anyone who wants a GUI on top is welcome to build one: the licence is MIT or Apa
 core is the part that has to be right. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and shares their conventions.
 
-**Download:** [MisterDiagram 0.1.0-alpha.8](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.8),
+**Download:** [MisterDiagram 0.1.0-alpha.9](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.9),
 the eighth alpha (the evaluator admits 2 million effective cells, so the last failing file from the template batch renders, and a file past the cap is told which limit and by how much: #97), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
@@ -35,7 +35,7 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-10-25, 0.1.0-alpha.8)
+## What works today (2026-10-26, 0.1.0-alpha.9)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
@@ -89,23 +89,21 @@ top-level shapes remain limited. Large-drawing authoring is slow
 ([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39); measurements in docs/gaps.md).
 From Microsoft's template catalogue, filed and open: the feet-and-inches text-field picture
 itself (#95; the field now draws its saved text), `THEME()` with a colour argument (#88),
-the Text Callout cycle (#91), the `sheet` budget on very large templates (#92) and
-thin-line arrowheads (#93).
+the Text Callout cycle (#91), thin-line arrowheads (#93) and the `sheet` exit status after a
+complete dump of a drawing with an undeterminable embedded picture (#100).
 
-## New in 0.1.0-alpha.8
+## New in 0.1.0-alpha.9
 
-Larger inherited drawings render. The evaluator's two cell caps (the construction budget and
-the indexed-cell cap, one constant) are now 2 million effective cells, measured rather than
-asserted: a synthetic document just under the cap peaks at about 1.1 GB for a page render and
-1.6 GB for a full `sheet` dump, under the 2 GiB default session ceiling, and
-docs/architecture.md says so, including that this is well past the 512 MiB transient reserve.
-Microsoft's Floor plans template (2,780 shapes, 1.1 million effective cells) converts in two
-seconds and both pages match Visio's export. A file past the cap now fails with the limit, the
-count and the stage ("effective cell budget of 2,000,000 exceeded while building shape
-inheritance (5,104 scopes, 2,000,002 cells)") from render, convert, export, sheet and the MCP
-tools alike, instead of a bare `#LIMIT!` (#97). Every corpus number, the 85 of 85 field
-renders, their distances and the hostile set's 27 exits are unchanged from alpha.7. Alpha.7
-brought the saved-value recoveries for transform cells and text fields (#96, #95).
+Very large templates no longer report `#LIMIT!` just because dependency tracking is full (#92).
+The evaluator records at most 2 million dependency edges; reaching that cap used to make every
+later cell report `#LIMIT!` (336,253 cells of Microsoft's social-distancing template, 1,068,519
+of the Floor plans template, every cell from one shape onward). Now the graph is marked
+incomplete and evaluation continues: both `sheet` dumps come out with no `#LIMIT!` at all and
+every earlier row unchanged, in 20 to 25 seconds at under 1.4 GB. Edits under an incomplete
+graph discard the whole value cache and saves recompute what they query, so nothing stale is
+written. Per-formula limits are unchanged. Every corpus number, the 85 of 85 field renders and
+the hostile set's 27 exits are unchanged from alpha.8, which raised the cell caps to 2 million
+and named the limit, count and stage when a file exceeds them (#97).
 
 ## Testers wanted
 
