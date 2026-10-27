@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-26: M5.71 (#104) scopes routing to glue/endpoints, moved-placeable crossover for code 0, and explicit/page policy requests. Nine synthetic tests and the five observed changed-connector sets pass with untouched Shape bytes preserved. M5.72 closure remains open on literal helper output and strict fabric example cell ordering; no release is claimed.
+
 - 2026-10-24: M5.60 (#89, #90) implements CHAR() and accepts every FORMAT language ID (en-US picture rules); the error-where-number ceilings fall to 29,115 cached and 1,094,960 COM, cached text-metric matches 62,147 to 62,348.
 
 - 2026-10-24: M5.53 (#81) separates errors where numeric witnesses exist and pins cached/COM ceilings at 31,386/1,095,070. Strict identity and font corrections improve selected cells; native visual and broad master parity remain incomplete. Original regression tests cover three discovery findings.

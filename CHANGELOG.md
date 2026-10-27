@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Moving an unrelated label no longer rewrites every connector on its page
+  ([#104](https://github.com/MisterDiagram/MisterDiagram/issues/104)). Routing
+  follows changed glue/endpoints or a moved placeable crossing a free connector.
+  Untouched connector Shape XML, bends and jumps retain their original bytes.
+  Explicit routing, layout and page routing settings keep their existing scope.
+
 ## 0.1.0-alpha.10
 
 Three render fixes from the first batch of real company files

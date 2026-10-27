@@ -294,11 +294,17 @@ note under that ruling. The node limit is not a replacement for source-byte caps
 Phase 4 glue is a route-owned HostHooks implementation injected into the VSDX
 evaluator. The sheet crate stays model-independent. Session edits compare target
 transforms, free endpoints, walking preferences and parent frames with their
-snapshot, invalidate glue triggers, evaluate endpoints and regenerate straight
-Geometry rows before publishing. Existing imported endpoint caches survive
-unrelated edits. Grouped connector endpoints are in parent coordinates, as the
-BeginX/BeginY contract requires. The CLI command registry and generator scripts
-use this same session path.
+snapshot. M5.71 selects writes by changed glue/endpoints, a moved placeable crossing
+an existing free connector route, or an explicit/page routing policy request.
+Unselected connectors remain immutable lane and crossing context. Jump updates
+compare old and new crossings, including unglued dynamic connectors. Capacity
+outcomes come only from selected routing work. ConFixedCode 2 retains interior
+geometry while terminals follow glue; crossover alone selects only code 0.
+Grouped endpoints and obstacle bounds are compared in page space, with endpoints
+serialized in parent coordinates. The writer preserves unchanged Shape source
+bytes on edited pages through bounded token spans and equal, shared namespace
+contexts. UTF-16 pages retain their original endian encoding.
+The CLI command registry and generator scripts use this same session path.
 
 Attribute parsing disables quick-xml's quadratic duplicate scan and checks raw qualified names in a hash set before retaining values. Duplicates remain errors. No new cap is needed; the corpus maximum remains 44 attributes on one element.
 

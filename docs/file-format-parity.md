@@ -234,6 +234,15 @@ the other measured files use 2012/main. Container inspection accepts both exact 
 
 ## Observed, undocumented
 
+M5.71 (#104), Visio 2021 build 16.0.20527: placing an obstacle across an
+unglued connector reroutes ConFixedCode 0, but leaves codes 2 and 3 unchanged.
+The public [ConFixedCode reference](https://learn.microsoft.com/en-us/office/client-developer/visio/confixedcode-cell-shape-layout-section)
+names code 3 as reroute on crossover; that label alone does not specify this
+shape-movement event. The witnessed event takes precedence. Evidence is private:
+`../diagramcraft-corpus/field/route-scope-2026-10-26/d2-E-movers-on-paths.vsdx`.
+The event table and scope limits are recorded in [gaps.md](gaps.md).
+
+
 ### M5.52: cached foreign-object pictures and icons (#86)
 
 Primary image decoder resource refusals remain errors: operation, memory, byte

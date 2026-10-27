@@ -369,3 +369,13 @@ Reference: https://learn.microsoft.com/en-us/office/vba/api/visio.shape.reroute
   Contributor-written transform, connector and font save/capture tests cover
   the implemented rules. Reference:
   <https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function>.
+
+
+## M5.71 routing scope
+
+Orthogonal routing and line jumps remain P. Ordinary edits select connectors by
+changed glue/endpoints or a moved placeable crossing a free route. Unrelated
+connector Shape XML remains byte-identical, including authored bends and jumps.
+Explicit routing and layout retain their established scope. The geometry sweep
+and its known jump-packing gap still bound the feature. See [engine.md](engine.md)
+and [gaps.md](gaps.md) for the reason rule and witness table.

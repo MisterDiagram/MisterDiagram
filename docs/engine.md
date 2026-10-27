@@ -20,14 +20,38 @@ assignment effects and bounded-analysis exhaustion also cancel it. Text metric
 references cancel exclusion for text edits. This deliberately considers more
 formula users than a routing-only dependency graph.
 
-An edit that changes geometry, position or connection points keeps the existing
-full evaluated page dependency closure. This includes both old and new obstacle
-bounds and every route corridor, as well as formula-dependent target transforms.
-The fallback is intentionally broad: the orthogonal visibility graph uses obstacle
-edges beyond the current polyline, and strict publication also materializes
-connector controls. A merely disjoint current polyline is not a proof of independence.
-Page layout, document cells, theme/part changes and uncertain dependencies likewise
-retain that closure. Forced reroutes bypass the exclusion proof.
+Geometry, topology and uncertain formula effects cancel the fast exclusion proof,
+so their evaluated dependencies are still checked. M5.71 selects connector writes
+by reason within that transaction:
+
+1. Changed glue, a changed glued target or ancestor transform, or changed endpoint
+   cells selects that connector. ConFixedCode 2 retains its path and updates only
+   terminal coordinates. Codes 1 and 3 retain their existing glue behavior.
+2. A placeable shape whose placement bounds changed selects only ConFixedCode 0
+   connectors whose saved route polyline intersects its new bounds with routing
+   clearance. ObjType 1 is placeable; zero uses the existing glue promotion rule;
+   groups flagged 8 include their placeable descendants. Moving an obstacle away
+   or moving an unrelated label does not request a reroute.
+3. Explicit `route.reroute`, layout commands and page routing policy changes keep
+   their existing routing extent, including explicit lane assignment. Page policy
+   includes RouteStyle, LineJump*, PlowCode, LineToNode*, LineToLine*, BlockSize*,
+   AvoidPageBreaks and PageWidth/Height.
+
+Unrequested routes are immutable context during ordinary edits. They are not
+speculatively solved, assigned lanes or given new capacity outcomes. The jump pass
+uses both old and new crossings and includes unglued ObjType 2 connectors. It
+changes only routed connectors and neighbors whose crossings changed; ObjType 0
+lines are excluded. Untouched Geometry, formulas, controls and complete Shape XML
+remain as opened. The writer copies equal Shape subtrees from their original byte
+spans only when their namespace context is unchanged, within existing XML limits.
+Namespace copy/comparison work is bounded, and UTF-16 pages keep their encoding.
+Undo, redo and rollback retain the existing document-identity validation contract;
+placement evidence is local to preparation, with no persistent signature cache.
+
+The same transaction may reuse up to 4,096 numeric predecessor endpoint entries
+when predecessor evaluation has no assignment or contextual effects. Saturation
+falls back to normal evaluation. Current endpoints always evaluate with active
+glue hooks, so indirect endpoint and trigger references remain observable.
 
 Within preparation, endpoints sharing a target reuse its evaluated bounds and
 connection points in one evaluator epoch. SETF assignments and contextual hook
@@ -255,3 +279,6 @@ back. Visio preserved nine routes within 1e-6 inch, all 18 Connects and five
 shared intervals, including the style 17 trunk of connectors 14/15 at y=3.75,
 length 0.875 inch. This supplies the SimpleNS exemption evidence independently
 of the restricted style 0/1 lane rule.
+
+The explicit `sheet.set ShapeRouteStyle` command requests a targeted reroute,
+retaining the established capacity retry and one-step undo behavior.

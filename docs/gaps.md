@@ -430,10 +430,11 @@ evaluates and writes the whole growing file. #39 stays open.
 
 Strict publication records a weak identity for its validated predecessor. Proven
 independent presentation, text and Shape Data edits can exclude all connectors;
-any geometry, connection-point, topology, page/document or uncertain formula
-change retains the full dependency closure. This includes old and new obstacle
-bounds, route corridors and indirect formula users. Empty connector sets avoid
-rerouting evaluators after geometry validation. Shared glue targets reuse bounds
+geometry, connection-point, topology, page/document or uncertain formula changes
+retain evaluated dependency validation. M5.71 narrows subsequent route writes to
+named reasons: changed glue/endpoints, moved-placeable crossover for code 0, or
+explicit/page routing policy requests. Empty connector sets avoid rerouting
+evaluators after geometry validation. Shared glue targets reuse bounds
 only within the same evaluator epoch, with a bounded cache and recomputation on
 assignment or contextual effects. See [the engine rule](engine.md).
 
@@ -2116,3 +2117,38 @@ Evidence: `plan/brief31/vm-final-accept-report.json`, the hashed same-run contro
 receipt in `plan/brief31c/window-control-receipt.json`, and the native rules in
 `docs/file-format-parity.md`. The multi-root master and other named gaps above
 remain open.
+
+
+### M5.71 / M5.72: routing scope by reason (#104)
+
+Private observations: `../diagramcraft-corpus/field/route-scope-2026-10-26/`.
+Visio 2021 build 16.0.20527, observed 2026-10-26. The five edits select:
+
+| Event | Edit | Changed connectors |
+|---|---|---|
+| A | Move nonplaceable labels, ObjType 4 and contextual 0 | None |
+| B | Move a placeable label away from routes | None |
+| C | Placeable bounds cross an unglued free connector | 6 |
+| D | Move a glued target | 4 |
+| E | Cross unglued connectors with codes 0, 2 and 3 | 1 (code 0) |
+
+Unchanged connectors retain complete Shape XML bytes, including authored bends,
+MoveTo components and ArcTo jumps. Ordinary edits cannot expand through lane
+assignment. Jumps update only when a routed connector or a changed crossing
+requires them. Explicit route/layout/page policy operations retain their existing
+extent. Other shape-local policy edits and moving an obstacle away require explicit
+rerouting when no glue or endpoint reason exists. See [engine.md](engine.md).
+
+The scope witness gates do not gate the geometry of the three selected routes;
+the established router sweep remains the geometry contract. The known three-jump
+packing gap and unwitnessed code 1/3 glue behavior are unchanged.
+
+The explicit `sheet.set ShapeRouteStyle` command requests a targeted reroute,
+retaining the established capacity retry and one-step undo behavior.
+
+M5.72 closure remains open. The private comparison helper omits an inherited
+MoveTo even for an unchanged original snapshot, so its literal all-matches text
+criterion conflicts with the required original Shape bytes. The strict fabric
+example package check also detects different cell insertion order after removing
+incidental neighbor reroutes. Its values agree, but this does not satisfy the byte
+gate. Neither comparator nor its masks have been changed.
