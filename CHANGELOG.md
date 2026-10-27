@@ -1,6 +1,13 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.12
+
+Two fixes from the first batch of real company files
+([#87](https://github.com/MisterDiagram/MisterDiagram/issues/87)): the symbol characters a
+tester's drawing set in Segoe UI Symbol, and the two ShapeSheet functions behind the guide
+warnings on another of his files. Still open from that batch: SVG text is exported as
+outlines ([#102](https://github.com/MisterDiagram/MisterDiagram/issues/102)) and SVG import
+([#103](https://github.com/MisterDiagram/MisterDiagram/issues/103)).
 
 - **`INTERSECTX` and `INTERSECTY` evaluate.** The guide-alignment cells Visio writes for a
   shape snapped to a guide (`AlignCenter`, `AlignTop`, `AlignBottom`) use them; they reported
