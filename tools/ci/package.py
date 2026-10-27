@@ -26,7 +26,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
 PLATFORMS = ('macos-universal', 'windows-x64', 'windows-arm64', 'linux-x64', 'linux-arm64')
-FONTS = ('arimo', 'caladea', 'carlito', 'cousine', 'tinos')
+FONTS = ('arimo', 'caladea', 'carlito', 'cousine', 'noto-sans-symbols2', 'tinos')
 # The fixed member list; gathered files are compared against it, never the other way round.
 NOTICES = ('LICENSE-MIT', 'LICENSE-APACHE', 'ATTRIBUTION.md', 'NOTICE', 'CHANGELOG.md', 'QUICKSTART.txt',
            'THIRD-PARTY-LICENSES.txt')
