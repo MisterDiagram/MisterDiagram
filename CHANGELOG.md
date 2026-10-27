@@ -1,12 +1,32 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.11
 
-- Moving an unrelated label no longer rewrites every connector on its page
-  ([#104](https://github.com/MisterDiagram/MisterDiagram/issues/104)). Routing
-  follows changed glue/endpoints or a moved placeable crossing a free connector.
-  Untouched connector Shape XML, bends and jumps retain their original bytes.
-  Explicit routing, layout and page routing settings keep their existing scope.
+One authoring fix from the first batch of real company files
+([#87](https://github.com/MisterDiagram/MisterDiagram/issues/87)), with the rule taken from
+Visio 2021 on five witnessed edits. Still open from that batch: symbol characters set in Segoe
+UI Symbol draw as the missing-glyph box
+([#106](https://github.com/MisterDiagram/MisterDiagram/issues/106)), SVG text is exported as
+outlines ([#102](https://github.com/MisterDiagram/MisterDiagram/issues/102)), SVG import
+([#103](https://github.com/MisterDiagram/MisterDiagram/issues/103)), and
+`INTERSECTX`/`INTERSECTY` on guide-aligned shapes take the saved value with a warning.
+
+- **An edit reroutes only the connectors with a reason to move**
+  ([#104](https://github.com/MisterDiagram/MisterDiagram/issues/104)). Moving a label or
+  any unrelated shape used to reroute every dynamic connector on the page, unglued ones
+  included, and drop their line jumps. A connector now reroutes when its glue or endpoints
+  change, when a placeable shape moves onto its route (ConFixedCode 0 only, as Visio does),
+  or on an explicit request: `route.reroute`, a layout command, a page routing setting, or
+  setting that connector's `ShapeRouteStyle`. On the five witnessed edits the changed sets
+  equal Visio's exactly. Every other connector keeps its Shape XML byte for byte, bends and
+  jumps included; line jumps are refreshed only where a rerouted connector changed a crossing.
+- **Shape-local routing cells no longer reroute by themselves.** Changing `ShapePermeableX`,
+  `ShapePermeableY` or `ShapePlowCode` on a shape takes effect on the next explicit reroute,
+  consistent with the rule above. A group flagged ObjType 8 is not an obstacle; its placeable
+  members are.
+- Where a connector does reroute, its path is still this router's (28 of 29 geometry witnesses):
+  all three connectors that rerouted on the witness drawings differ from Visio's path, two on
+  the other side of the obstacle and one with its bend elsewhere.
 
 ## 0.1.0-alpha.10
 

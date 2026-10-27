@@ -25,8 +25,8 @@ Anyone who wants a GUI on top is welcome to build one: the licence is MIT or Apa
 core is the part that has to be right. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and shares their conventions.
 
-**Download:** [MisterDiagram 0.1.0-alpha.10](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.10),
-the ninth alpha (three render fixes from the first batch of real company files: a guide no longer fails the whole file, closed shapes carry no arrowheads, the SVG page is transparent: #107, #105, #101), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+**Download:** [MisterDiagram 0.1.0-alpha.11](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.11),
+the tenth alpha (an edit now reroutes only the connectors with a reason to move, checked against Visio on five edits; untouched connectors keep their exact XML, line jumps included: #104), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -35,7 +35,7 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-10-26, 0.1.0-alpha.10)
+## What works today (2026-10-27, 0.1.0-alpha.11)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
@@ -91,24 +91,28 @@ From Microsoft's template catalogue, filed and open: the feet-and-inches text-fi
 itself (#95; the field now draws its saved text), `THEME()` with a colour argument (#88),
 the Text Callout cycle (#91), thin-line arrowheads (#93) and the `sheet` exit status after a
 complete dump of a drawing with an undeterminable embedded picture (#100). From the first batch
-of real company files, filed and open: an edit reroutes every connector on its page, including
-unglued ones, and drops their line jumps (#104); symbol characters set in Segoe UI Symbol draw
-as the missing-glyph box (#106); SVG text is exported as outlines rather than `<text>` (#102).
+of real company files, filed and open: symbol characters set in Segoe UI Symbol draw as the
+missing-glyph box (#106); SVG text is exported as outlines rather than `<text>` (#102); SVG
+import (#103). Where a connector does reroute, the path is this router's, not Visio's: all
+three connectors that rerouted on the witness drawings differ from Visio's path (two take the
+other side of the obstacle, one bends elsewhere); the 28 of 29 geometry witnesses still hold.
 
-## New in 0.1.0-alpha.10
+## New in 0.1.0-alpha.11
 
-Three render fixes from a tester's working drawings, each checked against Visio 2021 before
-and after. A page with a guide (a view-only `Guide` shape with an infinite dotted line) used to
-fail `render` and `convert` outright with `scene path limit (dash expansion)`; Visio never
-prints or exports guides, so they are skipped, and an infinite line on an ordinary shape is
-clipped to the page before its dashes are counted (#107; the same change makes 22 masters in
-11 Microsoft stencils render that had failed before). A closed shape whose sheet carries
-`EndArrow` or `BeginArrow` drew an arrowhead at its corner; Visio draws line ends on open paths
-only, and so do we now (#105). The SVG writer no longer puts a page-sized white rectangle
-behind the drawing, matching Visio's transparent export; PNG keeps its white page (#101). Every
-corpus number is unchanged from alpha.9 apart from those 22 recovered masters; alpha.9 itself
-made evaluation continue when the dependency graph fills, so very large templates no longer
-report `#LIMIT!` (#92).
+Editing a drawing no longer rewrites every connector on the page (#104). A tester's batch of
+label moves and relabels came back with every dynamic connector rerouted, including unglued
+ones, and their line jumps gone. The rule was put to Visio 2021 first: five edits on two
+drawings (non-placeable labels moved, a placeable label moved clear, a placeable shape dropped
+across an unglued connector, a glued shape moved, and one shape dropped across connectors
+with ConFixedCode 0, 2 and 3). Visio changed nothing, nothing, the crossed connector, the
+glued connector, and only the code 0 connector; the engine now changes exactly those sets.
+A connector reroutes for a named reason only: its glue or endpoints changed, a placeable
+shape moved onto its route, or routing was asked for explicitly (`route.reroute`, a layout
+command, a page routing setting, or setting the connector's own `ShapeRouteStyle`). Every
+other connector keeps its XML byte for byte, bends and line jumps included; the writer copies
+unchanged shapes from the opened file. Changing a shape's own routing cells, such as
+`ShapePermeableX`, takes effect on the next explicit reroute. Every corpus, field, theme and
+hostile number is unchanged from alpha.10.
 
 ## Testers wanted
 
