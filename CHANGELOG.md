@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **`INTERSECTX` and `INTERSECTY` evaluate.** The guide-alignment cells Visio writes for a
+  shape snapped to a guide (`AlignCenter`, `AlignTop`, `AlignBottom`) use them; they reported
+  `#NAME?` and took the saved value with a warning. They now return the point where the two
+  lines meet, and parallel lines give `#DIV/0!`, which keeps the last value as in Visio.
 - **Symbol characters draw.** Check marks, crosses, dingbats, geometric shapes and the other
   symbols that Windows documents set in Segoe UI Symbol rendered as the missing-glyph box,
   because that font is Microsoft's and system fonts are never scanned

@@ -68,6 +68,8 @@ pub const IMPLEMENTED: &[&str] = &[
     "BOUND",
     "RECTSECT",
     "NEARESTPOINTONPATH",
+    "INTERSECTX",
+    "INTERSECTY",
     "PNT",
     "PNTX",
     "PNTY",
@@ -269,6 +271,16 @@ mod tests {
         let internal = IMPLEMENTED.iter().filter(|name| name.starts_with('_')).count();
         let expected = format!("{} functions including {internal} internal functions", IMPLEMENTED.len());
         assert!(readme.contains(&expected), "README function count must say: {expected}");
+    }
+    #[test]
+    fn intersect_functions_take_angles_with_units_and_keep_the_last_value_on_parallel_lines() {
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/intersectx-function
+        near("INTERSECTX(0,0,0,3,0,90DEG)", 3., 1e-12);
+        near("INTERSECTY(0,0,45DEG,3,0,90DEG)", 3., 1e-12);
+        near("INTERSECTX(1,5,90DEG,7,2,0)", 1., 1e-12);
+        near("INTERSECTY(1,5,90DEG,7,2,0)", 2., 1e-12);
+        assert_eq!(result("INTERSECTX(0,0,0,0,1,0)"), Value::Error(Error::Div0));
+        assert_eq!(result("INTERSECTX(0,0,0,1,1)"), Value::Error(Error::Value));
     }
     #[test]
     fn microsoft_arithmetic_and_trig_examples() {

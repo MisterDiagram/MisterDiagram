@@ -2090,8 +2090,9 @@ build 16.0.20430 before the fix (private corpus `field/vahegan-2026-10-26/`):
   ordinary shapes are clipped to the page (seen through the inverse shape transform, widened
   by one inch) before dash counting; masters and non-invertible transforms keep the old
   extent. Guide alignment cells (`AlignCenter`, `AlignTop`, `AlignBottom`) use `INTERSECTX`
-  and `INTERSECTY`, which are not implemented; under the cached fallback they take the saved
-  value with a warning, strict evaluation reports `#NAME?`.
+  and `INTERSECTY`; they were not implemented (saved value with a warning under the cached
+  fallback, `#NAME?` under strict evaluation) and are since M5.76: the tester's four cells
+  evaluate to their saved values and the file renders without a warning.
 - Visio draws no line ends on a closed geometry path: the tester's rectangle with
   `EndArrow=5` has a clean corner in Visio, and a synthetic box with both arrows set shows
   none while a 1-D line beside it shows its arrow. The scene drops the arrow cells for any

@@ -155,6 +155,8 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/infiniteline-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/render/tests/guides_line_ends.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/initials-cell-reviewer-section> | `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/int-function> | `crates/sheet/src/functions/numeric.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/intersectx-function> | `crates/sheet/src/functions/spatial.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/intersecty-function> | `crates/sheet/src/functions/spatial.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/introduction-to-the-visio-file-formatvsdx> | `crates/engine/src/masters.rs`, `crates/engine/tests/composition.rs`, `crates/model/src/compact.rs`, `crates/model/src/lib.rs`, `crates/model/src/shared.rs`, `crates/model/src/skeleton_properties.rs`, `crates/opc/src/opc.rs`, `crates/opc/src/xml.rs`, `crates/vsdx/src/cache.rs`, `crates/vsdx/src/lib.rs`, `crates/vsdx/src/write.rs`, `crates/vsdx/src/write/format.rs`, `crates/vsdx/src/write/xml.rs`, `crates/vsdx/tests/retained_budget.rs`, `crates/vsdx/tests/writer.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/invisible-cell-shape-data-section> | `crates/engine/src/content.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/iserr-function> | `crates/sheet/src/functions/extras.rs` |
