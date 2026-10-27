@@ -13,7 +13,7 @@ mod fontdb;
 pub mod script;
 mod shape;
 
-pub use fallback::{bundled_families, covers_cluster, ligature_carets};
+pub use fallback::{bundled_families, covers_cluster, ligature_carets, symbol_fallback};
 pub use fontdb::{FALLBACK_FAMILY, FaceRef, FontDb, FontFace, LAST_RESORT_FAMILY, base_style, bundled, substitutes, system_font_dirs};
 pub use harfrust::Feature;
 use harfrust::Tag;

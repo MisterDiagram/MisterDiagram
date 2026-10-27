@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+- **Symbol characters draw.** Check marks, crosses, dingbats, geometric shapes and the other
+  symbols that Windows documents set in Segoe UI Symbol rendered as the missing-glyph box,
+  because that font is Microsoft's and system fonts are never scanned
+  ([#106](https://github.com/MisterDiagram/MisterDiagram/issues/106)). Noto Sans Symbols 2
+  (OFL 1.1, symbols only) is now bundled and draws such a character when the text face
+  cannot; the line keeps the text face's metrics, so nothing else moves. Each binary grows
+  by about 655 KiB.
+- **A lone symbol with a trailing no-break space stays on one line.** When the pair was
+  wider than its block and the line had no earlier break opportunity, the layout forced a
+  break before the space, opened an empty extra line and recentred the text; Visio lets the
+  space hang past the margin, and so does the layout now. Wrapping at an earlier opportunity
+  is unchanged.
+
 ## 0.1.0-alpha.11
 
 One authoring fix from the first batch of real company files

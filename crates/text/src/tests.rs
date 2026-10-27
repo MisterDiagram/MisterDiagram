@@ -161,3 +161,27 @@ fn composed_width_terminal_space_and_advance_grid() {
         assert!((width - expected).abs() < 2e-9, "{text}: {width} vs {expected}");
     }
 }
+
+#[test]
+fn symbol_glyph_keeps_the_text_face_line_and_a_trailing_no_break_space_hangs() {
+    // #106: U+2714 set in "Segoe UI Symbol" falls back to the bundled symbol face. The line keeps
+    // the text face's metrics, so the block measures the same height as a letter; and a glyph
+    // followed by a no-break space in a block narrower than the pair, with no earlier break
+    // opportunity, stays on one line, as Visio lays it out, instead of opening a second line
+    // for the space (a line with an earlier opportunity still wraps: multiline-wrap's ninth line).
+    let mut sym = TextBody::default();
+    sym.paragraphs.push(Paragraph::new("\u{2714}\u{a0}"));
+    sym.paragraphs[0].runs[0].props = RunProps { size: Some(90.), font: Some("Segoe UI Symbol".into()), ..Default::default() };
+    let mut letter = sym.clone();
+    letter.paragraphs[0].runs[0].text = "A\u{a0}".into();
+    let (sym_w, sym_h) = Host.measure(&sym, Some(81.)).unwrap();
+    let (_, letter_h) = Host.measure(&letter, Some(81.)).unwrap();
+    assert!((sym_h - letter_h).abs() < 1e-6, "symbol line {sym_h} letter line {letter_h}");
+    assert!(sym_w > 81., "the pair overflows the block rather than wrapping: {sym_w}");
+    let opts = Opts { rect: Rect::new(0., 0., 81., 400.), fields: &NoFields, prompt_color: None, no_shrink: true };
+    let l = layout(&sym, &opts).unwrap();
+    let baselines: std::collections::BTreeSet<i64> =
+        l.runs.iter().flat_map(|r| r.glyphs.iter().map(|(_, _, y)| (y * 1000.).round() as i64)).collect();
+    assert_eq!(baselines.len(), 1, "one line: {baselines:?}");
+    assert!(l.runs.iter().any(|r| r.face.family == "Noto Sans Symbols 2"), "the mark is drawn by the symbol face");
+}

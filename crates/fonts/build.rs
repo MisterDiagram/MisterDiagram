@@ -22,6 +22,9 @@ fn main() {
     }
     embedded(&mut src, &local.join("arimo/Arimo[wght].ttf"), "Arimo", "Variable");
     embedded(&mut src, &local.join("arimo/Arimo-Italic[wght].ttf"), "Arimo", "Variable Italic");
+    // The symbol face (#106): dingbats, geometric shapes, miscellaneous symbols and the extended
+    // arrow and pictograph blocks; no Latin letters, so it only ever wins a symbol cluster.
+    embedded_for(&mut src, &local.join("noto-sans-symbols2/NotoSansSymbols2-Regular.ttf"), "Noto Sans Symbols 2", "Regular", "Zsym");
     // An empty CRAFT_FONTS_DIR (the release workflow) means none: only the pinned Latin faces.
     if let Some(dir) = std::env::var_os("CRAFT_FONTS_DIR").filter(|d| !d.is_empty()).map(PathBuf::from) {
         match craft_fonts(&dir) {
@@ -88,8 +91,12 @@ fn manifest(dir: &std::path::Path, manifest: &std::path::Path) -> Result<String,
 }
 
 fn embedded(out: &mut String, path: &std::path::Path, family: &str, style: &str) {
+    embedded_for(out, path, family, style, "Latn");
+}
+
+fn embedded_for(out: &mut String, path: &std::path::Path, family: &str, style: &str, script: &str) {
     println!("cargo::rerun-if-changed={}", path.display());
-    let _ = writeln!(out, "    CraftFont {{ family: {family:?}, style: {style:?}, scripts: &[\"Latn\"], bytes: include_bytes!({:?}) }},", path);
+    let _ = writeln!(out, "    CraftFont {{ family: {family:?}, style: {style:?}, scripts: &[{script:?}], bytes: include_bytes!({:?}) }},", path);
 }
 
 // Cargo treats a missing watched file as perpetually changed. Watch its nearest

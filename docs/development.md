@@ -35,7 +35,11 @@ SVG and PDF validation needs a local `.venv` with `pypdf` installed.
 ## Fonts
 
 Carlito, Caladea, Arimo, Tinos and Cousine are embedded (SIL Open Font License 1.1) and are
-enough for a public checkout. `.cargo/config.toml` points at the optional sibling checkout
+enough for a public checkout. Noto Sans Symbols 2 (also OFL 1.1, the hinted build, 655 KiB) is
+embedded as the symbol face: it has no letters, so it only ever draws a symbol cluster that
+the text face cannot (check marks, dingbats, geometric shapes, the extended arrow and
+pictograph blocks that Windows documents set in Segoe UI Symbol), and such a cluster keeps
+the text face's line metrics. `.cargo/config.toml` points at the optional sibling checkout
 `../craft-apps/craft-fonts/src`; set `CRAFT_FONTS_DIR` to use another path. If the directory
 is absent the build prints a warning about the optional faces and the embedded faces are
 used. Carlito is the last-resort Latin face, ahead of the optional BIZ UDPGothic fallback.

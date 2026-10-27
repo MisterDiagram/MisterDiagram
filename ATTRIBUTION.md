@@ -73,6 +73,15 @@ Adapted `AGENTS.md` from deckcraft `src/AGENTS.md`, commit `be14248577b92059eb2b
 
 Adapted `CLAUDE.md` from deckcraft `src/CLAUDE.md`, commit `be14248577b92059eb2b8c0c9460cceffbc1f01d`, MIT OR Apache-2.0.
 
+### Embedded symbol face (#106)
+
+Source: [notofonts/symbols](https://github.com/notofonts/symbols), release tag `NotoSansSymbols2-v2.008` (2023-10-13), archive `NotoSansSymbols2-v2.008.zip` (SHA256 `346c930bbe8eb946701a05c54e9c11a2094dee1d93c387bf1771c0a3e335688f`), the hinted build `NotoSansSymbols2/hinted/ttf/`. Symbols only (no Latin letters), so it never substitutes for a text face; it supplies dingbats, geometric shapes, miscellaneous symbols and the extended arrow and pictograph blocks that Windows documents set in Segoe UI Symbol.
+
+| Local file | Author | Source path in the archive | Licence | SHA256 |
+|---|---|---|---|---|
+| `crates/fonts/assets/noto-sans-symbols2/NotoSansSymbols2-Regular.ttf` | The Noto Project Authors | `NotoSansSymbols2/hinted/ttf/NotoSansSymbols2-Regular.ttf` | OFL-1.1 | `c4a0a80f0041ce4be81e2478faad22776d23edb98ae3f0d19bd37044820ecf9d` |
+| `crates/fonts/assets/noto-sans-symbols2/OFL.txt` | The Noto Project Authors | `OFL.txt` | OFL-1.1 | `b118dd41337806a5d4797052c77caf3bd096aed783e5eb21b4d11154351e1ac0` |
+
 ### Phase 2 text retarget
 
 | Local path | Source repo | Source path | Commit | Licence |

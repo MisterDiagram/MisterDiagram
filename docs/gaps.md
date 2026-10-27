@@ -2156,3 +2156,28 @@ reroute that the reason rule no longer performs. M5.73 removed a rule the review
 had added beyond the brief: a group flagged ObjType 8 counted as an obstacle with
 its whole box; per Microsoft the members are the placeable ones, and they already
 carry their own scopes.
+
+### #106: symbol characters set in Segoe UI Symbol (2026-10-27)
+
+The tester's pins file sets U+2714 and U+2718 in Segoe UI Symbol; Visio draws a green check
+and a red cross (private witness `field/vahegan-2026-10-26/visio/pins.png`). Segoe UI Symbol
+is Microsoft's and the engine never scans system fonts, so the missing-glyph box was drawn.
+Noto Sans Symbols 2 (OFL 1.1, hinted build, 2,641 symbol code points, no letters) is now a
+pinned asset found by the loaded-face fallback. Two layout rules came with it: a cluster
+drawn by the symbol face keeps the text face's line metrics (Visio sizes the line by the
+requested font; the symbol face's own 1.7 em line would move the whole block), and a
+no-break space that ends a paragraph, on a line with no earlier break opportunity, hangs
+past the margin instead of forcing a break before itself (the file's "check, no-break
+space" pair is wider than its block; Visio keeps it on one line, the old breaker forced a
+break before the space and the extra empty line recentred the block by 54 pt). Where the
+line does have an earlier opportunity the no-break space still wraps the word before it, as
+the composed terminal space of generated/text/multiline-wrap must (nine lines in Visio's PNG). The marks now land within 0.07 in of Visio's; the residual is Segoe UI Symbol's own
+glyph metrics (its check mark is 0.80 em wide, Noto's 0.93 em).
+
+Coverage is partial by design. Against Segoe UI Symbol 6.24's 7,536 code points the pinned
+faces cover 2,741; the rest is mathematics (operators, supplemental arrows, the mathematical
+alphanumerics), the Windows UI icons in the private use area, Deseret and musical symbols.
+Noto Sans Symbols (the first family) would add 665 and Noto Sans Math more of the
+mathematics if a file ever asks. Wingdings and Webdings are symbol-charset fonts (letters
+drawn as pictures) and need a code-point mapping as well as glyphs; no file in the 7,627
+packages surveyed on this machine sets text in them, so they stay a named gap.

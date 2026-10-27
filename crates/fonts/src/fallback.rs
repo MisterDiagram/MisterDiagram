@@ -42,6 +42,13 @@ fn os_families(script: ScriptTag) -> &'static [&'static str] {
     }
 }
 
+/// Is `face` one of the bundled symbol-only faces (script `Zsym`, no letters)? A cluster drawn
+/// by one keeps the line metrics of the text face it fell back from: Visio sizes the line by the
+/// requested font, and a symbol face's own ascent and descent would move the whole line.
+pub fn symbol_fallback(face: &FontFace) -> bool {
+    CRAFT_FONTS.iter().any(|f| f.scripts == ["Zsym"] && f.family.eq_ignore_ascii_case(&face.family))
+}
+
 /// The craft-fonts families for a script (manifest order), e.g. Noto Naskh Arabic for `Arab`.
 pub fn bundled_families(script: ScriptTag) -> Vec<&'static str> {
     let tag = std::str::from_utf8(&script).unwrap_or("");
@@ -173,6 +180,29 @@ mod tests {
         } else {
             eprintln!("skipped: no installed or bundled face covers Arabic");
         }
+    }
+
+    #[test]
+    fn symbol_clusters_fall_back_to_the_bundled_symbol_face() {
+        // #106: U+2714 and U+2718 set in a Windows symbol face that is not bundled. The requested
+        // face resolves to a Latin substitute, which does not cover them; the pinned symbol face
+        // does. Letters set in the same face stay with the Latin substitute, and a plain arrow
+        // that a Latin face already covers keeps the Latin face.
+        let db = FontDb::with_font_dirs(Vec::new());
+        db.set_system_fallback(false);
+        assert!(bundled_families(*b"Zsym").contains(&"Noto Sans Symbols 2"));
+        let requested = db.face("Segoe UI Symbol", "Regular");
+        assert_ne!(requested.family, "Noto Sans Symbols 2");
+        for c in ['\u{2714}', '\u{2718}', '\u{2611}', '\u{2B06}'] {
+            let f = db.cascade(&[c], std::slice::from_ref(&requested), "Regular");
+            assert_eq!(f.family, "Noto Sans Symbols 2", "U+{:04X}", c as u32);
+            assert!(f.covers(c));
+        }
+        let f = db.cascade(&['a'], std::slice::from_ref(&requested), "Regular");
+        assert!(Arc::ptr_eq(&f, &requested));
+        let f = db.cascade(&['\u{2192}'], std::slice::from_ref(&requested), "Regular");
+        assert_ne!(f.family, "Noto Sans Symbols 2");
+        assert!(f.covers('\u{2192}'));
     }
 
     #[test]

@@ -135,6 +135,7 @@ outlined directly by the existing HarfRust/Skrifa path; no static conversion is 
 | Times New Roman, Times | Tinos |
 | Courier New, Consolas | Cousine |
 | Unavailable Latin family, including Segoe UI in this checkout | Carlito |
+| A symbol the text face lacks (for example U+2714 set in Segoe UI Symbol) | Noto Sans Symbols 2, for that cluster only; the line keeps the text face's metrics |
 
 Before promotion, the P2-followup rule required 90% in each text oracle and
 deferred text-family formulas from the main denominators. Promotion is now

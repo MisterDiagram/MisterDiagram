@@ -753,7 +753,16 @@ fn break_lines(
             if i > start && allowed.get(i).copied().unwrap_or(false) && breakable(i) {
                 last_break = Some(i);
             }
-            if wrap && x + adv > avail + 0.01 && (!c.is_whitespace() || c == '\u{a0}') && i > start {
+            // A no-break space counts toward the width: when it overflows, the line breaks at the
+            // last opportunity before it (the composed terminal space wraps the final word of
+            // generated/text/multiline-wrap onto its ninth line, as Visio's PNG does). With no
+            // opportunity on the line and only whitespace after it, it hangs past the margin
+            // instead of forcing a break before itself: a check mark followed by a no-break
+            // space in a block narrower than the pair stays on one line, as Visio lays it out.
+            let hanging = c == '\u{a0}'
+                && last_break.is_none_or(|b| b <= start)
+                && p.cells.get(i + 1..).is_none_or(|rest| rest.iter().all(|c| c.ch.is_whitespace()));
+            if wrap && x + adv > avail + 0.01 && (!c.is_whitespace() || (c == '\u{a0}' && !hanging)) && i > start {
                 // Break at the last opportunity, or force mid-word (between clusters).
                 let b = last_break
                     .filter(|b| *b > start)
@@ -934,6 +943,9 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
             for c in p.cells.get(rl.start..rl.end.max(rl.start)).unwrap_or(&[]) {
                 if let (Some(st), Some(face)) = (p.styles.get(c.style), p.faces.get(c.face)) {
                     let sz = st.size;
+                    // A symbol drawn by the bundled symbol face keeps the text face's line
+                    // metrics (#106): Visio sizes the line by the requested font.
+                    let face = if misterdiagram_fonts::symbol_fallback(face) { &st.face } else { face };
                     let (a, d) = line_metrics(face, sz);
                     let (ta, td) = face.typographic_metrics();
                     typo_asc = typo_asc.max(ta * sz / face.upem.max(1.));
