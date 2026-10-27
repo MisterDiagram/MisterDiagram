@@ -51,7 +51,7 @@ pub(crate) fn obstacles(e: &mut Evaluator<'_>, page: u32, excluded: &[u32]) -> R
     let scopes = e.scopes().filter(|s| matches!(s, Scope::PageShape {page:p,shape} if *p==page && !excluded.contains(shape))).collect::<Vec<_>>();
     let mut out = Vec::new();
     for scope in scopes {
-        if number(e, scope, "ObjType", 0.) != 1. {
+        if !crate::changes::placeable(e, scope)? {
             continue;
         }
         if number(e, scope, "ShapePermeableX", 0.) != 0. && number(e, scope, "ShapePermeableY", 0.) != 0. {
@@ -392,10 +392,6 @@ pub(crate) fn path_with_axes(
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/linetonodex-cell-page-layout-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/plowcode-cell-page-layout-section
 pub(crate) fn page_signature(e: &mut Evaluator<'_>, page: u32) -> Result<Vec<(u64, Vec<f64>)>, String> {
-    let scopes = e.scopes().filter(|s| matches!(s,Scope::PageShape{page:p,..}if *p==page)).collect::<Vec<_>>();
-    if scopes.len() > 100000 {
-        return Err("route dependency count limit".into());
-    }
     let layout = [
         "RouteStyle",
         "PlowCode",
@@ -415,30 +411,7 @@ pub(crate) fn page_signature(e: &mut Evaluator<'_>, page: u32) -> Result<Vec<(u6
         "PageLineJumpDirX",
         "PageLineJumpDirY",
     ];
-    let mut signature = vec![(u64::MAX, layout.map(|n| number(e, Scope::Page(page), n, 0.)).to_vec())];
-    for scope in scopes {
-        let Scope::PageShape { shape, .. } = scope else { continue };
-        let mut values = [
-            "Width",
-            "Height",
-            "ObjType",
-            "ShapePermeableX",
-            "ShapePermeableY",
-            "ShapeRouteStyle",
-            "ShapePlowCode",
-            "ConFixedCode",
-            "ConLineJumpCode",
-            "ConLineJumpStyle",
-            "ConLineJumpDirX",
-            "ConLineJumpDirY",
-        ]
-        .map(|n| number(e, scope, n, 0.))
-        .to_vec();
-        values.extend(e.shape_to_page(scope).map_err(|v| v.to_string())?.as_coeffs());
-        signature.push((u64::from(shape), values));
-    }
-    signature.sort_by_key(|(id, _)| *id);
-    Ok(signature)
+    Ok(vec![(u64::MAX, layout.map(|n| number(e, Scope::Page(page), n, 0.)).to_vec())])
 }
 
 /// Reduce clearance only where a neighboring obstacle would engulf an attachment.
@@ -598,7 +571,7 @@ impl ObstacleBounds {
         if let Some(value) = self.values.get(&(page, shape)) {
             return Ok(*value);
         }
-        let value = if number(e, scope, "ObjType", 0.) == 1.
+        let value = if crate::changes::placeable(e, scope)?
             && (number(e, scope, "ShapePermeableX", 0.) == 0. || number(e, scope, "ShapePermeableY", 0.) == 0.)
         {
             Some(bounds(e, scope)?)

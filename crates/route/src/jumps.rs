@@ -50,20 +50,55 @@ fn row(index: u32, kind: &str, p: Point, a: Option<misterdiagram_model::Cell>) -
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/conlinejumpdiry-cell-shape-layout-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/pagelinejumpdirx-cell-page-layout-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/pagelinejumpdiry-cell-page-layout-section
-pub(crate) fn apply(doc: &mut Document, host: &mut GlueHost, routed: &BTreeSet<(usize, u32)>) -> Result<(), String> {
-    if routed.is_empty() {
+pub(crate) fn apply(
+    before: &Document,
+    doc: &mut Document,
+    host: &mut GlueHost,
+    routed: &BTreeSet<(usize, u32)>,
+    touched: &BTreeSet<(usize, u32)>,
+) -> Result<(), String> {
+    if touched.is_empty() {
         return Ok(());
     }
+    let pages = touched.iter().filter_map(|(index, _)| doc.pages.get(*index).map(|p| (*index, p.id))).collect::<BTreeMap<_, _>>();
+    let connectors = collect(doc, Some(host), &pages)?;
+    // A page-wide request has no unselected crossing neighbor to compare.
+    if connectors.iter().all(|c| touched.contains(&(c.page, c.id))) {
+        return decorate(doc, &connectors, routed);
+    }
+    let previous = collect(before, None, &pages)?;
+    let mut recipients = routed.clone();
+    for c in &connectors {
+        if touched.contains(&(c.page, c.id)) {
+            continue;
+        }
+        let old = previous.iter().find(|o| o.page == c.page && o.id == c.id);
+        let old_crossings = old.map(|c| crossing_signature(c, &previous, touched)).unwrap_or_default();
+        if old_crossings != crossing_signature(c, &connectors, touched) {
+            recipients.insert((c.page, c.id));
+        }
+    }
+    decorate(doc, &connectors, &recipients)
+}
+fn collect(doc: &Document, host: Option<&mut GlueHost>, pages: &BTreeMap<usize, u32>) -> Result<Vec<Connector>, String> {
     let themes = misterdiagram_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
     let text = misterdiagram_text::Host;
-    let mut e = Evaluator::new(doc).map_err(|v| v.to_string())?.with_theme_host(&themes).with_text_host(&text).with_glue_host(host);
+    let mut e = Evaluator::new(doc).map_err(|v| v.to_string())?.with_theme_host(&themes).with_text_host(&text);
+    if let Some(host) = host {
+        e = e.with_glue_host(host);
+    }
     let mut connectors = Vec::new();
     let mut segments = 0usize;
-    let pages = routed.iter().map(|(page, _)| *page).collect::<BTreeSet<_>>();
-    for index in &pages {
-        let page = doc.pages.get(*index).ok_or("jump page")?;
+    for (index, page_id) in pages {
+        let Some(page) = doc.pages.iter().find(|p| p.id == *page_id) else { continue };
         let ps = Scope::Page(page.id);
-        let ids = page.connects.iter().map(|c| c.from_sheet).collect::<BTreeSet<_>>();
+        let ids = e
+            .scopes()
+            .filter_map(|s| match s {
+                Scope::PageShape { page: p, shape } if p == page.id => Some(shape),
+                _ => None,
+            })
+            .collect::<BTreeSet<_>>();
         for id in ids {
             let scope = Scope::PageShape { page: page.id, shape: id };
             if number(&mut e, scope, "ObjType", 0.) != 2. {
@@ -94,7 +129,11 @@ pub(crate) fn apply(doc: &mut Document, host: &mut GlueHost, routed: &BTreeSet<(
                     continue;
                 }
                 let p = Point::new(number(&mut e, scope, &format!("Geometry1.X{ix}"), 0.), number(&mut e, scope, &format!("Geometry1.Y{ix}"), 0.));
-                points.push(transform * p);
+                let p = transform * p;
+                if !p.x.is_finite() || !p.y.is_finite() || p.x.abs() > 1e6 || p.y.abs() > 1e6 {
+                    return Err("jump coordinate limit".into());
+                }
+                points.push(p);
             }
             segments = segments.checked_add(points.len()).ok_or("jump segment count")?;
             if segments > 2000 {
@@ -131,9 +170,11 @@ pub(crate) fn apply(doc: &mut Document, host: &mut GlueHost, routed: &BTreeSet<(
             });
         }
     }
-    drop(e);
+    Ok(connectors)
+}
+fn decorate(doc: &mut Document, connectors: &[Connector], routed: &BTreeSet<(usize, u32)>) -> Result<(), String> {
     let mut changes = Vec::new();
-    for c in &connectors {
+    for c in connectors {
         if !routed.contains(&(c.page, c.id)) {
             continue;
         }
@@ -257,4 +298,34 @@ pub(crate) fn apply(doc: &mut Document, host: &mut GlueHost, routed: &BTreeSet<(
         }
     }
     Ok(())
+}
+
+/// Compare only crossing relationships involving a changed route. The 2,000
+/// retained-point cap bounds each old/new intersection product.
+fn crossing_signature(c: &Connector, all: &[Connector], touched: &BTreeSet<(usize, u32)>) -> Vec<(u32, f64, f64)> {
+    let mut out = Vec::new();
+    for other in all.iter().filter(|o| o.page == c.page && o.id != c.id && touched.contains(&(o.page, o.id))) {
+        for pair in c.points.windows(2) {
+            let (Some(a), Some(b)) = (pair.first(), pair.get(1)) else { continue };
+            for pair in other.points.windows(2) {
+                let (Some(u), Some(v)) = (pair.first(), pair.get(1)) else { continue };
+                let p = if (a.y - b.y).abs() < 1e-9 && (u.x - v.x).abs() < 1e-9 {
+                    Some(Point::new(u.x, a.y))
+                } else if (a.x - b.x).abs() < 1e-9 && (u.y - v.y).abs() < 1e-9 {
+                    Some(Point::new(a.x, u.y))
+                } else {
+                    None
+                };
+                if let Some(p) = p
+                    && (p - *a).dot(p - *b) < -1e-12
+                    && (p - *u).dot(p - *v) < -1e-12
+                {
+                    out.push((other.id, p.x, p.y));
+                }
+            }
+        }
+    }
+    out.sort_by(|a, b| a.0.cmp(&b.0).then(a.1.total_cmp(&b.1)).then(a.2.total_cmp(&b.2)));
+    out.dedup();
+    out
 }

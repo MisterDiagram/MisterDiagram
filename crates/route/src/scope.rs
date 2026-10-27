@@ -5,7 +5,7 @@ const FORMAT: &[&str] = &["fillforegnd", "fillbkgnd", "fillpattern", "linecolor"
 
 /// A proven empty route population or an edit to unreferenced presentation/data
 /// cells needs no glue hooks. Geometry, connection rows, globals and unknown
-/// formula effects retain the full page closure, including obstacle corridors.
+/// formula effects retain evaluated validation before selection by route reason.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/objtype-cell-miscellaneous-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/begtrigger-cell-glue-info-section
 pub(crate) fn unaffected(before: &Document, after: &Document) -> bool {

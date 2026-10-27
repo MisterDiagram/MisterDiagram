@@ -171,6 +171,8 @@ pub struct GlueHost {
     triggers: BTreeMap<Key, f64>,
     active: std::collections::BTreeSet<(u32, u32)>,
     dirty_pages: std::collections::BTreeSet<u32>,
+    requested: std::collections::BTreeSet<(u32, u32)>,
+    pub(crate) prior_endpoints: BTreeMap<(u32, u32), [Option<f64>; 4]>,
 }
 impl HostHooks for GlueHost {
     fn supports(&self, name: &str) -> bool {
@@ -197,8 +199,11 @@ impl GlueHost {
     pub(crate) fn page_dirty(&self, page: u32) -> bool {
         self.dirty_pages.contains(&page)
     }
-    pub(crate) fn activate(&mut self, page: u32, shape: u32) {
-        self.active.insert((page, shape));
+    pub(crate) fn requested(&self, page: u32, shape: u32) -> bool {
+        self.requested.contains(&(page, shape))
+    }
+    pub(crate) fn requests(&self) -> &std::collections::BTreeSet<(u32, u32)> {
+        &self.requested
     }
     /// Compare transforms against the transaction snapshot and invalidate only affected glue triggers.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/confixedcode-cell-shape-layout-section
@@ -211,7 +216,25 @@ impl GlueHost {
     /// routing. Imported or restored documents use the full validation path.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/eventxfmod-cell-events-section
     pub fn prepare_scoped(before: &Document, doc: &mut Document, validated: bool) -> Result<Self, String> {
-        if validated && crate::scope::unaffected(before, doc) {
+        Self::prepare_inner(before, doc, validated, None)
+    }
+    pub(crate) fn force(&mut self, doc: &mut Document, force: (usize, Option<u32>)) -> Result<(), String> {
+        // Preparation may already have advanced glue triggers for this edit.
+        // Compare the forced pass to that prepared state, so it cannot advance
+        // the same target change twice or discard reasons on another page.
+        let prepared = doc.clone();
+        let extra = Self::prepare_inner(&prepared, doc, false, Some(force))?;
+        self.unaffected &= extra.unaffected;
+        self.points.extend(extra.points);
+        self.triggers.extend(extra.triggers);
+        self.active.extend(extra.active);
+        self.dirty_pages.extend(extra.dirty_pages);
+        self.requested.extend(extra.requested);
+        self.outcomes.extend(extra.outcomes);
+        Ok(())
+    }
+    fn prepare_inner(before: &Document, doc: &mut Document, validated: bool, force: Option<(usize, Option<u32>)>) -> Result<Self, String> {
+        if force.is_none() && validated && crate::scope::unaffected(before, doc) {
             return Ok(Self { unaffected: true, ..Self::default() });
         }
         let themes = misterdiagram_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
@@ -226,10 +249,66 @@ impl GlueHost {
         let mut changes = vec![];
         let mut affected = std::collections::BTreeSet::new();
         let mut count = 0usize;
+        let mut scope_work = 0usize;
         for (page_index, page) in doc.pages.iter().enumerate() {
             let layout_changed = crate::orthogonal::page_signature(&mut e, page.id)? != crate::orthogonal::page_signature(&mut old, page.id)?;
             if layout_changed {
                 host.dirty_pages.insert(page.id);
+            }
+            let placements = crate::changes::PageChanges::collect(&mut e, &mut old, page.id)?;
+            let previous_page = before.pages.iter().find(|p| p.id == page.id);
+            fn topology(links: &[misterdiagram_model::Connect]) -> Result<BTreeMap<u32, Vec<&misterdiagram_model::Connect>>, String> {
+                if links.len() > 100000 {
+                    return Err("glue connection count limit".into());
+                }
+                let mut by_shape = BTreeMap::<u32, Vec<_>>::new();
+                for link in links {
+                    by_shape.entry(link.from_sheet).or_default().push(link);
+                }
+                Ok(by_shape)
+            }
+            let prior_links = topology(previous_page.map_or(&[], |p| p.connects.as_slice()))?;
+            let current_links = topology(&page.connects)?;
+            for scope in e.scopes().filter(|s| matches!(s, Scope::PageShape {page:p,..} if *p==page.id)).collect::<Vec<_>>() {
+                let Scope::PageShape { shape: id, .. } = scope else { continue };
+                if e.evaluate(scope, "ObjType").numeric() != Ok(2.) {
+                    continue;
+                }
+                let current = e.shape(scope).ok_or("route shape missing")?;
+                let endpoint_changed = old.shape(scope).is_none_or(|previous| {
+                    ["BeginX", "BeginY", "EndX", "EndY", "BegTrigger", "EndTrigger"].iter().any(|n| previous.sheet.cell(n) != current.sheet.cell(n))
+                });
+                let topology_changed = prior_links.get(&id) != current_links.get(&id);
+                let mut prior = [None; 4];
+                let endpoint_changed = endpoint_changed
+                    || ["BeginX", "BeginY", "EndX", "EndY"].iter().enumerate().any(|(i, n)| {
+                        let current = e.evaluate(scope, n);
+                        let previous = old.evaluate(scope, n);
+                        if let Value::Number(value) = &previous
+                            && value.is_finite()
+                            && value.abs() <= 1e6
+                            && let Some(slot) = prior.get_mut(i)
+                        {
+                            *slot = Some(*value);
+                        }
+                        current != previous
+                    });
+                // Retain only bounded numeric results from the unchanged, pure
+                // predecessor. Context hooks or SETF invalidate this memo below.
+                // Cache saturation falls back to ordinary endpoint evaluation.
+                if force.is_none() && host.prior_endpoints.len() < 4096 && prior.iter().any(Option::is_some) {
+                    host.prior_endpoints.insert((page.id, id), prior);
+                }
+                let forced = force.is_some_and(|(index, shape)| index == page_index && shape.is_none_or(|s| s == id));
+                let crossover = !endpoint_changed
+                    && !layout_changed
+                    && !forced
+                    && number(&mut e, scope, "ConFixedCode")? == 0.
+                    && old.shape(scope).is_some()
+                    && placements.crosses(&mut old, scope, &mut scope_work)?;
+                if forced || layout_changed || topology_changed || endpoint_changed || crossover {
+                    host.requested.insert((page.id, id));
+                }
             }
             let mut links = BTreeMap::<u32, [Option<&misterdiagram_model::Connect>; 2]>::new();
             for c in &page.connects {
@@ -258,6 +337,43 @@ impl GlueHost {
                 let preference = number(&mut e, scope, "WalkPreference")?;
                 let fixed = number(&mut e, scope, "ConFixedCode")? == 2.;
                 let routable = number(&mut e, scope, "ObjType")? == 2.;
+                let parent = e.parent_to_page(scope).map_err(|e| e.to_string())?;
+                if !parent.determinant().is_finite() || parent.determinant().abs() < 1e-15 {
+                    return Err("singular connector parent transform".into());
+                }
+                let mut inputs_changed =
+                    old.parent_to_page(scope).ok() != Some(parent) || number(&mut old, scope, "WalkPreference").ok() != Some(preference);
+                for (side, link) in links.iter().enumerate() {
+                    if link.is_none() {
+                        let prefix = if side == 0 { "Begin" } else { "End" };
+                        for axis in ["X", "Y"] {
+                            let name = format!("{prefix}{axis}");
+                            inputs_changed |= number(&mut old, scope, &name).ok() != number(&mut e, scope, &name).ok();
+                        }
+                    }
+                }
+                if inputs_changed || host.requested(page.id, id) {
+                    affected.insert((page_index, id));
+                }
+                let mut target_changed = false;
+                for (side, link) in links.iter().enumerate() {
+                    let Some(link) = link else { continue };
+                    let target = boxes.get(side).and_then(Option::as_deref).ok_or("glue target missing")?;
+                    target_changed |= prior_bounds.get(&mut old, page.id, link.to_sheet).ok().is_none_or(|o| {
+                        o.transform != target.transform
+                            || o.width != target.width
+                            || o.height != target.height
+                            || o.points != target.points
+                            || o.ink != target.ink
+                    }) || !previous_page.is_some_and(|p| p.connects.contains(link));
+                }
+                if inputs_changed || target_changed {
+                    host.requested.insert((page.id, id));
+                }
+                if !host.requested(page.id, id) && !layout_changed {
+                    continue;
+                }
+                affected.insert((page_index, id));
                 let planned = if !fixed
                     && routable
                     && preference == 0.
@@ -302,24 +418,6 @@ impl GlueHost {
                 } else {
                     None
                 };
-                let parent = e.parent_to_page(scope).map_err(|e| e.to_string())?;
-                if !parent.determinant().is_finite() || parent.determinant().abs() < 1e-15 {
-                    return Err("singular connector parent transform".into());
-                }
-                let mut inputs_changed =
-                    old.parent_to_page(scope).ok() != Some(parent) || number(&mut old, scope, "WalkPreference").ok() != Some(preference);
-                for (side, link) in links.iter().enumerate() {
-                    if link.is_none() {
-                        let prefix = if side == 0 { "Begin" } else { "End" };
-                        for axis in ["X", "Y"] {
-                            let name = format!("{prefix}{axis}");
-                            inputs_changed |= number(&mut old, scope, &name).ok() != number(&mut e, scope, &name).ok();
-                        }
-                    }
-                }
-                if inputs_changed || layout_changed {
-                    affected.insert((page_index, id));
-                }
                 for (side, link) in links.iter().enumerate() {
                     let Some(link) = link else { continue };
                     let end = if side == 0 { End::Begin } else { End::End };
@@ -430,6 +528,9 @@ impl GlueHost {
                 }
             }
         }
+        if old.evaluation_epoch() != (0, 0) {
+            host.prior_endpoints.clear();
+        }
         drop(e);
         let active: std::collections::BTreeSet<_> =
             affected.iter().filter_map(|(index, id)| doc.pages.get(*index).map(|page| (page.id, *id))).collect();
@@ -441,7 +542,7 @@ impl GlueHost {
             set(&mut shape.sheet, cell(name, value, formula))?;
         }
         let mut centers = Vec::new();
-        if !affected.is_empty() {
+        if !affected.is_empty() && force.is_none() {
             let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&text).with_glue_host(&mut host);
             for (index, id) in affected {
                 let page = doc.pages.get(index).ok_or("glue page missing")?;
@@ -478,6 +579,20 @@ impl GlueHost {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn predecessor_endpoint_memo_rejects_assignment_effects() {
+        let mut d = misterdiagram_model::skeleton::document(false);
+        let mut line = misterdiagram_model::skeleton::rectangle(1, 1., 1., 2., 1., "").unwrap();
+        for (name, value) in [("ObjType", 2.), ("BeginX", 1.), ("BeginY", 1.), ("EndX", 3.), ("EndY", 1.)] {
+            set(&mut line.sheet, cell(name, value, None)).unwrap();
+        }
+        d.pages[0].shapes.push(line);
+        let pure = GlueHost::prepare(&d, &mut d.clone()).unwrap();
+        assert!(pure.prior_endpoints.contains_key(&(0, 1)));
+        set(&mut d.pages[0].shapes[0].sheet, cell("BeginX", 1., Some("SETF(GETREF(PinX),9)+1".into()))).unwrap();
+        let assigned = GlueHost::prepare(&d, &mut d.clone()).unwrap();
+        assert!(assigned.prior_endpoints.is_empty());
+    }
     fn drawing() -> Document {
         let mut doc = misterdiagram_model::skeleton::document(false);
         let page = &mut doc.pages[0];

@@ -212,7 +212,7 @@ fn assign(
         let mut boxes = Vec::new();
         for scope in scopes {
             let Scope::PageShape { shape, .. } = scope else { continue };
-            if crate::orthogonal::number(e, scope, "ObjType", 0.) == 1.
+            if crate::changes::placeable(e, scope)?
                 && (crate::orthogonal::number(e, scope, "ShapePermeableX", 0.) == 0.
                     || crate::orthogonal::number(e, scope, "ShapePermeableY", 0.) == 0.)
             {

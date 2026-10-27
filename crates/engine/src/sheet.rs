@@ -187,6 +187,7 @@ pub(crate) fn set_cell(s: &mut Session, p: &Value) -> Result<Value> {
     let scope = target(s, p)?;
     let name = name(p, "name")?;
     let mut address = address(&s.document, scope, name)?;
+    let prior_cell = address.cell.clone();
     let force = p.get("force").and_then(Value::as_bool).unwrap_or(false);
     if !force && address.cell.formula.as_ref().is_some_and(|f| f.trim_start_matches('=').trim_start().to_ascii_uppercase().starts_with("GUARD(")) {
         return Err(operation("cell is guarded; force is required"));
@@ -215,7 +216,7 @@ pub(crate) fn set_cell(s: &mut Session, p: &Value) -> Result<Value> {
         address.cell.units = Some(units.as_str().filter(|s| s.len() <= 32).ok_or_else(|| operation("invalid unit code"))?.into());
     }
     address.cell.error = None;
-    s.edit_document(|doc, _| {
+    let result = s.edit_document(|doc, _| {
         ensure_text_transform(doc, scope, name)?;
         install(sheet_mut(doc, scope)?, address.clone())?;
         // Setting an override back to the master's own formula/value removes it.
@@ -245,7 +246,19 @@ pub(crate) fn set_cell(s: &mut Session, p: &Value) -> Result<Value> {
             remove_override(sheet_mut(doc, scope)?, &address);
         }
         Ok(json!({}))
-    })
+    })?;
+    // Setting the connector's route style is an explicit routing request. Keep
+    // its existing capacity retry behavior without treating it as page dirtiness.
+    // https://learn.microsoft.com/en-us/office/client-developer/visio/shaperoutestyle-cell-shape-layout-section
+    if name.eq_ignore_ascii_case("ShapeRouteStyle")
+        && address.cell != prior_cell
+        && let Scope::PageShape { page, shape } = scope
+    {
+        let page =
+            s.document.pages.iter().position(|p| p.id == page).and_then(|i| i.checked_add(1)).ok_or_else(|| operation("route page missing"))?;
+        crate::glue::reroute(s, &json!({"page":page,"id":shape}))?;
+    }
+    Ok(result)
 }
 fn remove_override(sheet: &mut Sheet, address: &Address) {
     if let Some(header) = &address.section {

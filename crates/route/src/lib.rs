@@ -4,6 +4,7 @@
 mod static_glue;
 pub use static_glue::{ConnectionPoint, End, add_connection, connect_dynamic, connect_static};
 
+mod changes;
 mod foreign_glue;
 mod glue_host;
 mod mixed_glue;

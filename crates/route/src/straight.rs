@@ -65,14 +65,11 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
     if host.unaffected && force.is_none() {
         return Ok(0);
     }
-    if let Some((index, shape)) = force {
-        let page = doc.pages.get(index).ok_or("route page missing")?;
-        for id in page.connects.iter().map(|c| c.from_sheet) {
-            if shape.is_none_or(|s| s == id) {
-                host.activate(page.id, id);
-            }
-        }
+    if let Some(force) = force {
+        host.force(doc, force)?;
     }
+    let requested_routes = host.requests().clone();
+    let prior_endpoints = std::mem::take(&mut host.prior_endpoints);
     let dirty_pages = doc.pages.iter().filter(|p| host.page_dirty(p.id)).map(|p| p.id).collect::<std::collections::BTreeSet<_>>();
     let mut outcomes = host.outcomes.clone();
     let themes = misterdiagram_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
@@ -88,6 +85,7 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
     let mut horizontal_runs = Vec::<(u32, misterdiagram_geom::Point, misterdiagram_geom::Point)>::new();
     let mut obstacles_memo = crate::orthogonal::ObstacleBounds::default();
     let mut fixed = vec![];
+    let mut touched = std::collections::BTreeSet::new();
     for scope in e.scopes().collect::<Vec<_>>() {
         let Scope::PageShape { page, shape: id } = scope else { continue };
         if e.evaluate(scope, "ObjType").numeric() != Ok(2.) || e.cell(scope, "BeginX").is_none() {
@@ -106,11 +104,22 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
         let changed = previous.is_none_or(|old| {
             ["BeginX", "BeginY", "EndX", "EndY", "BegTrigger", "EndTrigger"].iter().any(|name| old.sheet.cell(name) != current.sheet.cell(name))
         });
-        let changed = changed || ["BeginX", "BeginY", "EndX", "EndY"].iter().any(|name| e.evaluate(scope, name) != old.evaluate(scope, name));
-        let requested = forced || changed || dirty_pages.contains(&page);
-        let resolved_style = crate::orthogonal::style(&mut e, scope, page);
+        let changed = changed
+            || ["BeginX", "BeginY", "EndX", "EndY"].iter().enumerate().any(|(i, name)| {
+                // Current endpoints must still see newly active glue hooks and
+                // trigger cells, including indirect references from another route.
+                let current = e.evaluate(scope, name);
+                let cached =
+                    (old.evaluation_epoch() == (0, 0)).then(|| prior_endpoints.get(&(page, id)).and_then(|v| v.get(i)).copied().flatten()).flatten();
+                let previous = cached.map(misterdiagram_sheet::Value::Number).unwrap_or_else(|| old.evaluate(scope, name));
+                current != previous
+            });
+        let requested = forced || changed || dirty_pages.contains(&page) || requested_routes.contains(&(page, id));
         let is_fixed = number(&mut e, scope, "ConFixedCode")? == 2.;
-        if is_fixed || (!requested && resolved_style != 0. && resolved_style != 1.) {
+        let resolved_style = crate::orthogonal::style(&mut e, scope, page);
+        // Explicit requests retain the existing page lane closure. Ordinary edits
+        // may use an untouched route as context, but cannot assign it a new lane.
+        if is_fixed || (!requested && (force.is_none() || !matches!(resolved_style, 0. | 1.))) {
             // Targeted reroutes must see the unchanged preceding connectors too.
             // Reuse their serialized centerlines, including across jump arcs.
             let transform = e.shape_to_page(scope).map_err(|v| v.to_string())?;
@@ -159,6 +168,7 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
                 }
             }
             if is_fixed && changed {
+                touched.insert((index, id));
                 let ends = ["BeginX", "BeginY", "EndX", "EndY"].map(|name| number(&mut e, scope, name)).into_iter().collect::<Result<Vec<_>, _>>()?;
                 let ends: [f64; 4] = ends.try_into().map_err(|_| "endpoint count")?;
                 fixed.extend(crate::fixed::end_updates(&mut e, index, scope, ends)?);
@@ -379,7 +389,8 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
     drop(e);
     host.outcomes = outcomes;
     let count = routes.len();
-    let routed = routes.iter().map(|r| (r.0, r.1)).collect();
+    let routed = routes.iter().map(|r| (r.0, r.1)).collect::<std::collections::BTreeSet<_>>();
+    touched.extend(&routed);
     crate::fixed::apply(doc, fixed)?;
     for (index, id, bx, by, ex, ey, _style, points, inherited_zero, inherited_route) in routes {
         let page = doc.pages.get_mut(index).ok_or("route page missing")?;
@@ -497,6 +508,6 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
             shape.sheet.sections.push(Section { name: "Control".into(), rows: vec![control], ..Default::default() });
         }
     }
-    crate::jumps::apply(doc, host, &routed)?;
+    crate::jumps::apply(before, doc, host, &routed, &touched)?;
     Ok(count)
 }

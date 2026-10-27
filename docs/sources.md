@@ -75,7 +75,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/comment-cell-annotation-section> | `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/comment-cell-miscellaneous-section> | `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/compoundtype-cell-line-format-section> | `crates/render/src/style.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/confixedcode-cell-shape-layout-section> | `crates/route/src/fixed.rs`, `crates/route/src/glue_host.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/confixedcode-cell-shape-layout-section> | `crates/engine/tests/route_scope.rs`, `crates/route/src/fixed.rs`, `crates/route/src/glue_host.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/conlinejumpcode-cell-shape-layout-section> | `crates/route/src/jumps.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/conlinejumpdirx-cell-shape-layout-section> | `crates/route/src/jumps.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/conlinejumpdiry-cell-shape-layout-section> | `crates/route/src/jumps.rs` |
@@ -132,7 +132,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-function> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/formatex-function> | `crates/sheet/src/functions/text.rs`, `crates/vsdx/tests/string_cell_evaluation.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/formulaexists-function> | `crates/sheet/src/eval.rs`, `crates/sheet/src/functions/path_queries.rs`, `crates/vsdx/src/evaluate.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section> | `crates/engine/src/layout.rs`, `crates/engine/src/layout/check.rs`, `crates/engine/src/layout/shared.rs`, `crates/engine/src/network.rs`, `crates/engine/tests/layout_check.rs`, `crates/geom/src/rows.rs`, `crates/model/src/skeleton.rs`, `crates/route/src/straight.rs`, `crates/vsdx/src/evaluate/geometry.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section> | `crates/engine/src/layout.rs`, `crates/engine/src/layout/check.rs`, `crates/engine/src/layout/shared.rs`, `crates/engine/src/network.rs`, `crates/engine/tests/layout_check.rs`, `crates/geom/src/rows.rs`, `crates/model/src/skeleton.rs`, `crates/route/src/changes.rs`, `crates/route/src/straight.rs`, `crates/vsdx/src/evaluate/geometry.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/getref-function> | `crates/sheet/src/functions/references.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/gravity-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/green-function> | `crates/sheet/src/functions/color.rs` |
@@ -215,7 +215,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/not-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/nurbs-function> | `crates/geom/src/rows.rs`, `crates/sheet/src/functions/constructors.rs`, `crates/vsdx/tests/nurbs_knots.rs`, `tools/oracle/vendor-stencils/knot-precision-witness.ps1`, `tools/oracle/vendor-stencils/knot-serialization-confirmation.ps1` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/nurbsto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/vsdx/tests/nurbs_knots.rs`, `tools/oracle/vendor-stencils/knot-precision-witness.ps1`, `tools/oracle/vendor-stencils/knot-serialization-confirmation.ps1` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/objtype-cell-miscellaneous-section> | `crates/route/src/orthogonal.rs`, `crates/route/src/scope.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/objtype-cell-miscellaneous-section> | `crates/engine/tests/route_scope.rs`, `crates/route/src/changes.rs`, `crates/route/src/orthogonal.rs`, `crates/route/src/scope.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/or-function> | `crates/sheet/src/functions/mod.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml> | `crates/engine/src/inspect.rs`, `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs`, `crates/model/tests/from_scratch.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/write.rs`, `crates/vsdx/src/write/validate.rs`, `tools/oracle/accept_report.py` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pagecontents-elementvisio-xml> | `crates/vsdx/src/cache.rs` |
@@ -278,7 +278,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/setf-function> | `crates/sheet/src/functions/references.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/tests/action_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/shade-function> | `crates/sheet/src/functions/color_adjust.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/shape-data-section> | `apps/misterdiagram-cli/tests/examples.rs`, `crates/engine/src/content.rs`, `crates/engine/tests/authoring.rs`, `tools/oracle/make-corpus.ps1` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml> | `crates/engine/src/inspect.rs`, `crates/engine/src/masters.rs`, `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs`, `crates/render/tests/guides_line_ends.rs`, `crates/vsdx/src/evaluate/inherit.rs`, `crates/vsdx/src/lib.rs`, `crates/vsdx/src/write/model.rs`, `crates/vsdx/src/write/validate.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml> | `crates/engine/src/inspect.rs`, `crates/engine/src/masters.rs`, `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs`, `crates/render/tests/guides_line_ends.rs`, `crates/vsdx/src/evaluate/inherit.rs`, `crates/vsdx/src/lib.rs`, `crates/vsdx/src/write/model.rs`, `crates/vsdx/src/write/shape_bytes.rs`, `crates/vsdx/src/write/validate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/shape-transform-section> | `crates/engine/src/inspect.rs`, `crates/geom/src/rows.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/transform.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/shapekeywords-cell-miscellaneous-section> | `crates/engine/src/stencils.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/shapepermeablex-cell-shape-layout-section> | `crates/route/src/orthogonal.rs` |

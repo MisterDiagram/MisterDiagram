@@ -7,6 +7,7 @@ mod format;
 pub use format::{SaveKind, write_as, write_as_with_hosts};
 mod instances;
 mod model;
+mod shape_bytes;
 mod source;
 mod validate;
 pub(crate) use validate::document as validate_document;
@@ -436,6 +437,8 @@ fn package(parts: BTreeMap<String, Part>, root_rels: Vec<Relationship>) -> Resul
                 p.bytes.clone()
             } else if p.bytes.is_empty() && name == "docProps/app.xml" {
                 xml::authored_app(e)?.into()
+            } else if !p.bytes.is_empty() && e.is_visio("PageContents") {
+                shape_bytes::preserve(&*source_xml(p, name)?, e, &p.bytes, xml::tree(e)?)?.into()
             } else {
                 xml::tree(e)?.into()
             }
