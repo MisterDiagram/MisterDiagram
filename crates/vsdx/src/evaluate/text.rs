@@ -399,7 +399,19 @@ impl<'a> Evaluator<'a> {
                 // BA_DEC_BAN_M master25 shape6 switches from28pt to14pt here.
                 // https://learn.microsoft.com/en-us/office/client-developer/visio/cp-element-text_type-complextypevisio-xml
                 if !chunk.is_empty() || chunks.peek().is_some() || matches!(kind, RunKind::Field { .. }) {
-                    para.runs.push(Run { text: chunk.trim_end_matches('\r').into(), props: self.run_props(scope, cr), kind: kind.clone() });
+                    // Visio stores a soft line break (Shift+Enter) as U+2028 LINE SEPARATOR:
+                    // a Break run inside the paragraph, never a character to draw.
+                    // https://learn.microsoft.com/en-us/office/client-developer/visio/text-element-shapesheet_type-complextypevisio-xml
+                    let chunk = chunk.trim_end_matches('\r');
+                    let mut pieces = chunk.split('\u{2028}').peekable();
+                    while let Some(piece) = pieces.next() {
+                        if !piece.is_empty() || pieces.peek().is_none() {
+                            para.runs.push(Run { text: piece.into(), props: self.run_props(scope, cr), kind: kind.clone() });
+                        }
+                        if pieces.peek().is_some() {
+                            para.runs.push(Run { text: String::new(), props: self.run_props(scope, cr), kind: RunKind::Break });
+                        }
+                    }
                 }
                 para.end_props = self.run_props(scope, cr);
                 if chunks.peek().is_some() {
@@ -479,6 +491,20 @@ mod tests {
             let doc = document(&xml);
             assert!(Evaluator::new(&doc).unwrap().text_body(scope).is_err());
         }
+    }
+    #[test]
+    fn line_separator_is_a_soft_break_inside_the_paragraph() {
+        // A tester's drawings (2026-10-27) write Shift+Enter as U+2028; it broke nothing and
+        // drew as the missing-glyph box.
+        let doc = document("<Text><cp IX='0'/>PAM\u{2028}Soft Logic\n<cp IX='1'/>FOR-END\u{2028}PARALLEL\u{2028}LOOPBACK\n</Text>");
+        let mut e = Evaluator::new(&doc).unwrap();
+        let body = e.text_body(Scope::PageShape { page: 1, shape: 1 }).unwrap();
+        assert_eq!(body.paragraphs.len(), 2);
+        let kinds: Vec<_> = body.paragraphs[0].runs.iter().map(|r| (r.kind.clone(), r.text.as_str())).collect();
+        assert_eq!(kinds, vec![(RunKind::Text, "PAM"), (RunKind::Break, ""), (RunKind::Text, "Soft Logic")]);
+        assert_eq!(body.paragraphs[0].text(), "PAM\u{b}Soft Logic");
+        assert_eq!(body.paragraphs[1].runs.iter().filter(|r| r.kind == RunKind::Break).count(), 2);
+        assert!(!body.paragraphs.iter().flat_map(|p| &p.runs).any(|r| r.text.contains('\u{2028}')));
     }
     #[test]
     fn normalized_paragraph_marker_preserves_its_terminal_character_run() {

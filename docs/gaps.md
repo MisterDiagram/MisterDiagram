@@ -2182,3 +2182,19 @@ Noto Sans Symbols (the first family) would add 665 and Noto Sans Math more of th
 mathematics if a file ever asks. Wingdings and Webdings are symbol-charset fonts (letters
 drawn as pictures) and need a code-point mapping as well as glyphs; no file in the 7,627
 packages surveyed on this machine sets text in them, so they stay a named gap.
+
+## Field batch 2026-10-27: soft line breaks (tester's text batch)
+
+Five drawings from the same tester (MisterDiagram#87, 2026-10-27), each put through Visio
+2021's page export in the VM before the verdict (private corpus `field/vahegan-2026-10-27/`).
+Three (a bus block, a register field diagram, a clock list) were the trailing no-break-space
+bug fixed in M5.75: alpha.11 placed their labels 0.08 to 0.09 in too high or opened an empty
+line; alpha.12 matches Visio's export within 0.011 in on every measured row. The other two
+(a loopback diagram, a rotated-label test) were new: Visio writes Shift+Enter as U+2028 LINE
+SEPARATOR and `text_body` split paragraphs on the newline only, so the character reached the
+shaper as text, the label stayed on one line and the missing-glyph box appeared. M5.78 turns
+each U+2028 into a Break run; both files now break line for line as Visio's export does.
+339 of the 7,778 packages on the corpus machine contain the character (Microsoft's
+SharePoint, Azure, phone and BPMN templates among them), which is why the cached and COM
+text-metric counts rose by 67 and 38 with no other summary line moving. The tester compares
+printed PDFs side by side, so #102 (text as text) must keep the PDF's text real as well.

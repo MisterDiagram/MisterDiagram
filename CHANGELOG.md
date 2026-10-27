@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- **Soft line breaks (Shift+Enter) are honoured.** Visio stores them as the U+2028 line
+  separator; the converter treated it as text, so a two-row label came out as one row and a
+  missing-glyph box was drawn where the break was. It is now a line break inside the
+  paragraph. Found by a tester on two drawings; the character is in 339 of the 7,778 Visio
+  files on the corpus machine, Microsoft templates included, so the text-metric parity
+  counts rose (cached 62,348 to 62,415 of 67,866; COM 54,510 to 54,548 of 58,180).
+
 ## 0.1.0-alpha.12
 
 Two fixes from the first batch of real company files
