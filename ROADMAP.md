@@ -10,6 +10,7 @@ clean independent frozen verification passes.
 ## Progress
 
 - 2026-10-26: M5.71 (#104) scopes routing to glue/endpoints, moved-placeable crossover for code 0, and explicit/page policy requests. Nine synthetic tests and the five observed changed-connector sets pass with untouched Shape bytes preserved. M5.72 closure remains open on literal helper output and strict fabric example cell ordering; no release is claimed.
+- 2026-10-27: M5.72 closed under two rulings (the private comparison helper now inherits master Geometry rows; the fabric example baseline re-pinned on a cell-order-only change). M5.73 (#104 follow-up): a group flagged ObjType 8 is no longer an obstacle itself; its placeable members are, through their own scopes.
 
 - 2026-10-24: M5.60 (#89, #90) implements CHAR() and accepts every FORMAT language ID (en-US picture rules); the error-where-number ceilings fall to 29,115 cached and 1,094,960 COM, cached text-metric matches 62,147 to 62,348.
 

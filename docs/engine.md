@@ -29,9 +29,11 @@ by reason within that transaction:
    terminal coordinates. Codes 1 and 3 retain their existing glue behavior.
 2. A placeable shape whose placement bounds changed selects only ConFixedCode 0
    connectors whose saved route polyline intersects its new bounds with routing
-   clearance. ObjType 1 is placeable; zero uses the existing glue promotion rule;
-   groups flagged 8 include their placeable descendants. Moving an obstacle away
-   or moving an unrelated label does not request a reroute.
+   clearance. ObjType 1 is placeable; zero uses the existing glue promotion rule.
+   A group flagged 8 (its members are placeable) is not an obstacle itself; its
+   placeable members block and select routes through their own page scopes, and
+   they move with the group. Moving an obstacle away or moving an unrelated label
+   does not request a reroute.
 3. Explicit `route.reroute`, layout commands and page routing policy changes keep
    their existing routing extent, including explicit lane assignment. Page policy
    includes RouteStyle, LineJump*, PlowCode, LineToNode*, LineToLine*, BlockSize*,

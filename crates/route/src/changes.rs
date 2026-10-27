@@ -17,40 +17,12 @@ struct Placement {
 pub(crate) struct PageChanges {
     moved: BTreeMap<u32, (Option<Placement>, Placement)>,
 }
-/// Zero-valued shapes are promoted to one by the existing glue context rule.
-/// Group eight contributes its contained placeables, including nested groups.
+/// Only ObjType 1 is placeable. Zero-valued shapes are promoted to one by the
+/// existing glue context rule when they are glued. A group flagged 8 (its members
+/// are placeable or routable) is not itself an obstacle: its placeable members
+/// carry their own page scopes, so they block and select routes individually.
 pub(crate) fn placeable(e: &mut Evaluator<'_>, scope: Scope) -> Result<bool, String> {
-    let value = number(e, scope, "ObjType", 0.);
-    if value == 1. {
-        return Ok(true);
-    }
-    if value != 8. && value != 12. {
-        return Ok(false);
-    }
-    let Scope::PageShape { page, .. } = scope else { return Ok(false) };
-    let mut pending = e.shape(scope).into_iter().flat_map(|s| s.shapes.iter().map(|c| (c.id, 1usize))).collect::<Vec<_>>();
-    let mut count = 0usize;
-    while let Some((shape, depth)) = pending.pop() {
-        count = count.checked_add(1).ok_or("route dependency count limit")?;
-        if count > 100000 || depth >= 128 {
-            return Err("route dependency count limit".into());
-        }
-        let scope = Scope::PageShape { page, shape };
-        let value = number(e, scope, "ObjType", 0.);
-        if value == 1. {
-            return Ok(true);
-        }
-        if value == 8. || value == 12. {
-            let next = depth.checked_add(1).ok_or("route dependency count limit")?;
-            if let Some(s) = e.shape(scope) {
-                if pending.len().checked_add(s.shapes.len()).is_none_or(|n| n > 100000) {
-                    return Err("route dependency count limit".into());
-                }
-                pending.extend(s.shapes.iter().map(|c| (c.id, next)));
-            }
-        }
-    }
-    Ok(false)
+    Ok(number(e, scope, "ObjType", 0.) == 1.)
 }
 fn placement(e: &mut Evaluator<'_>, scope: Scope) -> Result<Placement, String> {
     let transform = e.shape_to_page(scope).map_err(|v| v.to_string())?;
@@ -178,6 +150,26 @@ mod tests {
         assert!(!intersects(Point::new(0., 0.), Point::new(3., 0.), b));
         assert!(intersects(Point::new(0., 0.), Point::new(3., 3.), b));
         assert!(!intersects(Point::new(0., 0.), Point::new(0., 3.), b));
+    }
+    #[test]
+    fn a_pnr_group_is_not_an_obstacle_but_its_placeable_member_is() {
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/objtype-cell-miscellaneous-section
+        let mut d = skeleton::document(false);
+        let mut group = skeleton::rectangle(1, 15., 15., 30., 30., "").unwrap();
+        group.shape_type = Some("Group".into());
+        group.sheet.cells.push(Cell { name: "ObjType".into(), value: Some("8".into()), ..Default::default() });
+        let mut member = skeleton::rectangle(2, 5., 5., 1., 1., "").unwrap();
+        member.sheet.cells.push(Cell { name: "ObjType".into(), value: Some("1".into()), ..Default::default() });
+        group.shapes.push(member);
+        d.pages[0].shapes.push(group);
+        let mut e = Evaluator::new(&d).unwrap();
+        assert!(!placeable(&mut e, Scope::PageShape { page: 0, shape: 1 }).unwrap());
+        assert!(placeable(&mut e, Scope::PageShape { page: 0, shape: 2 }).unwrap());
+        let obstacles = crate::orthogonal::obstacles(&mut e, 0, &[]).unwrap();
+        assert_eq!(obstacles.len(), 1);
+        let member_bounds = crate::orthogonal::bounds(&mut e, Scope::PageShape { page: 0, shape: 2 }).unwrap();
+        assert_eq!(obstacles[0], member_bounds);
+        assert!((member_bounds.x1 - member_bounds.x0 - 1.).abs() < 1e-9 && (member_bounds.y1 - member_bounds.y0 - 1.).abs() < 1e-9);
     }
     #[test]
     fn hostile_coordinate_and_scope_work_have_named_errors() {

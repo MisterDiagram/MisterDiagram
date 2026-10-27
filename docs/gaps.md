@@ -2146,9 +2146,13 @@ packing gap and unwitnessed code 1/3 glue behavior are unchanged.
 The explicit `sheet.set ShapeRouteStyle` command requests a targeted reroute,
 retaining the established capacity retry and one-step undo behavior.
 
-M5.72 closure remains open. The private comparison helper omits an inherited
-MoveTo even for an unchanged original snapshot, so its literal all-matches text
-criterion conflicts with the required original Shape bytes. The strict fabric
-example package check also detects different cell insertion order after removing
-incidental neighbor reroutes. Its values agree, but this does not satisfy the byte
-gate. Neither comparator nor its masks have been changed.
+M5.72 closed 2026-10-27 under two rulings. The private comparison helper had
+omitted the Dynamic connector's inherited MoveTo row (the native before snapshot
+failed against its own Visio dump); it now overlays local Geometry rows on the
+master's by IX, and every witness prints Visio's changed set with the untouched
+connectors matching. The fabric example baseline was re-pinned: its only change is
+the order of three cells inside one connector, written by an incidental neighbour
+reroute that the reason rule no longer performs. M5.73 removed a rule the review
+had added beyond the brief: a group flagged ObjType 8 counted as an obstacle with
+its whole box; per Microsoft the members are the placeable ones, and they already
+carry their own scopes.
