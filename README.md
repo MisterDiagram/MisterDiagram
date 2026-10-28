@@ -100,7 +100,7 @@ other side of the obstacle, one bends elsewhere); the 28 of 29 geometry witnesse
 
 ## New in 0.1.0-alpha.13
 
-Soft line breaks are honoured (#87). Visio stores Shift+Enter inside a label as the U+2028
+Soft line breaks are honoured (#108, from the #87 batch). Visio stores Shift+Enter inside a label as the U+2028
 line separator; the converter treated it as text, so a two-row label such as "FOR-END /
 PARALLEL / LOOPBACK" came out on one row with the missing-glyph box where the break was. It
 is now a line break inside the paragraph, and the tester's two drawings break line for line

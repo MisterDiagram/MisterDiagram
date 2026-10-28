@@ -8,7 +8,8 @@ open from his lists: SVG text is exported as outlines
 ([#102](https://github.com/MisterDiagram/MisterDiagram/issues/102)) and SVG import
 ([#103](https://github.com/MisterDiagram/MisterDiagram/issues/103)).
 
-- **Soft line breaks (Shift+Enter) are honoured.** Visio stores them as the U+2028 line
+- **Soft line breaks (Shift+Enter) are honoured**
+  ([#108](https://github.com/MisterDiagram/MisterDiagram/issues/108)). Visio stores them as the U+2028 line
   separator; the converter treated it as text, so a two-row label came out as one row and a
   missing-glyph box was drawn where the break was. It is now a line break inside the
   paragraph. Found by a tester on two drawings; the character is in 339 of the 7,778 Visio
