@@ -25,8 +25,8 @@ Anyone who wants a GUI on top is welcome to build one: the licence is MIT or Apa
 core is the part that has to be right. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and shares their conventions.
 
-**Download:** [MisterDiagram 0.1.0-alpha.12](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.12),
-the eleventh alpha (check marks, crosses and the other symbols Windows documents set in Segoe UI Symbol now draw from a bundled open symbol face, and the guide-alignment functions INTERSECTX and INTERSECTY evaluate: #106), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+**Download:** [MisterDiagram 0.1.0-alpha.13](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.13),
+the twelfth alpha (soft line breaks, which Visio stores as the U+2028 character, now break the line instead of unwrapping the label and drawing a box; found by a tester in two of five drawings and present in 339 of 7,778 corpus files), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -35,7 +35,7 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-10-27, 0.1.0-alpha.12)
+## What works today (2026-10-28, 0.1.0-alpha.13)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
@@ -98,19 +98,16 @@ and Webdings symbol-charset fonts, are not covered (docs/gaps.md). Where a conne
 three connectors that rerouted on the witness drawings differ from Visio's path (two take the
 other side of the obstacle, one bends elsewhere); the 28 of 29 geometry witnesses still hold.
 
-## New in 0.1.0-alpha.12
+## New in 0.1.0-alpha.13
 
-Symbol characters draw (#106). A tester's drawing set a check mark and a cross in Segoe UI
-Symbol; that font is Microsoft's and the engine never reaches for fonts installed on the
-machine, so alpha.11 drew the missing-glyph box. Noto Sans Symbols 2 (open licence, symbols
-only, no letters) is now bundled and draws any character the document's text font cannot:
-check marks, dingbats, geometric shapes, the extended arrows and pictographs. The line keeps
-the metrics of the font the document asked for, and a lone symbol followed by a no-break
-space no longer wraps onto an empty second line, so the marks land within a tenth of an inch
-of Visio's export. INTERSECTX and INTERSECTY, the functions Visio writes into a shape snapped
-to a guide, now evaluate (parallel lines keep the last value, as in Visio); the tester's file
-with two guides renders without a warning. Every corpus, field, theme and hostile number is
-unchanged from alpha.11.
+Soft line breaks are honoured (#87). Visio stores Shift+Enter inside a label as the U+2028
+line separator; the converter treated it as text, so a two-row label such as "FOR-END /
+PARALLEL / LOOPBACK" came out on one row with the missing-glyph box where the break was. It
+is now a line break inside the paragraph, and the tester's two drawings break line for line
+as Visio's own export does. The character turned out to be in 339 of the 7,778 Visio files on
+the corpus machine, Microsoft's own templates included, so the text-metric parity counts
+rose (cached text 62,415 of 67,866, COM text 54,548 of 58,180); every other corpus, field,
+theme and hostile number is unchanged from alpha.12.
 
 ## Testers wanted
 

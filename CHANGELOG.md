@@ -1,6 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.13
+
+One layout fix from the tester's second batch of real company files
+([#87](https://github.com/MisterDiagram/MisterDiagram/issues/87)): soft line breaks. Still
+open from his lists: SVG text is exported as outlines
+([#102](https://github.com/MisterDiagram/MisterDiagram/issues/102)) and SVG import
+([#103](https://github.com/MisterDiagram/MisterDiagram/issues/103)).
 
 - **Soft line breaks (Shift+Enter) are honoured.** Visio stores them as the U+2028 line
   separator; the converter treated it as text, so a two-row label came out as one row and a
