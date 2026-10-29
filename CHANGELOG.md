@@ -14,6 +14,13 @@
   and what labels in such drawings were sized for; before, we drew a look-alike, often wider,
   so tight labels wrapped. Installed fonts keep their names. SVG exports name Calibri for
   these runs, as Visio's own SVG export does.
+- **Themed text color and font follow the theme on every text run** (from the #87 thread).
+  A label whose second line used its own `THEMEVAL()` color drew near-white instead of the
+  theme's blue; every Character row now takes the theme color and the theme's text contrast,
+  as row zero already did. A font cell stored as Themed now takes the theme's font (or, in a
+  drawing with no theme, the font of the base style, Calibri in Visio's own templates) even when its formula
+  names another font, which is what Visio draws; before, such labels drew in Arial and could
+  wrap.
 
 ## 0.1.0-alpha.16
 
