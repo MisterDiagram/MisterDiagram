@@ -186,7 +186,9 @@ pub(crate) fn export(s: &mut Session, p: &Value) -> Result<Value> {
             v.as_u64().and_then(|v| usize::try_from(v).ok()).and_then(|v| v.checked_sub(1)).ok_or_else(|| operation("page is a one-based ordinal"))
         })
         .transpose()?;
-    let options = scene::Options { scale, visio_export: true, cached_fallback: true, ..Default::default() };
+    let text_outlines =
+        p.get("text_outlines").map(|v| v.as_bool().ok_or_else(|| operation("text_outlines must be boolean"))).transpose()?.unwrap_or(false);
+    let options = scene::Options { scale, text_outlines, visio_export: true, cached_fallback: true, ..Default::default() };
     let mut budget = scene::SceneBudget::default();
     let scenes = if ext == "pdf" && page.is_none() {
         let mut scenes = Vec::new();

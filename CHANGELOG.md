@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+- **SVG text is text** ([#102](https://github.com/MisterDiagram/MisterDiagram/issues/102)).
+  SVG exports and previews write each text block as a `<text>` element with one `<tspan>`
+  per line, the requested font family and size, colour and styles, so the file can be
+  searched, selected and edited; before, every glyph was a `<path>`. Lines are placed where
+  the PNG and PDF place them (rasterising the SVG matches the PNG within the existing
+  ceilings on every test page). Right-to-left lines are anchored at their left edge with the
+  paragraph direction carried by Unicode isolates, so renderers that ignore `direction`
+  still order them correctly. CLI `convert` and `render` accept `--text-outlines`, and
+  `file.export` and MCP `export` and `render` accept `text_outlines: true`, to keep the
+  previous glyph paths byte for byte. PNG and PDF output is unchanged, and PDF text stays
+  extractable. Not covered: Visio's `v:` extension data (for re-import into Visio), and
+  three places where our layout and Visio's SVG export differ (listed in docs/gaps.md).
+
 ## 0.1.0-alpha.14
 
 One layout fix from the tester's third report

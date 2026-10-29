@@ -67,8 +67,8 @@ page. Every mutating command uses the engine's strict write-and-reimport path.
 | --- | --- | --- |
 | open | `{"name":"open","arguments":{"path":"drawing.vsdx"}}` | Replaces the active document; returns page count and macro-removal flag. |
 | save | `{"name":"save","arguments":{"path":"drawing.vsdx"}}` | Saves VSDX, VSSX or VSTX by extension; returns bytes and warnings. |
-| export | `{"name":"export","arguments":{"path":"drawing.svg","page":1}}` | VSDX, PNG, SVG or PDF by extension. VSDX takes only path. PDF without page includes foreground pages. |
-| render | `{"name":"render","arguments":{"path":"drawing.png","page":1,"scale":2}}` | Renders PNG, SVG or PDF at the requested scale. |
+| export | `{"name":"export","arguments":{"path":"drawing.svg","page":1}}` | VSDX, PNG, SVG or PDF by extension. VSDX takes only path. PDF without page includes foreground pages. SVG defaults to editable text; `text_outlines: true` preserves glyph paths. |
+| render | `{"name":"render","arguments":{"path":"drawing.png","page":1,"scale":2}}` | Renders PNG, SVG or PDF at the requested scale. SVG defaults to editable text; optional boolean `text_outlines` selects glyph paths. |
 | list_commands | `{"name":"list_commands","arguments":{}}` | Lists command IDs, labels, schemas and enabled state. |
 | run_command | `{"name":"run_command","arguments":{"command":"shape.draw.rect","params":{"x":1,"y":2,"width":2,"height":1}}}` | Creates a rectangle and returns its ID. Any registered engine command is available. |
 | batch | `{"name":"batch","arguments":{"commands":[{"command":"shape.draw.rect","as":"cedar","params":{"x":1,"y":2,"width":2,"height":1}},{"command":"shape.text","params":{"id":"$cedar","text":"Cedar"}}]}}` | Creates and labels a rectangle as one undo step. Returns results and the reference map. |

@@ -1,5 +1,33 @@
 # Gaps
 
+## SVG editable text (#102)
+
+SVG exports and previews emit one `<text>` per text block and one `<tspan>` per line, with
+style `<tspan>`s inside; requested font names survive substitute and symbol fallback; the
+`--text-outlines` CLI flag and `text_outlines` parameter keep the previous paths byte for
+byte. The writer serialises the existing layout, so PNG, PDF and SVG text agree (raster
+parity 139/139 pages within the existing ceilings). Measured against Visio 2021's own SVG
+exports (20 witness files, brief 49), 15 match line for line within 0.5 pt; the other five
+are layout differences, not writer errors:
+
+- Visio's SVG export does not compose the terminal space its bitmap export composes, so
+  generated/text/multiline-wrap has 8 lines in Visio's SVG and 9 in its PNG and in ours.
+- Bullets: Visio writes Symbol's bullet code point (U+00B7) followed by a space; our layout
+  draws U+2022 with no gap, so bulleted lines start up to 15 pt apart. A layout gap, open.
+- The #106 symbol-width residual (up to 5.8 pt on the tester's pins drawing) and sub-point
+  baseline differences on imported labels (up to 0.86 pt).
+
+Right-to-left lines: usvg 0.47 runs bidi with an LTR base whatever `direction` says, and
+anchors `text-anchor="end"` at the right edge even under `direction="rtl"`. Every line is
+therefore `direction="ltr" text-anchor="start"` at the visual left edge the layout computed,
+and each right-to-left fragment is wrapped in U+2067 RLI and U+2069 PDI inside a
+`unicode-bidi="isolate" direction="rtl"` tspan; the mixed Latin and Hebrew raster test
+passes with resvg.
+
+Existing text limits remain enforced: a literal 65,536-character block and a 4,096-paragraph
+file are refused with "text length limit" and "text metadata limit". Visio `v:` extension
+data and a Visio re-import witness are separate open work; no extension markup is emitted.
+
 ## Evaluator construction limits (#97)
 
 M5.63 raises the effective-cell and indexed-cell bounds to 2,000,000. An
@@ -2222,5 +2250,7 @@ where it places "50 ohm" in all nine width and alignment combinations of the syn
 so the last line now drops trailing spaces from its alignment width, as wrapped lines
 already did; measurement (`layout`, TEXTWIDTH) keeps them. The tester's block diagram from
 2026-10-26 had right-aligned signal labels with one trailing space: they were 5 to 6 px left of
-Visio's export at 192 dpi and are now within 1 px. Corpus check, field render and the theme
-sweep are unchanged.
+Visio's export at 192 dpi and are now within 1 px. Corpus check and the theme sweep are
+unchanged. Field render moved on seven rows, six of them closer to Visio's export (the
+release gate first reported it unchanged because its script ran a field_render built before
+the fix; corrected 2026-10-29).

@@ -379,3 +379,9 @@ connector Shape XML remains byte-identical, including authored bends and jumps.
 Explicit routing and layout retain their established scope. The geometry sweep
 and its known jump-packing gap still bound the feature. See [engine.md](engine.md)
 and [gaps.md](gaps.md) for the reason rule and witness table.
+
+- Brief 49, export row remains P: editable SVG text and outline opt-in are covered by
+  `editable_lines_requested_fonts_styles_and_outlines` and
+  `cli_engine_and_mcp_share_svg_text_default_and_outline_flag`. Strict native text
+  positions/wrapping and Visio extension/re-import acceptance remain open.
+  Standard SVG reference: https://www.w3.org/TR/SVG11/text.html#TextElement

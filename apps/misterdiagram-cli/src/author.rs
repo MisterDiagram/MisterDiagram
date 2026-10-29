@@ -99,11 +99,17 @@ pub fn run(args: &[OsString], out: &mut impl Write, memory: MemoryLimits, stenci
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.document.saveas
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.page.export
 pub fn convert(args: &[OsString], out: &mut impl Write, memory: MemoryLimits) -> Result<(), String> {
-    if args.len() != 3 {
-        return Err("usage: convert IN OUT".into());
+    let flags = args.iter().skip(1).filter(|a| *a == "--text-outlines").count();
+    if flags > 1 || args.iter().skip(1).any(|a| a.to_str().is_some_and(|s| s.starts_with("--") && s != "--text-outlines")) {
+        return Err("usage: convert IN OUT [--text-outlines]".into());
     }
-    let input = text(args.get(1).ok_or("missing input")?)?;
-    let output_path = text(args.get(2).ok_or("missing output")?)?;
+    let text_outlines = flags == 1;
+    let positional: Vec<_> = args.iter().skip(1).filter(|a| *a != "--text-outlines").collect();
+    let [input, output_path] = positional.as_slice() else {
+        return Err("usage: convert IN OUT [--text-outlines]".into());
+    };
+    let input = text(input)?;
+    let output_path = text(output_path)?;
     let extension = std::path::Path::new(output_path).extension().and_then(|e| e.to_str()).unwrap_or("").to_ascii_lowercase();
     let command = match extension.as_str() {
         "vsdx" | "vssx" | "vstx" => "file.save",
@@ -112,6 +118,10 @@ pub fn convert(args: &[OsString], out: &mut impl Write, memory: MemoryLimits) ->
     };
     let mut session = Session::with_memory_limits(memory);
     session.execute("file.open", &json!({"path":input})).map_err(|e| e.to_string())?;
-    let value = session.execute(command, &json!({"path":output_path})).map_err(|e| e.to_string())?;
+    let mut params = json!({"path":output_path});
+    if command == "file.export" {
+        params["text_outlines"] = json!(text_outlines);
+    }
+    let value = session.execute(command, &params).map_err(|e| e.to_string())?;
     output(out, &value)
 }

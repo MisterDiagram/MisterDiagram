@@ -454,3 +454,4 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-stretchdibits> | `crates/render/src/metafile/emf/masked.rs` |
 | <https://learn.microsoft.com/en-us/windows/win32/gdi/ternary-raster-operations> | `crates/render/src/metafile/emf/masked.rs`, `crates/render/src/metafile/mod.rs` |
 | <https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT> | `crates/opc/src/opc.rs` |
+| <https://www.w3.org/TR/SVG11/text.html#TextElement> | `crates/render/src/svg/text.rs` |

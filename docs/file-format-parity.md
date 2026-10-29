@@ -17199,3 +17199,15 @@ Native saved SHA-256:
 The full hashed receipt and strict results are retained in
 `plan/brief31c/window-control-receipt.json` and
 `plan/brief31/vm-final-accept-report.json`.
+
+### Observed, undocumented: SVG text and bitmap composition (#102)
+
+The private generated `text/multiline-wrap` native SVG has eight lines; the
+established bitmap layout has nine. Its native SVG `text/bullets` uses a middle
+dot and a space, whereas the bitmap layout's Symbol fallback draws a bullet.
+Editable SVG currently retains the shared layout, so these differences remain
+explicit witness failures. A new `svg_text_witness` example compares only standard
+SVG text, transforms and inherited sizes. It checks 0.5 pt line-origin tolerances;
+no vendor extension elements are consumed or emitted. Imported font substitutions
+also leave some line origins outside that tolerance. The private session report
+records those inputs and measurements; no oracle or bitmap threshold was changed.

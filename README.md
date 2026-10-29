@@ -108,8 +108,9 @@ the tester's op-amp "-" sat above its input wire. It now stays on the line, as i
 same labels showed an older difference: centred and right-aligned lines counted their
 trailing spaces, so a label such as "50 ohm" followed by spaces sat a few points left of
 where Visio puts it. Visio ignores them, and so does MisterDiagram now. Checked against
-Visio 2021 on the tester's drawing and on two witness pages; every corpus, field, theme and
-hostile number is unchanged from alpha.13.
+Visio 2021 on the tester's drawing and on two witness pages; the corpus, theme and hostile
+numbers are unchanged from alpha.13, and seven field-render distances moved, six of them
+closer to Visio's export.
 
 ## Testers wanted
 

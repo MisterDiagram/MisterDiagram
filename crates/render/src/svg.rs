@@ -3,6 +3,8 @@ use crate::scene::{Op, Options, Paint, Scene, text_paths};
 use base64::Engine as _;
 use misterdiagram_geom::Affine;
 use std::fmt::Write as _;
+mod text;
+use text::text;
 fn matrix(m: Affine) -> String {
     let [a, b, c, d, e, f] = m.as_coeffs();
     format!("matrix({a} {b} {c} {d} {e} {f})")
@@ -100,8 +102,15 @@ pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
             }
             Op::Image { pixels, transform } => image(&mut out, pixels, view * *transform, false)?,
             Op::Text { layout, transform } => {
-                for (p, c) in text_paths(layout, view * *transform) {
-                    path(&mut out, &p, c)
+                if options.text_outlines {
+                    for (p, c) in text_paths(layout, view * *transform) {
+                        path(&mut out, &p, c)
+                    }
+                } else {
+                    for deco in layout.decos.iter().filter(|d| d.behind) {
+                        path(&mut out, &(view * *transform * kurbo::Shape::to_path(&deco.rect, 1e-5)), deco.color);
+                    }
+                    text(&mut out, layout, view * *transform)?;
                 }
             }
         }

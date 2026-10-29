@@ -36,6 +36,9 @@ use unicode_segmentation::UnicodeSegmentation;
 /// A run of glyphs in one face, size and colour.
 #[derive(Clone)]
 pub struct GlyphRun {
+    /// Requested style and displayed characters for editable vector text. This is
+    /// separate from the PDF cluster mapping, including its historical empty bullets.
+    pub svg: SvgRun,
     pub face: Arc<FontFace>,
     /// Font size in points (after autofit scaling).
     pub size: f64,
@@ -57,6 +60,20 @@ pub struct GlyphRun {
     pub link: bool,
     /// Alpha of the fill (0–1).
     pub alpha: f64,
+}
+
+/// Semantic export metadata; it never changes glyph placement or PDF extraction.
+#[derive(Clone, Debug, Default)]
+pub struct SvgRun {
+    pub family: Arc<str>,
+    pub bold: bool,
+    pub italic: bool,
+    pub underline: bool,
+    pub strike: bool,
+    pub text: String,
+    pub line: usize,
+    pub upper: bool,
+    pub spacing: f64,
 }
 
 impl std::fmt::Debug for GlyphRun {
@@ -159,6 +176,7 @@ pub struct Opts<'a> {
 }
 
 struct Style {
+    family: Arc<str>,
     face: Arc<FontFace>,
     size: f64,
     color: Rgba,
@@ -180,6 +198,30 @@ struct Style {
     /// The `a:ea` and `a:cs` families (theme references resolved), if the document names one.
     ea: Option<String>,
     cs: Option<String>,
+}
+
+impl Style {
+    fn svg(&self, line: usize, text: String) -> SvgRun {
+        SvgRun {
+            family: self.family.clone(),
+            bold: self.style_name.contains("Bold"),
+            italic: self.style_name.contains("Italic"),
+            underline: self.underline.is_some(),
+            strike: self.strike.is_some(),
+            text,
+            line,
+            upper: self.caps != Caps::None,
+            spacing: self.spacing,
+        }
+    }
+}
+fn svg_char(ch: char, upper: bool) -> char {
+    if upper { ch.to_uppercase().next().unwrap_or(ch) } else { ch }
+}
+fn finish_run(run: &mut GlyphRun, cells: &[Cell]) {
+    let chars = cells.get(run.chars.0..run.chars.1).unwrap_or_default();
+    run.text = chars.iter().map(|c| c.ch).collect();
+    run.svg.text = chars.iter().map(|c| svg_char(c.ch, run.svg.upper)).collect();
 }
 
 /// One character of a paragraph after shaping.
@@ -250,6 +292,7 @@ fn make_style(r: &RunProps, scale: f64, prompt: Option<Rgba>) -> Style {
     let underline = r.underline.as_deref().filter(|u| *u != "none").map(|_| r.underline_color.unwrap_or(color));
     let outline = r.outline.as_ref().map(|l| (l.color, l.width));
     Style {
+        family: family.into(),
         face,
         size,
         color,
@@ -1176,7 +1219,7 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
     let ox = inner.x0 + dx;
     let oy = inner.y0 + dy;
     // Emit runs, in visual order.
-    for (line, place, _, bullet) in all_lines.iter_mut() {
+    for (line_index, (line, place, _, bullet)) in all_lines.iter_mut().enumerate() {
         line.top += oy;
         line.baseline += oy;
         line.bottom += oy;
@@ -1187,6 +1230,7 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
         {
             let (_, g) = measure_str(&st.face, st.size, &s);
             out.runs.push(GlyphRun {
+                svg: st.svg(line_index, s.clone()),
                 face: st.face.clone(),
                 size: st.size,
                 color: st.color,
@@ -1219,11 +1263,12 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
             let key = (cell.style, cell.face);
             if key != cur_key {
                 if let Some(mut r) = cur.take() {
-                    r.text = p.cells.get(r.chars.0..r.chars.1).unwrap_or_default().iter().map(|c| c.ch).collect();
+                    finish_run(&mut r, &p.cells);
                     out.runs.push(r);
                 }
                 let Some(face) = p.faces.get(cell.face) else { continue };
                 cur = Some(GlyphRun {
+                    svg: st.svg(line_index, String::new()),
                     face: face.clone(),
                     size,
                     color: st.color,
@@ -1295,7 +1340,7 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
             }
         }
         if let Some(mut r) = cur.take() {
-            r.text = p.cells.get(r.chars.0..r.chars.1).unwrap_or_default().iter().map(|c| c.ch).collect();
+            finish_run(&mut r, &p.cells);
             out.runs.push(r);
         }
     }
@@ -1310,6 +1355,23 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
             b
         })
         .collect();
+    // Spaces excluded from alignment still belong to editable SVG text. Keep this
+    // sidecar separate from the legacy PDF text and glyph cluster ranges.
+    let mut last_run = 0usize;
+    for (index, (line, ..)) in all_lines.iter().enumerate() {
+        while out.runs.get(last_run).is_some_and(|r| r.svg.line <= index) {
+            last_run += 1;
+        }
+        let Some(run) = last_run.checked_sub(1).and_then(|i| out.runs.get_mut(i)).filter(|r| r.svg.line == index) else { continue };
+        let Some(p) = shaped_paras.get(line.para) else { continue };
+        let end = all_lines
+            .get(index + 1)
+            .filter(|(next, ..)| next.para == line.para)
+            .map_or(p.cells.len().saturating_sub(usize::from(terminal)), |(next, ..)| next.start);
+        for c in p.cells.get(line.end..end).unwrap_or_default().iter().take_while(|c| c.ch == ' ') {
+            run.svg.text.push(c.ch);
+        }
+    }
     out.lines = all_lines.into_iter().map(|(l, ..)| l).collect();
     // Merge adjacent decorations of the same colour on the same line.
     out.decos = merge_decos(std::mem::take(&mut out.decos));

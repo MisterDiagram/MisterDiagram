@@ -55,6 +55,8 @@ impl SceneBudget {
                         self.charge(vector_bytes(&run.glyphs))?;
                         self.charge(vector_bytes(&run.cells))?;
                         self.charge(run.text.capacity())?;
+                        self.charge(run.svg.text.capacity())?;
+                        self.charge(run.svg.family.len())?;
                     }
                     for line in &layout.lines {
                         self.charge(vector_bytes(&line.caret_x))?;

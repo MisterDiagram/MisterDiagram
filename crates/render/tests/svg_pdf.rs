@@ -1,3 +1,5 @@
+#[path = "support/svg_fonts.rs"]
+mod svg_fonts;
 use misterdiagram_render::{pdf, raster, scene, svg};
 #[test]
 fn generated_svg_resvg_and_pdf_text() {
@@ -29,7 +31,7 @@ fn generated_svg_resvg_and_pdf_text() {
             let scene = scene::page(&doc, scene::default_page_index(&doc).unwrap(), options).unwrap();
             let png = raster::render(&scene, options).unwrap();
             let xml = svg::render(&scene, options).unwrap();
-            let tree = resvg::usvg::Tree::from_str(&xml, &resvg::usvg::Options::default()).unwrap();
+            let tree = resvg::usvg::Tree::from_str(&xml, &svg_fonts::options()).unwrap();
             let mut pixels = resvg::tiny_skia::Pixmap::new(png.width(), png.height()).unwrap();
             // The SVG page is transparent like Visio's export; the raster paints a white page.
             pixels.fill(resvg::tiny_skia::Color::WHITE);
@@ -98,7 +100,7 @@ fn svg_thin_closed_stroke_matches_the_raster_pen() {
     let options = scene::Options::default();
     let png = raster::render(&scene, options).unwrap();
     let xml = svg::render(&scene, options).unwrap();
-    let tree = resvg::usvg::Tree::from_str(&xml, &resvg::usvg::Options::default()).unwrap();
+    let tree = resvg::usvg::Tree::from_str(&xml, &svg_fonts::options()).unwrap();
     let mut pixels = resvg::tiny_skia::Pixmap::new(png.width(), png.height()).unwrap();
     pixels.fill(resvg::tiny_skia::Color::WHITE);
     resvg::render(&tree, resvg::tiny_skia::Transform::identity(), &mut pixels.as_mut());

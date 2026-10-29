@@ -51,13 +51,19 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
                 i += 1;
             }
             Some("--masters") => masters = true,
+            Some("--text-outlines") => {
+                if options.text_outlines {
+                    return Err("usage: --text-outlines may be given once".into());
+                }
+                options.text_outlines = true;
+            }
             Some(s) if s.starts_with("--") => return Err("unknown render option".into()),
             _ => positional.push(arg),
         }
         i += 1;
     }
     let [input, output] = positional.as_slice() else {
-        return Err("usage: render FILE [--page N] [--scale S] OUT.{png,svg,pdf}; render --masters STENCIL OUT.png".into());
+        return Err("usage: render FILE [--page N] [--scale S] [--text-outlines] OUT.{png,svg,pdf}; render --masters STENCIL OUT.png".into());
     };
     let doc = misterdiagram_vsdx::read(Path::new(input)).map_err(|e| e.to_string())?;
     let path = Path::new(output);
@@ -125,6 +131,8 @@ fn execute(args: &[std::ffi::OsString], out: &mut impl Write) -> Result<(), Stri
     let (arguments, stencil_path) = settings::stencil_path(&arguments, std::env::var_os("MISTERDIAGRAM_STENCIL_PATH"))?;
     let args = arguments.as_slice();
     match args.first().and_then(|a| a.to_str()) {
+        Some("--help") if args.len() == 1 => writeln!(out, "misterdiagram: info, sheet, render, convert, run, commands, describe, corpus check, mcp\nrender FILE [--page N] [--scale S] [--text-outlines] OUT.{{png,svg,pdf}}\nconvert IN OUT [--text-outlines]\nSVG uses editable text by default; --text-outlines writes glyph paths.").map_err(|e|e.to_string()),
+        Some("render" | "convert") if args.len()==2 && args.get(1).is_some_and(|a|a=="--help") => writeln!(out, "render FILE [--page N] [--scale S] [--text-outlines] OUT.{{png,svg,pdf}}\nconvert IN OUT [--text-outlines]\nSVG uses editable text by default; --text-outlines writes glyph paths.").map_err(|e|e.to_string()),
         Some("--version") if args.len() == 1 => {
             writeln!(out, "{}", version_line(option_env!("MISTERDIAGRAM_COMMIT"), env!("MISTERDIAGRAM_TARGET"))).map_err(|e| e.to_string())
         }

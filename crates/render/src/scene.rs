@@ -37,6 +37,8 @@ pub struct Scene {
 }
 #[derive(Clone, Copy, Debug)]
 pub struct Options {
+    /// SVG only: retain the historical glyph path serialization.
+    pub text_outlines: bool,
     pub scale: f64,
     pub print: bool,
     pub crop: bool,
@@ -50,7 +52,7 @@ pub struct Options {
 }
 impl Default for Options {
     fn default() -> Self {
-        Self { scale: 1., print: false, crop: true, visio_export: false, cached_fallback: false }
+        Self { text_outlines: false, scale: 1., print: false, crop: true, visio_export: false, cached_fallback: false }
     }
 }
 impl Scene {
@@ -92,6 +94,18 @@ impl Scene {
                 }
                 Op::Text { layout, transform } => {
                     if layout.runs.len() > 65536
+                        || layout.lines.len() > 65536
+                        || layout
+                            .runs
+                            .iter()
+                            .map(|r| r.svg.text.len().saturating_add(r.svg.family.len()))
+                            .try_fold(0usize, |a, b| a.checked_add(b))
+                            .is_none_or(|n| n > 16 * 1024 * 1024)
+                        || layout.lines.iter().any(|l| {
+                            !l.baseline.is_finite() || !l.extent.0.is_finite() || l.edges.iter().any(|(a, b)| !a.is_finite() || !b.is_finite())
+                        })
+                        || layout.runs.iter().any(|r| r.svg.line >= layout.lines.len() || !r.alpha.is_finite() || !r.svg.spacing.is_finite())
+                        || layout.runs.windows(2).any(|r| r.first().zip(r.get(1)).is_some_and(|(a, b)| a.svg.line > b.svg.line))
                         || transform.as_coeffs().iter().any(|v| !v.is_finite())
                         || layout.runs.iter().any(|r| {
                             r.glyphs.len() > 65536
