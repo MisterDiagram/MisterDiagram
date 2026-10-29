@@ -185,3 +185,55 @@ fn symbol_glyph_keeps_the_text_face_line_and_a_trailing_no_break_space_hangs() {
     assert_eq!(baselines.len(), 1, "one line: {baselines:?}");
     assert!(l.runs.iter().any(|r| r.face.family == "Noto Sans Symbols 2"), "the mark is drawn by the symbol face");
 }
+
+#[test]
+fn a_dash_before_the_terminal_space_keeps_one_line() {
+    // MisterDiagram#87: an op-amp's "-" in a 0.1743 in box with 4 pt margins,
+    // Calibri 12 pt, middle-aligned. UAX #14 allows a break between a dash and the composed
+    // no-break space, which opened a second line holding only the space and lifted the dash
+    // half a line. Visio 2021 keeps hyphen, en dash and U+2010 on the line of "+" and "x".
+    if FontDb::global().face("Calibri", "Regular").data().is_empty() {
+        eprintln!("open font pack absent: layout metrics skipped");
+        return;
+    }
+    let glyphs = |text: &str, width: f64| {
+        let mut body = TextBody {
+            body: BodyProps {
+                inset_l: Some(4.),
+                inset_r: Some(4.),
+                inset_t: Some(4.),
+                inset_b: Some(4.),
+                anchor: Some(misterdiagram_model::text::Anchor::Middle),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        body.paragraphs.push(Paragraph::new(text));
+        body.paragraphs[0].runs[0].props = RunProps { size: Some(12.), font: Some("Calibri".into()), ..Default::default() };
+        body.paragraphs[0].props.align = Some(misterdiagram_model::text::Align::Center);
+        let opts = Opts { rect: Rect::new(0., 0., width * 72., 0.2778 * 72.), fields: &NoFields, prompt_color: None, no_shrink: true };
+        let l = layout_for_export(&body, &opts).unwrap();
+        l.runs.iter().flat_map(|r| r.glyphs.iter().map(|(_, x, y)| ((x * 1000.).round() as i64, (y * 1000.).round() as i64))).collect::<Vec<_>>()
+    };
+    let block = |text: &str, width: f64| glyphs(text, width).into_iter().map(|(_, y)| y).collect::<std::collections::BTreeSet<i64>>();
+    let plus = block("+", 0.1743);
+    assert_eq!(plus.len(), 1, "{plus:?}");
+    // U+2010 is not in the Calibri substitute; its fallback face moves the baseline by about
+    // 0.05 pt. The defect was half a line (7.2 pt), so the check is one line within 0.5 pt.
+    for dash in ["-", "\u{2013}", "\u{2010}"] {
+        let lines = block(dash, 0.1743);
+        assert_eq!(lines.len(), 1, "{dash:?}: {lines:?}");
+        let (y, p) = (*lines.first().unwrap(), *plus.first().unwrap());
+        assert!((y - p).abs() < 500, "{dash:?} sits on the line of \"+\": {y} vs {p}");
+    }
+    // The same drawing's "50 ohm    " (four trailing spaces) in a 0.75 in block: the terminal
+    // space hangs with the trailing spaces, so the label keeps one line on the baseline of
+    // "50 ohm"; and the trailing spaces do not count when the line is centred.
+    let trimmed = block("50 ohm", 0.75);
+    assert_eq!(trimmed.len(), 1, "{trimmed:?}");
+    assert_eq!(block("50 ohm    ", 0.75), trimmed);
+    for width in [0.75, 2.0] {
+        let x = |text: &str| glyphs(text, width).first().map(|g| g.0);
+        assert_eq!(x("50 ohm    "), x("50 ohm"), "centred at {width} in");
+    }
+}

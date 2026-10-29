@@ -2198,3 +2198,29 @@ each U+2028 into a Break run; both files now break line for line as Visio's expo
 SharePoint, Azure, phone and BPMN templates among them), which is why the cached and COM
 text-metric counts rose by 67 and 38 with no other summary line moving. The tester compares
 printed PDFs side by side, so #102 (text as text) must keep the PDF's text real as well.
+
+## Field batch 2026-10-28: a dash or trailing spaces before the terminal space
+
+The same tester (MisterDiagram#87, 2026-10-28) sent an analog drawing whose op-amp "-" sat
+above the input wire (private corpus `field/vahegan-2026-10-28/`, with Visio 2021's page
+export and two synthetic witness pages Visio drew in the VM). The composed terminal no-break
+space (`layout_for_export`) follows UAX #14: LB12a allows a break before a no-break space
+after a hyphen, a BA-class dash (en dash, U+2010) or a space. When that space did not fit, the
+breaker took the opportunity directly before it and opened a line holding only the space: a
+middle-aligned label rose half a line, a bottom-aligned one a full line. "+", letters and
+U+2212 were never affected (no opportunity before the no-break space after them). M5.75's
+hanging rule did not apply because it only hung the space when the line had no earlier
+opportunity, and here the opportunity was the one directly before it.
+
+M5.80: an opportunity directly before a trailing no-break space is not recorded; the space
+hangs when it follows whitespace, as trailing spaces do; so a word before the terminal space
+still wraps when the line has an earlier opportunity (multiline-wrap's ninth line is
+unchanged). Fixing the break exposed an older difference: the last line of an exported
+paragraph was aligned with its trailing spaces counted, so "50 ohm" plus four spaces sat
+5.4 pt left of Visio's placement when centred, in wide blocks too. Visio places it exactly
+where it places "50 ohm" in all nine width and alignment combinations of the synthetic page,
+so the last line now drops trailing spaces from its alignment width, as wrapped lines
+already did; measurement (`layout`, TEXTWIDTH) keeps them. The tester's block diagram from
+2026-10-26 had right-aligned signal labels with one trailing space: they were 5 to 6 px left of
+Visio's export at 192 dpi and are now within 1 px. Corpus check, field render and the theme
+sweep are unchanged.

@@ -750,7 +750,12 @@ fn break_lines(
                 p.cells.get(i).map(|c| c.adv).unwrap_or(0.0)
             };
             let breakable = |j: usize| p.cells.get(j).is_none_or(|c| c.breakable(j));
-            if i > start && allowed.get(i).copied().unwrap_or(false) && breakable(i) {
+            let trailing_nbsp = c == '\u{a0}' && p.cells.get(i + 1..).is_none_or(|rest| rest.iter().all(|c| c.ch.is_whitespace()));
+            // UAX #14 allows a break between a dash and a following no-break space (LB12a). Before
+            // a trailing one that break would open a line holding only the space: a lone "-" in
+            // a narrow middle-aligned block rose half a line (MisterDiagram#87, an op-amp's "-"),
+            // where Visio 2021 keeps it on the line of "+" and "x".
+            if i > start && allowed.get(i).copied().unwrap_or(false) && breakable(i) && !trailing_nbsp {
                 last_break = Some(i);
             }
             // A no-break space counts toward the width: when it overflows, the line breaks at the
@@ -759,9 +764,9 @@ fn break_lines(
             // opportunity on the line and only whitespace after it, it hangs past the margin
             // instead of forcing a break before itself: a check mark followed by a no-break
             // space in a block narrower than the pair stays on one line, as Visio lays it out.
-            let hanging = c == '\u{a0}'
-                && last_break.is_none_or(|b| b <= start)
-                && p.cells.get(i + 1..).is_none_or(|rest| rest.iter().all(|c| c.ch.is_whitespace()));
+            // After trailing spaces it hangs with them: "50 ohm    " keeps one line in Visio.
+            let hanging = trailing_nbsp
+                && (last_break.is_none_or(|b| b <= start) || i.checked_sub(1).and_then(|j| p.cells.get(j)).is_some_and(|c| c.ch.is_whitespace()));
             if wrap && x + adv > avail + 0.01 && (!c.is_whitespace() || (c == '\u{a0}' && !hanging)) && i > start {
                 // Break at the last opportunity, or force mid-word (between clusters).
                 let b = last_break
@@ -781,6 +786,14 @@ fn break_lines(
         if i >= n {
             end = if terminal { n.saturating_sub(1) } else { n };
             next = n;
+            // Export aligns the last line without its trailing spaces, as a wrapped line already
+            // is: Visio 2021 places "50 ohm    " centred or right-aligned exactly where it places
+            // "50 ohm", in narrow and wide blocks alike (a synthetic witness page of both labels
+            // in three widths and three alignments). Measurement (terminal false) keeps them for
+            // TEXTWIDTH.
+            while terminal && end > start && p.cells.get(end - 1).is_some_and(|c| c.ch == ' ') {
+                end -= 1;
+            }
         }
         lines.push(RawLine { start, end, next });
         if next <= start {

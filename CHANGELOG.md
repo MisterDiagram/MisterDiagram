@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+- **A label ending in a dash or in trailing spaces stays on its line** (reported in
+  [#87](https://github.com/MisterDiagram/MisterDiagram/issues/87): an op-amp's "-" sat above
+  its input wire). Export composes a no-break space at the end of each paragraph, as Visio's
+  bitmap export does; Unicode line breaking allows a break before it after a dash or a space,
+  so in a narrow block the space went to a second, empty line and a middle-aligned label rose
+  half a line (a bottom-aligned one a full line). The break before that space no longer
+  counts, and after trailing spaces it hangs past the margin with them. Centred and
+  right-aligned lines are also placed without their trailing spaces, as Visio places them, in
+  wide blocks too: a tester's signal labels with one trailing space moved 5 to 6 px (at 192 dpi)
+  to within 1 px of Visio's export. Text measurement (TEXTWIDTH) is unchanged; no corpus
+  summary line moved.
+
 ## 0.1.0-alpha.13
 
 One layout fix from the tester's second batch of real company files
