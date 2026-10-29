@@ -237,3 +237,62 @@ fn a_dash_before_the_terminal_space_keeps_one_line() {
         assert_eq!(x("50 ohm    "), x("50 ohm"), "centred at {width} in");
     }
 }
+
+#[test]
+fn visio_bullets_start_the_text_at_a_tab_stop() {
+    // MisterDiagram#110: Visio 2021 starts the text after a bullet at a tab stop, measured on a
+    // synthetic witness page (Calibri, 0.5 in default stop, positions from the text area's
+    // left edge). The DrawingML rule (text right after the bullet) stays the default.
+    if FontDb::global().face("Calibri", "Regular").data().is_empty() {
+        eprintln!("open font pack absent: layout metrics skipped");
+        return;
+    }
+    let runs = |bullet: &str, tab: Option<f64>, margin: f64, indent: f64, align: misterdiagram_model::text::Align| {
+        let mut body = TextBody {
+            body: BodyProps { inset_l: Some(0.), inset_r: Some(0.), inset_t: Some(0.), inset_b: Some(0.), ..Default::default() },
+            ..Default::default()
+        };
+        body.paragraphs.push(Paragraph::new("Abc"));
+        body.paragraphs[0].runs[0].props = RunProps { size: Some(12.), font: Some("Calibri".into()), ..Default::default() };
+        let props = &mut body.paragraphs[0].props;
+        props.bullet = Some(Bullet::Char { char: bullet.into() });
+        props.bullet_tab = tab;
+        props.default_tab = Some(36.);
+        props.margin_left = Some(margin);
+        props.indent = Some(indent);
+        props.align = Some(align);
+        let opts = Opts { rect: Rect::new(0., 0., 230.4, 30.), fields: &NoFields, prompt_color: None, no_shrink: true };
+        let l = layout_for_export(&body, &opts).unwrap();
+        let first = |i: usize| l.runs.get(i).and_then(|r| r.glyphs.first()).map(|g| g.1).unwrap();
+        // The text run's end: its last glyph ("c") plus that glyph's advance.
+        let end = l.runs.get(1).map(|r| r.glyphs.last().map(|g| g.1).unwrap() + measure_str(&r.face, r.size, "c").0).unwrap();
+        (first(0), first(1), end, l.runs[0].glyphs.iter().all(|g| g.0 != 0))
+    };
+    use misterdiagram_model::text::Align::{Center, Left, Right};
+    let near = |a: f64, b: f64| (a - b).abs() < 0.01;
+    // TextPosAfterBullet 0: the next default stop, whatever the size.
+    let (b, t, ..) = runs("•", Some(0.), 0., 0., Left);
+    assert!(near(b, 0.) && near(t, 36.), "{b} {t}");
+    // TextPosAfterBullet past the bullet wins over a nearer default stop.
+    assert!(near(runs("•", Some(72.), 0., 0., Left).1, 72.));
+    assert!(near(runs("•", Some(7.2), 0., 0., Left).1, 7.2));
+    // Behind the bullet it is ignored: IndFirst 0.25 in with 0.1 in starts at 0.5 in.
+    assert!(near(runs("•", Some(7.2), 0., 18., Left).1, 36.));
+    // A bullet at a stop moves on to the next one; the hanging indent is a stop too.
+    assert!(near(runs("•", Some(0.), 36., 0., Left).1, 72.));
+    assert!(near(runs("•", Some(0.), 28.8, -28.8, Left).1, 28.8));
+    // A bullet reaching past the stop pushes the text to its end.
+    let (b, t, ..) = runs("•", Some(0.), 0., 34.56, Left);
+    assert!(near(b, 34.56) && t > 36.5, "{b} {t}");
+    // Centred and right-aligned: bullet, gap and text are one unit.
+    let (b, t, end, _) = runs("•", Some(0.), 0., 0., Center);
+    assert!(near(t - b, 36.) && ((b + end) / 2. - 115.2).abs() < 0.5, "{b} {t} {end}");
+    let (b, t, end, _) = runs("•", Some(0.), 0., 0., Right);
+    assert!(near(t - b, 36.) && (end - 230.4).abs() < 0.5, "{b} {t} {end}");
+    // Without bullet_tab the text follows the bullet glyph.
+    assert!(runs("•", None, 0., 0., Left).1 < 10.);
+    // Wingdings bullets are drawn by the bundled symbol face, never as a missing glyph.
+    for bullet in ["▪", "❑", "❖", "➢", "✓"] {
+        assert!(runs(bullet, Some(0.), 0., 0., Left).3, "{bullet}");
+    }
+}

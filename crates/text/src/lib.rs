@@ -484,8 +484,10 @@ fn shape_para(body: &TextBody, pi: usize, scale: f64, opts: &Opts, number: Optio
                 st.baseline = 0.0;
                 // Symbol fonts (Wingdings) aren't available: map common private-use bullets.
                 let ch = map_symbol_bullet(char, props.bullet_font.as_deref());
-                if !st.face.covers(ch.chars().next().unwrap_or('•')) {
-                    st.face = db.face("Inter", "Regular");
+                let cluster: Vec<char> = ch.chars().collect();
+                if !misterdiagram_fonts::covers_cluster(&st.face, &cluster) {
+                    // The cascade reaches the bundled symbol face, as text runs do.
+                    st.face = db.cascade(&cluster, &face_chain(&st, FontSlot::Latin, None), st.style_name);
                 }
                 Some((ch, st))
             }
@@ -679,6 +681,22 @@ fn shape_item(
             c.adv += sp;
         }
     }
+}
+
+/// Where Visio starts the text after a bullet at `bx`: TextPosAfterBullet when it lies past the
+/// bullet's start, otherwise the hanging indent or the next default tab stop, whichever comes
+/// first; a bullet wider than the gap pushes the text to its end. Microsoft's page says the
+/// distance is added to IndFirst, but Visio 2021 puts IndFirst 0.25 in with 0.1 in at 0.5 in
+/// (private witness field/bullets-2026-10-29).
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/textposafterbullet-cell-paragraph-section
+fn bullet_stop(bx: f64, bullet_w: f64, tab: f64, margin: f64, indent: f64, default_tab: f64) -> f64 {
+    let stop = if tab > bx {
+        tab
+    } else {
+        let next = if default_tab >= 1.0 { ((bx / default_tab + 1e-9).floor() + 1.0) * default_tab } else { bx };
+        if indent < 0.0 && margin > bx { next.min(margin) } else { next }
+    };
+    stop.max(bx + bullet_w)
 }
 
 fn map_symbol_bullet(c: &str, font: Option<&str>) -> String {
@@ -980,7 +998,11 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
         let bullet_w = p.bullet.as_ref().map(|(s, st)| measure_str(&st.face, st.size, s).0).unwrap_or(0.0);
         let first_x = if p.bullet.is_some() {
             let bx = (margin + indent).max(0.0);
-            if indent < 0.0 && bx + bullet_w <= margin { margin } else { bx + bullet_w + if indent >= 0.0 { 0.0 } else { 3.0 } }
+            match props.bullet_tab {
+                Some(tab) => bullet_stop(bx, bullet_w, tab, margin, indent, props.default_tab.unwrap_or(72.0)),
+                None if indent < 0.0 && bx + bullet_w <= margin => margin,
+                None => bx + bullet_w + if indent >= 0.0 { 0.0 } else { 3.0 },
+            }
         } else {
             (margin + indent).max(0.0)
         };
@@ -1097,8 +1119,15 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
             // The line box, in column coordinates: the start edge is the left one for LTR and the
             // right one (S = W - rIns) for RTL paragraphs.
             let (box_l, box_r) = if p.rtl { (mr, col_w - x0) } else { (x0, col_w - mr) };
+            // Visio aligns a first line's bullet, gap and text as one unit.
+            let unit = li == 0 && !p.rtl && p.bullet.is_some() && props.bullet_tab.is_some();
+            let gap = if unit { first_x - (margin + indent).max(0.0) } else { 0.0 };
             let left = if filled {
                 box_l
+            } else if unit && matches!(align, Align::Center | Align::Right) {
+                let start = box_l - gap;
+                let free = box_r - start - gap - line_w;
+                start + gap + if align == Align::Center { free / 2.0 } else { free }
             } else {
                 match align {
                     Align::Left => box_l,

@@ -228,6 +228,9 @@ pub struct ParaProps {
     pub bullet_color: Option<Rgba>,
     /// Bullet size as a fraction of the text size.
     pub bullet_size: Option<f64>,
+    /// Visio's TextPosAfterBullet (points). When set, the first line's text starts at a tab
+    /// stop after the bullet, as Visio places it; when `None`, right after the bullet glyph.
+    pub bullet_tab: Option<f64>,
     pub tabs: Option<Vec<TabStop>>,
     pub default_tab: Option<f64>,
     pub rtl: Option<bool>,
@@ -254,6 +257,7 @@ impl ParaProps {
             self.bullet_color.clone_from(&p.bullet_color);
         }
         self.bullet_size = self.bullet_size.or(p.bullet_size);
+        self.bullet_tab = self.bullet_tab.or(p.bullet_tab);
         if self.tabs.is_none() {
             self.tabs.clone_from(&p.tabs);
         }

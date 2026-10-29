@@ -243,6 +243,7 @@ impl<'a> Evaluator<'a> {
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/spbefore-cell-paragraph-section
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/spafter-cell-paragraph-section
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/bullet-cell-paragraph-section
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/textposafterbullet-cell-paragraph-section
     fn para_props(&mut self, scope: Scope, row: u32, tabs: u32) -> ParaProps {
         let bullet_string = self.evaluate(scope, &indexed("Para", "BulletStr", row)).text();
         let bullet_font = self.text_font(scope, &indexed("Para", "BulletFont", row));
@@ -250,18 +251,22 @@ impl<'a> Evaluator<'a> {
         let tab_stops = self.tab_stops(scope, tabs);
         let mut n = |name: &str, default| self.text_number(scope, &indexed("Para", name, row), default);
         let line = n("SpLine", -1.2);
-        let bullet = n("Bullet", 0.);
-        let bullet = match bullet as i32 {
+        let kind = n("Bullet", 0.) as i32;
+        // Visio 2021 draws Word's bullets: Symbol U+00B7, Courier New "o", then Wingdings
+        // U+00A7, "q", "v", U+00D8 and U+00FC (private witness field/bullets-2026-10-29).
+        let bullet = match kind {
             0 => Bullet::None,
             1 => Bullet::Char { char: "•".into() },
-            2 => Bullet::Char { char: "◆".into() },
-            3 => Bullet::Char { char: "■".into() },
-            4 => Bullet::Char { char: "□".into() },
+            2 => Bullet::Char { char: "o".into() },
+            3 => Bullet::Char { char: "▪".into() },
+            4 => Bullet::Char { char: "❑".into() },
             5 => Bullet::Char { char: "❖".into() },
             6 => Bullet::Char { char: "➢".into() },
             7 => Bullet::Char { char: "✓".into() },
             _ => Bullet::Char { char: bullet_string },
         };
+        let bullet_font = if kind == 2 && n("BulletFont", 0.) == 0. { "Courier New".into() } else { bullet_font };
+        let bullet_tab = n("TextPosAfterBullet", 0.) * 72.;
         ParaProps {
             align: Some(match n("HorzAlign", 0.) as i32 {
                 1 => Align::Center,
@@ -279,6 +284,7 @@ impl<'a> Evaluator<'a> {
             rtl: Some(n("TextDirection", 0.) != 0.),
             bullet: Some(bullet),
             bullet_font: Some(bullet_font),
+            bullet_tab: Some(bullet_tab),
             default_tab: Some(default_tab),
             tabs: Some(tab_stops),
             ..Default::default()

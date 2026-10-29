@@ -1,5 +1,23 @@
 # Gaps
 
+## Bullets (#110)
+
+Measured on synthetic Visio 2021 pages (private witness `field/bullets-2026-10-29`, 36
+cases). The text after a bullet starts at a tab stop, not right after the bullet glyph:
+TextPosAfterBullet when it lies past the bullet's start; otherwise the hanging indent (IndLeft,
+when IndFirst is negative) or the next DefaultTabStop multiple, whichever comes first; a bullet
+reaching past that stop pushes the text to its end. Centred and right-aligned first lines
+align bullet, gap and text as one unit, and wrapped lines start at IndLeft. Microsoft's page
+says TextPosAfterBullet is added to IndFirst; Visio 2021 does not do that (IndFirst 0.25 in
+with 0.1 in starts the text at 0.5 in). Every case's text now starts within 0.01 in of
+Visio's; alpha.15 was off by up to 0.92 in. Bullets 1 to 7 are Word's: Symbol U+00B7, Courier
+New "o", then Wingdings U+00A7, "q", "v", U+00D8 and U+00FC, drawn as •, "o" in Cousine, ▪,
+❑, ❖, ➢ and ✓; the Wingdings ones come from the bundled symbol face (alpha.15 drew 4 to 7 as
+missing-glyph boxes), so their shapes differ a little from Visio's. Not modelled: a positive
+BulletFontSize (200% draws a bullet far larger than twice the text and pushes the text out of
+the box), Tabs-section stops after a bullet, and right-to-left bullets (unwitnessed; the
+previous rule's placement with the new stop).
+
 ## SVG editable text (#102)
 
 SVG exports and previews emit one `<text>` per text block and one `<tspan>` per line, with
@@ -12,8 +30,8 @@ are layout differences, not writer errors:
 
 - Visio's SVG export does not compose the terminal space its bitmap export composes, so
   generated/text/multiline-wrap has 8 lines in Visio's SVG and 9 in its PNG and in ours.
-- Bullets: Visio writes Symbol's bullet code point (U+00B7) followed by a space; our layout
-  draws U+2022 with no gap, so bulleted lines start up to 15 pt apart. A layout gap, open.
+- Bullets: fixed by #110 (below). Visio's SVG export writes a space where its bitmap export
+  leaves the gap after a bullet, so after the bullet our SVG follows Visio's PNG, not its SVG.
 - The #106 symbol-width residual (up to 5.8 pt on imported symbol labels) and sub-point
   baseline differences on imported labels (up to 0.86 pt).
 

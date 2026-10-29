@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- **Bulleted text sits where Visio puts it**
+  ([#110](https://github.com/MisterDiagram/MisterDiagram/issues/110)). The text after a bullet
+  now starts at a tab stop, as in Visio: the bullet's TextPosAfterBullet when set, otherwise
+  the hanging indent or the next default tab stop (0.5 in unless DefaultTabStop says
+  otherwise). Before, it was drawn right against the bullet. Centred and right-aligned
+  bulleted lines move as one unit, as Visio aligns them. Bullet style 2 is Word's "o", not a
+  diamond, and styles 4 to 7 (❑, ❖, ➢, ✓) are drawn instead of missing-glyph boxes. Measured
+  on 36 synthetic Visio 2021 cases: every text start within 0.01 in of Visio's.
+
 ## 0.1.0-alpha.15
 
 SVG text is text, from the tester's first batch of real company files
