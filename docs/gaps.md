@@ -14,7 +14,7 @@ are layout differences, not writer errors:
   generated/text/multiline-wrap has 8 lines in Visio's SVG and 9 in its PNG and in ours.
 - Bullets: Visio writes Symbol's bullet code point (U+00B7) followed by a space; our layout
   draws U+2022 with no gap, so bulleted lines start up to 15 pt apart. A layout gap, open.
-- The #106 symbol-width residual (up to 5.8 pt on the tester's pins drawing) and sub-point
+- The #106 symbol-width residual (up to 5.8 pt on imported symbol labels) and sub-point
   baseline differences on imported labels (up to 0.86 pt).
 
 Right-to-left lines: usvg 0.47 runs bidi with an LTR base whatever `direction` says, and
@@ -2188,7 +2188,7 @@ carry their own scopes.
 
 ### #106: symbol characters set in Segoe UI Symbol (2026-10-27)
 
-The tester's pins file sets U+2714 and U+2718 in Segoe UI Symbol; Visio draws a green check
+A tester's drawing sets U+2714 and U+2718 in Segoe UI Symbol; Visio draws a green check
 and a red cross (private witness `field/vahegan-2026-10-26/visio/pins.png`). Segoe UI Symbol
 is Microsoft's and the engine never scans system fonts, so the missing-glyph box was drawn.
 Noto Sans Symbols 2 (OFL 1.1, hinted build, 2,641 symbol code points, no letters) is now a
