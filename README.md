@@ -25,8 +25,8 @@ Anyone who wants a GUI on top is welcome to build one: the licence is MIT or Apa
 core is the part that has to be right. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and shares their conventions.
 
-**Download:** [MisterDiagram 0.1.0-alpha.13](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.13),
-the twelfth alpha (soft line breaks, which Visio stores as the U+2028 character, now break the line instead of unwrapping the label and drawing a box; found by a tester in two of five drawings and present in 339 of 7,778 corpus files), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+**Download:** [MisterDiagram 0.1.0-alpha.14](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.14),
+the thirteenth alpha (a label ending in a dash or in trailing spaces stays on its line in a narrow text block, and centred or right-aligned labels no longer count their trailing spaces; found by a tester on an op-amp drawing and checked against Visio 2021 on his file and two witness pages), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -35,7 +35,7 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-10-28, 0.1.0-alpha.13)
+## What works today (2026-10-29, 0.1.0-alpha.14)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
@@ -98,16 +98,18 @@ and Webdings symbol-charset fonts, are not covered (docs/gaps.md). Where a conne
 three connectors that rerouted on the witness drawings differ from Visio's path (two take the
 other side of the obstacle, one bends elsewhere); the 28 of 29 geometry witnesses still hold.
 
-## New in 0.1.0-alpha.13
+## New in 0.1.0-alpha.14
 
-Soft line breaks are honoured (#108, from the #87 batch). Visio stores Shift+Enter inside a label as the U+2028
-line separator; the converter treated it as text, so a two-row label such as "FOR-END /
-PARALLEL / LOOPBACK" came out on one row with the missing-glyph box where the break was. It
-is now a line break inside the paragraph, and the tester's two drawings break line for line
-as Visio's own export does. The character turned out to be in 339 of the 7,778 Visio files on
-the corpus machine, Microsoft's own templates included, so the text-metric parity counts
-rose (cached text 62,415 of 67,866, COM text 54,548 of 58,180); every other corpus, field,
-theme and hostile number is unchanged from alpha.12.
+A label ending in a dash or in trailing spaces stays on its line (#109, from the #87 thread).
+Export adds a no-break space to the end of each paragraph, as Visio's own bitmap export does,
+and Unicode line breaking allows a break before it after a dash or a space. In a narrow
+block that space went to a second, empty line, so a middle-aligned label rose half a line:
+the tester's op-amp "-" sat above its input wire. It now stays on the line, as in Visio. The
+same labels showed an older difference: centred and right-aligned lines counted their
+trailing spaces, so a label such as "50 ohm" followed by spaces sat a few points left of
+where Visio puts it. Visio ignores them, and so does MisterDiagram now. Checked against
+Visio 2021 on the tester's drawing and on two witness pages; every corpus, field, theme and
+hostile number is unchanged from alpha.13.
 
 ## Testers wanted
 

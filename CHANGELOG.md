@@ -1,10 +1,16 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.14
 
-- **A label ending in a dash or in trailing spaces stays on its line** (reported in
-  [#87](https://github.com/MisterDiagram/MisterDiagram/issues/87): an op-amp's "-" sat above
-  its input wire). Export composes a no-break space at the end of each paragraph, as Visio's
+One layout fix from the tester's third report
+([#87](https://github.com/MisterDiagram/MisterDiagram/issues/87)): labels ending in a dash or
+in trailing spaces. Still open from his lists: SVG text is exported as outlines
+([#102](https://github.com/MisterDiagram/MisterDiagram/issues/102)) and SVG import
+([#103](https://github.com/MisterDiagram/MisterDiagram/issues/103)).
+
+- **A label ending in a dash or in trailing spaces stays on its line**
+  ([#109](https://github.com/MisterDiagram/MisterDiagram/issues/109), from the #87 thread: an
+  op-amp's "-" sat above its input wire). Export composes a no-break space at the end of each paragraph, as Visio's
   bitmap export does; Unicode line breaking allows a break before it after a dash or a space,
   so in a narrow block the space went to a second, empty line and a middle-aligned label rose
   half a line (a bottom-aligned one a full line). The break before that space no longer
