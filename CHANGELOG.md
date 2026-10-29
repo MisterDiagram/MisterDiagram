@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **A label that just fits keeps one line** (from the #87 thread). The invisible space export
+  adds at the end of each paragraph no longer pushes the last word onto a new line: Visio 2021's
+  final build lets it hang past the margin, so a tester's "CDR Lock Time" stayed on one line in
+  Visio and wrapped in ours. The generated text witnesses were re-taken with that build (16.0
+  build 20527), which is now the reference; the first ones came from an earlier build that did
+  wrap.
 - **A font Visio does not have is drawn in Calibri, as Visio draws it** (from the #87
   thread). A drawing that names a font missing from Visio 2021 on stock Windows (Helvetica,
   Futura, Roboto and so on) now lays out and exports in Calibri, which is what Visio shows

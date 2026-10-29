@@ -1,5 +1,25 @@
 # Gaps
 
+## Visio build and the terminal space (#87, 2026-10-29)
+
+The reference is Visio 2021's final build, 16.0 build 20527 (support ended 2026-10-13); the
+generated corpus was first exported with build 20430 on 2026-10-11. The two differ on seven of
+the sixteen generated text drawings (centred and right-aligned text, bullets, tabs, the field
+date, multiline-wrap), so generated/text's PNG and SVG exports were re-taken with 20527; the
+20430 ones are kept in the private corpus as generated-b20430. Microsoft 365 Visio, which keeps
+changing, is not a reference.
+
+The composed terminal no-break space now always hangs past the margin and never wraps the last
+word. Build 20527 keeps a tester's 8 pt Arial "CDR Lock Time" on one line in a 0.906 in block
+(the words take 56.45 pt of 57.25, the space would overflow by 1.4 pt), at 96, 192 and 384 dpi,
+and multiline-wrap at eight lines; build 20430 wrapped multiline-wrap's last word onto a ninth
+line, which the previous rule (hang only with no earlier opportunity or after whitespace)
+followed. Witness: private corpus field/vahegan-2026-10-29 (visio, visio-dpi).
+Residual: Visio's page is one pixel wider than ours on multiline-wrap (207 against 206 at
+96 dpi), its bounds taking in the hanging space; ours stop at the ink. The corpus check
+tolerates it. With the new rule and references the text group's mean MAD falls from 3.397 to
+3.132, and one field page (poi 60489 page 1) moves from 7.020 to 6.585.
+
 ## Missing fonts (#87, 2026-10-29)
 
 A font Visio 2021 on stock Windows 11 with Office 2021 does not have is drawn in Calibri,
@@ -45,8 +65,9 @@ parity 139/139 pages within the existing ceilings). Measured against Visio 2021'
 exports (20 witness files, brief 49), 15 match line for line within 0.5 pt; the other five
 are layout differences, not writer errors:
 
-- Visio's SVG export does not compose the terminal space its bitmap export composes, so
-  generated/text/multiline-wrap has 8 lines in Visio's SVG and 9 in its PNG and in ours.
+- generated/text/multiline-wrap: 8 lines in Visio's SVG, 9 in the October corpus PNG (build
+  20430). Build 20527 draws 8 in its PNG too, and so do we since the terminal-space rule
+  changed (see Visio build below).
 - Bullets: fixed by #110 (below). Visio's SVG export writes a space where its bitmap export
   leaves the gap after a bullet, so after the bullet our SVG follows Visio's PNG, not its SVG.
 - The #106 symbol-width residual (up to 5.8 pt on imported symbol labels) and sub-point

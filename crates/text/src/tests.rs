@@ -304,3 +304,29 @@ fn visio_bullets_start_the_text_at_a_tab_stop() {
         assert!(runs(bullet, Some(0.), 0., 0., Left).3, "{bullet}");
     }
 }
+
+#[test]
+fn the_terminal_space_hangs_and_never_wraps_the_last_word() {
+    // MisterDiagram#87: Visio 2021's final build keeps an 8 pt Arial "CDR Lock Time" on one line
+    // in a 0.906 in block with 4 pt margins (57.25 pt of measure); the words take 56.45 pt and the
+    // composed terminal no-break space would overflow by 1.4 pt. Build 20430 wrapped "Time".
+    if FontDb::global().face("Arial", "Regular").data().is_empty() {
+        eprintln!("open font pack absent: layout metrics skipped");
+        return;
+    }
+    let lines = |text: &str, width: f64| {
+        let mut body = TextBody {
+            body: BodyProps { inset_l: Some(4.), inset_r: Some(4.), inset_t: Some(4.), inset_b: Some(4.), ..Default::default() },
+            ..Default::default()
+        };
+        body.paragraphs.push(Paragraph::new(text));
+        body.paragraphs[0].runs[0].props = RunProps { size: Some(8.), font: Some("Arial".into()), ..Default::default() };
+        body.paragraphs[0].props.align = Some(misterdiagram_model::text::Align::Center);
+        let opts = Opts { rect: Rect::new(0., 0., width * 72., 20.), fields: &NoFields, prompt_color: None, no_shrink: true };
+        layout_for_export(&body, &opts).unwrap().lines.len()
+    };
+    assert_eq!(lines("CDR Lock Time", 0.90625), 1);
+    // Without room for the words themselves it still wraps.
+    assert_eq!(lines("CDR Lock Time", 0.85), 2);
+    assert_eq!(lines("Unlock Data", 0.625), 2);
+}

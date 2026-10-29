@@ -819,15 +819,12 @@ fn break_lines(
             if i > start && allowed.get(i).copied().unwrap_or(false) && breakable(i) && !trailing_nbsp {
                 last_break = Some(i);
             }
-            // A no-break space counts toward the width: when it overflows, the line breaks at the
-            // last opportunity before it (the composed terminal space wraps the final word of
-            // generated/text/multiline-wrap onto its ninth line, as Visio's PNG does). With no
-            // opportunity on the line and only whitespace after it, it hangs past the margin
-            // instead of forcing a break before itself: a check mark followed by a no-break
-            // space in a block narrower than the pair stays on one line, as Visio lays it out.
-            // After trailing spaces it hangs with them: "50 ohm    " keeps one line in Visio.
-            let hanging = trailing_nbsp
-                && (last_break.is_none_or(|b| b <= start) || i.checked_sub(1).and_then(|j| p.cells.get(j)).is_some_and(|c| c.ch.is_whitespace()));
+            // The composed terminal no-break space hangs past the margin and never wraps the
+            // last word: Visio 2021's final build (16.0 build 20527) keeps a tester's "CDR Lock
+            // Time" on one line and generated/text/multiline-wrap at eight lines (private witness
+            // field/vahegan-2026-10-29, generated-b20527). The October corpus, exported with
+            // build 20430, wrapped that last word onto a ninth line.
+            let hanging = trailing_nbsp;
             if wrap && x + adv > avail + 0.01 && (!c.is_whitespace() || (c == '\u{a0}' && !hanging)) && i > start {
                 // Break at the last opportunity, or force mid-word (between clusters).
                 let b = last_break
