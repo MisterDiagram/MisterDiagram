@@ -25,8 +25,8 @@ Anyone who wants a GUI on top is welcome to build one: the licence is MIT or Apa
 core is the part that has to be right. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and shares their conventions.
 
-**Download:** [MisterDiagram 0.1.0-alpha.16](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.16),
-the fifteenth alpha (the text after a bullet starts at a tab stop, where Visio starts it, and every Visio bullet style is drawn), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+**Download:** [MisterDiagram 0.1.0-alpha.17](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.17),
+the sixteenth alpha (labels wrap where Visio wraps them, missing fonts draw in Calibri as in Visio, and themed text takes the theme's color and font), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -35,7 +35,7 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-10-29, 0.1.0-alpha.16)
+## What works today (2026-10-29, 0.1.0-alpha.17)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
@@ -99,18 +99,22 @@ and Webdings symbol-charset fonts, are not covered (docs/gaps.md). Where a conne
 three connectors that rerouted on the witness drawings differ from Visio's path (two take the
 other side of the obstacle, one bends elsewhere); the 28 of 29 geometry witnesses still hold.
 
-## New in 0.1.0-alpha.16
+## New in 0.1.0-alpha.17
 
-Bulleted text sits where Visio puts it (#110). The text after a bullet now starts at a tab
-stop, as in Visio: the paragraph's TextPosAfterBullet when set, otherwise the hanging indent
-or the next default tab stop (0.5 in unless DefaultTabStop says otherwise); before, it was
-drawn right against the bullet. Centred and right-aligned bulleted lines move as one unit.
-Bullet style 2 is Word's "o", and styles 4 to 7 are drawn instead of missing-glyph boxes.
-Checked against Visio 2021 on 36 synthetic cases: every text start within 0.01 in of Visio's,
-except an oversized bullet size, which is not modelled. The corpus check moves on the one
-bulleted test drawing, closer to Visio; field, theme and hostile numbers are unchanged from
-alpha.15. Visio's SVG export writes a space where its PNG leaves the gap, so after a bullet
-our SVG follows Visio's PNG.
+Three text fixes from a tester's real drawings (#87), each checked against Visio 2021.
+
+- A label that just fits keeps one line. Visio 2021's final build (16.0 build 20527, now the
+  reference) lets the space at the end of a paragraph hang past the margin; we wrapped the last
+  word. The generated text witnesses were re-taken with that build.
+- A font Visio does not have (Helvetica, Futura, Roboto and so on) is drawn in Calibri, as
+  Visio draws it, so labels sized in Visio fit again. Installed fonts keep their names.
+- Themed text follows the theme on every run: a second line with its own `THEMEVAL()` color
+  is no longer near-white, and a font cell stored as Themed takes the theme's font even when
+  its formula names another.
+
+The corpus check moves toward Visio (3,910 more matching cells against Visio's live values;
+the text render distance falls from 3.40 to 3.13); field, theme and hostile results are
+otherwise unchanged from alpha.16.
 
 ## Testers wanted
 

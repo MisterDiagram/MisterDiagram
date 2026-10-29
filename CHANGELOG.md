@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.17
+
+Three text fixes from a tester's drawings in the
+[#87](https://github.com/MisterDiagram/MisterDiagram/issues/87) thread, each checked against
+Visio 2021: labels that wrapped one word early, fonts Visio does not have, and themed text.
 
 - **A label that just fits keeps one line** (from the #87 thread). The invisible space export
   adds at the end of each paragraph no longer pushes the last word onto a new line: Visio 2021's
