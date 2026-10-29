@@ -1,5 +1,21 @@
 # Gaps
 
+## Missing fonts (#87, 2026-10-29)
+
+A font Visio 2021 on stock Windows 11 with Office 2021 does not have is drawn in Calibri,
+whatever the document's styles say: Helvetica, Futura, Roboto, Fira Mono and a made-up name
+all measure exactly Calibri's TEXTWIDTH, with the root style's font set to Calibri or to Times
+New Roman, and Visio's SVG names them Calibri (private witness field/fonts-2026-10-29). The
+importer now does the same, using Visio's own 273-font table from that machine
+(`crates/vsdx/src/evaluate/visio_fonts.rs`). A tester's label in Helvetica wrapped because
+we drew it in Arimo, our Helvetica look-alike, which is wider than the Calibri Visio drew.
+
+Not done, on purpose: a mode that draws the named font's look-alike instead (Helvetica as
+Arimo), for someone who cares more about the name than about matching Visio's layout. It is
+a small change in font resolution; it will be considered if anyone asks for it. Fonts a
+reader has installed beyond Visio's stock set are not detected either: a drawing made on a
+machine that had Helvetica will lay out as Visio on stock Windows lays it out.
+
 ## Bullets (#110)
 
 Measured on synthetic Visio 2021 pages (private witness `field/bullets-2026-10-29`, 36
@@ -21,7 +37,8 @@ previous rule's placement with the new stop).
 ## SVG editable text (#102)
 
 SVG exports and previews emit one `<text>` per text block and one `<tspan>` per line, with
-style `<tspan>`s inside; requested font names survive substitute and symbol fallback; the
+style `<tspan>`s inside; requested font names survive substitute and symbol fallback (a font
+Visio does not have is named Calibri, as Visio's own SVG names it; see Missing fonts); the
 `--text-outlines` CLI flag and `text_outlines` parameter keep the previous paths byte for
 byte. The writer serialises the existing layout, so PNG, PDF and SVG text agree (raster
 parity 139/139 pages within the existing ceilings). Measured against Visio 2021's own SVG

@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- **A font Visio does not have is drawn in Calibri, as Visio draws it** (from the #87
+  thread). A drawing that names a font missing from Visio 2021 on stock Windows (Helvetica,
+  Futura, Roboto and so on) now lays out and exports in Calibri, which is what Visio shows
+  and what labels in such drawings were sized for; before, we drew a look-alike, often wider,
+  so tight labels wrapped. Installed fonts keep their names. SVG exports name Calibri for
+  these runs, as Visio's own SVG export does.
+
 ## 0.1.0-alpha.16
 
 One layout fix, found while checking #102 against Visio's own export

@@ -161,11 +161,18 @@ impl<'a> Evaluator<'a> {
     fn text_number(&mut self, scope: Scope, name: &str, default: f64) -> f64 {
         self.evaluate(scope, name).numeric().ok().filter(|v| v.is_finite() && v.abs() <= 1e6).unwrap_or(default)
     }
+    /// The family Visio draws: a font Visio 2021 on stock Windows does not have is drawn in
+    /// Calibri, whatever the document's styles say (MisterDiagram#87, private witness
+    /// field/fonts-2026-10-29).
+    fn text_font(&mut self, scope: Scope, name: &str) -> String {
+        let family = self.requested_font(scope, name);
+        if super::visio_fonts::visio_has(&family) { family } else { "Calibri".into() }
+    }
     /// Host-local font IDs can outlive their FaceNames table in imported formulas.
     /// Preserve the serialized family when a successful ID has no local identity.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section
     /// https://learn.microsoft.com/en-us/office/vba/api/visio.font.id
-    fn text_font(&mut self, scope: Scope, name: &str) -> String {
+    fn requested_font(&mut self, scope: Scope, name: &str) -> String {
         let number = self.evaluate(scope, name).numeric().ok().filter(|id| id.is_finite() && id.abs() <= 1e6);
         let id = number.unwrap_or(0.);
         if (0. ..=65535.).contains(&id) {

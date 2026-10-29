@@ -16,6 +16,7 @@ mod relationships;
 mod string_cells;
 mod text;
 mod transform;
+mod visio_fonts;
 pub use text::TextBlock;
 const MAX_CELLS: usize = 2_000_000;
 const MAX_THEME_NODES: usize = 1_000_000;

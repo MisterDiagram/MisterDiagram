@@ -123,10 +123,10 @@ fn unmapped_successful_font_id_keeps_its_recorded_family() {
     use misterdiagram_model::{Cell, Row, Section};
     use misterdiagram_vsdx::evaluate::Scope;
     for (formula, family, expected) in [
-        ("21", "Contributor Requested", "Contributor Requested"),
-        ("4", "Contributor Requested", "Calibri"),
-        ("REF()", "Contributor Requested", "Calibri"),
-        ("\"Different family\"", "Contributor Requested", "Calibri"),
+        ("21", "Georgia", "Georgia"),
+        ("4", "Georgia", "Calibri"),
+        ("REF()", "Georgia", "Calibri"),
+        ("\"Different family\"", "Georgia", "Calibri"),
         ("21", "65535", "Calibri"),
         ("21", "Themed", "Calibri"),
         ("21", "Inh", "Calibri"),
@@ -160,7 +160,7 @@ fn erroneous_font_formula_retains_the_documents_mapped_default() {
     use misterdiagram_vsdx::evaluate::Scope;
     let mut doc = skeleton::document(false);
     doc.face_names.clear();
-    doc.face_names.insert(0, "Contributor Default".into());
+    doc.face_names.insert(0, "Consolas".into());
     let mut shape = skeleton::rectangle(7, 1., 1., 2., 1., "Original label").unwrap();
     shape.sheet.sections.retain(|section| section.name != "Character");
     shape.sheet.sections.push(Section {
@@ -175,5 +175,39 @@ fn erroneous_font_formula_retains_the_documents_mapped_default() {
     doc.pages[0].shapes.push(shape);
     let mut e = Evaluator::new(&doc).unwrap();
     let body = e.text_body(Scope::PageShape { page: 0, shape: 7 }).unwrap();
-    assert_eq!(body.paragraphs[0].runs[0].props.font.as_deref(), Some("Contributor Default"));
+    assert_eq!(body.paragraphs[0].runs[0].props.font.as_deref(), Some("Consolas"));
+}
+
+/// Visio 2021 draws a font it does not have in Calibri, whatever the styles say; installed fonts
+/// keep their names (MisterDiagram#87, private witness field/fonts-2026-10-29). Windows cuts face
+/// names to 31 characters.
+#[test]
+fn a_font_visio_does_not_have_is_drawn_in_calibri() {
+    use misterdiagram_model::{Cell, Row, Section};
+    use misterdiagram_vsdx::evaluate::Scope;
+    for (family, expected) in [
+        ("Helvetica", "Calibri"),
+        ("Roboto", "Calibri"),
+        ("NoSuchFont Zq", "Calibri"),
+        ("Arial", "Arial"),
+        ("times new roman", "times new roman"),
+        ("Bahnschrift SemiBold SemiCondensed", "Bahnschrift SemiBold SemiCondensed"),
+    ] {
+        let mut doc = skeleton::document(false);
+        let mut shape = skeleton::rectangle(7, 1., 1., 2., 1., "Label").unwrap();
+        shape.sheet.sections.retain(|section| section.name != "Character");
+        shape.sheet.sections.push(Section {
+            name: "Character".into(),
+            rows: vec![Row {
+                index: Some(0),
+                cells: vec![Cell { name: "Font".into(), formula: Some("21".into()), value: Some(family.into()), ..Default::default() }],
+                ..Default::default()
+            }],
+            ..Default::default()
+        });
+        doc.pages[0].shapes.push(shape);
+        let mut e = Evaluator::new(&doc).unwrap();
+        let body = e.text_body(Scope::PageShape { page: 0, shape: 7 }).unwrap();
+        assert_eq!(body.paragraphs[0].runs[0].props.font.as_deref(), Some(expected), "{family}");
+    }
 }
