@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.16
+
+One layout fix, found while checking #102 against Visio's own export
+([#110](https://github.com/MisterDiagram/MisterDiagram/issues/110)): bulleted text.
 
 - **Bulleted text sits where Visio puts it**
   ([#110](https://github.com/MisterDiagram/MisterDiagram/issues/110)). The text after a bullet

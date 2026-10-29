@@ -25,8 +25,8 @@ Anyone who wants a GUI on top is welcome to build one: the licence is MIT or Apa
 core is the part that has to be right. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and shares their conventions.
 
-**Download:** [MisterDiagram 0.1.0-alpha.15](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.15),
-the fourteenth alpha (SVG export writes text as real, searchable and editable text instead of glyph outlines, placed where the PNG and PDF put it; `--text-outlines` keeps the old output), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+**Download:** [MisterDiagram 0.1.0-alpha.16](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.16),
+the fifteenth alpha (the text after a bullet starts at a tab stop, where Visio starts it, and every Visio bullet style is drawn), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -35,7 +35,7 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-10-29, 0.1.0-alpha.15)
+## What works today (2026-10-29, 0.1.0-alpha.16)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
@@ -99,20 +99,18 @@ and Webdings symbol-charset fonts, are not covered (docs/gaps.md). Where a conne
 three connectors that rerouted on the witness drawings differ from Visio's path (two take the
 other side of the obstacle, one bends elsewhere); the 28 of 29 geometry witnesses still hold.
 
-## New in 0.1.0-alpha.15
+## New in 0.1.0-alpha.16
 
-SVG text is text (#102). SVG exports and previews write each text block as a `<text>`
-element with one line per `<tspan>`, in the requested font family, size, colour and style, so
-the file can be searched, selected and edited; before, every glyph was a path, and a page of
-labels was several times larger. Lines sit where the PNG and PDF put them: rasterising the
-SVG matches the PNG within the existing ceilings on all 139 test pages. Right-to-left lines
-carry their direction in Unicode isolates, so viewers that ignore SVG's `direction` still
-order them. `--text-outlines` (CLI) and `text_outlines: true` (MCP and `file.export`) keep the
-old paths byte for byte. PNG and PDF output is unchanged, and every corpus, field, theme and
-hostile number is unchanged from alpha.14. Compared with Visio's own SVG export, 15 of 20
-witness drawings match line for line; the rest differ where our layout already differs from
-Visio (bullets, one wrapped label, small offsets on imported symbols), listed in
-docs/gaps.md.
+Bulleted text sits where Visio puts it (#110). The text after a bullet now starts at a tab
+stop, as in Visio: the paragraph's TextPosAfterBullet when set, otherwise the hanging indent
+or the next default tab stop (0.5 in unless DefaultTabStop says otherwise); before, it was
+drawn right against the bullet. Centred and right-aligned bulleted lines move as one unit.
+Bullet style 2 is Word's "o", and styles 4 to 7 are drawn instead of missing-glyph boxes.
+Checked against Visio 2021 on 36 synthetic cases: every text start within 0.01 in of Visio's,
+except an oversized bullet size, which is not modelled. The corpus check moves on the one
+bulleted test drawing, closer to Visio; field, theme and hostile numbers are unchanged from
+alpha.15. Visio's SVG export writes a space where its PNG leaves the gap, so after a bullet
+our SVG follows Visio's PNG.
 
 ## Testers wanted
 
