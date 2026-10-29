@@ -9,7 +9,8 @@
   otherwise). Before, it was drawn right against the bullet. Centred and right-aligned
   bulleted lines move as one unit, as Visio aligns them. Bullet style 2 is Word's "o", not a
   diamond, and styles 4 to 7 (❑, ❖, ➢, ✓) are drawn instead of missing-glyph boxes. Measured
-  on 36 synthetic Visio 2021 cases: every text start within 0.01 in of Visio's.
+  on 36 synthetic Visio 2021 cases: every text start within 0.01 in of Visio's, except
+  an oversized BulletFontSize (200%), which is not modelled.
 
 ## 0.1.0-alpha.15
 

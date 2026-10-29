@@ -1867,7 +1867,7 @@ fn validate(body: &TextBody, rect: Rect) -> Result<(), String> {
         }
         if pp.tabs.as_ref().is_some_and(|t| t.len() > 4096)
             || pp.tabs.iter().flatten().any(|t| !finite(t.pos))
-            || [pp.margin_left, pp.margin_right, pp.indent, pp.default_tab, pp.bullet_size].into_iter().flatten().any(|v| !finite(v))
+            || [pp.margin_left, pp.margin_right, pp.indent, pp.default_tab, pp.bullet_size, pp.bullet_tab].into_iter().flatten().any(|v| !finite(v))
         {
             return Err("invalid paragraph metric".into());
         }

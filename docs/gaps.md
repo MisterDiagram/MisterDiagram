@@ -9,8 +9,8 @@ when IndFirst is negative) or the next DefaultTabStop multiple, whichever comes 
 reaching past that stop pushes the text to its end. Centred and right-aligned first lines
 align bullet, gap and text as one unit, and wrapped lines start at IndLeft. Microsoft's page
 says TextPosAfterBullet is added to IndFirst; Visio 2021 does not do that (IndFirst 0.25 in
-with 0.1 in starts the text at 0.5 in). Every case's text now starts within 0.01 in of
-Visio's; alpha.15 was off by up to 0.92 in. Bullets 1 to 7 are Word's: Symbol U+00B7, Courier
+with 0.1 in starts the text at 0.5 in). Every case's text but the 200% BulletFontSize one (below) now starts
+within 0.01 in of Visio's; alpha.15 was off by up to 0.92 in. Bullets 1 to 7 are Word's: Symbol U+00B7, Courier
 New "o", then Wingdings U+00A7, "q", "v", U+00D8 and U+00FC, drawn as •, "o" in Cousine, ▪,
 ❑, ❖, ➢ and ✓; the Wingdings ones come from the bundled symbol face (alpha.15 drew 4 to 7 as
 missing-glyph boxes), so their shapes differ a little from Visio's. Not modelled: a positive

@@ -29,6 +29,14 @@ fn hostile_text_layout_is_bounded() {
     body.paragraphs[0].runs.clear();
     body.paragraphs[0].props.bullet = Some(Bullet::AutoNum { scheme: "romanUcPeriod".into(), start_at: u32::MAX });
     assert!(layout(&body, &opts).is_err());
+    body.paragraphs[0].runs = vec![Run::new("a")];
+    body.paragraphs[0].props.bullet = Some(Bullet::Char { char: "•".into() });
+    for tab in [f64::INFINITY, f64::NAN, f64::MAX] {
+        body.paragraphs[0].props.bullet_tab = Some(tab);
+        assert!(layout(&body, &opts).is_err(), "bullet_tab {tab}");
+    }
+    body.paragraphs[0].props.bullet_tab = Some(36.);
+    assert!(layout(&body, &opts).is_ok());
     assert!(Host.measure(&TextBody::default(), Some(f64::INFINITY)).is_err());
 }
 #[test]
