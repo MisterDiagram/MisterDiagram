@@ -11,6 +11,13 @@ use misterdiagram_sheet::{
 pub struct Themes {
     themes: Vec<xml::Doc>,
 }
+/// Every Character row uses the same theme property and contrast selector.
+/// Gradient stop indexes, in contrast, select different theme properties.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/quickstylevariation-cell-quick-style-section
+fn theme_property(requested: &str) -> String {
+    let cell = theme_cell(requested);
+    if cell.starts_with("char.") { cell.split('[').next().unwrap_or(&cell).to_owned() } else { cell }
+}
 impl Themes {
     /// Read theme parts without importing any built-in visual theme into the program.
     /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/43361fc1-8acc-410f-a853-c36ff053682d
@@ -45,7 +52,7 @@ impl Themes {
         if !matches!(name, "THEMEVAL" | "THEME") {
             return Ok(value);
         }
-        let cell = theme_cell(&args.first().map(Value::text).unwrap_or_else(|| cx.host_cell()));
+        let cell = theme_property(&args.first().map(Value::text).unwrap_or_else(|| cx.host_cell()));
         let bit = match cell.as_str() {
             "char.color" => 2,
             "linecolor" => 4,
@@ -143,12 +150,7 @@ impl Themes {
         if requested.len() > 1024 {
             return Err(Error::Limit);
         }
-        let mut cell = theme_cell(&requested);
-        if cell.starts_with("char.")
-            && let Some((base, _)) = cell.split_once('[')
-        {
-            cell = base.to_owned();
-        }
+        let cell = theme_property(&requested);
         let colors_id = selector(cx, "ColorSchemeIndex")?;
         let font = cell.starts_with("char.");
         let line = cell.starts_with("line")

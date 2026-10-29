@@ -385,3 +385,18 @@ and [gaps.md](gaps.md) for the reason rule and witness table.
   `cli_engine_and_mcp_share_svg_text_default_and_outline_flag`. Strict native text
   positions/wrapping and Visio extension/re-import acceptance remain open.
   Standard SVG reference: https://www.w3.org/TR/SVG11/text.html#TextElement
+
+
+## M5.89 themed Character cells
+
+Themes and Character formatting both remain P; scores are unchanged. Stored
+Themed results now select the Character property through inherited formulas,
+and indexed rows share text-contrast selectors and root defaults. Tests:
+`stored_themed_character_values_use_root_defaults_and_keep_formulas`,
+`intermediate_inherited_themed_cache_does_not_replace_font_provider`, and
+`themed_character_contrast_applies_to_inherited_and_local_rows`. The private
+native matrix matches 258/270 results; twelve absent Color/Style cells in sparse
+rows remain a separate gap. See [gaps.md](gaps.md) for the witnesses and limits.
+References: [Cell](https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml),
+[THEMEVAL](https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function),
+[QuickStyleVariation](https://learn.microsoft.com/en-us/office/client-developer/visio/quickstylevariation-cell-quick-style-section).

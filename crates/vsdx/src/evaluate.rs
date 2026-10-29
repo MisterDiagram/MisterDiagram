@@ -971,7 +971,7 @@ impl<'a> Evaluator<'a> {
             if origin != scope {
                 self.add_dependency_key(provider.clone());
             }
-            let formula = self.overrides.get(&key).or_else(|| self.overrides.get(&provider)).cloned().or_else(|| cell.formula.clone());
+            let formula = self.execution_formula(&key, &provider, cell);
             let executable = formula.as_deref().is_some_and(|f| !matches!(f, "No Formula" | "Inh"))
                 || (formula.is_none()
                     && cell.value.as_deref() == Some("Themed")
@@ -1097,6 +1097,33 @@ impl<'a> Evaluator<'a> {
         }
         indexed_key(&self.cells, scope, name).or_else(|| self.baseline_cell(scope, name).map(|_| Key { scope, name: name.to_ascii_lowercase() }))
     }
+    /// A stored Character Themed value selects the theme result independently of its
+    /// reported formula, including Inh. An explicit edit replaces that stored result.
+    /// Native witnesses: field/themed-character-2026-10-29 (root-font and formula controls).
+    /// Intermediate Inh caches do not propagate through the formula inheritance chain.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function
+    fn execution_formula(&self, key: &Key, provider: &Key, cell: &Cell) -> Option<String> {
+        if let Some(formula) = self.overrides.get(key).or_else(|| self.overrides.get(provider)) {
+            return Some(formula.clone());
+        }
+        let source = self.local_inh_cell(key.scope, &key.name).unwrap_or(cell);
+        if source.value.as_deref() == Some("Themed") && source.units.as_deref() != Some("STR") {
+            // Fixed prototypes also bind EVALCELL to the target property, not its caller.
+            let formula = match key.name.split('[').next().unwrap_or(&key.name) {
+                "char.font" => Some("THEMEVAL(\"Char.Font\")"),
+                "char.color" => Some("THEMEVAL(\"Char.Color\")"),
+                "char.style" => Some("THEMEVAL(\"Char.Style\")"),
+                "char.asianfont" => Some("THEMEVAL(\"Char.AsianFont\")"),
+                "char.complexscriptfont" => Some("THEMEVAL(\"Char.ComplexScriptFont\")"),
+                _ => None,
+            };
+            if let Some(formula) = formula {
+                return Some(formula.into());
+            }
+        }
+        cell.formula.clone()
+    }
     /// Custom arguments live only during invocation; argument-free dependencies share the cell cache.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/evalcell-function
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/arg-function
@@ -1126,7 +1153,7 @@ impl<'a> Evaluator<'a> {
         if origin != target {
             self.add_dependency_key(provider.clone());
         }
-        let formula = self.overrides.get(&key).or_else(|| self.overrides.get(&provider)).cloned().or_else(|| cell.formula.clone());
+        let formula = self.execution_formula(&key, &provider, cell);
         let cached = self.cached_named_cell(target, &key.name, self.local_inh_cell(target, &key.name).unwrap_or(cell));
         let mut bytes = 0usize;
         for (name, value) in args {
@@ -1714,11 +1741,11 @@ impl Context for BoundContext<'_, '_> {
         {
             return Value::Error(Error::Value);
         }
-        if self.scope != Scope::Style(0) && self.evaluator.cell(Scope::Style(0), name).is_some() {
-            self.evaluator.add_dependency_key(Key { scope: Scope::Style(0), name: name.to_ascii_lowercase() });
-            return self.evaluator.evaluate_inner(Scope::Style(0), name);
+        if self.scope != Scope::Style(0) && self.evaluator.cell(Scope::Style(0), prototype).is_some() {
+            self.evaluator.add_dependency_key(Key { scope: Scope::Style(0), name: prototype.to_ascii_lowercase() });
+            return self.evaluator.evaluate_inner(Scope::Style(0), prototype);
         }
-        defaults::cell(self.scope, name).map(|cell| self.evaluator.cached_cell(cell)).unwrap_or(Value::Error(Error::Value))
+        defaults::cell(self.scope, prototype).map(|cell| self.evaluator.cached_cell(cell)).unwrap_or(Value::Error(Error::Value))
     }
     fn theme(&mut self, name: &str, args: &[Value]) -> Value {
         match self.evaluator.theme_host {

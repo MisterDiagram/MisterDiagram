@@ -17211,3 +17211,36 @@ SVG text, transforms and inherited sizes. It checks 0.5 pt line-origin tolerance
 no vendor extension elements are consumed or emitted. Imported font substitutions
 also leave some line origins outside that tolerance. The private session report
 records those inputs and measurements; no oracle or bitmap threshold was changed.
+
+### Observed, undocumented: stored Character Themed results (M5.89)
+
+Visio 2021 build 20527, synthetic private corpus
+`field/themed-character-2026-10-29/visio/font-markers.tsv`, `visio-scope/` and
+`visio-arguments/`: a local Character `V="Themed"` controls the loaded result
+separately from FormulaU. An inherited Arial formula (21) returns root Calibri
+(4), or Times New Roman (23) when only the root style is changed. Font formulas
+FONT("Arial"), GUARD(21) and a conditional choosing Arial retain their reported
+expressions while returning the themed face. Color and Style markers similarly
+use their theme properties or root defaults. Active-theme Color markers with
+RGB(12,34,56), THEMEVAL("Dark") or THEMEVAL("AccentColor2") all return the same
+host-property theme color, RGB(83,97,109), in that original synthetic control.
+An intermediate style's Inh marker does not propagate as a value override to a
+shape lacking a local marker. Named non-Themed controls retain Arial.
+
+This supplements the public Cell F/V description; no claim is made that its
+formula text itself evaluates to the observed value. The evaluator retains that
+text and the serialized marker, selects the themed result for supported Character
+properties, and lets explicit formula edits take precedence. See
+[Cell element](https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml)
+and [THEMEVAL](https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function).
+
+M5.89 full corpus check passes on the unchanged 1,413-package population. Cached
+matches rise from 4,710,321 to 4,710,688 of 4,819,004; pinned COM matches rise from
+74,971,635 to 74,975,545 of 76,153,083. Theme matches rise by 345 cached and 3,682
+COM, and text-metric matches by four each. Numeric errors fall to 28,748 cached
+and 1,091,236 COM under unchanged ceilings. All native page-render groups retain
+their metrics; four master roundtrip pairs now render successfully with identical
+pixels instead of returning equal errors. Aggregate diagnostic overflow buckets
+change with the failure population; these capped buckets are not parity totals.
+The separate registered synthetic matrix remains 258/270, with twelve absent
+sparse-row Color/Style defaults still returning REF rather than native zero.

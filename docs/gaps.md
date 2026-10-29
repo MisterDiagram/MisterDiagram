@@ -1,5 +1,43 @@
 # Gaps
 
+## Themed Character values and indexed contrast (#87, M5.89)
+
+A stored `V="Themed"` on a supported Character cell selects that property's theme
+result, independently of the reported formula. This includes a local `F="Inh"`
+whose provider names a concrete font. Without a theme, the result comes from the
+root style's corresponding Character property. In the synthetic witness, changing
+only the root font from Calibri to Times New Roman changes the themed result;
+a named Arial control remains Arial. An intermediate style's inherited marker
+alone does not change the formula provider used by a descendant without a local
+marker. Explicit evaluator edits replace the stored marker's result.
+
+Native evidence: private corpus `field/themed-character-2026-10-29/`, variants a/b
+(root defaults), c/d (intermediate style), e/f (active theme and formula controls).
+The font matrix covers absent formula, Inh, constants, FONT, GUARD and No Formula,
+including indexed rows. Active-theme color controls keep the property's theme
+color even with RGB, THEMEVAL("Dark") or THEMEVAL("AccentColor2") in FormulaU.
+Source markers and formulas remain intact when saving and reopening. The rule is
+implemented for Font, Color, Style, AsianFont and ComplexScriptFont; unrelated
+cells and explicit non-Themed formulas keep their existing evaluation.
+
+QuickStyleVariation's text-contrast bit applies to every Character row using the
+shape's selectors. Indexed rows now take the same contrast path as row zero.
+The tester witness `field/vahegan-2026-10-29/visio-themed/themed.tsv` records all
+rows of two labels as color 25, RGB(70,114,196); their later rows previously used
+near-white. Its no-theme font witnesses record inherited Arial formulas with
+Calibri results. General theme parity remains partial; these are two scoped
+corrections, not a claim that all themed cells match Visio. A broader synthetic
+probe has 258/270 matching results: twelve remaining mismatches are absent Color
+and Style cells on a sparse second Character row (shape 7 in each of six inputs).
+Strict inspection returns REF where Visio returns zero. These cells have no stored
+Themed marker; sparse-row completion remains a separate gap. The comparable
+inputs with declared font names and native outputs are in `registered/` under the
+same private witness folder; the original undeclared-font controls are retained.
+
+References: [Cell](https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml),
+[THEMEVAL](https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function),
+[QuickStyleVariation](https://learn.microsoft.com/en-us/office/client-developer/visio/quickstylevariation-cell-quick-style-section).
+
 ## Visio build and the terminal space (#87, 2026-10-29)
 
 The reference is Visio 2021's final build, 16.0 build 20527 (support ended 2026-10-13); the

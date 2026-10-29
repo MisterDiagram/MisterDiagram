@@ -9,6 +9,8 @@ clean independent frozen verification passes.
 
 ## Progress
 
+- 2026-10-29: M5.89 (#87) corrects stored Themed Character values and indexed text contrast. All five requested pg color rows resolve to RGB(70,114,196); three regs labels use Calibri on one line. Three synthetic regressions cover the rules, with native root-default and formula controls. General theme/text parity remains partial, including twelve absent-cell defaults in a 270-result synthetic probe.
+
 - 2026-10-26: M5.71 (#104) scopes routing to glue/endpoints, moved-placeable crossover for code 0, and explicit/page policy requests. Nine synthetic tests and the five observed changed-connector sets pass with untouched Shape bytes preserved. M5.72 closure remains open on literal helper output and strict fabric example cell ordering; no release is claimed.
 - 2026-10-27: M5.72 closed under two rulings (the private comparison helper now inherits master Geometry rows; the fabric example baseline re-pinned on a cell-order-only change). M5.73 (#104 follow-up): a group flagged ObjType 8 is no longer an obstacle itself; its placeable members are, through their own scopes.
 
