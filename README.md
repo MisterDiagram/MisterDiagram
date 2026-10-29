@@ -25,8 +25,8 @@ Anyone who wants a GUI on top is welcome to build one: the licence is MIT or Apa
 core is the part that has to be right. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and shares their conventions.
 
-**Download:** [MisterDiagram 0.1.0-alpha.14](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.14),
-the thirteenth alpha (a label ending in a dash or in trailing spaces stays on its line in a narrow text block, and centred or right-aligned labels no longer count their trailing spaces; found by a tester on an op-amp drawing and checked against Visio 2021 on his file and two witness pages), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+**Download:** [MisterDiagram 0.1.0-alpha.15](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.15),
+the fourteenth alpha (SVG export writes text as real, searchable and editable text instead of glyph outlines, placed where the PNG and PDF put it; `--text-outlines` keeps the old output), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -35,21 +35,22 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-10-29, 0.1.0-alpha.14)
+## What works today (2026-10-29, 0.1.0-alpha.15)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
 - **Evaluate** the ShapeSheet: 122 functions including 3 internal functions, from
   `crates/sheet/src/functions/mod.rs`'s `IMPLEMENTED` registry. Inheritance covers
   masters, style sheets and document defaults, with dirty-set recalculation. The full
-  oracle check passes its fixed floors, including 62,348/67,866 cached text metrics
-  and 54,510/58,180 COM text metrics.
+  oracle check passes its fixed floors, including 62,415/67,866 cached text metrics
+  and 54,548/58,180 COM text metrics.
 - **Render** PNG, SVG and vector PDF. All aggregate feature groups of the test corpus pass their fixed
   pixel ceilings against Visio's own 96 dpi export. Individual connector comparisons
   remain above their ceilings and are tracked as a renderer gap. All 1,108 masters in the
   review stencil set render. The vendor inventory renders 6,678/6,742 masters with
   zero blanks or guard kills; the remaining 64 are named gaps. PDF text extracts
-  with ligatures and combining marks intact.
+  with ligatures and combining marks intact, and SVG text is `<text>` that can be searched,
+  selected and edited.
 - **Write** .vsdx, .vssx and .vstx, and build documents from scratch. Visio 2021 opened all
   230 files of the acceptance set, five of them built from scratch, with no repair beyond a
   few disclosed metadata rewrites, and its COM dumps of the reopened files show zero
@@ -91,26 +92,27 @@ From Microsoft's template catalogue, filed and open: the feet-and-inches text-fi
 itself (#95; the field now draws its saved text), `THEME()` with a colour argument (#88),
 the Text Callout cycle (#91), thin-line arrowheads (#93) and the `sheet` exit status after a
 complete dump of a drawing with an undeterminable embedded picture (#100). From the first batch
-of real company files, filed and open: SVG text is exported as outlines rather than `<text>`
-(#102); SVG import (#103). The bundled symbol face covers the dingbat, geometric, arrow and
+of real company files, filed and open: SVG import (#103). SVG export does not write Visio's
+`v:` extension data, which Visio reads when it imports an SVG. The bundled symbol face covers the dingbat, geometric, arrow and
 pictograph blocks; Segoe UI Symbol's mathematics and Windows icon ranges, and the Wingdings
 and Webdings symbol-charset fonts, are not covered (docs/gaps.md). Where a connector does reroute, the path is this router's, not Visio's: all
 three connectors that rerouted on the witness drawings differ from Visio's path (two take the
 other side of the obstacle, one bends elsewhere); the 28 of 29 geometry witnesses still hold.
 
-## New in 0.1.0-alpha.14
+## New in 0.1.0-alpha.15
 
-A label ending in a dash or in trailing spaces stays on its line (#109, from the #87 thread).
-Export adds a no-break space to the end of each paragraph, as Visio's own bitmap export does,
-and Unicode line breaking allows a break before it after a dash or a space. In a narrow
-block that space went to a second, empty line, so a middle-aligned label rose half a line:
-the tester's op-amp "-" sat above its input wire. It now stays on the line, as in Visio. The
-same labels showed an older difference: centred and right-aligned lines counted their
-trailing spaces, so a label such as "50 ohm" followed by spaces sat a few points left of
-where Visio puts it. Visio ignores them, and so does MisterDiagram now. Checked against
-Visio 2021 on the tester's drawing and on two witness pages; the corpus, theme and hostile
-numbers are unchanged from alpha.13, and seven field-render distances moved, six of them
-closer to Visio's export.
+SVG text is text (#102). SVG exports and previews write each text block as a `<text>`
+element with one line per `<tspan>`, in the requested font family, size, colour and style, so
+the file can be searched, selected and edited; before, every glyph was a path, and a page of
+labels was several times larger. Lines sit where the PNG and PDF put them: rasterising the
+SVG matches the PNG within the existing ceilings on all 139 test pages. Right-to-left lines
+carry their direction in Unicode isolates, so viewers that ignore SVG's `direction` still
+order them. `--text-outlines` (CLI) and `text_outlines: true` (MCP and `file.export`) keep the
+old paths byte for byte. PNG and PDF output is unchanged, and every corpus, field, theme and
+hostile number is unchanged from alpha.14. Compared with Visio's own SVG export, 15 of 20
+witness drawings match line for line; the rest differ where our layout already differs from
+Visio (bullets, one wrapped label, small offsets on imported symbols), listed in
+docs/gaps.md.
 
 ## Testers wanted
 

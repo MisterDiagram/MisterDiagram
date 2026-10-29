@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.15
+
+SVG text is text, from the tester's first batch of real company files
+([#102](https://github.com/MisterDiagram/MisterDiagram/issues/102)). Still open from that
+batch: SVG import ([#103](https://github.com/MisterDiagram/MisterDiagram/issues/103)).
 
 - **SVG text is text** ([#102](https://github.com/MisterDiagram/MisterDiagram/issues/102)).
   SVG exports and previews write each text block as a `<text>` element with one `<tspan>`
