@@ -25,8 +25,8 @@ Anyone who wants a GUI on top is welcome to build one: the licence is MIT or Apa
 core is the part that has to be right. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and shares their conventions.
 
-**Download:** [MisterDiagram 0.1.0-alpha.17](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.17),
-the sixteenth alpha (labels wrap where Visio wraps them, missing fonts draw in Calibri as in Visio, and themed text takes the theme's color and font), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+**Download:** [MisterDiagram 0.1.0-alpha.18](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.18),
+the seventeenth alpha (arrowheads at Visio's size on every line weight, label backgrounds, clipped pictures, and font names in editable SVG that keep labels fitting), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -35,7 +35,7 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-10-29, 0.1.0-alpha.17)
+## What works today (2026-10-30, 0.1.0-alpha.18)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
@@ -99,22 +99,31 @@ and Webdings symbol-charset fonts, are not covered (docs/gaps.md). Where a conne
 three connectors that rerouted on the witness drawings differ from Visio's path (two take the
 other side of the obstacle, one bends elsewhere); the 28 of 29 geometry witnesses still hold.
 
-## New in 0.1.0-alpha.17
+## New in 0.1.0-alpha.18
 
-Three text fixes from a tester's real drawings (#87), each checked against Visio 2021.
+Arrowheads from a tester's drawing (#87) and the three rendering gaps of #54, each checked
+against Visio 2021 on synthetic drawings.
 
-- A label that just fits keeps one line. Visio 2021's final build (16.0 build 20527, now the
-  reference) lets the space at the end of a paragraph hang past the margin; we wrapped the last
-  word. The generated text witnesses were re-taken with that build.
-- A font Visio does not have (Helvetica, Futura, Roboto and so on) is drawn in Calibri, as
-  Visio draws it, so labels sized in Visio fit again. Installed fonts keep their names.
-- Themed text follows the theme on every run: a second line with its own `THEMEVAL()` color
-  is no longer near-white, and a font cell stored as Themed takes the theme's font even when
-  its formula names another.
+- Arrowheads are Visio's size on every line weight. Visio sizes an arrowhead from the line
+  weight plus a fixed amount per size setting; we scaled it with the weight alone, so arrows
+  on thin lines came out about half size and arrows on thick lines too big. All 45 types and
+  seven sizes now follow Visio, as does where the line stops behind the arrowhead, and the
+  size no longer changes with `--scale`.
+- Label backgrounds are painted. A text background (TextBkgnd), with its transparency, covers
+  the line behind the label in PNG, SVG and PDF, so connector labels read as they do in Visio.
+- Pictures follow a custom clip outline. A ClippingPath that names a geometry section clips
+  raster and EMF pictures as Visio does, even when that section is hidden. Plain image crop
+  cells already matched Visio.
+- Combining marks (accents and vowel marks stacked on a letter) sit where they belong in PDF
+  and editable SVG.
+- Editable SVG names the metric-compatible font we measured with after the document's own
+  (Carlito after Calibri, Caladea after Cambria, and so on), so a viewer without Calibri keeps
+  each label inside its background.
 
-The corpus check moves toward Visio (3,910 more matching cells against Visio's live values;
-the text render distance falls from 3.40 to 3.13); field, theme and hostile results are
-otherwise unchanged from alpha.16.
+The arrow corpus moves toward Visio (mean distance 0.343 to 0.274). In the field set, 10
+drawings move toward Visio with the #54 fixes and 41 with the arrowheads; the one that moves
+the other way past its guard does so because Visio's export leaves out a shape we draw, while
+its arrowheads now match. Theme and hostile results are unchanged from alpha.17.
 
 ## Testers wanted
 
