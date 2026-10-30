@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **Legacy connector arrows:** older theme formulas keep their native arrow, size,
+  weight and pattern defaults when a modern page theme is applied.
+- **Thin SVG outlines:** editable SVG keeps the specified line weight for shapes,
+  connectors, dashes and double lines. Zero-weight lines retain their native SVG pen.
+
 - **Empty lines keep their space in editable SVG** (#87). Labels retain their line positions after leading, consecutive or trailing blank paragraphs, including vertically aligned text.
 - **Subscripts and superscripts use their drawn width** (#87). Smaller runs no longer look letter-spaced or wrap a label that fits on one line. Calibri and Arial sizes and offsets follow synthetic Visio measurements.
 

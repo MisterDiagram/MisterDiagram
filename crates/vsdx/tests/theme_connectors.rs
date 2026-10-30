@@ -85,3 +85,89 @@ fn connector_style_selection_uses_shape_property_and_explicit_precedence() {
         }
     }
 }
+/// Live legacy THEME values, independent of modern connector style extensions.
+/// Synthetic native cases: field/legacy-theme-2026-10-30.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function
+#[test]
+fn legacy_line_properties_ignore_modern_theme_and_quick_style_selectors() {
+    for scheme in [0, 123, 321] {
+        for matrix in [0, 1, 2, 100] {
+            for connector in [false, true] {
+                for inherited in [false, true] {
+                    let mut d = document();
+                    let part = d.parts.get_mut("visio/theme/theme1.xml").unwrap();
+                    let source = String::from_utf8(part.bytes.to_vec()).unwrap();
+                    let extra = "<fmtConnectorSchemeLineStyles><lineStyle><lineEx end='0'/></lineStyle><lineStyle><lineEx start='5' end='4' startSize='6' endSize='5' pattern='3'/></lineStyle></fmtConnectorSchemeLineStyles><fmtSchemeLineStyles><lineStyle><lineEx end='0'/></lineStyle><lineStyle><lineEx start='7' end='13' startSize='4' endSize='6' pattern='2'/></lineStyle></fmtSchemeLineStyles>";
+                    part.bytes = source.replace("</theme>", &format!("{extra}</theme>")).into_bytes().into();
+                    let shape = &mut d.pages[0].shapes[0];
+                    for name in ["ColorSchemeIndex", "EffectSchemeIndex", "ConnectorSchemeIndex"] {
+                        set(shape, name, &scheme.to_string());
+                    }
+                    set(shape, "QuickStyleLineMatrix", &matrix.to_string());
+                    set(shape, "QuickStyleType", if connector { "1" } else { "2" });
+                    let properties = [
+                        ("BeginArrow", "ConnectorBegin", 0.),
+                        ("EndArrow", "ConnectorEnd", 0.),
+                        ("BeginArrowSize", "ConnectorBeginSize", 2.),
+                        ("EndArrowSize", "ConnectorEndSize", 2.),
+                        ("LineWeight", "ConnectorWeight", 0.25 / 72.),
+                        ("LinePattern", "ConnectorPattern", 1.),
+                    ];
+                    for (cell, property, _) in properties {
+                        shape.sheet.cells.retain(|c| c.name != cell);
+                        shape.sheet.cells.push(Cell {
+                            name: cell.into(),
+                            value: Some("99".into()),
+                            formula: Some(format!("GUARD(THEME(\"{property}\"))")),
+                            ..Default::default()
+                        });
+                    }
+                    if inherited {
+                        let mut master_shape = shape.clone();
+                        master_shape.id = 7;
+                        shape.sheet.cells.retain(|c| !properties.iter().any(|(cell, _, _)| c.name == *cell));
+                        shape.master = Some(17);
+                        shape.master_shape = Some(7);
+                        d.masters.push(Master { id: 17, shapes: vec![master_shape].into(), ..Default::default() });
+                    }
+                    let themes = misterdiagram_theme::Themes::from_document(&d).unwrap();
+                    let scope = Scope::PageShape { page: 0, shape: 1 };
+                    let mut evaluator = Evaluator::new(&d).unwrap().with_theme_host(&themes);
+                    for (cell, _, expected) in properties {
+                        assert_eq!(evaluator.evaluate(scope, cell).numeric(), Ok(expected), "{scheme}/{matrix}/{connector}/{inherited}/{cell}");
+                    }
+                    for (property, expected) in [("LineWeight", 0.25 / 72.), ("LinePattern", 1.)] {
+                        // Both legacy spellings use the same observed scalar default.
+                        // Exercise the formula through an ordinary cell, rather than a theme mock.
+                        let mut changed = d.clone();
+                        let shape = &mut changed.pages[0].shapes[0];
+                        shape.sheet.cells.retain(|c| c.name != "LineWeight");
+                        shape.sheet.cells.push(Cell {
+                            name: "LineWeight".into(),
+                            formula: Some(format!("THEME(\"{property}\")")),
+                            ..Default::default()
+                        });
+                        let mut eval = Evaluator::new(&changed).unwrap().with_theme_host(&themes);
+                        assert_eq!(eval.evaluate(scope, "LineWeight").numeric(), Ok(expected));
+                    }
+                    if scheme == 123 && matrix == 1 && !inherited {
+                        let shape = &mut d.pages[0].shapes[0];
+                        for (cell, property, _) in properties {
+                            shape.sheet.cells.retain(|c| c.name != cell);
+                            shape.sheet.cells.push(Cell {
+                                name: cell.into(),
+                                formula: Some(format!("THEMEVAL(\"{property}\")")),
+                                ..Default::default()
+                            });
+                        }
+                        let mut modern = Evaluator::new(&d).unwrap().with_theme_host(&themes);
+                        let values = if connector { [5., 4., 6., 5., 19050. / 914400., 3.] } else { [7., 13., 4., 6., 28575. / 914400., 2.] };
+                        for ((cell, _, _), expected) in properties.into_iter().zip(values) {
+                            assert_eq!(modern.evaluate(scope, cell).numeric(), Ok(expected), "modern {cell}");
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

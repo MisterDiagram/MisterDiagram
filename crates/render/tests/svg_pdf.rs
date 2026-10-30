@@ -1,6 +1,42 @@
 #[path = "support/svg_fonts.rs"]
 mod svg_fonts;
+use kurbo::Shape as _;
 use misterdiagram_render::{pdf, raster, scene, svg};
+
+/// Compare SVG with its witnessed vector pens, not the deliberately different raster floor.
+/// field/nominal-strokes-2026-10-30 records nominal positive pens and zero = 0.75 pt.
+/// Production PNG/PDF stability is tested separately in nominal_strokes.rs.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section
+fn svg_reference_scene(source: &scene::Scene, options: scene::Options) -> scene::Scene {
+    use scene::{Op, Paint};
+    let mut reference = source.clone();
+    for op in &mut reference.ops {
+        *op = match op.clone() {
+            Op::HairlineMarker { svg_path, color, .. } => {
+                if options.crop {
+                    reference.bounds = reference.bounds.union(svg_path.bounding_box());
+                }
+                Op::Path { path: svg_path, paint: Paint::Solid(color) }
+            }
+            Op::HairlineStroke { svg_path, mut stroke, svg_width, color, .. } => {
+                if options.crop {
+                    reference.bounds = reference.bounds.union(svg_path.bounding_box().inflate(svg_width / 2., svg_width / 2.));
+                }
+                if stroke.width > 0. {
+                    let ratio = svg_width / stroke.width;
+                    stroke.dash_offset *= ratio;
+                    for dash in &mut stroke.dash_pattern {
+                        *dash *= ratio;
+                    }
+                }
+                stroke.width = svg_width;
+                Op::Stroke { path: svg_path, stroke, color }
+            }
+            other => other,
+        };
+    }
+    reference
+}
 #[test]
 fn generated_svg_resvg_and_pdf_text() {
     let repo = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
@@ -29,7 +65,7 @@ fn generated_svg_resvg_and_pdf_text() {
             let doc = misterdiagram_vsdx::read(&file).unwrap();
             let options = scene::Options::default();
             let scene = scene::page(&doc, scene::default_page_index(&doc).unwrap(), options).unwrap();
-            let png = raster::render(&scene, options).unwrap();
+            let png = raster::render(&svg_reference_scene(&scene, options), options).unwrap();
             let xml = svg::render(&scene, options).unwrap();
             let tree = resvg::usvg::Tree::from_str(&xml, &svg_fonts::options()).unwrap();
             let mut pixels = resvg::tiny_skia::Pixmap::new(png.width(), png.height()).unwrap();

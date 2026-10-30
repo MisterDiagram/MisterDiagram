@@ -60,7 +60,7 @@ fn infinite_line_rows_are_clipped_to_the_page_before_dash_expansion() {
         .ops
         .iter()
         .filter_map(|op| match op {
-            scene::Op::Stroke { path, .. } => Some(path.bounding_box().width()),
+            scene::Op::Stroke { path, .. } | scene::Op::HairlineStroke { path, .. } => Some(path.bounding_box().width()),
             _ => None,
         })
         .fold(0., f64::max);

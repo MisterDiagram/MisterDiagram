@@ -4,7 +4,7 @@ use misterdiagram_model::Document;
 use misterdiagram_opc::xml::{self, El};
 use misterdiagram_sheet::{
     Context, Error, Value,
-    host::{ThemeHost, no_theme, theme_cell},
+    host::{ThemeHost, legacy_line_theme, no_theme, theme_cell},
 };
 
 #[derive(Default)]
@@ -149,6 +149,9 @@ impl Themes {
         let requested = if name == "THEMECBV" { "FillColor".into() } else { args.first().map(Value::text).unwrap_or_else(|| cx.host_cell()) };
         if requested.len() > 1024 {
             return Err(Error::Limit);
+        }
+        if let Some(value) = legacy_line_theme(name, args) {
+            return Ok(value);
         }
         let cell = theme_property(&requested);
         let colors_id = selector(cx, "ColorSchemeIndex")?;

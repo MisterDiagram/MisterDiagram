@@ -86,7 +86,7 @@ pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
             Op::Stroke { path: p, stroke, color } | Op::HairlineStroke { svg_path: p, stroke, color, .. } => {
                 let mut stroke = stroke.clone();
                 if let Op::HairlineStroke { svg_width, .. } = op {
-                    stroke.width = *svg_width;
+                    stroke = crate::scene::vector_stroke(&stroke, *svg_width)?;
                 }
                 // Native SVG strokes avoid overlapping offset contours on narrow closed paths.
                 // Keep distinct marker-side caps through the shared outline fallback.

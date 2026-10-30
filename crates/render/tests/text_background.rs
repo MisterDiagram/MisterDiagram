@@ -104,7 +104,7 @@ fn background_is_above_geometry_below_text_and_remains_an_svg_rectangle() {
     let d = document("Alpha beta", "3");
     let s = draw(&d);
     let i = s.ops.iter().position(|op| matches!(op, Op::TextBackground { .. })).unwrap();
-    assert!(s.ops[..i].iter().any(|op| matches!(op, Op::Stroke { .. })));
+    assert!(s.ops[..i].iter().any(|op| matches!(op, Op::Stroke { .. } | Op::HairlineStroke { .. })));
     assert!(matches!(s.ops[i + 1], Op::Text { .. }));
     for outlines in [false, true] {
         let xml = svg::render(&s, scene::Options { text_outlines: outlines, ..Default::default() }).unwrap();

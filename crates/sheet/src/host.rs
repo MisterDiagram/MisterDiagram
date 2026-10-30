@@ -70,6 +70,24 @@ pub fn theme_cell(name: &str) -> String {
     .into()
 }
 
+/// Legacy line-format THEME queries use fixed defaults even with modern themes.
+/// Synthetic Visio 2021 witness: field/legacy-theme-2026-10-30.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function
+pub fn legacy_line_theme(name: &str, args: &[Value]) -> Option<Value> {
+    if name != "THEME" || args.len() != 1 {
+        return None;
+    }
+    let property = args.first()?.text();
+    let value = match property.to_ascii_lowercase().as_str() {
+        "connectorbegin" | "connectorend" => 0.,
+        "connectorbeginsize" | "connectorendsize" => 2.,
+        "connectorweight" | "lineweight" => 0.25 / 72.,
+        "connectorpattern" | "linepattern" => 1.,
+        _ => return None,
+    };
+    Some(Value::Number(value))
+}
+
 /// No-theme values use native function defaults, never the queried cell's cache.
 /// Legacy THEME line weights default to 0.25 pt; THEMEVAL uses the host baseline.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function
@@ -88,13 +106,8 @@ pub fn no_theme(name: &str, args: &[Value], context: &mut dyn Context) -> Value 
     if let Some(default) = args.get(1) {
         return default.clone();
     }
-    if name == "THEME"
-        && args.first().is_some_and(|v| {
-            let property = v.text();
-            property.eq_ignore_ascii_case("LineWeight") || property.eq_ignore_ascii_case("ConnectorWeight")
-        })
-    {
-        return Value::Number(0.25 / 72.);
+    if let Some(value) = legacy_line_theme(name, args) {
+        return value;
     }
     let name = args.first().map(Value::text).unwrap_or_else(|| context.host_cell());
     match name.to_ascii_lowercase().as_str() {

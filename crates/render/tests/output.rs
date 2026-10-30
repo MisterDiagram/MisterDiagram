@@ -312,7 +312,7 @@ fn transformed_strokes_preserve_physical_pen_and_fit_export_viewport() {
         .ops
         .iter()
         .filter_map(|op| match op {
-            scene::Op::Stroke { stroke, .. } => Some(stroke.width),
+            scene::Op::Stroke { stroke, .. } | scene::Op::HairlineStroke { stroke, .. } => Some(stroke.width),
             _ => None,
         })
         .collect();

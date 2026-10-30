@@ -53,7 +53,11 @@ fn thin_thick_and_large_markers_use_nominal_point_dimensions() {
                     assert!((b.height() - 2. * unit).abs() < 1e-10);
                 }
                 let s = scene::page(&d, 0, Options { scale, ..Default::default() }).unwrap();
-                let shaft = s.ops.iter().find_map(|op| if let Op::Stroke { path, .. } = op { Some(path.bounding_box()) } else { None }).unwrap();
+                let shaft = s
+                    .ops
+                    .iter()
+                    .find_map(|op| if let Op::Stroke { path, .. } | Op::HairlineStroke { path, .. } = op { Some(path.bounding_box()) } else { None })
+                    .unwrap();
                 assert!((shaft.x0 - (1. + 3. * unit - (3. * unit * 0.01).max(0.36 / 72.))).abs() < 1e-8);
                 assert!((shaft.x1 - (6. - 3. * unit)).abs() < 1e-8);
             }

@@ -235,6 +235,18 @@ the other measured files use 2012/main. Container inspection accepts both exact 
 
 ## Observed, undocumented
 
+### Legacy line queries with modern themes (M5.98)
+
+Synthetic Visio 2021 packages in `field/legacy-theme-2026-10-30/native/`
+(None.vsdx, Ion.vsdx and Organic.vsdx) evaluate legacy THEME connector arrows
+to 0, sizes to 2, weights to 0.25 pt and patterns to 1, even when the selected
+modern connector style has an arrow. Changing ConnectorSchemeIndex and
+QuickStyle selectors does not change these eight legacy properties. Their
+THEMEVAL controls retain modern selection. The public THEME description is
+generic and does not document this distinction; gaps.md lists the precise
+property names and regression scope. No saved cell cache overrides evaluation.
+
+
 ### Script em and line metrics (M5.97)
 
 Synthetic Visio 2021 witnesses in `field/subsup-2026-10-30/` distinguish

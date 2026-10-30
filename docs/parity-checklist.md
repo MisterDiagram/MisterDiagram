@@ -413,3 +413,8 @@ M5.97 corrects empty-line SVG baselines and measured script advances. Native
 synthetic controls cover all three vertical alignments and Calibri/Arial at two
 sizes, with width and wrapping regressions. Text rendering stays P; no score or
 denominator changes. References and remaining font limits are in gaps.md.
+
+M5.98 progress: synthetic legacy THEME line defaults and nominal editable SVG
+strokes now have native witnesses and regressions, including zero/dashed/double
+pens. THEMEVAL remains unchanged. The independent text-only page crop extent is
+still open in gaps.md. Existing partial parity rows and denominators are unchanged.

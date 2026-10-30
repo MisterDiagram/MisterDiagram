@@ -35,7 +35,7 @@ pub enum Op {
         stroke: kurbo::Stroke,
         color: Rgba,
     },
-    /// Zero-weight markers have distinct native SVG and PNG/PDF geometry.
+    /// Alternate vector geometry for hairline markers and compound stroke outlines.
     HairlineMarker {
         path: BezPath,
         svg_path: BezPath,
@@ -220,8 +220,7 @@ impl Scene {
                 if !svg_width.is_finite() || !(0. ..=1e6).contains(svg_width) {
                     return Err("scene stroke limit".into());
                 }
-                let mut svg_stroke = stroke.clone();
-                svg_stroke.width = *svg_width;
+                let svg_stroke = vector_stroke(stroke, *svg_width)?;
                 elements = elements.saturating_add(dash_elements(svg_path, &svg_stroke)?);
                 if elements > 4_000_000 {
                     return Err("scene path limit (dash expansion)".into());
@@ -543,6 +542,31 @@ pub(crate) fn stroke_path(path: &BezPath, stroke: &kurbo::Stroke, view: Affine, 
     let path = view * path;
     kurbo::stroke(path.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-4)
 }
+/// SVG dash lengths follow the vector pen, including the fixed zero-weight pen.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/linepattern-cell-line-format-section
+pub(crate) fn vector_stroke(stroke: &kurbo::Stroke, width: f64) -> Result<kurbo::Stroke, String> {
+    if !width.is_finite() || !(0. ..=1e6).contains(&width) {
+        return Err("scene stroke limit".into());
+    }
+    let mut out = stroke.clone();
+    if !out.dash_pattern.is_empty() && stroke.width > 0. {
+        let ratio = width / stroke.width;
+        out.dash_offset *= ratio;
+        for dash in &mut out.dash_pattern {
+            *dash *= ratio;
+        }
+        if !out.dash_offset.is_finite()
+            || out.dash_offset.abs() > 1e6
+            || out.dash_pattern.iter().any(|d| !d.is_finite() || !(0. ..=1e6).contains(d))
+            || out.dash_pattern.iter().sum::<f64>() <= 0.
+        {
+            return Err("scene stroke limit".into());
+        }
+    }
+    out.width = width;
+    Ok(out)
+}
+
 pub fn text_paths(layout: &TextLayout, transform: Affine) -> Vec<(BezPath, Rgba)> {
     let db = misterdiagram_fonts::FontDb::global();
     let mut paths = Vec::new();
@@ -792,11 +816,30 @@ fn shapes(
                     if dash_elements(&shaft, &stroke)?.saturating_mul(2) > 4_000_000 {
                         return Err("scene path limit (compound dash expansion)".into());
                     }
+                    let svg_stroke = if weight > 0. && stroke.width == weight {
+                        None
+                    } else {
+                        Some(vector_stroke(&stroke, if weight > 0. { weight } else { 0.75 / 72. })?)
+                    };
                     let mut outline = kurbo::stroke(shaft.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-5);
                     stroke.width /= 3.;
                     let inner = kurbo::stroke(shaft.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-5).reverse_subpaths();
                     outline.extend(inner.elements().iter().copied());
-                    scene.ops.push(Op::Path { path: outline, paint: Paint::Solid(line.color) });
+                    // SVG keeps the nominal pen even when raster output needs a pixel floor.
+                    // Compound strokes are already outlines, so retain a separate vector outline.
+                    if let Some(mut svg_stroke) = svg_stroke {
+                        if dash_elements(&shaft, &svg_stroke)?.saturating_mul(2) > 4_000_000 {
+                            return Err("scene path limit (compound SVG dash expansion)".into());
+                        }
+                        let mut svg_path = kurbo::stroke(shaft.elements().iter().copied(), &svg_stroke, &kurbo::StrokeOpts::default(), 1e-5);
+                        svg_stroke.width /= 3.;
+                        let svg_inner =
+                            kurbo::stroke(shaft.elements().iter().copied(), &svg_stroke, &kurbo::StrokeOpts::default(), 1e-5).reverse_subpaths();
+                        svg_path.extend(svg_inner.elements().iter().copied());
+                        scene.ops.push(Op::HairlineMarker { path: outline, svg_path, color: line.color });
+                    } else {
+                        scene.ops.push(Op::Path { path: outline, paint: Paint::Solid(line.color) });
+                    }
                 } else if weight == 0. && (line.begin_arrow != 0 || line.end_arrow != 0) {
                     let svg_weight = 0.75 / 72.;
                     let svg_path = style::marker_shaft(
@@ -805,6 +848,11 @@ fn shapes(
                         style::marker_setback(line.end_arrow, line.end_size, svg_weight),
                     );
                     scene.ops.push(Op::HairlineStroke { path: shaft, svg_path, stroke, svg_width: svg_weight, color: line.color });
+                } else if weight <= 0. || stroke.width != weight {
+                    // The SVG override is independent of the export scale's raster floor.
+                    // https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section
+                    let svg_width = if weight > 0. { weight } else { 0.75 / 72. };
+                    scene.ops.push(Op::HairlineStroke { path: shaft.clone(), svg_path: shaft, stroke, svg_width, color: line.color });
                 } else {
                     scene.ops.push(Op::Stroke { path: shaft, stroke, color: line.color });
                 }

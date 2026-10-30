@@ -1,5 +1,55 @@
 # Gaps
 
+## Legacy theme line defaults and nominal SVG pens (M5.98)
+
+The original synthetic witness `field/legacy-theme-2026-10-30/` covers ordinary
+shapes and connectors with no theme, Ion and Organic themes, plus changed
+ConnectorSchemeIndex and QuickStyle selectors. The themed connector extensions
+contain nonzero arrows. Nevertheless, one-argument legacy THEME queries return
+the same values in every captured case: ConnectorBegin and ConnectorEnd are 0;
+ConnectorBeginSize and ConnectorEndSize are 2; ConnectorWeight and LineWeight
+are 0.25 pt; ConnectorPattern and LinePattern are 1. These defaults apply before
+modern theme selection. THEMEVAL keeps its modern style/lineEx lookup. Queries
+outside these eight witnessed legacy properties and explicit default arguments
+retain their existing behavior. Synthetic inherited and direct formulas are
+regression tests; the saved cell value is deliberately different from the result.
+
+`field/nominal-strokes-2026-10-30/` captures boxes, open lines, dashes and double
+lines at six weights including zero. Positive SVG pens use their nominal point
+weight regardless of export scale, including paths expanded to preserve unequal
+caps or compound outlines. Zero-weight SVG pens remain 0.75 pt. Dash lengths and
+offsets follow the SVG pen, including the zero-weight exception. PNG and PDF keep
+the existing raster pen and geometry. Separate SVG paths and widths use the
+existing finite-coordinate, path-element and dash-expansion budgets; raster crop
+bounds are retained. Editable SVG crop bounds also include its visible pen.
+The 230-file SVG backend consistency check therefore rasterizes a reference scene
+using these vector pens and bounds. Its MAD limit remains 2 and no file is
+excluded. Comparing the nominal SVG directly to the deliberately floored PNG
+would reject the synthetic master/basic-rect case (0.24 pt versus 0.75 pt,
+MAD 2.566552). Actual PNG/PDF stability is checked independently; this does not
+change a native witness, production output, threshold or comparison population.
+
+References: [THEME](https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function),
+[THEMEVAL](https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function),
+[LineWeight](https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section),
+[LinePattern](https://learn.microsoft.com/en-us/office/client-developer/visio/linepattern-cell-line-format-section).
+
+## Text-only export bounds: open page-height gap
+
+Private evidence: `field/vahegan-2026-10-30/in/pg2.vsdx`, numeric shape ID 1089.
+At 192 dpi our PNG is 361 by 174 pixels; the native PNG is 361 by 165. The
+text-only line reservation extends a complete 10 pt line advance below its
+11.501815258789062 pt baseline. Its lower page coordinate is
+0.1782863079615048 in, while the expanded text block ends at
+0.2268722071449900 in: an excess of 0.0485858991834852 in (about 9.33 pixels).
+The upper extent is shape ID 1085's expanded text block at
+1.0813627402358443 in. Using the expanded block's lower extent would yield
+164.062 nominal pixels, rounded to 165 by the current export extent rule.
+Native TEXTHEIGHT for shape ID 1089 is 0.250050423855252 in and agrees with our
+expanded block. The native crop explanation is inferred from these dimensions,
+not a native COM bounding-box measurement. This independent bounds issue is
+recorded only; the line reservation and PNG/PDF sizing remain unchanged.
+
 ## Empty SVG lines and script runs (M5.97)
 
 Editable SVG now anchors each line to its absolute layout baseline. Empty text
