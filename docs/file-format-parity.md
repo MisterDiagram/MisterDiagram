@@ -235,6 +235,17 @@ the other measured files use 2012/main. Container inspection accepts both exact 
 
 ## Observed, undocumented
 
+### ClippingPath differs between native PNG and SVG (M5.93)
+
+Private synthetic `field/image-crop-2026-10-30/visio-grid/image-crop.vsdx`
+contains PNG and EMF pictures with ClippingPath naming Geometry2.Path. The
+section is an ellipse and NoShow=1; a separate visible-section control agrees.
+Visio 2021 build 20527 clips both native PNG pictures to the ellipse, while its
+SVG exports retain rectangular images. MisterDiagram follows the native PNG
+and the public ClippingPath contract for PNG, SVG and PDF. This is an export
+format discrepancy in the witness, not a relaxed image comparison threshold.
+
+
 M5.71 (#104), Visio 2021 build 16.0.20527: placing an obstacle across an
 unglued connector reroutes ConFixedCode 0, but leaves codes 2 and 3 unchanged.
 The public [ConFixedCode reference](https://learn.microsoft.com/en-us/office/client-developer/visio/confixedcode-cell-shape-layout-section)

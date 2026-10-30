@@ -869,9 +869,10 @@ fn foreign_image(
     }
     let object_type: String = foreign.attr("ObjectType").unwrap_or("unspecified").chars().take(64).filter(|c| !c.is_control()).collect();
     let label = format!("{} ForeignData ObjectType={object_type}", e.scope_label(scope));
+    let clip = foreign_clip(e, scope, width, height, transform)?;
     let target = foreign_target(e.document, part, foreign);
     let result = match target.as_ref() {
-        Ok(target) => paint_foreign(e, scope, target, transform, width, height, w, h, x, y, scene, false),
+        Ok(target) => paint_foreign(e, scope, target, transform, &clip, w, h, x, y, scene, false),
         Err(error) => Err(error.clone()),
     };
     let Err(error) = result else { return Ok(()) };
@@ -895,7 +896,7 @@ fn foreign_image(
                 preview_limit = true;
                 break;
             }
-            match paint_foreign(e, scope, &picture.target, transform, width, height, w, h, x, y, scene, true) {
+            match paint_foreign(e, scope, &picture.target, transform, &clip, w, h, x, y, scene, true) {
                 Ok(()) => {
                     let kind = if matches!(foreign.attr("ShowAsIcon"), Some("1" | "true")) { "icon" } else { "picture" };
                     scene.warnings.push(format!("{label}: {error}; drew cached {kind}"));
@@ -943,13 +944,39 @@ fn foreign_target<'a>(document: &'a Document, part: &str, foreign: &misterdiagra
         .map(|r| r.target.as_str())
         .ok_or_else(|| "missing foreign relationship".into())
 }
+/// Only local Geometry section paths may clip an image; invalid references use its border.
+/// Native PNG witness: field/image-crop-2026-10-30/visio-header, build 20527.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/clippingpath-cell-foreign-image-info-section
+fn foreign_clip(e: &mut Evaluator<'_>, scope: Scope, width: f64, height: f64, transform: Affine) -> Result<BezPath, String> {
+    let border = Rect::new(0., 0., width, height);
+    let index = match e.evaluate(scope, "ClippingPath") {
+        Value::Text(name) if name.len() <= 64 => {
+            let lower = name.to_ascii_lowercase();
+            lower
+                .strip_prefix("geometry")
+                .and_then(|s| s.strip_suffix(".path"))
+                .filter(|s| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit()))
+                .and_then(|s| s.parse::<u32>().ok())
+                .and_then(|n| n.checked_sub(1))
+        }
+        _ => None,
+    };
+    if let Some(index) = index {
+        match e.geometry_clip_path(scope, index, border) {
+            Ok(Some(geometry)) if !geometry.path.elements().is_empty() => return Ok(transform * geometry.path),
+            Err(misterdiagram_sheet::Error::Limit) => return Err(e.render_error(scope, "ClippingPath", misterdiagram_sheet::Error::Limit)),
+            _ => {}
+        }
+    }
+    Ok(transform * border.to_path(1e-5))
+}
+
 fn paint_foreign(
     e: &Evaluator<'_>,
     scope: Scope,
     target: &str,
     transform: Affine,
-    width: f64,
-    height: f64,
+    clip: &BezPath,
     w: f64,
     h: f64,
     x: f64,
@@ -964,7 +991,7 @@ fn paint_foreign(
             * Affine::translate((x, y + h))
             * Affine::scale_non_uniform(w / imported.frame.width().max(1e-12), -h / imported.frame.height().max(1e-12))
             * Affine::translate((-imported.frame.x0, -imported.frame.y0));
-        scene.ops.push(Op::Clip { path: transform * Rect::new(0., 0., width, height).to_path(1e-5), even_odd: false });
+        scene.ops.push(Op::Clip { path: clip.clone(), even_odd: false });
         scene.ops.push(Op::Bounds(m.transform_rect_bbox(imported.frame)));
         if !imported.ops.iter().any(|op| matches!(op, Op::Path { .. } | Op::Stroke { .. } | Op::Image { .. } | Op::Text { .. })) {
             scene.warnings.push(format!("foreign object {scope:?} {} produced no drawing", target));
@@ -994,7 +1021,7 @@ fn paint_foreign(
     }
     let pixels = crate::raster::decode(bytes)?;
     let m = transform * Affine::translate((x, y + h)) * Affine::scale_non_uniform(w / f64::from(pixels.width()), -h / f64::from(pixels.height()));
-    scene.ops.push(Op::Clip { path: transform * Rect::new(0., 0., width, height).to_path(1e-5), even_odd: false });
+    scene.ops.push(Op::Clip { path: clip.clone(), even_odd: false });
     scene.ops.push(Op::Image { pixels: Arc::new(pixels), transform: m });
     scene.ops.push(Op::Pop);
     Ok(())

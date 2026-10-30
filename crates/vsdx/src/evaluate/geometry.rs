@@ -40,9 +40,19 @@ impl Evaluator<'_> {
     /// Drawing recovery is opt-in; strict callers still receive every row error.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section
     pub fn geometry_paths(&mut self, scope: Scope, clip: Rect) -> Result<Vec<GeometryPath>, Error> {
+        self.geometry_paths_selected(scope, clip, None)
+    }
+
+    /// Resolve a local clipping section even when NoShow hides its painted geometry.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/clippingpath-cell-foreign-image-info-section
+    pub fn geometry_clip_path(&mut self, scope: Scope, index: u32, clip: Rect) -> Result<Option<GeometryPath>, Error> {
+        Ok(self.geometry_paths_selected(scope, clip, Some(index))?.into_iter().next())
+    }
+
+    fn geometry_paths_selected(&mut self, scope: Scope, clip: Rect, selected: Option<u32>) -> Result<Vec<GeometryPath>, Error> {
         let width = self.evaluate(scope, "Width").numeric()?;
         let height = self.evaluate(scope, "Height").numeric()?;
-        if self.cached_fallback {
+        if self.cached_fallback && selected.is_none() {
             let connections: Vec<_> =
                 self.resolved_named_cells(scope).into_iter().filter(|n| n.name.starts_with("Connections.")).map(|n| n.name).collect();
             for name in connections {
@@ -51,7 +61,7 @@ impl Evaluator<'_> {
                 }
             }
         }
-        let indices: Vec<_> = self.geometry_indices(scope).collect();
+        let indices: Vec<_> = self.geometry_indices(scope).filter(|i| selected.is_none_or(|s| s == *i)).collect();
         let mut paths = Vec::new();
         for index in indices {
             let prefix = format!("Geometry{}", index.checked_add(1).ok_or(Error::Limit)?);
@@ -72,7 +82,7 @@ impl Evaluator<'_> {
                 }
                 Err(error) => return Err(error),
             };
-            if flags.no_show {
+            if flags.no_show && selected.is_none() {
                 continue;
             }
             let source = match self.effective_geometry(scope, index) {

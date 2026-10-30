@@ -1,5 +1,29 @@
 # Gaps
 
+## Image cropping and local ClippingPath (#54, M5.93)
+
+Rectangular image cropping was already implemented before this brief, including
+ImgWidth, ImgHeight and both offsets for raster and EMF images. New original
+2 by 1 inch controls in private `field/image-crop-2026-10-30/visio-grid/` exercise
+the 4 inch image width and -1 inch offset, vertical cropping and both axes.
+The two-axis panel pattern makes each direction observable for both formats.
+
+ClippingPath now resolves a local Geometry section path for both formats. The
+native witness uses `"Geometry2.Path"` and an ellipse; it clips even when that
+section has NoShow=1. The selected geometry is evaluated in shape coordinates,
+then transformed with the image's shape. Empty, malformed, nonexistent and
+cross-sheet references retain the rectangular fallback. Resource-limit errors
+remain errors. The path constrains PNG, SVG and PDF output.
+
+Visio 2021 build 20527 exports this valid ellipse clip in PNG, but its own SVG
+keeps a rectangular image. The hidden and visible geometry controls both show
+this discrepancy. MisterDiagram follows the witnessed PNG and the documented
+ClippingPath contract across all three backends. Broader image/EMF parity remains
+partial. Initial malformed geometry-row attempts are preserved privately and
+are not acceptance witnesses.
+
+Reference: [ClippingPath](https://learn.microsoft.com/en-us/office/client-developer/visio/clippingpath-cell-foreign-image-info-section).
+
 ## Text backgrounds (#54, M5.92)
 
 Synthetic native evidence in private corpus `field/textbkgnd-2026-10-30/`

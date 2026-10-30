@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **Pictures can follow a custom crop outline** (#54). A local Geometry path now clips raster and EMF images in PNG, SVG and PDF, including paths hidden from the drawing.
 - **Label backgrounds cover the line behind the text** (#54). Text background colors and transparency now appear in PNG, SVG and PDF, including labelled connectors.
 
 ## 0.1.0-alpha.17

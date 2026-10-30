@@ -156,3 +156,139 @@ fn offset_picture_clip_limits_export_bounds_and_painted_pixels() {
         assert!(painted > 100_000, "{kind} picture must remain visible");
     }
 }
+
+/// Geometry2 ellipse controls are clipped in native PNG even with NoShow=1.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/clippingpath-cell-foreign-image-info-section
+#[test]
+fn clipping_path_uses_local_hidden_geometry_for_raster_and_emf() {
+    use misterdiagram_model::{Row, Section};
+    use misterdiagram_render::{pdf, svg};
+    for kind in ["png", "emf"] {
+        let mut doc = document(kind, 3., 2., 0., 0.);
+        let shape = &mut doc.pages[0].shapes[0];
+        shape.sheet.cells.push(Cell { name: "ClippingPath".into(), formula: Some("\"Geometry1.Path\"".into()), ..Default::default() });
+        shape.sheet.sections.push(Section {
+            name: "Geometry".into(),
+            index: Some(0),
+            cells: vec![Cell { name: "NoShow".into(), value: Some("1".into()), ..Default::default() }],
+            rows: vec![Row {
+                index: Some(1),
+                row_type: Some("Ellipse".into()),
+                cells: [("X", "1.5"), ("Y", "1"), ("A", "3"), ("B", "1"), ("C", "1.5"), ("D", "2")]
+                    .into_iter()
+                    .map(|(name, value)| Cell { name: name.into(), value: Some(value.into()), ..Default::default() })
+                    .collect(),
+                ..Default::default()
+            }],
+            ..Default::default()
+        });
+        let options = scene::Options { scale: 2., crop: false, ..Default::default() };
+        let s = scene::page(&doc, 0, options).unwrap();
+        let png = raster::render(&s, options).unwrap();
+        let xml = svg::render(&s, options).unwrap();
+        let tree = resvg::usvg::Tree::from_str(&xml, &resvg::usvg::Options::default()).unwrap();
+        let mut svg_pixels = resvg::tiny_skia::Pixmap::new(png.width(), png.height()).unwrap();
+        svg_pixels.fill(resvg::tiny_skia::Color::WHITE);
+        resvg::render(&tree, resvg::tiny_skia::Transform::identity(), &mut svg_pixels.as_mut());
+        let m = s.canvas(options).unwrap().2;
+        for (x, y, painted) in [(0.1, 0.1, false), (2.9, 1.9, false), (1.5, 1., true), (0.2, 1., true)] {
+            let p = m * misterdiagram_geom::Point::new(x, y);
+            let (x, y) = (p.x.round() as u32, p.y.round() as u32);
+            assert_eq!(dominant(png.get_pixel(x, y)).is_some(), painted, "{kind} PNG {x} {y}");
+            let p = svg_pixels.pixel(x, y).unwrap();
+            let p = image::Rgba([p.red(), p.green(), p.blue(), p.alpha()]);
+            assert_eq!(dominant(&p).is_some(), painted, "{kind} SVG {x} {y}");
+        }
+        let bytes = pdf::render(&[s], options).unwrap();
+        let parsed = hayro_syntax::Pdf::new(bytes).unwrap();
+        let mut ops = parsed.pages()[0].typed_operations();
+        let mut curves = 0;
+        let mut curved_clip = false;
+        while let Some(op) = ops.next() {
+            use hayro_syntax::content::ops::TypedInstruction as T;
+            match op {
+                T::CubicTo(_) | T::CubicStartTo(_) | T::CubicEndTo(_) => curves += 1,
+                T::ClipNonZero(_) | T::ClipEvenOdd(_) => curved_clip |= curves >= 4,
+                T::EndPath(_) => curves = 0,
+                _ => {}
+            }
+        }
+        assert!(curved_clip, "{kind} PDF must encode the ellipse as a clipping path");
+    }
+}
+
+/// Invalid and cross-sheet entries retain the documented rectangular fallback.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/clippingpath-cell-foreign-image-info-section
+#[test]
+fn clipping_path_reference_parser_is_bounded_and_local() {
+    let options = scene::Options { crop: false, ..Default::default() };
+    let reference = raster::render(&scene::page(&document("png", 6., 4., -1., -1.), 0, options).unwrap(), options).unwrap();
+    for value in [
+        String::new(),
+        "Geometry0.Path".into(),
+        "Geometry999.Path".into(),
+        "Sheet.2!Geometry1.Path".into(),
+        "Geometry+1.Path".into(),
+        "Geometry4294967296.Path".into(),
+        "Geometry1.X1".into(),
+        "x".repeat(65536),
+    ] {
+        let mut d = document("png", 6., 4., -1., -1.);
+        d.pages[0].shapes[0].sheet.cells.push(Cell {
+            name: "ClippingPath".into(),
+            value: Some(value),
+            units: Some("STR".into()),
+            ..Default::default()
+        });
+        let actual = raster::render(&scene::page(&d, 0, options).unwrap(), options).unwrap();
+        assert_eq!(reference, actual);
+    }
+}
+
+/// The original #54 crop case: a 4 inch image offset -1 inside a 2 by 1 inch border.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/imgwidth-cell-foreign-image-info-section
+#[test]
+fn two_by_one_crop_has_no_outside_pixels_in_png_svg_or_pdf_clip() {
+    use misterdiagram_render::{pdf, svg};
+    for kind in ["png", "emf"] {
+        let mut d = document(kind, 4., 1., -1., 0.);
+        for (name, value) in [("Width", "2"), ("Height", "1"), ("PinX", "2"), ("PinY", "1.5"), ("LocPinX", "1"), ("LocPinY", "0.5")] {
+            let c = d.pages[0].shapes[0].sheet.cells.iter_mut().find(|c| c.name == name).unwrap();
+            c.formula = None;
+            c.value = Some(value.into());
+        }
+        let options = scene::Options { scale: 2., crop: false, ..Default::default() };
+        let s = scene::page(&d, 0, options).unwrap();
+        let png = raster::render(&s, options).unwrap();
+        let xml = svg::render(&s, options).unwrap();
+        let tree = resvg::usvg::Tree::from_str(&xml, &resvg::usvg::Options::default()).unwrap();
+        let mut pixels = resvg::tiny_skia::Pixmap::new(png.width(), png.height()).unwrap();
+        pixels.fill(resvg::tiny_skia::Color::WHITE);
+        resvg::render(&tree, resvg::tiny_skia::Transform::identity(), &mut pixels.as_mut());
+        let svg = image::RgbaImage::from_raw(png.width(), png.height(), pixels.data().to_vec()).unwrap();
+        let inv = s.canvas(options).unwrap().2.inverse();
+        for image in [&png, &svg] {
+            let mut painted = 0;
+            for (x, y, p) in image.enumerate_pixels() {
+                if dominant(p).is_some() {
+                    painted += 1;
+                    let p = inv * misterdiagram_geom::Point::new(f64::from(x) + 0.5, f64::from(y) + 0.5);
+                    assert!(p.x >= 0.99 && p.x <= 3.01 && p.y >= 0.99 && p.y <= 2.01, "{kind} outside crop at {p:?}");
+                }
+            }
+            assert!(painted > 60_000);
+        }
+        let parsed = hayro_syntax::Pdf::new(pdf::render(&[s], options).unwrap()).unwrap();
+        let mut ops = parsed.pages()[0].typed_operations();
+        let mut clips = 0;
+        while let Some(op) = ops.next() {
+            if matches!(
+                op,
+                hayro_syntax::content::ops::TypedInstruction::ClipNonZero(_) | hayro_syntax::content::ops::TypedInstruction::ClipEvenOdd(_)
+            ) {
+                clips += 1;
+            }
+        }
+        assert!(clips > 0, "{kind} PDF clip missing");
+    }
+}
