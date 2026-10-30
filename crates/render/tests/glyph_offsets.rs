@@ -18,6 +18,11 @@ fn options() -> scene::Options {
 }
 #[test]
 fn pdf_glyph_matrices_follow_y_down_positions_with_a_leading_mark() {
+    // The positioned marks come from the bundled Arabic face; builds without craft-fonts lack it.
+    if misterdiagram_fonts::bundled_families(misterdiagram_fonts::script::ARABIC).is_empty() {
+        eprintln!("skipped: no bundled Arabic face (built without craft-fonts)");
+        return;
+    }
     let s = marks();
     let run = s.ops.iter().find_map(|op| if let scene::Op::Text { layout, .. } = op { layout.runs.first() } else { None }).unwrap();
     assert_eq!(run.glyphs.len(), 3);
