@@ -408,3 +408,8 @@ References: [Cell](https://learn.microsoft.com/en-us/office/client-developer/vis
 M5.94 corrects vertical PDF glyph offsets and editable SVG combining-mark placement; general text/script parity remains P.
 
 M5.95 replaces the fitted marker law with synthetic all-type physical units and names the measured metric twin in editable SVG. Strict wide-matrix raster parity remains partial; no parity row is promoted.
+
+M5.97 corrects empty-line SVG baselines and measured script advances. Native
+synthetic controls cover all three vertical alignments and Calibri/Arial at two
+sizes, with width and wrapping regressions. Text rendering stays P; no score or
+denominator changes. References and remaining font limits are in gaps.md.

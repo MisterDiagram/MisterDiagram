@@ -113,15 +113,12 @@ fn text_limited(out: &mut String, layout: &TextLayout, m: Affine, limit: usize) 
     // anchors the right edge), so the paragraph direction travels in the isolates below.
     out.push_str(" direction=\"ltr\" text-anchor=\"start\"");
     out.push('>');
-    let mut previous_y = first.baseline;
     let mut run_index = 0;
     for (i, line) in layout.lines.iter().enumerate() {
         let x = start(layout.runs.get(run_index).filter(|r| r.svg.line == i), line);
         if i != 0 {
-            write!(out, "<tspan x=\"{x}\" dy=\"{}\" direction=\"ltr\" text-anchor=\"start\">", line.baseline - previous_y)
-                .map_err(|e| e.to_string())?;
+            write!(out, "<tspan x=\"{x}\" y=\"{}\" direction=\"ltr\" text-anchor=\"start\">", line.baseline).map_err(|e| e.to_string())?;
         }
-        previous_y = line.baseline;
         let mut cursor = x;
         while let Some(run) = layout.runs.get(run_index).filter(|r| r.svg.line == i) {
             run_index += 1;

@@ -242,7 +242,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pointalongpath-function> | `crates/sheet/src/functions/points.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/path.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/polyline-function> | `crates/geom/src/rows.rs`, `crates/sheet/src/functions/constructors.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/polylineto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/route/src/jumps.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/pos-cell-character-section> | `crates/vsdx/src/evaluate/text.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/pos-cell-character-section> | `crates/text/src/lib.rs`, `crates/text/src/tests.rs`, `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/position-cell-tabs-section> | `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pow-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pp-element-text_type-complextypevisio-xml> | `crates/engine/src/content.rs`, `crates/engine/src/masters.rs`, `crates/engine/tests/authoring.rs`, `crates/vsdx/src/evaluate/text.rs`, `crates/vsdx/src/lib.rs` |
@@ -316,7 +316,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/textbkgndtrans-cell-text-block-format-section> | `crates/render/src/scene.rs`, `crates/render/tests/text_background.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/textheight-function> | `crates/sheet/src/functions/text_metrics.rs`, `crates/vsdx/tests/string_cell_evaluation.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/textposafterbullet-cell-paragraph-section> | `crates/text/src/lib.rs`, `crates/vsdx/src/evaluate/text.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/textwidth-function> | `crates/engine/tests/layout.rs`, `crates/sheet/src/functions/text_metrics.rs`, `crates/sheet/src/lib.rs`, `crates/text/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/textwidth-function> | `crates/engine/tests/layout.rs`, `crates/sheet/src/functions/text_metrics.rs`, `crates/sheet/src/lib.rs`, `crates/text/src/lib.rs`, `crates/text/src/tests.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function> | `crates/render/tests/arrow_size.rs`, `crates/sheet/src/functions/theme.rs`, `crates/sheet/src/host.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/themecbv-function> | `crates/sheet/src/functions/theme.rs`, `crates/theme/src/resolve.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/themeguard-function> | `crates/sheet/src/functions/theme.rs` |
@@ -458,5 +458,6 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-stretchdibits> | `crates/render/src/metafile/emf/masked.rs` |
 | <https://learn.microsoft.com/en-us/windows/win32/gdi/ternary-raster-operations> | `crates/render/src/metafile/emf/masked.rs`, `crates/render/src/metafile/mod.rs` |
 | <https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT> | `crates/opc/src/opc.rs` |
+| <https://www.w3.org/TR/SVG11/text.html#TSpanElement> | `crates/render/tests/svg_text.rs` |
 | <https://www.w3.org/TR/SVG11/text.html#TextElement> | `crates/render/src/svg/text.rs` |
 | <https://www.w3.org/TR/css-fonts-4/#font-family-prop> | `crates/render/src/svg/text.rs` |

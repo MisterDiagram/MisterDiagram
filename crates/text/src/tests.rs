@@ -331,3 +331,143 @@ fn the_terminal_space_hangs_and_never_wraps_the_last_word() {
     assert_eq!(lines("ADC Load Time", 0.85), 2);
     assert_eq!(lines("Clock Ready", 0.625), 2);
 }
+
+/// Synthetic live TEXTWIDTH witnesses, with the corpus numeric tolerance (1e-6 in).
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/pos-cell-character-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/textwidth-function
+#[test]
+fn script_advances_match_every_native_width_and_wrap_case() {
+    for (font, size, pos, kind, expected) in [
+        ("Calibri", 12., 0, "full", 0.37561839089257815),
+        ("Calibri", 12., 0, "mixed", 0.550098829125),
+        ("Calibri", 12., 0, "fit", 0.466114454125),
+        ("Calibri", 12., 1, "full", 0.2505535410390625),
+        ("Calibri", 12., 1, "mixed", 0.437580518578125),
+        ("Calibri", 12., 1, "fit", 0.353596143578125),
+        ("Calibri", 12., 2, "full", 0.2505535410390625),
+        ("Calibri", 12., 2, "mixed", 0.437580518578125),
+        ("Calibri", 12., 2, "fit", 0.353596143578125),
+        ("Calibri", 24., 0, "full", 0.751190595482422),
+        ("Calibri", 24., 0, "mixed", 1.1001476572500002),
+        ("Calibri", 24., 0, "fit", 0.93217890725),
+        ("Calibri", 24., 1, "full", 0.501057081078125),
+        ("Calibri", 24., 1, "mixed", 0.8751110361562501),
+        ("Calibri", 24., 1, "fit", 0.70714228615625),
+        ("Calibri", 24., 2, "full", 0.501057081078125),
+        ("Calibri", 24., 2, "mixed", 0.8751110361562501),
+        ("Calibri", 24., 2, "fit", 0.70714228615625),
+        ("Arial", 12., 0, "full", 0.4171299265371094),
+        ("Arial", 12., 0, "mixed", 0.6301044748769531),
+        ("Arial", 12., 0, "fit", 0.5374912546621093),
+        ("Arial", 12., 1, "full", 0.27109568581445315),
+        ("Arial", 12., 1, "mixed", 0.5002826975332031),
+        ("Arial", 12., 1, "fit", 0.4076694773183594),
+        ("Arial", 12., 2, "full", 0.27109568581445315),
+        ("Arial", 12., 2, "mixed", 0.5002826975332031),
+        ("Arial", 12., 2, "fit", 0.4076694773183594),
+        ("Arial", 24., 0, "full", 0.8341907785878906),
+        ("Arial", 24., 0, "mixed", 1.260132245873047),
+        ("Arial", 24., 0, "fit", 1.0749134348378908),
+        ("Arial", 24., 1, "full", 0.5421566294179687),
+        ("Arial", 24., 1, "mixed", 1.000519208763672),
+        ("Arial", 24., 1, "fit", 0.8153003977285156),
+        ("Arial", 24., 2, "full", 0.5421566294179687),
+        ("Arial", 24., 2, "mixed", 1.000519208763672),
+        ("Arial", 24., 2, "fit", 0.8153003977285156),
+    ] {
+        let props = RunProps {
+            font: Some(font.into()),
+            size: Some(size),
+            baseline: Some(match pos {
+                1 => 0.3,
+                2 => -0.14,
+                _ => 0.,
+            }),
+            ..Default::default()
+        };
+        let normal = RunProps { baseline: Some(0.), ..props.clone() };
+        let runs = match kind {
+            "full" => vec![Run::with("2468", props)],
+            "mixed" => vec![Run::with("A", normal.clone()), Run::with("2468", props), Run::with("Z", normal)],
+            // Visio stores a normal end marker after the selected script range.
+            _ => vec![Run::with("R", normal.clone()), Run::with("2468", props), Run::with("", normal)],
+        };
+        let body = TextBody {
+            body: BodyProps { inset_l: Some(0.), inset_r: Some(0.), inset_t: Some(0.), inset_b: Some(0.), ..Default::default() },
+            paragraphs: vec![Paragraph {
+                runs,
+                props: ParaProps { line_spacing: Some(Spacing::FontPct(1.2)), ..Default::default() },
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let width = Host.measure(&body, None).unwrap().0 / 72.;
+        assert!((width - expected).abs() < 1e-6, "{font}/{size}/{pos}/{kind}: {width} vs {expected}");
+        let available = if kind == "fit" { 0.4 * size / 12. * 72. } else { 1.8 * 72. };
+        let opts = Opts { rect: Rect::new(0., 0., available, 100.), fields: &NoFields, prompt_color: None, no_shrink: true };
+        let l = layout_for_export(&body, &opts).unwrap();
+        let count = if kind == "fit" && pos == 0 { 2 } else { 1 };
+        assert_eq!(l.lines.len(), count, "{font}/{size}/{pos}/{kind}");
+        let metric_size = (size / 72. * 262144.).round() / 262144. * 72.;
+        let expected_height = metric_size * 1.2 * count as f64 + 0.00005 * 72.;
+        assert!((Host.measure(&body, Some(available)).unwrap().1 - expected_height).abs() < 1e-6);
+        if pos != 0 {
+            let run = l.runs.iter().find(|r| r.svg.text == "2468").unwrap();
+            let width = measure_str(&run.face, run.size, "2468").0;
+            let first = run.glyphs.first().unwrap().1;
+            let last = run.glyphs.last().unwrap();
+            let end = last.1 + run.face.advance(last.0) * run.size / run.face.upem;
+            assert!((end - first - width).abs() < 1e-8, "script tracking must use drawn em");
+        }
+    }
+}
+
+#[test]
+fn script_boundaries_split_ligatures_but_preserve_combining_clusters() {
+    let normal = RunProps { font: Some("Calibri".into()), size: Some(24.), ..Default::default() };
+    for mut second in [RunProps { baseline: Some(0.3), ..normal.clone() }, RunProps { size: Some(12.), ..normal.clone() }] {
+        let body = TextBody {
+            paragraphs: vec![Paragraph { runs: vec![Run::with("f", normal.clone()), Run::with("i", second.clone())], ..Default::default() }],
+            ..Default::default()
+        };
+        let l = layout(&body, &Opts { rect: Rect::new(0., 0., 144., 72.), fields: &NoFields, prompt_color: None, no_shrink: true }).unwrap();
+        assert_eq!(l.runs.len(), 2);
+        assert_eq!(l.runs.iter().map(|r| r.glyphs.len()).sum::<usize>(), 2);
+        second.baseline = Some(0.3);
+        let body = TextBody { paragraphs: vec![Paragraph { runs: vec![Run::with("a\u{301}", second)], ..Default::default() }], ..Default::default() };
+        let l = layout(&body, &Opts { rect: Rect::new(0., 0., 144., 72.), fields: &NoFields, prompt_color: None, no_shrink: true }).unwrap();
+        assert_eq!(l.runs.len(), 1);
+        assert!(!l.boundaries[0][1]);
+        assert!(l.runs[0].glyphs.iter().all(|(_, x, y)| x.is_finite() && y.is_finite()));
+    }
+}
+
+#[test]
+fn native_script_boundary_widths() {
+    // Decomposed Calibri accents already fall back to Caladea because the cmap
+    // coverage check precedes shaping. Their separate native mismatch is in gaps.md;
+    // the cluster-integrity test above covers both the measured and fallback faces.
+    for (font, pos, kind, expected) in [
+        ("Calibri", 1, "ligature", 0.22815745339257812),
+        ("Calibri", 2, "ligature", 0.22815745339257812),
+        ("Arial", 1, "ligature", 0.23339884743554687),
+        ("Arial", 1, "combining", 0.18071787819726562),
+        ("Arial", 2, "ligature", 0.23339884743554687),
+        ("Arial", 2, "combining", 0.18071787819726562),
+    ] {
+        let normal = RunProps { font: Some(font.into()), size: Some(24.), ..Default::default() };
+        let script = RunProps { baseline: Some(if pos == 1 { 0.3 } else { -0.14 }), ..normal.clone() };
+        let runs = if kind == "ligature" {
+            vec![Run::with("f", normal.clone()), Run::with("i", script), Run::with("", normal)]
+        } else {
+            vec![Run::with("a\u{301}", script)]
+        };
+        let body = TextBody {
+            body: BodyProps { inset_l: Some(0.), inset_r: Some(0.), ..Default::default() },
+            paragraphs: vec![Paragraph { runs, ..Default::default() }],
+            ..Default::default()
+        };
+        let actual = Host.measure(&body, None).unwrap().0 / 72.;
+        assert!((actual - expected).abs() < 1e-6, "{font}/{pos}/{kind}: {actual} vs {expected}");
+    }
+}

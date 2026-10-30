@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- **Empty lines keep their space in editable SVG** (#87). Labels retain their line positions after leading, consecutive or trailing blank paragraphs, including vertically aligned text.
+- **Subscripts and superscripts use their drawn width** (#87). Smaller runs no longer look letter-spaced or wrap a label that fits on one line. Calibri and Arial sizes and offsets follow synthetic Visio measurements.
+
 ## 0.1.0-alpha.18
 
 Arrowheads at Visio's size, and the three rendering gaps of

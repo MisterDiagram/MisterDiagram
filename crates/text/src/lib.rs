@@ -203,6 +203,24 @@ struct Style {
 }
 
 impl Style {
+    /// Character.Pos uses a smaller em for both drawing and composed advances.
+    /// Synthetic Visio 2021 witness: field/subsup-2026-10-30 (Calibri and Arial).
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/pos-cell-character-section
+    fn drawn_size(&self) -> f64 {
+        if self.baseline == 0. {
+            return self.size;
+        }
+        let ratio = if self.family.eq_ignore_ascii_case("Arial") {
+            1331. / 2048.
+        } else if self.family.eq_ignore_ascii_case("Calibri") {
+            0.667
+        } else {
+            0.66
+        };
+        // The script em is truncated on Visio's 18-fractional-bit inch grid
+        // before individual advances are rounded on the same grid.
+        (self.size * ratio / 72. * 262144.).floor() / 262144. * 72.
+    }
     fn svg(&self, line: usize, text: String) -> SvgRun {
         SvgRun {
             family: self.family.clone(),
@@ -578,11 +596,12 @@ fn shape_cells(text: &str, char_style: &[usize], styles: &[Style], faces: &mut V
     // Items: maximal ranges of one level, face, script and shaping style (case mapping, language).
     let upper = |i: usize| styles.get(char_style.get(i).copied().unwrap_or(0)).is_some_and(|st| st.caps != Caps::None);
     let lang = |i: usize| styles.get(char_style.get(i).copied().unwrap_or(0)).and_then(|st| st.lang.as_deref());
-    let key = |i: usize| (levels.get(i).copied(), char_face.get(i).copied(), scripts.get(i).map(|s| s.0), upper(i), lang(i));
+    let shaping_size = |i: usize| styles.get(char_style.get(i).copied().unwrap_or(0)).map(|st| (st.size.to_bits(), st.baseline.to_bits()));
+    let key = |i: usize| (levels.get(i).copied(), char_face.get(i).copied(), scripts.get(i).map(|s| s.0), upper(i), lang(i), shaping_size(i));
     let mut a = 0;
     while a < n {
         let mut b = a + 1;
-        while b < n && key(b) == key(a) {
+        while b < n && (key(b) == key(a) || !boundary.get(b).copied().unwrap_or(true)) {
             b += 1;
         }
         shape_item(&mut cells, styles, faces, text, &byte_of, &char_at_byte, a..b, scripts.get(a).and_then(|s| s.0), lang(a), upper(a));
@@ -618,7 +637,7 @@ fn shape_item(
     let upem = face.upem.max(1.0);
     let scale_of = |cell: &Cell| {
         let st = styles.get(cell.style);
-        let size = st.map(|s| s.size).unwrap_or(18.0);
+        let size = st.map(Style::drawn_size).unwrap_or(18.0);
         let small = st.is_some_and(|s| s.caps == Caps::Small) && cell.ch.is_lowercase();
         (if small { size * 0.8 } else { size }) / upem
     };
@@ -1184,7 +1203,7 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
                 // The terminal run can have a different size from the last visible glyph.
                 // BA_DEC_BAN_M master25 shape6: 28pt time followed by a 14pt field.
                 let style = p.styles.last();
-                style.map_or(0., |st| (measure_str(&st.face, st.size, " ").0 / 72. * 262144.).round() / 262144. * 72.)
+                style.map_or(0., |st| (measure_str(&st.face, st.drawn_size(), " ").0 / 72. * 262144.).round() / 262144. * 72.)
             } else {
                 0.
             };
@@ -1287,7 +1306,7 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
             let Some(st) = p.styles.get(cell.style) else { continue };
             let Some(&(cx, cx1)) = line.edges.get(k) else { continue };
             let base_y = line.baseline - st.baseline * st.size;
-            let size = if st.baseline != 0.0 { st.size * 0.66 } else { st.size };
+            let size = st.drawn_size();
             let size = if st.caps == Caps::Small && cell.ch.is_lowercase() { size * 0.8 } else { size };
             let key = (cell.style, cell.face);
             if key != cur_key {
@@ -1338,9 +1357,8 @@ fn layout_scaled(body: &TextBody, bp: &BodyProps, opts: &Opts, scale: f64, reduc
                             }
                         }
                     }
-                    let k66 = if st.baseline != 0.0 { 0.66 } else { 1.0 };
                     for (gid, gx, gy) in &cell.glyphs {
-                        r.glyphs.push((*gid, cl + kash + gx * k66, base_y + gy));
+                        r.glyphs.push((*gid, cl + kash + gx, base_y + gy));
                         r.cells.push((ci, cell.ch));
                     }
                 }

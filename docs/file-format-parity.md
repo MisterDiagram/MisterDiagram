@@ -235,6 +235,19 @@ the other measured files use 2012/main. Container inspection accepts both exact 
 
 ## Observed, undocumented
 
+### Script em and line metrics (M5.97)
+
+Synthetic Visio 2021 witnesses in `field/subsup-2026-10-30/` distinguish
+Character.Pos glyph size from nominal line metrics. Both script positions use
+0.667 of the Calibri em and 1331/2048 of the Arial em, truncated to the
+18-fractional-bit inch composition grid before advance rounding. TEXTWIDTH
+uses those advances and the terminal run's space. TEXTHEIGHT retains nominal
+line metrics. The public Pos reference identifies the positions but does not
+specify these sizing and quantization rules. Exact original widths, wrapping
+controls, approximate baseline offsets and the separate decomposed-accent
+fallback limitation are recorded in gaps.md.
+
+
 ### ClippingPath differs between native PNG and SVG (M5.93)
 
 Private synthetic `field/image-crop-2026-10-30/visio-grid/image-crop.vsdx`

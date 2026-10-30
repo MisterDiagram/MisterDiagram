@@ -190,3 +190,64 @@ fn editable_metric_twins_are_resolved_without_test_aliases() {
         }
     }
 }
+
+/// Absolute baselines survive empty SVG text chunks, including trailing paragraphs.
+/// https://www.w3.org/TR/SVG11/text.html#TSpanElement
+#[test]
+fn empty_paragraphs_keep_every_visible_svg_baseline() {
+    use misterdiagram_model::text::Anchor;
+    use misterdiagram_render::raster;
+    for anchor in [Anchor::Top, Anchor::Middle, Anchor::Bottom] {
+        for value in ["\n\nAlpha", "Alpha\n\nBeta", "Alpha\n\n", "\n\nAlpha\n\nBeta\n\n"] {
+            let body = TextBody {
+                body: BodyProps { anchor: Some(anchor), ..Default::default() },
+                paragraphs: value
+                    .split('\n')
+                    .map(|text| {
+                        let mut p = Paragraph::new(text);
+                        p.end_props = RunProps { font: Some("Calibri".into()), size: Some(12.), ..Default::default() };
+                        for run in &mut p.runs {
+                            run.props = p.end_props.clone();
+                        }
+                        p
+                    })
+                    .collect(),
+                ..Default::default()
+            };
+            let scene = scene(&body);
+            let Op::Text { layout, .. } = &scene.ops[0] else { panic!("text scene") };
+            let xml = xml(&scene);
+            let doc = resvg::usvg::roxmltree::Document::parse(&xml).unwrap();
+            let text = doc.descendants().find(|n| n.has_tag_name("text")).unwrap();
+            for run in &layout.runs {
+                if run.svg.text.is_empty() {
+                    continue;
+                }
+                let node = doc.descendants().find(|n| n.is_text() && n.text() == Some(run.svg.text.as_str())).unwrap();
+                let line = if run.svg.line == 0 { text } else { node.parent().unwrap().parent().unwrap() };
+                let baseline: f64 = line.attribute("y").expect("each line has an absolute baseline").parse().unwrap();
+                assert!((baseline - layout.lines[run.svg.line].baseline).abs() < 1e-9);
+            }
+            let png = raster::render(&scene, Options::default()).unwrap();
+            let tree = resvg::usvg::Tree::from_str(&xml, &svg_fonts::options()).unwrap();
+            let mut pix = resvg::tiny_skia::Pixmap::new(png.width(), png.height()).unwrap();
+            pix.fill(resvg::tiny_skia::Color::WHITE);
+            resvg::render(&tree, resvg::tiny_skia::Transform::identity(), &mut pix.as_mut());
+            let ink_rows = |bytes: &[u8]| {
+                let mut rows = vec![];
+                for (y, row) in bytes.chunks(png.width() as usize * 4).enumerate() {
+                    if row.as_chunks::<4>().0.iter().any(|p| p[3] > 127 && p[0] < 128) {
+                        rows.push(y);
+                    }
+                }
+                rows
+            };
+            let a = ink_rows(png.as_raw());
+            let b = ink_rows(pix.data());
+            assert!(!a.is_empty() && !b.is_empty());
+            for (from, to) in [(&a, &b), (&b, &a)] {
+                assert!(from.iter().all(|y| to.iter().any(|z| y.abs_diff(*z) <= 1)), "{anchor:?} {value:?}: PNG {a:?}, SVG {b:?}");
+            }
+        }
+    }
+}

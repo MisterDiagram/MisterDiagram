@@ -1,5 +1,45 @@
 # Gaps
 
+## Empty SVG lines and script runs (M5.97)
+
+Editable SVG now anchors each line to its absolute layout baseline. Empty text
+chunks cannot discard a preceding vertical offset. Leading, consecutive,
+interior and trailing blanks are tested under top, middle and bottom alignment.
+The synthetic native witness is `field/empty-lines-2026-10-30/`.
+
+`field/subsup-2026-10-30/` records 36 original and 36 narrower synthetic cases:
+Calibri and Arial at 12 and 24 pt, normal/superscript/subscript, pure runs,
+normal-script-normal runs and a normal letter followed by four script digits.
+Both positions use the same reduced em: Calibri uses 0.667 of the nominal size,
+Arial uses 1331/2048 (about 0.649902). The reduced em is truncated on the
+18-fractional-bit inch composition grid before glyph advances are rounded on
+that grid. TEXTWIDTH includes the terminal run's space, which may be normal
+size even after a visible script run. Line height retains the nominal size.
+All 36 live widths are tested at the existing corpus tolerance of 1e-6 inches;
+the narrow controls distinguish two normal lines from one script line.
+
+Relative to a normal run's baseline, the native SVG/PNG controls show Calibri
+superscript raised by approximately 0.3 nominal em, Arial superscript by 0.477,
+and subscript lowered by approximately 0.14 for both. These nominal-em offsets
+remain independent of the reduced glyph em. Glyph advances, intra-cluster
+positions, caret edges, wrapping and TEXTWIDTH now use the drawn size once.
+Size/position changes split shaping items at grapheme boundaries, while a
+combining cluster remains intact. Other font families retain the previous
+script scale/shift fallback until independently witnessed; general text parity
+remains partial, including existing substitute-font baseline differences.
+The additional boundary capture exposes a pre-existing fallback gap: decomposed
+Calibri `a` plus U+0301 selects Caladea because coverage tests each code point
+before shaping can compose it. At 24 pt the baseline TEXTWIDTH is
+0.232075146484375 in versus native 0.23507731423242187 in. The corresponding
+script widths retain that different face. This is separate from the original
+36 width cases; no tolerance or native value is changed. The supplementary
+ligature boundaries and Arial combining controls match their native widths.
+
+References: [Character.Pos](https://learn.microsoft.com/en-us/office/client-developer/visio/pos-cell-character-section),
+[TEXTWIDTH](https://learn.microsoft.com/en-us/office/client-developer/visio/textwidth-function),
+[TEXTHEIGHT](https://learn.microsoft.com/en-us/office/client-developer/visio/textheight-function),
+[SVG tspan](https://www.w3.org/TR/SVG11/text.html#TSpanElement).
+
 ## Arrow units and editable SVG metric faces (M5.95, partial)
 
 Synthetic private witnesses `field/arrow-weight-2026-10-30/` (154 end markers)

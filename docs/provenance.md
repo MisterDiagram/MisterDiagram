@@ -84,6 +84,11 @@ M5.95: [W3C CSS Fonts Module Level 4, section 2.1.1](https://www.w3.org/TR/css-f
 font-family attributes, including control-character escapes before XML
 serialization. No implementation code, font files or other assets were copied.
 
+M5.97: [W3C SVG 1.1 Second Edition, section 10.5](https://www.w3.org/TR/SVG11/text.html#TSpanElement)
+(16 August 2011, consulted 2026-10-30). Used the character-position semantics of
+x/y/dx/dy to preserve absolute line baselines through empty text spans. No
+implementation, asset or example drawing was copied.
+
 ## 4. Excluded content
 
 This repository never contains Microsoft's shipped stencils, templates, fonts, icons or

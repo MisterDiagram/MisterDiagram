@@ -216,6 +216,17 @@ impl<'a> Evaluator<'a> {
         let mut n = |name: &str, default| self.text_number(scope, &indexed("Char", name, row), default);
         let style = n("Style", 0.).clamp(0., 65535.) as u32;
         let pos = n("Pos", 0.);
+        // Native script offsets are fractions of the nominal em, independent of
+        // the reduced glyph/advance em (field/subsup-2026-10-30).
+        let script_baseline = if font.eq_ignore_ascii_case("Arial") {
+            if pos == 1. { 0.477 } else { -0.14 }
+        } else if font.eq_ignore_ascii_case("Calibri") {
+            if pos == 1. { 0.3 } else { -0.14 }
+        } else if pos == 1. {
+            0.3
+        } else {
+            -0.3
+        };
         RunProps {
             font: Some(font),
             size: Some(n("Size", 12. / 72.) * 72.),
@@ -231,13 +242,7 @@ impl<'a> Evaluator<'a> {
                 Caps::None
             }),
             strike: Some(if n("Strikethru", 0.) != 0. { Strike::Single } else { Strike::None }),
-            baseline: Some(if pos == 1. {
-                0.3
-            } else if pos == 2. {
-                -0.3
-            } else {
-                0.
-            }),
+            baseline: Some(if pos == 1. || pos == 2. { script_baseline } else { 0. }),
             fill: Some(color),
             ..Default::default()
         }
