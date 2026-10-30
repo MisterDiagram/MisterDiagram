@@ -307,9 +307,10 @@ fn visio_bullets_start_the_text_at_a_tab_stop() {
 
 #[test]
 fn the_terminal_space_hangs_and_never_wraps_the_last_word() {
-    // MisterDiagram#87: Visio 2021's final build keeps an 8 pt Arial "CDR Lock Time" on one line
-    // in a 0.906 in block with 4 pt margins (57.25 pt of measure); the words take 56.45 pt and the
-    // composed terminal no-break space would overflow by 1.4 pt. Build 20430 wrapped "Time".
+    // MisterDiagram#87: Visio 2021's final build keeps an 8 pt Arial label on one line in a
+    // 0.906 in block with 4 pt margins (57.25 pt of measure) when the words fit and only the
+    // composed terminal no-break space overflows; build 20430 wrapped the last word. Here the
+    // words take 56.91 pt and the space would overflow by 1.9 pt.
     if FontDb::global().face("Arial", "Regular").data().is_empty() {
         eprintln!("open font pack absent: layout metrics skipped");
         return;
@@ -325,8 +326,8 @@ fn the_terminal_space_hangs_and_never_wraps_the_last_word() {
         let opts = Opts { rect: Rect::new(0., 0., width * 72., 20.), fields: &NoFields, prompt_color: None, no_shrink: true };
         layout_for_export(&body, &opts).unwrap().lines.len()
     };
-    assert_eq!(lines("CDR Lock Time", 0.90625), 1);
+    assert_eq!(lines("ADC Load Time", 0.90625), 1);
     // Without room for the words themselves it still wraps.
-    assert_eq!(lines("CDR Lock Time", 0.85), 2);
-    assert_eq!(lines("Unlock Data", 0.625), 2);
+    assert_eq!(lines("ADC Load Time", 0.85), 2);
+    assert_eq!(lines("Clock Ready", 0.625), 2);
 }

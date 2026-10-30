@@ -820,8 +820,8 @@ fn break_lines(
                 last_break = Some(i);
             }
             // The composed terminal no-break space hangs past the margin and never wraps the
-            // last word: Visio 2021's final build (16.0 build 20527) keeps a tester's "CDR Lock
-            // Time" on one line and generated/text/multiline-wrap at eight lines (private witness
+            // last word: Visio 2021's final build (16.0 build 20527) keeps a tester's tight 8 pt
+            // label on one line and generated/text/multiline-wrap at eight lines (private witness
             // field/vahegan-2026-10-29, generated-b20527). The October corpus, exported with
             // build 20430, wrapped that last word onto a ninth line.
             let hanging = trailing_nbsp;

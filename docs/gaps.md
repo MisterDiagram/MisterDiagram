@@ -48,7 +48,7 @@ date, multiline-wrap), so generated/text's PNG and SVG exports were re-taken wit
 changing, is not a reference.
 
 The composed terminal no-break space now always hangs past the margin and never wraps the last
-word. Build 20527 keeps a tester's 8 pt Arial "CDR Lock Time" on one line in a 0.906 in block
+word. Build 20527 keeps a tester's 8 pt Arial label on one line in a 0.906 in block
 (the words take 56.45 pt of 57.25, the space would overflow by 1.4 pt), at 96, 192 and 384 dpi,
 and multiline-wrap at eight lines; build 20430 wrapped multiline-wrap's last word onto a ninth
 line, which the previous rule (hang only with no earlier opportunity or after whitespace)
