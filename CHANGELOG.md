@@ -2,10 +2,9 @@
 
 ## Unreleased
 
-- Position combining marks correctly in PDF and editable SVG exports.
-
-- **Pictures can follow a custom crop outline** (#54). A local Geometry path now clips raster and EMF images in PNG, SVG and PDF, including paths hidden from the drawing.
 - **Label backgrounds cover the line behind the text** (#54). Text background colors and transparency now appear in PNG, SVG and PDF, including labelled connectors.
+- **Pictures can follow a custom crop outline** (#54). A local Geometry path now clips raster and EMF images in PNG, SVG and PDF, including paths hidden from the drawing.
+- **Combining marks sit where they belong in PDF and SVG** (#54). Accents and vowel marks that Unicode stacks on a letter were shifted the wrong way in PDF and moved the whole run in editable SVG; both now match the PNG.
 
 ## 0.1.0-alpha.17
 
