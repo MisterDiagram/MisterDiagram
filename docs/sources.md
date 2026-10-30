@@ -104,6 +104,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/ellipticalarcto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/vsdx/src/evaluate/path.rs`, `crates/vsdx/tests/zero_width.rs`, `tools/oracle/vendor-stencils/zero-height-classes.ps1`, `tools/oracle/vendor-stencils/zero-width-recalc.ps1`, `tools/oracle/vendor-stencils/zero-width-witness.ps1` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/embellishmentindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/endarrow-cell-line-format-section> | `crates/render/src/style.rs`, `crates/render/tests/guides_line_ends.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/endarrowsize-cell-line-format-section> | `crates/render/src/style.rs`, `crates/render/tests/arrow_size.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/endtrigger-cell-glue-info-section> | `crates/route/src/glue_host.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/endx-cell-1-d-endpoints-section> | `crates/engine/src/reference_cleanup.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/evalcell-function> | `crates/sheet/src/functions/references.rs`, `crates/vsdx/src/evaluate.rs` |
@@ -184,7 +185,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/linetolinex-cell-page-layout-section> | `crates/route/src/orthogonal.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/linetonodex-cell-page-layout-section> | `crates/engine/src/layout.rs`, `crates/route/src/orthogonal.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/linetonodey-cell-page-layout-section> | `crates/engine/src/layout.rs`, `crates/engine/src/layout/tree.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section> | `crates/engine/src/content.rs`, `crates/engine/tests/create_style.rs`, `crates/engine/tests/line_units.rs`, `crates/render/src/scene.rs`, `crates/render/tests/line_weight_cache.rs`, `tools/oracle/b25/layout-witness.ps1` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section> | `crates/engine/src/content.rs`, `crates/engine/tests/create_style.rs`, `crates/engine/tests/line_units.rs`, `crates/render/src/scene.rs`, `crates/render/src/style.rs`, `crates/render/tests/arrow_size.rs`, `crates/render/tests/line_weight_cache.rs`, `tools/oracle/b25/layout-witness.ps1` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/listsep-function> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/listsheetref-function> | `crates/sheet/src/functions/relationships.rs`, `crates/vsdx/src/evaluate/relationships.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/loc-function-visioshapesheet> | `crates/sheet/src/functions/points.rs` |
@@ -316,7 +317,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/textheight-function> | `crates/sheet/src/functions/text_metrics.rs`, `crates/vsdx/tests/string_cell_evaluation.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/textposafterbullet-cell-paragraph-section> | `crates/text/src/lib.rs`, `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/textwidth-function> | `crates/engine/tests/layout.rs`, `crates/sheet/src/functions/text_metrics.rs`, `crates/sheet/src/lib.rs`, `crates/text/src/lib.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function> | `crates/sheet/src/functions/theme.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function> | `crates/render/tests/arrow_size.rs`, `crates/sheet/src/functions/theme.rs`, `crates/sheet/src/host.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/themecbv-function> | `crates/sheet/src/functions/theme.rs`, `crates/theme/src/resolve.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/themeguard-function> | `crates/sheet/src/functions/theme.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/themeindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
@@ -458,3 +459,4 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/windows/win32/gdi/ternary-raster-operations> | `crates/render/src/metafile/emf/masked.rs`, `crates/render/src/metafile/mod.rs` |
 | <https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT> | `crates/opc/src/opc.rs` |
 | <https://www.w3.org/TR/SVG11/text.html#TextElement> | `crates/render/src/svg/text.rs` |
+| <https://www.w3.org/TR/css-fonts-4/#font-family-prop> | `crates/render/src/svg/text.rs` |

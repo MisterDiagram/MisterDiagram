@@ -79,6 +79,11 @@ normalization exception; character references still preserve their specified cha
 
 Brief26b: [ntwrk-clean-and-flat README and LICENSE](https://github.com/DukeNuke3D/ntwrk-clean-and-flat/tree/211ba3c9e7f1ed895f6ad4d5dbd67e7cb4b731a5), consulted 2026-10-21 for author, redraw provenance and the Unlicense dedication. The pinned stencil is the user-authorized test-only fixture; no implementation was copied.
 
+M5.95: [W3C CSS Fonts Module Level 4, section 2.1.1](https://www.w3.org/TR/css-fonts-4/#font-family-prop)
+(consulted 2026-10-30). Used the CSS family-name string syntax for editable SVG
+font-family attributes, including control-character escapes before XML
+serialization. No implementation code, font files or other assets were copied.
+
 ## 4. Excluded content
 
 This repository never contains Microsoft's shipped stencils, templates, fonts, icons or

@@ -1,5 +1,79 @@
 # Gaps
 
+## Arrow units and editable SVG metric faces (M5.95, partial)
+
+Synthetic private witnesses `field/arrow-weight-2026-10-30/` (154 end markers)
+and `field/arrow-types-2026-10-30/` (540 begin/end matrix markers plus controls)
+establish a physical marker unit in points of `LineWeight + C[size]`, with
+`C = [1.44, 1.8, 2.52, 3.24, 3.96, 9, 18]`. All 45 requested types follow it.
+Native SVG aliases type 8 to 5 and types 35 through 38 to 31 through 34;
+the latter retain their distinct filled-circle rendering in PNG and PDF.
+The law uses the nominal cell weight, independent of export scale, the
+raster shaft's minimum width, group resize, drawing scale and dash pattern.
+Group resize updates the child's geometry cells. The 1 in : 10 ft control
+keeps the same physical marker size. Dynamic connectors and plain lines agree.
+
+End setbacks are these multiples of the unit:
+
+| Multiple | Arrow types |
+|---:|---|
+| 0 | 1, 3, 7, 9, 12, 23 through 28, 43 through 45 |
+| 0.75 | 10, 11, 20, 21, 42 |
+| 1 | 2, 15 |
+| 1.5 | 31 through 33, 35 through 37, 41 |
+| 1.65 | 19 |
+| 1.75 | 5, 8, 17 |
+| 2 | 4, 16 |
+| 2.25 | 6, 18 |
+| 3 | 13, 14, 29, 30 |
+| 4 | 39, 40 |
+| 4.5 | 22 |
+| 6 | 34, 38 |
+
+Begin setbacks subtract
+the larger of one percent of that end setback and 0.36 drawing points converted
+to physical page points, stopping at zero. Open marker outlines use the nominal
+line weight with round caps and joins. Zero-weight markers are a native backend
+exception: PNG and PDF use `C[size]` with a 0.375 pt outline, while SVG uses
+`C[size] + 0.75 pt` with a 0.75 pt outline. These separate paths are retained
+without borrowing the scale-dependent raster shaft floor. The same witnesses
+correct the circular rear arcs of types 5/6/8/18 and the 0.825-unit filled-circle
+radius of types 35 through 37. No input cells are rewritten.
+
+The old 2 pt calibration at sizes 1, 2 and 4 has unchanged units. Some of those
+outputs still change because the old setback table and marker outlines were
+incomplete. This is not a claim that the whole generated arrow group is
+byte-identical. Strict wide-matrix PNG parity remains partial: a 6 pt, size 0,
+begin type 5 spans 41 pixels against native 39 at 192 dpi under the fixed
+contrast test, despite identical vector length. A hollow-diamond composite's
+shaft-overlap measurement also needs complete marker isolation. Neither gap is
+waived by the matching size law. The single-line drawing-scale PNG also retains
+a crop-fitting difference: native 20 by 13 pixels versus 23 by 15 and 22 by 15
+pixels at the two ends. Its SVG and scene marker dimensions agree in points.
+See the private witness README for receipts.
+
+The additional synthetic `field/arrow-theme-2026-10-30/` control distinguishes
+legacy `THEME("ConnectorWeight")` and `THEME("LineWeight")`, whose unthemed
+value is 0.25 pt, from `THEMEVAL`, whose blank-document value is 0.75 pt.
+The evaluator now preserves that distinction; it does not replace successful
+formulas with saved caches.
+
+Editable SVG now names the document face first and then the face used for
+layout, only when it is an established metric twin: Calibri/Carlito,
+Cambria/Caladea, Arial/Arimo or Liberation Sans, Times New Roman/Tinos or
+Liberation Serif, Courier New/Cousine or Liberation Mono. CSS string quoting
+precedes XML escaping. Width-incompatible fallbacks are not added. Outline
+mode, PNG and PDF are unchanged by this font-family correction. A synthetic
+Linux rsvg-convert 2.58.0 check without Microsoft fonts keeps six regular,
+bold and italic labels inside their backgrounds within one pixel; all six
+previously overflowed. General text and raster parity remain partial.
+
+References: [EndArrowSize](https://learn.microsoft.com/en-us/office/client-developer/visio/endarrowsize-cell-line-format-section),
+[BeginArrow](https://learn.microsoft.com/en-us/office/client-developer/visio/beginarrow-cell-line-format-section),
+[LineWeight](https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section).
+The public cell reference does not specify the additive constants or the
+backend-specific hairline behavior; these come from the synthetic observations.
+
 ## Vertical glyph offsets in PDF and editable SVG (#54, M5.94)
 
 PDF glyph offsets now convert layout's downward-positive displacement to the

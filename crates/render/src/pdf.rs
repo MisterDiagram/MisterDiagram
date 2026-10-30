@@ -86,7 +86,13 @@ pub fn render(scenes: &[Scene], options: Options) -> Result<Vec<u8>, String> {
                         }
                     }
                 }
-                Op::Stroke { path: p, stroke, color } => {
+                Op::HairlineMarker { path: p, color, .. } => {
+                    if let Some(p) = path(&(view * p)) {
+                        surface.set_fill(Some(fill(*color)));
+                        surface.draw_path(&p);
+                    }
+                }
+                Op::Stroke { path: p, stroke, color } | Op::HairlineStroke { path: p, stroke, color, .. } => {
                     if let Some(p) = path(&crate::scene::stroke_path(p, stroke, view, 72.)) {
                         surface.set_fill(Some(fill(*color)));
                         surface.draw_path(&p);

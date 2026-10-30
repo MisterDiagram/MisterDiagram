@@ -42,6 +42,13 @@ impl SceneBudget {
                         self.charge(stroke.dash_pattern.capacity().saturating_mul(std::mem::size_of::<f64>()))?;
                     }
                 }
+                Op::HairlineMarker { path, svg_path, .. } | Op::HairlineStroke { path, svg_path, .. } => {
+                    self.charge(std::mem::size_of_val(path.elements()).saturating_mul(2))?;
+                    self.charge(std::mem::size_of_val(svg_path.elements()).saturating_mul(2))?;
+                    if let Op::HairlineStroke { stroke, .. } = op {
+                        self.charge(stroke.dash_pattern.capacity().saturating_mul(std::mem::size_of::<f64>()))?;
+                    }
+                }
                 Op::Text { layout, .. } => {
                     self.charge(vector_bytes(&layout.runs))?;
                     self.charge(vector_bytes(&layout.decos))?;

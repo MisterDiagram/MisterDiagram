@@ -17255,3 +17255,22 @@ pixels instead of returning equal errors. Aggregate diagnostic overflow buckets
 change with the failure population; these capped buckets are not parity totals.
 The separate registered synthetic matrix remains 258/270, with twelve absent
 sparse-row Color/Style defaults still returning REF rather than native zero.
+
+
+## Observed, undocumented: marker units and zero-weight exports (M5.95)
+
+Private synthetic `field/arrow-weight-2026-10-30/` and
+`field/arrow-types-2026-10-30/` witness all 45 marker types with the additive
+physical unit and begin overlap recorded in [gaps](gaps.md). Native PNG/PDF
+zero-weight markers use a zero nominal pen in the unit and a 0.375 pt outline;
+native SVG instead uses a 0.75 pt pen for both. The SVG type aliases do not
+preserve every PNG/PDF curve or filled-circle radius. These are native export
+differences, not a reason to change an oracle or its tolerance. Wide-matrix
+raster parity remains partial as recorded there.
+
+The synthetic `field/arrow-theme-2026-10-30/` witness also establishes the
+legacy THEME unthemed line/connector weight of 0.25 pt, distinct from the
+0.75 pt blank-document THEMEVAL result. The public THEME reference describes
+the function without specifying this no-theme numeric default. Original
+formula tests retain THEMEVAL behavior and deliberately use an unrelated
+saved cache to verify that the result is computed.

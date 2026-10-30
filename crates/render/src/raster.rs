@@ -144,7 +144,12 @@ pub fn render(scene: &Scene, options: Options) -> Result<image::RgbaImage, Strin
                     ctx.pop_layer();
                 }
             },
-            Op::Stroke { path, stroke, color } => {
+            Op::HairlineMarker { path, color, .. } => {
+                ctx.set_transform(Affine::IDENTITY);
+                ctx.set_paint(peniko::Color::from_rgba8(color.r, color.g, color.b, color.a));
+                ctx.fill_path(&device_path(path, view));
+            }
+            Op::Stroke { path, stroke, color } | Op::HairlineStroke { path, stroke, color, .. } => {
                 let outline = crate::scene::stroke_path(path, stroke, view, 96. * options.scale);
                 ctx.set_transform(Affine::IDENTITY);
                 ctx.set_paint(peniko::Color::from_rgba8(color.r, color.g, color.b, color.a));

@@ -50,7 +50,7 @@ fn image(out: &mut String, pixels: &image::RgbaImage, m: Affine, nearest: bool) 
     Ok(())
 }
 pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
-    let (w, h, view) = scene.canvas(options)?;
+    let (w, h, view) = scene.svg_canvas(options)?;
     // No background element: Visio's SVG export leaves the page transparent
     // (private corpus field/vahegan-2026-10-26 x2.svg, MisterDiagram#101).
     let mut out = format!("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{w}\" height=\"{h}\" viewBox=\"0 0 {w} {h}\">");
@@ -82,12 +82,17 @@ pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
                     out.push_str("</g>");
                 }
             },
-            Op::Stroke { path: p, stroke, color } => {
+            Op::HairlineMarker { svg_path, color, .. } => path(&mut out, &(view * svg_path), *color),
+            Op::Stroke { path: p, stroke, color } | Op::HairlineStroke { svg_path: p, stroke, color, .. } => {
+                let mut stroke = stroke.clone();
+                if let Op::HairlineStroke { svg_width, .. } = op {
+                    stroke.width = *svg_width;
+                }
                 // Native SVG strokes avoid overlapping offset contours on narrow closed paths.
                 // Keep distinct marker-side caps through the shared outline fallback.
                 // https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section
                 if stroke.start_cap != stroke.end_cap {
-                    path(&mut out, &crate::scene::stroke_path(p, stroke, view, 96. * options.scale), *color);
+                    path(&mut out, &crate::scene::stroke_path(p, &stroke, view, 96. * options.scale), *color);
                 } else {
                     let cap = match stroke.start_cap {
                         kurbo::Cap::Butt => "butt",

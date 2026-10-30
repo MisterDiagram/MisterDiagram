@@ -21,13 +21,46 @@ pub enum Paint {
 #[derive(Clone, Debug)]
 pub enum Op {
     Bounds(Rect),
-    Clip { path: BezPath, even_odd: bool },
+    Clip {
+        path: BezPath,
+        even_odd: bool,
+    },
     Pop,
-    Path { path: BezPath, paint: Paint },
-    Stroke { path: BezPath, stroke: kurbo::Stroke, color: Rgba },
-    Image { pixels: Arc<image::RgbaImage>, transform: Affine },
-    Text { layout: TextLayout, transform: Affine },
-    TextBackground { rect: Rect, transform: Affine, color: Rgba },
+    Path {
+        path: BezPath,
+        paint: Paint,
+    },
+    Stroke {
+        path: BezPath,
+        stroke: kurbo::Stroke,
+        color: Rgba,
+    },
+    /// Zero-weight markers have distinct native SVG and PNG/PDF geometry.
+    HairlineMarker {
+        path: BezPath,
+        svg_path: BezPath,
+        color: Rgba,
+    },
+    HairlineStroke {
+        path: BezPath,
+        svg_path: BezPath,
+        stroke: kurbo::Stroke,
+        svg_width: f64,
+        color: Rgba,
+    },
+    Image {
+        pixels: Arc<image::RgbaImage>,
+        transform: Affine,
+    },
+    Text {
+        layout: TextLayout,
+        transform: Affine,
+    },
+    TextBackground {
+        rect: Rect,
+        transform: Affine,
+        color: Rgba,
+    },
 }
 #[derive(Clone, Debug)]
 pub struct Scene {
@@ -58,6 +91,24 @@ impl Default for Options {
 }
 impl Scene {
     pub fn canvas(&self, options: Options) -> Result<(u16, u16, Affine), String> {
+        self.canvas_bounds(options, self.bounds)
+    }
+    pub(crate) fn svg_canvas(&self, options: Options) -> Result<(u16, u16, Affine), String> {
+        let mut bounds = self.bounds;
+        if options.crop {
+            for op in &self.ops {
+                match op {
+                    Op::HairlineMarker { svg_path, .. } => bounds = bounds.union(svg_path.bounding_box()),
+                    Op::HairlineStroke { svg_path, svg_width, .. } => {
+                        bounds = bounds.union(svg_path.bounding_box().inflate(svg_width / 2., svg_width / 2.));
+                    }
+                    _ => {}
+                }
+            }
+        }
+        self.canvas_bounds(options, bounds)
+    }
+    fn canvas_bounds(&self, options: Options, bounds: Rect) -> Result<(u16, u16, Affine), String> {
         if !options.scale.is_finite() || options.scale <= 0. || options.scale > 100. {
             return Err("render scale outside (0,100]".into());
         }
@@ -68,21 +119,31 @@ impl Scene {
         }
         for op in &self.ops {
             match op {
-                Op::Path { path, .. } | Op::Stroke { path, .. } | Op::Clip { path, .. } => {
-                    elements = elements.saturating_add(path.elements().len());
-                    if elements > 4_000_000 {
-                        return Err("scene path limit".into());
-                    }
-                    for el in path.elements() {
-                        let finite = |p: Point| p.x.is_finite() && p.y.is_finite() && p.x.abs() <= 1e6 && p.y.abs() <= 1e6;
-                        let valid = match *el {
-                            kurbo::PathEl::MoveTo(p) | kurbo::PathEl::LineTo(p) => finite(p),
-                            kurbo::PathEl::QuadTo(a, p) => finite(a) && finite(p),
-                            kurbo::PathEl::CurveTo(a, b, p) => finite(a) && finite(b) && finite(p),
-                            kurbo::PathEl::ClosePath => true,
-                        };
-                        if !valid {
-                            return Err("scene coordinate limit".into());
+                Op::Path { path, .. }
+                | Op::Stroke { path, .. }
+                | Op::Clip { path, .. }
+                | Op::HairlineMarker { path, .. }
+                | Op::HairlineStroke { path, .. } => {
+                    let extra = match op {
+                        Op::HairlineMarker { svg_path, .. } | Op::HairlineStroke { svg_path, .. } => Some(svg_path),
+                        _ => None,
+                    };
+                    for path in std::iter::once(path).chain(extra) {
+                        elements = elements.saturating_add(path.elements().len());
+                        if elements > 4_000_000 {
+                            return Err("scene path limit".into());
+                        }
+                        for el in path.elements() {
+                            let finite = |p: Point| p.x.is_finite() && p.y.is_finite() && p.x.abs() <= 1e6 && p.y.abs() <= 1e6;
+                            let valid = match *el {
+                                kurbo::PathEl::MoveTo(p) | kurbo::PathEl::LineTo(p) => finite(p),
+                                kurbo::PathEl::QuadTo(a, p) => finite(a) && finite(p),
+                                kurbo::PathEl::CurveTo(a, b, p) => finite(a) && finite(b) && finite(p),
+                                kurbo::PathEl::ClosePath => true,
+                            };
+                            if !valid {
+                                return Err("scene coordinate limit".into());
+                            }
                         }
                     }
                 }
@@ -134,7 +195,7 @@ impl Scene {
                 }
                 Op::Pop | Op::Bounds(_) => {}
             }
-            if let Op::Stroke { stroke, .. } = op
+            if let Op::Stroke { stroke, .. } | Op::HairlineStroke { stroke, .. } = op
                 && (!stroke.width.is_finite()
                     || stroke.width < 0.
                     || stroke.width > 1e6
@@ -149,8 +210,19 @@ impl Scene {
             {
                 return Err("scene stroke limit".into());
             }
-            if let Op::Stroke { path, stroke, .. } = op {
+            if let Op::Stroke { path, stroke, .. } | Op::HairlineStroke { path, stroke, .. } = op {
                 elements = elements.saturating_add(dash_elements(path, stroke)?);
+                if elements > 4_000_000 {
+                    return Err("scene path limit (dash expansion)".into());
+                }
+            }
+            if let Op::HairlineStroke { svg_width, svg_path, stroke, .. } = op {
+                if !svg_width.is_finite() || !(0. ..=1e6).contains(svg_width) {
+                    return Err("scene stroke limit".into());
+                }
+                let mut svg_stroke = stroke.clone();
+                svg_stroke.width = *svg_width;
+                elements = elements.saturating_add(dash_elements(svg_path, &svg_stroke)?);
                 if elements > 4_000_000 {
                     return Err("scene path limit (dash expansion)".into());
                 }
@@ -171,7 +243,7 @@ impl Scene {
         if depth != 0 {
             return Err("unclosed scene clip".into());
         }
-        let b = self.bounds;
+        let b = bounds;
         if [b.x0, b.x1, b.y0, b.y1].iter().any(|n| !n.is_finite() || n.abs() > 1e6) {
             return Err("render bounds limit".into());
         }
@@ -406,7 +478,7 @@ fn finish_bounds(scene: &mut Scene, crop: bool) {
                 continue;
             }
             // Geometry and foreign objects carry logical bounds separately from their device strokes.
-            Op::Path { .. } | Op::Stroke { .. } => continue,
+            Op::Path { .. } | Op::Stroke { .. } | Op::HairlineMarker { .. } | Op::HairlineStroke { .. } => continue,
             Op::Image { pixels, transform } => {
                 transform.transform_rect_bbox(Rect::new(0., 0., f64::from(pixels.width()), f64::from(pixels.height())))
             }
@@ -699,10 +771,13 @@ fn shapes(
                 if filled_marker(line.end_arrow) {
                     stroke.end_cap = kurbo::Cap::Butt;
                 }
+                // Marker units and setbacks are physical page lengths. The nominal
+                // pen remains independent of page scale and the raster hairline floor.
+                let physical_path = transform * &path;
                 let shaft = style::marker_shaft(
-                    &path,
-                    style::marker_setback(line.begin_arrow, line.begin_size, line.weight),
-                    style::marker_setback(line.end_arrow, line.end_size, line.weight),
+                    &physical_path,
+                    style::marker_begin_setback(line.begin_arrow, line.begin_size, weight, scale.determinant().abs().sqrt()),
+                    style::marker_setback(line.end_arrow, line.end_size, weight),
                 );
                 let physical_scale = scale.determinant().abs().sqrt();
                 stroke.width *= physical_scale;
@@ -713,7 +788,7 @@ fn shapes(
                 if line.compound == 1 {
                     // Double lines have a transparent central third, not a white overpaint.
                     // https://learn.microsoft.com/en-us/office/client-developer/visio/compoundtype-cell-line-format-section
-                    let shaft = transform * shaft;
+
                     if dash_elements(&shaft, &stroke)?.saturating_mul(2) > 4_000_000 {
                         return Err("scene path limit (compound dash expansion)".into());
                     }
@@ -722,10 +797,18 @@ fn shapes(
                     let inner = kurbo::stroke(shaft.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-5).reverse_subpaths();
                     outline.extend(inner.elements().iter().copied());
                     scene.ops.push(Op::Path { path: outline, paint: Paint::Solid(line.color) });
+                } else if weight == 0. && (line.begin_arrow != 0 || line.end_arrow != 0) {
+                    let svg_weight = 0.75 / 72.;
+                    let svg_path = style::marker_shaft(
+                        &physical_path,
+                        style::marker_begin_setback(line.begin_arrow, line.begin_size, svg_weight, physical_scale),
+                        style::marker_setback(line.end_arrow, line.end_size, svg_weight),
+                    );
+                    scene.ops.push(Op::HairlineStroke { path: shaft, svg_path, stroke, svg_width: svg_weight, color: line.color });
                 } else {
-                    scene.ops.push(Op::Stroke { path: transform * shaft, stroke, color: line.color });
+                    scene.ops.push(Op::Stroke { path: shaft, stroke, color: line.color });
                 }
-                let endpoints: Vec<Point> = path
+                let endpoints: Vec<Point> = physical_path
                     .elements()
                     .iter()
                     .filter_map(|el| match el {
@@ -741,20 +824,41 @@ fn shapes(
                 ] {
                     if let Some([a, b]) = pair {
                         let (tip, dir) = if reverse { (*a, (*a - *b).atan2()) } else { (*b, (*b - *a).atan2()) };
-                        for arrow in style::arrow(kind, size, line.weight, tip, dir) {
-                            if arrow.filled {
-                                scene.ops.push(Op::Bounds((transform * &arrow.path).bounding_box()));
-                                scene.ops.push(Op::Path { path: transform * &arrow.path, paint: Paint::Solid(line.color) });
-                            }
-                            if arrow.stroke {
-                                let p = kurbo::stroke(
-                                    arrow.path.elements().iter().copied(),
-                                    &kurbo::Stroke::new(line.weight),
-                                    &kurbo::StrokeOpts::default(),
-                                    1e-5,
-                                );
-                                scene.ops.push(Op::Bounds((transform * &p).bounding_box()));
-                                scene.ops.push(Op::Path { path: transform * p, paint: Paint::Solid(line.color) });
+                        let svg_arrows = if weight == 0. { style::arrow(kind, size, 0.75 / 72., tip, dir) } else { Vec::new() };
+                        for (index, arrow) in style::arrow(kind, size, weight, tip, dir).into_iter().enumerate() {
+                            let outline = |arrow: &style::ArrowPart, weight| {
+                                if arrow.stroke {
+                                    kurbo::stroke(
+                                        arrow.path.elements().iter().copied(),
+                                        &kurbo::Stroke::new(style::marker_weight(weight)).with_caps(kurbo::Cap::Round).with_join(kurbo::Join::Round),
+                                        &kurbo::StrokeOpts::default(),
+                                        1e-5,
+                                    )
+                                } else {
+                                    arrow.path.clone()
+                                }
+                            };
+                            if arrow.filled || arrow.stroke {
+                                let path = outline(&arrow, weight);
+                                // Native export bounds use the logical butt-ended outline;
+                                // the painted open marker retains its round caps and joins.
+                                let bounds = if arrow.stroke {
+                                    kurbo::stroke(
+                                        arrow.path.elements().iter().copied(),
+                                        &kurbo::Stroke::new(style::marker_weight(weight)),
+                                        &kurbo::StrokeOpts::default(),
+                                        1e-5,
+                                    )
+                                    .bounding_box()
+                                } else {
+                                    path.bounding_box()
+                                };
+                                scene.ops.push(Op::Bounds(bounds));
+                                if let Some(svg_arrow) = svg_arrows.get(index) {
+                                    scene.ops.push(Op::HairlineMarker { path, svg_path: outline(svg_arrow, 0.75 / 72.), color: line.color });
+                                } else {
+                                    scene.ops.push(Op::Path { path, paint: Paint::Solid(line.color) });
+                                }
                             }
                         }
                     }
@@ -1014,6 +1118,15 @@ fn paint_foreign(
                         *dash *= scale;
                     }
                     Op::Stroke { path: m * path, stroke, color }
+                }
+                Op::HairlineMarker { path, svg_path, color } => Op::HairlineMarker { path: m * path, svg_path: m * svg_path, color },
+                Op::HairlineStroke { path, svg_path, mut stroke, svg_width, color } => {
+                    let scale = m.determinant().abs().sqrt();
+                    stroke.width *= scale;
+                    for dash in &mut stroke.dash_pattern {
+                        *dash *= scale;
+                    }
+                    Op::HairlineStroke { path: m * path, svg_path: m * svg_path, stroke, svg_width: svg_width * scale, color }
                 }
                 Op::Bounds(b) => Op::Bounds(m.transform_rect_bbox(b)),
                 Op::Image { pixels, transform } => Op::Image { pixels, transform: m * transform },

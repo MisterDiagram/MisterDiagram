@@ -1,4 +1,4 @@
-//! Editable SVG text uses layout baselines and requested styles, never font substitutes.
+//! Editable SVG text names the requested face and its actually measured metric twin.
 //! https://www.w3.org/TR/SVG11/text.html#TextElement
 use misterdiagram_geom::Affine;
 use misterdiagram_text::{GlyphRun, TextLayout};
@@ -18,10 +18,45 @@ fn escape(out: &mut String, value: &str) {
         }
     }
 }
+/// Serialize a literal CSS family string inside an XML attribute.
+/// https://www.w3.org/TR/css-fonts-4/#font-family-prop
+fn quoted_family(out: &mut String, family: &str) {
+    out.push_str("&apos;");
+    for c in family.chars() {
+        match c {
+            '\\' => out.push_str("\\\\"),
+            '\'' => out.push_str("\\&apos;"),
+            '\t' => out.push_str("\\9 "),
+            '\n' => out.push_str("\\a "),
+            '\r' => out.push_str("\\d "),
+            '\u{c}' => out.push_str("\\c "),
+            _ => escape(out, c.encode_utf8(&mut [0; 4])),
+        }
+    }
+    out.push_str("&apos;");
+}
+fn metric_twin(requested: &str, measured: &str) -> bool {
+    let twins: &[&str] = match requested.to_ascii_lowercase().as_str() {
+        "calibri" => &["Carlito"],
+        "cambria" => &["Caladea"],
+        "arial" => &["Arimo", "Liberation Sans"],
+        "times new roman" => &["Tinos", "Liberation Serif"],
+        "courier new" => &["Cousine", "Liberation Mono"],
+        _ => &[],
+    };
+    twins.iter().any(|twin| measured.eq_ignore_ascii_case(twin))
+}
+fn font_family(out: &mut String, requested: &str, measured: &str) {
+    quoted_family(out, requested);
+    if metric_twin(requested, measured) {
+        out.push_str(", ");
+        quoted_family(out, measured);
+    }
+}
 fn style(out: &mut String, run: &GlyphRun, decorations: bool) -> Result<(), String> {
     write!(out, " letter-spacing=\"{}\"", run.svg.spacing).map_err(|e| e.to_string())?;
     out.push_str(" font-family=\"");
-    escape(out, &run.svg.family);
+    font_family(out, &run.svg.family, &run.face.family);
     let c = run.color;
     write!(
         out,
@@ -52,7 +87,7 @@ pub(super) fn text(out: &mut String, layout: &TextLayout, m: Affine) -> Result<(
     text_limited(out, layout, m, 256 * 1024 * 1024)
 }
 fn room(out: &str, family: &str, fragment: &str, limit: usize) -> Result<(), String> {
-    let extra = family.len().saturating_add(fragment.len()).saturating_mul(6).saturating_add(2048);
+    let extra = family.len().saturating_mul(8).saturating_add(fragment.len().saturating_mul(6)).saturating_add(2048);
     if out.len().saturating_add(extra) > limit { Err("SVG output limit".into()) } else { Ok(()) }
 }
 fn text_limited(out: &mut String, layout: &TextLayout, m: Affine, limit: usize) -> Result<(), String> {
@@ -150,5 +185,48 @@ mod tests {
         let mut out = String::new();
         assert!(text_limited(&mut out, &layout, Affine::IDENTITY, 32768).unwrap_err().contains("limit"));
         assert!(out.len() < 32768);
+    }
+    #[test]
+    fn only_the_measured_metric_twin_is_named() {
+        for (requested, twin) in [
+            ("Calibri", "Carlito"),
+            ("Cambria", "Caladea"),
+            ("Arial", "Arimo"),
+            ("Arial", "Liberation Sans"),
+            ("Times New Roman", "Tinos"),
+            ("Times New Roman", "Liberation Serif"),
+            ("Courier New", "Cousine"),
+            ("Courier New", "Liberation Mono"),
+        ] {
+            let mut out = String::new();
+            font_family(&mut out, requested, twin);
+            assert_eq!(out, format!("&apos;{requested}&apos;, &apos;{twin}&apos;"));
+        }
+        for (requested, measured) in [
+            ("Calibri", "Liberation Sans"),
+            ("Calibri", "Inter"),
+            ("Calibri", "Noto Sans Symbols"),
+            ("Cambria", "Merriweather"),
+            ("Original Face", "Carlito"),
+            ("Arial", "Arial"),
+        ] {
+            let mut out = String::new();
+            font_family(&mut out, requested, measured);
+            assert_eq!(out, format!("&apos;{requested}&apos;"));
+        }
+    }
+    #[test]
+    fn css_family_quoting_precedes_xml_escaping() {
+        let mut out = String::new();
+        font_family(&mut out, "Original, 'Face' \\\"\n\r\u{c}<>&", "Carlito");
+        assert_eq!(out, r#"&apos;Original, \&apos;Face\&apos; \\&quot;\a \d \c &lt;&gt;&amp;&apos;"#);
+        let mut tab = String::new();
+        font_family(&mut tab, "Original\tFace", "Carlito");
+        let tab_xml = format!("<text font-family=\"{tab}\"/>");
+        let tab_doc = resvg::usvg::roxmltree::Document::parse(&tab_xml).unwrap();
+        assert_eq!(tab_doc.root_element().attribute("font-family"), Some("'Original\\9 Face'"));
+        let xml = format!("<text font-family=\"{out}\"/>");
+        let parsed = resvg::usvg::roxmltree::Document::parse(&xml).unwrap();
+        assert!(parsed.root_element().attribute("font-family").unwrap().starts_with("'Original, \\'Face\\'"));
     }
 }

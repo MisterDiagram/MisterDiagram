@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Arrowheads keep their intended size on thin and thick lines** (#87). Marker sizes and line setbacks now follow synthetic Visio measurements across all seven sizes, including hairlines. Editable SVG also names the metric-compatible font used for layout, helping labels fit their backgrounds when the original font is absent.
+
 - **Label backgrounds cover the line behind the text** (#54). Text background colors and transparency now appear in PNG, SVG and PDF, including labelled connectors.
 - **Pictures can follow a custom crop outline** (#54). A local Geometry path now clips raster and EMF images in PNG, SVG and PDF, including paths hidden from the drawing.
 - **Combining marks sit where they belong in PDF and SVG** (#54). Accents and vowel marks that Unicode stacks on a letter were shifted the wrong way in PDF and moved the whole run in editable SVG; both now match the PNG.

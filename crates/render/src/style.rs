@@ -356,19 +356,55 @@ pub fn round_rectangle(path: &BezPath, radius: f64) -> BezPath {
     append(&mut out, &mut points, false, radius);
     out
 }
-fn marker_scale(size: u32, weight: f64) -> f64 {
-    // SVG arrow group, 2pt pens: sizes1/2/4 use1.90/2.26/2.98 stroke units.
-    weight * (1.54 + 0.36 * f64::from(size))
+/// Native PNG and PDF use a fixed 0.375 pt outline on zero-weight markers.
+/// This value is independent of the raster shaft's device-pixel floor.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section
+pub fn marker_weight(weight: f64) -> f64 {
+    if !weight.is_finite() || !(0. ..=1e6).contains(&weight) {
+        0.
+    } else if weight == 0. {
+        0.375 / 72.
+    } else {
+        weight
+    }
 }
-/// Shaft endpoints stop at the filled marker's rear intersection.
+/// Physical marker unit witnessed across all 45 types, sizes 0 through 6,
+/// and 0.1 through 6 pt pens. The additive lengths are in points.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/endarrowsize-cell-line-format-section
+fn marker_scale(size: u32, weight: f64) -> f64 {
+    if !weight.is_finite() || !(0. ..=1e6).contains(&weight) {
+        return 0.;
+    }
+    [1.44, 1.8, 2.52, 3.24, 3.96, 9., 18.].get(size as usize).map_or(0., |offset| weight + offset / 72.)
+}
+/// Physical end setback, including hollow markers whose shaft stops at the rear.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/endarrow-cell-line-format-section
 pub fn marker_setback(kind: u32, size: u32, weight: f64) -> f64 {
     marker_scale(size, weight)
         * match kind {
-            5 | 8 => 1.75,
-            39 => 4.,
+            2 | 15 => 1.,
+            4 | 16 => 2.,
+            5 | 8 | 17 => 1.75,
+            6 | 18 => 2.25,
+            10 | 11 | 20 | 21 | 42 => 0.75,
+            13 | 14 | 29 | 30 => 3.,
+            19 => 1.65,
+            22 => 4.5,
+            31..=33 | 35..=37 | 41 => 1.5,
+            34 | 38 => 6.,
+            39 | 40 => 4.,
             _ => 0.,
         }
+}
+/// Native begin overlap is the larger of one percent of the end setback
+/// and 0.36 drawing points, converted to physical page points.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/beginarrow-cell-line-format-section
+pub fn marker_begin_setback(kind: u32, size: u32, weight: f64, drawing_scale: f64) -> f64 {
+    if !drawing_scale.is_finite() || !(0. ..=1e6).contains(&drawing_scale) {
+        return 0.;
+    }
+    let end = marker_setback(kind, size, weight);
+    (end - (end * 0.01).max(0.36 / 72. * drawing_scale)).max(0.)
 }
 /// Trim a single open contour by physical arc length, leaving closed contours intact.
 pub fn marker_shaft(path: &BezPath, begin: f64, end: f64) -> BezPath {
@@ -414,7 +450,14 @@ pub struct ArrowPart {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/beginarrow-cell-line-format-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/beginarrowsize-cell-line-format-section
 pub fn arrow(kind: u32, size: u32, weight: f64, tip: Point, direction: f64) -> Vec<ArrowPart> {
-    if kind == 0 || kind > 45 || size > 6 || !weight.is_finite() || weight <= 0. || !direction.is_finite() || !tip.x.is_finite() || !tip.y.is_finite()
+    if kind == 0
+        || kind > 45
+        || size > 6
+        || !weight.is_finite()
+        || !(0. ..=1e6).contains(&weight)
+        || !direction.is_finite()
+        || !tip.x.is_finite()
+        || !tip.y.is_finite()
     {
         return vec![];
     }
@@ -447,16 +490,21 @@ pub fn arrow(kind: u32, size: u32, weight: f64, tip: Point, direction: f64) -> V
             add(triangle(0., len, filled || kind >= 14), filled, !filled);
         }
         5 | 8 => {
-            // The SVG exports alias type8 to type5. Its rear edge is concave.
-            let mut p = line(&[(2., 1.), (0., 0.), (1.98117, -0.993387)], false);
-            p.curve_to((1.67173, -0.364515), (1.67301, 0.372641), (1.98465, 1.00043));
+            // Concave circular rear through (2, +/-1), reflected about x=2.
+            // The native SVG aliases type 8 to type 5; both have these extents.
+            let k = 4. / 3. * (5_f64.sqrt() - 2.);
+            let mut p = line(&[(2., 1.), (0., 0.), (2., -1.)], false);
+            p.curve_to((2. - k, -1. + 2. * k), (2. - k, 1. - 2. * k), (2., 1.));
             p.close_path();
             add(p, true, false);
         }
         6 | 17 | 18 => {
             let mut p = triangle(0., 2., false);
-            let bend = if matches!(kind, 6 | 18) { 2.45 } else { 1.55 };
-            p.curve_to((bend, 0.33), (bend, -0.33), (2., -1.));
+            // The bulged rear is the circular arc through (2, +/-1),
+            // centered at the tip: radius sqrt(5), with cubic tangent controls.
+            let k = 4. / 3. * (5_f64.sqrt() - 2.);
+            let (bend, y) = if matches!(kind, 6 | 18) { (2. + k, 1. - 2. * k) } else { (1.55, 0.33) };
+            p.curve_to((bend, y), (bend, -y), (2., -1.));
             p.close_path();
             let filled = kind < 17;
             add(p, filled, !filled);
@@ -497,7 +545,8 @@ pub fn arrow(kind: u32, size: u32, weight: f64, tip: Point, direction: f64) -> V
         }
         31..=38 => {
             let filled = kind >= 35;
-            add(circle(0.75), filled, !filled);
+            let ring = if matches!(kind, 35..=37) { Circle::new((0.75, 0.), 0.825).to_path(1e-4) } else { circle(0.75) };
+            add(ring, filled, !filled);
             let base = if filled { kind - 4 } else { kind };
             if base == 34 {
                 add(diamond(1.5), false, true);
@@ -530,6 +579,21 @@ pub fn arrow(kind: u32, size: u32, weight: f64, tip: Point, direction: f64) -> V
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn wide_native_marker_units_and_begin_overlap() {
+        for weight in [0., 0.1, 0.25, 2., 6.] {
+            for (size, offset) in [1.44, 1.8, 2.52, 3.24, 3.96, 9., 18.].into_iter().enumerate() {
+                assert!((marker_scale(size as u32, weight / 72.) * 72. - weight - offset).abs() < 1e-12);
+            }
+        }
+        // Original wide synthetic SVGs, including large-marker proportional overlap.
+        for (kind, size, weight, ratio, begin, end) in
+            [(13, 2, 0.25, 1., 7.95, 8.31), (13, 6, 0.25, 1., 54.2025, 54.75), (34, 6, 6., 1., 142.56, 144.), (13, 2, 0.25, 1. / 120., 8.2269, 8.31)]
+        {
+            assert!((marker_begin_setback(kind, size, weight / 72., ratio) * 72. - begin).abs() < 1e-9);
+            assert!((marker_setback(kind, size, weight / 72.) * 72. - end).abs() < 1e-9);
+        }
+    }
     #[test]
     fn svg_marker_scales_aliases_and_shaft_setbacks() {
         // generated/arrow/end-08.svg, begin-08.svg and end-39.svg, 2pt pen.

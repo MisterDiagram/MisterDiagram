@@ -406,3 +406,5 @@ References: [Cell](https://learn.microsoft.com/en-us/office/client-developer/vis
 - M5.93 image rendering remains P: local hidden Geometry paths now clip raster and EMF pictures; original #54 dimensions and hostile references have regression coverage. Native witness: private `field/image-crop-2026-10-30/visio-grid/`.
 
 M5.94 corrects vertical PDF glyph offsets and editable SVG combining-mark placement; general text/script parity remains P.
+
+M5.95 replaces the fitted marker law with synthetic all-type physical units and names the measured metric twin in editable SVG. Strict wide-matrix raster parity remains partial; no parity row is promoted.

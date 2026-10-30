@@ -70,7 +70,9 @@ pub fn theme_cell(name: &str) -> String {
     .into()
 }
 
-/// No-theme values come from the host's blank-document baseline, never the queried cell's cache.
+/// No-theme values use native function defaults, never the queried cell's cache.
+/// Legacy THEME line weights default to 0.25 pt; THEMEVAL uses the host baseline.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function
 pub fn no_theme(name: &str, args: &[Value], context: &mut dyn Context) -> Value {
     if name == "THEMEPROP" {
@@ -85,6 +87,14 @@ pub fn no_theme(name: &str, args: &[Value], context: &mut dyn Context) -> Value 
     }
     if let Some(default) = args.get(1) {
         return default.clone();
+    }
+    if name == "THEME"
+        && args.first().is_some_and(|v| {
+            let property = v.text();
+            property.eq_ignore_ascii_case("LineWeight") || property.eq_ignore_ascii_case("ConnectorWeight")
+        })
+    {
+        return Value::Number(0.25 / 72.);
     }
     let name = args.first().map(Value::text).unwrap_or_else(|| context.host_cell());
     match name.to_ascii_lowercase().as_str() {

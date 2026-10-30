@@ -48,7 +48,7 @@ fn editable_lines_requested_fonts_styles_and_outlines() {
     for token in ["Calibri", "Arial", "SECOND", "font-weight=\"bold\"", "font-style=\"italic\"", "underline line-through", "xml:space=\"preserve\""] {
         assert!(xml.contains(token), "{token}: {xml}");
     }
-    assert!(!xml.contains("Carlito"));
+    assert!(xml.contains("Carlito"));
     let tree = resvg::usvg::Tree::from_str(&xml, &svg_fonts::options()).unwrap();
     assert!(!tree.root().children().is_empty());
     let outlines = svg::render(&scene, Options { text_outlines: true, ..Default::default() }).unwrap();
@@ -160,4 +160,33 @@ fn mixed_direction_raster_matches_the_layout_base_direction() {
         .sum();
     let mad = sum as f64 / (f64::from(png.width()) * f64::from(png.height()) * 3.);
     assert!(mad <= 2., "mixed bidi MAD={mad}");
+}
+
+#[test]
+fn editable_metric_twins_are_resolved_without_test_aliases() {
+    for (requested, expected) in
+        [("Calibri", "Carlito"), ("Cambria", "Caladea"), ("Arial", "Arimo"), ("Times New Roman", "Tinos"), ("Courier New", "Cousine")]
+    {
+        for (bold, italic) in [(false, false), (true, false), (false, true)] {
+            let mut body = TextBody::default();
+            body.paragraphs.push(Paragraph::new("Bright copper signals"));
+            body.paragraphs[0].runs[0].props =
+                RunProps { font: Some(requested.into()), bold: Some(bold), italic: Some(italic), size: Some(18.), ..Default::default() };
+            let s = scene(&body);
+            let run = s.ops.iter().find_map(|op| if let Op::Text { layout, .. } = op { layout.runs.first() } else { None }).unwrap();
+            assert_eq!(run.face.family, expected);
+            let xml = xml(&s);
+            let doc = resvg::usvg::roxmltree::Document::parse(&xml).unwrap();
+            for n in doc.descendants().filter(|n| n.has_tag_name("text") || n.has_tag_name("tspan")) {
+                assert_eq!(n.attribute("font-family"), Some(format!("'{requested}', '{expected}'").as_str()));
+            }
+            let mut options = resvg::usvg::Options::default();
+            for bytes in misterdiagram_fonts::bundled() {
+                options.fontdb_mut().load_font_data(bytes.to_vec());
+            }
+            let tree = resvg::usvg::Tree::from_str(&xml, &options).unwrap();
+            assert!(!tree.root().children().is_empty());
+            assert!(!svg::render(&s, Options { text_outlines: true, ..Default::default() }).unwrap().contains("font-family"));
+        }
+    }
 }
