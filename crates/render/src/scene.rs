@@ -27,6 +27,7 @@ pub enum Op {
     Stroke { path: BezPath, stroke: kurbo::Stroke, color: Rgba },
     Image { pixels: Arc<image::RgbaImage>, transform: Affine },
     Text { layout: TextLayout, transform: Affine },
+    TextBackground { rect: Rect, transform: Affine, color: Rgba },
 }
 #[derive(Clone, Debug)]
 pub struct Scene {
@@ -90,6 +91,14 @@ impl Scene {
                         || transform.as_coeffs().iter().any(|v| !v.is_finite())
                     {
                         return Err("scene image limit".into());
+                    }
+                }
+                Op::TextBackground { rect, transform, .. } => {
+                    let b = transform.transform_rect_bbox(*rect);
+                    if [rect.x0, rect.y0, rect.x1, rect.y1, b.x0, b.y0, b.x1, b.y1].iter().any(|v| !v.is_finite() || v.abs() > 1e6)
+                        || transform.as_coeffs().iter().any(|v| !v.is_finite())
+                    {
+                        return Err("scene text background limit".into());
                     }
                 }
                 Op::Text { layout, transform } => {
@@ -381,6 +390,7 @@ fn finish_bounds(scene: &mut Scene, crop: bool) {
     for op in &scene.ops {
         let b = match op {
             Op::Bounds(b) => *b,
+            Op::TextBackground { rect, transform, .. } => transform.transform_rect_bbox(*rect),
             Op::Clip { path, .. } => {
                 let b = path.bounding_box();
                 clips.push(clips.last().map_or(b, |previous| previous.intersect(b)));
@@ -804,6 +814,9 @@ fn shapes(
                             ))));
                         }
                     }
+                    if let Some((rect, color)) = text_background(e, scope, &layout) {
+                        scene.ops.push(Op::TextBackground { rect, transform: text_transform, color });
+                    }
                     scene.ops.push(Op::Text { layout, transform: text_transform });
                 }
             }
@@ -973,6 +986,7 @@ fn paint_foreign(
                 Op::Bounds(b) => Op::Bounds(m.transform_rect_bbox(b)),
                 Op::Image { pixels, transform } => Op::Image { pixels, transform: m * transform },
                 Op::Text { layout, transform } => Op::Text { layout, transform: m * transform },
+                Op::TextBackground { rect, transform, color } => Op::TextBackground { rect, transform: m * transform, color },
             });
         }
         scene.ops.push(Op::Pop);
@@ -984,6 +998,25 @@ fn paint_foreign(
     scene.ops.push(Op::Image { pixels: Arc::new(pixels), transform: m });
     scene.ops.push(Op::Pop);
     Ok(())
+}
+
+/// A single background spans the logical line extents, excluding text margins.
+/// Native synthetic witness: field/textbkgnd-2026-10-30, build 20527.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/textbkgnd-cell-text-block-format-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/textbkgndtrans-cell-text-block-format-section
+fn text_background(e: &mut Evaluator<'_>, scope: Scope, layout: &TextLayout) -> Option<(Rect, Rgba)> {
+    let value = e.evaluate(scope, "TextBkgnd").numeric().ok()?;
+    if value == 0. || value == 255. {
+        return None;
+    }
+    // Serialization resolves the evaluator's dynamic palette as well as document
+    // colours. RGB()+1 and theme formulas may allocate an index absent from the file.
+    let cell = e.cell(scope, "TextBkgnd")?;
+    let literal = e.serialized_number(scope, "TextBkgnd", cell, value).ok()?;
+    let mut color = Rgba::from_hex(&literal)?;
+    color.a = ((1. - number(e, scope, "TextBkgndTrans", 0.).clamp(0., 1.)) * 255.).round() as u8;
+    let rect = layout.lines.iter().map(|line| Rect::new(line.extent.0, line.top, line.extent.1, line.bottom)).reduce(|a, b| a.union(b))?;
+    Some((rect, color))
 }
 
 fn filled_marker(kind: u32) -> bool {

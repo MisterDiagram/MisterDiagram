@@ -1,5 +1,26 @@
 # Gaps
 
+## Text backgrounds (#54, M5.92)
+
+Synthetic native evidence in private corpus `field/textbkgnd-2026-10-30/`
+(Visio 2021 build 20527) contains 34 cases and 32 background rectangles.
+TextBkgnd 0 and 255 paint nothing. Values 1 through 24 select palette entries
+0 through 23; custom colors and RGB()+1 use the evaluator's palette, including
+entries created by formulas. The theme-default formula selects the theme
+background. TextBkgndTrans controls opacity; the renderer represents alpha in
+8 bits, so the native 50% example becomes 128/255.
+
+One rectangle spans the logical line extents: the widest laid-out text and the
+union of line heights. Margins position the text but add no background padding.
+The same rule covers one and three lines, a narrow TxtWidth, asymmetric margins,
+and reversed 1-D labels with upright text. The rectangle uses the text transform,
+paints above shape geometry and below text, and remains a rectangle in SVG.
+Authored connectors already carried the theme-default TextBkgnd formula; their
+labels now paint it. General text layout and theme parity remain partial.
+
+References: [TextBkgnd](https://learn.microsoft.com/en-us/office/client-developer/visio/textbkgnd-cell-text-block-format-section),
+[TextBkgndTrans](https://learn.microsoft.com/en-us/office/client-developer/visio/textbkgndtrans-cell-text-block-format-section).
+
 ## Themed Character values and indexed contrast (#87, M5.89)
 
 A stored `V="Themed"` on a supported Character cell selects that property's theme

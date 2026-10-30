@@ -57,6 +57,11 @@ pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
     for (i, op) in scene.ops.iter().enumerate() {
         match op {
             Op::Bounds(_) => {}
+            Op::TextBackground { rect, transform, color } => {
+                write!(out, "<rect data-text-background=\"true\" x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" transform=\"{}\" fill=\"#{:02x}{:02x}{:02x}\" fill-opacity=\"{}\"/>",
+                    rect.x0, rect.y0, rect.width(), rect.height(), matrix(view * *transform),
+                    color.r, color.g, color.b, f64::from(color.a) / 255.).map_err(|e| e.to_string())?;
+            }
             Op::Clip { path: p, even_odd } => {
                 write!(
                     out,

@@ -400,3 +400,5 @@ rows remain a separate gap. See [gaps.md](gaps.md) for the witnesses and limits.
 References: [Cell](https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml),
 [THEMEVAL](https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function),
 [QuickStyleVariation](https://learn.microsoft.com/en-us/office/client-developer/visio/quickstylevariation-cell-quick-style-section).
+
+- M5.92 text rendering remains P: synthetic TextBkgnd palette, transparency, multiline extent and transform tests protect background painting in PNG/SVG/PDF; labelled authored connectors retain the existing theme default. Native witness: private `field/textbkgnd-2026-10-30/`.

@@ -65,7 +65,7 @@ impl SceneBudget {
                         self.charge(vector_bytes(&line.boundary))?;
                     }
                 }
-                Op::Bounds(_) | Op::Pop => {}
+                Op::Bounds(_) | Op::TextBackground { .. } | Op::Pop => {}
             }
         }
         Ok(())

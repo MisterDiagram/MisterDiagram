@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Label backgrounds cover the line behind the text** (#54). Text background colors and transparency now appear in PNG, SVG and PDF, including labelled connectors.
+
 ## 0.1.0-alpha.17
 
 Three text fixes from a tester's drawings in the

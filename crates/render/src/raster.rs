@@ -118,6 +118,11 @@ pub fn render(scene: &Scene, options: Options) -> Result<image::RgbaImage, Strin
     for op in &scene.ops {
         match op {
             Op::Bounds(_) => {}
+            Op::TextBackground { rect, transform, color } => {
+                ctx.set_transform(view * *transform);
+                ctx.set_paint(peniko::Color::from_rgba8(color.r, color.g, color.b, color.a));
+                ctx.fill_rect(rect);
+            }
             Op::Clip { path, even_odd } => {
                 ctx.set_transform(view);
                 ctx.set_fill_rule(if *even_odd { peniko::Fill::EvenOdd } else { peniko::Fill::NonZero });
