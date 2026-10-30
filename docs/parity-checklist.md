@@ -404,3 +404,5 @@ References: [Cell](https://learn.microsoft.com/en-us/office/client-developer/vis
 - M5.92 text rendering remains P: synthetic TextBkgnd palette, transparency, multiline extent and transform tests protect background painting in PNG/SVG/PDF; labelled authored connectors retain the existing theme default. Native witness: private `field/textbkgnd-2026-10-30/`.
 
 - M5.93 image rendering remains P: local hidden Geometry paths now clip raster and EMF pictures; original #54 dimensions and hostile references have regression coverage. Native witness: private `field/image-crop-2026-10-30/visio-grid/`.
+
+M5.94 corrects vertical PDF glyph offsets and editable SVG combining-mark placement; general text/script parity remains P.

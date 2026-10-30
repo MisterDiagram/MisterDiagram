@@ -1,5 +1,20 @@
 # Gaps
 
+## Vertical glyph offsets in PDF and editable SVG (#54, M5.94)
+
+PDF glyph offsets now convert layout's downward-positive displacement to the
+upward-positive offset accepted by krilla. A synthetic beh with kasra and
+shadda begins with a positioned mark, so the regression reads actual PDF text
+matrices relative to that first glyph and detects reversing the sign.
+
+Editable SVG also distinguishes a run's semantic superscript/subscript shift
+from a combining mark's own glyph offset. It previously applied the first
+mark's displacement to the entire run before the SVG renderer shaped the marks
+again. Run metadata now carries only the semantic shift. PNG glyph placement
+is unchanged by these two corrections; PDF output changes only for runs with
+nonuniform vertical glyph origins. General text/script parity remains partial.
+
+
 ## Image cropping and local ClippingPath (#54, M5.93)
 
 Rectangular image cropping was already implemented before this brief, including

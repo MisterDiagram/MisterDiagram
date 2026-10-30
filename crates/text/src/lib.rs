@@ -74,6 +74,8 @@ pub struct SvgRun {
     pub line: usize,
     pub upper: bool,
     pub spacing: f64,
+    /// Semantic baseline shift in points, before individual mark positioning.
+    pub baseline_shift: f64,
 }
 
 impl std::fmt::Debug for GlyphRun {
@@ -212,6 +214,7 @@ impl Style {
             line,
             upper: self.caps != Caps::None,
             spacing: self.spacing,
+            baseline_shift: self.baseline * self.size,
         }
     }
 }

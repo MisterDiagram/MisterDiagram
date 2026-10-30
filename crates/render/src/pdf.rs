@@ -132,7 +132,8 @@ pub fn render(scenes: &[Scene], options: Options) -> Result<Vec<u8>, String> {
                                     GlyphId::new(g.0),
                                     ((next - g.1) / run.size) as f32,
                                     0.,
-                                    ((g.2 - y0) / run.size) as f32,
+                                    // krilla subtracts this offset from its downward-positive pen.
+                                    ((y0 - g.2) / run.size) as f32,
                                     0.,
                                     range,
                                     None,

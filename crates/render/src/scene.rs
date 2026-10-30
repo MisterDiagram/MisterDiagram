@@ -113,7 +113,12 @@ impl Scene {
                         || layout.lines.iter().any(|l| {
                             !l.baseline.is_finite() || !l.extent.0.is_finite() || l.edges.iter().any(|(a, b)| !a.is_finite() || !b.is_finite())
                         })
-                        || layout.runs.iter().any(|r| r.svg.line >= layout.lines.len() || !r.alpha.is_finite() || !r.svg.spacing.is_finite())
+                        || layout.runs.iter().any(|r| {
+                            r.svg.line >= layout.lines.len()
+                                || !r.alpha.is_finite()
+                                || !r.svg.spacing.is_finite()
+                                || !r.svg.baseline_shift.is_finite()
+                        })
                         || layout.runs.windows(2).any(|r| r.first().zip(r.get(1)).is_some_and(|(a, b)| a.svg.line > b.svg.line))
                         || transform.as_coeffs().iter().any(|v| !v.is_finite())
                         || layout.runs.iter().any(|r| {

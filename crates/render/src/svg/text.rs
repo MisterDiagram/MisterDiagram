@@ -104,7 +104,7 @@ fn text_limited(out: &mut String, layout: &TextLayout, m: Affine, limit: usize) 
                     write!(out, "<tspan unicode-bidi=\"isolate\" direction=\"{}\"", if line.rtl { "rtl" } else { "ltr" })
                         .map_err(|e| e.to_string())?;
                     style(out, run, true)?;
-                    let offset = run.glyphs.first().map_or(0., |g| line.baseline - g.2);
+                    let offset = run.svg.baseline_shift;
                     write!(out, " dx=\"{}\" baseline-shift=\"{offset}\">", rx - cursor).map_err(|e| e.to_string())?;
                     // usvg 0.47 runs bidi with an LTR base whatever `direction` says; the
                     // isolate characters carry the paragraph direction to any bidi algorithm.
