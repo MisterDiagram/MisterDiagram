@@ -25,8 +25,8 @@ Anyone who wants a GUI on top is welcome to build one: the licence is MIT or Apa
 core is the part that has to be right. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and shares their conventions.
 
-**Download:** [MisterDiagram 0.1.0-alpha.19](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.19),
-the eighteenth alpha (blank lines kept in editable SVG, subscripts and superscripts at their drawn width, legacy connector arrows and thin SVG outlines as Visio draws them), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+**Download:** [MisterDiagram 0.1.0-alpha.20](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.20),
+the nineteenth alpha (files with stale connections or duplicate shape IDs save as Visio saves them, and thin lines stay thin in PDF), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -35,7 +35,7 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-10-31, 0.1.0-alpha.19)
+## What works today (2026-10-31, 0.1.0-alpha.20)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
@@ -99,23 +99,18 @@ and Webdings symbol-charset fonts, are not covered (docs/gaps.md). Where a conne
 three connectors that rerouted on the witness drawings differ from Visio's path (two take the
 other side of the obstacle, one bends elsewhere); the 28 of 29 geometry witnesses still hold.
 
-## New in 0.1.0-alpha.19
+## New in 0.1.0-alpha.20
 
-Four fixes from a tester who ran 181 of their own drawings through alpha.18 (#87). Almost all
-matched Visio; these four did not. Each is checked against Visio 2021 on synthetic drawings.
+- Files with stale connections or duplicate shape IDs now save. Some generators write
+  connections to shapes that no longer exist, or two shapes with the same ID. Visio opens these
+  and quietly drops the bad records; MisterDiagram now does the same and says what it removed,
+  instead of refusing to save. Nine such files from public sample sets save and match Visio's
+  own resave.
+- Thin lines stay thin in PDF (#87). A 0.25 pt outline was drawn at the PNG minimum, about three
+  times too thick. PDF now uses Visio's PDF line weights; PNG and SVG are unchanged.
 
-- Empty lines keep their space in editable SVG. A label that starts with blank lines no longer
-  jumps up in SVG viewers. PNG and PDF were already right.
-- Subscripts and superscripts are measured at the size they are drawn. Before, the small
-  letters were spaced at full size, so the run looked letter-spaced and a label that fits in
-  Visio could wrap.
-- Connectors whose arrow cells use the older theme formulas get Visio's result, which is no
-  arrowhead, instead of the page theme's arrow.
-- Thin outlines stay thin in editable SVG. A 0.25 pt line was written at the raster minimum,
-  three times too thick. PNG and PDF output is unchanged.
-
-In the corpus, 16 measured lines move toward Visio and none move away. Field, routes, theme and
-hostile results are unchanged from alpha.18; 105 SVG exports change and no PNG or PDF does.
+In the corpus, field, routes, theme and hostile checks nothing moves from alpha.19. 147 PDF
+exports change line weight, and no PNG or SVG changes.
 
 ## Testers wanted
 
