@@ -48,7 +48,7 @@ fn pdf_each_page_uses_native_physical_canvas_independent_of_scale() {
         let bytes = pdf::render(&[drawing(4., 6.), drawing(6., 4.), drawing(72.49 / 72., 108.49 / 72.)], o).unwrap();
         let parsed = Pdf::new(bytes).unwrap();
         assert_eq!(parsed.pages().len(), 3);
-        for (page, expected) in parsed.pages().iter().zip([(288., 432.), (432., 288.), (72.375, 108.375)]) {
+        for (page, expected) in parsed.pages().iter().zip([(288., 432.), (432., 288.), (72.49, 108.49)]) {
             let b = page.media_box();
             assert!((b.width() - expected.0).abs() < 1e-4);
             assert!((b.height() - expected.1).abs() < 1e-4);

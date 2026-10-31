@@ -17425,9 +17425,12 @@ on each referencing foreground page rather than emitted as another PDF page.
 Ten fractional controls and PDF exports after raster-resolution settings
 96, 192 and 600 show an unchanged 1/192-inch PDF canvas grid on this native
 installation. Dimensions truncate down on that grid; PDF serialization can
-round the printed number by another 0.005 point. Older corpus PDFs show a
-1/600-inch grid. The backend follows the current observed device grid and
-keeps the unrounded physical page origin for drawing placement. SVG uses
+round the printed number by another 0.005 point. The same fractional input
+exported on a second Visio 2021 installation (same build, Microsoft Print to
+PDF default printer, 96 dpi screen) truncates on a 1/600-inch grid instead,
+as all 236 page dimensions in `field/oss-2026-10-22` do. The grid belongs to
+the exporting machine, not to Visio, so the backend writes the exact physical
+page size and keeps the unrounded page origin for drawing placement. SVG uses
 fractional physical dimensions. Neither format applies the old raster
 crop's fitted scale. PNG remains cropped to the drawing, including off-page
 content. The empty native PNG remains the existing fixed 5 by 3 inches.
@@ -17452,7 +17455,8 @@ The private field witness `field/vahegan-2026-10-30/in/pg2.vsdx` has physical
 page dimensions 2.377023 by 1.294346 inches. Native SVG records 2.37702 by
 1.29435 inches (viewBox 171.146 by 93.1929 points); native PDF is 171 by
 93 points. Our page SVG retains full evaluated precision and its corresponding
-viewBox at 72 units/inch; PDF is 171 by 93 points. The scale-2 PNG is 361 by
+viewBox at 72 units/inch; PDF is the exact page, 171.146 by 93.193 points
+(native truncates to its machine's device grid). The scale-2 PNG is 361 by
 165 pixels. The old vector crop also applied a fitted scale, so restoring
 physical coordinates changes that scale as well as canvas size and offset.
 The literal size-and-offset-only acceptance clause remains disclosed as unmet.

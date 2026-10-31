@@ -53,11 +53,12 @@ pub fn render(scenes: &[Scene], options: Options) -> Result<Vec<u8>, String> {
     for scene in scenes {
         let (width, height, pixel_view) = if options.page_canvas {
             let (_, _, view) = scene.page_canvas(options)?;
-            // The native 2021 fixed-format exporter truncates the page to its
-            // 192-device-unit grid. Raster resolution settings do not alter it.
-            // field/export-canvas-2026-10-31/native-fractional and native-pdf-resolution.
+            // The native fixed-format exporter truncates the page to the exporting
+            // machine's device grid: 1/192 in on one installation, 1/600 in on another
+            // for the same input. The page itself is exact, so write it unrounded.
+            // field/export-canvas-2026-10-31/native-fractional, field/oss-2026-10-22.
             // https://learn.microsoft.com/en-us/office/vba/api/visio.document.exportasfixedformat
-            let extent = |inches: f64| (inches * 192. + 1e-9).floor() * (72. / 192.);
+            let extent = |inches: f64| inches * 72.;
             (extent(scene.page_size.0), extent(scene.page_size.1), view)
         } else {
             let (w, h, view) = scene.canvas(options)?;

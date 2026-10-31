@@ -10,9 +10,13 @@ fractional-size and text matrices. Existing witness accounting finds 469
 page-sized SVGs and 338 page-sized PDFs; five Shape.Export SVGs use drawing
 extents. Seven of the page-sized SVGs also match their raster drawing extent.
 
-The current native PDF device grid is 1/192 inch; older corpus exports show
-1/600 inch. The fixed-format backend follows the current observed grid. This
-is a native serialization difference, not a change to the drawing scale.
+Native PDF page sizes truncate to the exporting machine's device grid: the
+same fractional input gives 1/192 inch on one installation and 1/600 inch on
+another (Microsoft Print to PDF default printer, 96 dpi screen), and the older
+`field/oss-2026-10-22` exports all fit 1/600 inch. No single grid is Visio's,
+so the backend writes the exact physical page; the difference is under 1/192
+inch. This is a native serialization difference, not a change to the drawing
+scale.
 Correcting the old fitted raster transform also restores physical geometry
 scale in vector output. This exceeds a literal size-and-offset-only change;
 it is explicitly recorded in the private acceptance report.
