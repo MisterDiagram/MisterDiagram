@@ -36,6 +36,7 @@ fn nonfinite_path_is_rejected_without_raising_the_coordinate_cap() {
         path.move_to((0., 0.));
         path.curve_to((invalid, 0.2), (0.5, 0.4), (1., 1.));
         let scene = Scene {
+            pdf_strokes: Default::default(),
             warnings: vec![],
             ops: vec![Op::Path { path, paint: Paint::Solid(misterdiagram_color::Rgba::BLACK) }],
             bounds: Rect::new(0., 0., 2., 1.),

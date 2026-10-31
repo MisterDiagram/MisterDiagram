@@ -429,3 +429,9 @@ M5.101 progress: parsed Character Pos runs now pin all six superscript/subscript
 baseline shifts through the evaluator, including a general-family control and
 mixed-case names. Each individual value mutation is detected. Production values,
 parity scores and denominators are unchanged.
+
+M5.102 progress: physical PDF shape/connector/marker pens follow native minimum
+and zero rules without changing PNG/SVG output. Synthetic content-stream and
+hostile-metadata tests cover export scales, dashes, groups and normal doubles.
+Native malformed subminimum double bands remain an explicit gap. Existing
+partial rendering rows, scores and denominators remain unchanged.

@@ -209,6 +209,7 @@ mod tests {
         source.put_pixel(0, 0, image::Rgba([255, 0, 0, 255]));
         source.put_pixel(1, 0, image::Rgba([0, 0, 255, 0]));
         let scene = Scene {
+            pdf_strokes: Default::default(),
             warnings: vec![],
             ops: vec![Op::Image { pixels: Arc::new(source), transform: Affine::scale(0.1) }],
             bounds: Rect::new(0., 0., 0.2, 0.1),
@@ -221,7 +222,8 @@ mod tests {
     }
     #[test]
     fn portrait_export_preserves_angles() {
-        let scene = Scene { warnings: vec![], ops: vec![], bounds: Rect::new(0., 0., 1.5, 4.5), page_size: (8.5, 11.) };
+        let scene =
+            Scene { pdf_strokes: Default::default(), warnings: vec![], ops: vec![], bounds: Rect::new(0., 0., 1.5, 4.5), page_size: (8.5, 11.) };
         let (_, _, view) = scene.canvas(Options::default()).unwrap();
         let c = view.as_coeffs();
         assert!((c[0].abs() - c[3].abs()).abs() < 1e-12);
@@ -256,11 +258,13 @@ mod tests {
         for bytes in [&[][..], b"\x89PNG\r\n\x1a\n", b"\xff\xd8\xff"] {
             assert!(decode(bytes).is_err());
         }
-        let scene = Scene { warnings: vec![], ops: vec![], bounds: Rect::new(0., 0., 1e6, 1e6), page_size: (1e6, 1e6) };
+        let scene =
+            Scene { pdf_strokes: Default::default(), warnings: vec![], ops: vec![], bounds: Rect::new(0., 0., 1e6, 1e6), page_size: (1e6, 1e6) };
         assert!(render(&scene, Options::default()).is_err());
         assert!(scene.canvas(Options { scale: f64::NAN, ..Default::default() }).is_err());
         for stroke in [kurbo::Stroke::new(f64::NAN), kurbo::Stroke::new(1.).with_dashes(0., [0., 0.])] {
             let scene = Scene {
+                pdf_strokes: Default::default(),
                 warnings: vec![],
                 ops: vec![Op::Stroke { path: Rect::new(0., 0., 1., 1.).to_path(0.01), stroke, color: misterdiagram_color::Rgba::BLACK }],
                 bounds: Rect::new(0., 0., 1., 1.),

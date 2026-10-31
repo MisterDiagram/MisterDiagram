@@ -17356,3 +17356,46 @@ ID, universal NameU and nesting. RefreshMilestone's native save also normalizes
 localized Name attributes on inherited children; this unrelated metadata
 normalization is not applied here. The raw Name differences remain disclosed in
 the private report. No third-party document bytes are included in public tests.
+
+
+### M5.102: physical PDF line pens, with a native double-line exception
+
+Observed, undocumented PDF export behavior from Visio 2021 build 20527:
+private `field/pdf-strokes-2026-10-31/native-v2/` contains 188 synthetic
+shape/connector cases, PDF/PNG/SVG/cells and per-shape PDF pens/dash arrays.
+The ordinary stroke pen is zero = 0.375 pt, otherwise max(weight, 0.14 pt).
+The boundary supplement confirms 0.1399 becomes 0.14 and 0.1401 remains
+0.1401. Drawing scale and group size do not change these physical points.
+Dash pattern 2 is [7p,5p], pattern 4 [7p,5p,0,5p]. Open markers share the
+pen rule, including the confirmed zero outline, while their geometry and
+setbacks use nominal line weight; filled markers keep nominal geometry.
+
+Double lines are separate filled outlines: zero has a 0.375 pt envelope;
+positive weights above 0.12 pt use nominal outer width and a central-third
+gap. Below that boundary, two isolated native jobs reproduce malformed
+geometry. Weights at or below 0.06 pt collapse into one approximately 0.06 pt
+band above the centerline. Weights above 0.06 through 0.12 pt produce two
+rectangular strips, each 508 times the nominal point weight in height, with
+0.12 pt endpoint caps for round ends. For example, 0.1 pt produces 50.8 pt
+strips and 0.12 pt produces 60.96 pt strips. At 0.1201 pt the ordinary double
+returns. The initial matrix, isolated round/butt controls and boundary sweep
+are all retained; the outputs were not normalized into a minimum-width rule.
+
+Our PDF retains regular double geometry with the native small cap envelope,
+so these anomalous subminimum doubles remain a measured parity gap. The
+ordinary pen/marker correction does not change raster/SVG geometry, text,
+images, fills, clipping or logical canvas bounds. General page-size/crop
+parity is outside this change. Public cell references specify line weight
+and compound types, but do not specify these PDF thresholds or artifacts.
+
+References: [LineWeight](https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section),
+[LinePattern](https://learn.microsoft.com/en-us/office/client-developer/visio/linepattern-cell-line-format-section),
+[CompoundType](https://learn.microsoft.com/en-us/office/client-developer/visio/compoundtype-cell-line-format-section).
+
+The native type-4 filled-marker controls also expose a pre-existing shaft
+position difference: PDF uses a setback of 1.75 nominal marker units at both
+ends. Our existing geometry uses two units at the end and the documented
+begin overlap at the start. This brief preserves those centerline endpoints,
+as required by its pen-only scope, and tests their before/after PDF positions.
+Open-marker nominal geometry and outlines are tested on unit and scaled pages.
+This position difference is separate from the corrected physical pens.

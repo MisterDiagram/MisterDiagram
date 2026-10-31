@@ -5,7 +5,8 @@ use misterdiagram_render::{pdf, raster, scene, svg};
 
 /// Compare SVG with its witnessed vector pens, not the deliberately different raster floor.
 /// field/nominal-strokes-2026-10-30 records nominal positive pens and zero = 0.75 pt.
-/// Production PNG/PDF stability is tested separately in nominal_strokes.rs.
+/// Production PNG stability is tested separately in nominal_strokes.rs.
+/// PDF-specific pens are covered by pdf_strokes.rs.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section
 fn svg_reference_scene(source: &scene::Scene, options: scene::Options) -> scene::Scene {
     use scene::{Op, Paint};
@@ -124,6 +125,7 @@ fn svg_thin_closed_stroke_matches_the_raster_pen() {
     use kurbo::Shape as _;
     use misterdiagram_render::scene::{Op, Scene};
     let scene = Scene {
+        pdf_strokes: Default::default(),
         warnings: vec![],
         ops: vec![Op::Stroke {
             path: kurbo::Rect::new(0.01, 0.16, 0.78, 0.17).to_path(1e-5),

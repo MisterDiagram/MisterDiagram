@@ -151,6 +151,7 @@ fn background_shares_text_transform_for_flips_rotation_and_scale() {
 fn hostile_background_coordinates_are_rejected_by_every_backend() {
     for bad in [f64::NAN, f64::INFINITY, 1e9] {
         let s = scene::Scene {
+            pdf_strokes: Default::default(),
             warnings: vec![],
             ops: vec![Op::TextBackground { rect: Rect::new(bad, 0., 1., 1.), transform: Affine::IDENTITY, color: Rgba::BLACK }],
             bounds: Rect::new(0., 0., 1., 1.),

@@ -56,7 +56,27 @@ pub fn render(scenes: &[Scene], options: Options) -> Result<Vec<u8>, String> {
         let size = Size::from_wh(f32::from(w) * 0.75 / options.scale as f32, f32::from(h) * 0.75 / options.scale as f32).ok_or("PDF page size")?;
         let mut page = pdf.start_page_with(krilla::page::PageSettings::new(size));
         let mut surface = page.surface();
-        for op in &scene.ops {
+        for (index, op) in scene.ops.iter().enumerate() {
+            if let Some(pen) = scene.pdf_strokes.get(&index) {
+                let color = match op {
+                    Op::Stroke { color, .. }
+                    | Op::HairlineStroke { color, .. }
+                    | Op::HairlineMarker { color, .. }
+                    | Op::Path { paint: Paint::Solid(color), .. } => *color,
+                    _ => return Err("invalid PDF stroke operation".into()),
+                };
+                let mut outline = crate::scene::stroke_path(&pen.path, &pen.stroke, view, 72.);
+                if pen.compound {
+                    let mut inner = pen.stroke.clone();
+                    inner.width /= 3.;
+                    outline.extend(crate::scene::stroke_path(&pen.path, &inner, view, 72.).reverse_subpaths().elements().iter().copied());
+                }
+                if let Some(p) = path(&outline) {
+                    surface.set_fill(Some(fill(color)));
+                    surface.draw_path(&p);
+                }
+                continue;
+            }
             match op {
                 Op::Bounds(_) => {}
                 Op::TextBackground { rect, transform, color } => {

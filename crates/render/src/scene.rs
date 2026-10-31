@@ -7,7 +7,7 @@ use misterdiagram_model::{Document, Shape};
 use misterdiagram_sheet::Value;
 use misterdiagram_text::{NoFields, Opts, TextLayout};
 use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
-use std::sync::Arc;
+use std::{collections::BTreeMap, sync::Arc};
 
 mod budget;
 pub use budget::SceneBudget;
@@ -62,10 +62,19 @@ pub enum Op {
         color: Rgba,
     },
 }
+/// A PDF-only physical pen for a shape operation. Bounds and other backends
+/// retain the original operation, including the raster pixel floor.
+#[derive(Clone, Debug)]
+pub struct PdfStroke {
+    pub path: BezPath,
+    pub stroke: kurbo::Stroke,
+    pub compound: bool,
+}
 #[derive(Clone, Debug)]
 pub struct Scene {
     pub warnings: Vec<String>,
     pub ops: Vec<Op>,
+    pub pdf_strokes: BTreeMap<usize, PdfStroke>,
     pub bounds: Rect,
     pub page_size: (f64, f64),
 }
@@ -90,6 +99,20 @@ impl Default for Options {
     }
 }
 impl Scene {
+    fn pdf_stroke(&mut self, pen: PdfStroke, budget: &mut SceneBudget) -> Result<(), String> {
+        if self.ops.len() >= 200_000 {
+            return Err("export operation limit".into());
+        }
+        // Include BTreeMap node overhead as well as retained path/dash storage.
+        budget.charge(
+            std::mem::size_of::<(usize, PdfStroke)>()
+                .saturating_mul(4)
+                .saturating_add(std::mem::size_of_val(pen.path.elements()).saturating_mul(2))
+                .saturating_add(pen.stroke.dash_pattern.capacity().saturating_mul(std::mem::size_of::<f64>())),
+        )?;
+        self.pdf_strokes.insert(self.ops.len(), pen);
+        Ok(())
+    }
     pub fn canvas(&self, options: Options) -> Result<(u16, u16, Affine), String> {
         self.canvas_bounds(options, self.bounds)
     }
@@ -117,7 +140,16 @@ impl Scene {
         if self.ops.len() > 200_000 {
             return Err("scene operation limit".into());
         }
-        for op in &self.ops {
+        for &index in self.pdf_strokes.keys() {
+            if !matches!(
+                self.ops.get(index),
+                Some(Op::Stroke { .. } | Op::HairlineStroke { .. } | Op::HairlineMarker { .. } | Op::Path { paint: Paint::Solid(_), .. })
+            ) {
+                return Err("invalid PDF stroke operation".into());
+            }
+        }
+        for (index, op) in self.ops.iter().enumerate() {
+            let pdf = self.pdf_strokes.get(&index);
             match op {
                 Op::Path { path, .. }
                 | Op::Stroke { path, .. }
@@ -128,7 +160,7 @@ impl Scene {
                         Op::HairlineMarker { svg_path, .. } | Op::HairlineStroke { svg_path, .. } => Some(svg_path),
                         _ => None,
                     };
-                    for path in std::iter::once(path).chain(extra) {
+                    for path in std::iter::once(path).chain(extra).chain(pdf.map(|p| &p.path)) {
                         elements = elements.saturating_add(path.elements().len());
                         if elements > 4_000_000 {
                             return Err("scene path limit".into());
@@ -195,23 +227,24 @@ impl Scene {
                 }
                 Op::Pop | Op::Bounds(_) => {}
             }
-            if let Op::Stroke { stroke, .. } | Op::HairlineStroke { stroke, .. } = op
-                && (!stroke.width.is_finite()
-                    || stroke.width < 0.
-                    || stroke.width > 1e6
+            let original = match op {
+                Op::Stroke { path, stroke, .. } | Op::HairlineStroke { path, stroke, .. } => Some((path, stroke, false)),
+                _ => None,
+            };
+            for (path, stroke, compound) in original.into_iter().chain(pdf.map(|p| (&p.path, &p.stroke, p.compound))) {
+                if !stroke.width.is_finite()
+                    || !(0. ..=1e6).contains(&stroke.width)
                     || !stroke.miter_limit.is_finite()
-                    || stroke.miter_limit < 0.
-                    || stroke.miter_limit > 1e6
+                    || !(0. ..=1e6).contains(&stroke.miter_limit)
                     || !stroke.dash_offset.is_finite()
                     || stroke.dash_offset.abs() > 1e6
                     || stroke.dash_pattern.len() > 4096
-                    || stroke.dash_pattern.iter().any(|n| !n.is_finite() || *n < 0. || *n > 1e6)
-                    || (!stroke.dash_pattern.is_empty() && stroke.dash_pattern.iter().sum::<f64>() <= 0.))
-            {
-                return Err("scene stroke limit".into());
-            }
-            if let Op::Stroke { path, stroke, .. } | Op::HairlineStroke { path, stroke, .. } = op {
-                elements = elements.saturating_add(dash_elements(path, stroke)?);
+                    || stroke.dash_pattern.iter().any(|n| !n.is_finite() || !(0. ..=1e6).contains(n))
+                    || (!stroke.dash_pattern.is_empty() && stroke.dash_pattern.iter().sum::<f64>() <= 0.)
+                {
+                    return Err("scene stroke limit".into());
+                }
+                elements = elements.saturating_add(dash_elements(path, stroke)?.saturating_mul(if compound { 2 } else { 1 }));
                 if elements > 4_000_000 {
                     return Err("scene path limit (dash expansion)".into());
                 }
@@ -404,6 +437,7 @@ fn page_prepared_budgeted(evaluator: &mut Evaluator<'_>, index: usize, options: 
     let mut scene = Scene {
         warnings: vec![],
         ops: vec![],
+        pdf_strokes: BTreeMap::new(),
         bounds: Rect::ZERO,
         page_size: (evaluator.render_number(scope, "PageWidth")? * ratio, evaluator.render_number(scope, "PageHeight")? * ratio),
     };
@@ -450,7 +484,7 @@ pub fn master_prepared(evaluator: &mut Evaluator<'_>, index: usize, options: Opt
     evaluator.reset_evaluation();
     let document = evaluator.document;
     let m = document.masters.get(index).ok_or("master index out of range")?;
-    let mut scene = Scene { warnings: vec![], ops: vec![], bounds: Rect::ZERO, page_size: (1., 1.) };
+    let mut scene = Scene { warnings: vec![], ops: vec![], pdf_strokes: BTreeMap::new(), bounds: Rect::ZERO, page_size: (1., 1.) };
     let scope = Scope::Master(m.id);
     let ratio = evaluator.render_number(scope, "PageScale")? / evaluator.render_number(scope, "DrawingScale")?.max(1e-12);
     shapes(evaluator, &m.shapes, scope, &m.part, Affine::scale(ratio), options, &mut scene, 0, &mut SceneBudget::default())?;
@@ -545,6 +579,22 @@ pub(crate) fn stroke_path(path: &BezPath, stroke: &kurbo::Stroke, view: Affine, 
     let path = view * path;
     kurbo::stroke(path.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-4)
 }
+/// Physical PDF pen, observed in field/pdf-strokes-2026-10-31 (Visio 2021).
+/// Single pens have a positive minimum; double outlines use their own native
+/// subminimum cap envelope. Native malformed subminimum double bands remain
+/// documented separately rather than being described as matching geometry.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/compoundtype-cell-line-format-section
+fn pdf_pen(weight: f64, compound: bool) -> f64 {
+    if weight == 0. {
+        0.375 / 72.
+    } else if compound {
+        if weight <= 0.12 / 72. { (weight * 72. / 0.06).ceil().max(1.) * 0.06 / 72. } else { weight }
+    } else {
+        weight.max(0.14 / 72.)
+    }
+}
+
 /// SVG dash lengths follow the vector pen, including the fixed zero-weight pen.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/linepattern-cell-line-format-section
 pub(crate) fn vector_stroke(stroke: &kurbo::Stroke, width: f64) -> Result<kurbo::Stroke, String> {
@@ -813,6 +863,13 @@ fn shapes(
                 for dash in &mut stroke.dash_pattern {
                     *dash *= physical_scale;
                 }
+                let pdf_weight = pdf_pen(weight, line.compound == 1);
+                if line.compound == 1 || pdf_weight != stroke.width {
+                    scene.pdf_stroke(
+                        PdfStroke { path: shaft.clone(), stroke: vector_stroke(&stroke, pdf_weight)?, compound: line.compound == 1 },
+                        budget,
+                    )?;
+                }
                 if line.compound == 1 {
                     // Double lines have a transparent central third, not a white overpaint.
                     // https://learn.microsoft.com/en-us/office/client-developer/visio/compoundtype-cell-line-format-section
@@ -906,6 +963,18 @@ fn shapes(
                                     path.bounding_box()
                                 };
                                 scene.ops.push(Op::Bounds(bounds));
+                                if arrow.stroke {
+                                    scene.pdf_stroke(
+                                        PdfStroke {
+                                            path: arrow.path.clone(),
+                                            stroke: kurbo::Stroke::new(pdf_pen(weight, false))
+                                                .with_caps(kurbo::Cap::Round)
+                                                .with_join(kurbo::Join::Round),
+                                            compound: false,
+                                        },
+                                        budget,
+                                    )?;
+                                }
                                 if let Some(svg_arrow) = svg_arrows.get(index) {
                                     scene.ops.push(Op::HairlineMarker { path, svg_path: outline(svg_arrow, 0.75 / 72.), color: line.color });
                                 } else {

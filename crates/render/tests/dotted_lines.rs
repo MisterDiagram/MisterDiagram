@@ -209,6 +209,7 @@ fn cropped_dot_pitch_tracks_fitted_geometry_through_the_last_mark() {
     path.move_to((0., 2.5));
     path.line_to((5., 2.5));
     let drawing = scene::Scene {
+        pdf_strokes: Default::default(),
         warnings: vec![],
         ops: vec![scene::Op::Stroke {
             path,

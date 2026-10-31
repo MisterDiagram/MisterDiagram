@@ -75,7 +75,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/colorschemeindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/comment-cell-annotation-section> | `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/comment-cell-miscellaneous-section> | `crates/vsdx/src/evaluate/string_cells.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/compoundtype-cell-line-format-section> | `crates/render/src/style.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/compoundtype-cell-line-format-section> | `crates/render/src/scene.rs`, `crates/render/src/style.rs`, `crates/render/tests/pdf_strokes.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/confixedcode-cell-shape-layout-section> | `crates/engine/tests/route_scope.rs`, `crates/route/src/fixed.rs`, `crates/route/src/glue_host.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/conlinejumpcode-cell-shape-layout-section> | `crates/route/src/jumps.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/conlinejumpdirx-cell-shape-layout-section> | `crates/route/src/jumps.rs` |
@@ -180,12 +180,12 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/linejumpfactorx-cell-page-layout-section> | `crates/route/src/jumps.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/linejumpfactory-cell-page-layout-section> | `crates/route/src/jumps.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/linejumpstyle-cell-page-layout-section> | `crates/route/src/jumps.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/linepattern-cell-line-format-section> | `crates/render/src/scene.rs`, `crates/render/src/style.rs`, `crates/render/tests/dotted_lines.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/linepattern-cell-line-format-section> | `crates/render/src/scene.rs`, `crates/render/src/style.rs`, `crates/render/tests/dotted_lines.rs`, `crates/render/tests/pdf_strokes.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/lineto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/route/src/fixed.rs`, `crates/vsdx/src/evaluate/path.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/linetolinex-cell-page-layout-section> | `crates/route/src/orthogonal.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/linetonodex-cell-page-layout-section> | `crates/engine/src/layout.rs`, `crates/route/src/orthogonal.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/linetonodey-cell-page-layout-section> | `crates/engine/src/layout.rs`, `crates/engine/src/layout/tree.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section> | `crates/engine/src/content.rs`, `crates/engine/tests/create_style.rs`, `crates/engine/tests/line_units.rs`, `crates/render/src/scene.rs`, `crates/render/src/style.rs`, `crates/render/tests/arrow_size.rs`, `crates/render/tests/line_weight_cache.rs`, `crates/render/tests/nominal_strokes.rs`, `crates/render/tests/svg_pdf.rs`, `tools/oracle/b25/layout-witness.ps1` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section> | `crates/engine/src/content.rs`, `crates/engine/tests/create_style.rs`, `crates/engine/tests/line_units.rs`, `crates/render/src/scene.rs`, `crates/render/src/style.rs`, `crates/render/tests/arrow_size.rs`, `crates/render/tests/line_weight_cache.rs`, `crates/render/tests/nominal_strokes.rs`, `crates/render/tests/pdf_strokes.rs`, `crates/render/tests/svg_pdf.rs`, `tools/oracle/b25/layout-witness.ps1` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/listsep-function> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/listsheetref-function> | `crates/sheet/src/functions/relationships.rs`, `crates/vsdx/src/evaluate/relationships.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/loc-function-visioshapesheet> | `crates/sheet/src/functions/points.rs` |

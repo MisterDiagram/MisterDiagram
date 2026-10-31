@@ -16,6 +16,7 @@ fn scene(body: &TextBody) -> Scene {
     )
     .unwrap();
     Scene {
+        pdf_strokes: Default::default(),
         warnings: vec![],
         ops: vec![Op::Text { layout, transform: Affine::scale_non_uniform(1. / 72., -1. / 72.) }],
         bounds: Rect::new(0., -2., 4., 0.),

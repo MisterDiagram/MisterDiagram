@@ -58,7 +58,7 @@ fn svg_shapes_connectors_and_dashes_use_nominal_width_at_every_scale() {
     }
 }
 #[test]
-fn vector_overrides_preserve_raster_and_pdf_and_compound_nominal_extents() {
+fn svg_overrides_preserve_raster_and_compound_nominal_extents() {
     for kind in ["shape", "line", "dash", "marked", "double"] {
         for weight in [0., 0.1, 0.25, 2.] {
             let o = Options { scale: 2., crop: false, ..Default::default() };
@@ -72,7 +72,6 @@ fn vector_overrides_preserve_raster_and_pdf_and_compound_nominal_extents() {
                 };
             }
             assert_eq!(raster::render(&s, o).unwrap(), raster::render(&original, o).unwrap());
-            assert_eq!(pdf::render(std::slice::from_ref(&s), o).unwrap(), pdf::render(&[original], o).unwrap());
             if kind == "double" {
                 let vector = s
                     .ops

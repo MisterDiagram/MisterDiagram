@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Thin outlines stay thin in PDF**. Shape and connector pens follow Visio's PDF minimum and zero-weight rules independently of export scale. PNG and SVG output stay unchanged.
+
 - **Drawings with stale connections can be saved**. Connections to missing or deleted shapes are removed with a warning, matching Visio. Valid connections, including those to the page sheet, are retained.
 - **Drawings with duplicate shape IDs can be saved**. The first shape is kept and later duplicates are removed with a warning, matching what Visio opens and displays. Deleted inherited members remain preserved.
 

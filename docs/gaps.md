@@ -28,21 +28,53 @@ regression tests; the saved cell value is deliberately different from the result
 lines at six weights including zero. Positive SVG pens use their nominal point
 weight regardless of export scale, including paths expanded to preserve unequal
 caps or compound outlines. Zero-weight SVG pens remain 0.75 pt. Dash lengths and
-offsets follow the SVG pen, including the zero-weight exception. PNG and PDF keep
-the existing raster pen and geometry. Separate SVG paths and widths use the
+offsets follow the SVG pen, including the zero-weight exception. PNG keeps
+the existing raster pen and geometry. PDF now uses the separately witnessed
+physical pens described below. Separate SVG paths and widths use the
 existing finite-coordinate, path-element and dash-expansion budgets; raster crop
 bounds are retained. Editable SVG crop bounds also include its visible pen.
 The 230-file SVG backend consistency check therefore rasterizes a reference scene
 using these vector pens and bounds. Its MAD limit remains 2 and no file is
 excluded. Comparing the nominal SVG directly to the deliberately floored PNG
 would reject the synthetic master/basic-rect case (0.24 pt versus 0.75 pt,
-MAD 2.566552). Actual PNG/PDF stability is checked independently; this does not
+MAD 2.566552). Actual PNG and SVG byte stability is checked independently; this does not
 change a native witness, production output, threshold or comparison population.
 
 References: [THEME](https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function),
 [THEMEVAL](https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function),
 [LineWeight](https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section),
 [LinePattern](https://learn.microsoft.com/en-us/office/client-developer/visio/linepattern-cell-line-format-section).
+
+## Physical PDF pens (M5.102, partial)
+
+Private synthetic witness `field/pdf-strokes-2026-10-31/` records Visio 2021
+PDF, 192 dpi PNG, SVG, live cells and per-shape content-stream pen measurements.
+Single shape and connector pens are 0.375 pt at zero weight; positive weights
+below 0.14 pt use 0.14 pt, and larger weights remain nominal. Pattern 2 uses
+seven/five pen units; pattern 4 adds a zero-length round dot and another
+five-unit gap. Drawing scale and nonunit group resizing do not scale the pen.
+Open marker outlines use the same minimum and zero pen, preserving nominal
+marker geometry and setbacks. Filled markers keep their nominal geometry.
+The existing 0.375 pt zero-marker outline rule is confirmed.
+
+PDF-specific strokes preserve PNG/SVG operations and logical export bounds.
+They have bounded coordinates, metadata, dash expansion and retained storage.
+Content-stream tests measure physical widths at several export scales rather
+than relying on pixels. The normal double-line envelope is nominal above
+0.12 pt and 0.375 pt at zero, with a transparent middle third.
+
+Remaining native discrepancy: subminimum double lines do not follow the
+single-line minimum. Up to 0.06 pt, native PDF collapses them to a single
+roughly 0.06 pt offset band. Above 0.06 through 0.12 pt, it emits two oversized
+strips whose individual height is 508 times the requested point weight, plus
+0.12 pt endpoint caps with round caps selected. The isolated round/butt controls
+reproduce this; at 0.1201 pt regular bands return. Our PDF uses the small native
+cap envelope with regular double geometry and does not reproduce those malformed
+strips or collapsed offset bands. Full double-line PDF parity remains open.
+Page size and cropping are outside this correction.
+
+References: [LineWeight](https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section),
+[CompoundType](https://learn.microsoft.com/en-us/office/client-developer/visio/compoundtype-cell-line-format-section).
 
 ## Text-only export bounds: open page-height gap
 

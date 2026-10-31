@@ -114,4 +114,20 @@ mod tests {
         doc.pages[0].shapes.push(misterdiagram_model::skeleton::rectangle(2, 4., 1., 2., 1., "Budget witness").unwrap());
         assert!(page_budgeted(&doc, 0, Options::default(), &mut SceneBudget::new(used)).unwrap_err().contains("memory limit"));
     }
+    #[test]
+    fn pdf_override_storage_is_charged_before_retaining_it() {
+        use super::super::{PdfStroke, Scene};
+        let mut path = kurbo::BezPath::new();
+        path.move_to((0., 0.));
+        path.line_to((2., 0.));
+        let pen = PdfStroke { path, stroke: kurbo::Stroke::new(0.14 / 72.).with_dashes(0., [0.01, 0.01]), compound: false };
+        let bytes = std::mem::size_of::<(usize, PdfStroke)>() * 4
+            + std::mem::size_of_val(pen.path.elements()) * 2
+            + pen.stroke.dash_pattern.capacity() * std::mem::size_of::<f64>();
+        let mut scene = Scene { warnings: vec![], ops: vec![], pdf_strokes: Default::default(), bounds: kurbo::Rect::ZERO, page_size: (1., 1.) };
+        assert!(scene.pdf_stroke(pen.clone(), &mut SceneBudget::new(bytes - 1)).unwrap_err().contains("memory limit"));
+        assert!(scene.pdf_strokes.is_empty());
+        scene.pdf_stroke(pen, &mut SceneBudget::new(bytes)).unwrap();
+        assert_eq!(scene.pdf_strokes.len(), 1);
+    }
 }

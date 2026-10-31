@@ -94,6 +94,7 @@ fn render_with<'a>(
         )
         .map_err(|e| e.to_string())?;
         let label = Scene {
+            pdf_strokes: Default::default(),
             ops: vec![Op::Text { layout, transform: Affine::translate((0., 24. / 96.)) * Affine::scale_non_uniform(1. / 72., -1. / 72.) }],
             bounds: Rect::new(0., 0., (cell_width - 12) as f64 / 96., 24. / 96.),
             page_size: (1., 1.),
@@ -103,6 +104,7 @@ fn render_with<'a>(
         image::imageops::overlay(&mut pixels, &img, (x + 6) as i64, (y + cell_height - 28) as i64);
         if failed {
             let error = Scene {
+                pdf_strokes: Default::default(),
                 ops: vec![Op::Path { path: Rect::new(0., 0., 1., 0.05).to_path(0.001), paint: Paint::Solid(Rgba::rgb(200, 0, 0)) }],
                 bounds: Rect::new(0., 0., 1., 0.05),
                 page_size: (1., 1.),
