@@ -1,14 +1,15 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.19
 
-- **Legacy connector arrows:** older theme formulas keep their native arrow, size,
-  weight and pattern defaults when a modern page theme is applied.
-- **Thin SVG outlines:** editable SVG keeps the specified line weight for shapes,
-  connectors, dashes and double lines. Zero-weight lines retain their native SVG pen.
+Four fixes from a tester's batch of 181 drawings
+([#87](https://github.com/MisterDiagram/MisterDiagram/issues/87)), each checked against Visio
+2021 on synthetic drawings.
 
 - **Empty lines keep their space in editable SVG** (#87). Labels retain their line positions after leading, consecutive or trailing blank paragraphs, including vertically aligned text.
 - **Subscripts and superscripts use their drawn width** (#87). Smaller runs no longer look letter-spaced or wrap a label that fits on one line. Calibri and Arial sizes and offsets follow synthetic Visio measurements.
+- **Legacy connector arrows follow Visio** (#87). Older theme formulas for arrows, arrow size, line weight and pattern keep their native defaults when a modern page theme is applied, so connectors no longer pick up the theme's arrowhead.
+- **Thin outlines stay thin in editable SVG** (#87). SVG keeps the specified line weight for shapes, connectors, dashes and double lines instead of the raster minimum. Zero-weight lines keep their native SVG pen. PNG and PDF are unchanged.
 
 ## 0.1.0-alpha.18
 

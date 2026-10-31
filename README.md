@@ -25,8 +25,8 @@ Anyone who wants a GUI on top is welcome to build one: the licence is MIT or Apa
 core is the part that has to be right. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and shares their conventions.
 
-**Download:** [MisterDiagram 0.1.0-alpha.18](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.18),
-the seventeenth alpha (arrowheads at Visio's size on every line weight, label backgrounds, clipped pictures, and font names in editable SVG that keep labels fitting), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+**Download:** [MisterDiagram 0.1.0-alpha.19](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.19),
+the eighteenth alpha (blank lines kept in editable SVG, subscripts and superscripts at their drawn width, legacy connector arrows and thin SVG outlines as Visio draws them), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -35,7 +35,7 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-10-30, 0.1.0-alpha.18)
+## What works today (2026-10-31, 0.1.0-alpha.19)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
@@ -99,31 +99,23 @@ and Webdings symbol-charset fonts, are not covered (docs/gaps.md). Where a conne
 three connectors that rerouted on the witness drawings differ from Visio's path (two take the
 other side of the obstacle, one bends elsewhere); the 28 of 29 geometry witnesses still hold.
 
-## New in 0.1.0-alpha.18
+## New in 0.1.0-alpha.19
 
-Arrowheads from a tester's drawing (#87) and the three rendering gaps of #54, each checked
-against Visio 2021 on synthetic drawings.
+Four fixes from a tester who ran 181 of their own drawings through alpha.18 (#87). Almost all
+matched Visio; these four did not. Each is checked against Visio 2021 on synthetic drawings.
 
-- Arrowheads are Visio's size on every line weight. Visio sizes an arrowhead from the line
-  weight plus a fixed amount per size setting; we scaled it with the weight alone, so arrows
-  on thin lines came out about half size and arrows on thick lines too big. All 45 types and
-  seven sizes now follow Visio, as does where the line stops behind the arrowhead, and the
-  size no longer changes with `--scale`.
-- Label backgrounds are painted. A text background (TextBkgnd), with its transparency, covers
-  the line behind the label in PNG, SVG and PDF, so connector labels read as they do in Visio.
-- Pictures follow a custom clip outline. A ClippingPath that names a geometry section clips
-  raster and EMF pictures as Visio does, even when that section is hidden. Plain image crop
-  cells already matched Visio.
-- Combining marks (accents and vowel marks stacked on a letter) sit where they belong in PDF
-  and editable SVG.
-- Editable SVG names the metric-compatible font we measured with after the document's own
-  (Carlito after Calibri, Caladea after Cambria, and so on), so a viewer without Calibri keeps
-  each label inside its background.
+- Empty lines keep their space in editable SVG. A label that starts with blank lines no longer
+  jumps up in SVG viewers. PNG and PDF were already right.
+- Subscripts and superscripts are measured at the size they are drawn. Before, the small
+  letters were spaced at full size, so the run looked letter-spaced and a label that fits in
+  Visio could wrap.
+- Connectors whose arrow cells use the older theme formulas get Visio's result, which is no
+  arrowhead, instead of the page theme's arrow.
+- Thin outlines stay thin in editable SVG. A 0.25 pt line was written at the raster minimum,
+  three times too thick. PNG and PDF output is unchanged.
 
-The arrow corpus moves toward Visio (mean distance 0.343 to 0.274). In the field set, 10
-drawings move toward Visio with the #54 fixes and 41 with the arrowheads; the one that moves
-the other way past its guard does so because Visio's export leaves out a shape we draw, while
-its arrowheads now match. Theme and hostile results are unchanged from alpha.17.
+In the corpus, 16 measured lines move toward Visio and none move away. Field, routes, theme and
+hostile results are unchanged from alpha.18; 105 SVG exports change and no PNG or PDF does.
 
 ## Testers wanted
 
