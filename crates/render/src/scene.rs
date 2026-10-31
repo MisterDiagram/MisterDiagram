@@ -377,7 +377,10 @@ pub fn page_budgeted(document: &Document, index: usize, options: Options, budget
 }
 /// Cells the evaluator could not compute and filled from the file's saved values.
 fn fallback_warnings(evaluator: &mut Evaluator<'_>, scene: &mut Scene) {
-    let (messages, count) = evaluator.take_fallback_warnings();
+    let (mut messages, mut count) = misterdiagram_vsdx::import_warnings(evaluator.document);
+    let (fallbacks, fallback_count) = evaluator.take_fallback_warnings();
+    count = count.saturating_add(fallback_count);
+    messages.extend(fallbacks.into_iter().take(100usize.saturating_sub(messages.len())));
     let shown = messages.len();
     scene.warnings.extend(messages);
     if count > shown {
@@ -627,7 +630,7 @@ fn shapes(
     for shape in items {
         // Deleted inherited shapes are tombstones, not painting instructions.
         // https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
-        if shape.sheet.attributes.get("Del").is_some_and(|d| d == "1") {
+        if shape.sheet.attributes.get("Del").is_some_and(|d| d == "1" || d == "true") {
             continue;
         }
         // Guides are view-only: Visio's page export omits them (private corpus
@@ -644,8 +647,9 @@ fn shapes(
             Scope::Master(master) => Scope::MasterShape { master, shape: shape.id },
             _ => return Err("invalid shape scope".into()),
         };
-        // Duplicate IDs retain the first source occurrence, as in the native imported drawing.
-        if e.shape(scope).is_some_and(|indexed| !std::ptr::eq(indexed, shape)) {
+        // Native field/duplicate-ids-2026-10-31 keeps the first depth-first occurrence.
+        // Imported trees are repaired already; caller-built models use the same display rule.
+        if !e.shape(scope).is_some_and(|indexed| std::ptr::eq(indexed, shape)) {
             continue;
         }
         if !visible(e, scope, parent, options.print) {

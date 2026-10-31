@@ -16,7 +16,9 @@ const REL_NS: &str = "http://schemas.openxmlformats.org/package/2006/relationshi
 const ATTR_REL_NS: &str = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 const VIS_REL: &str = "http://schemas.microsoft.com/visio/2010/relationships/";
 mod cache;
+mod repair;
 pub use cache::shared_content_nodes;
+pub use repair::import_warnings;
 mod limits;
 
 /// Shared logical-node admission limit, authorized by Charles on 2026-10-16.
@@ -480,7 +482,10 @@ fn parsed_contents(p: &ReadPackage, name: &str, root: &XmlElement) -> Result<cac
     if let Some(contents) = cached.and_then(|c| c.contents.get()) {
         return Ok(contents.clone());
     }
-    let contents = (shapes(root, 0)?.into(), connects(root)?.into());
+    let mut shapes = shapes(root, 0)?;
+    let mut connects = connects(root)?;
+    let repairs = repair::normalize(&mut shapes, &mut connects)?;
+    let contents = (shapes.into(), connects.into(), repairs);
     if let Some(cached) = cached {
         let _ = cached.contents.set(contents.clone());
     }
@@ -761,7 +766,7 @@ fn parse_pages(
         if !content.is_visio("PageContents") {
             return Err(bad("invalid PageContents root"));
         }
-        let (shapes, connects) = parsed_contents(p, &target, &content)?;
+        let (shapes, connects, _) = parsed_contents(p, &target, &content)?;
         d.pages.push(Page {
             id: required_u32(e, "ID")?,
             name: string(e, "Name"),
@@ -806,7 +811,7 @@ fn parse_masters(
             if !content.is_visio("MasterContents") {
                 return Err(bad("invalid MasterContents root"));
             }
-            let (shapes, connects) = parsed_contents(p, &target, &content)?;
+            let (shapes, connects, _) = parsed_contents(p, &target, &content)?;
             d.masters.push(Master {
                 id: required_u32(e, "ID")?,
                 name: string(e, "Name"),

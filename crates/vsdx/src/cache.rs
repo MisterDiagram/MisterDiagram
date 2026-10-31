@@ -2,7 +2,7 @@
 use misterdiagram_model::{Connect, Part, Shape, Shared, XmlElement};
 use std::sync::OnceLock;
 
-pub(crate) type Contents = (Shared<Vec<Shape>>, Shared<Vec<Connect>>);
+pub(crate) type Contents = (Shared<Vec<Shape>>, Shared<Vec<Connect>>, crate::repair::Repairs);
 pub(crate) struct CachedXml {
     pub owner: String,
     pub bytes: Shared<Vec<u8>>,

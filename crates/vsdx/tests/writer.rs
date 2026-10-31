@@ -841,18 +841,7 @@ fn background_page_link_and_last_page_removal_are_complete() {
     assert!(!a.parts["visio/pages/pages.xml"].relationships.iter().any(|r| r.type_uri.ends_with("/page")));
 }
 #[test]
-fn connect_to_missing_page_or_master_shape_is_rejected() {
-    let mut d = skeleton::document(false);
-    d.pages[0].shapes.push(skeleton::rectangle(1, 0., 0., 1., 1., "").unwrap());
-    d.pages[0].connects.push(misterdiagram_model::Connect { from_sheet: 1, to_sheet: 99, ..Default::default() });
-    assert!(write(&d).expect_err("missing page target").to_string().contains("Connect references missing sheet"));
-    d.pages[0].connects.clear();
-    d.masters[0].connects.push(misterdiagram_model::Connect { from_sheet: 5, to_sheet: 99, ..Default::default() });
-    assert!(write(&d).expect_err("missing master target").to_string().contains("Connect references missing sheet"));
-}
-
-#[test]
-fn connect_to_enclosing_page_sheet_is_valid_but_deleted_shape_is_not() {
+fn connect_to_enclosing_page_sheet_is_valid_and_deleted_shape_connect_is_repaired() {
     let mut d = skeleton::document(false);
     d.pages[0].shapes.push(skeleton::rectangle(1, 0., 0., 1., 1., "").unwrap());
     d.pages[0].connects.push(misterdiagram_model::Connect {
@@ -865,7 +854,9 @@ fn connect_to_enclosing_page_sheet_is_valid_but_deleted_shape_is_not() {
     let a = import(&write(&d).unwrap().bytes).unwrap();
     assert_eq!(a.pages[0].connects[0].to_sheet, 0);
     d.pages[0].shapes[0].sheet.attributes.insert("Del".into(), "1".into());
-    assert!(write(&d).is_err());
+    let repaired = write(&d).unwrap();
+    assert!(import(&repaired.bytes).unwrap().pages[0].connects.is_empty());
+    assert_eq!(repaired.warnings.iter().filter(|w| w.contains("dropped Connect")).count(), 1);
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../corpus");
     if !root.exists() {
         eprintln!("skip: private corpus/ is absent");

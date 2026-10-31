@@ -706,8 +706,8 @@ contract, not an exclusion.
 
 M3.2 writer witnesses: `ASSOCIATIONS_UML_CLASS_M.vstx`, page 1, group 242,
 contains two deleted inherited members with the sentinel ID 4294967295 and
-MasterShape 7 and 9. Preserve both tombstones; ordinary duplicate shape IDs
-remain invalid. `AWSANALYTICS_M.vssx` has a root thumbnail relationship to
+MasterShape 7 and 9. Preserve both tombstones. The M5.100 native import repair below supersedes
+the former rejection of ordinary duplicate shape IDs. `AWSANALYTICS_M.vssx` has a root thumbnail relationship to
 `docProps/thumbnail.emf` without that part. The writer omits this dangling
 optional relationship, reports it, and fabricates no preview. Host tests cover
 both cases. `BASIC_U.vssx` also carries a PageSheet-only page entry without
@@ -1666,7 +1666,8 @@ M3.15 background and unit witnesses: a foreground BackPage carries a relationshi
 its background content part. Visio's saved scratch metric drawing adds page2.xml.rels
 with target page1.xml. The skeleton now creates background-first page order and the
 observed page view defaults. Removing pages or their background links removes obsolete
-relationships; cycles and Connects to missing live sheets fail before serialization.
+relationships; background cycles still fail before serialization. M5.100 replaces
+the former rejection of Connects to missing live sheets with a reported import repair.
 Sheet 0 remains a valid enclosing PageSheet target (BLOCKP_M master 2, User.VPX).
 Metric document/style formatting defaults without explicit U resolve using drawing units:
 the scratch metric COM dump reports millimetres (70), while SOCIAL_DISTANCING_M uses
@@ -17299,3 +17300,59 @@ legacy THEME unthemed line/connector weight of 0.25 pt, distinct from the
 the function without specifying this no-theme numeric default. Original
 formula tests retain THEMEVAL behavior and deliberately use an unrelated
 saved cache to verify that the result is computed.
+
+
+### M5.100: native repair of dangling Connects and repeated shape IDs
+
+Synthetic witnesses `field/dangling-connects-2026-10-31/` and
+`field/duplicate-ids-2026-10-31/` record Visio 2021 build 20527 live COM inventories,
+192 dpi PNGs before and after saving, and saved XML. These are observed import
+rules, beyond the public [Connect](https://learn.microsoft.com/en-us/office/client-developer/visio/connect-element-connects_type-complextypevisio-xml)
+and [Shape](https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml)
+attribute definitions.
+
+On opening page or master contents, Visio discards Connect rows with missing
+FromSheet, ToSheet or both, and rows naming deleted members. Existing valid
+rows survive. A synthetic Controls.Probe dependency on Sheet 0 User.AnchorX
+survives in both scopes: 0 names the enclosing PageSheet. Adding dangling rows
+to the same drawing changes no rendered pixels. The initial probe's arbitrary
+2D BeginX record was also discarded, so it is not used as the valid control;
+the native-glue extra matrix supplies that control. Native additionally rebuilds
+some formula-derived connections when their row is absent. This change only
+removes dangling records; it does not invent new connections or validate cells.
+Engine static and dynamic authoring still reject missing source or target shapes.
+
+Repeated ordinary shape IDs retain the first depth-first document-order
+occurrence, without renumbering. Later occurrences and their entire subtrees
+are absent from live COM and the pre-save PNG. This holds for top-level shapes,
+group children, opposite nesting orders, siblings and masters. Existing Connects
+to that ID refer to the survivor. Deleted inherited members with ID 4294967295
+and distinct MasterShape identities remain serialized tombstones, as shown by
+the original inherited-member control and the existing M3.2 witness.
+
+The additive native-deleted-duplicates controls refine ID ownership: a deleted
+shape reserves its own ID, so a later live duplicate is absent, but descendants
+of a deleted parent do not reserve live IDs. A later top-level shape sharing a
+hidden child ID survives. Reader repair, caller-built evaluation and writer
+source lookup use this same namespace; hidden descendant metadata is retained.
+Native removes the non-inherited deleted owners in this supplement when saving.
+General deletion-metadata normalization is separate from duplicate repair and
+is not implemented here; the active shape inventory and display agree.
+
+The reader repairs its typed contents while retaining immutable original bytes.
+The writer applies the same policy to caller-built models and emits scoped
+repair messages through Written.warnings and warning_count. Import messages
+are also available through import_warnings and drawing diagnostics. At most
+100 messages are retained; the total counts every discarded record. Reopening
+a cleaned save clears its repair warnings. Source-cache and byte-preservation
+paths cannot restore a discarded occurrence. Original input count, depth, XML,
+cell and byte limits are checked before repairs; 100,000-shape and depth-128
+writer limits remain refusals rather than normalization opportunities.
+
+The nine named OSS writer refusals are exercised by the optional private corpus
+regression. Page identity comparisons use Page ID because Visio may reorder
+background pages and renumber physical parts. Shape inventory comparisons use
+ID, universal NameU and nesting. RefreshMilestone's native save also normalizes
+localized Name attributes on inherited children; this unrelated metadata
+normalization is not applied here. The raw Name differences remain disclosed in
+the private report. No third-party document bytes are included in public tests.

@@ -499,7 +499,14 @@ impl<'a> Evaluator<'a> {
         let scopes = Bound::new("scope cap", MAX_SCOPES, "scopes", "registering shape scopes");
         scopes.check(shapes.len())?;
         let mut pending: Vec<_> = shapes.iter().rev().map(|s| (s, 0usize, parent)).collect();
+        let mut seen = BTreeSet::new();
         while let Some((shape, depth, shape_parent)) = pending.pop() {
+            // Deleted owners still reserve their own ID, but not their descendants.
+            // Native: field/duplicate-ids-2026-10-31/native-deleted-duplicates.
+            scopes.next(seen.len())?;
+            if !crate::repair::first(shape, &mut seen) {
+                continue;
+            }
             // Deleted master-child markers have no live sheet identity. Visio may repeat
             // ID=4294967295 for several such markers in a single page.
             if shape.sheet.attributes.get("Del").is_some_and(|v| v == "1" || v == "true") {

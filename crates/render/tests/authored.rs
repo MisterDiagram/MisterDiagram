@@ -52,3 +52,68 @@ fn metric_default_units_come_from_evaluator() {
         assert_eq!(e.default_unit_code(scope, "Width", &Cell { units: Some("IN".into()), ..Default::default() }, 65), 65);
     }
 }
+
+/// Native open drops later duplicates, including an entire duplicate group subtree.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
+#[test]
+fn duplicate_shapes_render_as_the_first_occurrence_before_and_after_save() {
+    let mut d = skeleton::document(false);
+    d.pages[0].shapes.push(skeleton::rectangle(5, 1., 1., 1., 1., "").unwrap());
+    let options = scene::Options { visio_export: true, ..Default::default() };
+    let expected = raster::render(&scene::page(&d, 0, options).unwrap(), options).unwrap();
+    let mut loser = skeleton::rectangle(5, 5., 5., 2., 2., "").unwrap();
+    loser.shape_type = Some("Group".into());
+    loser.shapes.push(skeleton::rectangle(6, 3., 3., 1., 1., "").unwrap());
+    d.pages[0].shapes.push(loser);
+    let actual = raster::render(&scene::page(&d, 0, options).unwrap(), options).unwrap();
+    assert_eq!(actual, expected);
+    let written = misterdiagram_vsdx::write(&d).unwrap();
+    assert!(written.warnings.iter().any(|w| w.contains("page 0") && w.contains("shape ID 5")));
+    let clean = misterdiagram_vsdx::import(&written.bytes).unwrap();
+    assert_eq!(raster::render(&scene::page(&clean, 0, options).unwrap(), options).unwrap(), expected);
+}
+#[test]
+fn deleted_members_and_their_descendants_never_draw_for_either_boolean_spelling() {
+    let mut d = skeleton::document(false);
+    d.pages[0].shapes.push(skeleton::rectangle(5, 1., 1., 1., 1., "").unwrap());
+    let options = scene::Options { visio_export: true, ..Default::default() };
+    let expected = raster::render(&scene::page(&d, 0, options).unwrap(), options).unwrap();
+    for value in ["1", "true"] {
+        let mut deleted = skeleton::rectangle(6, 5., 5., 2., 2., "").unwrap();
+        deleted.shape_type = Some("Group".into());
+        deleted.sheet.attributes.insert("Del".into(), value.into());
+        deleted.shapes.push(skeleton::rectangle(7, 3., 3., 1., 1., "").unwrap());
+        d.pages[0].shapes.push(deleted);
+        assert_eq!(raster::render(&scene::page(&d, 0, options).unwrap(), options).unwrap(), expected);
+        d.pages[0].shapes.pop();
+    }
+}
+/// field/duplicate-ids-2026-10-31/native-deleted-duplicates.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
+#[test]
+fn deleted_duplicate_ownership_renders_consistently_before_and_after_save() {
+    // Fixed page bounds isolate visible content from empty-export crop policy.
+    let options = scene::Options::default();
+    for parent in [false, true] {
+        for deleted_first in [false, true] {
+            let mut d = skeleton::document(false);
+            let live = skeleton::rectangle(5, 6., 1., 2., 1., "").unwrap();
+            let mut expected = d.clone();
+            if parent || !deleted_first {
+                expected.pages[0].shapes.push(live.clone());
+            }
+            let expected = raster::render(&scene::page(&expected, 0, options).unwrap(), options).unwrap();
+            let mut dead = skeleton::rectangle(if parent { 20 } else { 5 }, 1., 1., 1., 1., "").unwrap();
+            dead.sheet.attributes.insert("Del".into(), "true".into());
+            if parent {
+                dead.shape_type = Some("Group".into());
+                dead.shapes.push(skeleton::rectangle(5, 1., 1., 1., 1., "").unwrap());
+            }
+            d.pages[0].shapes = if deleted_first { vec![dead, live] } else { vec![live, dead] }.into();
+            let actual = raster::render(&scene::page(&d, 0, options).unwrap(), options).unwrap();
+            assert!(actual == expected, "parent={parent} first={deleted_first}");
+            let clean = misterdiagram_vsdx::import(&misterdiagram_vsdx::write(&d).unwrap().bytes).unwrap();
+            assert!(raster::render(&scene::page(&clean, 0, options).unwrap(), options).unwrap() == expected);
+        }
+    }
+}

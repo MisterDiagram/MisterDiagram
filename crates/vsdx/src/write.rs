@@ -93,7 +93,8 @@ fn build_parts_with_glue_host<'a>(
 }
 fn build_parts_with_evaluator<'a>(doc: &'a Document, evaluator: Evaluator<'a>) -> Result<WrittenParts, WriteError> {
     let source_state = source::SourceState::new(doc, &evaluator)?;
-    let mut w = model::Writer { evaluator, source_state, warnings: vec![], warning_count: 0 };
+    let (warnings, warning_count) = crate::import_warnings(doc);
+    let mut w = model::Writer { evaluator, source_state, warnings, warning_count };
     let mut parts = doc.parts.clone();
     if let Some(p) = parts.get_mut("docProps/app.xml").filter(|p| p.bytes.is_empty())
         && let Some(app) = &mut p.xml

@@ -164,6 +164,17 @@ fn preserve_utf8(old: &XmlElement, new: &XmlElement, source: &[u8], rendered: Ve
     if super::xml::tree(old)? == source {
         return Ok(rendered);
     }
+    let mut seen = std::collections::BTreeSet::new();
+    let mut pending = vec![old];
+    while let Some(node) = pending.pop() {
+        if node.is_visio("Shape")
+            && let Some(id) = node.attr("ID").and_then(|s| s.parse::<u32>().ok())
+            && !seen.insert(id)
+        {
+            return Ok(rendered);
+        }
+        pending.extend(node.elements());
+    }
     let old_shapes = shapes(old)?;
     let new_shapes = shapes(new)?;
     let same = new_shapes.iter().filter_map(|(id, shape)| (old_shapes.get(id) == Some(shape)).then_some(*id)).collect::<Vec<_>>();

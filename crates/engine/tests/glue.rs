@@ -230,3 +230,70 @@ fn parallel_row_connectors_keep_horizontal_routes_in_either_order() {
         }
     }
 }
+
+/// File repair never authorizes an editor command to create dangling topology.
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.cell.glueto
+#[test]
+fn static_and_dynamic_authoring_refuse_missing_sheets_atomically() {
+    for command in ["connect.static", "connect.dynamic"] {
+        let mut s = Session::new();
+        run(&mut s, "shape.draw.rect", json!({"x":1,"y":1,"width":2,"height":2}));
+        run(&mut s, "master.drop", json!({"master":2,"x":4,"y":2}));
+        let before = s.document().clone();
+        let selection = s.selection().clone();
+        let journal_of = |s: &Session| s.journal().iter().map(|e| (e.command.clone(), e.params.clone())).collect::<Vec<_>>();
+        let journal = journal_of(&s);
+        for params in
+            [json!({"id":2,"target":99,"end":"begin","point":"Connections.X1"}), json!({"id":99,"target":1,"end":"begin","point":"Connections.X1"})]
+        {
+            assert!(s.execute(command, &params).is_err(), "{command}");
+            assert_eq!(s.document(), &before);
+            assert_eq!(s.selection(), &selection);
+            assert_eq!(journal_of(&s), journal);
+        }
+        run(&mut s, "edit.undo", json!({}));
+        assert_eq!(s.document().pages[0].shapes.len(), 1);
+        run(&mut s, "edit.redo", json!({}));
+        assert_eq!(s.document(), &before);
+    }
+}
+#[test]
+fn engine_save_reports_import_repairs_and_reopens_cleanly() {
+    use misterdiagram_model::{Connect, skeleton};
+    use std::io::{Cursor, Read, Write};
+    let mut doc = skeleton::document(false);
+    for id in [5, 6] {
+        doc.pages[0].shapes.push(skeleton::rectangle(id, id as f64, 1., 1., 1., "").unwrap());
+    }
+    doc.pages[0].connects.push(Connect { from_sheet: 5, to_sheet: 6, ..Default::default() });
+    let pristine = misterdiagram_vsdx::write(&doc).unwrap().bytes;
+    let mut source = zip::ZipArchive::new(Cursor::new(pristine)).unwrap();
+    let mut archive = zip::ZipWriter::new(Cursor::new(Vec::new()));
+    for i in 0..source.len() {
+        let mut part = source.by_index(i).unwrap();
+        let mut bytes = vec![];
+        part.read_to_end(&mut bytes).unwrap();
+        if part.name() == "visio/pages/page1.xml" {
+            bytes = String::from_utf8(bytes).unwrap().replace("ID=\"6\"", "ID=\"5\"").replace("ToSheet=\"6\"", "ToSheet=\"99\"").into_bytes();
+        }
+        archive.start_file(part.name(), zip::write::SimpleFileOptions::default()).unwrap();
+        archive.write_all(&bytes).unwrap();
+    }
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(format!("../../target/debug/messy-save-{}", std::process::id()));
+    std::fs::create_dir_all(&root).unwrap();
+    let input = root.join("input.vsdx");
+    let output = root.join("saved.vsdx");
+    std::fs::write(&input, archive.finish().unwrap().into_inner()).unwrap();
+    let mut s = Session::new();
+    run(&mut s, "file.open", json!({"path":input}));
+    assert_eq!(s.document().pages[0].shapes.len(), 1);
+    assert!(s.document().pages[0].connects.is_empty());
+    let response = run(&mut s, "file.save", json!({"path":output}));
+    assert_eq!(response["warning_count"], 2);
+    let mut reopened = Session::new();
+    run(&mut reopened, "file.open", json!({"path":output}));
+    assert_eq!(reopened.document().pages[0].shapes.len(), 1);
+    assert!(reopened.document().pages[0].connects.is_empty());
+    assert_eq!(misterdiagram_vsdx::import_warnings(reopened.document()), (vec![], 0));
+    std::fs::remove_dir_all(root).unwrap();
+}

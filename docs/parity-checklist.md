@@ -418,3 +418,9 @@ M5.98 progress: synthetic legacy THEME line defaults and nominal editable SVG
 strokes now have native witnesses and regressions, including zero/dashed/double
 pens. THEMEVAL remains unchanged. The independent text-only page crop extent is
 still open in gaps.md. Existing partial parity rows and denominators are unchanged.
+
+M5.100 progress: synthetic native page/master witnesses pin dangling-Connect
+repair and first-occurrence duplicate shape IDs on import, including group
+subtrees, Sheet 0 and inherited tombstones. Saved output preserves the same
+identity and topology. Warning and hostile-limit regressions are portable.
+Existing partial format/render rows, score and denominators remain unchanged.

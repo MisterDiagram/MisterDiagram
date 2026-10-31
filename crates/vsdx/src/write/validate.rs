@@ -120,16 +120,11 @@ impl Budget {
             return Err(error("shape count limit"));
         }
         let mut stack: Vec<_> = shapes.iter().map(|s| (s, 0usize)).collect();
-        let mut ids = BTreeSet::new();
         let mut count = 0usize;
         while let Some((s, depth)) = stack.pop() {
             count += 1;
-            // The UML witness uses repeated UINT_MAX IDs for deleted inherited members.
-            // Their MasterShape, not the sentinel ID, identifies the tombstone.
-            let deleted_member =
-                s.id == u32::MAX && s.master_shape.is_some() && s.sheet.attributes.get("Del").is_some_and(|v| v == "1" || v == "true");
-            if depth > 128 || count > 100_000 || (!deleted_member && !ids.insert(s.id)) {
-                return Err(error("shape IDs or nesting limit"));
+            if depth > 128 || count > 100_000 {
+                return Err(error("shape count or nesting limit"));
             }
             self.string(&s.name)?;
             self.string(&s.name_u)?;
@@ -222,7 +217,6 @@ pub(crate) fn document(d: &Document) -> Result<(), WriteError> {
         b.connects(&p.connects)?;
         b.sheet(&p.sheet)?;
         b.shapes(&p.shapes)?;
-        connect_targets(&p.connects, &p.shapes)?;
     }
     background_chains(d)?;
     let mut ids = BTreeSet::new();
@@ -242,7 +236,6 @@ pub(crate) fn document(d: &Document) -> Result<(), WriteError> {
         b.connects(&m.connects)?;
         b.sheet(&m.sheet)?;
         b.shapes(&m.shapes)?;
-        connect_targets(&m.connects, &m.shapes)?;
         master_ids(d, m)?;
         if let Some(i) = &m.icon {
             b.xml(i)?;
@@ -356,26 +349,6 @@ fn master_ids(d: &Document, m: &Master) -> Result<(), WriteError> {
             return Err(error(format!("master {} content shape ID {} must start at 5", m.id, shape.id)));
         }
         pending.extend(&shape.shapes);
-    }
-    Ok(())
-}
-
-/// Connect endpoints must name existing shapes in their page or master contents.
-/// https://learn.microsoft.com/en-us/office/client-developer/visio/connect-element-connects_type-complextypevisio-xml
-fn connect_targets(connects: &[Connect], shapes: &[Shape]) -> Result<(), WriteError> {
-    // Sheet 0 is the enclosing PageSheet, not a missing drawing shape.
-    // Witness: BLOCKP_M.vssx master2.xml, Controls.Row_1 -> Sheet.0!User.VPX.
-    let mut ids = BTreeSet::from([0]);
-    let mut pending: Vec<_> = shapes.iter().collect();
-    while let Some(shape) = pending.pop() {
-        if shape.sheet.attributes.get("Del").is_some_and(|v| v == "1" || v == "true") {
-            continue;
-        }
-        ids.insert(shape.id);
-        pending.extend(&shape.shapes);
-    }
-    if connects.iter().any(|c| !ids.contains(&c.from_sheet) || !ids.contains(&c.to_sheet)) {
-        return Err(error("Connect references missing sheet"));
     }
     Ok(())
 }

@@ -59,18 +59,33 @@ impl SourceState {
                 sheets.insert(parent, sheet);
             }
             if let Some(root) = source(doc, path).filter(|_| doc.parts.get(path).is_some_and(|p| !p.bytes.is_empty())) {
-                let mut pending = vec![(root, parent)];
-                while let Some((e, owner)) = pending.pop() {
-                    if let Some(shapes) = e.child("Shapes") {
-                        for s in shapes.elements().filter(|s| s.is_visio("Shape")) {
-                            let Some(shape) = s.attr("ID").and_then(|n| n.parse().ok()) else { continue };
-                            let scope = if kind { Scope::MasterShape { master: id, shape } } else { Scope::PageShape { page: id, shape } };
-                            sheets.insert(scope, s);
-                            if evaluator.source_parent(scope) != Some(owner) {
-                                contexts.insert(scope);
-                            }
-                            pending.push((s, scope));
-                        }
+                let mut pending = Vec::new();
+                let mut seen = BTreeSet::new();
+                if let Some(shapes) = root.child("Shapes") {
+                    pending.extend(shapes.children.iter().rev().filter_map(|n| match n {
+                        XmlNode::Element(e) if e.is_visio("Shape") => Some((e, parent)),
+                        _ => None,
+                    }));
+                }
+                while let Some((s, owner)) = pending.pop() {
+                    let Some(shape) = s.attr("ID").and_then(|n| n.parse().ok()) else { continue };
+                    if !seen.insert(shape) {
+                        continue;
+                    }
+                    let scope = if kind { Scope::MasterShape { master: id, shape } } else { Scope::PageShape { page: id, shape } };
+                    sheets.insert(scope, s);
+                    if evaluator.source_parent(scope) != Some(owner) {
+                        contexts.insert(scope);
+                    }
+                    // Hidden descendants cannot shadow later live source sheets.
+                    if s.attr("Del").is_some_and(|v| v == "1" || v == "true") {
+                        continue;
+                    }
+                    if let Some(shapes) = s.child("Shapes") {
+                        pending.extend(shapes.children.iter().rev().filter_map(|n| match n {
+                            XmlNode::Element(e) if e.is_visio("Shape") => Some((e, scope)),
+                            _ => None,
+                        }));
                     }
                 }
             }

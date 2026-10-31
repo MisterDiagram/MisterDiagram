@@ -1,5 +1,15 @@
 # Gaps
 
+## Native package repair (M5.100)
+
+Dangling Connects and ordinary duplicate shape IDs are repaired on import and
+save according to synthetic Visio witnesses, with bounded scoped warnings.
+Engine authoring still refuses missing endpoints, resource caps remain errors,
+and inherited UINT_MAX tombstones remain intact. The rule, source references,
+witness paths and remaining localized-name normalization difference are in
+[file-format-parity.md](file-format-parity.md#m5100-native-repair-of-dangling-connects-and-repeated-shape-ids).
+Broader format and rendering parity remains partial.
+
 ## Legacy theme line defaults and nominal SVG pens (M5.98)
 
 The original synthetic witness `field/legacy-theme-2026-10-30/` covers ordinary

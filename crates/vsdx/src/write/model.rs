@@ -42,6 +42,17 @@ fn base(old: Option<&XmlElement>, name: &str) -> XmlElement {
     old.cloned().unwrap_or_else(|| node(name))
 }
 impl Writer<'_> {
+    fn repair_warning(&mut self, scope: Scope, repair: crate::repair::Repair) {
+        self.warning_count = self.warning_count.saturating_add(1);
+        if self.warnings.len() < 100 {
+            let label = match scope {
+                Scope::Page(id) => format!("page {id}"),
+                Scope::Master(id) => format!("master {id}"),
+                _ => format!("{scope:?}"),
+            };
+            self.warnings.push(format!("{label}: {repair}"));
+        }
+    }
     fn warn(&mut self, scope: Scope, name: &str, message: impl std::fmt::Display) {
         self.warning_count = self.warning_count.saturating_add(1);
         if self.warnings.len() < 100 {
@@ -236,12 +247,24 @@ impl Writer<'_> {
     }
     /// Shapes retain their own overrides, Text run markers, foreign data and child order.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
-    pub(super) fn shapes(&mut self, shapes: &[Shape], parent: Scope, old: Option<&XmlElement>, depth: usize) -> Result<Vec<XmlElement>, WriteError> {
+    pub(super) fn shapes(
+        &mut self,
+        shapes: &[Shape],
+        parent: Scope,
+        old: Option<&XmlElement>,
+        depth: usize,
+        seen: &mut BTreeSet<u32>,
+        active: bool,
+    ) -> Result<Vec<XmlElement>, WriteError> {
         if depth > 128 {
             return Err(error("shape nesting cap"));
         }
         let mut out = vec![];
         for s in shapes {
+            if active && !crate::repair::first(s, seen) {
+                self.repair_warning(parent, crate::repair::Repair::Duplicate(s.id));
+                continue;
+            }
             let scope = match parent {
                 Scope::Page(p) => Scope::PageShape { page: p, shape: s.id },
                 Scope::Master(m) => Scope::MasterShape { master: m, shape: s.id },
@@ -272,7 +295,8 @@ impl Writer<'_> {
             }
             replace(&mut e, "Text", s.text.clone().into_iter().collect());
             replace(&mut e, "ForeignData", s.foreign_data.clone().into_iter().collect());
-            let children = self.shapes(&s.shapes, parent, old.and_then(|e| e.child("Shapes")), depth + 1)?;
+            let children =
+                self.shapes(&s.shapes, parent, old.and_then(|e| e.child("Shapes")), depth + 1, seen, active && !crate::repair::deleted(s))?;
             if !children.is_empty() {
                 let mut container = base(old.and_then(|e| e.child("Shapes")), "Shapes");
                 replace(&mut container, "Shape", children);
@@ -295,7 +319,7 @@ impl Writer<'_> {
         old: Option<&XmlElement>,
     ) -> Result<XmlElement, WriteError> {
         let mut e = base(old, name);
-        let nodes = self.shapes(shapes, scope, old.and_then(|e| e.child("Shapes")), 0)?;
+        let nodes = self.shapes(shapes, scope, old.and_then(|e| e.child("Shapes")), 0, &mut BTreeSet::new(), true)?;
         let mut container = base(old.and_then(|e| e.child("Shapes")), "Shapes");
         replace(&mut container, "Shape", nodes);
         if !shapes.is_empty() || old.is_some_and(|e| e.child("Shapes").is_some()) {
@@ -303,7 +327,12 @@ impl Writer<'_> {
         }
         let mut container = base(old.and_then(|e| e.child("Connects")), "Connects");
         let mut nodes = vec![];
+        let ids = crate::repair::active_ids(shapes);
         for c in connects {
+            if !ids.contains(&c.from_sheet) || !ids.contains(&c.to_sheet) {
+                self.repair_warning(scope, crate::repair::Repair::Dangling { from: c.from_sheet, to: c.to_sheet });
+                continue;
+            }
             let mut e = node("Connect");
             e.attributes = c.attributes.clone().into_iter().collect();
             for (k, v) in [

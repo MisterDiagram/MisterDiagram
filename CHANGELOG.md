@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- **Drawings with stale connections can be saved**. Connections to missing or deleted shapes are removed with a warning, matching Visio. Valid connections, including those to the page sheet, are retained.
+- **Drawings with duplicate shape IDs can be saved**. The first shape is kept and later duplicates are removed with a warning, matching what Visio opens and displays. Deleted inherited members remain preserved.
+
 ## 0.1.0-alpha.19
 
 Four fixes from a tester's batch of 181 drawings
