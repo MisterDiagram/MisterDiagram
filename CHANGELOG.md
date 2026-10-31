@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.21
+
+Exports come out the size Visio's do
+([#87](https://github.com/MisterDiagram/MisterDiagram/issues/87)). Each fix is checked against
+Visio 2021 on synthetic drawings.
 
 - **SVG and PDF keep the drawing page size** (#87). Exports preserve physical page coordinates and page backgrounds, with one PDF page per foreground page. SVG remains transparent and retains off-page content.
 - **Text-only PNG exports have tighter bounds** (#87). Occupied text controls the crop without an extra full line of space below labels or empty trailing lines.
