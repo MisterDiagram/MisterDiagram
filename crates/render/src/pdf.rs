@@ -51,9 +51,21 @@ pub fn render(scenes: &[Scene], options: Options) -> Result<Vec<u8>, String> {
     let mut pdf = krilla::Document::new();
     let mut fonts: HashMap<u32, Font> = HashMap::new();
     for scene in scenes {
-        let (w, h, pixel_view) = scene.canvas(options)?;
+        let (width, height, pixel_view) = if options.page_canvas {
+            let (_, _, view) = scene.page_canvas(options)?;
+            // The native 2021 fixed-format exporter truncates the page to its
+            // 192-device-unit grid. Raster resolution settings do not alter it.
+            // field/export-canvas-2026-10-31/native-fractional and native-pdf-resolution.
+            // https://learn.microsoft.com/en-us/office/vba/api/visio.document.exportasfixedformat
+            let extent = |inches: f64| (inches * 192. + 1e-9).floor() * (72. / 192.);
+            (extent(scene.page_size.0), extent(scene.page_size.1), view)
+        } else {
+            let (w, h, view) = scene.canvas(options)?;
+            (f64::from(w) * 0.75 / options.scale, f64::from(h) * 0.75 / options.scale, view)
+        };
+        let pattern_view = if options.page_canvas { scene.canvas(options)?.2 } else { pixel_view };
         let view = Affine::scale(72. / (96. * options.scale)) * pixel_view;
-        let size = Size::from_wh(f32::from(w) * 0.75 / options.scale as f32, f32::from(h) * 0.75 / options.scale as f32).ok_or("PDF page size")?;
+        let size = Size::from_wh(width as f32, height as f32).ok_or("PDF page size")?;
         let mut page = pdf.start_page_with(krilla::page::PageSettings::new(size));
         let mut surface = page.surface();
         for (index, op) in scene.ops.iter().enumerate() {
@@ -98,9 +110,14 @@ pub fn render(scenes: &[Scene], options: Options) -> Result<Vec<u8>, String> {
                                 surface.draw_path(&path);
                             }
                             _ => {
-                                let (pixels, m) = crate::raster::pattern(paint, pixel_view, p)?;
+                                let (pixels, m) = crate::raster::pattern(paint, pattern_view, p)?;
                                 surface.push_clip_path(&path, &FillRule::NonZero);
-                                image(&mut surface, &pixels, Affine::scale(72. / (96. * options.scale)) * m)?;
+                                let m = if options.page_canvas {
+                                    view * pattern_view.inverse() * m
+                                } else {
+                                    Affine::scale(72. / (96. * options.scale)) * m
+                                };
+                                image(&mut surface, &pixels, m)?;
                                 surface.pop();
                             }
                         }
@@ -119,7 +136,7 @@ pub fn render(scenes: &[Scene], options: Options) -> Result<Vec<u8>, String> {
                     }
                 }
                 Op::Image { pixels, transform } => image(&mut surface, pixels, view * *transform)?,
-                Op::Text { layout, transform } => {
+                Op::Text { layout, transform, .. } => {
                     for deco in &layout.decos {
                         if let Some(path) = path(&(view * *transform * kurbo::Shape::to_path(&deco.rect, 1e-5))) {
                             surface.set_fill(Some(fill(deco.color)));

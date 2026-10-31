@@ -41,7 +41,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 match op {
                     scene::Op::Bounds(b) => println!("  logical {b:?}"),
                     scene::Op::Path { path, .. } => println!("  path {:?}", path.bounding_box()),
-                    scene::Op::Text { layout, transform } => {
+                    scene::Op::Text { layout, transform, .. } => {
                         println!("  text transform {transform:?}");
                         for line in &layout.lines {
                             println!(

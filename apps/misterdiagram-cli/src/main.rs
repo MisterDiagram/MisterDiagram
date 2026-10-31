@@ -95,6 +95,7 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
         }
         return Ok(());
     }
+    options.page_canvas = matches!(extension.as_str(), "svg" | "pdf");
     let scenes = if extension == "pdf" && page.is_none() {
         doc.pages
             .iter()

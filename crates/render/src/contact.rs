@@ -95,7 +95,11 @@ fn render_with<'a>(
         .map_err(|e| e.to_string())?;
         let label = Scene {
             pdf_strokes: Default::default(),
-            ops: vec![Op::Text { layout, transform: Affine::translate((0., 24. / 96.)) * Affine::scale_non_uniform(1. / 72., -1. / 72.) }],
+            ops: vec![Op::Text {
+                layout,
+                export_bounds: None,
+                transform: Affine::translate((0., 24. / 96.)) * Affine::scale_non_uniform(1. / 72., -1. / 72.),
+            }],
             bounds: Rect::new(0., 0., (cell_width - 12) as f64 / 96., 24. / 96.),
             page_size: (1., 1.),
             warnings: vec![],

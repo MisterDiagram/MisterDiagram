@@ -1,5 +1,23 @@
 # Gaps
 
+## Export page canvas (M5.104)
+
+SVG and PDF exports from render, convert and MCP use the physical page size,
+including PageScale/DrawingScale. SVG remains transparent with visible overflow;
+PDF clips at its page and emits foreground pages with their individual sizes.
+Private `field/export-canvas-2026-10-31/` records the native canvas, background,
+fractional-size and text matrices. Existing witness accounting finds 469
+page-sized SVGs and 338 page-sized PDFs; five Shape.Export SVGs use drawing
+extents. Seven of the page-sized SVGs also match their raster drawing extent.
+
+The current native PDF device grid is 1/192 inch; older corpus exports show
+1/600 inch. The fixed-format backend follows the current observed grid. This
+is a native serialization difference, not a change to the drawing scale.
+Correcting the old fitted raster transform also restores physical geometry
+scale in vector output. This exceeds a literal size-and-offset-only change;
+it is explicitly recorded in the private acceptance report.
+
+
 ## Native package repair (M5.100)
 
 Dangling Connects and ordinary duplicate shape IDs are repaired on import and
@@ -76,21 +94,24 @@ Page size and cropping are outside this correction.
 References: [LineWeight](https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section),
 [CompoundType](https://learn.microsoft.com/en-us/office/client-developer/visio/compoundtype-cell-line-format-section).
 
-## Text-only export bounds: open page-height gap
+## Text-only PNG export bounds (M5.104)
 
-Private evidence: `field/vahegan-2026-10-30/in/pg2.vsdx`, numeric shape ID 1089.
-At 192 dpi our PNG is 361 by 174 pixels; the native PNG is 361 by 165. The
-text-only line reservation extends a complete 10 pt line advance below its
-11.501815258789062 pt baseline. Its lower page coordinate is
-0.1782863079615048 in, while the expanded text block ends at
-0.2268722071449900 in: an excess of 0.0485858991834852 in (about 9.33 pixels).
-The upper extent is shape ID 1085's expanded text block at
-1.0813627402358443 in. Using the expanded block's lower extent would yield
-164.062 nominal pixels, rounded to 165 by the current export extent rule.
-Native TEXTHEIGHT for shape ID 1089 is 0.250050423855252 in and agrees with our
-expanded block. The native crop explanation is inferred from these dimensions,
-not a native COM bounding-box measurement. This independent bounds issue is
-recorded only; the line reservation and PNG/PDF sizing remain unchanged.
+Private `field/export-canvas-2026-10-31/native-text/`, `native-text-bounds/`
+and `native-font-box/` distinguish the occupied font cell from the entire
+text block, paragraph line advance and actual glyph ink. Each occupied line
+uses its logical horizontal extent with half-em padding. Vertical bounds use
+the rendered face ascent/descent with quarter-em padding above and half-em
+below the glyph origin. Line spacing moves occupied lines; an empty trailing
+line does not add an occupied cell. Text-driven canvas edges round to the
+nearest device pixel, with a downward half-pixel tie. Other geometry keeps
+its established device-grid envelope. The text layout and glyph positions
+are unchanged.
+
+This removes the old symmetric full-line reservation. The private field
+witness `field/vahegan-2026-10-30/in/pg2.vsdx` now uses a 361 by 165 PNG canvas
+at scale 2. The native matrices also expose existing baseline differences
+between requested fonts and their open substitutes, so this crop correction
+does not claim exact glyph positioning or universal text raster parity.
 
 ## Empty SVG lines and script runs (M5.97)
 

@@ -17399,3 +17399,68 @@ begin overlap at the start. This brief preserves those centerline endpoints,
 as required by its pen-only scope, and tests their before/after PDF positions.
 Open-marker nominal geometry and outlines are tested on unit and scaled pages.
 This position difference is separate from the corrected physical pens.
+
+
+### M5.104: format-specific page canvas and text-only raster extent
+
+Observed, undocumented native export behavior is recorded in private
+`field/export-canvas-2026-10-31/`. The existing survey covers 812 native
+SVG/PDF artifacts associated with 391 document paths: 469 SVGs and all 338
+PDFs use the physical page (including native device quantization). Five
+additional SVGs are Shape.Export controls, so use drawing extents instead;
+all five are in `field/arrow-types-2026-10-30/visio-detail2/`. Seven page SVGs
+also coincide with their raster drawing extent. The full path register and
+all associations are retained in the private brief report.
+
+Fourteen new canvas pages cover DrawingSizeType 0 through 4, fit-to-drawing,
+portrait, landscape, scaled pages, an empty page, edge-crossing and wholly
+off-page shapes, different foreground sizes and a background. The separate
+unequal-background control confirms the shared drawing origin. The page
+extent is PageWidth/PageHeight multiplied by PageScale/DrawingScale; margins
+and DrawingSizeType do not cause an additional export-time crop. SVG retains
+all operations with visible overflow and a transparent page. PDF clips to its
+MediaBox and emits foreground pages in order, with background content painted
+on each referencing foreground page rather than emitted as another PDF page.
+
+Ten fractional controls and PDF exports after raster-resolution settings
+96, 192 and 600 show an unchanged 1/192-inch PDF canvas grid on this native
+installation. Dimensions truncate down on that grid; PDF serialization can
+round the printed number by another 0.005 point. Older corpus PDFs show a
+1/600-inch grid. The backend follows the current observed device grid and
+keeps the unrounded physical page origin for drawing placement. SVG uses
+fractional physical dimensions. Neither format applies the old raster
+crop's fitted scale. PNG remains cropped to the drawing, including off-page
+content. The empty native PNG remains the existing fixed 5 by 3 inches.
+
+The text-only witness includes 84 four-edge/anchor/size/spacing/blank-line
+cases, another 84 with a second font, direct COM text bounds, isolated shape
+exports and 27 font/margin/spacing controls. Raster crops use occupied font
+cells with horizontal half-em padding and vertical quarter-em/half-em
+padding above/below the font ascent/descent. The entire text block, a full
+paragraph line reservation and individual glyph ink each fail to explain
+these controls. Empty trailing lines can move text through vertical
+alignment but do not add crop area. Text-driven edges use nearest-pixel
+rounding (half ties downward); geometric edges retain the prior envelope.
+All 27 isolated font controls and all 84 Calibri edge cases match native
+dimensions exactly. The Arial edge matrix has 58 existing baseline-placement
+differences, up to five pixels. Substituting only the baselines measured in
+the native SVG into the same crop calculation matches all 84 Arial heights
+exactly. This independently separates the crop rule from that layout gap;
+no oracle or pixel ceiling is adjusted for it.
+
+The private field witness `field/vahegan-2026-10-30/in/pg2.vsdx` has physical
+page dimensions 2.377023 by 1.294346 inches. Native SVG records 2.37702 by
+1.29435 inches (viewBox 171.146 by 93.1929 points); native PDF is 171 by
+93 points. Our page SVG retains full evaluated precision and its corresponding
+viewBox at 72 units/inch; PDF is 171 by 93 points. The scale-2 PNG is 361 by
+165 pixels. The old vector crop also applied a fitted scale, so restoring
+physical coordinates changes that scale as well as canvas size and offset.
+The literal size-and-offset-only acceptance clause remains disclosed as unmet.
+
+References: [PageWidth](https://learn.microsoft.com/en-us/office/client-developer/visio/pagewidth-cell-page-properties-section),
+[PageHeight](https://learn.microsoft.com/en-us/office/client-developer/visio/pageheight-cell-page-properties-section),
+[PageScale](https://learn.microsoft.com/en-us/office/client-developer/visio/pagescale-cell-page-properties-section),
+[DrawingSizeType](https://learn.microsoft.com/en-us/office/client-developer/visio/drawingsizetype-cell-page-properties-section),
+[Page.Export](https://learn.microsoft.com/en-us/office/vba/api/visio.page.export),
+[ExportAsFixedFormat](https://learn.microsoft.com/en-us/office/vba/api/visio.document.exportasfixedformat),
+[BoundingBox](https://learn.microsoft.com/en-us/office/vba/api/visio.shape.boundingbox).

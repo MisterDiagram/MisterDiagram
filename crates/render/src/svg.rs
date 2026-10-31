@@ -50,10 +50,26 @@ fn image(out: &mut String, pixels: &image::RgbaImage, m: Affine, nearest: bool) 
     Ok(())
 }
 pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
-    let (w, h, view) = scene.svg_canvas(options)?;
+    let (w, h, view) = if options.page_canvas {
+        let (w, h, view) = scene.page_canvas(options)?;
+        let factor = 72. / (96. * options.scale);
+        (w * factor, h * factor, Affine::scale(factor) * view)
+    } else {
+        let (w, h, view) = scene.svg_canvas(options)?;
+        (f64::from(w), f64::from(h), view)
+    };
+    let dpi = if options.page_canvas { 72. } else { 96. * options.scale };
+    let pattern_view = if options.page_canvas { scene.svg_canvas(options)?.2 } else { view };
     // No background element: Visio's SVG export leaves the page transparent
     // (private corpus field/vahegan-2026-10-26 x2.svg, MisterDiagram#101).
     let mut out = format!("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{w}\" height=\"{h}\" viewBox=\"0 0 {w} {h}\">");
+    if options.page_canvas {
+        // Native SVG retains off-page operations and exposes them when embedded.
+        out = format!(
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{}in\" height=\"{}in\" viewBox=\"0 0 {w} {h}\" overflow=\"visible\">",
+            scene.page_size.0, scene.page_size.1
+        );
+    }
     for (i, op) in scene.ops.iter().enumerate() {
         match op {
             Op::Bounds(_) => {}
@@ -75,9 +91,10 @@ pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
             Op::Path { path: p, paint } => match paint {
                 Paint::Solid(c) => path(&mut out, &(view * p), *c),
                 _ => {
-                    let (pixels, m) = crate::raster::pattern(paint, view, p)?;
+                    let (pixels, m) = crate::raster::pattern(paint, pattern_view, p)?;
                     write!(out, "<defs><clipPath id=\"p{i}\"><path d=\"{}\"/></clipPath></defs><g clip-path=\"url(#p{i})\">", (view * p).to_svg())
                         .map_err(|e| e.to_string())?;
+                    let m = if options.page_canvas { view * pattern_view.inverse() * m } else { m };
                     image(&mut out, &pixels, m, true)?;
                     out.push_str("</g>");
                 }
@@ -92,7 +109,7 @@ pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
                 // Keep distinct marker-side caps through the shared outline fallback.
                 // https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section
                 if stroke.start_cap != stroke.end_cap {
-                    path(&mut out, &crate::scene::stroke_path(p, &stroke, view, 96. * options.scale), *color);
+                    path(&mut out, &crate::scene::stroke_path(p, &stroke, view, dpi), *color);
                 } else {
                     let cap = match stroke.start_cap {
                         kurbo::Cap::Butt => "butt",
@@ -104,14 +121,13 @@ pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
                         kurbo::Join::Round => "round",
                         kurbo::Join::Bevel => "bevel",
                     };
-                    let dpi = 96. * options.scale;
                     let dash_scale = view.determinant().abs().sqrt();
                     let dashes = stroke.dash_pattern.iter().map(|v| (v * dash_scale).to_string()).collect::<Vec<_>>().join(" ");
                     write!(out,"<path d=\"{}\" fill=\"none\" stroke=\"#{:02x}{:02x}{:02x}\" stroke-opacity=\"{}\" stroke-width=\"{}\" stroke-linecap=\"{cap}\" stroke-linejoin=\"{join}\" stroke-miterlimit=\"{}\" stroke-dasharray=\"{}\" stroke-dashoffset=\"{}\"/>",(view*p).to_svg(),color.r,color.g,color.b,f64::from(color.a)/255.,stroke.width*dpi,stroke.miter_limit,if dashes.is_empty(){"none"}else{&dashes},stroke.dash_offset*dash_scale).map_err(|e|e.to_string())?;
                 }
             }
             Op::Image { pixels, transform } => image(&mut out, pixels, view * *transform, false)?,
-            Op::Text { layout, transform } => {
+            Op::Text { layout, transform, .. } => {
                 if options.text_outlines {
                     for (p, c) in text_paths(layout, view * *transform) {
                         path(&mut out, &p, c)

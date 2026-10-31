@@ -156,7 +156,7 @@ pub fn render(scene: &Scene, options: Options) -> Result<image::RgbaImage, Strin
                 ctx.fill_path(&device_path(&outline, Affine::IDENTITY));
             }
             Op::Image { pixels, transform } => draw_image(&mut ctx, pixels, view * *transform, false)?,
-            Op::Text { layout, transform } => {
+            Op::Text { layout, transform, .. } => {
                 for (path, c) in text_paths(layout, *transform) {
                     ctx.set_transform(view);
                     ctx.set_paint(peniko::Color::from_rgba8(c.r, c.g, c.b, c.a));

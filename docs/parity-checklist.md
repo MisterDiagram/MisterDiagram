@@ -435,3 +435,10 @@ and zero rules without changing PNG/SVG output. Synthetic content-stream and
 hostile-metadata tests cover export scales, dashes, groups and normal doubles.
 Native malformed subminimum double bands remain an explicit gap. Existing
 partial rendering rows, scores and denominators remain unchanged.
+
+- M5.104 export row remains P: public SVG/PDF page canvases, physical transforms,
+  transparent SVG overflow, foreground PDF pages and hostile canvas rejection
+  are covered by render/CLI `export_canvas` tests. Text-only font-cell crop,
+  spacing and empty trailing lines are covered by `text_export_bounds`.
+  Native evidence: private `field/export-canvas-2026-10-31/`. Broader text and
+  rendering gaps remain open; the old fitted scale correction is disclosed.

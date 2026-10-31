@@ -229,7 +229,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pages-elementvisio-xml> | `crates/vsdx/src/write/format.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pagescale-cell-page-properties-section> | `crates/engine/src/pages.rs`, `crates/render/src/scene.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pagesheet-element-page_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/pagewidth-cell-page-properties-section> | `crates/engine/src/pages.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/pagewidth-cell-page-properties-section> | `crates/engine/src/pages.rs`, `crates/render/src/scene.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/par-function> | `crates/route/src/static_glue.rs`, `crates/sheet/src/functions/points.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pathlength-function> | `crates/sheet/src/eval.rs`, `crates/sheet/src/functions/path_queries.rs`, `crates/vsdx/src/evaluate/path.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pi-function> | `crates/sheet/src/functions/numeric.rs` |
@@ -366,7 +366,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.connects> | `apps/misterdiagram-cli/tests/examples.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.clean> | `tools/oracle/vendor-stencils/action-witness.ps1`, `tools/oracle/vendor-stencils/nested-action-witness.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.close> | `crates/engine/src/stencils.rs` |
-| <https://learn.microsoft.com/en-us/office/vba/api/visio.document.exportasfixedformat> | `crates/engine/src/files.rs` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.document.exportasfixedformat> | `crates/engine/src/files.rs`, `crates/render/tests/export_canvas.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.masters> | `crates/engine/src/stencils.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.saveas> | `apps/misterdiagram-cli/src/author.rs`, `apps/misterdiagram-corpus/examples/route_resave.rs`, `crates/engine/src/files.rs`, `tools/oracle/accept.ps1`, `tools/oracle/scaled-drop-accept.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.documents> | `crates/engine/src/stencils.rs` |
@@ -388,7 +388,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.drawoval> | `crates/engine/src/shapes.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.drawrectangle> | `crates/engine/src/shapes.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.drop> | `crates/engine/src/composition.rs`, `crates/engine/src/masters.rs`, `tools/oracle/b25/dell-instance-witness.ps1` |
-| <https://learn.microsoft.com/en-us/office/vba/api/visio.page.export> | `apps/misterdiagram-cli/src/author.rs`, `apps/misterdiagram-corpus/src/render_population.rs`, `crates/engine/src/files.rs`, `crates/render/src/scene.rs`, `crates/render/tests/output.rs` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.page.export> | `apps/misterdiagram-cli/src/author.rs`, `apps/misterdiagram-corpus/src/render_population.rs`, `crates/engine/src/files.rs`, `crates/render/src/scene.rs`, `crates/render/tests/export_canvas.rs`, `crates/render/tests/output.rs`, `crates/render/tests/text_export_bounds.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.index> | `crates/engine/src/pages.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.nameu> | `crates/engine/src/pages.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.settheme> | `tools/oracle/make-corpus.ps1` |
@@ -404,6 +404,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.addnamedrow> | `crates/engine/src/sheet.rs`, `tools/oracle/make-corpus.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.addrow> | `crates/engine/src/glue.rs`, `crates/engine/src/sheet.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.addsection> | `crates/engine/src/sheet.rs` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.boundingbox> | `crates/render/src/scene.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.bringforward> | `crates/engine/src/shapes.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.bringtofront> | `crates/engine/src/shapes.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.shape.cellssrc> | `crates/vsdx/src/evaluate.rs` |

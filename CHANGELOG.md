@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- **SVG and PDF keep the drawing page size** (#87). Exports preserve physical page coordinates and page backgrounds, with one PDF page per foreground page. SVG remains transparent and retains off-page content.
+- **Text-only PNG exports have tighter bounds** (#87). Occupied text controls the crop without an extra full line of space below labels or empty trailing lines.
+
 ## 0.1.0-alpha.20
 
 Messy files that Visio saves now save too, and thin lines stay thin in PDF

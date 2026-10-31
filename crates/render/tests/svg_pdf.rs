@@ -11,6 +11,7 @@ use misterdiagram_render::{pdf, raster, scene, svg};
 fn svg_reference_scene(source: &scene::Scene, options: scene::Options) -> scene::Scene {
     use scene::{Op, Paint};
     let mut reference = source.clone();
+    let crop_scale = source.canvas(options).unwrap().2.determinant().abs().sqrt() / (96. * options.scale);
     for op in &mut reference.ops {
         *op = match op.clone() {
             Op::HairlineMarker { svg_path, color, .. } => {
@@ -30,7 +31,7 @@ fn svg_reference_scene(source: &scene::Scene, options: scene::Options) -> scene:
                         *dash *= ratio;
                     }
                 }
-                stroke.width = svg_width;
+                stroke.width = svg_width * crop_scale;
                 Op::Stroke { path: svg_path, stroke, color }
             }
             other => other,
@@ -67,12 +68,21 @@ fn generated_svg_resvg_and_pdf_text() {
             let options = scene::Options::default();
             let scene = scene::page(&doc, scene::default_page_index(&doc).unwrap(), options).unwrap();
             let png = raster::render(&svg_reference_scene(&scene, options), options).unwrap();
-            let xml = svg::render(&scene, options).unwrap();
+            let page_options = scene::Options { page_canvas: true, ..options };
+            let xml = svg::render(&scene, page_options).unwrap();
             let tree = resvg::usvg::Tree::from_str(&xml, &svg_fonts::options()).unwrap();
             let mut pixels = resvg::tiny_skia::Pixmap::new(png.width(), png.height()).unwrap();
             // The SVG page is transparent like Visio's export; the raster paints a white page.
             pixels.fill(resvg::tiny_skia::Color::WHITE);
-            resvg::render(&tree, resvg::tiny_skia::Transform::identity(), &mut pixels.as_mut());
+            // Compare the same drawing region as before, without adding blank page
+            // pixels to the denominator. Undo only the page-to-crop transform.
+            let mapping = scene.canvas(options).unwrap().2 * scene.page_canvas(page_options).unwrap().2.inverse();
+            let [a, b, c, d, e, f] = mapping.as_coeffs();
+            resvg::render(
+                &tree,
+                resvg::tiny_skia::Transform::from_row(a as f32, b as f32, c as f32, d as f32, e as f32, f as f32),
+                &mut pixels.as_mut(),
+            );
             let sum: u64 = png
                 .pixels()
                 .zip(pixels.pixels())

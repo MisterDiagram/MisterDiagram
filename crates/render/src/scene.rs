@@ -53,6 +53,8 @@ pub enum Op {
         transform: Affine,
     },
     Text {
+        /// Optional local text-only raster export extent, independent of ink and line advance.
+        export_bounds: Option<Rect>,
         layout: TextLayout,
         transform: Affine,
     },
@@ -85,6 +87,8 @@ pub struct Options {
     pub scale: f64,
     pub print: bool,
     pub crop: bool,
+    /// SVG/PDF use the physical page; raster exports retain their drawing crop.
+    pub page_canvas: bool,
     /// Page.Export uses visible geometry and a fixed canvas for empty documents.
     /// https://learn.microsoft.com/en-us/office/vba/api/visio.page.export
     pub visio_export: bool,
@@ -95,7 +99,7 @@ pub struct Options {
 }
 impl Default for Options {
     fn default() -> Self {
-        Self { text_outlines: false, scale: 1., print: false, crop: true, visio_export: false, cached_fallback: false }
+        Self { text_outlines: false, scale: 1., print: false, crop: true, page_canvas: false, visio_export: false, cached_fallback: false }
     }
 }
 impl Scene {
@@ -115,6 +119,20 @@ impl Scene {
     }
     pub fn canvas(&self, options: Options) -> Result<(u16, u16, Affine), String> {
         self.canvas_bounds(options, self.bounds)
+    }
+    /// Physical SVG/PDF page coordinates, without the raster crop's fitted scale.
+    /// Native witnesses: field/export-canvas-2026-10-31.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/pagewidth-cell-page-properties-section
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/pagescale-cell-page-properties-section
+    pub fn page_canvas(&self, options: Options) -> Result<(f64, f64, Affine), String> {
+        let (w, h) = self.page_size;
+        if !w.is_finite() || !h.is_finite() || w <= 0. || h <= 0. || w > 1e6 || h > 1e6 {
+            return Err("vector page size limit".into());
+        }
+        // Preserve all operation, clip, coordinate and allocation guards.
+        self.canvas_bounds(options, Rect::new(0., 0., w, h))?;
+        let dpi = 96. * options.scale;
+        Ok((w * dpi, h * dpi, Affine::new([dpi, 0., 0., -dpi, 0., h * dpi])))
     }
     pub(crate) fn svg_canvas(&self, options: Options) -> Result<(u16, u16, Affine), String> {
         let mut bounds = self.bounds;
@@ -194,7 +212,13 @@ impl Scene {
                         return Err("scene text background limit".into());
                     }
                 }
-                Op::Text { layout, transform } => {
+                Op::Text { layout, transform, export_bounds } => {
+                    if let Some(rect) = export_bounds {
+                        let b = transform.transform_rect_bbox(*rect);
+                        if [rect.x0, rect.y0, rect.x1, rect.y1, b.x0, b.y0, b.x1, b.y1].iter().any(|v| !v.is_finite() || v.abs() > 1e6) {
+                            return Err("scene text export bounds limit".into());
+                        }
+                    }
                     if layout.runs.len() > 65536
                         || layout.lines.len() > 65536
                         || layout
@@ -283,8 +307,23 @@ impl Scene {
         // Export extents share the rasterizer eighth-pixel device grid.
         // end-39.svg gives397.0133px; its PNG is397px, not398.
         let extent = |v: f64| ((v * dpi * 8.).round() / 8. - 1e-7).ceil().max(1.);
-        let w = extent(b.width());
-        let h = extent(b.height());
+        // Text-driven edges use the nearest device pixel, including a downward
+        // half-pixel tie. The native isolated 12/24 pt controls distinguish this
+        // from the geometric eighth-pixel envelope above.
+        let mut text_x = false;
+        let mut text_y = false;
+        if options.crop {
+            for op in &self.ops {
+                if let Op::Text { export_bounds: Some(rect), transform, .. } = op {
+                    let text = transform.transform_rect_bbox(*rect);
+                    text_x |= text.x0 == b.x0 || text.x1 == b.x1;
+                    text_y |= text.y0 == b.y0 || text.y1 == b.y1;
+                }
+            }
+        }
+        let text_extent = |v: f64| (v * dpi + 0.5 - 1e-7).floor().max(1.);
+        let w = if text_x { text_extent(b.width()) } else { extent(b.width()) };
+        let h = if text_y { text_extent(b.height()) } else { extent(b.height()) };
         if w > f64::from(u16::MAX) || h > f64::from(u16::MAX) || w * h > MAX_PIXELS as f64 {
             return Err("render pixel limit".into());
         }
@@ -497,6 +536,31 @@ pub fn master_prepared(evaluator: &mut Evaluator<'_>, index: usize, options: Opt
     // raster::render validates the fitted canvas before allocating pixels.
     Ok(scene)
 }
+/// Text-only raster export uses occupied font cells with half-em horizontal
+/// padding and asymmetric vertical padding (quarter em above, half em below).
+/// Margins, empty trailing lines and line spacing do not enlarge an isolated
+/// occupied line; spacing only moves the next occupied line. Native controls:
+/// field/export-canvas-2026-10-31/native-text and native-font-box.
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.page.export
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.shape.boundingbox
+fn text_export_bounds(layout: &TextLayout) -> Option<Rect> {
+    let mut bounds: Option<Rect> = None;
+    for run in &layout.runs {
+        let Some(line) = layout.lines.get(run.svg.line) else { continue };
+        let ascent = run.face.ascent / run.face.upem * run.size;
+        let descent = run.face.descent / run.face.upem * run.size;
+        for (_, _, baseline) in &run.glyphs {
+            let rect = Rect::new(
+                line.extent.0 - run.size * 0.5,
+                baseline - ascent - run.size * 0.25,
+                line.extent.1 + run.size * 0.5,
+                baseline + descent + run.size * 0.5,
+            );
+            bounds = Some(bounds.map_or(rect, |old| old.union(rect)));
+        }
+    }
+    bounds
+}
 fn finish_bounds(scene: &mut Scene, crop: bool) {
     let mut bounds: Option<Rect> = None;
     let mut clips: Vec<Rect> = Vec::new();
@@ -518,7 +582,8 @@ fn finish_bounds(scene: &mut Scene, crop: bool) {
             Op::Image { pixels, transform } => {
                 transform.transform_rect_bbox(Rect::new(0., 0., f64::from(pixels.width()), f64::from(pixels.height())))
             }
-            Op::Text { layout, transform } => {
+            Op::Text { export_bounds: Some(bounds), transform, .. } => transform.transform_rect_bbox(*bounds),
+            Op::Text { layout, transform, .. } => {
                 let mut b: Option<Rect> = None;
                 for (path, _) in text_paths(layout, *transform) {
                     let r = path.bounding_box();
@@ -1025,29 +1090,16 @@ fn shapes(
                 )
                 .map_err(|error| e.render_error(scope, "text layout (TxtWidth/Char.Size)", error))?;
                 if !layout.runs.is_empty() {
-                    if height > original_height {
+                    let text_only = line.pattern == 0 && fill.pattern == 0;
+                    if !text_only && height > original_height {
                         let x = block.width * drawing_scale * 0.5;
                         scene.ops.push(Op::Bounds(text_transform.transform_rect_bbox(Rect::new(x, 0., x, height))));
                     }
-                    if line.pattern == 0 && fill.pattern == 0 {
-                        // Text-only shapes reserve a full line advance on both sides
-                        // of the baseline, rather than the face's typographic ascent.
-                        // Witnesses: master/from-shape label and the SAN fabric labels.
-                        // https://learn.microsoft.com/en-us/office/vba/api/visio.page.export
-                        for line in &layout.lines {
-                            let advance = line.bottom - line.top;
-                            scene.ops.push(Op::Bounds(text_transform.transform_rect_bbox(Rect::new(
-                                line.extent.0,
-                                line.baseline - advance,
-                                line.extent.1,
-                                line.baseline + advance,
-                            ))));
-                        }
-                    }
+                    let export_bounds = if text_only { text_export_bounds(&layout) } else { None };
                     if let Some((rect, color)) = text_background(e, scope, &layout) {
                         scene.ops.push(Op::TextBackground { rect, transform: text_transform, color });
                     }
-                    scene.ops.push(Op::Text { layout, transform: text_transform });
+                    scene.ops.push(Op::Text { layout, transform: text_transform, export_bounds });
                 }
             }
         }
@@ -1251,7 +1303,7 @@ fn paint_foreign(
                 }
                 Op::Bounds(b) => Op::Bounds(m.transform_rect_bbox(b)),
                 Op::Image { pixels, transform } => Op::Image { pixels, transform: m * transform },
-                Op::Text { layout, transform } => Op::Text { layout, transform: m * transform },
+                Op::Text { layout, transform, export_bounds } => Op::Text { layout, transform: m * transform, export_bounds },
                 Op::TextBackground { rect, transform, color } => Op::TextBackground { rect, transform: m * transform, color },
             });
         }
