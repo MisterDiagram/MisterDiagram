@@ -424,3 +424,8 @@ repair and first-occurrence duplicate shape IDs on import, including group
 subtrees, Sheet 0 and inherited tombstones. Saved output preserves the same
 identity and topology. Warning and hostile-limit regressions are portable.
 Existing partial format/render rows, score and denominators remain unchanged.
+
+M5.101 progress: parsed Character Pos runs now pin all six superscript/subscript
+baseline shifts through the evaluator, including a general-family control and
+mixed-case names. Each individual value mutation is detected. Production values,
+parity scores and denominators are unchanged.

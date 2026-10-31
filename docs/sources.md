@@ -242,7 +242,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pointalongpath-function> | `crates/sheet/src/functions/points.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/path.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/polyline-function> | `crates/geom/src/rows.rs`, `crates/sheet/src/functions/constructors.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/polylineto-row-geometry-section> | `crates/geom/src/rows.rs`, `crates/route/src/jumps.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/pos-cell-character-section> | `crates/text/src/lib.rs`, `crates/text/src/tests.rs`, `crates/vsdx/src/evaluate/text.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/pos-cell-character-section> | `crates/text/src/lib.rs`, `crates/text/src/tests.rs`, `crates/vsdx/src/evaluate/text.rs`, `crates/vsdx/tests/script_baselines.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/position-cell-tabs-section> | `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pow-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pp-element-text_type-complextypevisio-xml> | `crates/engine/src/content.rs`, `crates/engine/src/masters.rs`, `crates/engine/tests/authoring.rs`, `crates/vsdx/src/evaluate/text.rs`, `crates/vsdx/src/lib.rs` |
