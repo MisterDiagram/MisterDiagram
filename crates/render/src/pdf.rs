@@ -103,16 +103,16 @@ pub fn render(scenes: &[Scene], options: Options) -> Result<Vec<u8>, String> {
                     surface.push_clip_path(&p, &if *even_odd { FillRule::EvenOdd } else { FillRule::NonZero });
                 }
                 Op::Pop => surface.pop(),
-                Op::Path { path: p, paint } => {
+                Op::Path { even_odd, path: p, paint } => {
                     if let Some(path) = path(&(view * p)) {
                         match paint {
                             Paint::Solid(c) => {
-                                surface.set_fill(Some(fill(*c)));
+                                surface.set_fill(Some(Fill { rule: if *even_odd { FillRule::EvenOdd } else { FillRule::NonZero }, ..fill(*c) }));
                                 surface.draw_path(&path);
                             }
                             _ => {
                                 let (pixels, m) = crate::raster::pattern(paint, pattern_view, p)?;
-                                surface.push_clip_path(&path, &FillRule::NonZero);
+                                surface.push_clip_path(&path, &if *even_odd { FillRule::EvenOdd } else { FillRule::NonZero });
                                 let m = if options.page_canvas {
                                     view * pattern_view.inverse() * m
                                 } else {

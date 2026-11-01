@@ -109,7 +109,7 @@ fn render_with<'a>(
         if failed {
             let error = Scene {
                 pdf_strokes: Default::default(),
-                ops: vec![Op::Path { path: Rect::new(0., 0., 1., 0.05).to_path(0.001), paint: Paint::Solid(Rgba::rgb(200, 0, 0)) }],
+                ops: vec![Op::Path { even_odd: false, path: Rect::new(0., 0., 1., 0.05).to_path(0.001), paint: Paint::Solid(Rgba::rgb(200, 0, 0)) }],
                 bounds: Rect::new(0., 0., 1., 0.05),
                 page_size: (1., 1.),
                 warnings: vec![],

@@ -17493,3 +17493,41 @@ References: [PageWidth](https://learn.microsoft.com/en-us/office/client-develope
 [Page.Export](https://learn.microsoft.com/en-us/office/vba/api/visio.page.export),
 [ExportAsFixedFormat](https://learn.microsoft.com/en-us/office/vba/api/visio.document.exportasfixedformat),
 [BoundingBox](https://learn.microsoft.com/en-us/office/vba/api/visio.shape.boundingbox).
+
+## M5.109: observed alternate fill across Geometry sections
+
+Private evidence: `field/flip-fill-2026-11-01/make-fill-v2.ps1` and its
+`native-fill2` PNG (192 dpi), SVG and PDF outputs. Sixteen synthetic pages cover
+same- and opposite-direction nested sections, overlap, three nested sections,
+NoFill on either section, open plus closed contours, a procedural pattern,
+a gradient, a flipped group, NoShow, NoLine and filled/stroked/blurred shadows.
+The initial script's missing component row is retained as an authoring diagnostic;
+the second script creates the component row before its geometry vertices.
+
+Observed, undocumented: native SVG declares `fill-rule:evenodd` and combines
+eligible sections in one fill path. The inner nested region is clear for both
+winding directions; overlap is clear and a third nested region is filled.
+NoFill removes fill participation only, NoShow removes both fill and stroke,
+and NoLine leaves fill participation intact. An open contour is implicitly
+closed for fill, while its stroke remains open. Patterns, gradients and grouped
+shapes retain the same holes. Shadow fill uses the same alternate topology;
+stroke coverage is unioned with it before blurring, so intersecting stroke and
+fill coverage does not cancel.
+
+PNG, SVG and PDF use explicit fill rules for Geometry fills and pattern clips.
+Other paths retain nonzero winding, and the fill state is restored before later
+stroke, marker, image and text operations. No stroke path or pen metadata changes.
+`section_fill` checks nested winding, exclusion, open contours, overlap, patterns,
+gradients, shadow coverage and fill-state isolation.
+
+Native shadow exports differ beyond this topology: SVG omits the nominal shadow
+stroke width and uses its default pen; the blurred PNG/PDF control swaps red and
+blue relative to its declared colour, while SVG retains that colour. Those native
+backend differences do not establish a different section fill rule. Paint sampling
+and shadow colour/pen fidelity remain separate gaps.
+
+References: [Geometry](https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section),
+[NoFill](https://learn.microsoft.com/en-us/office/client-developer/visio/nofill-cell-geometry-section),
+[NoLine](https://learn.microsoft.com/en-us/office/client-developer/visio/noline-cell-geometry-section),
+[NoShow](https://learn.microsoft.com/en-us/office/client-developer/visio/noshow-cell-geometry-section).
+These references define section flags, not the observed cross-section fill rule.

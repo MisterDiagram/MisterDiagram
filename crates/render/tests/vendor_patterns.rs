@@ -38,7 +38,7 @@ fn nonfinite_path_is_rejected_without_raising_the_coordinate_cap() {
         let scene = Scene {
             pdf_strokes: Default::default(),
             warnings: vec![],
-            ops: vec![Op::Path { path, paint: Paint::Solid(misterdiagram_color::Rgba::BLACK) }],
+            ops: vec![Op::Path { even_odd: false, path, paint: Paint::Solid(misterdiagram_color::Rgba::BLACK) }],
             bounds: Rect::new(0., 0., 2., 1.),
             page_size: (2., 1.),
         };

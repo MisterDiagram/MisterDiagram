@@ -10,7 +10,11 @@ fn matrix(m: Affine) -> String {
     format!("matrix({a} {b} {c} {d} {e} {f})")
 }
 fn path(out: &mut String, p: &kurbo::BezPath, c: misterdiagram_color::Rgba) {
-    let _ = write!(out, "<path d=\"{}\" fill=\"#{:02x}{:02x}{:02x}\" fill-opacity=\"{}\"/>", p.to_svg(), c.r, c.g, c.b, f64::from(c.a) / 255.);
+    fill_path(out, p, c, false);
+}
+fn fill_path(out: &mut String, p: &kurbo::BezPath, c: misterdiagram_color::Rgba, even_odd: bool) {
+    let rule = if even_odd { r#" fill-rule="evenodd""# } else { "" };
+    let _ = write!(out, "<path{rule} d=\"{}\" fill=\"#{:02x}{:02x}{:02x}\" fill-opacity=\"{}\"/>", p.to_svg(), c.r, c.g, c.b, f64::from(c.a) / 255.);
 }
 fn image(out: &mut String, pixels: &image::RgbaImage, m: Affine, nearest: bool) -> Result<(), String> {
     let bordered;
@@ -88,12 +92,17 @@ pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
                 .map_err(|e| e.to_string())?;
             }
             Op::Pop => out.push_str("</g>"),
-            Op::Path { path: p, paint } => match paint {
-                Paint::Solid(c) => path(&mut out, &(view * p), *c),
+            Op::Path { even_odd, path: p, paint } => match paint {
+                Paint::Solid(c) => fill_path(&mut out, &(view * p), *c, *even_odd),
                 _ => {
                     let (pixels, m) = crate::raster::pattern(paint, pattern_view, p)?;
-                    write!(out, "<defs><clipPath id=\"p{i}\"><path d=\"{}\"/></clipPath></defs><g clip-path=\"url(#p{i})\">", (view * p).to_svg())
-                        .map_err(|e| e.to_string())?;
+                    write!(
+                        out,
+                        "<defs><clipPath id=\"p{i}\"><path clip-rule=\"{}\" d=\"{}\"/></clipPath></defs><g clip-path=\"url(#p{i})\">",
+                        if *even_odd { "evenodd" } else { "nonzero" },
+                        (view * p).to_svg()
+                    )
+                    .map_err(|e| e.to_string())?;
                     let m = if options.page_canvas { view * pattern_view.inverse() * m } else { m };
                     image(&mut out, &pixels, m, true)?;
                     out.push_str("</g>");

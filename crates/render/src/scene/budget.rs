@@ -30,7 +30,7 @@ impl SceneBudget {
         for op in ops {
             match op {
                 Op::Image { pixels, .. } => self.charge(pixels.as_raw().capacity())?,
-                Op::Path { path, paint } => {
+                Op::Path { path, paint, .. } => {
                     self.charge(std::mem::size_of_val(path.elements()).saturating_mul(2))?;
                     if let Paint::Pattern { gradient: Some(g), .. } = paint {
                         self.charge(vector_bytes(&g.stops))?;

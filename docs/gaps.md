@@ -1,5 +1,21 @@
 # Gaps
 
+## Alternate fill across geometry sections (M5.109)
+
+Eligible Geometry sections form a single alternate (even-odd) fill. Nesting and
+overlap toggle coverage regardless of winding, including patterns and gradients.
+NoFill and NoShow exclude a section from fill; NoLine affects only its stroke.
+Open contours close implicitly for fill without adding a stroked closing edge.
+The shadow mask combines alternate fill with nonzero stroke coverage before blur.
+Stroke paths, line widths, caps, joins and dash patterns are unchanged.
+
+Private contributor-original evidence: `field/flip-fill-2026-11-01/`,
+`make-fill-v2.ps1`, sixteen native PNG/SVG/PDF cases. Microsoft documents the
+section flags; the cross-section alternate rule comes from these observations.
+See [Geometry](https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section)
+and [NoFill](https://learn.microsoft.com/en-us/office/client-developer/visio/nofill-cell-geometry-section).
+Broader paint and shadow fidelity remains partial.
+
 ## Export page canvas (M5.104)
 
 SVG and PDF exports from render, convert and MCP use the physical page size,

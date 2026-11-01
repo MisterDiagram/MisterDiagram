@@ -67,7 +67,7 @@ fn svg_overrides_preserve_raster_and_compound_nominal_extents() {
             for op in &mut original.ops {
                 *op = match op.clone() {
                     Op::HairlineStroke { path, stroke, color, .. } => Op::Stroke { path, stroke, color },
-                    Op::HairlineMarker { path, color, .. } => Op::Path { path, paint: scene::Paint::Solid(color) },
+                    Op::HairlineMarker { path, color, .. } => Op::Path { even_odd: false, path, paint: scene::Paint::Solid(color) },
                     other => other,
                 };
             }

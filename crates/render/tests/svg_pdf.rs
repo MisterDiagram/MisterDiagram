@@ -18,7 +18,7 @@ fn svg_reference_scene(source: &scene::Scene, options: scene::Options) -> scene:
                 if options.crop {
                     reference.bounds = reference.bounds.union(svg_path.bounding_box());
                 }
-                Op::Path { path: svg_path, paint: Paint::Solid(color) }
+                Op::Path { even_odd: false, path: svg_path, paint: Paint::Solid(color) }
             }
             Op::HairlineStroke { svg_path, mut stroke, svg_width, color, .. } => {
                 if options.crop {

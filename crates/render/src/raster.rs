@@ -130,20 +130,24 @@ pub fn render(scene: &Scene, options: Options) -> Result<image::RgbaImage, Strin
                 ctx.set_fill_rule(peniko::Fill::NonZero);
             }
             Op::Pop => ctx.pop_layer(),
-            Op::Path { path, paint } => match paint {
-                Paint::Solid(c) => {
-                    ctx.set_transform(Affine::IDENTITY);
-                    ctx.set_paint(peniko::Color::from_rgba8(c.r, c.g, c.b, c.a));
-                    ctx.fill_path(&device_path(path, view));
+            Op::Path { even_odd, path, paint } => {
+                ctx.set_fill_rule(if *even_odd { peniko::Fill::EvenOdd } else { peniko::Fill::NonZero });
+                match paint {
+                    Paint::Solid(c) => {
+                        ctx.set_transform(Affine::IDENTITY);
+                        ctx.set_paint(peniko::Color::from_rgba8(c.r, c.g, c.b, c.a));
+                        ctx.fill_path(&device_path(path, view));
+                    }
+                    _ => {
+                        ctx.set_transform(view);
+                        ctx.push_clip_layer(path);
+                        let (pixels, m) = pattern(paint, view, path)?;
+                        draw_image(&mut ctx, &pixels, m, true)?;
+                        ctx.pop_layer();
+                    }
                 }
-                _ => {
-                    ctx.set_transform(view);
-                    ctx.push_clip_layer(path);
-                    let (pixels, m) = pattern(paint, view, path)?;
-                    draw_image(&mut ctx, &pixels, m, true)?;
-                    ctx.pop_layer();
-                }
-            },
+                ctx.set_fill_rule(peniko::Fill::NonZero);
+            }
             Op::HairlineMarker { path, color, .. } => {
                 ctx.set_transform(Affine::IDENTITY);
                 ctx.set_paint(peniko::Color::from_rgba8(color.r, color.g, color.b, color.a));

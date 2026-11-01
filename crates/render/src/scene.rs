@@ -27,6 +27,8 @@ pub enum Op {
     },
     Pop,
     Path {
+        /// Alternate rule for shape Geometry fills; other paths retain nonzero.
+        even_odd: bool,
         path: BezPath,
         paint: Paint,
     },
@@ -816,7 +818,9 @@ fn shapes(
         };
         let clip = infinite_line_clip(e.shape_to_page(scope).map_err(|error| e.render_error(scope, "transform", error))?, page_clip);
         let geometries = e.geometry_paths(scope, clip).map_err(|error| e.render_error(scope, "geometry", error))?;
-        // Visible Geometry sections form one fill, including oppositely wound holes.
+        // Eligible Geometry sections form one alternate fill, independent of winding.
+        // Native witness: field/flip-fill-2026-11-01. The reference defines section flags;
+        // cross-section parity is an observed rendering rule.
         // https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section
         let mut combined_fill = BezPath::new();
         for geometry in &geometries {
@@ -825,7 +829,7 @@ fn shapes(
             }
         }
         if number(e, scope, "ShdwPattern", 0.) == 1. && number(e, scope, "ShapeShdwType", 1.) <= 1. {
-            let mut silhouette = BezPath::new();
+            let mut shadow_strokes = BezPath::new();
             let mut shadow_elements = 0usize;
             for geometry in &geometries {
                 let path = style::round_rectangle(&geometry.path, line.rounding);
@@ -841,15 +845,13 @@ fn shapes(
                     return Err("scene path limit (shadow dash expansion)".into());
                 }
             }
+            let shadow_fill = if fill.pattern != 0 { transform * &combined_fill } else { BezPath::new() };
             for geometry in &geometries {
                 let path = style::round_rectangle(&geometry.path, line.rounding);
-                if geometry.filled() && fill.pattern != 0 {
-                    silhouette.extend((transform * &path).elements().iter().copied());
-                }
                 if geometry.stroked() && line.pattern != 0 {
                     let mut stroke = line.stroke();
                     stroke.width = nominal_weight;
-                    silhouette.extend(
+                    shadow_strokes.extend(
                         (transform * kurbo::stroke(path.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-5))
                             .elements()
                             .iter()
@@ -857,11 +859,11 @@ fn shapes(
                     );
                 }
             }
-            if !silhouette.elements().is_empty() {
+            if !shadow_fill.elements().is_empty() || !shadow_strokes.elements().is_empty() {
                 let offset = (number(e, scope, "ShapeShdwOffsetX", 0.), number(e, scope, "ShapeShdwOffsetY", 0.));
                 let blur = number(e, scope, "ShapeShdwBlur", 0.).max(0.);
                 let shade = color(e, scope, "ShdwForegnd", "ShdwForegndTrans");
-                scene.ops.push(crate::shadow::outer(&silhouette, offset, blur, shade, 96. * options.scale)?);
+                scene.ops.push(crate::shadow::outer(&shadow_fill, &shadow_strokes, offset, blur, shade, 96. * options.scale)?);
             }
         }
         if fill.pattern != 0 && !combined_fill.elements().is_empty() {
@@ -871,7 +873,7 @@ fn shapes(
             } else {
                 Paint::Pattern { fill: fill.clone(), gradient, bounds: Rect::new(0., 0., width, height), transform }
             };
-            scene.ops.push(Op::Path { path: transform * combined_fill, paint });
+            scene.ops.push(Op::Path { even_odd: true, path: transform * combined_fill, paint });
         }
         for geometry in geometries {
             let path = style::round_rectangle(&geometry.path, line.rounding);
@@ -964,7 +966,7 @@ fn shapes(
                         svg_path.extend(svg_inner.elements().iter().copied());
                         scene.ops.push(Op::HairlineMarker { path: outline, svg_path, color: line.color });
                     } else {
-                        scene.ops.push(Op::Path { path: outline, paint: Paint::Solid(line.color) });
+                        scene.ops.push(Op::Path { even_odd: false, path: outline, paint: Paint::Solid(line.color) });
                     }
                 } else if weight == 0. && (line.begin_arrow != 0 || line.end_arrow != 0) {
                     let svg_weight = 0.75 / 72.;
@@ -1043,7 +1045,7 @@ fn shapes(
                                 if let Some(svg_arrow) = svg_arrows.get(index) {
                                     scene.ops.push(Op::HairlineMarker { path, svg_path: outline(svg_arrow, 0.75 / 72.), color: line.color });
                                 } else {
-                                    scene.ops.push(Op::Path { path, paint: Paint::Solid(line.color) });
+                                    scene.ops.push(Op::Path { even_odd: false, path, paint: Paint::Solid(line.color) });
                                 }
                             }
                         }
@@ -1283,7 +1285,7 @@ fn paint_foreign(
         scene.warnings.extend(imported.warnings);
         for op in imported.ops {
             scene.ops.push(match op {
-                Op::Path { path, paint } => Op::Path { path: m * path, paint },
+                Op::Path { even_odd, path, paint } => Op::Path { even_odd, path: m * path, paint },
                 Op::Clip { path, even_odd } => Op::Clip { path: m * path, even_odd },
                 Op::Pop => Op::Pop,
                 Op::Stroke { path, mut stroke, color } => {

@@ -594,7 +594,7 @@ impl Player {
         if fill && let Some(color) = self.fill_paint() {
             let clip = Clip { path: bp.clone(), rule: self.dc.fill_rule };
             self.dc.clips.push(Arc::new(clip));
-            self.push(Op::Path { path: bp.bounding_box().to_path(0.01), paint: Paint::Solid(color) });
+            self.push(Op::Path { even_odd: false, path: bp.bounding_box().to_path(0.01), paint: Paint::Solid(color) });
             self.dc.clips.pop();
         }
         if stroke && let Some(st) = self.stroke_layer() {
@@ -602,7 +602,7 @@ impl Player {
                 return;
             }
             let outline = kurbo::stroke(bp.elements().iter().copied(), &st, &kurbo::StrokeOpts::default(), 0.01);
-            self.push(Op::Path { path: outline, paint: Paint::Solid(rgb(self.dc.pen.color)) });
+            self.push(Op::Path { even_odd: false, path: outline, paint: Paint::Solid(rgb(self.dc.pen.color)) });
         }
     }
 
@@ -897,7 +897,7 @@ impl Player {
                 break;
             }
             let path = m * Affine::translate((x + f64::from(glyph.x_offset), -f64::from(glyph.y_offset))) * db.outline(&face, glyph.gid).as_ref();
-            self.push(Op::Path { path, paint: Paint::Solid(rgb(self.dc.text_color)) });
+            self.push(Op::Path { even_odd: false, path, paint: Paint::Solid(rgb(self.dc.text_color)) });
             x += f64::from(glyph.x_advance);
         }
     }

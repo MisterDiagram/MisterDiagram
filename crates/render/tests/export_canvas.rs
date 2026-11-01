@@ -16,8 +16,12 @@ fn drawing(width: f64, height: f64) -> Scene {
         page_size: (width, height),
         bounds: Rect::new(0.75, 1.75, 5.5, 4.5),
         ops: vec![
-            Op::Path { path: Rect::new(0.75, 1.75, 1.75, 2.25).to_path(1e-5), paint: Paint::Solid(misterdiagram_color::Rgba::BLACK) },
-            Op::Path { path: Rect::new(4.5, 3.5, 5.5, 4.5).to_path(1e-5), paint: Paint::Solid(misterdiagram_color::Rgba::BLACK) },
+            Op::Path {
+                even_odd: false,
+                path: Rect::new(0.75, 1.75, 1.75, 2.25).to_path(1e-5),
+                paint: Paint::Solid(misterdiagram_color::Rgba::BLACK),
+            },
+            Op::Path { even_odd: false, path: Rect::new(4.5, 3.5, 5.5, 4.5).to_path(1e-5), paint: Paint::Solid(misterdiagram_color::Rgba::BLACK) },
         ],
     }
 }

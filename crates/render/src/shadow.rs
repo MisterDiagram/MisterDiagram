@@ -10,11 +10,18 @@ use vello_cpu::{PixmapMut, RenderContext};
 
 /// Rasterize a silhouette with a Gaussian edge and retain its physical extent.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/shapeshdwoffsetx-cell-fill-format-section
-pub(crate) fn outer(path: &BezPath, offset: (f64, f64), blur: f64, color: Rgba, dpi: f64) -> Result<Op, String> {
+pub(crate) fn outer(path: &BezPath, strokes: &BezPath, offset: (f64, f64), blur: f64, color: Rgba, dpi: f64) -> Result<Op, String> {
     if [offset.0, offset.1, blur, dpi].iter().any(|n| !n.is_finite()) || blur < 0. || dpi <= 0. || blur * dpi > 512. {
         return Err("shadow coordinate limit".into());
     }
-    let b = path.bounding_box().inflate(blur, blur);
+    let bounds = if path.elements().is_empty() {
+        strokes.bounding_box()
+    } else if strokes.elements().is_empty() {
+        path.bounding_box()
+    } else {
+        path.bounding_box().union(strokes.bounding_box())
+    };
+    let b = bounds.inflate(blur, blur);
     if b.width() <= 0. || b.height() <= 0. {
         return Err("empty shadow extent".into());
     }
@@ -31,7 +38,12 @@ pub(crate) fn outer(path: &BezPath, offset: (f64, f64), blur: f64, color: Rgba, 
     let mut ctx = RenderContext::new_with(w, h, vello_cpu::RenderSettings { num_threads: 0, ..Default::default() });
     ctx.set_transform(view);
     ctx.set_paint(peniko::Color::WHITE);
+    // Parity applies only to section fills. Stroke coverage is unioned into the
+    // same opaque mask, then the complete silhouette is blurred once.
+    ctx.set_fill_rule(peniko::Fill::EvenOdd);
     ctx.fill_path(path);
+    ctx.set_fill_rule(peniko::Fill::NonZero);
+    ctx.fill_path(strokes);
     ctx.flush();
     let len = usize::from(w).checked_mul(usize::from(h)).and_then(|n| n.checked_mul(4)).ok_or("shadow allocation overflow")?;
     let mut pixels = vec![0; len];
@@ -56,11 +68,13 @@ mod tests {
     #[test]
     fn shadow_retains_transparency_and_rejects_hostile_sizes() {
         let path = Rect::new(0., 0., 1., 1.).to_path(0.01);
-        let Op::Image { pixels, .. } = outer(&path, (0.1, -0.1), 0.1, Rgba::rgb(20, 40, 60), 96.).unwrap() else { panic!("shadow image") };
+        let Op::Image { pixels, .. } = outer(&path, &BezPath::new(), (0.1, -0.1), 0.1, Rgba::rgb(20, 40, 60), 96.).unwrap() else {
+            panic!("shadow image")
+        };
         assert!(pixels.pixels().any(|p| p.0[3] > 0 && p.0[3] < 255));
-        assert!(outer(&path, (f64::NAN, 0.), 0.1, Rgba::BLACK, 96.).is_err());
-        assert!(outer(&path, (0., 0.), 100., Rgba::BLACK, 96.).is_err());
-        assert!(outer(&Rect::new(0., 0., 40., 40.).to_path(0.01), (0., 0.), 1., Rgba::BLACK, 96.).is_err());
-        assert!(outer(&Rect::new(0., 0., 1e6, 1e6).to_path(0.01), (0., 0.), 0.1, Rgba::BLACK, 96.).is_err());
+        assert!(outer(&path, &BezPath::new(), (f64::NAN, 0.), 0.1, Rgba::BLACK, 96.).is_err());
+        assert!(outer(&path, &BezPath::new(), (0., 0.), 100., Rgba::BLACK, 96.).is_err());
+        assert!(outer(&Rect::new(0., 0., 40., 40.).to_path(0.01), &BezPath::new(), (0., 0.), 1., Rgba::BLACK, 96.).is_err());
+        assert!(outer(&Rect::new(0., 0., 1e6, 1e6).to_path(0.01), &BezPath::new(), (0., 0.), 0.1, Rgba::BLACK, 96.).is_err());
     }
 }

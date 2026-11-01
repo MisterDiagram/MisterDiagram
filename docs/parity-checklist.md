@@ -448,3 +448,8 @@ partial rendering rows, scores and denominators remain unchanged.
   `grouped_text` checks 108 native transforms plus six nested controls;
   existing `flipped_text` regressions are unchanged. Evidence:
   `field/flip-fill-2026-11-01/`. Broader text layout remains partial.
+
+- M5.109 geometry rendering remains P: section fills use alternate winding in
+  PNG, SVG, PDF and shadow masks. Sixteen native synthetic controls cover topology,
+  flags and paint types; stroke output is retained. Evidence:
+  `field/flip-fill-2026-11-01/`. Broader paint and shadow parity remains partial.

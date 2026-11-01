@@ -134,7 +134,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-function> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/formatex-function> | `crates/sheet/src/functions/text.rs`, `crates/vsdx/tests/string_cell_evaluation.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/formulaexists-function> | `crates/sheet/src/eval.rs`, `crates/sheet/src/functions/path_queries.rs`, `crates/vsdx/src/evaluate.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section> | `crates/engine/src/layout.rs`, `crates/engine/src/layout/check.rs`, `crates/engine/src/layout/shared.rs`, `crates/engine/src/network.rs`, `crates/engine/tests/layout_check.rs`, `crates/geom/src/rows.rs`, `crates/model/src/skeleton.rs`, `crates/route/src/changes.rs`, `crates/route/src/straight.rs`, `crates/vsdx/src/evaluate/geometry.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section> | `crates/engine/src/layout.rs`, `crates/engine/src/layout/check.rs`, `crates/engine/src/layout/shared.rs`, `crates/engine/src/network.rs`, `crates/engine/tests/layout_check.rs`, `crates/geom/src/rows.rs`, `crates/model/src/skeleton.rs`, `crates/render/tests/section_fill.rs`, `crates/route/src/changes.rs`, `crates/route/src/straight.rs`, `crates/vsdx/src/evaluate/geometry.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/getref-function> | `crates/sheet/src/functions/references.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/gravity-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/green-function> | `crates/sheet/src/functions/color.rs` |
@@ -212,7 +212,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/na-function> | `crates/sheet/src/functions/extras.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/name-cell-reviewer-section> | `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/nearestpointonpath-function> | `crates/vsdx/src/evaluate/path.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/nofill-cell-geometry-section> | `crates/geom/src/rows.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/nofill-cell-geometry-section> | `crates/geom/src/rows.rs`, `crates/render/tests/section_fill.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/noline-cell-geometry-section> | `crates/geom/src/rows.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/noshow-cell-geometry-section> | `crates/geom/src/rows.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/nosnap-cell-geometry-section> | `crates/geom/src/rows.rs` |
