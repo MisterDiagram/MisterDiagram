@@ -2168,14 +2168,24 @@ background glue and A3's orthogonal alignment case succeed without swallowing a
 routing error.
 Reference: [LineToLineX](https://learn.microsoft.com/en-us/office/client-developer/visio/linetolinex-cell-page-layout-section).
 
-## Brief A5: readable text in flipped shapes (#45)
+## Brief A5: readable text in flipped shapes (#45, #98)
 
-Resolved: the shared scene text transform counter-flips about the text block's
-center for FlipX, FlipY and both, matching W5. PNG, SVG and PDF consume the same
-corrected text transform. Regression tests compare all three flip combinations
-with unflipped text, including rasterized SVG and emitted PDF scene transforms.
-References: [FlipX](https://learn.microsoft.com/en-us/office/client-developer/visio/flipx-cell-shape-transform-section)
-and [FlipY](https://learn.microsoft.com/en-us/office/client-developer/visio/flipy-cell-shape-transform-section).
+Resolved for the witnessed transforms: text counter-flips about its transformed
+block center using the XOR of FlipX and FlipY along the complete shape ancestry.
+This includes a group's own text, text in a flipped group, nested rotated groups,
+and off-centre TxtPin/TxtLocPin with a noncentral shape LocPin. Shape and text
+rotations remain composed; this correction does not replace TxtAngle or GRAVITY.
+PNG, editable/outline SVG and PDF use the same corrected transform.
+
+The original W5 centred controls remain unchanged. The contributor-original
+`field/flip-fill-2026-11-01/` witnesses extend them with the 108-case transform
+matrix and nested reflection controls. `grouped_text` tests check native page
+bases and block centres, including both-axis cancellation and fixed text angles.
+The original `flipped_text` tests remain intact. General text layout stays partial.
+References: [FlipX](https://learn.microsoft.com/en-us/office/client-developer/visio/flipx-cell-shape-transform-section),
+[FlipY](https://learn.microsoft.com/en-us/office/client-developer/visio/flipy-cell-shape-transform-section)
+and [TxtAngle](https://learn.microsoft.com/en-us/office/client-developer/visio/txtangle-cell-text-transform-section).
+The cross-ancestor counter-flip rule comes from the native witnesses.
 
 ## Brief A X-1: missing-shape sheet errors
 

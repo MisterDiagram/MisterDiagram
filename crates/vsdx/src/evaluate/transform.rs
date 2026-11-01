@@ -43,6 +43,23 @@ impl Evaluator<'_> {
         let (m, _) = self.page_transform(scope)?;
         Ok(misterdiagram_geom::Affine::new([m.a, m.b, m.c, m.d, m.x, m.y]))
     }
+    /// Axis reflection parity across a shape and all enclosing groups. Text cancels
+    /// these reflections about its own block center after the complete page transform.
+    /// Witness: field/flip-fill-2026-11-01, including rotated nested groups.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/flipx-cell-shape-transform-section
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/flipy-cell-shape-transform-section
+    pub fn text_reflections(&mut self, mut scope: Scope) -> Result<(bool, bool), Error> {
+        let (mut x, mut y) = (false, false);
+        for _ in 0..128 {
+            let Some(parent) = self.parents.get(&scope).copied() else {
+                return if matches!(scope, Scope::Page(_) | Scope::Master(_)) { Ok((x, y)) } else { Err(Error::Ref) };
+            };
+            x ^= self.resolve(scope, "FlipX").truth()?;
+            y ^= self.resolve(scope, "FlipY").truth()?;
+            scope = parent;
+        }
+        Err(Error::Limit)
+    }
     /// Parent coordinates (including one-dimensional endpoints) to page inches.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/beginx-cell-1-d-endpoints-section
     pub fn parent_to_page(&mut self, scope: Scope) -> Result<misterdiagram_geom::Affine, Error> {

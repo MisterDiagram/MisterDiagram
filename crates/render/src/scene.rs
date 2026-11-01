@@ -1075,11 +1075,13 @@ fn shapes(
                     misterdiagram_model::text::Anchor::Bottom => height - original_height,
                     _ => (height - original_height) * 0.5,
                 };
-                // W5: text counter-flips about its block center for X, Y and both axes.
+                // W5 and grouped witnesses: cancel reflection parity across the full ancestry.
+                // Keep the transformed off-centre block center fixed, including TxtAngle.
                 // https://learn.microsoft.com/en-us/office/client-developer/visio/flipx-cell-shape-transform-section
                 // https://learn.microsoft.com/en-us/office/client-developer/visio/flipy-cell-shape-transform-section
-                let flip_x = if number(e, scope, "FlipX", 0.) == 0. { 1. } else { -1. };
-                let flip_y = if number(e, scope, "FlipY", 0.) == 0. { 1. } else { -1. };
+                let (flip_x, flip_y) = e.text_reflections(scope).map_err(|error| e.render_error(scope, "text reflections", error))?;
+                let flip_x = if flip_x { -1. } else { 1. };
+                let flip_y = if flip_y { -1. } else { 1. };
                 let counter_flip = Affine::translate((block.width * 0.5, block.height * 0.5))
                     * Affine::scale_non_uniform(flip_x, flip_y)
                     * Affine::translate((-block.width * 0.5, -block.height * 0.5));

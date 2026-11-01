@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Text stays readable inside flipped groups** (#98). Off-centre labels keep their position and follow the intended rotation without mirrored letters.
+
 ## 0.1.0-alpha.21
 
 Exports come out the size Visio's do

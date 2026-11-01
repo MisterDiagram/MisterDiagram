@@ -442,3 +442,9 @@ partial rendering rows, scores and denominators remain unchanged.
   spacing and empty trailing lines are covered by `text_export_bounds`.
   Native evidence: private `field/export-canvas-2026-10-31/`. Broader text and
   rendering gaps remain open; the old fitted scale correction is disclosed.
+
+- M5.108 text block rotation remains P: inherited flip parity now keeps child text
+  readable through rotated groups while preserving off-centre block placement.
+  `grouped_text` checks 108 native transforms plus six nested controls;
+  existing `flipped_text` regressions are unchanged. Evidence:
+  `field/flip-fill-2026-11-01/`. Broader text layout remains partial.
