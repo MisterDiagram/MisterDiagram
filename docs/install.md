@@ -111,6 +111,20 @@ On an Arm machine, use the `linux-arm64` archive and folder instead.
 The binary is already executable in the archive. If a tool you used to unpack it dropped the
 permission, restore it with `chmod +x misterdiagram`.
 
+There is nothing else to install and nothing appears in an application menu: MisterDiagram is
+a command-line program, so this terminal step is the whole installation. If `./misterdiagram
+--version` fails, the message says why:
+
+- `Exec format error`: the archive does not match the machine. `uname -m` prints `x86_64` for
+  the `linux-x64` archive and `aarch64` for `linux-arm64`. A 32-bit OS (`armv7l`, `i686`)
+  cannot run either.
+- `Permission denied`: the execute bit is missing (`chmod +x misterdiagram`), or the folder
+  is on a file system mounted `noexec` (some `/tmp` and removable drives). Move the binary
+  to your home folder and try again.
+- Anything else: open an [issue](https://github.com/MisterDiagram/MisterDiagram/issues) with
+  the distribution, the output of `uname -m`, and the full text of the command and its
+  error.
+
 ## 4. Put it on your PATH
 
 So that `misterdiagram` works from any folder:
