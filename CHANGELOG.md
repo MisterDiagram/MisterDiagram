@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.22
+
+Two drawing fixes found on a Visio floor plan
+([#98](https://github.com/MisterDiagram/MisterDiagram/issues/98),
+[#99](https://github.com/MisterDiagram/MisterDiagram/issues/99)). Each fix is checked against
+Visio 2021 on synthetic drawings.
 
 - **Text stays readable inside flipped groups** (#98). Off-centre labels keep their position and follow the intended rotation without mirrored letters.
 - **Holes stay open in filled shapes** (#99). Overlapping geometry sections now fill together, preserving holes in solid, patterned and gradient fills and their shadows.
