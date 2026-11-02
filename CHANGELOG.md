@@ -1,6 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.23
+
+Two formula fixes for measurement text
+([#83](https://github.com/MisterDiagram/MisterDiagram/issues/83),
+[#95](https://github.com/MisterDiagram/MisterDiagram/issues/95)), each checked against Visio 2021
+on thousands of synthetic formulas. Known gap: a unit code on a cell that saves no unit attribute
+(the width of a plainly drawn shape) still prints no label; #83 stays open for it.
 
 - **Measurements display the right unit labels** (#83). Numeric fields now match Visio's unit punctuation, area labels and literal picture text.
 - **Feet-and-inches fields update after edits** (#95). Compound measurement pictures now recalculate with the right rounding, fractions and unit labels.

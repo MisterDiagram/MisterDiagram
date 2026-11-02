@@ -25,8 +25,8 @@ Anyone who wants a GUI on top is welcome to build one: the licence is MIT or Apa
 core is the part that has to be right. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and shares their conventions.
 
-**Download:** [MisterDiagram 0.1.0-alpha.22](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.22),
-the twenty-first alpha (text in flipped groups reads the right way round, and shapes built from nested outlines keep their holes), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+**Download:** [MisterDiagram 0.1.0-alpha.23](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.23),
+the twenty-second alpha (measurement text carries Visio's unit labels, and feet-and-inches fields recalculate after edits), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -35,7 +35,7 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-11-01, 0.1.0-alpha.22)
+## What works today (2026-11-02, 0.1.0-alpha.23)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
@@ -88,9 +88,9 @@ Container/list formulas, text wrapping, larger-page routing, legacy formats,
 EMF+, compound line patterns, shadows, PowerPoint export and masters with several
 top-level shapes remain limited. Large-drawing authoring is slow
 ([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39); measurements in docs/gaps.md).
-From Microsoft's template catalogue, filed and open: the feet-and-inches text-field picture
-itself (#95; the field now draws its saved text), `THEME()` with a colour argument (#88),
-the Text Callout cycle (#91), thin-line arrowheads (#93) and the `sheet` exit status after a
+From Microsoft's template catalogue, filed and open: the unit label of a cell that saves no
+unit attribute (#83, narrowed), `THEME()` with a colour argument (#88),
+the Text Callout cycle (#91) and the `sheet` exit status after a
 complete dump of a drawing with an undeterminable embedded picture (#100). From the first batch
 of real company files, filed and open: SVG import (#103). SVG export does not write Visio's
 `v:` extension data, which Visio reads when it imports an SVG. The bundled symbol face covers the dingbat, geometric, arrow and
@@ -99,18 +99,19 @@ and Webdings symbol-charset fonts, are not covered (docs/gaps.md). Where a conne
 three connectors that rerouted on the witness drawings differ from Visio's path (two take the
 other side of the obstacle, one bends elsewhere); the 28 of 29 geometry witnesses still hold.
 
-## New in 0.1.0-alpha.22
+## New in 0.1.0-alpha.23
 
-- Text in flipped groups reads the right way round (#98). A label inside a group that is
-  flipped (a staircase turned the other way on a floor plan, for one) drew with mirrored
-  letters; text now cancels flips from every group above it, as Visio does.
-- Shapes built from nested outlines keep their holes (#99). When one shape has an outline inside
-  another, Visio fills only the ring between them; MisterDiagram filled the middle too. Fills,
-  patterns, gradients and shadows now leave the hole open, in PNG, SVG and PDF.
+- Measurement text carries Visio's unit labels (#83). `FORMAT` and `FORMATEX` print `in.`, `FT.`,
+  `sq. ft.` and `ft.^2` as Visio does, bare letters in a format picture are codes rather than
+  literal text, and `%` is not a percent code. A floor plan's room area now reads `551 sq. ft.`.
+- Feet-and-inches fields recalculate after edits (#95). The `<,FEET/INCH>` picture family and its
+  pica/point and cicero/didot relatives evaluate in formulas and text fields, rounding the smallest
+  unit before the carry, so a field no longer falls back to the text saved in the file.
 
-Against alpha.21, 3 corpus lines (one theme file) and 35 field rows move, 19 nearer Visio and
-16 slightly farther, all at the soft edges of shadows; lines, text and fills are otherwise
-unchanged, and routes, theme and hostile results are unchanged.
+Against alpha.22, 29 corpus lines move and no field row does: 119 area-label strings saved by
+older Visio builds lack the periods Visio 2021 prints, so cached matches fall by 106 while
+pinned Visio values gain 82; pictures are unchanged, and routes, theme and hostile results
+are unchanged.
 
 ## Testers wanted
 
