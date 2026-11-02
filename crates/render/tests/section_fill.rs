@@ -222,3 +222,39 @@ fn section_flags_independently_select_fill_and_stroke() {
         assert_eq!(sample(&im, &s, 2.5, 2.5), [66, 111, 160]);
     }
 }
+
+/// Brief 63 CF-01: inspect the actual solid fill operation, not a clip or scene flag.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section
+#[test]
+fn pdf_nested_closed_sections_use_even_odd_solid_fill() {
+    use hayro_syntax::content::ops::TypedInstruction as T;
+    for reverse in [false, true] {
+        let mut d = drawing(reverse, false, false, 1);
+        d.pages[0].shapes.remove(0);
+        set(&mut d.pages[0].shapes[0], "LinePattern", "0");
+        let s = scene::page(&d, 0, options()).unwrap();
+        let bytes = misterdiagram_render::pdf::render(&[s], options()).unwrap();
+        let pdf = hayro_syntax::Pdf::new(bytes).unwrap();
+        let mut starts = 0;
+        let mut alternate = 0;
+        let mut operations = pdf.pages()[0].typed_operations();
+        while let Some(op) = operations.next() {
+            match op {
+                T::MoveTo(_) | T::RectPath(_) => starts += 1,
+                T::FillPathEvenOdd(_) => {
+                    if starts == 2 {
+                        alternate += 1;
+                    }
+                    starts = 0;
+                }
+                T::FillPathNonZero(_) => {
+                    assert_ne!(starts, 2, "nested solid shape must use PDF f*, never f");
+                    starts = 0;
+                }
+                T::EndPath(_) => starts = 0,
+                _ => {}
+            }
+        }
+        assert_eq!(alternate, 1, "PDF must fill the two nested closed subpaths with f*");
+    }
+}

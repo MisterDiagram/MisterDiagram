@@ -2665,3 +2665,16 @@ Visio's export at 192 dpi and are now within 1 px. Corpus check and the theme sw
 unchanged. Field render moved on seven rows, six of them closer to Visio's export (the
 release gate first reported it unchanged because its script ran a field_render built before
 the fix; corrected 2026-10-29).
+
+## Numeric FORMAT pictures and unit labels (#83, M5.111)
+
+The witnessed area-label gap is closed: FORMAT/FORMATEX now use Visio's short,
+long and universal unit labels, including periods in squared and multiword
+units. Numeric pictures consume bare letter and percent codes and retain
+quoted/escaped literals; nonzero ResultIU coercion is checked too. The
+2,863-case synthetic table covers length, area, angle and duration units,
+FORMATEX conversion targets and punctuation. Native evidence is private
+`field/format-pictures-2026-11-02/`; rules and rejected spellings are recorded in
+[file-format-parity.md](file-format-parity.md). Broader date, locale and currency
+pictures remain partial; explicit compound picture prefixes remain #95 work.
+Reference: [About format pictures](https://learn.microsoft.com/en-us/office/client-developer/visio/about-format-pictures).

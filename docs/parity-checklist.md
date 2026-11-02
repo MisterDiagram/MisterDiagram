@@ -453,3 +453,9 @@ partial rendering rows, scores and denominators remain unchanged.
   PNG, SVG, PDF and shadow masks. Sixteen native synthetic controls cover topology,
   flags and paint types; stroke output is retained. Evidence:
   `field/flip-fill-2026-11-01/`. Broader paint and shadow parity remains partial.
+
+- M5.111 ShapeSheet formatting remains P: 2,863 native synthetic cases cover
+  unit labels, bare codes, FORMATEX conversions and nonzero numeric coercion.
+  `format_pictures` tests the observed strings and values; `section_fill` also
+  protects the PDF solid even-odd operation carried from Brief 62. Evidence:
+  `field/format-pictures-2026-11-02/`. Date/locale and compound-prefix gaps remain.

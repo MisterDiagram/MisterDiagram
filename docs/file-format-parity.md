@@ -17531,3 +17531,62 @@ References: [Geometry](https://learn.microsoft.com/en-us/office/client-developer
 [NoLine](https://learn.microsoft.com/en-us/office/client-developer/visio/noline-cell-geometry-section),
 [NoShow](https://learn.microsoft.com/en-us/office/client-developer/visio/noshow-cell-geometry-section).
 These references define section flags, not the observed cross-section fill rule.
+
+## FORMAT unit labels and numeric picture codes (M5.111, #83)
+
+Synthetic Visio 2021 observations in private
+`field/format-pictures-2026-11-02/part-a-inputs.json`, `native-a/results.json`,
+`part-a-extra-inputs.json` and `native-a-extra/results.json` cover 3,098 attempts.
+The primary run accepts 1,545 formulas and retains 234 COM assignment rejections;
+the supplemental run records 1,303 results, including native error strings.
+The Part A regression table checks 2,863 accepted formulas, their exact strings
+and every nonzero ResultIU with the existing absolute 1e-6 tolerance. The one
+remaining accepted primary row is the explicit feet/inches picture for Part B.
+
+All six unit-label codes are covered: u/U, uu/UU and uuu/UUU. The first letter
+selects lower or upper case; runs of at least three letters select the universal
+label. Ordinary area units use `in.^2`, `sq. in.` and `sq in` respectively, with
+the corresponding base unit substituted. Typographic and angular powers keep
+an exponent on their normal label. Duration labels use `ew.`, `ed.`, `eh.`,
+`em.` and `es.`, with long forms `eweek`, `eday`, `ehour`, `eminute`, `esecond`.
+Picas, ciceros and didots have their own observed labels. Numeric coercion accepts
+the emitted long, squared and compound labels. The native didot is 0.375 mm;
+square-kilometer coercion uses the reciprocal conversion observed at double
+precision, preserving the 1e-6 comparison without changing a tolerance.
+
+Bare letters and percent signs in a numeric picture are codes, not literal
+text or percent scaling. Quoted and escaped characters are literal. A trailing
+escape emits nothing; an open quote consumes the remaining literal characters.
+The numeric run ends before unit codes, so the 2 in `u^2` is not a digit
+placeholder. Punctuation outside that run depends on dimensional context:
+`FORMAT(551.25,"#,##0 sq. ft.")` produces `551 . .`, while a dimensional input
+suppresses those bare periods. Native errors remain errors. FORMATEX target
+strings are validated separately from literal unit suffixes; apostrophe and
+quote targets mean feet and inches, while angular literal suffixes display
+compound degrees, minutes and seconds. Cross-unit and typed-source cases
+exercise conversion as well as labels.
+
+Issue #83's witnessed area-label mismatch is closed. This is numeric-picture
+coverage, not a claim of complete date, locale or currency formatting. Compound
+picture prefixes are addressed separately under #95. Existing resource bounds
+remain explicit: 4096 picture bytes, 256 integer placeholders, 64 decimal
+placeholders, bounded denominators and bounded compound coercion.
+
+References: [About format pictures](https://learn.microsoft.com/en-us/office/client-developer/visio/about-format-pictures),
+[FORMAT](https://learn.microsoft.com/en-us/office/client-developer/visio/format-function),
+[FORMATEX](https://learn.microsoft.com/en-us/office/client-developer/visio/formatex-function),
+[units of measure](https://learn.microsoft.com/en-us/office/client-developer/visio/about-units-of-measure-visio-shapesheet-reference).
+
+Additional `native-a-controls/results.json` has 16 typed-source controls. A valid
+srcUnit does not rescale a typed expression, an invalid srcUnit still gives
+#VALUE!, and an area expression retains its exponent when the target names a
+base length unit (`mm` displays square millimeters).
+
+### Observed, undocumented: FORMATEX unit-string context
+
+The units reference lists apostrophe and quote as angular suffixes. Literal
+formula suffixes use that angular meaning, but FORMATEX source/target strings
+interpret them as feet and inches. Native rows a0270 through a0305 and the
+corresponding conversion rows in `native-a-extra/results.json` demonstrate
+both contexts in `field/format-pictures-2026-11-02/`. The implementation follows
+those observations. Neither the native results nor their tolerance was changed.

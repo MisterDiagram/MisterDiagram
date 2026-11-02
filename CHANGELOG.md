@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Measurements display the right unit labels** (#83). Numeric fields now match Visio's unit punctuation, area labels and literal picture text.
+
 ## 0.1.0-alpha.22
 
 Two drawing fixes found on a Visio floor plan

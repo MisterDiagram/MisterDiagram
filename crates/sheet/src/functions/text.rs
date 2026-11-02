@@ -280,6 +280,8 @@ fn expression_unit(expr: &Expr, context: &dyn Context, depth: usize) -> Option<S
                 BinaryOp::Add | BinaryOp::Sub => {
                     if a.as_deref().is_some_and(|s| s.eq_ignore_ascii_case("FT")) && b.as_deref().is_some_and(|s| s.eq_ignore_ascii_case("IN")) {
                         Some("F_I".into())
+                    } else if a.as_deref().is_some_and(|s| s.eq_ignore_ascii_case("C")) && b.as_deref().is_some_and(|s| s.eq_ignore_ascii_case("D")) {
+                        Some("C_D".into())
                     } else {
                         a.or(b)
                     }
@@ -305,6 +307,29 @@ fn expression_unit(expr: &Expr, context: &dyn Context, depth: usize) -> Option<S
 }
 fn clean_unit(s: &str) -> String {
     s.trim().trim_matches(['[', ']']).split(',').next().unwrap_or("").trim().to_ascii_uppercase()
+}
+/// FORMATEX unit strings accept localized display aliases; literal formula units
+/// retain their angular apostrophe/quote meaning.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/formatex-function
+fn format_unit(s: &str) -> Result<String, Error> {
+    let unit = clean_unit(s);
+    if unit == "'" {
+        return Ok("FT".into());
+    }
+    if unit == "\"" {
+        return Ok("IN".into());
+    }
+    if let Some(base) = unit.strip_prefix("SQ.").or_else(|| unit.strip_prefix("SQ ")) {
+        let base = base.trim().trim_end_matches('.');
+        if !matches!(base, "IN" | "FT" | "YD" | "MI" | "MM" | "CM" | "M" | "KM") {
+            return Err(Error::Value);
+        }
+    }
+    if unit.starts_with("P.^") || unit.starts_with("C.^") || unit.starts_with("D.^") {
+        return Err(Error::Value);
+    }
+    units::factor(&unit).map_err(|_| Error::Value)?;
+    Ok(unit)
 }
 /// FORMAT preserves expression units; FORMATEX scales untyped expressions using srcUnit.
 /// Every language ID formats with the en-US picture rules: text pictures do not depend on the
@@ -368,10 +393,19 @@ fn format_value(name: &str, args: &[Expr], values: &[Value], context: &dyn Conte
     }
     let n = value.numeric()?;
     let source = args.first().and_then(|e| expression_unit(e, context, 0));
-    let src = optional(args, values, 2).map(|v| text(&v)).transpose()?;
-    let dst = optional(args, values, 3).map(|v| text(&v)).transpose()?;
+    let src = optional(args, values, 2).map(|v| text(&v).and_then(|s| format_unit(&s))).transpose()?;
+    let dst = optional(args, values, 3).map(|v| text(&v).and_then(|s| format_unit(&s))).transpose()?;
     let internal = if source.is_none() { n * units::factor(src.as_deref().unwrap_or(""))? } else { n };
-    let unit = clean_unit(dst.as_deref().or(source.as_deref()).or(src.as_deref()).unwrap_or(""));
+    let mut unit = clean_unit(dst.as_deref().or(source.as_deref()).or(src.as_deref()).unwrap_or(""));
+    // An explicit base-unit target keeps the expression's area exponent.
+    // Native controls t008..t010: square inches to "mm" displays square millimeters.
+    let dimensional_source = clean_unit(source.as_deref().or(src.as_deref()).unwrap_or(""));
+    let area = |s: &str| {
+        s.starts_with("SQ ") || s.starts_with("SQ.") || s.ends_with("^2") || matches!(s, "AC" | "ACRE" | "ACRES" | "HA" | "HECTARE" | "HECTARES")
+    };
+    if area(&dimensional_source) && !area(&unit) && dst.is_some() {
+        unit.push_str("^2");
+    }
     let output = internal / units::factor(&unit)?;
     if !output.is_finite() {
         return Err(Error::Num);
@@ -379,8 +413,31 @@ fn format_value(name: &str, args: &[Expr], values: &[Value], context: &dyn Conte
     if general {
         return Ok(Value::number(output).text());
     }
+    // Compound picture prefixes are dispatched separately from bare letter codes.
+    // Preserve field fallback until that grammar is supported.
+    if picture.starts_with("<,") {
+        return Err(Error::Value);
+    }
     if date_picture(&picture) {
         return format_date(internal, &picture);
+    }
+    if matches!(unit.as_str(), "°" | "'" | "\"") {
+        let degrees = internal.abs().to_degrees();
+        let whole = degrees.floor();
+        let minutes = ((degrees - whole) * 60.).floor();
+        let seconds = ((degrees - whole) * 60. - minutes) * 60.;
+        let mut pieces = Vec::new();
+        for (value, label) in [(whole, "°"), (minutes, "'"), (seconds, "\"")] {
+            if value != 0. || picture.starts_with('0') {
+                pieces.push(format_numeric(value, &picture, label)?);
+            }
+        }
+        return Ok(format!("{}{}", if internal < 0. { "-" } else { "" }, pieces.join(" ")));
+    }
+    if unit == "C_D" {
+        let c = (internal.abs() / units::factor("C")?).floor();
+        let d = (internal.abs() - c * units::factor("C")?) / units::factor("D")?;
+        return Ok(format!("{}{}{}", if internal < 0. { "-" } else { "" }, format_numeric(c, &picture, "C")?, format_numeric(d, &picture, "")?));
     }
     if unit == "F_I" || unit == "FEET/INCH" {
         let negative = internal < 0.;
@@ -407,19 +464,18 @@ fn picture_tokens(s: &str) -> Result<Vec<Picture>, Error> {
     let mut chars = s.chars();
     while let Some(c) = chars.next() {
         match c {
-            '\\' => out.push(Picture::Literal(chars.next().ok_or(Error::Value)?.to_string())),
+            '\\' => {
+                if let Some(c) = chars.next() {
+                    out.push(Picture::Literal(c.to_string()));
+                }
+            }
             '\'' | '"' => {
                 let mut literal = String::new();
-                let mut closed = false;
                 for ch in chars.by_ref() {
                     if ch == c {
-                        closed = true;
                         break;
                     }
                     literal.push(ch);
-                }
-                if !closed {
-                    return Err(Error::Value);
                 }
                 out.push(Picture::Literal(literal));
             }
@@ -463,70 +519,113 @@ fn format_text(value: &str, picture: &str) -> Result<String, Error> {
     }
     Ok(out)
 }
-fn label(unit: &str, long: usize, upper: bool) -> String {
-    let (short, full) = match unit {
-        "IN" | "IN_F" => ("in.", "inches"),
-        "FT" => ("ft.", "feet"),
-        "MM" => ("mm.", "millimeters"),
-        "CM" => ("cm.", "centimeters"),
-        "M" => ("m.", "meters"),
-        "KM" => ("km.", "kilometers"),
-        "YD" => ("yd.", "yards"),
-        "MI" => ("mi.", "miles"),
-        "PT" => ("pt.", "points"),
-        "DEG" | "AD" | "°" => ("deg.", "degrees"),
-        "RAD" => ("rad.", "radians"),
-        "EH" => ("hr.", "hours"),
-        "EM" => ("min.", "minutes"),
-        "ES" => ("sec.", "seconds"),
-        "ED" => ("day", "days"),
-        "EW" => ("wk.", "weeks"),
-        "DL" | "DP" | "DT" | "DA" | "DE" | "NUM" | "" => ("", ""),
-        _ => (unit, unit),
+/// Display labels witnessed in field/format-pictures-2026-11-02.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/about-format-pictures
+fn label(unit: &str, count: usize, upper: bool) -> String {
+    let unit = unit.trim_end_matches('.');
+    let area = unit.strip_prefix("SQ.").or_else(|| unit.strip_prefix("SQ ")).map(str::trim).or_else(|| unit.strip_suffix("^2"));
+    if let Some(base) = area {
+        let base = base.trim().trim_end_matches('.');
+        let special = matches!(base, "IN" | "FT" | "YD" | "MI" | "MM" | "CM" | "M" | "KM");
+        let value = if special && count == 2 {
+            format!("sq. {}", label(base, 1, false))
+        } else if special && count >= 3 {
+            format!("sq {}", label(base, 3, false))
+        } else {
+            format!("{}^2", label(base, count, false))
+        };
+        return if upper { value.to_uppercase() } else { value };
+    }
+    let (short, full, universal) = match unit {
+        "IN" | "IN_F" => ("in.", "inches", "in"),
+        "FT" => ("ft.", "feet", "ft"),
+        "MM" => ("mm.", "millimeters", "mm"),
+        "CM" => ("cm.", "centimeters", "cm"),
+        "M" => ("m.", "meters", "m"),
+        "KM" => ("km.", "kilometers", "km"),
+        "YD" => ("yd.", "yards", "yd"),
+        "MI" | "MI_F" => ("mi.", "miles", "mi"),
+        "NM" => ("nm.", "nm.", "nm"),
+        "PT" => ("pt.", "points", "pt"),
+        "P" => ("p", "picas", "p"),
+        "C" => ("c", "ciceros", "c"),
+        "D" => ("d", "didots", "d"),
+        "DEG" | "AD" => ("deg.", "degrees", "deg"),
+        "°" => ("°", "degrees", "°"),
+        "'" => ("'", "minutes", "'"),
+        "\"" => ("\"", "seconds", "\""),
+        "RAD" => ("rad.", "radians", "rad"),
+        "EH" => ("eh.", "ehour", "eh"),
+        "EM" => ("em.", "eminute", "em"),
+        "ES" => ("es.", "esecond", "es"),
+        "ED" => ("ed.", "eday", "ed"),
+        "EW" => ("ew.", "eweek", "ew"),
+        "AC" | "ACRE" | "ACRES" => ("acres", "acres", "acre"),
+        "HA" | "HECTARE" | "HECTARES" => ("ha.", "hectares", "ha"),
+        "DL" | "DP" | "DT" | "DA" | "DE" | "NUM" | "" => ("", "", ""),
+        _ => (unit, unit, unit),
     };
-    let value = match long {
+    let value = match count {
         1 => short,
         2 => full,
-        _ => unit,
+        _ => universal,
     };
     if upper { value.to_uppercase() } else { value.to_lowercase() }
 }
+/// The numeric run ends before unit codes or literal suffixes. A digit in u^2
+/// is a code, not a second numeric placeholder.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/about-format-pictures
 fn format_numeric(value: f64, picture: &str, unit: &str) -> Result<String, Error> {
     let tokens = picture_tokens(picture)?;
-    let start = tokens.iter().position(|p| matches!(p, Picture::Code('0' | '#')));
-    let end = tokens.iter().rposition(|p| matches!(p, Picture::Code('0'..='9' | '#')));
     let mut out = String::new();
     let mut i = 0;
+    let mut formatted = false;
+    let text_number = tokens.iter().any(|p| matches!(p, Picture::Code('@')));
     while let Some(token) = tokens.get(i) {
-        if Some(i) == start {
-            let end = end.ok_or(Error::Value)?;
+        if !formatted && matches!(token, Picture::Code('0' | '#')) {
             let mut numeric = String::new();
-            for token in tokens.get(i..=end).ok_or(Error::Value)? {
-                match token {
-                    Picture::Code(c) if c.is_ascii_digit() || matches!(c, '#' | '.' | ',' | '/' | ' ' | 'e' | 'E' | '+' | '-') => numeric.push(*c),
-                    _ => return Err(Error::Value),
+            while let Some(Picture::Code(c)) = tokens.get(i) {
+                match c {
+                    '0'..='9' | '#' | '.' | ',' | '/' => numeric.push(*c),
+                    'e' | 'E' if matches!(tokens.get(i + 1), Some(Picture::Code('+' | '-'))) => numeric.push(*c),
+                    '+' | '-' if numeric.ends_with(['e', 'E']) => numeric.push(*c),
+                    ' ' if matches!(tokens.get(i + 1), Some(Picture::Code('0' | '#'))) => numeric.push(*c),
+                    _ => break,
                 }
+                i += 1;
             }
-            out.push_str(&numeric_picture(value, &numeric)?);
-            i = end + 1;
+            if !text_number {
+                out.push_str(&numeric_picture(value, &numeric)?);
+            }
+            formatted = true;
             continue;
         }
         match token {
             Picture::Literal(s) => out.push_str(s),
+            Picture::Code('@') => out.push_str(&format_numeric(value, if unit.is_empty() { "0.0000" } else { "0.0000 u" }, unit)?),
+            Picture::Code('/') if unit.is_empty() => {
+                let fraction = fraction_picture(value, "0/#")?;
+                let numerator = fraction.split('/').next().unwrap_or("");
+                out.clear();
+                out.push_str(numerator);
+                out.push_str(" /");
+            }
             Picture::Code('u' | 'U') => {
                 let upper = matches!(token, Picture::Code('U'));
                 let mut count = 1;
                 while tokens.get(i + count).is_some_and(|p| matches!(p, Picture::Code('u' | 'U'))) {
-                    count += 1
-                }
-                if count > 3 {
-                    return Err(Error::Value);
+                    count += 1;
                 }
                 out.push_str(&label(unit, count, upper));
                 i += count - 1;
             }
             Picture::Code(c) if c.is_whitespace() => out.push(*c),
-            _ => return Err(Error::Value),
+            Picture::Code('.') if unit.is_empty() && i > 0 && matches!(tokens.get(i - 1), Some(Picture::Code(c)) if c.is_ascii_alphabetic()) => {
+                out.push('.')
+            }
+            Picture::Code('$') if unit.is_empty() => out.push('$'),
+            Picture::Code('e' | 'E') if unit.is_empty() => return Err(Error::Value),
+            _ => {}
         }
         if out.len() > LIMIT {
             return Err(Error::Limit);
@@ -536,6 +635,31 @@ fn format_numeric(value: f64, picture: &str, unit: &str) -> Result<String, Error
     Ok(out)
 }
 fn numeric_picture(value: f64, picture: &str) -> Result<String, Error> {
+    if picture.contains(' ') && !picture.contains('/') {
+        if picture.len() > 256 || !picture.chars().all(|c| matches!(c, '0' | '#' | ' ')) {
+            return Err(Error::Value);
+        }
+        let number = format!("{:.0}", value.abs().round());
+        let mut digits = number.chars().rev();
+        let mut out = String::new();
+        for c in picture.chars().rev() {
+            match c {
+                '0' | '#' => {
+                    if let Some(d) = digits.next() {
+                        out.push(d);
+                    } else if c == '0' {
+                        out.push('0');
+                    }
+                }
+                _ => out.push(c),
+            }
+        }
+        out.extend(digits);
+        if value < 0. {
+            out.push('-');
+        }
+        return Ok(out.chars().rev().collect());
+    }
     if picture.contains('/') {
         return fraction_picture(value, picture);
     }
@@ -576,7 +700,7 @@ fn numeric_picture(value: f64, picture: &str) -> Result<String, Error> {
     if parts.next().is_some() || !integer.chars().all(|c| matches!(c, '0' | '#' | ',')) || !fraction.chars().all(|c| matches!(c, '0' | '#')) {
         return Err(Error::Value);
     }
-    if fraction.len() > 15 || integer.len() > 256 {
+    if fraction.len() > 64 || integer.len() > 256 {
         return Err(Error::Limit);
     }
     let decimal_places = fraction.len();
@@ -620,7 +744,7 @@ fn fraction_picture(value: f64, picture: &str) -> Result<String, Error> {
     let (left, right) = picture.split_once('/').ok_or(Error::Value)?;
     let simplify = right.starts_with('#');
     let digits = right.trim_start_matches('#');
-    let denominator = if digits.is_empty() { 64 } else { digits.parse::<u64>().map_err(|_| Error::Value)? };
+    let denominator = if digits.is_empty() { 64 } else { digits.parse::<u64>().map_err(|_| Error::Value)?.max(1) };
     if denominator == 0 || denominator > 65536 || !left.chars().all(|c| matches!(c, '0' | '#' | ' ')) {
         return Err(Error::Value);
     }
@@ -942,16 +1066,7 @@ mod tests {
     }
     #[test]
     fn hostile_text_arguments_and_pictures() {
-        for s in [
-            "LEFT(\"a\",-1)",
-            "MID(\"a\",0,1)",
-            "FORMAT(1,\"'unclosed\")",
-            "FORMAT(1,\"0.0000000000000000000000\")",
-            "FORMAT(1,\"# #/0\")",
-            "FORMAT(1,\"0x\")",
-            "FORMATEX(1,\"0\",\"invalid\")",
-            "FORMATEX(1,\"{{dddd}}\",,,-1)",
-        ] {
+        for s in ["LEFT(\"a\",-1)", "MID(\"a\",0,1)", "FORMATEX(1,\"0\",\"invalid\")", "FORMATEX(1,\"{{dddd}}\",,,-1)"] {
             assert!(matches!(run(s), Value::Error(_)), "{s}")
         }
         assert_eq!(run("LEFT(\"abc\",1e99)"), Value::Text("abc".into()));

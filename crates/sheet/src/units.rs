@@ -21,6 +21,32 @@ pub fn factor(unit: &str) -> Result<f64, Error> {
     if let Some(base) = unit.strip_prefix("SQ.").or_else(|| unit.strip_prefix("SQ ")) {
         return Ok(factor(base.trim())?.powi(2));
     }
+    // Display labels are numeric strings too (FORMAT's ResultIU coercion).
+    // https://learn.microsoft.com/en-us/office/client-developer/visio/about-format-pictures
+    let unit = match unit {
+        "INCH" | "INCHES" => "IN",
+        "FOOT" | "FEET" => "FT",
+        "YARD" | "YARDS" => "YD",
+        "MILE" | "MILES" => "MI",
+        "MILLIMETER" | "MILLIMETERS" => "MM",
+        "CENTIMETER" | "CENTIMETERS" => "CM",
+        "METER" | "METERS" => "M",
+        "KILOMETER" | "KILOMETERS" => "KM",
+        "POINT" | "POINTS" => "PT",
+        "PICA" | "PICAS" => "P",
+        "CICERO" | "CICEROS" => "C",
+        "DIDOT" | "DIDOTS" => "D",
+        "DEGREE" | "DEGREES" => "DEG",
+        "RADIAN" | "RADIANS" => "RAD",
+        "MINUTE" | "MINUTES" => "'",
+        "SECOND" | "SECONDS" => "\"",
+        "EWEEK" => "EW",
+        "EDAY" => "ED",
+        "EHOUR" => "EH",
+        "EMINUTE" => "EM",
+        "ESECOND" => "ES",
+        other => other,
+    };
     Ok(match unit {
         "" | "IN" | "IN_F" | "DL" | "DP" | "DT" | "DA" | "DE" | "RAD" | "NUM" | "BOOL" | "COLOR" | "DATE" | "ED" => 1.0,
         "FT" | "F_I" | "FEET/INCH" => 12.0,
@@ -30,11 +56,11 @@ pub fn factor(unit: &str) -> Result<f64, Error> {
         "MM" => 1.0 / 25.4,
         "CM" => 1.0 / 2.54,
         "M" => 1000.0 / 25.4,
-        "KM" => 1000000.0 / 25.4,
+        "KM" => 1.0 / 0.0000254,
         "PT" => 1.0 / 72.0,
         "P" | "P_PT" | "PICAPOINTS" => 1.0 / 6.0,
-        "D" => 0.3759715104 / 25.4,
-        "C" | "C_D" | "CICERO/DIDOT" => 12.0 * 0.3759715104 / 25.4,
+        "D" => 0.375 / 25.4,
+        "C" | "C_D" | "CICERO/DIDOT" => 12.0 * 0.375 / 25.4,
         "DEG" | "AD" | "°" => std::f64::consts::PI / 180.0,
         "'" => std::f64::consts::PI / 10800.0,
         "\"" => std::f64::consts::PI / 648000.0,
@@ -55,6 +81,12 @@ pub fn factor(unit: &str) -> Result<f64, Error> {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-operators
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-units-of-measure-visio-shapesheet-reference
 pub fn numeric_text(input: &str) -> Result<f64, Error> {
+    numeric_text_parts(input, 0)
+}
+fn numeric_text_parts(input: &str, depth: usize) -> Result<f64, Error> {
+    if depth > 3 {
+        return Err(Error::Limit);
+    }
     if input.len() > 65_536 {
         return Err(Error::Limit);
     }
@@ -121,7 +153,29 @@ pub fn numeric_text(input: &str) -> Result<f64, Error> {
         value += part;
         tail = after;
     }
-    let result = sign * value * factor(tail.trim())?;
+    let tail = tail.trim();
+    let scaled = match factor(tail) {
+        Ok(f) => value * f,
+        Err(original) => {
+            // Compound labels have at most three components. Do not interpret a
+            // unit exponent as another magnitude or evaluate formula operators.
+            let split = tail.char_indices().find(|(i, c)| c.is_ascii_digit() && *i > 0 && !tail.get(..*i).is_some_and(|s| s.ends_with('^')));
+            let Some((at, _)) = split else {
+                return Err(original);
+            };
+            let unit = tail.get(..at).ok_or(Error::Value)?.trim();
+            let rest = tail.get(at..).ok_or(Error::Value)?;
+            let rest = if unit.eq_ignore_ascii_case("c") && rest.parse::<f64>().is_ok() {
+                format!("{rest} d")
+            } else if unit.eq_ignore_ascii_case("p") && rest.parse::<f64>().is_ok() {
+                format!("{rest} pt")
+            } else {
+                rest.into()
+            };
+            value * factor(unit)? + numeric_text_parts(&rest, depth + 1)?
+        }
+    };
+    let result = sign * scaled;
     if result.is_finite() { Ok(result) } else { Err(Error::Num) }
 }
 pub fn number(value: f64, unit: Option<&str>) -> Value {

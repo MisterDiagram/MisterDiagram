@@ -19,7 +19,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references> | `crates/engine/src/arrange.rs`, `crates/engine/src/reference_cleanup.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/diagnostics.rs`, `crates/vsdx/src/evaluate/lookup.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-date-time-and-duration-values> | `crates/sheet/src/functions/text.rs`, `crates/sheet/src/units.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-error-values> | `crates/sheet/src/value.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/about-format-pictures> | `crates/sheet/src/functions/text.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/about-format-pictures> | `crates/sheet/src/functions/text.rs`, `crates/sheet/tests/format_pictures.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-formulas> | `crates/sheet/src/eval.rs`, `crates/sheet/src/parser.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-functions> | `crates/sheet/src/functions/ellipse.rs`, `crates/vsdx/tests/zero_width.rs`, `tools/oracle/vendor-stencils/zero-height-classes.ps1`, `tools/oracle/vendor-stencils/zero-width-recalc.ps1`, `tools/oracle/vendor-stencils/zero-width-witness.ps1` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-operators> | `crates/sheet/src/eval.rs`, `crates/sheet/src/parser.rs`, `crates/sheet/src/units.rs`, `crates/sheet/src/value.rs`, `crates/vsdx/src/evaluate.rs` |
@@ -132,7 +132,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-shape-data-section> | `crates/engine/src/content.rs`, `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-text-fields-section> | `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-function> | `crates/sheet/src/functions/text.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/formatex-function> | `crates/sheet/src/functions/text.rs`, `crates/vsdx/tests/string_cell_evaluation.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/formatex-function> | `crates/sheet/src/functions/text.rs`, `crates/sheet/tests/format_pictures.rs`, `crates/vsdx/tests/string_cell_evaluation.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/formulaexists-function> | `crates/sheet/src/eval.rs`, `crates/sheet/src/functions/path_queries.rs`, `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section> | `crates/engine/src/layout.rs`, `crates/engine/src/layout/check.rs`, `crates/engine/src/layout/shared.rs`, `crates/engine/src/network.rs`, `crates/engine/tests/layout_check.rs`, `crates/geom/src/rows.rs`, `crates/model/src/skeleton.rs`, `crates/render/tests/section_fill.rs`, `crates/route/src/changes.rs`, `crates/route/src/straight.rs`, `crates/vsdx/src/evaluate/geometry.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/getref-function> | `crates/sheet/src/functions/references.rs` |
