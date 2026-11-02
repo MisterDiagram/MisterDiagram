@@ -1,5 +1,8 @@
 //! Foreign geometry envelopes used by dynamic glue, observed in Brief26b.
 //! https://learn.microsoft.com/en-us/office/client-developer/visio/foreign-image-info-section
+#[path = "../../render/src/metafile/header.rs"]
+mod metafile_header;
+use metafile_header::{Kind, sniff};
 use misterdiagram_geom::{Point, Rect};
 use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 
@@ -17,7 +20,7 @@ fn word(bytes: &[u8], offset: usize) -> Result<i32, String> {
 /// picture rectangle before clipping to the Foreign shape.
 /// https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/e4a35c41-e8e3-43f9-bc07-a18e99bb866d
 fn emf_bounds(bytes: &[u8], picture: Rect, shape: Rect) -> Result<Rect, String> {
-    if bytes.len() < 88 || word(bytes, 0)? != 1 || word(bytes, 4)? < 88 || bytes.get(40..44) != Some(b" EMF") {
+    if bytes.len() < 88 || word(bytes, 0)? != 1 || word(bytes, 4)? < 88 || sniff(bytes) != Some(Kind::Emf) {
         return Err("invalid foreign glue EMF header".into());
     }
     let values = [8, 12, 16, 20, 24, 28, 32, 36, 72, 76, 80, 84]
@@ -101,7 +104,7 @@ pub(crate) fn envelopes(e: &mut Evaluator<'_>, page: u32, shape: u32) -> Result<
         let height = number(e, scope, "Height")?;
         let alignment = Rect::new(0., 0., width, height);
         let bytes = media(e, scope)?;
-        let rect = if let Some(bytes) = bytes.filter(|b| b.get(40..44) == Some(b" EMF")) {
+        let rect = if let Some(bytes) = bytes.filter(|b| sniff(b).is_some()) {
             found = true;
             let x = number(e, scope, "ImgOffsetX")?;
             let y = number(e, scope, "ImgOffsetY")?;
@@ -110,7 +113,25 @@ pub(crate) fn envelopes(e: &mut Evaluator<'_>, page: u32, shape: u32) -> Result<
             if w <= 0. || h <= 0. || width <= 0. || height <= 0. {
                 continue;
             }
-            emf_bounds(bytes, Rect::new(x, y, x + w, y + h), alignment)?
+            let picture = Rect::new(x, y, x + w, y + h);
+            if bytes.len() > metafile_header::BYTE_LIMIT {
+                return Err("metafile byte limit".into());
+            }
+            match sniff(bytes) {
+                Some(Kind::Emf) => emf_bounds(bytes, picture, alignment)?,
+                Some(Kind::Wmf) => {
+                    let frame = metafile_header::wmf_frame(bytes)?;
+                    // Unlike EMF, WMF has no separate device-ink rectangle. Its
+                    // logical frame maps to the entire image rectangle.
+                    if frame.start > bytes.len() || frame.inch <= 0. || frame.rect.is_some_and(|[l, t, r, b]| l == r || t == b) {
+                        return Err("invalid foreign glue WMF frame".into());
+                    }
+                    let ix = 0.0001_f64.min(width / 2.);
+                    let iy = 0.0001_f64.min(height / 2.);
+                    picture.intersect(Rect::new(ix, iy, width - ix, height - iy))
+                }
+                None => alignment,
+            }
         } else {
             alignment
         };
@@ -161,5 +182,54 @@ mod tests {
         bytes[40..44].copy_from_slice(b" EMF");
         assert!(emf_bounds(&bytes, Rect::new(0., 0., 1., 1.), Rect::new(0., 0., 1., 1.)).is_err());
         assert!(word(&bytes, usize::MAX).is_err());
+    }
+}
+
+#[cfg(test)]
+#[path = "../../render/tests/support/wmf_document.rs"]
+mod wmf_document;
+#[cfg(test)]
+#[path = "../../render/tests/support/wmf.rs"]
+mod wmf_recipe;
+#[cfg(test)]
+mod wmf_tests {
+    use super::*;
+    #[test]
+    fn glue_uses_the_shared_sniff_and_transformed_clipped_wmf_frame() {
+        let doc = wmf_document::document(wmf_recipe::rectangle());
+        let mut e = Evaluator::new(&doc).unwrap();
+        let boxes = envelopes(&mut e, 0, 7).unwrap().unwrap();
+        assert_eq!(boxes.len(), 1);
+        let b = boxes[0];
+        for (got, want) in [b.x0, b.y0, b.x1, b.y1].into_iter().zip([3.25, 2.5, 4.75, 5.5]) {
+            assert!((got - want).abs() < 1e-9, "{b:?}");
+        }
+        assert_eq!(project(Point::new(2., 4.), Rect::new(2., 3., 6., 5.), &boxes), Point::new(3.25, 4.));
+        for bad in [vec![], vec![0; 88], b"GIF89a".to_vec()] {
+            assert!(sniff(&bad).is_none());
+        }
+        let mut placeable = wmf_recipe::setup();
+        placeable.push(wmf_recipe::record(0x41b, &[720, 1440, 0, 0]));
+        let doc = wmf_document::document(wmf_recipe::file(&placeable, Some(([0, 0, 1440, 720], 1440))));
+        let mut e = Evaluator::new(&doc).unwrap();
+        assert_eq!(envelopes(&mut e, 0, 7).unwrap().unwrap(), boxes);
+    }
+    #[test]
+    fn nested_flipped_wmf_glue_keeps_the_transformed_frame() {
+        use misterdiagram_model::{Cell, skeleton};
+        let mut doc = wmf_document::document(wmf_recipe::rectangle());
+        let mut group = skeleton::rectangle(20, 10., 20., 10., 10., "").unwrap();
+        group.shape_type = Some("Group".into());
+        group.sheet.sections.clear();
+        group.shapes = doc.pages[0].shapes.to_vec();
+        group.sheet.cells.push(Cell { name: "FlipX".into(), value: Some("1".into()), ..Default::default() });
+        doc.pages[0].shapes = vec![group].into();
+        let mut e = Evaluator::new(&doc).unwrap();
+        let boxes = envelopes(&mut e, 0, 20).unwrap().unwrap();
+        assert_eq!(boxes.len(), 1);
+        let b = boxes[0];
+        for (got, want) in [b.x0, b.y0, b.x1, b.y1].into_iter().zip([15.25, 22.5, 16.75, 25.5]) {
+            assert!((got - want).abs() < 1e-9, "{b:?}");
+        }
     }
 }

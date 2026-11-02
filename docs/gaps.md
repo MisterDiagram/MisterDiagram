@@ -2273,14 +2273,18 @@ Reference: https://learn.microsoft.com/en-us/office/client-developer/visio/width
   case. The 1,000,000 coordinate bound stays; the path-generation cause remains
   unresolved. A synthetic non-finite path reproduces the refusal and tests NaN,
   both infinities and a finite out-of-bound coordinate.
-- Cisco-SAN and NetApp-SAN: one master each, 2 total, references standard WMF
-  data mislabeled with an `.emf` extension and EMF content type. META_HEADER
-  identifies type1, header9 WORDs and version0x0300. The renderer implements
-  EMF but lacks a WMF record reader. A contributor-original WMF rectangle with
-  this labeling reproduces the image-format refusal. Deferred WMF support.
+- Two vendor-stencil masters reference standard WMF data under an `.emf` name
+  and EMF content type. M5.114 recognizes the bytes and plays WMF records instead
+  of refusing the image format. Placeable headers or the first window origin and
+  extent establish the logical frame; the ordinary foreign-image transform and
+  clip then apply. Original synthetic evidence is private
+  `field/brief65-2026-11-02/`. Native pixel parity remains partial: a physical-extent
+  rectangle passes at 192 and 384 DPI, but its 96 DPI comparison and additional
+  small-extent, placeable, viewport and image-offset controls do not pass.
+  Those differences remain open; no oracle or pixel threshold was changed.
 
-These three fixtures describe existing gaps. No M5.12 behavior fix or source
-seed is claimed. References: [REF](https://learn.microsoft.com/en-us/office/client-developer/visio/ref-function)
+These fixtures originally described M5.12 gaps. The WMF format refusal is now
+covered by a positioned-rectangle regression; the other two classes remain open. References: [REF](https://learn.microsoft.com/en-us/office/client-developer/visio/ref-function)
 and [WMF META_HEADER](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/ba5458c6-e885-41e6-b5d7-d54ef9e1065f).
 
 ## Brief 25: native network library and topology layout

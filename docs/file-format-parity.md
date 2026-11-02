@@ -17637,3 +17637,45 @@ References: [About format pictures](https://learn.microsoft.com/en-us/office/cli
 [units of measure](https://learn.microsoft.com/en-us/office/client-developer/visio/about-units-of-measure-visio-shapesheet-reference),
 [FORMATEX](https://learn.microsoft.com/en-us/office/client-developer/visio/formatex-function),
 [Format field cell](https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-text-fields-section).
+
+
+## Brief 65: WMF foreign pictures (M5.114, #87)
+
+| Feature | Status | Evidence |
+|---|---|---|
+| WMF bytes under EMF names and labels | P | Original WMF parser, foreign-transform, glue and CLI tests; private `field/brief65-2026-11-02/` native exports |
+
+Detection uses only the bytes: the EMF signature, a WMF placeable key, or a
+standard META_HEADER with type 1/2, nine words and version 0x0100/0x0300.
+The part name, content type and ForeignType label do not decide the decoder.
+The placeable box and units-per-inch define the frame; otherwise the first
+bounded window origin/extent uses 1440 units per inch. A file with neither frame
+uses its drawn bounds. The ordinary image offset, size, transform and clip apply.
+The Player supports the upstream reader's drawing/object/text/bitmap/clip families,
+plus mutable window/viewport state; unknown records are skipped with one counted
+warning. Truncation cannot cross a record boundary or loop, and resource-budget
+failures remain errors. This is bounded classic WMF support, not complete GDI parity.
+
+### Observed, undocumented: native WMF export sensitivity
+
+Visio 2021 build 20527 opens the original synthetic packages with WMF bytes in
+`image1.emf` and ForeignType `EnhMetaFile`. The unchanged physical-extent rectangle
+(`in/extent-EnhMetaFile-5080.vsdx`) agrees at 192 DPI (384x192, MAD 2.121822,
+1.925998% pixels over 16) and 384 DPI (768x384, MAD 1.810444, 1.614041%).
+Its 96 DPI comparison fails the unchanged 2% fraction ceiling (2.804905%,
+MAD 2.735966). The lower-resolution failure is retained, not resampled or aligned.
+
+Additional original controls remain disagreements: tiny declared physical extents
+change native rectangle/ellipse edge coverage; zero extents fill the image frame;
+a placeable payload produces a larger native export; explicit viewport units and
+image-offset canvas bounds also differ. The initial bare control has MAD 19.002622
+and 12.814670% differing pixels, the placeable control is native 240x144 versus
+192x96, and the offset control is native 192x96 versus 144x72. Polygon controls
+separate primitive-edge behavior from the common mapping. These are open native
+fidelity gaps, not evidence that the oracle is wrong. Scripts and every failed
+comparison remain in the private witness directory and Brief 65 report.
+
+References: [WMF structure](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/ba5458c6-e885-41e6-b5d7-d54ef9e1065f),
+[META_HEADER](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/d169108a-e3fe-436a-bb44-bea61a46ce56),
+[window extent](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/28fbdde6-22ee-4e49-b162-abf826f5bc00),
+[ForeignData](https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml).

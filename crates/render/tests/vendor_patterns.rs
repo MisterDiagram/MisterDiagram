@@ -49,7 +49,7 @@ fn nonfinite_path_is_rejected_without_raising_the_coordinate_cap() {
 /// Standard WMF META_HEADER plus an original rectangle and EOF, mislabeled .emf.
 /// https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/ba5458c6-e885-41e6-b5d7-d54ef9e1065f
 #[test]
-fn standard_wmf_with_emf_extension_is_a_named_media_gap() {
+fn standard_wmf_with_emf_extension_renders_the_positioned_rectangle() {
     let mut bytes = Vec::new();
     // All sizes are WORD counts: 9 header + 7 rectangle + 3 EOF = 19.
     for word in [1u16, 9, 0x0300, 19, 0, 0, 7, 0, 0, 7, 0, 0x041b, 20, 30, 0, 0, 3, 0, 0] {
@@ -84,6 +84,14 @@ fn standard_wmf_with_emf_extension_is_a_named_media_gap() {
     });
     let bytes = misterdiagram_vsdx::write_as(&doc, misterdiagram_vsdx::SaveKind::Stencil).unwrap().bytes;
     let reopened = misterdiagram_vsdx::import(&bytes).unwrap();
-    let error = scene::master(&reopened, 0, scene::Options::default()).unwrap_err();
-    assert!(error.contains("image format could not be determined"), "{error}");
+    let scene = scene::master(&reopened, 0, scene::Options::default()).unwrap();
+    assert!(scene.warnings.is_empty(), "{:?}", scene.warnings);
+    use kurbo::Shape as _;
+    assert!(scene.ops.iter().any(|op| match op {
+        Op::Path { path, paint: Paint::Solid(color), .. } if *color == misterdiagram_color::Rgba::BLACK => {
+            let r = path.bounding_box();
+            (r.x0).abs() < 1e-9 && (r.y0).abs() < 1e-9 && (r.x1 - 2.).abs() < 1e-9 && (r.y1 - 1.).abs() < 1e-9
+        }
+        _ => false,
+    }));
 }

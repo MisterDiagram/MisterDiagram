@@ -161,6 +161,33 @@ pub(crate) fn decode(bmi: &[u8], bits: &[u8], alpha: Alpha) -> Result<Rgba, Stri
     Ok(Rgba { width: w, height: h, pixels })
 }
 
+/// A packed DIB (a BITMAPINFO and its bits, one after the other, as WMF records hold them) split
+/// into the two.
+pub(crate) fn split(packed: &[u8]) -> Option<(&[u8], &[u8])> {
+    let mut r = Reader::new(packed);
+    let size = r.u32()? as usize;
+    let (bpp, compression, used, entry) = if size == 12 {
+        r.skip(6)?;
+        (r.u16()?, BI_RGB, 0, 3)
+    } else {
+        r.skip(10)?;
+        let bpp = r.u16()?;
+        let c = r.u32()?;
+        r.skip(12)?;
+        (bpp, c, r.u32()? as usize, 4)
+    };
+    let masks = if compression == BI_BITFIELDS && size == 40 { 12 } else { 0 };
+    let colors = if used > 0 {
+        used.min(256)
+    } else if bpp <= 8 {
+        1usize << bpp
+    } else {
+        0
+    };
+    let len = size.checked_add(masks)?.checked_add(colors * entry)?;
+    Some((packed.get(..len)?, packed.get(len..)?))
+}
+
 #[cfg(test)]
 mod size_tests {
     use super::*;

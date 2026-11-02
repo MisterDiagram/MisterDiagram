@@ -49,6 +49,7 @@
 | `crates/render/src/pdf.rs` (helper `glyph_text_ranges` and its test) | [storytold/deckcraft](https://github.com/storytold/deckcraft), MarekSpodBiedry | `crates/pdf/src/lib.rs`, `crates/pdf/src/tests.rs` | `dd404af8b53029e80d1ff9a7ede02619fdc7ab8a` | MIT OR Apache-2.0 |
 | `crates/render/src/metafile/mod.rs` | vectorcraft | `crates/metafile/src/import.rs` | `806b1a6972288319577d75d097c140f9bf530ce0` | MIT OR Apache-2.0 |
 | `crates/render/src/metafile/emf.rs` | vectorcraft | `crates/metafile/src/import/emf.rs` | `806b1a6972288319577d75d097c140f9bf530ce0` | MIT OR Apache-2.0 |
+| `crates/render/src/metafile/wmf.rs`, `header.rs` | [storytold/vectorcraft](https://github.com/storytold/vectorcraft) | `crates/metafile/src/import/wmf.rs`, `crates/metafile/src/wmf.rs` (sniff) | `806b1a6972288319577d75d097c140f9bf530ce0` | MIT OR Apache-2.0 |
 | `crates/render/src/metafile/bytes.rs` | vectorcraft | `crates/metafile/src/bytes.rs` | `806b1a6972288319577d75d097c140f9bf530ce0` | MIT OR Apache-2.0 |
 | `crates/render/src/metafile/dib.rs` | vectorcraft | `crates/metafile/src/dib.rs` | `806b1a6972288319577d75d097c140f9bf530ce0` | MIT OR Apache-2.0 |
 | `apps/misterdiagram-corpus/tests/render_fuzz.rs` | deckcraft (via MisterDiagram vsdx harness) | `crates/pptx/tests/malformed.rs` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |

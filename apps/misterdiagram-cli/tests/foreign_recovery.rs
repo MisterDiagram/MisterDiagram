@@ -62,3 +62,53 @@ fn garbage_foreign_object_recovers_in_render_convert_and_mcp_export_but_sheet_re
     }
     std::fs::remove_dir_all(&dir).unwrap();
 }
+
+#[path = "../../../crates/render/tests/support/wmf.rs"]
+mod wmf_recipe;
+/// The format comes from the bytes even when both the part and ForeignType claim EMF.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml
+#[test]
+fn mislabeled_wmf_renders_converts_and_dumps_without_warning() {
+    let mut doc = misterdiagram_vsdx::import(&original()).unwrap();
+    let mut media = doc.parts.remove("visio/embeddings/original.bin").unwrap();
+    media.bytes = wmf_recipe::rectangle().into();
+    media.content_type = Some("image/x-emf".into());
+    doc.parts.insert("visio/media/original.emf".into(), media);
+    let page_part = doc.pages[0].part.clone();
+    let rel = &mut doc.parts.get_mut(&page_part).unwrap().relationships[0];
+    rel.target = "visio/media/original.emf".into();
+    rel.type_uri = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image".into();
+    let foreign = doc.pages[0].shapes[0].foreign_data.as_mut().unwrap();
+    foreign.attributes = [
+        ("ForeignType".into(), "EnhMetaFile".into()),
+        ("MappingMode".into(), "8".into()),
+        ("ExtentX".into(), "5080".into()),
+        ("ExtentY".into(), "2540".into()),
+    ]
+    .into();
+    let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/debug/brief65-wmf-cli").join(std::process::id().to_string());
+    std::fs::create_dir_all(&dir).unwrap();
+    let input = dir.join("original.vsdx");
+    std::fs::write(&input, misterdiagram_vsdx::write(&doc).unwrap().bytes).unwrap();
+    for command in ["render", "convert"] {
+        for extension in ["png", "svg", "pdf"] {
+            let output = dir.join(format!("{command}.{extension}"));
+            let result = Command::new(env!("CARGO_BIN_EXE_misterdiagram")).arg(command).arg(&input).arg(&output).output().unwrap();
+            assert!(result.status.success(), "{}", String::from_utf8_lossy(&result.stderr));
+            assert!(result.stderr.is_empty(), "{}", String::from_utf8_lossy(&result.stderr));
+            assert!(std::fs::metadata(output).unwrap().len() > 10);
+        }
+    }
+    for selected in [false, true] {
+        let mut command = Command::new(env!("CARGO_BIN_EXE_misterdiagram"));
+        command.arg("sheet").arg(&input);
+        if selected {
+            command.args(["--shape", "7"]);
+        }
+        let result = command.output().unwrap();
+        assert!(result.status.success(), "{}", String::from_utf8_lossy(&result.stderr));
+        assert!(result.stderr.is_empty());
+        assert!(!result.stdout.is_empty());
+    }
+    std::fs::remove_dir_all(dir).unwrap();
+}

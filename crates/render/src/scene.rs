@@ -1271,7 +1271,7 @@ fn paint_foreign(
     cached_picture: bool,
 ) -> Result<(), String> {
     let bytes = &e.document.parts.get(target).ok_or("missing foreign part")?.bytes;
-    if bytes.get(40..44) == Some(&b" EMF"[..]) {
+    if crate::metafile::sniff(bytes).is_some() {
         let imported = if cached_picture { crate::metafile::import_cached_picture(bytes)? } else { crate::metafile::import(bytes)? };
         let m = transform
             * Affine::translate((x, y + h))
@@ -1439,7 +1439,7 @@ pub fn validate_foreign_parts(document: &Document, selection: misterdiagram_vsdx
             .ok_or("foreign owner part missing")?;
             let target = foreign_target(document, owner, foreign)?;
             let bytes = &document.parts.get(target).ok_or("missing foreign part")?.bytes;
-            if bytes.get(40..44) == Some(&b" EMF"[..]) {
+            if crate::metafile::sniff(bytes).is_some() {
                 crate::metafile::import(bytes).map(|_| ())
             } else {
                 crate::raster::decode(bytes).map(|_| ())

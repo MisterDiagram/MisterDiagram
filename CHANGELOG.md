@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Embedded WMF pictures render** (#87). Classic Windows Metafile pictures are recognized even when the file labels them as EMF. Some native scaling and export-bound differences remain.
+
 ## 0.1.0-alpha.23
 
 Two formula fixes for measurement text

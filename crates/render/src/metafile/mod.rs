@@ -12,16 +12,14 @@
 mod bytes;
 mod dib;
 mod emf;
+pub mod header;
+mod wmf;
 use crate::scene::{Op, Paint, SceneBudget};
 use dib::Rgba;
+pub use header::{Kind, sniff};
 use kurbo::{Affine, BezPath, PathEl, Point, Rect, Shape as _, Vec2};
 use misterdiagram_color::Rgba as Color;
 use std::sync::Arc;
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum Kind {
-    Emf,
-    Wmf,
-}
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum FillRule {
     EvenOdd,
@@ -193,6 +191,7 @@ pub(crate) struct Player {
     dc: Dc,
     saved: Vec<Dc>,
     objects: Vec<Option<Obj>>,
+    free_hint: usize,
     /// The lowest object slot that may be free (WMF numbering).
     /// The path being recorded (document space), whether a figure is open in it and where that
     /// figure started (logical).
@@ -278,6 +277,7 @@ impl Player {
             dc: Dc::default(),
             saved: vec![],
             objects: vec![],
+            free_hint: 0,
             path: None,
             figure: false,
             figure_start: Point::ZERO,
@@ -309,9 +309,6 @@ impl Player {
 
     /// Logical → document.
     fn xf(&self) -> Affine {
-        if self.kind == Kind::Wmf {
-            return self.dev_to_doc;
-        }
         let d = &self.dc;
         let page_to_dev = match d.map_mode {
             // Fixed modes: millimetres a unit, y up.
@@ -430,9 +427,27 @@ impl Player {
         }
     }
 
+    /// WMF object handles are allocated at the lowest unused slot.
+    /// https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/
+    pub fn create(&mut self, obj: Obj) {
+        let start = self.free_hint.min(self.objects.len());
+        let i = self.objects.iter().skip(start).position(Option::is_none).map_or(self.objects.len(), |p| p + start);
+        if i > u16::MAX as usize {
+            return;
+        }
+        if i == self.objects.len() {
+            self.objects.push(None);
+        }
+        if let Some(slot) = self.objects.get_mut(i) {
+            *slot = Some(obj);
+        }
+        self.free_hint = i + 1;
+    }
+
     pub fn delete(&mut self, index: u32) {
         if let Some(s) = self.objects.get_mut(index as usize) {
             *s = None;
+            self.free_hint = self.free_hint.min(index as usize);
         }
     }
 
@@ -945,16 +960,17 @@ fn crop(img: Rgba, src: Rect) -> Rgba {
     Rgba { width: x1 - x0, height: y1 - y0, pixels }
 }
 
-/// Retargeted EMF record reader. Unknown records are skipped, malformed sizes cannot loop.
+/// Retargeted EMF/WMF record reader. Unknown records are skipped, malformed sizes cannot loop.
 /// https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/
 pub fn import(bytes: &[u8]) -> Result<Imported, String> {
     if bytes.len() > 128 * 1024 * 1024 {
         return Err("metafile byte limit".into());
     }
-    if bytes.get(40..44) != Some(&b" EMF"[..]) {
-        return Err("invalid EMF header".into());
+    match sniff(bytes) {
+        Some(Kind::Emf) => emf::play(bytes),
+        Some(Kind::Wmf) => wmf::play(bytes),
+        None => Err("invalid metafile header".into()),
     }
-    emf::play(bytes)
 }
 
 /// Cached OLE presentations may combine a binary mask with XOR/OR colour pixels.
@@ -964,10 +980,11 @@ pub(crate) fn import_cached_picture(bytes: &[u8]) -> Result<Imported, String> {
     if bytes.len() > 128 * 1024 * 1024 {
         return Err("metafile byte limit".into());
     }
-    if bytes.get(40..44) != Some(&b" EMF"[..]) {
-        return Err("invalid EMF header".into());
-    }
-    let imported = emf::play_cached_picture(bytes)?;
+    let imported = match sniff(bytes) {
+        Some(Kind::Emf) => emf::play_cached_picture(bytes)?,
+        Some(Kind::Wmf) => wmf::play(bytes)?,
+        None => return Err("invalid metafile header".into()),
+    };
     if imported.warnings.iter().any(|warning| warning == SKIPPED_ROPS || warning == BAD_IMAGE) {
         return Err("cached EMF has unsupported or damaged bitmap drawing".into());
     }

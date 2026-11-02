@@ -128,7 +128,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fontschemeindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fonttoid-function> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/foreign-image-info-section> | `crates/render/tests/picture_cells.rs`, `crates/route/src/foreign_glue.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml> | `crates/engine/tests/foreign_master.rs`, `crates/engine/tests/stencil_limits.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/lib.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml> | `apps/misterdiagram-cli/tests/foreign_recovery.rs`, `crates/engine/tests/foreign_master.rs`, `crates/engine/tests/stencil_limits.rs`, `crates/render/src/scene.rs`, `crates/vsdx/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-shape-data-section> | `crates/engine/src/content.rs`, `crates/vsdx/src/evaluate/string_cells.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-text-fields-section> | `crates/render/tests/compound_fields.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/compound_fields_tests.rs`, `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/format-function> | `crates/sheet/src/functions/text.rs`, `crates/sheet/tests/compound_pictures.rs` |
@@ -453,7 +453,10 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/9d33df18-7aee-4a4e-b4f6-5a01e5aea5a1> | `crates/opc/src/opc.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/> | `crates/render/src/metafile/mod.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/e4a35c41-e8e3-43f9-bc07-a18e99bb866d> | `crates/route/src/foreign_glue.rs` |
-| <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/ba5458c6-e885-41e6-b5d7-d54ef9e1065f> | `crates/render/tests/vendor_patterns.rs` |
+| <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/> | `crates/render/src/metafile/mod.rs`, `crates/render/src/metafile/wmf.rs`, `crates/render/tests/support/wmf.rs`, `crates/render/tests/wmf.rs` |
+| <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/28fbdde6-22ee-4e49-b162-abf826f5bc00> | `crates/render/src/metafile/header.rs` |
+| <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/ba5458c6-e885-41e6-b5d7-d54ef9e1065f> | `crates/render/src/metafile/header.rs`, `crates/render/tests/vendor_patterns.rs` |
+| <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/d169108a-e3fe-436a-bb44-bea61a46ce56> | `crates/render/src/metafile/header.rs` |
 | <https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw> | `apps/misterdiagram-cli/tests/authoring.rs` |
 | <https://learn.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-stretchblt> | `crates/render/src/metafile/emf/masked.rs` |
 | <https://learn.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-stretchdibits> | `crates/render/src/metafile/emf/masked.rs` |

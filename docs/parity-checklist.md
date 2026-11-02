@@ -461,3 +461,14 @@ partial rendering rows, scores and denominators remain unchanged.
   `format_pictures` tests the observed strings and values; `section_fill` also
   protects the PDF solid even-odd operation carried from Brief 62. Evidence:
   `field/format-pictures-2026-11-02/`. Date/locale and compound-prefix gaps remain.
+
+
+| Supplemental foreign-picture coverage | Status | Regression and witness |
+|---|---|---|
+| WMF detection, playback and foreign frame | P | `wmf`, `vendor_patterns`, foreign CLI and glue tests; private `field/brief65-2026-11-02/` |
+
+M5.114 progress: WMF format refusals become bounded playback, including mislabeled
+EMF parts. Two source seeds cover placeable detection and window scaling. The
+physical-extent native rectangle passes at 192/384 DPI; 96 DPI and additional
+mapping/export-bound diagnostics remain open. Existing scored denominators and
+broader foreign-picture parity remain unchanged.

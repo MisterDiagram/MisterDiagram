@@ -427,7 +427,7 @@ fn shipped_cisco_kubernetes_and_aws_have_drawing_ink() {
         if file == "CISCONETWORKSHAPES_U" {
             let mut empty = doc.clone();
             for part in empty.parts.values_mut() {
-                if part.bytes.get(40..44) == Some(&b" EMF"[..]) {
+                if misterdiagram_render::metafile::sniff(&part.bytes).is_some() {
                     let header = u32::from_le_bytes(part.bytes[4..8].try_into().unwrap()) as usize;
                     part.bytes.truncate(header);
                     part.bytes.extend_from_slice(&14u32.to_le_bytes());

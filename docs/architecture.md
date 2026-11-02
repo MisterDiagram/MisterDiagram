@@ -69,6 +69,7 @@ reader sheet limits after XML escaping, and preserves opaque part payloads exact
 | `crates/render/src/pdf.rs` (helper `glyph_text_ranges` and its test) | [storytold/deckcraft](https://github.com/storytold/deckcraft), MarekSpodBiedry | `crates/pdf/src/lib.rs`, `crates/pdf/src/tests.rs` | `dd404af8b53029e80d1ff9a7ede02619fdc7ab8a` | MIT OR Apache-2.0 |
 | `crates/render/src/metafile/mod.rs` | vectorcraft | `crates/metafile/src/import.rs` | `806b1a6972288319577d75d097c140f9bf530ce0` | MIT OR Apache-2.0 |
 | `crates/render/src/metafile/emf.rs` | vectorcraft | `crates/metafile/src/import/emf.rs` | `806b1a6972288319577d75d097c140f9bf530ce0` | MIT OR Apache-2.0 |
+| `crates/render/src/metafile/wmf.rs`, `header.rs` | [storytold/vectorcraft](https://github.com/storytold/vectorcraft) | `crates/metafile/src/import/wmf.rs`, `crates/metafile/src/wmf.rs` (sniff) | `806b1a6972288319577d75d097c140f9bf530ce0` | MIT OR Apache-2.0 |
 | `crates/render/src/metafile/bytes.rs` | vectorcraft | `crates/metafile/src/bytes.rs` | `806b1a6972288319577d75d097c140f9bf530ce0` | MIT OR Apache-2.0 |
 | `crates/render/src/metafile/dib.rs` | vectorcraft | `crates/metafile/src/dib.rs` | `806b1a6972288319577d75d097c140f9bf530ce0` | MIT OR Apache-2.0 |
 | `apps/misterdiagram-corpus/tests/render_fuzz.rs` | deckcraft (via MisterDiagram vsdx harness) | `crates/pptx/tests/malformed.rs` | `be14248577b92059eb2b8c0c9460cceffbc1f01d` | MIT OR Apache-2.0 |
@@ -378,3 +379,13 @@ Charles's then-current rule. Follow-up 5 supersedes that stop, requests the same
 node-only candidate and existing tests, and measures the frozen fixtures at
 2 GiB. The local historical evidence remains in the Brief B follow-up 3 report;
 no vendor-derived package is committed.
+
+
+M5.114 WMF playback uses the existing bounded metafile Player. The pure
+bytes-only `metafile/header.rs` source is included by route's foreign glue and
+render, keeping one signature classifier without an L3-to-L3 Cargo dependency.
+WMF supplies its logical frame rather than EMF's separate device ink rectangle;
+glue maps that frame to the image rectangle and clips it to the foreign shape.
+The port adds bounded record bodies, object-slot reuse, mapping state updates,
+packed DIB splitting and propagation of scene/operation-budget failures.
+The existing layer rules and resource caps are unchanged.
