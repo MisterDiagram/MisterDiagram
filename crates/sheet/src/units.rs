@@ -81,9 +81,9 @@ pub fn factor(unit: &str) -> Result<f64, Error> {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-operators
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-units-of-measure-visio-shapesheet-reference
 pub fn numeric_text(input: &str) -> Result<f64, Error> {
-    numeric_text_parts(input, 0)
+    numeric_text_parts(input, 0, "")
 }
-fn numeric_text_parts(input: &str, depth: usize) -> Result<f64, Error> {
+fn numeric_text_parts(input: &str, depth: usize, implicit_unit: &str) -> Result<f64, Error> {
     if depth > 3 {
         return Err(Error::Limit);
     }
@@ -93,7 +93,8 @@ fn numeric_text_parts(input: &str, depth: usize) -> Result<f64, Error> {
     let input = input.trim();
     // Retain the previous treatment of NaN and infinity as numeric errors.
     if let Ok(value) = input.parse::<f64>() {
-        return if value.is_finite() { Ok(value) } else { Err(Error::Num) };
+        let scaled = value * factor(implicit_unit)?;
+        return if scaled.is_finite() { Ok(scaled) } else { Err(Error::Num) };
     }
     fn unsigned(input: &str) -> Result<(f64, &str), Error> {
         let bytes = input.as_bytes();
@@ -154,10 +155,10 @@ fn numeric_text_parts(input: &str, depth: usize) -> Result<f64, Error> {
         tail = after;
     }
     let tail = tail.trim();
-    let scaled = match factor(tail) {
+    let scaled = match factor(if tail.is_empty() { implicit_unit } else { tail }) {
         Ok(f) => value * f,
         Err(original) => {
-            // Compound labels have at most three components. Do not interpret a
+            // Compound labels have at most four components. Do not interpret a
             // unit exponent as another magnitude or evaluate formula operators.
             let split = tail.char_indices().find(|(i, c)| c.is_ascii_digit() && *i > 0 && !tail.get(..*i).is_some_and(|s| s.ends_with('^')));
             let Some((at, _)) = split else {
@@ -165,14 +166,14 @@ fn numeric_text_parts(input: &str, depth: usize) -> Result<f64, Error> {
             };
             let unit = tail.get(..at).ok_or(Error::Value)?.trim();
             let rest = tail.get(at..).ok_or(Error::Value)?;
-            let rest = if unit.eq_ignore_ascii_case("c") && rest.parse::<f64>().is_ok() {
-                format!("{rest} d")
-            } else if unit.eq_ignore_ascii_case("p") && rest.parse::<f64>().is_ok() {
-                format!("{rest} pt")
+            let implicit = if unit.eq_ignore_ascii_case("c") {
+                "D"
+            } else if unit.eq_ignore_ascii_case("p") {
+                "PT"
             } else {
-                rest.into()
+                ""
             };
-            value * factor(unit)? + numeric_text_parts(&rest, depth + 1)?
+            value * factor(unit)? + numeric_text_parts(rest, depth + 1, implicit)?
         }
     };
     let result = sign * scaled;

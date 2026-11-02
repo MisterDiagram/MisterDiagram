@@ -17590,3 +17590,50 @@ interpret them as feet and inches. Native rows a0270 through a0305 and the
 corresponding conversion rows in `native-a-extra/results.json` demonstrate
 both contexts in `field/format-pictures-2026-11-02/`. The implementation follows
 those observations. Neither the native results nor their tolerance was changed.
+
+
+### Observed, undocumented: compound numeric picture prefixes (M5.112)
+
+Private synthetic evidence `field/format-pictures-2026-11-02/native-b/results.json`
+and `native-b-controls/results.json` records 4,828 assigned formulas with
+ResultStr and ResultIU. No assignment was rejected. The 4,817-row source table
+compares 4,816 numeric-family observations plus a1778 from Part A; four repeated
+prefix controls produce #VALUE!. Twelve exploratory observations (missing `>`,
+`<,BOGUS>` and `<,,>`) remain outside the supported grammar and are not reported
+as matches. Missing delimiters and unsupported prefixes return bounded errors.
+
+The recognized prefixes are `<,FEET/INCH>`, `<,PICAPOINTS>`,
+`<,CICERO/DIDOT>`, `<,IN_F>`, `<,MI_F>`, `<,ft>`, `<,in>` and `<,°>`.
+The first three split into major and minor units; the others select scalar
+units, with the degree prefix selecting decimal degrees. `<,F_I>` leaves the
+input display unit unchanged, as observed. Prefixes override FORMATEX's display
+target while retaining its source scaling. Compound expression units and
+FORMATEX compound targets use the same splitting rules. The public picture
+page describes multipart numeric behavior but does not document this prefix
+syntax; these prefix rules come from the synthetic native observations.
+
+The smallest unit is rounded before splitting into groups of twelve. Decimal
+places apply only to that unit: 11.99 inches with `0 u` becomes `1 ft. 0 in.`,
+while 73.5 inches with `0.0 u` becomes `6 ft. 1.5 in.`. A leading mandatory zero
+retains zero components; optional placeholders omit them. Negative compound
+inputs retain their sign even when rounded to zero. The empty whole-number
+part of a mixed fraction retains its separator. A denominator of # placeholders
+selects the nearest fraction within that many digits; fixed `/16` keeps its
+unreduced numerator, and `/#16` reduces it. Denominators remain capped at 65,536
+and fraction magnitudes at 1e12. All intermediate compound arithmetic must be
+finite. Typography's short labels omit the minor label; long and universal
+labels retain points or didots. Affixes are emitted once around the compound.
+
+Fields use these rules after recalculation, in both strict and cached-fallback
+modes. The deliberately stale synthetic field text is never drawn for a valid
+numeric picture, and no fallback warning is emitted. Repeated-prefix errors
+retain the existing saved-text fallback contract. Issue #95's numeric-picture
+gap is closed; date/locale grammar and the classified malformed prefixes remain
+open. Older stored area strings can omit periods that fresh Visio 2021 numeric
+results include. The implementation follows the fresh synthetic observations,
+without changing those older caches or the comparison gates.
+
+References: [About format pictures](https://learn.microsoft.com/en-us/office/client-developer/visio/about-format-pictures),
+[units of measure](https://learn.microsoft.com/en-us/office/client-developer/visio/about-units-of-measure-visio-shapesheet-reference),
+[FORMATEX](https://learn.microsoft.com/en-us/office/client-developer/visio/formatex-function),
+[Format field cell](https://learn.microsoft.com/en-us/office/client-developer/visio/format-cell-text-fields-section).

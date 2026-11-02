@@ -282,6 +282,9 @@ fn expression_unit(expr: &Expr, context: &dyn Context, depth: usize) -> Option<S
                         Some("F_I".into())
                     } else if a.as_deref().is_some_and(|s| s.eq_ignore_ascii_case("C")) && b.as_deref().is_some_and(|s| s.eq_ignore_ascii_case("D")) {
                         Some("C_D".into())
+                    } else if a.as_deref().is_some_and(|s| s.eq_ignore_ascii_case("P")) && b.as_deref().is_some_and(|s| s.eq_ignore_ascii_case("PT"))
+                    {
+                        Some("P_PT".into())
                     } else {
                         a.or(b)
                     }
@@ -313,6 +316,9 @@ fn clean_unit(s: &str) -> String {
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/formatex-function
 fn format_unit(s: &str) -> Result<String, Error> {
     let unit = clean_unit(s);
+    if unit == "°" {
+        return Ok("DEG".into());
+    }
     if unit == "'" {
         return Ok("FT".into());
     }
@@ -406,6 +412,25 @@ fn format_value(name: &str, args: &[Expr], values: &[Value], context: &dyn Conte
     if area(&dimensional_source) && !area(&unit) && dst.is_some() {
         unit.push_str("^2");
     }
+    // Prefix names are observed numeric-picture unit overrides, distinct from
+    // formula literal suffixes and FORMATEX source scaling.
+    // field/format-pictures-2026-11-02/native-b and native-b-controls.
+    let picture = if let Some(rest) = picture.strip_prefix("<,") {
+        let (family, tail) = rest.split_once('>').ok_or(Error::Value)?;
+        if tail.starts_with("<,") {
+            return Err(Error::Value);
+        }
+        match clean_unit(family).as_str() {
+            "FEET/INCH" | "PICAPOINTS" | "CICERO/DIDOT" | "IN_F" | "MI_F" | "FT" | "IN" => unit = clean_unit(family),
+            "°" => unit = "DEG".into(),
+            // Native treats this literal prefix as the unchanged input unit.
+            "F_I" => {}
+            _ => return Err(Error::Value),
+        }
+        tail
+    } else {
+        picture.as_str()
+    };
     let output = internal / units::factor(&unit)?;
     if !output.is_finite() {
         return Err(Error::Num);
@@ -413,13 +438,8 @@ fn format_value(name: &str, args: &[Expr], values: &[Value], context: &dyn Conte
     if general {
         return Ok(Value::number(output).text());
     }
-    // Compound picture prefixes are dispatched separately from bare letter codes.
-    // Preserve field fallback until that grammar is supported.
-    if picture.starts_with("<,") {
-        return Err(Error::Value);
-    }
-    if date_picture(&picture) {
-        return format_date(internal, &picture);
+    if date_picture(picture) {
+        return format_date(internal, picture);
     }
     if matches!(unit.as_str(), "°" | "'" | "\"") {
         let degrees = internal.abs().to_degrees();
@@ -429,31 +449,108 @@ fn format_value(name: &str, args: &[Expr], values: &[Value], context: &dyn Conte
         let mut pieces = Vec::new();
         for (value, label) in [(whole, "°"), (minutes, "'"), (seconds, "\"")] {
             if value != 0. || picture.starts_with('0') {
-                pieces.push(format_numeric(value, &picture, label)?);
+                pieces.push(format_numeric(value, picture, label)?);
             }
         }
         return Ok(format!("{}{}", if internal < 0. { "-" } else { "" }, pieces.join(" ")));
     }
-    if unit == "C_D" {
-        let c = (internal.abs() / units::factor("C")?).floor();
-        let d = (internal.abs() - c * units::factor("C")?) / units::factor("D")?;
-        return Ok(format!("{}{}{}", if internal < 0. { "-" } else { "" }, format_numeric(c, &picture, "C")?, format_numeric(d, &picture, "")?));
+    if matches!(unit.as_str(), "C_D" | "CICERO/DIDOT" | "P_PT" | "PICAPOINTS" | "F_I" | "FEET/INCH") {
+        return format_compound(internal, picture, &unit);
     }
-    if unit == "F_I" || unit == "FEET/INCH" {
-        let negative = internal < 0.;
-        let feet = (internal.abs() / 12.).floor();
-        let inch = internal.abs() - feet * 12.;
-        let mut pieces = vec![];
-        if feet != 0. || picture.starts_with('0') {
-            pieces.push(format_numeric(feet, &picture, "FT")?)
-        }
-        if inch != 0. || pieces.is_empty() || picture.starts_with('0') {
-            pieces.push(format_numeric(inch, &picture, "IN")?)
-        }
-        return Ok(format!("{}{}", if negative { "-" } else { "" }, pieces.join(" ")));
-    }
-    format_numeric(output, &picture, &unit)
+    format_numeric(output, picture, &unit)
 }
+/// Multipart display applies the numeric picture to the smallest subunit, then
+/// carries its rounded value before deciding which zero components to omit.
+/// Native evidence: field/format-pictures-2026-11-02/native-b/results.json.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/about-format-pictures
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/about-units-of-measure-visio-shapesheet-reference
+fn format_compound(internal: f64, picture: &str, unit: &str) -> Result<String, Error> {
+    let tokens = picture_tokens(picture)?;
+    let start = tokens.iter().position(|p| matches!(p, Picture::Code('0' | '#'))).ok_or(Error::Value)?;
+    let mut end = start;
+    let mut number = String::new();
+    while let Some(Picture::Code(c)) = tokens.get(end) {
+        match c {
+            '0'..='9' | '#' | '.' | ',' | '/' => number.push(*c),
+            'e' | 'E' if matches!(tokens.get(end + 1), Some(Picture::Code('+' | '-'))) => number.push(*c),
+            '+' | '-' if number.ends_with(['e', 'E']) => number.push(*c),
+            ' ' if matches!(tokens.get(end + 1), Some(Picture::Code('0' | '#'))) => number.push(*c),
+            _ => break,
+        }
+        end += 1;
+    }
+    let encode = |slice: &[Picture]| -> String {
+        let mut out = String::new();
+        for token in slice {
+            match token {
+                Picture::Code(c) => out.push(*c),
+                Picture::Literal(s) => {
+                    for c in s.chars() {
+                        out.push('\\');
+                        out.push(c);
+                    }
+                }
+            }
+        }
+        out
+    };
+    let label_start = tokens.get(end..).ok_or(Error::Value)?.iter().position(|p| matches!(p, Picture::Code('u' | 'U'))).map(|i| i + end);
+    let mut label_end = label_start.unwrap_or(end);
+    let mut label_space = String::new();
+    let mut count = 0;
+    let mut upper = false;
+    if let Some(at) = label_start {
+        upper = matches!(tokens.get(at), Some(Picture::Code('U')));
+        let mut before = at;
+        while before > end && matches!(tokens.get(before - 1), Some(Picture::Code(c)) if c.is_whitespace()) {
+            before -= 1;
+        }
+        label_space = encode(tokens.get(before..at).ok_or(Error::Value)?);
+        while tokens.get(label_end).is_some_and(|p| matches!(p, Picture::Code('u' | 'U'))) {
+            label_end += 1;
+            count += 1;
+        }
+    }
+    let typography = matches!(unit, "C_D" | "CICERO/DIDOT" | "P_PT" | "PICAPOINTS");
+    let (major_unit, minor_unit) = match unit {
+        "C_D" | "CICERO/DIDOT" => ("C", "D"),
+        "P_PT" | "PICAPOINTS" => ("P", "PT"),
+        _ => ("FT", "IN"),
+    };
+    let smallest = internal.abs() / units::factor(minor_unit)?;
+    if !smallest.is_finite() {
+        return Err(Error::Num);
+    }
+    let rounded_text = numeric_picture(smallest, &number)?.replace(',', "");
+    let rounded = if rounded_text.trim().is_empty() { 0. } else { units::numeric_text(&rounded_text)? };
+    let major = (rounded / 12.).floor();
+    let minor = rounded - major * 12.;
+    if !major.is_finite() || !minor.is_finite() {
+        return Err(Error::Num);
+    }
+    let required = number.starts_with('0');
+    let integer = number.split(['.', ' ']).next().unwrap_or("0");
+    let mut pieces = Vec::new();
+    for (value, unit, numeric, last) in [(major, major_unit, integer, false), (minor, minor_unit, number.as_str(), true)] {
+        if required || value != 0. || (rounded == 0. && last == (internal != 0.)) {
+            let mut piece = numeric_picture(value, numeric)?;
+            if count != 0 && !(typography && last && count == 1) {
+                piece.push_str(&label_space);
+                piece.push_str(&label(unit, count, upper));
+            }
+            pieces.push(piece);
+        }
+    }
+    let join = if typography && count == 1 && label_space.is_empty() { "" } else { " " };
+    let prefix = format_numeric(0., &encode(tokens.get(..start).ok_or(Error::Value)?), unit)?;
+    let suffix = format_numeric(0., &encode(tokens.get(label_end..).ok_or(Error::Value)?), unit)?;
+    let result = format!("{prefix}{}{}{suffix}", if internal < 0. { "-" } else { "" }, pieces.join(join));
+    if result.len() > LIMIT {
+        return Err(Error::Limit);
+    }
+    Ok(result)
+}
+
 #[derive(Clone, Debug)]
 enum Picture {
     Literal(String),
@@ -635,6 +732,9 @@ fn format_numeric(value: f64, picture: &str, unit: &str) -> Result<String, Error
     Ok(out)
 }
 fn numeric_picture(value: f64, picture: &str) -> Result<String, Error> {
+    if !value.is_finite() {
+        return Err(Error::Num);
+    }
     if picture.contains(' ') && !picture.contains('/') {
         if picture.len() > 256 || !picture.chars().all(|c| matches!(c, '0' | '#' | ' ')) {
             return Err(Error::Value);
@@ -740,12 +840,24 @@ fn gcd(mut a: u64, mut b: u64) -> u64 {
     }
     a.max(1)
 }
+/// A denominator made only of placeholders selects the closest fraction with
+/// at most that many denominator digits. A # before a fixed denominator reduces it.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/about-format-pictures
 fn fraction_picture(value: f64, picture: &str) -> Result<String, Error> {
+    if !value.is_finite() {
+        return Err(Error::Num);
+    }
     let (left, right) = picture.split_once('/').ok_or(Error::Value)?;
     let simplify = right.starts_with('#');
     let digits = right.trim_start_matches('#');
-    let denominator = if digits.is_empty() { 64 } else { digits.parse::<u64>().map_err(|_| Error::Value)?.max(1) };
-    if denominator == 0 || denominator > 65536 || !left.chars().all(|c| matches!(c, '0' | '#' | ' ')) {
+    let variable = digits.is_empty();
+    let maximum = if variable {
+        let places = u32::try_from(right.len()).map_err(|_| Error::Limit)?;
+        10u64.checked_pow(places).and_then(|n| n.checked_sub(1)).ok_or(Error::Limit)?
+    } else {
+        digits.parse::<u64>().map_err(|_| Error::Value)?.max(1)
+    };
+    if maximum == 0 || maximum > 65536 || !left.chars().all(|c| matches!(c, '0' | '#' | ' ')) {
         return Err(Error::Value);
     }
     let mixed = left.contains(' ');
@@ -755,8 +867,21 @@ fn fraction_picture(value: f64, picture: &str) -> Result<String, Error> {
     }
     let mut whole = if mixed { absolute.floor() as u64 } else { 0 };
     let part = if mixed { absolute - whole as f64 } else { absolute };
-    let mut numerator = (part * denominator as f64).round() as u64;
-    let mut denominator = denominator;
+    // Both factors are bounded above, so conversion to u64 is finite and in range.
+    let mut numerator = (part * maximum as f64).round() as u64;
+    let mut denominator = maximum;
+    if variable {
+        let mut distance = f64::INFINITY;
+        for candidate in 1..=maximum {
+            let n = (part * candidate as f64).round() as u64;
+            let error = (part - n as f64 / candidate as f64).abs();
+            if error < distance {
+                numerator = n;
+                denominator = candidate;
+                distance = error;
+            }
+        }
+    }
     if mixed && numerator >= denominator {
         whole = whole.checked_add(numerator / denominator).ok_or(Error::Limit)?;
         numerator %= denominator;
@@ -766,19 +891,22 @@ fn fraction_picture(value: f64, picture: &str) -> Result<String, Error> {
         numerator /= factor;
         denominator /= factor;
     }
-    let mut out = if value < 0. { "-".to_string() } else { String::new() };
+    let mut out = String::new();
     if mixed && (whole > 0 || left.starts_with('0')) {
         out.push_str(&whole.to_string());
-        if numerator > 0 {
-            out.push(' ')
-        }
     }
     if numerator > 0 || (!mixed && left.contains('0')) {
+        if mixed {
+            out.push(' ');
+        }
         if denominator == 1 {
             out.push_str(&numerator.to_string());
         } else {
             out.push_str(&format!("{numerator}/{denominator}"));
         }
+    }
+    if value < 0. && (whole != 0 || numerator != 0) {
+        out.insert(usize::from(out.starts_with(' ')), '-');
     }
     Ok(out)
 }

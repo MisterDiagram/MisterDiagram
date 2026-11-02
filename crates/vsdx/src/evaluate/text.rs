@@ -146,8 +146,8 @@ impl<'a> Evaluator<'a> {
     }
     /// A text field that cannot be evaluated or formatted stops a strict evaluation; under
     /// the cached fallback (render, convert, export) it draws the field text saved in the
-    /// file, the text Visio last displayed, and records the substitution (MisterDiagram#95:
-    /// a feet-and-inches picture the formatter does not know yet).
+    /// file, and records the substitution. Supported numeric pictures recalculate
+    /// directly and do not enter this fallback.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/fld-element-text_type-complextypevisio-xml
     fn field_text_fallback(&mut self, scope: Scope, reference: &str, error: Error, saved: &str) -> Result<String, Error> {
         if !self.cached_fallback {
@@ -568,10 +568,9 @@ mod tests {
     }
     #[test]
     fn unformattable_field_draws_the_saved_text_under_the_cached_fallback() {
-        // MisterDiagram#95: the Floor plan template's Distancing Circle formats Width with
-        // `<,FEET/INCH>0 u`; Visio saved "6 ft 0 in" in the field run.
+        // Native b4792..b4795 reject repeated compound picture prefixes.
         use misterdiagram_model::{Cell, Row, Section};
-        let mut doc = document("<Text><fld IX='0'>6 ft 0 in</fld>\n</Text>");
+        let mut doc = document("<Text><fld IX='0'>saved-invalid-field</fld>\n</Text>");
         doc.pages[0].shapes[0].sheet.cells.push(Cell { name: "Width".into(), value: Some("72".into()), ..Default::default() });
         doc.pages[0].shapes[0].sheet.sections.push(Section {
             name: "Field".into(),
@@ -585,7 +584,12 @@ mod tests {
                         formula: Some("Width".into()),
                         ..Default::default()
                     },
-                    Cell { name: "Format".into(), value: Some("<,FEET/INCH>0 u".into()), units: Some("STR".into()), ..Default::default() },
+                    Cell {
+                        name: "Format".into(),
+                        value: Some("<,FEET/INCH><,FEET/INCH>0 u".into()),
+                        units: Some("STR".into()),
+                        ..Default::default()
+                    },
                 ],
                 ..Default::default()
             }],
@@ -596,7 +600,7 @@ mod tests {
         assert!(strict.text_body(scope).is_err());
         assert_eq!(strict.take_fallback_warnings(), (vec![], 0));
         let mut e = Evaluator::new(&doc).unwrap().with_cached_fallback();
-        assert_eq!(e.text_body(scope).unwrap().paragraphs[0].text(), "6 ft 0 in");
+        assert_eq!(e.text_body(scope).unwrap().paragraphs[0].text(), "saved-invalid-field");
         let (messages, count) = e.take_fallback_warnings();
         assert_eq!(count, 1);
         assert!(messages[0].ends_with(" Fields.Value: #VALUE!; used the field text saved in the file"), "{messages:?}");
@@ -642,3 +646,7 @@ mod tests {
         assert!(files >= 10);
     }
 }
+
+#[cfg(test)]
+#[path = "compound_fields_tests.rs"]
+mod compound_fields_tests;

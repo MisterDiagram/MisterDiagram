@@ -3,6 +3,7 @@
 ## Unreleased
 
 - **Measurements display the right unit labels** (#83). Numeric fields now match Visio's unit punctuation, area labels and literal picture text.
+- **Feet-and-inches fields update after edits** (#95). Compound measurement pictures now recalculate with the right rounding, fractions and unit labels.
 
 ## 0.1.0-alpha.22
 

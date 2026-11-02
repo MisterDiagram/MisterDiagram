@@ -548,9 +548,10 @@ flow built from the cross-functional flowchart and BPMN masters) failed with
   HR Management System template's Primary Key Attribute has `Height=GUARD(REF())` saved with
   `#REF!` and 0.3889 in, and Visio lays the row out at 0.3889 in). A text field that cannot be
   evaluated or formatted draws the field text saved in the `fld` run under the same fallback
-  (#95: the Floor plan template's `<,FEET/INCH>0 u` picture, saved as "6 ft 0 in"); the
-  picture itself stays unimplemented until Visio witnesses for the feet-and-inches family
-  exist. On the sample, 10 cells fall back and the
+  when the picture is unsupported. M5.112 closes #95's numeric compound-picture
+  gap with synthetic Visio witnesses: feet-and-inches fields now evaluate after
+  edits without taking saved text or issuing fallback warnings. On the earlier
+  sample, 10 cells fell back and the
   page matches Visio's export on layout: title bar, both pools, every lane, task, gateway
   and connector route. The later native sweeps correct the initial fill diagnosis: these task fills have
   subtle gradients. M5.45 through M5.47 correct the washed-out gradient rendering
@@ -2676,5 +2677,26 @@ quoted/escaped literals; nonzero ResultIU coercion is checked too. The
 FORMATEX conversion targets and punctuation. Native evidence is private
 `field/format-pictures-2026-11-02/`; rules and rejected spellings are recorded in
 [file-format-parity.md](file-format-parity.md). Broader date, locale and currency
-pictures remain partial; explicit compound picture prefixes remain #95 work.
+pictures remain partial. Compound numeric prefixes are covered by M5.112 below.
 Reference: [About format pictures](https://learn.microsoft.com/en-us/office/client-developer/visio/about-format-pictures).
+
+
+## Compound numeric field pictures (#95, M5.112)
+
+Feet-and-inches, pica/point and cicero/didot pictures round the smallest unit
+before splitting and carrying. Decimal places belong to that subunit, optional
+placeholders omit zero components, and fractions use the witnessed fixed or
+bounded variable denominator. Unit labels, signed zero and literal spacing
+follow native observations. The numeric-picture portion of #95 is closed:
+strict and cached-fallback fields recalculate after Width edits without saved
+text or warnings, and SVG export carries the evaluated text.
+
+Private `field/format-pictures-2026-11-02/native-b/` and
+`native-b-controls/` retain 4,828 native results. The shared table checks 4,816
+of these plus Part A's ninth brief example, with all nonzero ResultIU values.
+Twelve extra malformed or unknown prefix cases remain explicitly unsupported:
+missing `>`, `<,BOGUS>` and `<,,>`. They are preserved, not counted as matching.
+Date, calendar and locale picture limitations remain open. See
+[file-format-parity.md](file-format-parity.md) for the grammar and classification.
+References: [About format pictures](https://learn.microsoft.com/en-us/office/client-developer/visio/about-format-pictures),
+[units of measure](https://learn.microsoft.com/en-us/office/client-developer/visio/about-units-of-measure-visio-shapesheet-reference).
