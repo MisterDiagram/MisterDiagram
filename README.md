@@ -25,8 +25,8 @@ Anyone who wants a GUI on top is welcome to build one: the licence is MIT or Apa
 core is the part that has to be right. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and shares their conventions.
 
-**Download:** [MisterDiagram 0.1.0-alpha.24](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.24),
-the twenty-third alpha (embedded WMF pictures render instead of placeholder boxes), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+**Download:** [MisterDiagram 0.1.0-alpha.25](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.25),
+the twenty-fourth alpha (exports crop to the drawing, unit labels on plainly drawn shapes, sheet dumps warn instead of failing), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -35,7 +35,7 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-11-03, 0.1.0-alpha.24)
+## What works today (2026-11-03, 0.1.0-alpha.25)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
@@ -88,10 +88,7 @@ Container/list formulas, text wrapping, larger-page routing, legacy formats,
 EMF+, compound line patterns, shadows, PowerPoint export and masters with several
 top-level shapes remain limited. Large-drawing authoring is slow
 ([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39); measurements in docs/gaps.md).
-From Microsoft's template catalogue, filed and open: the unit label of a cell that saves no
-unit attribute (#83, narrowed), `THEME()` with a colour argument (#88),
-the Text Callout cycle (#91) and the `sheet` exit status after a
-complete dump of a drawing with an undeterminable embedded picture (#100). From the first batch
+From Microsoft's template catalogue, filed and open: `THEME()` with a colour argument (#88) and the Text Callout cycle (#91). From the first batch
 of real company files, filed and open: SVG import (#103). SVG export does not write Visio's
 `v:` extension data, which Visio reads when it imports an SVG. The bundled symbol face covers the dingbat, geometric, arrow and
 pictograph blocks; Segoe UI Symbol's mathematics and Windows icon ranges, and the Wingdings
@@ -99,18 +96,23 @@ and Webdings symbol-charset fonts, are not covered (docs/gaps.md). Where a conne
 three connectors that rerouted on the witness drawings differ from Visio's path (two take the
 other side of the obstacle, one bends elsewhere); the 28 of 29 geometry witnesses still hold.
 
-## New in 0.1.0-alpha.24
+## New in 0.1.0-alpha.25
 
-- Embedded WMF pictures render (#87). Classic Windows Metafile pictures, including the ones a
-  file labels as EMF (vendor stencils do this), play their records instead of drawing a sized
-  placeholder box. Pictures with a placeable header or a window origin and extent map the way
-  Visio maps them; a hand-made WMF whose declared extents disagree with its shape size still
-  draws a little larger than in Visio.
+- Exports crop to the drawing (#87). `--fit` on `render` and `export` (and the MCP render and
+  export tools) trims PNG, SVG and PDF output to the foreground shapes the way Visio's PNG export
+  does, with no page margin; `--margin "0.25 in"` adds one on every side. The same crop drives all
+  three formats, and an empty page keeps its size with a warning.
+- Unit labels on plainly drawn shapes (#83). `FORMAT` now knows the implicit unit of a cell that
+  saves no unit attribute (inches for lengths, degrees for angles, points for text size and
+  line weight), so a drawn 2 by 2 in rectangle's `FORMAT(Width,"0.00 u")` reads `2.00 in.` and
+  its area `4.00 in.^2`, as in Visio 2021 (alpha.24 printed `2.00 ` and `4.00 `).
+- `sheet` finishes a dump with warnings (#100). An embedded picture that cannot be decoded is
+  reported after the cell dump with the same warning text `render` prints, and the command
+  exits 0; broken package relationships and resource limits are still errors.
 
-Against alpha.23, no corpus line and no field row moves: the two vendor-stencil masters that
-referenced WMF bytes under an EMF name now draw their pictures instead of a placeholder box,
-checked against Visio 2021 on the stencil itself and on synthetic drawings; routes, theme and
-hostile results are unchanged.
+Against alpha.24, no corpus line and no field row moves: the crop is a new option, the unit
+labels only appear where no unit attribute is saved, and the `sheet` change is an exit status;
+routes, theme and hostile results are unchanged.
 
 ## Testers wanted
 

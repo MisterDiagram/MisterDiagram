@@ -1,6 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.25
+
+Brief 66 ([#83](https://github.com/MisterDiagram/MisterDiagram/issues/83), [#87](https://github.com/MisterDiagram/MisterDiagram/issues/87), [#88](https://github.com/MisterDiagram/MisterDiagram/issues/88), [#100](https://github.com/MisterDiagram/MisterDiagram/issues/100)): exports crop to the drawing and measurement text on plainly drawn shapes
+carries its unit label; the `sheet` command finishes a dump with warnings instead of failing.
+Each is checked against Visio 2021. The crop follows Visio's PNG export (the drawing's extent, no
+page margin); `--margin` adds one in physical units. `THEME()` with a colour argument (#88) stays
+open: the native colour sweep is recorded and documented, with no colour-form code yet.
 
 - **Crop exports to the drawing** (#87). Use `--fit` for PNG, SVG and PDF, with an optional physical `--margin`; MCP render and export accept the same options.
 - **Unit labels:** FORMAT now supplies implicit cell units when a drawing omits saved unit attributes, including square-inch area labels. (#83)
