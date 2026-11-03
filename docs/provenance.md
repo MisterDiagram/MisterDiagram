@@ -25,6 +25,11 @@ mirrored the gradient rule; the local ECMA text and Microsoft's
 [LinearGradientFill.Scaled reference](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.lineargradientfill.scaled)
 were the authoritative checks. No third-party implementation was used.
 The standard supplies format constraints only; no illustrative assets are used.
+Brief 64 Part D consulted the same standard for connector preset names and
+connector/site element structure, alongside Microsoft's ShapeGuide.Formula and
+ConnectionType.Index references. Local glue-spike notes supplied the observed
+rectangle site order and preset-only connector restriction. No native application
+was run and no vendor asset was copied during this implementation.
 
 
 Brief 66 (2026-11-03): search snippets from the

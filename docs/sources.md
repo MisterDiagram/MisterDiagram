@@ -20,6 +20,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.lineargradientfill.scaled> | `crates/export/src/write/dml.rs` |
 | <https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.rgbcolormodelpercentage> | `crates/color/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.runproperties> | `crates/export/src/write/text.rs` |
+| <https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.shapeguide.formula> | `crates/export/src/write/connectors.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references> | `crates/engine/src/arrange.rs`, `crates/engine/src/reference_cleanup.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/diagnostics.rs`, `crates/vsdx/src/evaluate/lookup.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-date-time-and-duration-values> | `crates/sheet/src/functions/text.rs`, `crates/sheet/src/units.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-error-values> | `crates/sheet/src/value.rs` |
@@ -48,7 +49,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/avoidpagebreaks-cell-page-layout-section> | `crates/route/src/orthogonal.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/beginarrow-cell-line-format-section> | `crates/render/src/style.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/beginarrowsize-cell-line-format-section> | `crates/export/src/write/dml.rs`, `crates/render/src/style.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/beginx-cell-1-d-endpoints-section> | `crates/engine/src/reference_cleanup.rs`, `crates/vsdx/src/evaluate/transform.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/beginx-cell-1-d-endpoints-section> | `crates/engine/src/reference_cleanup.rs`, `crates/export/src/write/connectors.rs`, `crates/vsdx/src/evaluate/transform.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/begtrigger-cell-glue-info-section> | `crates/route/src/glue_host.rs`, `crates/route/src/scope.rs`, `crates/sheet/src/eval.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/write.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/bitand-function> | `crates/sheet/src/functions/extras.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/bitnot-function> | `crates/sheet/src/functions/extras.rs` |
@@ -85,7 +86,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/conlinejumpdirx-cell-shape-layout-section> | `crates/route/src/jumps.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/conlinejumpdiry-cell-shape-layout-section> | `crates/route/src/jumps.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/conlinejumpstyle-cell-shape-layout-section> | `crates/route/src/jumps.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/connect-element-connects_type-complextypevisio-xml> | `crates/engine/src/inspect.rs`, `crates/engine/src/layout/check.rs`, `crates/engine/src/layout/shared.rs`, `crates/engine/src/reference_cleanup.rs`, `crates/model/src/lib.rs`, `crates/model/tests/from_scratch.rs`, `crates/route/src/static_glue.rs`, `crates/vsdx/src/repair.rs`, `crates/vsdx/src/write/model.rs`, `crates/vsdx/tests/package_repairs.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/connect-element-connects_type-complextypevisio-xml> | `crates/engine/src/inspect.rs`, `crates/engine/src/layout/check.rs`, `crates/engine/src/layout/shared.rs`, `crates/engine/src/reference_cleanup.rs`, `crates/export/src/model/connectors.rs`, `crates/model/src/lib.rs`, `crates/model/tests/from_scratch.rs`, `crates/render/src/scene/evaluated.rs`, `crates/route/src/static_glue.rs`, `crates/vsdx/src/repair.rs`, `crates/vsdx/src/write/model.rs`, `crates/vsdx/tests/package_repairs.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-row-connection-points-section> | `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section> | `crates/engine/src/glue.rs`, `crates/engine/src/layout.rs`, `crates/engine/src/network.rs`, `crates/engine/tests/automatic_points.rs`, `crates/engine/tests/create_style.rs`, `crates/engine/tests/glue_image_groups.rs`, `crates/engine/tests/layout.rs`, `crates/render/src/scene/evaluated.rs`, `crates/route/src/static_glue.rs`, `tools/oracle/p5a/make-corpus.ps1` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/connectorschemeindex-cell-theme-properties-section> | `crates/vsdx/src/evaluate/inherit.rs` |
@@ -110,7 +111,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/endarrow-cell-line-format-section> | `crates/export/src/write/dml.rs`, `crates/render/src/style.rs`, `crates/render/tests/guides_line_ends.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/endarrowsize-cell-line-format-section> | `crates/render/src/style.rs`, `crates/render/tests/arrow_size.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/endtrigger-cell-glue-info-section> | `crates/route/src/glue_host.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/endx-cell-1-d-endpoints-section> | `crates/engine/src/reference_cleanup.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/endx-cell-1-d-endpoints-section> | `crates/engine/src/reference_cleanup.rs`, `crates/export/src/write/connectors.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/evalcell-function> | `crates/sheet/src/functions/references.rs`, `crates/vsdx/src/evaluate.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/evaltext-function> | `crates/sheet/src/functions/references.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/eventlist-element-visiodocument_type-complextypevisio-xml> | `crates/model/src/lib.rs` |
@@ -182,6 +183,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/len-function-visioshapesheet> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/linecap-cell-line-format-section> | `crates/render/src/style.rs`, `crates/render/tests/dotted_lines.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/linecolor-cell-line-format-section> | `crates/engine/src/content.rs`, `crates/vsdx/tests/authoring_metadata.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/linejumpcode-cell-page-layout-section> | `crates/export/src/model/connectors.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/linejumpfactorx-cell-page-layout-section> | `crates/route/src/jumps.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/linejumpfactory-cell-page-layout-section> | `crates/route/src/jumps.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/linejumpstyle-cell-page-layout-section> | `crates/route/src/jumps.rs` |

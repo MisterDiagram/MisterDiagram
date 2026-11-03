@@ -482,6 +482,6 @@ Shapes use evaluated custom geometry, native groups, resolved solid and gradient
 fills, line styles, mapped arrowheads and editable text with resolved run formatting.
 Pattern fills use foreground colour; shadows are omitted, compound lines use a
 single outer weight, and alternate fills are approximate. Foreign objects are
-embedded PNG pictures, preserving the renderer's pixels and clipping. Preset
-connectors with attachment, full foreign-object acceptance and the PowerPoint
-acceptance check remain pending.
+embedded PNG pictures, preserving the renderer's pixels and clipping. Preset connectors carry explicit site attachments. Line jumps are dropped and
+routes beyond the preset family are fitted, with warnings. The native PowerPoint
+open, render and drag acceptance check remains pending.

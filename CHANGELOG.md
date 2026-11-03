@@ -2,11 +2,13 @@
 
 ## Unreleased
 
+- **PowerPoint connectors and pictures:** Export attached preset connectors and embedded pictures. Warnings identify dropped line jumps and routes fitted to PowerPoint presets.
+
 - **PowerPoint text:** Edit exported labels, paragraphs and formatted runs. Text keeps its saved position and size, including evaluated fields and cached text.
 
 - **PowerPoint shapes:** Keep native groups, geometry sections, resolved fills and line styles. Small or oversized pages scale to fit PowerPoint, with warnings for picture approximations.
 
-- **PowerPoint package preview:** Export evaluated drawing paths to `.pptx` through the CLI or MCP. Connector attachment is still pending; warnings identify preview limitations.
+- **PowerPoint package preview:** Export evaluated drawing paths to `.pptx` through the CLI or MCP. The package foundation is extended by native shapes, text, connectors and pictures in subsequent milestones.
 
 ## 0.1.0-alpha.25
 

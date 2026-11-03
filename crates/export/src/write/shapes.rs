@@ -22,9 +22,10 @@ pub(super) fn write(
     limit: usize,
     pictures: &mut Pictures<'_>,
 ) -> Result<(), String> {
-    let mut id = 2;
+    let mut id =
+        page.connections.targets.values().chain(page.connections.ids.values()).copied().max().unwrap_or(1).checked_add(1).ok_or("PPTX id limit")?;
     for node in &page.shapes {
-        shape(w, node, view, &mut id, warnings, limit, pictures, 0)?;
+        shape(w, node, &page.connections, view, &mut id, warnings, limit, pictures, 0)?;
     }
     Ok(())
 }
@@ -64,6 +65,7 @@ fn xfrm(w: &mut W, b: Rect, group: bool) -> Result<(), String> {
 fn shape(
     w: &mut W,
     node: &EvaluatedShape,
+    connections: &crate::model::connectors::Connections,
     view: Affine,
     id: &mut u32,
     warnings: &mut Vec<String>,
@@ -75,11 +77,17 @@ fn shape(
         return Err("PPTX group depth limit".into());
     }
     let elements = node.sections.iter().fold(0usize, |n, s| n.saturating_add(s.path.elements().len()));
-    let estimate = elements.checked_mul(256).and_then(|n| n.checked_add(8192)).ok_or("PPTX XML limit")?;
+    let sites = connections.sites.get(&node.scope).map_or(&[][..], Vec::as_slice);
+    let estimate = elements
+        .checked_mul(256)
+        .and_then(|n| n.checked_add(sites.len().saturating_mul(512)))
+        .and_then(|n| n.checked_add(8192))
+        .ok_or("PPTX XML limit")?;
     if w.s.len().checked_add(estimate).is_none_or(|n| n > limit) {
         return Err("PPTX slide XML limit".into());
     }
-    if node.group {
+    let carrier = node.one_d && connections.targets.get(&node.scope) != connections.ids.get(&node.scope);
+    if node.group || carrier {
         w.open0("p:grpSp");
         w.open0("p:nvGrpSpPr");
         w.empty("p:cNvPr", A::new().a("id", next(id)?).a("name", format!("Group {}", node.id)));
@@ -92,10 +100,10 @@ fn shape(
     }
     if node.children_first {
         for child in &node.children {
-            shape(w, child, view, id, warnings, limit, pictures, depth + 1)?;
+            shape(w, child, connections, view, id, warnings, limit, pictures, depth + 1)?;
         }
     }
-    if !node.hidden_own {
+    if !node.hidden_own || connections.attached.contains(&node.scope) {
         // Keep one native shape per evaluated shape, with independent section flags.
         let mut bounds = None;
         for section in node.sections.iter().filter(|s| !s.flags.no_show) {
@@ -105,27 +113,55 @@ fn shape(
         let bounds = bounds.unwrap_or_else(|| view.transform_rect_bbox(node.bounds));
         let text = node.text_body.as_ref().zip(node.text_block.as_ref());
         let placement = text.map(|(_, block)| text::placement(block, view)).transpose()?;
-        let inline = placement.is_some_and(|(b, angle, _)| {
-            angle.abs() < 1e-9
-                && [b.x0 - bounds.x0, b.y0 - bounds.y0, b.x1 - bounds.x1, b.y1 - bounds.y1].iter().all(|v| v.abs() < 1e-9)
-                && node.drawing.ops.iter().all(|op| matches!(op, Op::Text { .. } | Op::Bounds(_)))
-        });
-        w.open0("p:sp");
-        w.open0("p:nvSpPr");
-        w.empty("p:cNvPr", A::new().a("id", next(id)?).a("name", format!("Shape {}", node.id)));
-        w.empty0("p:cNvSpPr");
-        w.empty0("p:nvPr");
-        w.close("p:nvSpPr");
-        w.open0("p:spPr");
-        xfrm(w, bounds, false)?;
-        content::geometry(w, &node.sections, view, bounds)?;
-        dml::fill(w, node.paint.as_ref(), view, bounds)?;
-        dml::line(w, node, view.determinant().abs().sqrt())?;
-        w.close("p:spPr");
-        if inline && let (Some((body, _)), Some((_, angle, scale))) = (text, placement) {
-            text::body(w, body, scale, angle, limit)?;
+        let inline = !node.one_d
+            && placement.is_some_and(|(b, angle, _)| {
+                angle.abs() < 1e-9
+                    && [b.x0 - bounds.x0, b.y0 - bounds.y0, b.x1 - bounds.x1, b.y1 - bounds.y1].iter().all(|v| v.abs() < 1e-9)
+                    && node.drawing.ops.iter().all(|op| matches!(op, Op::Text { .. } | Op::Bounds(_)))
+            });
+        if let Some(route) = connections.routes.get(&node.scope) {
+            super::connectors::write(w, node, route, connections, view)?;
+            if carrier {
+                let carrier_id = connections.targets.get(&node.scope).ok_or("PPTX carrier id")?;
+                w.open0("p:sp");
+                w.open0("p:nvSpPr");
+                w.empty("p:cNvPr", A::new().a("id", carrier_id).a("name", format!("Connection sites {}", node.id)));
+                w.empty0("p:cNvSpPr");
+                w.empty0("p:nvPr");
+                w.close("p:nvSpPr");
+                w.open0("p:spPr");
+                let bounds = view.transform_rect_bbox(*connections.boxes.get(&node.scope).ok_or("PPTX carrier box")?);
+                xfrm(w, bounds, false)?;
+                content::geometry_sites(w, &[], view, bounds, sites)?;
+                w.empty0("a:noFill");
+                w.open0("a:ln");
+                w.empty0("a:noFill");
+                w.close("a:ln");
+                w.close("p:spPr");
+                w.close("p:sp");
+            }
+        } else {
+            let bounds = if node.hidden_own { view.transform_rect_bbox(*connections.boxes.get(&node.scope).ok_or("PPTX site box")?) } else { bounds };
+            w.open0("p:sp");
+            w.open0("p:nvSpPr");
+            w.empty(
+                "p:cNvPr",
+                A::new().a("id", connections.ids.get(&node.scope).ok_or("PPTX shape id missing")?).a("name", format!("Shape {}", node.id)),
+            );
+            w.empty0("p:cNvSpPr");
+            w.empty0("p:nvPr");
+            w.close("p:nvSpPr");
+            w.open0("p:spPr");
+            xfrm(w, bounds, false)?;
+            content::geometry_sites(w, &node.sections, view, bounds, sites)?;
+            dml::fill(w, node.paint.as_ref(), view, bounds)?;
+            dml::line(w, node, view.determinant().abs().sqrt())?;
+            w.close("p:spPr");
+            if inline && let (Some((body, _)), Some((_, angle, scale))) = (text, placement) {
+                text::body(w, body, scale, angle, limit)?;
+            }
+            w.close("p:sp");
         }
-        w.close("p:sp");
         if let Some(line) = &node.line
             && [line.begin_arrow, line.end_arrow].into_iter().any(|i| i != 0 && dml::arrow(i).1)
         {
@@ -164,10 +200,10 @@ fn shape(
     }
     if !node.children_first {
         for child in &node.children {
-            shape(w, child, view, id, warnings, limit, pictures, depth + 1)?;
+            shape(w, child, connections, view, id, warnings, limit, pictures, depth + 1)?;
         }
     }
-    if node.group {
+    if node.group || carrier {
         w.close("p:grpSp");
     }
     Ok(())

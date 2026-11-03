@@ -12,7 +12,7 @@ use std::{collections::BTreeMap, sync::Arc};
 mod budget;
 pub mod evaluated;
 pub use budget::SceneBudget;
-pub use evaluated::{ConnectionSite, EvaluatedPage, EvaluatedShape, EvaluatedTextBlock};
+pub use evaluated::{ConnectionSite, EvaluatedConnect, EvaluatedPage, EvaluatedShape, EvaluatedTextBlock};
 
 pub const MAX_PIXELS: usize = 32 * 1024 * 1024;
 #[derive(Clone, Debug)]
@@ -609,11 +609,35 @@ fn page_evaluated_prepared(
     }
     let mut foreground_start = 0;
     let mut evaluated = Vec::new();
+    let mut connects = Vec::new();
     for id in pages.into_iter().rev() {
         if id == p.id {
             foreground_start = scene.ops.len();
         }
         let p = document.pages.iter().find(|p| p.id == id).ok_or("missing page")?;
+        if retain {
+            for c in &p.connects {
+                let end = match c.from_cell.as_deref() {
+                    Some("BeginX") => false,
+                    Some("EndX") => true,
+                    _ => continue,
+                };
+                if connects.len() >= 100_000 {
+                    return Err("export connection count limit".into());
+                }
+                let to_cell = c.to_cell.as_deref().unwrap_or("");
+                if to_cell.len() > 65536 {
+                    return Err("export connection name limit".into());
+                }
+                budget.charge(std::mem::size_of::<EvaluatedConnect>() * 2 + to_cell.len())?;
+                connects.push(EvaluatedConnect {
+                    from: Scope::PageShape { page: id, shape: c.from_sheet },
+                    to: Scope::PageShape { page: id, shape: c.to_sheet },
+                    end,
+                    to_cell: to_cell.into(),
+                });
+            }
+        }
         let scope = Scope::Page(id);
         let ratio = evaluator.render_number(scope, "PageScale")? / evaluator.render_number(scope, "DrawingScale")?.max(1e-12);
         let nodes = shapes(evaluator, &p.shapes, scope, &p.part, Affine::scale(ratio), options, 0, budget, retain)?;
@@ -656,7 +680,7 @@ fn page_evaluated_prepared(
             return Err(error);
         }
     }
-    Ok(EvaluatedPage { scene, shapes: evaluated })
+    Ok(EvaluatedPage { scene, shapes: evaluated, connects })
 }
 pub fn master(document: &Document, index: usize, options: Options) -> Result<Scene, String> {
     let themes = misterdiagram_theme::Themes::from_document(document).map_err(|e| e.to_string())?;

@@ -56,6 +56,7 @@ fn corpus() -> Vec<PathBuf> {
 fn exercise(bytes: &[u8]) {
     if let Ok(doc) = import(bytes) {
         let options = misterdiagram_render::scene::Options::default();
+        let _ = misterdiagram_export::document(&doc, None, options);
         let scene = if doc.pages.is_empty() {
             misterdiagram_render::scene::master(&doc, 0, options)
         } else {

@@ -2,9 +2,9 @@
 use misterdiagram_render::scene::{Options, SceneBudget, evaluated};
 use std::{fmt, path::Path};
 
-/// Amendment 1 A2: first measured on 2026-11-03, 39 pattern pages, one
-/// compound page and one shadow page. This ceiling may only fall.
-pub const MAX_SUBSTITUTED_PAGES: usize = 41;
+/// Amendment 2, frozen on 2026-11-03: the prior 41 pages plus six
+/// connector pages with dropped jumps or fitted routes. This ceiling may only fall.
+pub const MAX_SUBSTITUTED_PAGES: usize = 47;
 
 #[derive(Default, Debug)]
 pub struct Report {
@@ -23,7 +23,7 @@ impl fmt::Display for Report {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(
             f,
-            "PPTX model: {} files, {} pages, {} identical, {} substitutions excluded (ceiling 41), {} failures",
+            "PPTX model: {} files, {} pages, {} identical, {} substitutions excluded (ceiling {MAX_SUBSTITUTED_PAGES}), {} failures",
             self.files,
             self.pages,
             self.identical,
@@ -55,7 +55,8 @@ pub fn file(path: &Path) -> Result<Report, String> {
         let page = evaluated::page(&doc, index, options, &mut budget)?;
         let source = misterdiagram_render::raster::render(&page.scene, options)?;
         let model = crate::model::Page::with_options(page, options, &mut budget)?;
-        if !model.substitutions.is_empty() {
+        let connector_only = model.substitutions.iter().all(|s| matches!(s, crate::model::Substitution::Jumps | crate::model::Substitution::Route));
+        if !model.substitutions.is_empty() && !connector_only {
             report.excluded.push(format!(
                 "{} page {}: {}",
                 path.display(),
@@ -67,6 +68,13 @@ pub fn file(path: &Path) -> Result<Report, String> {
         let actual = misterdiagram_render::raster::render(&model.raster_scene()?, options)?;
         if source == actual {
             report.identical += 1;
+        } else if !model.substitutions.is_empty() && connector_only {
+            report.excluded.push(format!(
+                "{} page {}: {}",
+                path.display(),
+                index + 1,
+                model.substitutions.iter().map(|s| s.name()).collect::<Vec<_>>().join(", ")
+            ));
         } else {
             let count = source.as_raw().iter().zip(actual.as_raw()).filter(|(a, b)| a != b).count();
             report.failures.push(format!(

@@ -5,6 +5,7 @@ use misterdiagram_render::{
     style,
 };
 use std::collections::BTreeSet;
+pub mod connectors;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Substitution {
@@ -12,6 +13,8 @@ pub enum Substitution {
     Shadow,
     Compound,
     Alternate,
+    Jumps,
+    Route,
 }
 impl Substitution {
     pub fn name(self) -> &'static str {
@@ -20,6 +23,8 @@ impl Substitution {
             Self::Shadow => "shadow omitted",
             Self::Compound => "compound outer line",
             Self::Alternate => "alternate fill separate paths",
+            Self::Jumps => "line jumps dropped",
+            Self::Route => "route fitted to a preset",
         }
     }
 }
@@ -28,6 +33,7 @@ pub struct Page {
     pub(crate) presentation_canvas: Option<(f64, f64, kurbo::Affine)>,
     pub shapes: Vec<EvaluatedShape>,
     pub substitutions: BTreeSet<Substitution>,
+    pub connections: connectors::Connections,
 }
 impl Page {
     pub fn from_evaluated(page: EvaluatedPage) -> Result<Self, String> {
@@ -39,10 +45,11 @@ impl Page {
         for shape in &mut page.shapes {
             convert(shape, &mut substitutions, &mut page.scene.warnings, 0)?;
         }
+        let connections = connectors::Connections::prepare(&mut page.shapes, &page.connects, &mut substitutions, &mut page.scene.warnings, budget)?;
         // This is only the canvas, never the source scene replayed for QA.
         page.scene.ops = Vec::new();
         page.scene.pdf_strokes.clear();
-        Ok(Self { presentation_canvas: None, canvas: page.scene, shapes: page.shapes, substitutions })
+        Ok(Self { presentation_canvas: None, canvas: page.scene, shapes: page.shapes, substitutions, connections })
     }
     /// Rebuild paints from export sections and styles, independently of the
     /// renderer's discarded geometry operations. A model-path defect therefore
@@ -51,7 +58,7 @@ impl Page {
         let mut scene = self.canvas.clone();
         let mut budget = SceneBudget::default();
         for shape in &self.shapes {
-            draw(shape, &mut scene, &mut budget, 0)?;
+            draw(shape, &self.connections, &mut scene, &mut budget, 0)?;
         }
         Ok(scene)
     }
@@ -163,20 +170,44 @@ fn convert(node: &mut EvaluatedShape, substitutions: &mut BTreeSet<Substitution>
     }
     Ok(())
 }
-fn draw(node: &EvaluatedShape, scene: &mut Scene, budget: &mut SceneBudget, depth: usize) -> Result<(), String> {
+fn draw(
+    node: &EvaluatedShape,
+    connections: &connectors::Connections,
+    scene: &mut Scene,
+    budget: &mut SceneBudget,
+    depth: usize,
+) -> Result<(), String> {
     if depth > 128 {
         return Err("PPTX group depth limit".into());
     }
     if node.children_first {
         for child in &node.children {
-            draw(child, scene, budget, depth + 1)?;
+            draw(child, connections, scene, budget, depth + 1)?;
         }
     }
+    let route_sections;
+    let sections = if let Some(route) = connections.routes.get(&node.scope) {
+        if route.points.len() > 65536 || route.points.iter().any(|p| !p.x.is_finite() || !p.y.is_finite() || p.x.abs() > 1e6 || p.y.abs() > 1e6) {
+            return Err("PPTX route coordinate or count limit".into());
+        }
+        let mut path = BezPath::new();
+        if let Some(p) = route.points.first() {
+            path.move_to(*p);
+        }
+        for p in route.points.iter().skip(1) {
+            path.line_to(*p);
+        }
+        let flags = node.sections.first().map(|s| s.flags).unwrap_or_default();
+        route_sections = vec![misterdiagram_geom::GeometryPath { path, flags }];
+        &route_sections
+    } else {
+        &node.sections
+    };
     let start = scene.ops.len();
     if !node.hidden_own {
         if let Some(paint) = &node.paint {
             let mut path = BezPath::new();
-            for section in node.sections.iter().filter(|s| s.filled()) {
+            for section in sections.iter().filter(|s| s.filled()) {
                 path.extend(section.path.elements().iter().copied());
             }
             if !path.elements().is_empty() {
@@ -184,7 +215,7 @@ fn draw(node: &EvaluatedShape, scene: &mut Scene, budget: &mut SceneBudget, dept
             }
         }
         if let (Some(line), Some(stroke)) = (&node.line, &node.stroke) {
-            for section in node.sections.iter().filter(|s| s.stroked()) {
+            for section in sections.iter().filter(|s| s.stroked()) {
                 if line.pattern == 0 || stroke.width <= 0. {
                     continue;
                 }
@@ -243,7 +274,7 @@ fn draw(node: &EvaluatedShape, scene: &mut Scene, budget: &mut SceneBudget, dept
     budget.charge_ops(scene.ops.get(start..).ok_or("PPTX operation range")?)?;
     if !node.children_first {
         for child in &node.children {
-            draw(child, scene, budget, depth + 1)?;
+            draw(child, connections, scene, budget, depth + 1)?;
         }
     }
     Ok(())

@@ -182,6 +182,17 @@ fn run() -> Result<bool, String> {
     }
     let mut output = fs::OpenOptions::new().write(true).create_new(true).open(output).map_err(|e| e.to_string())?;
     writeln!(output, "{HEADER}").map_err(|e| e.to_string())?;
+    let mut pptx_report = if let Some(dir) = images {
+        fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+        let path = dir.join("pptx.tsv");
+        protect_inputs(root, &path)?;
+        let mut file = fs::OpenOptions::new().write(true).create_new(true).open(path).map_err(|e| e.to_string())?;
+        writeln!(file, "stem\texit\terror").map_err(|e| e.to_string())?;
+        Some(file)
+    } else {
+        None
+    };
+    let mut pptx_counts = [0usize; 2];
     let mut classes: [Vec<String>; 4] = Default::default();
     let mut keys = std::collections::BTreeSet::new();
     let mut passed = true;
@@ -197,6 +208,35 @@ fn run() -> Result<bool, String> {
             Ok(result) => result.map_err(|e| e.to_string()),
             Err(_) => Err("panic reading file".into()),
         };
+        let pptx = match &result {
+            Err(error) => Err(error.clone()),
+            Ok(document) => {
+                match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                    let options = scene::Options { cached_fallback: true, visio_export: true, ..Default::default() };
+                    let exported = misterdiagram_export::document(document, None, options)?;
+                    if let Some(dir) = images {
+                        let path = dir.join(stem).join("drawing.pptx");
+                        protect_inputs(root, &path)?;
+                        fs::create_dir_all(path.parent().ok_or("PPTX parent")?).map_err(|e| e.to_string())?;
+                        let mut file = fs::OpenOptions::new().write(true).create_new(true).open(path).map_err(|e| e.to_string())?;
+                        file.write_all(&exported.bytes).map_err(|e| e.to_string())?;
+                    }
+                    Ok::<(), String>(())
+                })) {
+                    Ok(result) => result,
+                    Err(_) => Err("panic exporting PPTX".into()),
+                }
+            }
+        };
+        let counter = pptx_counts.get_mut(usize::from(pptx.is_err())).ok_or("PPTX count index")?;
+        *counter = counter.checked_add(1).ok_or("PPTX count overflow")?;
+        if opened != pptx.is_ok() || pptx.as_ref().err().is_some_and(|e| !named_refusal(e)) {
+            passed = false;
+        }
+        if let Some(report) = &mut pptx_report {
+            writeln!(report, "{}\t{}\t{}", stem, u8::from(pptx.is_err()), clean(pptx.as_ref().err().map_or("", String::as_str)))
+                .map_err(|e| e.to_string())?;
+        }
         let mut rows = Vec::new();
         let new_row = |page| Row {
             stem: stem.into(),
@@ -313,6 +353,13 @@ fn run() -> Result<bool, String> {
         }
         output.flush().map_err(|e| e.to_string())?;
         eprintln!("{stem}: {}", if success { "rendered" } else { &errors });
+    }
+    if let Some(report) = &mut pptx_report {
+        writeln!(report, "# PPTX exported: {}; refused: {}", pptx_counts.first().copied().unwrap_or(0), pptx_counts.get(1).copied().unwrap_or(0))
+            .map_err(|e| e.to_string())?;
+    }
+    if pptx_counts != [85, 10] {
+        passed = false;
     }
     if before.as_ref().is_some_and(|b| b.keys().any(|k| !keys.contains(k))) {
         return Err("missing baseline page".into());

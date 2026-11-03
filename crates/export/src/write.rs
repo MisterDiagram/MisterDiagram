@@ -10,6 +10,7 @@ use misterdiagram_opc::{
 };
 use misterdiagram_render::scene::{EvaluatedPage, Options, Scene};
 
+mod connectors;
 mod content;
 mod dml;
 mod media;
@@ -73,7 +74,7 @@ fn render_limited(scenes: &[Page], colors: &[Rgba; 12], options: Options, limit:
     let (width, height) = slide_size(original_width, original_height)?;
     let mut pkg = PackageOut::default();
     let mut media = media::Media::default();
-    let mut warnings = vec!["PPTX: connector presets and glue await connector export".into()];
+    let mut warnings = Vec::new();
     if original_width.max(original_height) / original_width.min(original_height) > 56. {
         warnings.push("PPTX: page aspect ratio exceeds 56:1; short canvas side padded to one inch".into());
     }

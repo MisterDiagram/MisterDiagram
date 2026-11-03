@@ -32,6 +32,7 @@ reader sheet limits after XML escaping, and preserves opaque part payloads exact
 | `crates/export/src/write/shapes.rs` | [storytold/deckcraft](https://github.com/storytold/deckcraft), ArtCraft Team and contributors | `crates/pptx/src/write/shapes.rs` (retargeted native shape/style writer) | `90058395b78be26bb7ea7b4914a9f113c28d979d` | MIT OR Apache-2.0 |
 | `crates/export/src/write/dml.rs` | [storytold/deckcraft](https://github.com/storytold/deckcraft), ArtCraft Team and contributors | `crates/pptx/src/write/dml.rs` (retargeted native shape/style writer) | `90058395b78be26bb7ea7b4914a9f113c28d979d` | MIT OR Apache-2.0 |
 | `crates/export/src/write/text.rs` | [storytold/deckcraft](https://github.com/storytold/deckcraft), ArtCraft Team and contributors | `crates/pptx/src/write/dml.rs` (retargeted editable text writer) | `90058395b78be26bb7ea7b4914a9f113c28d979d` | MIT OR Apache-2.0 |
+| `crates/export/src/write/connectors.rs` | [storytold/deckcraft](https://github.com/storytold/deckcraft), ArtCraft Team and contributors | `crates/pptx/src/write/shapes.rs` (retargeted connector element structure) | `90058395b78be26bb7ea7b4914a9f113c28d979d` | MIT OR Apache-2.0 |
 | `crates/vsdx/tests/reader_memory.rs`, `crates/vsdx/tests/support/hostile_package.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/1a/vsdx_review_1a.rs` (selected memory tests and synthetic package recipe) | `107ee4c3423dd4154bd3c59f60362801f638eabf` | MIT OR Apache-2.0, user-authorized port |
 | `crates/vsdx/tests/authored_strings.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/1b/vsdx_review_1b.rs` (selected synthetic test) | `3ce1a4740bf3e44463f1e35babc42ff46562f4e5` | MIT OR Apache-2.0, user-authorized port |
 | `crates/engine/tests/route_ownership.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/3a/engine_review_3a.rs` (selected synthetic tests) | `3ce1a4740bf3e44463f1e35babc42ff46562f4e5` | MIT OR Apache-2.0, user-authorized port |
@@ -409,9 +410,9 @@ consumes its drawing projection; L4 export consumes its sections and styles.
 
 Export conversion builds a separate output model. Its QA raster rebuilds geometry
 and strokes from that model rather than replaying the original scene operations.
-The four authorized lossy substitutions are recorded per page: pattern foreground
-solid, omitted shadows, single outer compound lines and separate alternate-fill
-paths. The corpus gate lists excluded pages and freezes their maximum count.
+The authorized lossy substitutions are recorded per page: pattern foreground
+solid, omitted shadows, single outer compound lines, separate alternate-fill
+paths, dropped line jumps and routes fitted to a preset. The corpus gate lists excluded pages and freezes their maximum count.
 Linear gradients transform their scalar direction by the inverse transpose and
 remap stops to the baked path's bounding box. DrawingML angle scaling is disabled,
 so non-square shapes do not receive a second aspect adjustment. Circle gradients
@@ -436,7 +437,7 @@ when an oversized canvas needs it. All path, operation and coordinate guards run
 before that point, and ordinary raster rendering keeps its original limit.
 Evaluated metadata, retained copies, paths,
 text, pixels, XML and ZIP capacity are bounded. Native editable text is implemented;
-connector presets/glue remain a separate milestone.
+connector presets and explicit glue are implemented. Native application acceptance remains separate.
 
 Foreign media primitives are implemented here because the all-witness model gate
 includes the three image drawings. Natural rectangular PNG/JPEG images keep their
@@ -473,3 +474,29 @@ behaviour remains unchanged. Resource or serialization failures refuse cleanly.
 The independent text manifest comes directly from evaluated bodies before the
 writer runs; python-pptx checks paragraphs, logical runs, text, faces and style
 flags, including the required bold/italic source defect.
+
+
+## PPTX connector intent and attachment
+
+The shared evaluation includes page-qualified BeginX/EndX Connects rows. Export
+reserves stable shape IDs before writing any slide content, so forward references,
+background-page IDs and nested targets remain distinct. Each 2-D custom geometry
+lists top, left, bottom and right mid-edge sites first, then evaluated Connection
+rows in row order. Whole-shape glue appends a synthetic site at the saved walk-glue
+endpoint in Connects-table order. Synthetic sites prevent PowerPoint from choosing
+a different perimeter point on open. Site positions use proportional gdLst guides
+referenced by cxnLst; outward normals become DrawingML angles.
+
+Every 1-D shape uses p:cxnSp and straightConnector1, bentConnector2..5 or
+curvedConnector2..5. The intended page-space polyline drives model raster QA;
+PowerPoint evaluates the preset independently. Curved jumps and gaps are removed,
+and excessive or non-orthogonal bends are fitted with an explicit warning.
+The new substitutions follow Charles's Amendment 2: only pages whose connector
+conversion actually changes pixels leave the exact set. The measured count is
+frozen at Part D closure. Ordinary renderer output is unchanged.
+
+A 1-D target with Connection rows needs a transparent custom-geometry site carrier,
+because its preset cannot carry cxnLst. The carrier and connector share a group so
+movement stays together; the carrier adds no painted content. This is exercised
+by original fixtures and the private field set. Native application attachment and
+route appearance remain the separate PowerPoint acceptance gate.

@@ -154,3 +154,12 @@ rule, the witnessed office bus, the generated 100-box page, actual same-glue
 identity and read-only behavior. `cargo test -p misterdiagram-engine --lib layout::shared::tests` covers strict overlap tolerance and collinear Beziers.
 The wrapper's refusal contract is also checked by
 `python3 -m unittest discover -s tools -p test_check_layout.py`.
+
+For connector and picture readback, build `cargo build -p misterdiagram-export
+--example glue_manifest`, then run `.venv/bin/python tools/mcp/check_pptx_glue.py
+--out corpus/_state/glue-readback corpus/generated`. Use a new output directory.
+The evaluator/model manifest counts Connects rows and pictures; python-pptx checks
+native preset types, every attachment target/index, guide references and PNG blips.
+The field renderer also writes `drawing.pptx` beside each drawing's PNGs and records
+its outcomes separately in `pptx.tsv`, preserving the existing PNG comparison rows.
+Mutation fuzz exercises PPTX export after successful import.

@@ -53,10 +53,20 @@ pub struct EvaluatedShape {
     pub drawing: Scene,
     pub children: Vec<EvaluatedShape>,
 }
+/// A BeginX/EndX Connect row, qualified by its source page, in table order.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/connect-element-connects_type-complextypevisio-xml
+#[derive(Clone, Debug)]
+pub struct EvaluatedConnect {
+    pub from: Scope,
+    pub to: Scope,
+    pub end: bool,
+    pub to_cell: String,
+}
 #[derive(Clone, Debug)]
 pub struct EvaluatedPage {
     pub scene: Scene,
     pub shapes: Vec<EvaluatedShape>,
+    pub connects: Vec<EvaluatedConnect>,
 }
 impl EvaluatedShape {
     pub(super) fn resolve_connections(&mut self, e: &mut Evaluator<'_>, budget: &mut SceneBudget, depth: usize) -> Result<(), String> {

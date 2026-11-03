@@ -39,8 +39,10 @@ fn foreign_pixels_are_serialized_and_deduplicated() {
     doc.pages[0].shapes.push(skeleton::rectangle(1, 1., 1., 2., 1., "").unwrap());
     let mut page = evaluated::page(&doc, 0, Options::default(), &mut SceneBudget::default()).unwrap();
     let pixels = Arc::new(image::RgbaImage::from_pixel(8, 8, image::Rgba([12, 34, 56, 255])));
-    for offset in [1., 4.] {
+    for (index, offset) in [1., 4.].into_iter().enumerate() {
         let mut node = page.shapes[0].clone();
+        node.id = index as u32 + 2;
+        node.scope = misterdiagram_vsdx::evaluate::Scope::PageShape { page: 0, shape: node.id };
         node.sections.clear();
         node.paint = None;
         node.line = None;

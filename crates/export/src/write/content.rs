@@ -100,12 +100,20 @@ fn solid(w: &mut W, color: Rgba) {
 /// One DrawingML path per evaluated Geometry section, with independent flags.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section
 pub(super) fn geometry(w: &mut W, sections: &[GeometryPath], view: Affine, bounds: kurbo::Rect) -> Result<(), String> {
+    geometry_sites(w, sections, view, bounds, &[])
+}
+pub(super) fn geometry_sites(
+    w: &mut W,
+    sections: &[GeometryPath],
+    view: Affine,
+    bounds: kurbo::Rect,
+    sites: &[misterdiagram_render::scene::ConnectionSite],
+) -> Result<(), String> {
     let width = emu(bounds.width())?.max(1);
     let height = emu(bounds.height())?.max(1);
     w.open0("a:custGeom");
-    for tag in ["a:avLst", "a:gdLst", "a:ahLst", "a:cxnLst"] {
-        w.empty0(tag);
-    }
+    w.empty0("a:avLst");
+    super::connectors::sites(w, sites, view, bounds)?;
     w.empty("a:rect", A::new().a("l", "l").a("t", "t").a("r", "r").a("b", "b"));
     w.open0("a:pathLst");
     for section in sections.iter().filter(|s| !s.flags.no_show) {

@@ -2798,9 +2798,8 @@ Reference: [THEME](https://learn.microsoft.com/en-us/office/client-developer/vis
 ## PowerPoint export in progress
 
 Native custom-geometry shapes and groups, resolved solid/gradient paints, physical
-line dashes, mapped arrowheads and native editable text are implemented. Preset
-connector glue, full foreign-object acceptance and final PowerPoint acceptance
-remain pending. PowerPoint lays text out independently; differences in wrapping
+line dashes, mapped arrowheads and native editable text are implemented. Preset connector glue and embedded foreign pictures are implemented; final
+PowerPoint acceptance remains pending. PowerPoint lays text out independently; differences in wrapping
 are recorded during acceptance without changing saved text boxes or type sizes. No repair-free or attachment acceptance is claimed.
 
 DrawingML has no alternate fill rule. Section sets requiring it use separate
@@ -2820,3 +2819,14 @@ DrawingML requires slide sides of 1..56 inches (ECMA-376 Part 1, 19.7.17).
 approximately 1.294 inches with a uniform-scale warning. Legal first-page sizes
 stay exact. Later pages fit centered; extreme ratios use padding on the shorter
 side. Amendment 1 authorizes these canvas adjustments.
+
+
+Connectors use PowerPoint presets because custom geometry on a connector is not
+accepted by PowerPoint. Exact routing is not promised: line jumps are dropped
+(`connector/line-jumps.vsdx`), and routes with more than four bends or several
+non-orthogonal segments are fitted to bentConnector5. Curved routes use the nearest
+curved preset. These substitutions are named in export warnings and the model gate.
+Whole-shape glue uses synthetic connection sites at the evaluated endpoints;
+Connection rows follow the four rectangle-order sites. Glue to a 1-D target uses
+a transparent site carrier grouped with it. PowerPoint may re-solve routes after
+movement; its independent render and drag acceptance remain pending.
