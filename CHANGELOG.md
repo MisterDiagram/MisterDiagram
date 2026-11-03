@@ -3,6 +3,7 @@
 ## Unreleased
 
 - **Crop exports to the drawing** (#87). Use `--fit` for PNG, SVG and PDF, with an optional physical `--margin`; MCP render and export accept the same options.
+- **Unit labels:** FORMAT now supplies implicit cell units when a drawing omits saved unit attributes, including square-inch area labels. (#83)
 
 ## 0.1.0-alpha.24
 

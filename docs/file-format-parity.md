@@ -17708,3 +17708,26 @@ fit contract deliberately excludes it. No threshold or witness was changed.
 
 References: [Page.Export](https://learn.microsoft.com/en-us/office/vba/api/visio.page.export),
 [ResizeToFitContents](https://learn.microsoft.com/en-us/office/vba/api/visio.page.resizetofitcontents).
+
+## Implicit FORMAT cell units (#83, M5.117)
+
+The remaining #83 unit-label gap is closed. When no explicit U is saved, the
+witnessed shape length cells (Width, Height, PinX, PinY, LocPinX, LocPinY and
+TxtWidth) and absolute Geometry X coordinates format in inches; Angle formats
+in degrees, Char.Size and LineWeight in points, and Para.IndLeft in inches.
+Character and paragraph row suffixes retain their section meaning. Relative
+geometry coordinates, User values and all eight tested property Types remain
+unitless. Explicit saved or inherited U wins. This affects display-unit
+inference, not cached internal values or numeric literal evaluation.
+
+Private `field/brief66-2026-11-03/implicit-native` records all 240 u/U strings
+on inch, millimetre and 1 in = 10 ft pages, before and after setting Width to
+an unqualified formula. `implicit-saved-units.json` records saved U or its
+absence. `implicit-extra` confirms that FORMATEX ignores source units for
+already typed expressions but still uses them for untyped constants.
+The MCP-authored 1.4 square inch rectangle formats as `1.40 in.^2` without a
+saved Width or Height unit. Broader date, currency and locale gaps remain open.
+
+References: [FORMAT](https://learn.microsoft.com/en-us/office/client-developer/visio/format-function),
+[FORMATEX](https://learn.microsoft.com/en-us/office/client-developer/visio/formatex-function),
+[Width](https://learn.microsoft.com/en-us/office/client-developer/visio/width-cell-shape-transform-section).

@@ -16,6 +16,7 @@ mod relationships;
 mod string_cells;
 mod text;
 mod transform;
+mod units;
 mod visio_fonts;
 pub use text::TextBlock;
 const MAX_CELLS: usize = 2_000_000;
@@ -1950,7 +1951,11 @@ impl Context for BoundContext<'_, '_> {
         // F="Inh" inherits the expression, but a local U still controls display units.
         // CRIME_SCENE_INVESTIGATION_M page0 shape8 overrides Fields.Value to MM.
         // https://learn.microsoft.com/en-us/office/client-developer/visio/cell-element-shapesheet_type-complextypevisio-xml
-        self.evaluator.local_inh_cell(scope, &name).and_then(|c| c.units.clone()).or_else(|| self.evaluator.cell(scope, &name)?.units.clone())
+        self.evaluator
+            .local_inh_cell(scope, &name)
+            .and_then(|c| c.units.clone())
+            .or_else(|| self.evaluator.cell(scope, &name)?.units.clone())
+            .or_else(|| self.evaluator.implicit_unit(scope, &name).map(str::to_owned))
     }
     fn color(&self, index: u32) -> Option<[u8; 3]> {
         self.evaluator.palette.get(&index).copied().or_else(|| misterdiagram_sheet::functions::default_color(index))
