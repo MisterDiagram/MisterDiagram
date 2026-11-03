@@ -2756,3 +2756,14 @@ saved Width or Height unit. Broader date, currency and locale gaps remain open.
 References: [FORMAT](https://learn.microsoft.com/en-us/office/client-developer/visio/format-function),
 [FORMATEX](https://learn.microsoft.com/en-us/office/client-developer/visio/formatex-function),
 [Width](https://learn.microsoft.com/en-us/office/client-developer/visio/width-cell-shape-transform-section).
+
+## Sheet inspection of undecodable pictures (#100, M5.118)
+
+Closed: sheet dumps finish successfully when an embedded picture cannot be
+decoded. Diagnostics follow the dump as warnings, using the same cached-picture
+or placeholder wording as render. Shape selection reports only selected
+objects. Package errors, evaluator limits and decoder resource refusals remain
+errors. The original synthetic opaque-object and valid-WMF regressions cover
+this distinction; no tester document is required.
+
+Reference: [ForeignData](https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml).

@@ -476,3 +476,5 @@ broader foreign-picture parity remain unchanged.
 Progress M5.116: shared fit-to-drawing export and explicit margins added to CLI and MCP; native pixel fidelity remains partial (see gaps.md).
 
 - M5.117: implicit FORMAT cell units, 240 native strings, explicit-unit precedence and MCP area-label regression (#83).
+
+- M5.118: sheet picture diagnostics are selected warnings; structural and resource failures remain errors (#100).

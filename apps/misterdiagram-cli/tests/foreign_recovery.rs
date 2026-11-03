@@ -11,7 +11,7 @@ fn original() -> Vec<u8> {
         br#"<VisioDocument xmlns="http://schemas.microsoft.com/office/visio/2012/main"/>"#.to_vec(),
     );
     p.xml_part("visio/pages/pages.xml","application/vnd.ms-visio.pages+xml",br#"<Pages xmlns="http://schemas.microsoft.com/office/visio/2012/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><Page ID="0" NameU="Original"><PageSheet><Cell N="PageWidth" V="4"/><Cell N="PageHeight" V="4"/></PageSheet><Rel r:id="rId1"/></Page></Pages>"#.to_vec());
-    p.xml_part("visio/pages/page1.xml","application/vnd.ms-visio.page+xml",br#"<PageContents xmlns="http://schemas.microsoft.com/office/visio/2012/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><Shapes><Shape ID="7" NameU="Original opaque object" Type="Foreign"><Cell N="Width" V="2"/><Cell N="Height" V="1"/><Cell N="PinX" V="2"/><Cell N="PinY" V="2"/><Cell N="LocPinX" V="1"/><Cell N="LocPinY" V="0.5"/><ForeignData ForeignType="Object" ObjectType="17" ObjectWidth="2" ObjectHeight="1" ShowAsIcon="1"><Rel r:id="rId1"/></ForeignData></Shape></Shapes></PageContents>"#.to_vec());
+    p.xml_part("visio/pages/page1.xml","application/vnd.ms-visio.page+xml",br#"<PageContents xmlns="http://schemas.microsoft.com/office/visio/2012/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><Shapes><Shape ID="7" NameU="Original opaque object" Type="Foreign"><Cell N="Width" V="2"/><Cell N="Height" V="1"/><Cell N="PinX" V="2"/><Cell N="PinY" V="2"/><Cell N="LocPinX" V="1"/><Cell N="LocPinY" V="0.5"/><ForeignData ForeignType="Object" ObjectType="17" ObjectWidth="2" ObjectHeight="1" ShowAsIcon="1"><Rel r:id="rId1"/></ForeignData></Shape><Shape ID="8" Type="Shape"><Cell N="Width" V="1"/><Cell N="Height" V="1"/><Cell N="PinX" V="2"/><Cell N="PinY" V="2"/><Cell N="LocPinX" V="0.5"/><Cell N="LocPinY" V="0.5"/></Shape></Shapes></PageContents>"#.to_vec());
     p.binary("visio/embeddings/original.bin", "application/octet-stream", vec![1, 3, 5, 7, 9]);
     for (owner, kind, target) in [
         ("", "http://schemas.microsoft.com/visio/2010/relationships/document", "visio/document.xml"),
@@ -48,9 +48,20 @@ fn garbage_foreign_object_recovers_in_render_convert_and_mcp_export_but_sheet_re
         }
     }
     let result = Command::new(env!("CARGO_BIN_EXE_misterdiagram")).arg("sheet").arg(&input).output().unwrap();
-    assert_eq!(result.status.code(), Some(1));
+    assert_eq!(result.status.code(), Some(0));
     let error = String::from_utf8_lossy(&result.stderr);
-    assert!(error.contains("shape 7") && error.contains("ObjectType=17"), "{error}");
+    assert!(
+        error.starts_with("warning: ") && error.contains("shape 7") && error.contains("ObjectType=17") && error.contains("placeholder"),
+        "{error}"
+    );
+    assert!(!result.stdout.is_empty());
+    let rendered = Command::new(env!("CARGO_BIN_EXE_misterdiagram")).arg("render").arg(&input).arg(dir.join("warning.png")).output().unwrap();
+    assert_eq!(result.stderr, rendered.stderr);
+    for (shape, warned) in [("7", true), ("8", false)] {
+        let selected = Command::new(env!("CARGO_BIN_EXE_misterdiagram")).arg("sheet").arg(&input).args(["--shape", shape]).output().unwrap();
+        assert!(selected.status.success());
+        assert_eq!(!selected.stderr.is_empty(), warned);
+    }
     let mut server = Server::new(Box::new(Headless::new()));
     server.handle(json!({"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"original-test","version":"1"}}})).unwrap();
     call(&mut server, "open", json!({"path":input}));

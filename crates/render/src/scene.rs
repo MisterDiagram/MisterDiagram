@@ -1495,12 +1495,12 @@ fn dash_elements(path: &BezPath, stroke: &kurbo::Stroke) -> Result<usize, String
     Ok(elements as usize)
 }
 
-/// Sheet inspection validates the selected foreign parts without using drawing recovery.
+/// Sheet inspection validates the selected foreign parts and returns the same recovery diagnostics as rendering.
 /// A full numeric dump is still available even when its opaque objects are unsupported.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml
-pub fn validate_foreign_parts(document: &Document, selection: misterdiagram_vsdx::dump::Selection) -> Result<(), String> {
+pub fn validate_foreign_parts(document: &Document, selection: misterdiagram_vsdx::dump::Selection) -> Result<Vec<String>, String> {
     use misterdiagram_vsdx::dump::Selection;
-    let e = Evaluator::new(document).map_err(|error| error.to_string())?;
+    let mut e = Evaluator::new(document).map_err(|error| error.to_string())?;
     let page = if let Selection::Page(n) = selection {
         Some(
             document
@@ -1512,7 +1512,11 @@ pub fn validate_foreign_parts(document: &Document, selection: misterdiagram_vsdx
     } else {
         None
     };
-    for scope in e.scopes() {
+    e = e.with_cached_fallback();
+    let scopes: Vec<_> = e.scopes().collect();
+    let mut warnings = Vec::new();
+    let mut budget = SceneBudget::default();
+    for scope in scopes {
         let selected = match (selection, scope) {
             (Selection::All | Selection::Page(_), Scope::MasterShape { .. }) => true,
             (Selection::All, Scope::PageShape { .. }) => true,
@@ -1525,25 +1529,25 @@ pub fn validate_foreign_parts(document: &Document, selection: misterdiagram_vsdx
             continue;
         }
         let Some((source, foreign)) = foreign_source(&e, scope)? else { continue };
-        let object_type: String = foreign.attr("ObjectType").unwrap_or("unspecified").chars().take(64).filter(|c| !c.is_control()).collect();
-        let result = (|| -> Result<(), String> {
-            let owner = match source {
-                Scope::MasterShape { master, .. } => document.masters.iter().find(|m| m.id == master).map(|m| m.part.as_str()),
-                Scope::PageShape { page, .. } => document.pages.iter().find(|p| p.id == page).map(|p| p.part.as_str()),
-                _ => None,
-            }
-            .ok_or("foreign owner part missing")?;
-            let target = foreign_target(document, owner, foreign)?;
-            let bytes = &document.parts.get(target).ok_or("missing foreign part")?.bytes;
-            if crate::metafile::sniff(bytes).is_some() {
-                crate::metafile::import(bytes).map(|_| ())
-            } else {
-                crate::raster::decode(bytes).map(|_| ())
-            }
-        })();
-        result.map_err(|error| format!("{} ForeignData ObjectType={object_type}: {error}", e.scope_label(scope)))?;
+        let owner = match source {
+            Scope::MasterShape { master, .. } => document.masters.iter().find(|m| m.id == master).map(|m| m.part.as_str()),
+            Scope::PageShape { page, .. } => document.pages.iter().find(|p| p.id == page).map(|p| p.part.as_str()),
+            _ => None,
+        }
+        .ok_or("foreign owner part missing")?;
+        let width = number(&mut e, scope, "Width", 1.);
+        let height = number(&mut e, scope, "Height", 1.);
+        let mut scene =
+            Scene { fit_empty: false, warnings: vec![], ops: vec![], pdf_strokes: BTreeMap::new(), bounds: Rect::ZERO, page_size: (1., 1.) };
+        foreign_image(&mut e, scope, owner, foreign, Affine::IDENTITY, width, height, &mut scene, true)?;
+        // Discard each decoded picture immediately. Retained diagnostics share the
+        // renderer's bounded budget; decoder resource refusals remain errors.
+        for warning in scene.warnings {
+            budget.charge(warning.capacity().saturating_add(std::mem::size_of::<String>()))?;
+            warnings.push(warning);
+        }
     }
-    Ok(())
+    Ok(warnings)
 }
 
 #[cfg(test)]

@@ -63,7 +63,8 @@ fn undecodable_foreign_data_uses_only_its_picture_or_sized_placeholder() {
     for icon in [false, true] {
         for picture in [false, true] {
             let doc = document(icon, picture);
-            assert!(scene::validate_foreign_parts(&doc, misterdiagram_vsdx::dump::Selection::All).is_err());
+            let warnings = scene::validate_foreign_parts(&doc, misterdiagram_vsdx::dump::Selection::All).unwrap();
+            assert_eq!(warnings.len(), 1);
             assert!(scene::validate_foreign_parts(&doc, misterdiagram_vsdx::dump::Selection::Document).is_ok());
             let error = scene::page(&doc, 0, Options::default()).unwrap_err();
             assert!(error.contains("shape 7") && error.contains("ObjectType=17"), "{error}");
@@ -74,6 +75,7 @@ fn undecodable_foreign_data_uses_only_its_picture_or_sized_placeholder() {
                 "{:?}",
                 scene.warnings
             );
+            assert_eq!(warnings, scene.warnings);
             assert_eq!(scene.ops.iter().filter(|op| matches!(op, Op::Image { .. })).count(), usize::from(picture));
             let word = if !picture {
                 "placeholder"
@@ -230,6 +232,8 @@ fn foreign_recovery_preserves_primary_metafile_resource_refusals() {
         assert!(strict.contains("metafile operation limit"), "{strict}");
         let error = scene::page(&doc, 0, Options { cached_fallback: true, ..Default::default() }).unwrap_err();
         assert!(error.contains("shape 7") && error.contains("metafile operation limit"), "{error}");
+        let inspection = scene::validate_foreign_parts(&doc, misterdiagram_vsdx::dump::Selection::All).unwrap_err();
+        assert!(inspection.contains("metafile operation limit"));
     }
 }
 
@@ -248,4 +252,22 @@ fn foreign_recovery_preserves_primary_image_resource_refusals() {
     doc.parts.get_mut("visio/embeddings/original.bin").unwrap().bytes = bmp.into();
     let error = scene::page(&doc, 0, Options { cached_fallback: true, ..Default::default() }).unwrap_err();
     assert!(error.contains("shape 7") && error.contains("image pixel limit"), "{error}");
+    let inspection = scene::validate_foreign_parts(&doc, misterdiagram_vsdx::dump::Selection::All).unwrap_err();
+    assert!(inspection.contains("image pixel limit"));
+}
+
+#[test]
+fn inspection_collects_each_selected_foreign_warning() {
+    use misterdiagram_vsdx::dump::Selection;
+    let mut doc = document(false, false);
+    let mut second = doc.pages[0].shapes[0].clone();
+    second.id = 8;
+    doc.pages[0].shapes.push(second);
+    let all = scene::validate_foreign_parts(&doc, Selection::All).unwrap();
+    assert_eq!(all.len(), 2);
+    let selected = scene::validate_foreign_parts(&doc, Selection::Shape(7)).unwrap();
+    assert_eq!(selected.len(), 1);
+    assert!(selected[0].contains("shape 7") && !selected[0].contains("shape 8"));
+    assert!(scene::validate_foreign_parts(&doc, Selection::Document).unwrap().is_empty());
+    assert!(scene::validate_foreign_parts(&doc, Selection::Page(0)).is_err());
 }
