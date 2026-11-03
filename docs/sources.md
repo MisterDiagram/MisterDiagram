@@ -367,7 +367,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.connects> | `apps/misterdiagram-cli/tests/examples.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.clean> | `tools/oracle/vendor-stencils/action-witness.ps1`, `tools/oracle/vendor-stencils/nested-action-witness.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.close> | `crates/engine/src/stencils.rs` |
-| <https://learn.microsoft.com/en-us/office/vba/api/visio.document.exportasfixedformat> | `crates/engine/src/files.rs`, `crates/render/tests/export_canvas.rs` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.document.exportasfixedformat> | `crates/engine/src/files.rs`, `crates/render/src/scene.rs`, `crates/render/tests/export_canvas.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.masters> | `crates/engine/src/stencils.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.document.saveas> | `apps/misterdiagram-cli/src/author.rs`, `apps/misterdiagram-corpus/examples/route_resave.rs`, `crates/engine/src/files.rs`, `tools/oracle/accept.ps1`, `tools/oracle/scaled-drop-accept.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.documents> | `crates/engine/src/stencils.rs` |

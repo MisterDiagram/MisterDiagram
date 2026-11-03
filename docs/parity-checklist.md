@@ -478,3 +478,5 @@ Progress M5.116: shared fit-to-drawing export and explicit margins added to CLI 
 - M5.117: implicit FORMAT cell units, 240 native strings, explicit-unit precedence and MCP area-label regression (#83).
 
 - M5.118: sheet picture diagnostics are selected warnings; structural and resource failures remain errors (#100).
+
+- M5.119: Brief 66 review fixes for render validation, shared PDF export limits and strict structural sheet diagnostics; added public, empty-page, pattern-margin and inherited-picture controls.

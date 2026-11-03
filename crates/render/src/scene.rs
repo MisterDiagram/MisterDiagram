@@ -523,6 +523,22 @@ pub fn page_budgeted(document: &Document, index: usize, options: Options, budget
     let mut evaluator = if options.cached_fallback { evaluator.with_cached_fallback() } else { evaluator };
     page_prepared_budgeted(&mut evaluator, index, options, budget)
 }
+
+/// Compose foreground PDF pages with one retained-scene budget and a bounded page count.
+/// https://learn.microsoft.com/en-us/office/vba/api/visio.document.exportasfixedformat
+pub fn foreground_pages_budgeted(document: &Document, options: Options, budget: &mut SceneBudget) -> Result<Vec<Scene>, String> {
+    let foreground = |p: &&misterdiagram_model::Page| !p.attributes.get("Background").is_some_and(|s| s == "1" || s == "true");
+    if document.pages.iter().filter(foreground).take(4097).count() > 4096 {
+        return Err("export page limit".into());
+    }
+    let mut scenes = Vec::new();
+    for (index, page) in document.pages.iter().enumerate() {
+        if foreground(&page) {
+            scenes.push(page_budgeted(document, index, options, budget)?);
+        }
+    }
+    Ok(scenes)
+}
 /// Cells the evaluator could not compute and filled from the file's saved values.
 fn fallback_warnings(evaluator: &mut Evaluator<'_>, scene: &mut Scene) {
     let (mut messages, mut count) = misterdiagram_vsdx::import_warnings(evaluator.document);
@@ -580,7 +596,6 @@ fn page_prepared_budgeted(evaluator: &mut Evaluator<'_>, index: usize, options: 
         shapes(evaluator, &p.shapes, scope, &p.part, Affine::scale(ratio), options, &mut scene, 0, budget)?;
     }
     fallback_warnings(evaluator, &mut scene);
-    budget.charge(std::mem::size_of::<Scene>().saturating_add(scene.warnings.iter().map(String::capacity).sum::<usize>()))?;
     if options.fit {
         let content = finish_bounds_from(&mut scene, true, foreground_start);
         if !content {
@@ -592,6 +607,11 @@ fn page_prepared_budgeted(evaluator: &mut Evaluator<'_>, index: usize, options: 
     }
     if !options.fit && options.visio_export && p.shapes.is_empty() && !p.attributes.contains_key("BackPage") {
         scene.bounds = Rect::new(0., 0., 5., 3.);
+    }
+    budget.charge(std::mem::size_of::<Scene>())?;
+    budget.charge(scene.warnings.capacity().saturating_mul(std::mem::size_of::<String>()))?;
+    for warning in &scene.warnings {
+        budget.charge(warning.capacity())?;
     }
     scene.canvas(options)?;
     Ok(scene)
@@ -1156,7 +1176,7 @@ fn shapes(
                 }
                 _ => part,
             };
-            foreign_image(e, scope, owner, foreign, transform, width, height, scene, options.cached_fallback)?;
+            foreign_image(e, scope, owner, foreign, transform, width, height, scene, ForeignMode::Render(options.cached_fallback))?;
         }
         if number(e, scope, "HideText", 0.) == 0. {
             let body = e.text_body(scope).map_err(|error| e.render_error(scope, "text", error))?;
@@ -1231,6 +1251,10 @@ fn foreign_source<'a>(e: &Evaluator<'a>, mut scope: Scope) -> Result<Option<(Sco
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/imgheight-cell-foreign-image-info-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/imgoffsetx-cell-foreign-image-info-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/imgoffsety-cell-foreign-image-info-section
+enum ForeignMode {
+    Render(bool),
+    Inspect,
+}
 fn foreign_image(
     e: &mut Evaluator<'_>,
     scope: Scope,
@@ -1240,17 +1264,30 @@ fn foreign_image(
     width: f64,
     height: f64,
     scene: &mut Scene,
-    recover: bool,
+    mode: ForeignMode,
 ) -> Result<(), String> {
-    let w = number(e, scope, "ImgWidth", width);
-    let h = number(e, scope, "ImgHeight", height);
+    let inspect = matches!(mode, ForeignMode::Inspect);
+    let recover = !matches!(mode, ForeignMode::Render(false));
+    let object_type: String = foreign.attr("ObjectType").unwrap_or("unspecified").chars().take(64).filter(|c| !c.is_control()).collect();
+    let label = format!("{} ForeignData ObjectType={object_type}", e.scope_label(scope));
+    if inspect {
+        let target = foreign_target(e.document, part, foreign).map_err(|error| format!("{label}: {error}"))?;
+        if !e.document.parts.contains_key(target) {
+            return Err(format!("{label}: missing foreign part"));
+        }
+    }
+    // Inspection decodes even an invisible object. These temporary dimensions
+    // only place discarded diagnostic operations, never the rendered drawing.
+    let extent = |v| if inspect && v == 0. { 1. } else { v };
+    let width = extent(width);
+    let height = extent(height);
+    let w = extent(number(e, scope, "ImgWidth", width));
+    let h = extent(number(e, scope, "ImgHeight", height));
     let x = number(e, scope, "ImgOffsetX", 0.);
     let y = number(e, scope, "ImgOffsetY", 0.);
     if w == 0. || h == 0. || width == 0. || height == 0. {
         return Ok(());
     }
-    let object_type: String = foreign.attr("ObjectType").unwrap_or("unspecified").chars().take(64).filter(|c| !c.is_control()).collect();
-    let label = format!("{} ForeignData ObjectType={object_type}", e.scope_label(scope));
     let clip = foreign_clip(e, scope, width, height, transform)?;
     let target = foreign_target(e.document, part, foreign);
     let result = match target.as_ref() {
@@ -1539,7 +1576,7 @@ pub fn validate_foreign_parts(document: &Document, selection: misterdiagram_vsdx
         let height = number(&mut e, scope, "Height", 1.);
         let mut scene =
             Scene { fit_empty: false, warnings: vec![], ops: vec![], pdf_strokes: BTreeMap::new(), bounds: Rect::ZERO, page_size: (1., 1.) };
-        foreign_image(&mut e, scope, owner, foreign, Affine::IDENTITY, width, height, &mut scene, true)?;
+        foreign_image(&mut e, scope, owner, foreign, Affine::IDENTITY, width, height, &mut scene, ForeignMode::Inspect)?;
         // Discard each decoded picture immediately. Retained diagnostics share the
         // renderer's bounded budget; decoder resource refusals remain errors.
         for warning in scene.warnings {

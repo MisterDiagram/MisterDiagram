@@ -2767,3 +2767,5 @@ errors. The original synthetic opaque-object and valid-WMF regressions cover
 this distinction; no tester document is required.
 
 Reference: [ForeignData](https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml).
+
+Brief 66 review correction: render usage errors are rejected before input I/O; CLI and engine PDF exports share the foreground-page limit and retained-scene budget. Sheet inspection still rejects broken primary foreign relationships or missing parts, and decodes zero-size objects for diagnostics. Original unknown-format recovery warnings remain successful.

@@ -58,6 +58,54 @@ fn document(icon: bool, picture: bool) -> Document {
     doc.parts.insert("visio/embeddings/original.bin".into(), object);
     doc
 }
+
+#[test]
+fn inspection_keeps_broken_relationships_fatal_and_checks_zero_size_payloads() {
+    use misterdiagram_vsdx::dump::Selection;
+    for failure in 0..3 {
+        let mut doc = document(false, false);
+        match failure {
+            0 => doc.pages[0].shapes[0].foreign_data.as_mut().unwrap().children.clear(),
+            1 => doc.parts.get_mut(&doc.pages[0].part).unwrap().relationships.clear(),
+            _ => {
+                doc.parts.remove("visio/embeddings/original.bin");
+            }
+        }
+        assert!(scene::validate_foreign_parts(&doc, Selection::Shape(7)).is_err());
+    }
+    for name in ["Width", "Height", "ImgWidth", "ImgHeight"] {
+        let mut doc = document(false, false);
+        doc.pages[0].shapes[0].sheet.cells.iter_mut().find(|c| c.name == name).unwrap().value = Some("0".into());
+        let warnings = scene::validate_foreign_parts(&doc, Selection::Shape(7)).unwrap();
+        assert_eq!(warnings.len(), 1, "{name}");
+        assert!(warnings[0].contains("shape 7") && warnings[0].contains("ObjectType=17"));
+    }
+}
+
+#[test]
+fn inherited_inspection_uses_selected_identity_and_sanitizes_labels() {
+    let mut doc = document(false, false);
+    let original = doc.pages[0].shapes[0].clone();
+    let part = "visio/masters/master1.xml".to_string();
+    let owner = doc.parts.get(&doc.pages[0].part).unwrap().clone();
+    doc.parts.insert(part.clone(), owner);
+    doc.masters.push(misterdiagram_model::Master { id: 11, part, shapes: vec![original].into(), ..Default::default() });
+    let foreign = doc.masters.last_mut().unwrap().shapes[0].foreign_data.as_mut().unwrap();
+    foreign.attributes.insert("ObjectType".into(), format!("17\n\r\t{}", "x".repeat(1000)));
+    let instance = &mut doc.pages[0].shapes[0];
+    instance.id = 42;
+    instance.master = Some(11);
+    instance.master_shape = Some(7);
+    instance.foreign_data = None;
+    instance.name_u = "Chosen\ninstance".into();
+    let warnings = scene::validate_foreign_parts(&doc, misterdiagram_vsdx::dump::Selection::Shape(42)).unwrap();
+    assert_eq!(warnings.len(), 1);
+    assert!(warnings[0].contains("shape 42") && !warnings[0].contains("shape 7"));
+    assert!(!warnings[0].chars().any(char::is_control));
+    assert!(warnings[0].len() < 512);
+    let rendered = scene::page(&doc, 0, Options { cached_fallback: true, ..Default::default() }).unwrap();
+    assert_eq!(warnings, rendered.warnings);
+}
 #[test]
 fn undecodable_foreign_data_uses_only_its_picture_or_sized_placeholder() {
     for icon in [false, true] {

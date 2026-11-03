@@ -55,6 +55,22 @@ fn garbage_foreign_object_recovers_in_render_convert_and_mcp_export_but_sheet_re
         "{error}"
     );
     assert!(!result.stdout.is_empty());
+    let doc = misterdiagram_vsdx::read(&input).unwrap();
+    let themes = misterdiagram_theme::Themes::from_document(&doc).unwrap();
+    let mut expected = Vec::new();
+    misterdiagram_vsdx::dump::dump_with_hosts(
+        &doc,
+        misterdiagram_vsdx::dump::Selection::All,
+        Some(&themes),
+        Some(&misterdiagram_text::Host),
+        &mut expected,
+    )
+    .unwrap();
+    assert_eq!(result.stdout, expected);
+    for selector in ["--shape", "--master", "--page"] {
+        let result = Command::new(env!("CARGO_BIN_EXE_misterdiagram")).arg("sheet").arg(&input).args([selector, "999"]).output().unwrap();
+        assert_eq!(result.status.code(), Some(1));
+    }
     let rendered = Command::new(env!("CARGO_BIN_EXE_misterdiagram")).arg("render").arg(&input).arg(dir.join("warning.png")).output().unwrap();
     assert_eq!(result.stderr, rendered.stderr);
     for (shape, warned) in [("7", true), ("8", false)] {

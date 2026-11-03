@@ -80,7 +80,7 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
                 }
                 options.text_outlines = true;
             }
-            Some(s) if s.starts_with("--") => return Err("unknown render option".into()),
+            Some(s) if s.starts_with("--") => return Err("usage: unknown render option".into()),
             _ => positional.push(arg),
         }
         i += 1;
@@ -95,16 +95,19 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
                 .into(),
         );
     };
-    let doc = misterdiagram_vsdx::read(Path::new(input)).map_err(|e| e.to_string())?;
     let path = Path::new(output);
     let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("").to_ascii_lowercase();
+    if !matches!(extension.as_str(), "png" | "svg" | "pdf") {
+        return Err("usage: render output extension must be png, svg or pdf".into());
+    }
+    if masters && (extension != "png" || page.is_some()) {
+        return Err("usage: master contact sheets require PNG and no page selector".into());
+    }
+    let doc = misterdiagram_vsdx::read(Path::new(input)).map_err(|e| e.to_string())?;
     if let Some(parent) = path.parent().filter(|p| !p.as_os_str().is_empty()) {
         std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
     }
     if masters {
-        if extension != "png" || page.is_some() {
-            return Err("master contact sheets require PNG and no page selector".into());
-        }
         let (image, report) = contact::render(&doc)?;
         image.save(path).map_err(|e| e.to_string())?;
         let mut stderr = std::io::stderr().lock();
@@ -126,15 +129,11 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
         return Ok(());
     }
     options.page_canvas = matches!(extension.as_str(), "svg" | "pdf");
+    let mut budget = scene::SceneBudget::default();
     let scenes = if extension == "pdf" && page.is_none() {
-        doc.pages
-            .iter()
-            .enumerate()
-            .filter(|(_, p)| !p.attributes.get("Background").is_some_and(|s| s == "1" || s == "true"))
-            .map(|(i, _)| scene::page(&doc, i, options))
-            .collect::<Result<Vec<_>, _>>()?
+        scene::foreground_pages_budgeted(&doc, options, &mut budget)?
     } else {
-        vec![scene::page(&doc, page.map(Ok).unwrap_or_else(|| scene::default_page_index(&doc))?, options)?]
+        vec![scene::page_budgeted(&doc, page.map(Ok).unwrap_or_else(|| scene::default_page_index(&doc))?, options, &mut budget)?]
     };
     for scene in &scenes {
         for warning in &scene.warnings {
@@ -263,5 +262,24 @@ mod tests {
             let args = args.into_iter().map(std::ffi::OsString::from).collect::<Vec<_>>();
             assert!(execute(&args, &mut Vec::new()).is_err());
         }
+    }
+    #[test]
+    fn sheet_output_write_failure_stays_an_error() {
+        struct Refuse;
+        impl Write for Refuse {
+            fn write(&mut self, _: &[u8]) -> std::io::Result<usize> {
+                Err(std::io::Error::new(std::io::ErrorKind::BrokenPipe, "test writer closed"))
+            }
+            fn flush(&mut self) -> std::io::Result<()> {
+                Ok(())
+            }
+        }
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/debug/brief66-sheet-stream").join(std::process::id().to_string());
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("original.vsdx");
+        misterdiagram_engine::Session::default().execute("file.save", &serde_json::json!({"path":path})).unwrap();
+        let error = execute(&["sheet".into(), path.into_os_string()], &mut Refuse).unwrap_err();
+        assert!(error.contains("cannot write ShapeSheet dump"), "{error}");
+        std::fs::remove_dir_all(dir).unwrap();
     }
 }

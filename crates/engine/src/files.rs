@@ -195,18 +195,7 @@ pub(crate) fn export(s: &mut Session, p: &Value) -> Result<Value> {
         .map_err(operation)?;
     let mut budget = scene::SceneBudget::default();
     let scenes = if ext == "pdf" && page.is_none() {
-        let mut scenes = Vec::new();
-        for (i, page) in s.document.pages.iter().enumerate() {
-            if page.attributes.get("Background").is_some_and(|v| v == "1" || v == "true") {
-                continue;
-            }
-            if scenes.len() >= 4096 {
-                return Err(operation("export page limit"));
-            }
-            let scene = scene::page_budgeted(&s.document, i, options, &mut budget).map_err(operation)?;
-            scenes.push(scene);
-        }
-        scenes
+        scene::foreground_pages_budgeted(&s.document, options, &mut budget).map_err(operation)?
     } else {
         vec![scene::page_budgeted(&s.document, page.unwrap_or(s.selection.page), options, &mut budget).map_err(operation)?]
     };
