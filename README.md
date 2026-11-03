@@ -25,8 +25,8 @@ Anyone who wants a GUI on top is welcome to build one: the licence is MIT or Apa
 core is the part that has to be right. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and shares their conventions.
 
-**Download:** [MisterDiagram 0.1.0-alpha.23](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.23),
-the twenty-second alpha (measurement text carries Visio's unit labels, and feet-and-inches fields recalculate after edits), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+**Download:** [MisterDiagram 0.1.0-alpha.24](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.24),
+the twenty-third alpha (embedded WMF pictures render instead of placeholder boxes), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -35,7 +35,7 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-11-02, 0.1.0-alpha.23)
+## What works today (2026-11-03, 0.1.0-alpha.24)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
@@ -99,19 +99,18 @@ and Webdings symbol-charset fonts, are not covered (docs/gaps.md). Where a conne
 three connectors that rerouted on the witness drawings differ from Visio's path (two take the
 other side of the obstacle, one bends elsewhere); the 28 of 29 geometry witnesses still hold.
 
-## New in 0.1.0-alpha.23
+## New in 0.1.0-alpha.24
 
-- Measurement text carries Visio's unit labels (#83). `FORMAT` and `FORMATEX` print `in.`, `FT.`,
-  `sq. ft.` and `ft.^2` as Visio does, bare letters in a format picture are codes rather than
-  literal text, and `%` is not a percent code. A floor plan's room area now reads `551 sq. ft.`.
-- Feet-and-inches fields recalculate after edits (#95). The `<,FEET/INCH>` picture family and its
-  pica/point and cicero/didot relatives evaluate in formulas and text fields, rounding the smallest
-  unit before the carry, so a field no longer falls back to the text saved in the file.
+- Embedded WMF pictures render (#87). Classic Windows Metafile pictures, including the ones a
+  file labels as EMF (vendor stencils do this), play their records instead of drawing a sized
+  placeholder box. Pictures with a placeable header or a window origin and extent map the way
+  Visio maps them; a hand-made WMF whose declared extents disagree with its shape size still
+  draws a little larger than in Visio.
 
-Against alpha.22, 29 corpus lines move and no field row does: 119 area-label strings saved by
-older Visio builds lack the periods Visio 2021 prints, so cached matches fall by 106 while
-pinned Visio values gain 82; pictures are unchanged, and routes, theme and hostile results
-are unchanged.
+Against alpha.23, no corpus line and no field row moves: the two vendor-stencil masters that
+referenced WMF bytes under an EMF name now draw their pictures instead of a placeholder box,
+checked against Visio 2021 on the stencil itself and on synthetic drawings; routes, theme and
+hostile results are unchanged.
 
 ## Testers wanted
 

@@ -47,7 +47,7 @@ Windows (PowerShell): print the archive's checksum and compare it with its line 
 `SHA256SUMS` (the comparison ignores case):
 
 ```powershell
-(Get-FileHash .\misterdiagram-0.1.0-alpha.23-windows-x64.zip -Algorithm SHA256).Hash
+(Get-FileHash .\misterdiagram-0.1.0-alpha.24-windows-x64.zip -Algorithm SHA256).Hash
 Select-String windows-x64 .\SHA256SUMS
 ```
 
@@ -138,7 +138,7 @@ So that `misterdiagram` works from any folder:
   afterwards.
 
 `misterdiagram --version` prints the version, the commit it was built from and the platform,
-for example `misterdiagram 0.1.0-alpha.23 (0123456789ab, aarch64-apple-darwin)`. Include that
+for example `misterdiagram 0.1.0-alpha.24 (0123456789ab, aarch64-apple-darwin)`. Include that
 line in any issue you report.
 
 ## 5. First commands

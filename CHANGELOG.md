@@ -1,6 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.24
+
+One picture fix from a tester's file
+([#87](https://github.com/MisterDiagram/MisterDiagram/issues/87)), checked against Visio 2021 on
+a vendor stencil and on synthetic drawings. Known gap: a WMF whose declared extents disagree with
+its shape size draws a little larger than Visio does; Visio writes consistent extents itself, so
+files saved by Visio are not affected. #87 stays open for its remaining items.
 
 - **Embedded WMF pictures render** (#87). Classic Windows Metafile pictures are recognized even when the file labels them as EMF. Some native scaling and export-bound differences remain.
 
