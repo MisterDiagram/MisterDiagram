@@ -188,7 +188,11 @@ pub(crate) fn export(s: &mut Session, p: &Value) -> Result<Value> {
         .transpose()?;
     let text_outlines =
         p.get("text_outlines").map(|v| v.as_bool().ok_or_else(|| operation("text_outlines must be boolean"))).transpose()?.unwrap_or(false);
-    let options = scene::Options { scale, text_outlines, page_canvas: ext != "png", visio_export: true, cached_fallback: true, ..Default::default() };
+    let fit = p.get("fit").map(|v| v.as_bool().ok_or_else(|| operation("fit must be boolean"))).transpose()?.unwrap_or(false);
+    let margin = p.get("margin").map(|v| v.as_str().ok_or_else(|| operation("margin must be a measurement string"))).transpose()?;
+    let options = scene::Options { scale, text_outlines, page_canvas: ext != "png", visio_export: true, cached_fallback: true, ..Default::default() }
+        .with_fit(fit, margin)
+        .map_err(operation)?;
     let mut budget = scene::SceneBudget::default();
     let scenes = if ext == "pdf" && page.is_none() {
         let mut scenes = Vec::new();

@@ -2704,3 +2704,32 @@ Date, calendar and locale picture limitations remain open. See
 [file-format-parity.md](file-format-parity.md) for the grammar and classification.
 References: [About format pictures](https://learn.microsoft.com/en-us/office/client-developer/visio/about-format-pictures),
 [units of measure](https://learn.microsoft.com/en-us/office/client-developer/visio/about-units-of-measure-visio-shapesheet-reference).
+
+## Drawing crop export (#87, M5.116)
+
+CLI render/convert and MCP render/export accept fit with optional physical margin.
+The shared renderer uses foreground drawing bounds for all three output formats;
+background content does not enlarge the crop. Empty foreground pages retain the
+original page with a warning. Explicit padding does not scale the drawing.
+The canonical crop uses the native 96 dpi pixel grid; export scale multiplies
+that crop and its transform together. SVG and PDF physical dimensions remain
+unchanged across export scales.
+
+The native ResizeToFitContents witness adds PageLeftMargin, PageRightMargin,
+PageTopMargin and PageBottomMargin (normally 0.25 drawing inches each). Native
+PNG exports the drawing crop again; native SVG keeps the resized physical page.
+Per the clarified export contract, no page margin is copied automatically, and
+native SVG is not the fit oracle. Witness: private
+`field/brief66-2026-11-03/fit-native` and `fit-details-v2`.
+
+Native pixel fidelity remains partial: the nine initial comparisons fail the
+unchanged oracle. Plain, thick, rotated and off-page controls have matching
+dimensions but exceed the differing-pixel ceiling; text and arrows have existing
+layout/extent differences. The tiny scaled control differs by one raster row.
+Fit follows page shadow offsets when ShapeShdwType is zero, correcting that
+control's dimensions, but its pixels still exceed the ceiling. The native
+background PNG includes the background extent; the clarified foreground-only
+fit contract deliberately excludes it. No threshold or witness was changed.
+
+References: [Page.Export](https://learn.microsoft.com/en-us/office/vba/api/visio.page.export),
+[ResizeToFitContents](https://learn.microsoft.com/en-us/office/vba/api/visio.page.resizetofitcontents).

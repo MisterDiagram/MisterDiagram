@@ -23,7 +23,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-formulas> | `crates/sheet/src/eval.rs`, `crates/sheet/src/parser.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-functions> | `crates/sheet/src/functions/ellipse.rs`, `crates/vsdx/tests/zero_width.rs`, `tools/oracle/vendor-stencils/zero-height-classes.ps1`, `tools/oracle/vendor-stencils/zero-width-recalc.ps1`, `tools/oracle/vendor-stencils/zero-width-witness.ps1` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/about-operators> | `crates/sheet/src/eval.rs`, `crates/sheet/src/parser.rs`, `crates/sheet/src/units.rs`, `crates/sheet/src/value.rs`, `crates/vsdx/src/evaluate.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/about-units-of-measure-visio-shapesheet-reference> | `crates/sheet/src/functions/text.rs`, `crates/sheet/src/parser.rs`, `crates/sheet/src/units.rs`, `crates/sheet/tests/support/compound_cases.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/about-units-of-measure-visio-shapesheet-reference> | `crates/render/src/scene.rs`, `crates/sheet/src/functions/text.rs`, `crates/sheet/src/parser.rs`, `crates/sheet/src/units.rs`, `crates/sheet/tests/support/compound_cases.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/abs-function-visioshapesheet> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/acos-function> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/action-cell-actions-section> | `crates/vsdx/src/evaluate.rs`, `crates/vsdx/tests/action_cells.rs`, `tools/oracle/vendor-stencils/action-witness.ps1`, `tools/oracle/vendor-stencils/nested-action-witness.ps1`, `tools/oracle/vendor-stencils/zero-height-classes.ps1`, `tools/oracle/vendor-stencils/zero-width-recalc.ps1`, `tools/oracle/vendor-stencils/zero-width-witness.ps1` |
@@ -388,7 +388,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.drawoval> | `crates/engine/src/shapes.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.drawrectangle> | `crates/engine/src/shapes.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.drop> | `crates/engine/src/composition.rs`, `crates/engine/src/masters.rs`, `tools/oracle/b25/dell-instance-witness.ps1` |
-| <https://learn.microsoft.com/en-us/office/vba/api/visio.page.export> | `apps/misterdiagram-cli/src/author.rs`, `apps/misterdiagram-corpus/src/render_population.rs`, `crates/engine/src/files.rs`, `crates/render/src/scene.rs`, `crates/render/tests/export_canvas.rs`, `crates/render/tests/output.rs`, `crates/render/tests/text_export_bounds.rs` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.page.export> | `apps/misterdiagram-cli/src/author.rs`, `apps/misterdiagram-corpus/src/render_population.rs`, `crates/engine/src/files.rs`, `crates/render/src/scene.rs`, `crates/render/tests/export_canvas.rs`, `crates/render/tests/fit.rs`, `crates/render/tests/output.rs`, `crates/render/tests/text_export_bounds.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.index> | `crates/engine/src/pages.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.nameu> | `crates/engine/src/pages.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.settheme> | `tools/oracle/make-corpus.ps1` |

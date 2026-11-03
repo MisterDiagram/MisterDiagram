@@ -11,6 +11,7 @@ use misterdiagram_render::{
 };
 fn drawing(width: f64, height: f64) -> Scene {
     Scene {
+        fit_empty: false,
         warnings: vec![],
         pdf_strokes: Default::default(),
         page_size: (width, height),

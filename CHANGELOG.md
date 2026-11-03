@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Crop exports to the drawing** (#87). Use `--fit` for PNG, SVG and PDF, with an optional physical `--margin`; MCP render and export accept the same options.
+
 ## 0.1.0-alpha.24
 
 One picture fix from a tester's file

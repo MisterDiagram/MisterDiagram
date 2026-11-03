@@ -76,6 +76,8 @@ pub struct PdfStroke {
 }
 #[derive(Clone, Debug)]
 pub struct Scene {
+    /// A fitted page with no foreground content keeps its original canvas.
+    pub fit_empty: bool,
     pub warnings: Vec<String>,
     pub ops: Vec<Op>,
     pub pdf_strokes: BTreeMap<usize, PdfStroke>,
@@ -84,6 +86,10 @@ pub struct Scene {
 }
 #[derive(Clone, Copy, Debug)]
 pub struct Options {
+    /// Use the foreground drawing crop for every export format.
+    pub fit: bool,
+    /// Additional physical inches on every side of a fitted drawing.
+    pub margin: f64,
     /// SVG only: retain the historical glyph path serialization.
     pub text_outlines: bool,
     pub scale: f64,
@@ -101,7 +107,44 @@ pub struct Options {
 }
 impl Default for Options {
     fn default() -> Self {
-        Self { text_outlines: false, scale: 1., print: false, crop: true, page_canvas: false, visio_export: false, cached_fallback: false }
+        Self {
+            fit: false,
+            margin: 0.,
+            text_outlines: false,
+            scale: 1.,
+            print: false,
+            crop: true,
+            page_canvas: false,
+            visio_export: false,
+            cached_fallback: false,
+        }
+    }
+}
+impl Options {
+    /// Parse a bounded, nonnegative physical measurement using the ShapeSheet parser.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-units-of-measure-visio-shapesheet-reference
+    pub fn with_fit(mut self, fit: bool, margin: Option<&str>) -> Result<Self, String> {
+        if margin.is_some() && !fit {
+            return Err("margin requires fit".into());
+        }
+        self.fit = fit;
+        self.margin = if let Some(text) = margin {
+            let misterdiagram_sheet::Expr::Number(value, unit) = misterdiagram_sheet::parse(text).map_err(|e| e.to_string())? else {
+                return Err("margin must be a nonnegative length measurement".into());
+            };
+            let unit = unit.as_deref().unwrap_or("IN").to_ascii_uppercase();
+            if !matches!(unit.as_str(), "IN" | "FT" | "YD" | "MI" | "MM" | "CM" | "M" | "KM" | "PT" | "P" | "D" | "C") {
+                return Err("margin must use physical length units".into());
+            }
+            let inches = value * misterdiagram_sheet::units::factor(&unit).map_err(|e| e.to_string())?;
+            if !inches.is_finite() || !(0. ..=1e6).contains(&inches) {
+                return Err("margin outside [0,1000000] inches".into());
+            }
+            inches
+        } else {
+            0.
+        };
+        Ok(self)
     }
 }
 impl Scene {
@@ -120,7 +163,38 @@ impl Scene {
         Ok(())
     }
     pub fn canvas(&self, options: Options) -> Result<(u16, u16, Affine), String> {
-        self.canvas_bounds(options, self.bounds)
+        if options.fit {
+            let (w, h, view) = self.fit_canvas(options)?;
+            Ok((w.ceil() as u16, h.ceil() as u16, view))
+        } else {
+            self.canvas_bounds(options, self.bounds)
+        }
+    }
+    /// Native PNG drawing extent, shared by all fitted output formats. Padding
+    /// translates the existing drawing view without rescaling its geometry.
+    /// https://learn.microsoft.com/en-us/office/vba/api/visio.page.export
+    pub fn fit_canvas(&self, options: Options) -> Result<(f64, f64, Affine), String> {
+        if !options.margin.is_finite() || !(0. ..=1e6).contains(&options.margin) {
+            return Err("render margin limit".into());
+        }
+        let (w, h, view, pad) = if self.fit_empty {
+            let (w, h, view) = self.page_canvas(Options { fit: false, ..options })?;
+            (w, h, view, 0.)
+        } else {
+            if !options.scale.is_finite() || options.scale <= 0. || options.scale > 100. {
+                return Err("render scale outside (0,100]".into());
+            }
+            // Freeze the native 96 dpi drawing crop before applying export scale.
+            // Re-rounding and fitting at each DPI would change vector geometry.
+            let (w, h, view) = self.canvas_bounds(Options { scale: 1., ..options }, self.bounds)?;
+            (f64::from(w) * options.scale, f64::from(h) * options.scale, Affine::scale(options.scale) * view, options.margin * 96. * options.scale)
+        };
+        let w = w + 2. * pad;
+        let h = h + 2. * pad;
+        if w.ceil() > f64::from(u16::MAX) || h.ceil() > f64::from(u16::MAX) || w.ceil() * h.ceil() > MAX_PIXELS as f64 {
+            return Err("render pixel limit".into());
+        }
+        Ok((w, h, Affine::translate((pad, pad)) * view))
     }
     /// Physical SVG/PDF page coordinates, without the raster crop's fitted scale.
     /// Native witnesses: field/export-canvas-2026-10-31.
@@ -476,6 +550,7 @@ fn page_prepared_budgeted(evaluator: &mut Evaluator<'_>, index: usize, options: 
     let scope = Scope::Page(p.id);
     let ratio = evaluator.render_number(scope, "PageScale")? / evaluator.render_number(scope, "DrawingScale")?.max(1e-12);
     let mut scene = Scene {
+        fit_empty: false,
         warnings: vec![],
         ops: vec![],
         pdf_strokes: BTreeMap::new(),
@@ -494,7 +569,11 @@ fn page_prepared_budgeted(evaluator: &mut Evaluator<'_>, index: usize, options: 
         };
         current = document.pages.iter().find(|p| p.id == id).ok_or("missing background page")?;
     }
+    let mut foreground_start = 0;
     for id in pages.into_iter().rev() {
+        if id == p.id {
+            foreground_start = scene.ops.len();
+        }
         let p = document.pages.iter().find(|p| p.id == id).ok_or("missing page")?;
         let scope = Scope::Page(id);
         let ratio = evaluator.render_number(scope, "PageScale")? / evaluator.render_number(scope, "DrawingScale")?.max(1e-12);
@@ -502,8 +581,16 @@ fn page_prepared_budgeted(evaluator: &mut Evaluator<'_>, index: usize, options: 
     }
     fallback_warnings(evaluator, &mut scene);
     budget.charge(std::mem::size_of::<Scene>().saturating_add(scene.warnings.iter().map(String::capacity).sum::<usize>()))?;
-    finish_bounds(&mut scene, options.crop);
-    if options.visio_export && p.shapes.is_empty() && !p.attributes.contains_key("BackPage") {
+    if options.fit {
+        let content = finish_bounds_from(&mut scene, true, foreground_start);
+        if !content {
+            scene.fit_empty = true;
+            scene.warnings.push("fit: empty foreground page; original page size retained".into());
+        }
+    } else {
+        finish_bounds(&mut scene, options.crop);
+    }
+    if !options.fit && options.visio_export && p.shapes.is_empty() && !p.attributes.contains_key("BackPage") {
         scene.bounds = Rect::new(0., 0., 5., 3.);
     }
     scene.canvas(options)?;
@@ -525,7 +612,7 @@ pub fn master_prepared(evaluator: &mut Evaluator<'_>, index: usize, options: Opt
     evaluator.reset_evaluation();
     let document = evaluator.document;
     let m = document.masters.get(index).ok_or("master index out of range")?;
-    let mut scene = Scene { warnings: vec![], ops: vec![], pdf_strokes: BTreeMap::new(), bounds: Rect::ZERO, page_size: (1., 1.) };
+    let mut scene = Scene { fit_empty: false, warnings: vec![], ops: vec![], pdf_strokes: BTreeMap::new(), bounds: Rect::ZERO, page_size: (1., 1.) };
     let scope = Scope::Master(m.id);
     let ratio = evaluator.render_number(scope, "PageScale")? / evaluator.render_number(scope, "DrawingScale")?.max(1e-12);
     shapes(evaluator, &m.shapes, scope, &m.part, Affine::scale(ratio), options, &mut scene, 0, &mut SceneBudget::default())?;
@@ -564,9 +651,12 @@ fn text_export_bounds(layout: &TextLayout) -> Option<Rect> {
     bounds
 }
 fn finish_bounds(scene: &mut Scene, crop: bool) {
+    finish_bounds_from(scene, crop, 0);
+}
+fn finish_bounds_from(scene: &mut Scene, crop: bool, start: usize) -> bool {
     let mut bounds: Option<Rect> = None;
     let mut clips: Vec<Rect> = Vec::new();
-    for op in &scene.ops {
+    for op in scene.ops.get(start..).unwrap_or_default() {
         let b = match op {
             Op::Bounds(b) => *b,
             Op::TextBackground { rect, transform, .. } => transform.transform_rect_bbox(*rect),
@@ -632,6 +722,7 @@ fn finish_bounds(scene: &mut Scene, crop: bool) {
     } else {
         Rect::new(0., 0., scene.page_size.0, scene.page_size.1)
     };
+    bounds.is_some()
 }
 /// Expand the pen after transforming the centerline, keeping line weight physical.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section
@@ -860,7 +951,12 @@ fn shapes(
                 }
             }
             if !shadow_fill.elements().is_empty() || !shadow_strokes.elements().is_empty() {
-                let offset = (number(e, scope, "ShapeShdwOffsetX", 0.), number(e, scope, "ShapeShdwOffsetY", 0.));
+                let offset = if options.fit && number(e, scope, "ShapeShdwType", 1.) == 0. {
+                    // FT-01: type zero inherits the page shadow, not dormant local offsets.
+                    (number(e, parent, "ShdwOffsetX", 0.), number(e, parent, "ShdwOffsetY", 0.))
+                } else {
+                    (number(e, scope, "ShapeShdwOffsetX", 0.), number(e, scope, "ShapeShdwOffsetY", 0.))
+                };
                 let blur = number(e, scope, "ShapeShdwBlur", 0.).max(0.);
                 let shade = color(e, scope, "ShdwForegnd", "ShdwForegndTrans");
                 scene.ops.push(crate::shadow::outer(&shadow_fill, &shadow_strokes, offset, blur, shade, 96. * options.scale)?);

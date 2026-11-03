@@ -94,6 +94,7 @@ fn render_with<'a>(
         )
         .map_err(|e| e.to_string())?;
         let label = Scene {
+            fit_empty: false,
             pdf_strokes: Default::default(),
             ops: vec![Op::Text {
                 layout,
@@ -108,6 +109,7 @@ fn render_with<'a>(
         image::imageops::overlay(&mut pixels, &img, (x + 6) as i64, (y + cell_height - 28) as i64);
         if failed {
             let error = Scene {
+                fit_empty: false,
                 pdf_strokes: Default::default(),
                 ops: vec![Op::Path { even_odd: false, path: Rect::new(0., 0., 1., 0.05).to_path(0.001), paint: Paint::Solid(Rgba::rgb(200, 0, 0)) }],
                 bounds: Rect::new(0., 0., 1., 0.05),

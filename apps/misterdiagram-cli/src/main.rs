@@ -38,19 +38,42 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
     let mut page = None;
     let mut options = scene::Options { cached_fallback: true, ..Default::default() };
     let mut masters = false;
+    let mut fit = false;
+    let mut margin = None;
+    let mut scale_seen = false;
     let mut i = 1;
     while let Some(arg) = args.get(i) {
         match arg.to_str() {
             Some("--page" | "--scale") => {
                 let value = args.get(i + 1).and_then(|s| s.to_str()).ok_or("missing render option value")?;
                 if arg == "--page" {
+                    if page.is_some() {
+                        return Err("usage: --page may be given once".into());
+                    }
                     page = Some(value.parse::<usize>().map_err(|_| "invalid page")?.checked_sub(1).ok_or("page is one-based")?);
                 } else {
+                    if scale_seen {
+                        return Err("usage: --scale may be given once".into());
+                    }
+                    scale_seen = true;
                     options.scale = value.parse().map_err(|_| "invalid scale")?;
                 }
                 i += 1;
             }
             Some("--masters") => masters = true,
+            Some("--fit") => {
+                if fit {
+                    return Err("usage: --fit may be given once".into());
+                }
+                fit = true;
+            }
+            Some("--margin") => {
+                if margin.is_some() {
+                    return Err("usage: --margin may be given once".into());
+                }
+                margin = Some(args.get(i + 1).and_then(|s| s.to_str()).ok_or("usage: --margin requires a measurement")?);
+                i += 1;
+            }
             Some("--text-outlines") => {
                 if options.text_outlines {
                     return Err("usage: --text-outlines may be given once".into());
@@ -62,8 +85,15 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
         }
         i += 1;
     }
+    options = options.with_fit(fit, margin).map_err(|e| format!("usage: {e}"))?;
+    if masters && fit {
+        return Err("usage: --fit is for page exports, not master contact sheets".into());
+    }
     let [input, output] = positional.as_slice() else {
-        return Err("usage: render FILE [--page N] [--scale S] [--text-outlines] OUT.{png,svg,pdf}; render --masters STENCIL OUT.png".into());
+        return Err(
+            "usage: render FILE [--page N] [--scale S] [--text-outlines] [--fit [--margin M]] OUT.{png,svg,pdf}; render --masters STENCIL OUT.png"
+                .into(),
+        );
     };
     let doc = misterdiagram_vsdx::read(Path::new(input)).map_err(|e| e.to_string())?;
     let path = Path::new(output);
@@ -132,8 +162,8 @@ fn execute(args: &[std::ffi::OsString], out: &mut impl Write) -> Result<(), Stri
     let (arguments, stencil_path) = settings::stencil_path(&arguments, std::env::var_os("MISTERDIAGRAM_STENCIL_PATH"))?;
     let args = arguments.as_slice();
     match args.first().and_then(|a| a.to_str()) {
-        Some("--help") if args.len() == 1 => writeln!(out, "misterdiagram: info, sheet, render, convert, run, commands, describe, corpus check, mcp\nrender FILE [--page N] [--scale S] [--text-outlines] OUT.{{png,svg,pdf}}\nconvert IN OUT [--text-outlines]\nSVG uses editable text by default; --text-outlines writes glyph paths.").map_err(|e|e.to_string()),
-        Some("render" | "convert") if args.len()==2 && args.get(1).is_some_and(|a|a=="--help") => writeln!(out, "render FILE [--page N] [--scale S] [--text-outlines] OUT.{{png,svg,pdf}}\nconvert IN OUT [--text-outlines]\nSVG uses editable text by default; --text-outlines writes glyph paths.").map_err(|e|e.to_string()),
+        Some("--help") if args.len() == 1 => writeln!(out, "misterdiagram: info, sheet, render, convert, run, commands, describe, corpus check, mcp\nrender FILE [--page N] [--scale S] [--text-outlines] [--fit [--margin M]] OUT.{{png,svg,pdf}}\nconvert IN OUT [--text-outlines] [--fit [--margin M]]\nSVG uses editable text by default; --text-outlines writes glyph paths.\n--fit crops all formats to foreground drawing content; --margin adds a physical length (for example 5 mm) on each side.").map_err(|e|e.to_string()),
+        Some("render" | "convert") if args.len()==2 && args.get(1).is_some_and(|a|a=="--help") => writeln!(out, "render FILE [--page N] [--scale S] [--text-outlines] [--fit [--margin M]] OUT.{{png,svg,pdf}}\nconvert IN OUT [--text-outlines] [--fit [--margin M]]\nSVG uses editable text by default; --text-outlines writes glyph paths.\n--fit crops all formats to foreground drawing content; --margin adds a physical length (for example 5 mm) on each side.").map_err(|e|e.to_string()),
         Some("--version") if args.len() == 1 => {
             writeln!(out, "{}", version_line(option_env!("MISTERDIAGRAM_COMMIT"), env!("MISTERDIAGRAM_TARGET"))).map_err(|e| e.to_string())
         }

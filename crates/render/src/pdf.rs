@@ -51,7 +51,10 @@ pub fn render(scenes: &[Scene], options: Options) -> Result<Vec<u8>, String> {
     let mut pdf = krilla::Document::new();
     let mut fonts: HashMap<u32, Font> = HashMap::new();
     for scene in scenes {
-        let (width, height, pixel_view) = if options.page_canvas {
+        let (width, height, pixel_view) = if options.fit {
+            let (w, h, view) = scene.fit_canvas(options)?;
+            (w * 0.75 / options.scale, h * 0.75 / options.scale, view)
+        } else if options.page_canvas && !options.fit {
             let (_, _, view) = scene.page_canvas(options)?;
             // The native fixed-format exporter truncates the page to the exporting
             // machine's device grid: 1/192 in on one installation, 1/600 in on another
@@ -64,7 +67,7 @@ pub fn render(scenes: &[Scene], options: Options) -> Result<Vec<u8>, String> {
             let (w, h, view) = scene.canvas(options)?;
             (f64::from(w) * 0.75 / options.scale, f64::from(h) * 0.75 / options.scale, view)
         };
-        let pattern_view = if options.page_canvas { scene.canvas(options)?.2 } else { pixel_view };
+        let pattern_view = if options.page_canvas && !options.fit { scene.canvas(options)?.2 } else { pixel_view };
         let view = Affine::scale(72. / (96. * options.scale)) * pixel_view;
         let size = Size::from_wh(width as f32, height as f32).ok_or("PDF page size")?;
         let mut page = pdf.start_page_with(krilla::page::PageSettings::new(size));
@@ -113,7 +116,7 @@ pub fn render(scenes: &[Scene], options: Options) -> Result<Vec<u8>, String> {
                             _ => {
                                 let (pixels, m) = crate::raster::pattern(paint, pattern_view, p)?;
                                 surface.push_clip_path(&path, &if *even_odd { FillRule::EvenOdd } else { FillRule::NonZero });
-                                let m = if options.page_canvas {
+                                let m = if options.page_canvas && !options.fit {
                                     view * pattern_view.inverse() * m
                                 } else {
                                     Affine::scale(72. / (96. * options.scale)) * m

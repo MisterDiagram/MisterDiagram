@@ -54,7 +54,11 @@ fn image(out: &mut String, pixels: &image::RgbaImage, m: Affine, nearest: bool) 
     Ok(())
 }
 pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
-    let (w, h, view) = if options.page_canvas {
+    let (w, h, view) = if options.fit {
+        let (w, h, view) = scene.fit_canvas(options)?;
+        let factor = 72. / (96. * options.scale);
+        (w * factor, h * factor, Affine::scale(factor) * view)
+    } else if options.page_canvas && !options.fit {
         let (w, h, view) = scene.page_canvas(options)?;
         let factor = 72. / (96. * options.scale);
         (w * factor, h * factor, Affine::scale(factor) * view)
@@ -62,12 +66,20 @@ pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
         let (w, h, view) = scene.svg_canvas(options)?;
         (f64::from(w), f64::from(h), view)
     };
-    let dpi = if options.page_canvas { 72. } else { 96. * options.scale };
-    let pattern_view = if options.page_canvas { scene.svg_canvas(options)?.2 } else { view };
+    let dpi = if options.page_canvas || options.fit { 72. } else { 96. * options.scale };
+    let pattern_view = if options.fit {
+        scene.fit_canvas(options)?.2
+    } else if options.page_canvas {
+        scene.svg_canvas(options)?.2
+    } else {
+        view
+    };
     // No background element: Visio's SVG export leaves the page transparent
     // (private corpus field/vahegan-2026-10-26 x2.svg, MisterDiagram#101).
     let mut out = format!("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{w}\" height=\"{h}\" viewBox=\"0 0 {w} {h}\">");
-    if options.page_canvas {
+    if options.fit {
+        out = format!("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{}in\" height=\"{}in\" viewBox=\"0 0 {w} {h}\">", w / 72., h / 72.);
+    } else if options.page_canvas {
         // Native SVG retains off-page operations and exposes them when embedded.
         out = format!(
             "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{}in\" height=\"{}in\" viewBox=\"0 0 {w} {h}\" overflow=\"visible\">",
@@ -103,7 +115,7 @@ pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
                         (view * p).to_svg()
                     )
                     .map_err(|e| e.to_string())?;
-                    let m = if options.page_canvas { view * pattern_view.inverse() * m } else { m };
+                    let m = if options.page_canvas || options.fit { view * pattern_view.inverse() * m } else { m };
                     image(&mut out, &pixels, m, true)?;
                     out.push_str("</g>");
                 }

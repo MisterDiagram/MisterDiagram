@@ -67,8 +67,8 @@ page. Every mutating command uses the engine's strict write-and-reimport path.
 | --- | --- | --- |
 | open | `{"name":"open","arguments":{"path":"drawing.vsdx"}}` | Replaces the active document; returns page count and macro-removal flag. |
 | save | `{"name":"save","arguments":{"path":"drawing.vsdx"}}` | Saves VSDX, VSSX or VSTX by extension; returns bytes and warnings. |
-| export | `{"name":"export","arguments":{"path":"drawing.svg","page":1}}` | VSDX, PNG, SVG or PDF by extension. VSDX takes only path. PDF without page includes foreground pages. SVG defaults to editable text; `text_outlines: true` preserves glyph paths. |
-| render | `{"name":"render","arguments":{"path":"drawing.png","page":1,"scale":2}}` | Renders PNG, SVG or PDF at the requested scale. SVG defaults to editable text; optional boolean `text_outlines` selects glyph paths. |
+| export | `{"name":"export","arguments":{"path":"drawing.svg","page":1}}` | VSDX, PNG, SVG or PDF by extension. VSDX takes only path. Image/PDF exports accept `fit: true` and optional `margin: "5 mm"`. PDF without page includes foreground pages. SVG defaults to editable text; `text_outlines: true` preserves glyph paths. |
+| render | `{"name":"render","arguments":{"path":"drawing.png","page":1,"scale":2}}` | Renders PNG, SVG or PDF at the requested scale. `fit: true` uses the foreground drawing crop; optional `margin` is a physical measurement string. SVG defaults to editable text; optional boolean `text_outlines` selects glyph paths. |
 | list_commands | `{"name":"list_commands","arguments":{}}` | Lists command IDs, labels, schemas and enabled state. |
 | run_command | `{"name":"run_command","arguments":{"command":"shape.draw.rect","params":{"x":1,"y":2,"width":2,"height":1}}}` | Creates a rectangle and returns its ID. Any registered engine command is available. |
 | batch | `{"name":"batch","arguments":{"commands":[{"command":"shape.draw.rect","as":"cedar","params":{"x":1,"y":2,"width":2,"height":1}},{"command":"shape.text","params":{"id":"$cedar","text":"Cedar"}}]}}` | Creates and labels a rectangle as one undo step. Returns results and the reference map. |
@@ -454,3 +454,18 @@ open external stencil's resolved absolute path; the document stencil has no path
 until opened or saved, and the built-in library retains `builtin:network`.
 Files found by name pass the same per-file and session memory checks as explicit
 paths. The search setting persists across document replacement.
+
+### Drawing crop and export margins
+
+`render`, `export`, and `file.export` accept boolean `fit` (default false) and
+string `margin` (for example `"0.25 in"`, `"5 mm"`). Margin requires `fit: true`
+and must be a finite nonnegative physical length. PNG, SVG viewBox and PDF
+MediaBox use the same drawing crop, excluding background shapes from its extent.
+The output still composites the background within that crop. Padding translates
+the content without changing its size. Raster dimensions round up to whole pixels.
+An empty foreground page keeps its original page size and returns a warning.
+For multipage PDF, each foreground page is fitted independently.
+
+Visio's resize operation adds page margins, normally a quarter inch on each side.
+Those margins are not automatically part of this export crop. Native SVG export
+uses the physical resized page instead; that behavior differs from `fit: true`.

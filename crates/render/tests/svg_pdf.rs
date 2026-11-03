@@ -135,6 +135,7 @@ fn svg_thin_closed_stroke_matches_the_raster_pen() {
     use kurbo::Shape as _;
     use misterdiagram_render::scene::{Op, Scene};
     let scene = Scene {
+        fit_empty: false,
         pdf_strokes: Default::default(),
         warnings: vec![],
         ops: vec![Op::Stroke {

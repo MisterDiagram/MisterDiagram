@@ -99,14 +99,28 @@ pub fn run(args: &[OsString], out: &mut impl Write, memory: MemoryLimits, stenci
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.document.saveas
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.page.export
 pub fn convert(args: &[OsString], out: &mut impl Write, memory: MemoryLimits) -> Result<(), String> {
-    let flags = args.iter().skip(1).filter(|a| *a == "--text-outlines").count();
-    if flags > 1 || args.iter().skip(1).any(|a| a.to_str().is_some_and(|s| s.starts_with("--") && s != "--text-outlines")) {
-        return Err("usage: convert IN OUT [--text-outlines]".into());
+    let usage = "usage: convert IN OUT [--text-outlines] [--fit [--margin M]]";
+    let mut text_outlines = false;
+    let mut fit = false;
+    let mut margin = None;
+    let mut positional = Vec::new();
+    let mut i = 1;
+    while let Some(arg) = args.get(i) {
+        match arg.to_str() {
+            Some("--text-outlines") if !text_outlines => text_outlines = true,
+            Some("--fit") if !fit => fit = true,
+            Some("--margin") if margin.is_none() => {
+                margin = Some(args.get(i + 1).and_then(|s| s.to_str()).ok_or(usage)?);
+                i += 1;
+            }
+            Some(s) if s.starts_with("--") => return Err(usage.into()),
+            _ => positional.push(arg),
+        }
+        i += 1;
     }
-    let text_outlines = flags == 1;
-    let positional: Vec<_> = args.iter().skip(1).filter(|a| *a != "--text-outlines").collect();
+    misterdiagram_render::scene::Options::default().with_fit(fit, margin).map_err(|e| format!("usage: {e}"))?;
     let [input, output_path] = positional.as_slice() else {
-        return Err("usage: convert IN OUT [--text-outlines]".into());
+        return Err(usage.into());
     };
     let input = text(input)?;
     let output_path = text(output_path)?;
@@ -116,11 +130,18 @@ pub fn convert(args: &[OsString], out: &mut impl Write, memory: MemoryLimits) ->
         "png" | "svg" | "pdf" => "file.export",
         _ => return Err("convert output must be vsdx, vssx, vstx, png, svg or pdf".into()),
     };
+    if fit && command != "file.export" {
+        return Err("usage: --fit requires PNG, SVG or PDF output".into());
+    }
     let mut session = Session::with_memory_limits(memory);
     session.execute("file.open", &json!({"path":input})).map_err(|e| e.to_string())?;
     let mut params = json!({"path":output_path});
     if command == "file.export" {
         params["text_outlines"] = json!(text_outlines);
+        params["fit"] = json!(fit);
+        if let Some(margin) = margin {
+            params["margin"] = json!(margin);
+        }
     }
     let value = session.execute(command, &params).map_err(|e| e.to_string())?;
     output(out, &value)

@@ -124,7 +124,14 @@ mod tests {
         let bytes = std::mem::size_of::<(usize, PdfStroke)>() * 4
             + std::mem::size_of_val(pen.path.elements()) * 2
             + pen.stroke.dash_pattern.capacity() * std::mem::size_of::<f64>();
-        let mut scene = Scene { warnings: vec![], ops: vec![], pdf_strokes: Default::default(), bounds: kurbo::Rect::ZERO, page_size: (1., 1.) };
+        let mut scene = Scene {
+            fit_empty: false,
+            warnings: vec![],
+            ops: vec![],
+            pdf_strokes: Default::default(),
+            bounds: kurbo::Rect::ZERO,
+            page_size: (1., 1.),
+        };
         assert!(scene.pdf_stroke(pen.clone(), &mut SceneBudget::new(bytes - 1)).unwrap_err().contains("memory limit"));
         assert!(scene.pdf_strokes.is_empty());
         scene.pdf_stroke(pen, &mut SceneBudget::new(bytes)).unwrap();

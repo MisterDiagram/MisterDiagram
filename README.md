@@ -148,7 +148,11 @@ cargo run --release -p misterdiagram-cli -- render drawing.vsdx --page 1 out.png
 
 `info` lists the package parts. `sheet` prints every evaluated cell in the same columns as a
 Visio COM dump, so the two diff directly. `render` also takes `.svg` and `.pdf` output names,
-and `--masters stencil.vssx` draws a contact sheet of a stencil. Prebuilt binaries are on the
+and `--masters stencil.vssx` draws a contact sheet of a stencil. `render` and `convert`
+accept `--fit` to crop PNG, SVG and PDF to foreground drawing content, including
+off-page shapes. Add `--margin "0.25 in"` or `--margin "5 mm"` for padding on every
+side. No page margin is added automatically. An empty fitted page keeps its
+original page size and reports a warning. Prebuilt binaries are on the
 [Releases page](https://github.com/MisterDiagram/MisterDiagram/releases) (see
 [docs/install.md](docs/install.md)); building from source needs Rust stable with edition 2024. There is no GUI and none is planned in this repo.
 

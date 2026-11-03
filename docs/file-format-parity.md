@@ -17679,3 +17679,32 @@ References: [WMF structure](https://learn.microsoft.com/en-us/openspecs/windows_
 [META_HEADER](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/d169108a-e3fe-436a-bb44-bea61a46ce56),
 [window extent](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/28fbdde6-22ee-4e49-b162-abf826f5bc00),
 [ForeignData](https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml).
+
+## Drawing crop export (#87, M5.116)
+
+CLI render/convert and MCP render/export accept fit with optional physical margin.
+The shared renderer uses foreground drawing bounds for all three output formats;
+background content does not enlarge the crop. Empty foreground pages retain the
+original page with a warning. Explicit padding does not scale the drawing.
+The canonical crop uses the native 96 dpi pixel grid; export scale multiplies
+that crop and its transform together. SVG and PDF physical dimensions remain
+unchanged across export scales.
+
+The native ResizeToFitContents witness adds PageLeftMargin, PageRightMargin,
+PageTopMargin and PageBottomMargin (normally 0.25 drawing inches each). Native
+PNG exports the drawing crop again; native SVG keeps the resized physical page.
+Per the clarified export contract, no page margin is copied automatically, and
+native SVG is not the fit oracle. Witness: private
+`field/brief66-2026-11-03/fit-native` and `fit-details-v2`.
+
+Native pixel fidelity remains partial: the nine initial comparisons fail the
+unchanged oracle. Plain, thick, rotated and off-page controls have matching
+dimensions but exceed the differing-pixel ceiling; text and arrows have existing
+layout/extent differences. The tiny scaled control differs by one raster row.
+Fit follows page shadow offsets when ShapeShdwType is zero, correcting that
+control's dimensions, but its pixels still exceed the ceiling. The native
+background PNG includes the background extent; the clarified foreground-only
+fit contract deliberately excludes it. No threshold or witness was changed.
+
+References: [Page.Export](https://learn.microsoft.com/en-us/office/vba/api/visio.page.export),
+[ResizeToFitContents](https://learn.microsoft.com/en-us/office/vba/api/visio.page.resizetofitcontents).

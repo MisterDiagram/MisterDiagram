@@ -472,3 +472,5 @@ EMF parts. Two source seeds cover placeable detection and window scaling. The
 physical-extent native rectangle passes at 192/384 DPI; 96 DPI and additional
 mapping/export-bound diagnostics remain open. Existing scored denominators and
 broader foreign-picture parity remain unchanged.
+
+Progress M5.116: shared fit-to-drawing export and explicit margins added to CLI and MCP; native pixel fidelity remains partial (see gaps.md).
