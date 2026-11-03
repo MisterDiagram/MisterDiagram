@@ -18,3 +18,5 @@ misterdiagram-geom.workspace = true
 misterdiagram-theme.workspace = true
 misterdiagram-sheet.workspace = true
 kurbo.workspace = true
+image.workspace = true
+sha2 = "0.10.9"

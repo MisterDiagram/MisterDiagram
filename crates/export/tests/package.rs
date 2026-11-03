@@ -50,9 +50,9 @@ fn original() -> Document {
 fn foreground_order_background_content_and_package_relationships() {
     let doc = original();
     let opts = Options { page_canvas: true, ..Default::default() };
-    let scenes = scene::foreground_pages_budgeted(&doc, opts, &mut SceneBudget::default()).unwrap();
+    let scenes = scene::evaluated::foreground_pages(&doc, opts, &mut SceneBudget::default()).unwrap();
     assert_eq!(scenes.len(), 2);
-    let output = render(&scenes, &colors(&doc, 1).unwrap(), opts).unwrap();
+    let output = render(scenes, &colors(&doc, 1).unwrap(), opts).unwrap();
     assert!(output.warnings.iter().any(|s| s.contains("page 2: scaled by 0.500000000")));
     let pkg = Package::open(&output.bytes).unwrap();
     let pres = pkg.xml("ppt/presentation.xml").unwrap();
@@ -74,11 +74,11 @@ fn foreground_order_background_content_and_package_relationships() {
     let slide = pkg.xml("ppt/slides/slide1.xml").unwrap();
     let tree = slide.root.path(&["cSld", "spTree"]).unwrap();
     let paths: Vec<_> = tree.children_named("sp").collect();
-    // Each rectangle's fill then stroke, background before foreground. The
+    // Each rectangle keeps its fill and stroke, background before foreground. The
     // repeated page-local shape ID does not become a duplicate slide ID.
-    assert_eq!(paths.len(), 6, "visible Print=0 content remains under print:false; hidden, guides and tombstones do not");
+    assert_eq!(paths.len(), 3, "visible Print=0 content remains under print:false; hidden, guides and tombstones do not");
     let left = |i: usize| paths[i].path(&["spPr", "xfrm", "off"]).unwrap().i64("x").unwrap();
-    assert!(left(0) < left(2));
+    assert!(left(0) < left(1));
     let ids: std::collections::BTreeSet<_> = paths.iter().map(|s| s.path(&["nvSpPr", "cNvPr"]).unwrap().attr("id").unwrap()).collect();
     assert_eq!(ids.len(), paths.len());
     assert!(slide.root.find("style").is_none());
@@ -94,21 +94,36 @@ fn malformed_sizes_paths_and_page_counts_refuse_without_panicking() {
     let doc = original();
     let opts = Options::default();
     let colors = colors(&doc, 1).unwrap();
-    let mut page = scene::page(&doc, 1, opts).unwrap();
-    assert!(render(&[], &colors, opts).is_err());
-    for size in [(0., 8.), (f64::NAN, 8.), (f64::INFINITY, 8.), (57., 8.)] {
-        page.page_size = size;
-        assert!(render(std::slice::from_ref(&page), &colors, opts).is_err());
+    let mut page = scene::evaluated::page(&doc, 1, opts, &mut SceneBudget::default()).unwrap();
+    assert!(render(vec![], &colors, opts).is_err());
+    for size in [(0., 8.), (f64::NAN, 8.), (f64::INFINITY, 8.)] {
+        page.scene.page_size = size;
+        assert!(render(vec![page.clone()], &colors, opts).is_err());
     }
-    page.page_size = (8.5, 11.);
-    let mut normal_path = kurbo::BezPath::new();
-    normal_path.move_to((0., 0.));
-    normal_path.line_to((1., 1.));
-    page.ops = vec![scene::Op::Stroke { path: normal_path, stroke: kurbo::Stroke::new(23.), color: misterdiagram_color::Rgba::BLACK }];
-    assert!(render(std::slice::from_ref(&page), &colors, opts).err().unwrap().contains("PPTX line width limit"));
+    page.scene.page_size = (8.5, 11.);
+    page.shapes[0].stroke = Some(kurbo::Stroke::new(23.));
+    assert!(render(vec![page.clone()], &colors, opts).err().unwrap().contains("PPTX line width limit"));
     let mut path = kurbo::BezPath::new();
     path.move_to((0., 0.));
     path.line_to((1e100, 0.));
-    page.ops = vec![scene::Op::Path { even_odd: false, path, paint: scene::Paint::Solid(misterdiagram_color::Rgba::BLACK) }];
-    assert!(render(&[page], &colors, opts).is_err());
+    page.shapes[0].sections[0].path = path;
+    assert!(render(vec![page], &colors, opts).is_err());
+}
+
+#[test]
+fn oversized_page_scales_before_raster_allocation_guards() {
+    let mut doc = skeleton::document(false);
+    for cell in &mut doc.pages[0].sheet.cells {
+        if cell.name == "PageWidth" || cell.name == "PageHeight" {
+            cell.value = Some("100".into());
+        }
+    }
+    doc.pages[0].shapes.push(skeleton::rectangle(1, 50., 50., 100., 100., "").unwrap());
+    let output = misterdiagram_export::document(&doc, None, Options { page_canvas: true, ..Default::default() }).unwrap();
+    let pkg = Package::open(&output.bytes).unwrap();
+    let pres = pkg.xml("ppt/presentation.xml").unwrap();
+    let size = pres.root.child("sldSz").unwrap();
+    assert_eq!(size.attr("cx"), Some("51206400"));
+    assert_eq!(size.attr("cy"), Some("51206400"));
+    assert!(output.warnings.iter().any(|s| s.contains("scaled by 0.560000000")));
 }

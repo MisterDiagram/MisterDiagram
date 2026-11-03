@@ -29,6 +29,8 @@ reader sheet limits after XML escaping, and preserves opaque part payloads exact
 | `crates/export/src/write.rs` | [storytold/deckcraft](https://github.com/storytold/deckcraft), ArtCraft Team and contributors | `crates/pptx/src/write.rs` (retargeted package/path/theme writer) | `90058395b78be26bb7ea7b4914a9f113c28d979d` | MIT OR Apache-2.0 |
 | `crates/export/src/write/content.rs` | [storytold/deckcraft](https://github.com/storytold/deckcraft), ArtCraft Team and contributors | `crates/pptx/src/custgeom.rs` (retargeted package/path/theme writer) | `90058395b78be26bb7ea7b4914a9f113c28d979d` | MIT OR Apache-2.0 |
 | `crates/export/src/write/theme.rs` | [storytold/deckcraft](https://github.com/storytold/deckcraft), ArtCraft Team and contributors | `crates/pptx/src/write/theme.rs` (retargeted package/path/theme writer) | `90058395b78be26bb7ea7b4914a9f113c28d979d` | MIT OR Apache-2.0 |
+| `crates/export/src/write/shapes.rs` | [storytold/deckcraft](https://github.com/storytold/deckcraft), ArtCraft Team and contributors | `crates/pptx/src/write/shapes.rs` (retargeted native shape/style writer) | `90058395b78be26bb7ea7b4914a9f113c28d979d` | MIT OR Apache-2.0 |
+| `crates/export/src/write/dml.rs` | [storytold/deckcraft](https://github.com/storytold/deckcraft), ArtCraft Team and contributors | `crates/pptx/src/write/dml.rs` (retargeted native shape/style writer) | `90058395b78be26bb7ea7b4914a9f113c28d979d` | MIT OR Apache-2.0 |
 | `crates/vsdx/tests/reader_memory.rs`, `crates/vsdx/tests/support/hostile_package.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/1a/vsdx_review_1a.rs` (selected memory tests and synthetic package recipe) | `107ee4c3423dd4154bd3c59f60362801f638eabf` | MIT OR Apache-2.0, user-authorized port |
 | `crates/vsdx/tests/authored_strings.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/1b/vsdx_review_1b.rs` (selected synthetic test) | `3ce1a4740bf3e44463f1e35babc42ff46562f4e5` | MIT OR Apache-2.0, user-authorized port |
 | `crates/engine/tests/route_ownership.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/3a/engine_review_3a.rs` (selected synthetic tests) | `3ce1a4740bf3e44463f1e35babc42ff46562f4e5` | MIT OR Apache-2.0, user-authorized port |
@@ -393,13 +395,58 @@ The port adds bounded record bodies, object-slot reuse, mapping state updates,
 packed DIB splitting and propagation of scene/operation-budget failures.
 The existing layer rules and resource caps are unchanged.
 
-## PPTX package foundation
+## PPTX evaluated shape boundary
 
-L4 export uses L3 render's evaluated scenes and L0 OPC's PackageOut, RelsOut and
-XML writer. It does not evaluate geometry or text again. The initial package
-preview projects path operations into custom geometry, baking transforms into
-coordinates; a single page flip converts y-up inches to y-down coordinates, then
-914,400 EMU per inch. It has no shape style blocks or theme colour references.
-The per-shape shared evaluated form, grouping and logical text required for the
-complete exporter remain pending. This foundation is not a tagged-ops exception.
-XML coordinates and per-slide/package storage are capped.
+L3 render builds a per-shape evaluated tree before projecting its scene. Each node
+retains page-qualified identity, master provenance, section flags and paths in
+page inches, resolved paint and line properties, logical text plus TextLayout,
+decoded foreign images with transforms, DisplayMode ordering and children.
+Connection rows are resolved after the drawing projection using snapshot reads,
+so metadata cannot change a later shape through a formula side effect. This is
+the shared per-shape form, not the tagged-operations alternative. The renderer
+consumes its drawing projection; L4 export consumes its sections and styles.
+
+Export conversion builds a separate output model. Its QA raster rebuilds geometry
+and strokes from that model rather than replaying the original scene operations.
+The four authorized lossy substitutions are recorded per page: pattern foreground
+solid, omitted shadows, single outer compound lines and separate alternate-fill
+paths. The corpus gate lists excluded pages and freezes their maximum count.
+Linear gradients transform their scalar direction by the inverse transpose and
+remap stops to the baked path's bounding box. DrawingML angle scaling is disabled,
+so non-square shapes do not receive a second aspect adjustment. Circle gradients
+retain the renderer's corner focus after rotation and reflection; their falloff
+is the named nearest-circle approximation.
+
+Every 2-D shape has custom geometry, one path per section (hole contours may split
+under the named alternate-fill limitation). Rotation and flips are baked into
+page coordinates. Native groups use identical parent and child coordinate boxes;
+DisplayMode preserves the original z-order. Master instances are flattened into
+the evaluated tree. No shape/group/picture/connector style block or scheme colour
+can override explicit fills, lines or text. The only coordinate flip converts
+page y-up inches to DrawingML y-down inches; one checked conversion uses 914,400
+EMU per inch. L4 reuses L0 PackageOut, RelsOut and W/A.
+
+The first exported page sets the canvas. DrawingML limits sides to 1..56 inches;
+out-of-range pages scale uniformly with a warning. Aspect ratios above 56:1 need
+padding on the shorter side because no uniform scale can put both dimensions in
+range. Other pages fit centered. Retained vector evaluation defers only the final
+raster pixel-allocation refusal; export retries that guard at presentation density
+when an oversized canvas needs it. All path, operation and coordinate guards run
+before that point, and ordinary raster rendering keeps its original limit.
+Evaluated metadata, retained copies, paths,
+text, pixels, XML and ZIP capacity are bounded. Text remains glyph outlines until
+the editable-text milestone; connector presets/glue remain a separate milestone.
+
+Foreign media primitives are implemented here because the all-witness model gate
+includes the three image drawings. Natural rectangular PNG/JPEG images keep their
+original samples and transform. Clipped metafile projections and placeholders
+are painted to transparent PNG at the evaluated device canvas, then cropped to
+nontransparent pixels with a transparent sampling border. Their outer frame remains a separate clip in the output
+model and custom geometry on the picture. Keeping this compositing boundary
+avoids changing fractional edge coverage through an intermediate alpha rounding. The model places these already sampled pixels without a
+second reconstruction filter. The transparent raster entry validates operation,
+path, image and clip-stack limits independently of its supplied device canvas;
+stale native-geometry PDF overrides are discarded from that foreign projection.
+Both forms become native pictures with explicit
+transforms and PNG parts deduplicated by SHA-256 of dimensions and pixel content.
+Part D still owns the complete foreign-object acceptance and fuzz extension.

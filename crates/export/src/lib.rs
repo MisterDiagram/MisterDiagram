@@ -1,6 +1,8 @@
 //! MisterDiagram export.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
+pub mod model;
+pub mod qa;
 mod write;
 pub use write::{Export, render};
 
@@ -24,4 +26,21 @@ pub fn colors(document: &misterdiagram_model::Document, page: usize) -> Result<[
         *out = document.colors.get(&index).and_then(|s| Rgba::from_hex(s)).unwrap_or(if index == 1 { Rgba::WHITE } else { Rgba::BLACK });
     }
     Ok(colors)
+}
+
+/// Evaluate and export selected pages through the renderer's shared shape tree.
+pub fn document(
+    document: &misterdiagram_model::Document,
+    page: Option<usize>,
+    options: misterdiagram_render::scene::Options,
+) -> Result<Export, String> {
+    use misterdiagram_render::scene::{self, SceneBudget, evaluated};
+    let mut budget = SceneBudget::default();
+    let pages = if let Some(index) = page {
+        vec![evaluated::page(document, index, options, &mut budget)?]
+    } else {
+        evaluated::foreground_pages(document, options, &mut budget)?
+    };
+    let selected = page.map(Ok).unwrap_or_else(|| scene::default_page_index(document))?;
+    render(pages, &colors(document, selected)?, options)
 }

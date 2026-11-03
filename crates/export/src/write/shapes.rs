@@ -1,0 +1,210 @@
+//! Native shape trees retargeted from storytold/deckcraft
+//! crates/pptx/src/write/shapes.rs, 90058395b78be26bb7ea7b4914a9f113c28d979d.
+//! Copyright (c) 2026 ArtCraft Team and the DeckCraft contributors.
+//! SPDX-License-Identifier: MIT OR Apache-2.0
+use super::{content, dml, emu};
+use crate::model::Page;
+use kurbo::{Affine, Rect, Shape as _};
+use misterdiagram_opc::xml::{A, W};
+use misterdiagram_render::scene::{EvaluatedShape, Op};
+
+pub(super) struct Pictures<'a> {
+    pub media: &'a mut super::media::Media,
+    pub package: &'a mut misterdiagram_opc::PackageOut,
+    pub rels: &'a mut misterdiagram_opc::RelsOut,
+    pub remaining: &'a mut usize,
+}
+pub(super) fn write(
+    w: &mut W,
+    page: &Page,
+    view: Affine,
+    warnings: &mut Vec<String>,
+    limit: usize,
+    pictures: &mut Pictures<'_>,
+) -> Result<(), String> {
+    let mut id = 2;
+    for node in &page.shapes {
+        shape(w, node, view, &mut id, warnings, limit, pictures, 0)?;
+    }
+    Ok(())
+}
+fn next(id: &mut u32) -> Result<u32, String> {
+    let value = *id;
+    if value > 200_000 {
+        return Err("PPTX shape id limit".into());
+    }
+    *id = id.checked_add(1).ok_or("PPTX shape id limit")?;
+    Ok(value)
+}
+fn group_bounds(node: &EvaluatedShape, depth: usize) -> Result<Rect, String> {
+    if depth > 128 {
+        return Err("PPTX group depth limit".into());
+    }
+    let mut bounds = (!node.hidden_own).then_some(node.bounds);
+    for child in &node.children {
+        let b = group_bounds(child, depth + 1)?;
+        bounds = Some(bounds.map_or(b, |old| old.union(b)));
+    }
+    Ok(bounds.unwrap_or(Rect::ZERO))
+}
+fn xfrm(w: &mut W, b: Rect, group: bool) -> Result<(), String> {
+    let (x, y, width, height) = (emu(b.x0)?, emu(b.y0)?, emu(b.width())?.max(1), emu(b.height())?.max(1));
+    w.open0("a:xfrm");
+    w.empty("a:off", A::new().a("x", x).a("y", y));
+    w.empty("a:ext", A::new().a("cx", width).a("cy", height));
+    if group {
+        w.empty("a:chOff", A::new().a("x", x).a("y", y));
+        w.empty("a:chExt", A::new().a("cx", width).a("cy", height));
+    }
+    w.close("a:xfrm");
+    Ok(())
+}
+/// Native group structure retains z-order while all geometry has baked transforms.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/displaymode-cell-group-properties-section
+fn shape(
+    w: &mut W,
+    node: &EvaluatedShape,
+    view: Affine,
+    id: &mut u32,
+    warnings: &mut Vec<String>,
+    limit: usize,
+    pictures: &mut Pictures<'_>,
+    depth: usize,
+) -> Result<(), String> {
+    if depth > 128 {
+        return Err("PPTX group depth limit".into());
+    }
+    let elements = node.sections.iter().fold(0usize, |n, s| n.saturating_add(s.path.elements().len()));
+    let estimate = elements.checked_mul(256).and_then(|n| n.checked_add(8192)).ok_or("PPTX XML limit")?;
+    if w.s.len().checked_add(estimate).is_none_or(|n| n > limit) {
+        return Err("PPTX slide XML limit".into());
+    }
+    if node.group {
+        w.open0("p:grpSp");
+        w.open0("p:nvGrpSpPr");
+        w.empty("p:cNvPr", A::new().a("id", next(id)?).a("name", format!("Group {}", node.id)));
+        w.empty0("p:cNvGrpSpPr");
+        w.empty0("p:nvPr");
+        w.close("p:nvGrpSpPr");
+        w.open0("p:grpSpPr");
+        xfrm(w, view.transform_rect_bbox(group_bounds(node, 0)?), true)?;
+        w.close("p:grpSpPr");
+    }
+    if node.children_first {
+        for child in &node.children {
+            shape(w, child, view, id, warnings, limit, pictures, depth + 1)?;
+        }
+    }
+    if !node.hidden_own {
+        // Keep one native shape per evaluated shape, with independent section flags.
+        let mut bounds = None;
+        for section in node.sections.iter().filter(|s| !s.flags.no_show) {
+            let b = (view * &section.path).bounding_box();
+            bounds = Some(bounds.map_or(b, |old: Rect| old.union(b)));
+        }
+        let bounds = bounds.unwrap_or_else(|| view.transform_rect_bbox(node.bounds));
+        w.open0("p:sp");
+        w.open0("p:nvSpPr");
+        w.empty("p:cNvPr", A::new().a("id", next(id)?).a("name", format!("Shape {}", node.id)));
+        w.empty0("p:cNvSpPr");
+        w.empty0("p:nvPr");
+        w.close("p:nvSpPr");
+        w.open0("p:spPr");
+        xfrm(w, bounds, false)?;
+        content::geometry(w, &node.sections, view, bounds)?;
+        dml::fill(w, node.paint.as_ref(), view, bounds)?;
+        dml::line(w, node, view.determinant().abs().sqrt())?;
+        w.close("p:spPr");
+        w.close("p:sp");
+        if let Some(line) = &node.line
+            && [line.begin_arrow, line.end_arrow].into_iter().any(|i| i != 0 && dml::arrow(i).1)
+        {
+            content::warn(warnings, "PPTX: arrowhead mapped to its nearest DrawingML shape");
+        }
+        let mut clip = None;
+        for op in &node.drawing.ops {
+            match op {
+                Op::Clip { path, .. } => clip = Some(path),
+                Op::Pop => clip = None,
+                Op::Text { layout, transform, .. } => {
+                    content::warn(warnings, "PPTX: text uses glyph paths until editable text export is implemented");
+                    for (path, color) in misterdiagram_render::scene::text_paths(layout, view * *transform) {
+                        content::path_shape(w, id, &path, color, None, limit)?;
+                    }
+                }
+                Op::TextBackground { rect, transform, color } => {
+                    content::path_shape(w, id, &(view * *transform * rect.to_path(1e-5)), *color, None, limit)?
+                }
+                Op::Image { pixels, transform } | Op::RasterImage { pixels, transform } => {
+                    let rid = pictures.media.add(pixels, pictures.package, pictures.rels, pictures.remaining)?;
+                    if clip.is_some_and(|p| w.s.len().saturating_add(p.elements().len().saturating_mul(256)).saturating_add(8192) > limit) {
+                        return Err("PPTX picture geometry limit".into());
+                    }
+                    let local_clip = clip.map(|path| transform.inverse() * path);
+                    picture(w, id, pixels.width(), pixels.height(), view * *transform, &rid, local_clip.as_ref())?;
+                }
+                _ => {}
+            }
+        }
+    }
+    if !node.children_first {
+        for child in &node.children {
+            shape(w, child, view, id, warnings, limit, pictures, depth + 1)?;
+        }
+    }
+    if node.group {
+        w.close("p:grpSp");
+    }
+    Ok(())
+}
+
+/// ECMA-376 Part 1, 19.3.1.37 (pic). Foreign internal content is painted
+/// into transparent pixels. The outer frame remains
+/// picture geometry, preserving the renderer's clip/composite boundary.
+/// ECMA-376 Part 1, 19.3.1.44 (spPr) uses CT_ShapeProperties, including custGeom.
+fn picture(w: &mut W, id: &mut u32, width: u32, height: u32, transform: Affine, rid: &str, clip: Option<&kurbo::BezPath>) -> Result<(), String> {
+    let [a, b, c, d, _, _] = transform.as_coeffs();
+    let sx = a.hypot(b);
+    let sy = c.hypot(d);
+    if !sx.is_finite() || !sy.is_finite() || sx <= 0. || sy <= 0. || (a * c + b * d).abs() > 1e-8 * sx * sy {
+        return Err("PPTX foreign image transform".into());
+    }
+    w.open0("p:pic");
+    w.open0("p:nvPicPr");
+    w.empty("p:cNvPr", A::new().a("id", next(id)?).a("name", "Foreign picture"));
+    w.empty0("p:cNvPicPr");
+    w.empty0("p:nvPr");
+    w.close("p:nvPicPr");
+    w.open0("p:blipFill");
+    w.empty("a:blip", A::new().a("r:embed", rid));
+    w.open0("a:stretch");
+    w.empty0("a:fillRect");
+    w.close("a:stretch");
+    w.close("p:blipFill");
+    w.open0("p:spPr");
+    let extent = (sx * f64::from(width), sy * f64::from(height));
+    let center = transform * kurbo::Point::new(f64::from(width) / 2., f64::from(height) / 2.);
+    let angle = (b.atan2(a).to_degrees().rem_euclid(360.) * 60000.).round() as i64;
+    w.open("a:xfrm", A::new().a("rot", angle).a("flipV", if transform.determinant() < 0. { 1 } else { 0 }));
+    w.empty("a:off", A::new().a("x", emu(center.x - extent.0 / 2.)?).a("y", emu(center.y - extent.1 / 2.)?));
+    w.empty("a:ext", A::new().a("cx", emu(extent.0)?.max(1)).a("cy", emu(extent.1)?.max(1)));
+    w.close("a:xfrm");
+    if let Some(clip) = clip {
+        let section = misterdiagram_geom::GeometryPath {
+            path: Affine::scale_non_uniform(sx, sy) * clip,
+            flags: misterdiagram_geom::GeometryFlags { no_line: true, ..Default::default() },
+        };
+        content::geometry(w, &[section], Affine::IDENTITY, Rect::new(0., 0., extent.0, extent.1))?;
+    } else {
+        w.open("a:prstGeom", A::new().a("prst", "rect"));
+        w.empty0("a:avLst");
+        w.close("a:prstGeom");
+    }
+    w.empty0("a:noFill");
+    w.open0("a:ln");
+    w.empty0("a:noFill");
+    w.close("a:ln");
+    w.close("p:spPr");
+    w.close("p:pic");
+    Ok(())
+}

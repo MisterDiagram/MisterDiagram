@@ -78,6 +78,7 @@ pub struct Report {
     pub error_number_cells: Vec<(String, u64)>,
     pub small_image_observations: Vec<String>,
     pub render: Option<render::Report>,
+    pub pptx: Option<misterdiagram_export::qa::Report>,
     pub roundtrip: Option<roundtrip::Report>,
     pub text_metric_floor: f64,
     pub text_promotion_sticky: bool,
@@ -115,6 +116,7 @@ pub struct Report {
 impl Report {
     pub fn passed(&self) -> bool {
         self.render.as_ref().is_none_or(render::Report::passed)
+            && self.pptx.as_ref().is_none_or(misterdiagram_export::qa::Report::passed)
             && self.roundtrip.as_ref().is_none_or(roundtrip::Report::passed)
             && self.cells_passed()
     }
@@ -158,6 +160,9 @@ impl fmt::Display for Report {
         }
         if let Some(roundtrip) = &self.roundtrip {
             writeln!(f, "{roundtrip}")?;
+        }
+        if let Some(pptx) = &self.pptx {
+            writeln!(f, "{pptx}")?;
         }
         if let Some(render) = &self.render {
             writeln!(f, "{render}")?;
@@ -803,6 +808,7 @@ pub fn run(root: &Path, quick: bool) -> Result<Report, String> {
         report.com_classes = deferred.com_classes;
     }
     report.render = Some(render::run(root)?);
+    report.pptx = Some(misterdiagram_export::qa::generated(&root.join("generated"))?);
     report.roundtrip = Some(roundtrip::run(root, quick)?);
     Ok(report)
 }
@@ -846,6 +852,7 @@ fn run_pass_with_coverage(root: &Path, quick: bool, deferred: bool, mut coverage
     let mut report = Report {
         small_image_observations: saved_small_image_observations(root),
         render: None,
+        pptx: None,
         roundtrip: None,
         text_metric_floor: floor(include_str!("../../../crates/sheet/tests/floors.toml"), "text-metric")? * 100.,
         text_promotion_sticky: promoted(frozen)?,
@@ -1194,6 +1201,7 @@ mod tests {
         let mut report = Report {
             small_image_observations: Vec::new(),
             render: None,
+            pptx: None,
             roundtrip: None,
             text_metric_floor: 90.,
             text_promotion_sticky: false,

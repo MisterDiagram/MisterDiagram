@@ -470,13 +470,18 @@ Visio's resize operation adds page margins, normally a quarter inch on each side
 Those margins are not automatically part of this export crop. Native SVG export
 uses the physical resized page instead; that behavior differs from `fit: true`.
 
-### PPTX package preview
+### PPTX export in progress
 
-The initial PPTX writer emits one slide per foreground page and composes referenced
-background paths behind its foreground paths. A selected page exports alone. The
-first exported page sets the slide size; other sizes are scaled uniformly to fit
-and the export reports each scale. The first size must be between 1 and 56 inches.
-This package preview writes evaluated paths, with text as glyph outlines. Native
-groups, editable text runs, connector glue and media are pending. Pattern and
-gradient fills currently use foreground colour; images and clipping are omitted
-with warnings. It is not yet the completed PowerPoint export feature.
+PPTX writes one slide per foreground page and composites referenced backgrounds
+behind foreground shapes. A selected page exports alone. The first exported
+page sets the slide size. A side outside DrawingML's 1 to 56 inch range causes
+uniform scaling with a warning; extreme aspect ratios add padding on the short
+side. Other page sizes fit centered, with their scale reported.
+
+Shapes use evaluated custom geometry, native groups, resolved solid and gradient
+fills, line styles and mapped arrowheads. Text currently uses glyph outlines.
+Pattern fills use foreground colour; shadows are omitted, compound lines use a
+single outer weight, and alternate fills are approximate. Foreign objects are
+embedded PNG pictures, preserving the renderer's pixels and clipping. Editable
+text, preset connectors with attachment, full foreign-object acceptance and the
+PowerPoint acceptance check remain pending.

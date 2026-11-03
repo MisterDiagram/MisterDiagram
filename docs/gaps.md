@@ -2795,16 +2795,27 @@ implementation or saturation seed. The missing Office/data-graphic coverage
 prevents accepting the candidate; #88 is not closed.
 Reference: [THEME](https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function).
 
-## PowerPoint package preview
+## PowerPoint export in progress
 
-PPTX packaging and path preview are in progress. Full PowerPoint export remains
-missing until native shapes/groups, editable text, preset connector glue, media
-and the independent rendering/structure gates are complete. The preview reports
-foreground-only pattern/gradient paints, glyph-outline text and omitted media/
-clipping. Later page sizes scale uniformly to the first exported page. PowerPoint
-repair-free opening and attachment acceptance remain unmeasured.
+Native custom-geometry shapes and groups, resolved solid/gradient paints, physical
+line dashes and mapped arrowheads are implemented. Editable text, preset connector
+glue, full foreign-object acceptance and final PowerPoint acceptance remain pending; text currently uses
+glyph outlines. No repair-free or attachment acceptance is claimed.
 
-The generated scaled-page witness has a renderer canvas of 0.085 by 0.11 inches.
-PPTX requires each slide dimension to be at least one inch (ECMA-376 Part 1
-19.7.17). Exact first-page size and all-witness export therefore remain unresolved;
-the writer refuses this case without silently resizing it.
+DrawingML has no alternate fill rule. Section sets requiring it use separate
+paths with hole contours unfilled, so overlapping and nested regions can differ.
+The private witness is `field/flip-fill-2026-11-01/native-fill2/fill.vsdx`.
+Visio fill patterns 2 through 40 use their foreground solid (explicit gradients
+retain their stops); warnings name the pattern index. Radial/path gradients use
+the nearest DrawingML circle falloff while keeping the renderer's transformed
+focus. Shadows are omitted and
+compound lines use the single outer weight. Arrowheads map all 45 indexes to
+DrawingML types; unsupported ends use an approximate triangle, never disappear.
+The source table marks approximations and maps seven native sizes to three bands.
+These are picture limitations, not changes to the renderer or its oracle.
+
+DrawingML requires slide sides of 1..56 inches (ECMA-376 Part 1, 19.7.17).
+`page/metric-scale.vsdx` is natively 0.085 by 0.11 inches and exports at 1 by
+approximately 1.294 inches with a uniform-scale warning. Legal first-page sizes
+stay exact. Later pages fit centered; extreme ratios use padding on the shorter
+side. Amendment 1 authorizes these canvas adjustments.

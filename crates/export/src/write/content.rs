@@ -5,49 +5,15 @@
 use super::emu;
 use kurbo::{Affine, BezPath, PathEl, Shape};
 use misterdiagram_color::Rgba;
+use misterdiagram_geom::GeometryPath;
 use misterdiagram_opc::xml::{A, W};
-use misterdiagram_render::scene::{Op, Paint, Scene};
 
-/// Initial path content for the package milestone. Native shape grouping, text
-/// bodies, presets and media are separate exporter milestones.
-pub(super) fn write(w: &mut W, scene: &Scene, view: Affine, warnings: &mut Vec<String>, limit: usize) -> Result<(), String> {
-    let mut id = 2u32;
-    for op in &scene.ops {
-        match op {
-            Op::Path { path, paint, .. } => {
-                let color = match paint {
-                    Paint::Solid(c) => *c,
-                    Paint::Pattern { fill, .. } => {
-                        warn(warnings, "PPTX package preview: pattern and gradient fills use their foreground colour");
-                        fill.foreground
-                    }
-                };
-                path_shape(w, &mut id, &(view * path), color, None, limit)?;
-            }
-            Op::Stroke { path, stroke, color } | Op::HairlineStroke { path, stroke, color, .. } => {
-                path_shape(w, &mut id, &(view * path), *color, Some(stroke.width * view.determinant().abs().sqrt()), limit)?;
-            }
-            Op::HairlineMarker { path, color, .. } => path_shape(w, &mut id, &(view * path), *color, None, limit)?,
-            Op::Text { layout, transform, .. } => {
-                warn(warnings, "PPTX package preview: text uses glyph paths; editable runs are not implemented yet");
-                for (path, color) in misterdiagram_render::scene::text_paths(layout, view * *transform) {
-                    path_shape(w, &mut id, &path, color, None, limit)?;
-                }
-            }
-            Op::TextBackground { rect, transform, color } => path_shape(w, &mut id, &(view * *transform * rect.to_path(1e-5)), *color, None, limit)?,
-            Op::Image { .. } => warn(warnings, "PPTX package preview: images and raster shadows are not implemented yet"),
-            Op::Clip { .. } => warn(warnings, "PPTX package preview: clipping is not implemented yet"),
-            Op::Bounds(_) | Op::Pop => {}
-        }
-    }
-    Ok(())
-}
-fn warn(warnings: &mut Vec<String>, message: &str) {
+pub(super) fn warn(warnings: &mut Vec<String>, message: &str) {
     if warnings.len() < 1000 && !warnings.iter().any(|s| s == message) {
         warnings.push(message.into());
     }
 }
-fn path_shape(w: &mut W, id: &mut u32, path: &BezPath, color: Rgba, line: Option<f64>, limit: usize) -> Result<(), String> {
+pub(super) fn path_shape(w: &mut W, id: &mut u32, path: &BezPath, color: Rgba, line: Option<f64>, limit: usize) -> Result<(), String> {
     if path.elements().is_empty() {
         return Ok(());
     }
@@ -129,4 +95,46 @@ fn solid(w: &mut W, color: Rgba) {
     w.val("a:alpha", u32::from(color.a) * 100_000 / 255);
     w.close("a:srgbClr");
     w.close("a:solidFill");
+}
+
+/// One DrawingML path per evaluated Geometry section, with independent flags.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section
+pub(super) fn geometry(w: &mut W, sections: &[GeometryPath], view: Affine, bounds: kurbo::Rect) -> Result<(), String> {
+    let width = emu(bounds.width())?.max(1);
+    let height = emu(bounds.height())?.max(1);
+    w.open0("a:custGeom");
+    for tag in ["a:avLst", "a:gdLst", "a:ahLst", "a:cxnLst"] {
+        w.empty0(tag);
+    }
+    w.empty("a:rect", A::new().a("l", "l").a("t", "t").a("r", "r").a("b", "b"));
+    w.open0("a:pathLst");
+    for section in sections.iter().filter(|s| !s.flags.no_show) {
+        w.open(
+            "a:path",
+            A::new().a("w", width).a("h", height).a("fill", if section.filled() { "norm" } else { "none" }).a("stroke", u8::from(section.stroked())),
+        );
+        let mut previous = kurbo::Point::ORIGIN;
+        for element in (view * &section.path).elements() {
+            let (tag, points): (&str, Vec<kurbo::Point>) = match *element {
+                PathEl::MoveTo(p) => ("a:moveTo", vec![p]),
+                PathEl::LineTo(p) => ("a:lnTo", vec![p]),
+                PathEl::QuadTo(a, b) => ("a:cubicBezTo", vec![previous + (a - previous) * (2. / 3.), b + (a - b) * (2. / 3.), b]),
+                PathEl::CurveTo(a, b, c) => ("a:cubicBezTo", vec![a, b, c]),
+                PathEl::ClosePath => {
+                    w.empty0("a:close");
+                    continue;
+                }
+            };
+            w.open0(tag);
+            for p in &points {
+                w.empty("a:pt", A::new().a("x", emu(p.x - bounds.x0)?).a("y", emu(p.y - bounds.y0)?));
+            }
+            previous = points.last().copied().unwrap_or(previous);
+            w.close(tag);
+        }
+        w.close("a:path");
+    }
+    w.close("a:pathLst");
+    w.close("a:custGeom");
+    Ok(())
 }

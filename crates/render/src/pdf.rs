@@ -139,7 +139,7 @@ pub fn render(scenes: &[Scene], options: Options) -> Result<Vec<u8>, String> {
                         surface.draw_path(&p);
                     }
                 }
-                Op::Image { pixels, transform } => image(&mut surface, pixels, view * *transform)?,
+                Op::Image { pixels, transform } | Op::RasterImage { pixels, transform } => image(&mut surface, pixels, view * *transform)?,
                 Op::Text { layout, transform, .. } => {
                     for deco in &layout.decos {
                         if let Some(path) = path(&(view * *transform * kurbo::Shape::to_path(&deco.rect, 1e-5))) {

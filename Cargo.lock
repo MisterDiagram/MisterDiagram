@@ -697,6 +697,7 @@ dependencies = [
  "image",
  "kurbo",
  "misterdiagram-engine",
+ "misterdiagram-export",
  "misterdiagram-fonts",
  "misterdiagram-model",
  "misterdiagram-render",
@@ -741,6 +742,7 @@ dependencies = [
 name = "misterdiagram-export"
 version = "0.1.0-alpha.25"
 dependencies = [
+ "image",
  "kurbo",
  "misterdiagram-color",
  "misterdiagram-geom",
@@ -750,6 +752,7 @@ dependencies = [
  "misterdiagram-sheet",
  "misterdiagram-theme",
  "misterdiagram-vsdx",
+ "sha2",
 ]
 
 [[package]]

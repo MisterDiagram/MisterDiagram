@@ -19,6 +19,11 @@ section 19.7.17, page 2703, from
 https://ecma-international.org/wp-content/uploads/ECMA-376-1_5th_edition_december_2016.zip
 was consulted to verify the explicit 914,400..51,206,400 EMU slide-size bounds
 and section 20.1.10.35 for the 0..20,116,800 EMU line-width bounds.
+Brief 64 Part B also consulted sections 19.3.1.44, 20.1.8.31 and 20.1.8.41 for picture custom
+geometry, radial focus and linear-gradient direction/domain mapping. A C-rex search snippet
+mirrored the gradient rule; the local ECMA text and Microsoft's
+[LinearGradientFill.Scaled reference](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.lineargradientfill.scaled)
+were the authoritative checks. No third-party implementation was used.
 The standard supplies format constraints only; no illustrative assets are used.
 
 

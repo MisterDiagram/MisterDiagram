@@ -147,7 +147,7 @@ pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
                     write!(out,"<path d=\"{}\" fill=\"none\" stroke=\"#{:02x}{:02x}{:02x}\" stroke-opacity=\"{}\" stroke-width=\"{}\" stroke-linecap=\"{cap}\" stroke-linejoin=\"{join}\" stroke-miterlimit=\"{}\" stroke-dasharray=\"{}\" stroke-dashoffset=\"{}\"/>",(view*p).to_svg(),color.r,color.g,color.b,f64::from(color.a)/255.,stroke.width*dpi,stroke.miter_limit,if dashes.is_empty(){"none"}else{&dashes},stroke.dash_offset*dash_scale).map_err(|e|e.to_string())?;
                 }
             }
-            Op::Image { pixels, transform } => image(&mut out, pixels, view * *transform, false)?,
+            Op::Image { pixels, transform } | Op::RasterImage { pixels, transform } => image(&mut out, pixels, view * *transform, false)?,
             Op::Text { layout, transform, .. } => {
                 if options.text_outlines {
                     for (p, c) in text_paths(layout, view * *transform) {

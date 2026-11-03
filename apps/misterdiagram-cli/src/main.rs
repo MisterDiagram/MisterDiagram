@@ -129,8 +129,15 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
         return Ok(());
     }
     options.page_canvas = matches!(extension.as_str(), "svg" | "pdf" | "pptx");
+    if extension == "pptx" {
+        let output = misterdiagram_export::document(&doc, page, options)?;
+        for warning in &output.warnings {
+            let _ = writeln!(std::io::stderr().lock(), "warning: {warning}");
+        }
+        return std::fs::write(path, output.bytes).map_err(|e| e.to_string());
+    }
     let mut budget = scene::SceneBudget::default();
-    let scenes = if matches!(extension.as_str(), "pdf" | "pptx") && page.is_none() {
+    let scenes = if extension == "pdf" && page.is_none() {
         scene::foreground_pages_budgeted(&doc, options, &mut budget)?
     } else {
         vec![scene::page_budgeted(&doc, page.map(Ok).unwrap_or_else(|| scene::default_page_index(&doc))?, options, &mut budget)?]
@@ -145,14 +152,6 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
         "png" => raster::render(first, options)?.save(path).map_err(|e| e.to_string()),
         "svg" => std::fs::write(path, svg::render(first, options)?).map_err(|e| e.to_string()),
         "pdf" => std::fs::write(path, pdf::render(&scenes, options)?).map_err(|e| e.to_string()),
-        "pptx" => {
-            let colors = misterdiagram_export::colors(&doc, page.map(Ok).unwrap_or_else(|| scene::default_page_index(&doc))?)?;
-            let output = misterdiagram_export::render(&scenes, &colors, options)?;
-            for warning in &output.warnings {
-                let _ = writeln!(std::io::stderr().lock(), "warning: {warning}");
-            }
-            std::fs::write(path, output.bytes).map_err(|e| e.to_string())
-        }
         _ => Err("render output extension must be png, svg, pdf or pptx".into()),
     }
 }

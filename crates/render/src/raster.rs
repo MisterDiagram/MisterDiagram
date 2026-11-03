@@ -111,10 +111,23 @@ pub(crate) fn pattern(paint: &Paint, view: Affine, path: &BezPath) -> Result<(im
     Ok((image, Affine::translate((x, y))))
 }
 pub fn render(scene: &Scene, options: Options) -> Result<image::RgbaImage, String> {
-    let (w, h, view) = scene.canvas(options)?;
+    render_background(scene, options, true, scene.canvas(options)?)
+}
+/// Paint an evaluated foreign-object projection onto transparent pixels.
+pub fn render_transparent(scene: &Scene, options: Options, canvas: (u16, u16, Affine)) -> Result<image::RgbaImage, String> {
+    scene.validate_operations(options)?;
+    render_background(scene, options, false, canvas)
+}
+fn render_background(scene: &Scene, options: Options, white: bool, canvas: (u16, u16, Affine)) -> Result<image::RgbaImage, String> {
+    let (w, h, view) = canvas;
+    if w == 0 || h == 0 || usize::from(w) * usize::from(h) > MAX_PIXELS || view.as_coeffs().iter().any(|n| !n.is_finite() || n.abs() > 1e12) {
+        return Err("raster canvas limit".into());
+    }
     let mut ctx = RenderContext::new_with(w, h, vello_cpu::RenderSettings { num_threads: 0, ..Default::default() });
-    ctx.set_paint(peniko::Color::WHITE);
-    ctx.fill_rect(&Rect::new(0., 0., f64::from(w), f64::from(h)));
+    if white {
+        ctx.set_paint(peniko::Color::WHITE);
+        ctx.fill_rect(&Rect::new(0., 0., f64::from(w), f64::from(h)));
+    }
     for op in &scene.ops {
         match op {
             Op::Bounds(_) => {}
@@ -159,6 +172,7 @@ pub fn render(scene: &Scene, options: Options) -> Result<image::RgbaImage, Strin
                 ctx.set_paint(peniko::Color::from_rgba8(color.r, color.g, color.b, color.a));
                 ctx.fill_path(&device_path(&outline, Affine::IDENTITY));
             }
+            Op::RasterImage { pixels, transform } => draw_image(&mut ctx, pixels, view * *transform, true)?,
             Op::Image { pixels, transform } => draw_image(&mut ctx, pixels, view * *transform, false)?,
             Op::Text { layout, transform, .. } => {
                 for (path, c) in text_paths(layout, *transform) {
@@ -207,6 +221,36 @@ fn device_path(path: &BezPath, view: Affine) -> BezPath {
 mod tests {
     use super::*;
     use kurbo::Shape as _;
+    #[test]
+    fn transparent_projection_rejects_hostile_operations_and_canvas() {
+        let mut scene = Scene {
+            ops: vec![Op::Pop],
+            warnings: vec![],
+            pdf_strokes: Default::default(),
+            bounds: Rect::ZERO,
+            page_size: (1., 1.),
+            fit_empty: false,
+        };
+        // Regression: this unmatched pop reached Vello and panicked before validation.
+        assert!(render_transparent(&scene, Options::default(), (1, 1, Affine::IDENTITY)).unwrap_err().contains("unbalanced scene clip"));
+        scene.ops = vec![Op::Clip { path: Rect::new(0., 0., 1., 1.).to_path(1e-5), even_odd: false }];
+        assert!(render_transparent(&scene, Options::default(), (1, 1, Affine::IDENTITY)).unwrap_err().contains("unclosed scene clip"));
+        scene.ops = vec![Op::Path {
+            path: [kurbo::PathEl::MoveTo(kurbo::Point::new(f64::NAN, 0.))].into_iter().collect(),
+            even_odd: false,
+            paint: Paint::Solid(misterdiagram_color::Rgba::BLACK),
+        }];
+        assert!(render_transparent(&scene, Options::default(), (1, 1, Affine::IDENTITY)).is_err());
+        scene.ops.clear();
+        for canvas in
+            [(0, 1, Affine::IDENTITY), (u16::MAX, u16::MAX, Affine::IDENTITY), (1, 1, Affine::scale(f64::NAN)), (1, 1, Affine::scale(1e100))]
+        {
+            assert!(render_transparent(&scene, Options::default(), canvas).is_err());
+        }
+        for scale in [0., f64::NAN, f64::INFINITY] {
+            assert!(render_transparent(&scene, Options { scale, ..Default::default() }, (1, 1, Affine::IDENTITY)).is_err());
+        }
+    }
     #[test]
     fn image_filter_uses_premultiplied_alpha_and_transparent_border() {
         let mut source = image::RgbaImage::new(2, 1);

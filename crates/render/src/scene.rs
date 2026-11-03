@@ -10,7 +10,9 @@ use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use std::{collections::BTreeMap, sync::Arc};
 
 mod budget;
+pub mod evaluated;
 pub use budget::SceneBudget;
+pub use evaluated::{ConnectionSite, EvaluatedPage, EvaluatedShape};
 
 pub const MAX_PIXELS: usize = 32 * 1024 * 1024;
 #[derive(Clone, Debug)]
@@ -49,6 +51,11 @@ pub enum Op {
         stroke: kurbo::Stroke,
         svg_width: f64,
         color: Rgba,
+    },
+    /// Already evaluated device-grid pixels. Raster QA places these without a second filter.
+    RasterImage {
+        pixels: Arc<image::RgbaImage>,
+        transform: Affine,
     },
     Image {
         pixels: Arc<image::RgbaImage>,
@@ -225,6 +232,12 @@ impl Scene {
         }
         self.canvas_bounds(options, bounds)
     }
+    /// Validate operations independently of a consumer-supplied raster canvas.
+    /// The small dummy extent avoids allocating or imposing the source page's
+    /// pixel dimensions while preserving every operation and clip-stack guard.
+    pub fn validate_operations(&self, options: Options) -> Result<(), String> {
+        self.canvas_bounds(Options { fit: false, ..options }, Rect::new(0., 0., 1. / 96., 1. / 96.)).map(|_| ())
+    }
     fn canvas_bounds(&self, options: Options, bounds: Rect) -> Result<(u16, u16, Affine), String> {
         if !options.scale.is_finite() || options.scale <= 0. || options.scale > 100. {
             return Err("render scale outside (0,100]".into());
@@ -273,7 +286,7 @@ impl Scene {
                         }
                     }
                 }
-                Op::Image { pixels, transform } => {
+                Op::Image { pixels, transform } | Op::RasterImage { pixels, transform } => {
                     if u64::from(pixels.width()) * u64::from(pixels.height()) > MAX_PIXELS as u64
                         || transform.as_coeffs().iter().any(|v| !v.is_finite())
                     {
@@ -556,6 +569,15 @@ pub fn page_prepared(evaluator: &mut Evaluator<'_>, index: usize, options: Optio
     page_prepared_budgeted(evaluator, index, options, &mut SceneBudget::default())
 }
 fn page_prepared_budgeted(evaluator: &mut Evaluator<'_>, index: usize, options: Options, budget: &mut SceneBudget) -> Result<Scene, String> {
+    Ok(page_evaluated_prepared(evaluator, index, options, budget, false)?.scene)
+}
+fn page_evaluated_prepared(
+    evaluator: &mut Evaluator<'_>,
+    index: usize,
+    options: Options,
+    budget: &mut SceneBudget,
+    retain: bool,
+) -> Result<EvaluatedPage, String> {
     if evaluator.text_metrics_deferred() {
         return Err("deferred text metrics cannot render".into());
     }
@@ -586,6 +608,7 @@ fn page_prepared_budgeted(evaluator: &mut Evaluator<'_>, index: usize, options: 
         current = document.pages.iter().find(|p| p.id == id).ok_or("missing background page")?;
     }
     let mut foreground_start = 0;
+    let mut evaluated = Vec::new();
     for id in pages.into_iter().rev() {
         if id == p.id {
             foreground_start = scene.ops.len();
@@ -593,7 +616,19 @@ fn page_prepared_budgeted(evaluator: &mut Evaluator<'_>, index: usize, options: 
         let p = document.pages.iter().find(|p| p.id == id).ok_or("missing page")?;
         let scope = Scope::Page(id);
         let ratio = evaluator.render_number(scope, "PageScale")? / evaluator.render_number(scope, "DrawingScale")?.max(1e-12);
-        shapes(evaluator, &p.shapes, scope, &p.part, Affine::scale(ratio), options, &mut scene, 0, budget)?;
+        let nodes = shapes(evaluator, &p.shapes, scope, &p.part, Affine::scale(ratio), options, 0, budget)?;
+        for node in nodes {
+            if retain {
+                node.charge_copy(budget)?;
+                node.clone().append_to(&mut scene)?;
+                evaluated.push(node);
+            } else {
+                node.append_to(&mut scene)?;
+            }
+        }
+    }
+    for node in &mut evaluated {
+        node.resolve_connections(evaluator, budget, 0)?;
     }
     fallback_warnings(evaluator, &mut scene);
     if options.fit {
@@ -613,8 +648,15 @@ fn page_prepared_budgeted(evaluator: &mut Evaluator<'_>, index: usize, options: 
     for warning in &scene.warnings {
         budget.charge(warning.capacity())?;
     }
-    scene.canvas(options)?;
-    Ok(scene)
+    if let Err(error) = scene.canvas(options) {
+        // Retained vector evaluation may target a differently sized canvas.
+        // All scene guards run before this final pixel allocation check; the
+        // consumer must validate its own bounded raster before painting.
+        if !retain || error != "render pixel limit" {
+            return Err(error);
+        }
+    }
+    Ok(EvaluatedPage { scene, shapes: evaluated })
 }
 pub fn master(document: &Document, index: usize, options: Options) -> Result<Scene, String> {
     let themes = misterdiagram_theme::Themes::from_document(document).map_err(|e| e.to_string())?;
@@ -635,7 +677,9 @@ pub fn master_prepared(evaluator: &mut Evaluator<'_>, index: usize, options: Opt
     let mut scene = Scene { fit_empty: false, warnings: vec![], ops: vec![], pdf_strokes: BTreeMap::new(), bounds: Rect::ZERO, page_size: (1., 1.) };
     let scope = Scope::Master(m.id);
     let ratio = evaluator.render_number(scope, "PageScale")? / evaluator.render_number(scope, "DrawingScale")?.max(1e-12);
-    shapes(evaluator, &m.shapes, scope, &m.part, Affine::scale(ratio), options, &mut scene, 0, &mut SceneBudget::default())?;
+    for node in shapes(evaluator, &m.shapes, scope, &m.part, Affine::scale(ratio), options, 0, &mut SceneBudget::default())? {
+        node.append_to(&mut scene)?;
+    }
     fallback_warnings(evaluator, &mut scene);
     finish_bounds(&mut scene, true);
     if options.visio_export && m.shapes.is_empty() {
@@ -691,7 +735,7 @@ fn finish_bounds_from(scene: &mut Scene, crop: bool, start: usize) -> bool {
             }
             // Geometry and foreign objects carry logical bounds separately from their device strokes.
             Op::Path { .. } | Op::Stroke { .. } | Op::HairlineMarker { .. } | Op::HairlineStroke { .. } => continue,
-            Op::Image { pixels, transform } => {
+            Op::Image { pixels, transform } | Op::RasterImage { pixels, transform } => {
                 transform.transform_rect_bbox(Rect::new(0., 0., f64::from(pixels.width()), f64::from(pixels.height())))
             }
             Op::Text { export_bounds: Some(bounds), transform, .. } => transform.transform_rect_bbox(*bounds),
@@ -848,13 +892,13 @@ fn shapes(
     part: &str,
     scale: Affine,
     options: Options,
-    scene: &mut Scene,
     depth: usize,
     budget: &mut SceneBudget,
-) -> Result<(), String> {
+) -> Result<Vec<EvaluatedShape>, String> {
     if depth > 128 {
         return Err("shape depth limit".into());
     }
+    let mut result = Vec::new();
     for shape in items {
         // Deleted inherited shapes are tombstones, not painting instructions.
         // https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
@@ -866,9 +910,6 @@ fn shapes(
         // https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
         if shape.shape_type.as_deref() == Some("Guide") {
             continue;
-        }
-        if scene.ops.len() > 100_000 {
-            return Err("render operation limit".into());
         }
         let scope = match parent {
             Scope::Page(page) => Scope::PageShape { page, shape: shape.id },
@@ -887,348 +928,410 @@ fn shapes(
         // Group mode0 hides only the group, mode1 paints it behind members,
         // and mode2 paints it in front. Leaf shapes ignore this group property.
         let mode = if shape.shapes.is_empty() { 1. } else { number(e, scope, "DisplayMode", 1.) };
-        if mode == 0. || mode == 2. {
-            shapes(e, &shape.shapes, parent, part, scale, options, scene, depth + 1, budget)?;
+        let mut children =
+            if mode == 0. || mode == 2. { shapes(e, &shape.shapes, parent, part, scale, options, depth + 1, budget)? } else { Vec::new() };
+        let mut node = if mode == 0. {
+            EvaluatedShape::hidden(scope, shape, scale, budget)?
+        } else {
+            evaluate_shape(e, shape, scope, parent, part, scale, options, mode, budget)?
+        };
+        if mode == 1. {
+            children = shapes(e, &shape.shapes, parent, part, scale, options, depth + 1, budget)?;
         }
-        if mode == 0. {
-            continue;
+        node.children = children;
+        result.push(node);
+    }
+    Ok(result)
+}
+fn evaluate_shape(
+    e: &mut Evaluator<'_>,
+    shape: &Shape,
+    scope: Scope,
+    parent: Scope,
+    part: &str,
+    scale: Affine,
+    options: Options,
+    mode: f64,
+    budget: &mut SceneBudget,
+) -> Result<EvaluatedShape, String> {
+    let mut scene =
+        Scene { fit_empty: false, warnings: Vec::new(), ops: Vec::new(), pdf_strokes: BTreeMap::new(), bounds: Rect::ZERO, page_size: (1., 1.) };
+    let mut text_body = None;
+    let mut paint = None;
+    let mut has_shadow = false;
+    let transform = scale * e.shape_to_page(scope).map_err(|error| e.render_error(scope, "transform", error))?;
+    let width = number(e, scope, "Width", 1.);
+    let height = number(e, scope, "Height", 1.);
+    let fill = Fill {
+        pattern: number(e, scope, "FillPattern", 1.).max(0.) as u32,
+        foreground: color(e, scope, "FillForegnd", "FillForegndTrans"),
+        background: color(e, scope, "FillBkgnd", "FillBkgndTrans"),
+    };
+    let weight = line_weight(e, scope);
+    let nominal_weight = weight.max(0.) / scale.determinant().abs().sqrt().max(1e-12);
+    let pattern = number(e, scope, "LinePattern", 1.).max(0.) as u32;
+    let line = Line {
+        color: color(e, scope, "LineColor", "LineColorTrans"),
+        weight: (if pattern > 1 && weight > 0. { weight } else { weight.max(1. / (96. * options.scale)) })
+            / scale.determinant().abs().sqrt().max(1e-12),
+        pattern,
+        cap: number(e, scope, "LineCap", 0.).max(0.) as u32,
+        join: number(e, scope, "LineJoin", 0.).max(0.) as u32,
+        rounding: number(e, scope, "Rounding", 0.),
+        compound: number(e, scope, "CompoundType", 0.).max(0.) as u32,
+        begin_arrow: number(e, scope, "BeginArrow", 0.).max(0.) as u32,
+        end_arrow: number(e, scope, "EndArrow", 0.).max(0.) as u32,
+        begin_size: number(e, scope, "BeginArrowSize", 2.).max(0.) as u32,
+        end_size: number(e, scope, "EndArrowSize", 2.).max(0.) as u32,
+    };
+    // Infinite lines only need to reach the page edges; clipping them there keeps a
+    // dotted one inside the dash budget (MisterDiagram#107).
+    let page_clip = match parent {
+        Scope::Page(page) => Some(Rect::new(0., 0., number(e, Scope::Page(page), "PageWidth", 0.), number(e, Scope::Page(page), "PageHeight", 0.))),
+        _ => None,
+    };
+    let clip = infinite_line_clip(e.shape_to_page(scope).map_err(|error| e.render_error(scope, "transform", error))?, page_clip);
+    let geometries = e.geometry_paths(scope, clip).map_err(|error| e.render_error(scope, "geometry", error))?;
+    // Eligible Geometry sections form one alternate fill, independent of winding.
+    // Native witness: field/flip-fill-2026-11-01. The reference defines section flags;
+    // cross-section parity is an observed rendering rule.
+    // https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section
+    let mut combined_fill = BezPath::new();
+    for geometry in &geometries {
+        if geometry.filled() {
+            combined_fill.extend(style::round_rectangle(&geometry.path, line.rounding).elements().iter().copied());
         }
-        let first_op = scene.ops.len();
-        let transform = scale * e.shape_to_page(scope).map_err(|error| e.render_error(scope, "transform", error))?;
-        let width = number(e, scope, "Width", 1.);
-        let height = number(e, scope, "Height", 1.);
-        let fill = Fill {
-            pattern: number(e, scope, "FillPattern", 1.).max(0.) as u32,
-            foreground: color(e, scope, "FillForegnd", "FillForegndTrans"),
-            background: color(e, scope, "FillBkgnd", "FillBkgndTrans"),
-        };
-        let weight = line_weight(e, scope);
-        let nominal_weight = weight.max(0.) / scale.determinant().abs().sqrt().max(1e-12);
-        let pattern = number(e, scope, "LinePattern", 1.).max(0.) as u32;
-        let line = Line {
-            color: color(e, scope, "LineColor", "LineColorTrans"),
-            weight: (if pattern > 1 && weight > 0. { weight } else { weight.max(1. / (96. * options.scale)) })
-                / scale.determinant().abs().sqrt().max(1e-12),
-            pattern,
-            cap: number(e, scope, "LineCap", 0.).max(0.) as u32,
-            join: number(e, scope, "LineJoin", 0.).max(0.) as u32,
-            rounding: number(e, scope, "Rounding", 0.),
-            compound: number(e, scope, "CompoundType", 0.).max(0.) as u32,
-            begin_arrow: number(e, scope, "BeginArrow", 0.).max(0.) as u32,
-            end_arrow: number(e, scope, "EndArrow", 0.).max(0.) as u32,
-            begin_size: number(e, scope, "BeginArrowSize", 2.).max(0.) as u32,
-            end_size: number(e, scope, "EndArrowSize", 2.).max(0.) as u32,
-        };
-        // Infinite lines only need to reach the page edges; clipping them there keeps a
-        // dotted one inside the dash budget (MisterDiagram#107).
-        let page_clip = match parent {
-            Scope::Page(page) => {
-                Some(Rect::new(0., 0., number(e, Scope::Page(page), "PageWidth", 0.), number(e, Scope::Page(page), "PageHeight", 0.)))
-            }
-            _ => None,
-        };
-        let clip = infinite_line_clip(e.shape_to_page(scope).map_err(|error| e.render_error(scope, "transform", error))?, page_clip);
-        let geometries = e.geometry_paths(scope, clip).map_err(|error| e.render_error(scope, "geometry", error))?;
-        // Eligible Geometry sections form one alternate fill, independent of winding.
-        // Native witness: field/flip-fill-2026-11-01. The reference defines section flags;
-        // cross-section parity is an observed rendering rule.
-        // https://learn.microsoft.com/en-us/office/client-developer/visio/geometry-section
-        let mut combined_fill = BezPath::new();
+    }
+    if number(e, scope, "ShdwPattern", 0.) == 1. && number(e, scope, "ShapeShdwType", 1.) <= 1. {
+        let mut shadow_strokes = BezPath::new();
+        let mut shadow_elements = 0usize;
         for geometry in &geometries {
-            if geometry.filled() {
-                combined_fill.extend(style::round_rectangle(&geometry.path, line.rounding).elements().iter().copied());
-            }
-        }
-        if number(e, scope, "ShdwPattern", 0.) == 1. && number(e, scope, "ShapeShdwType", 1.) <= 1. {
-            let mut shadow_strokes = BezPath::new();
-            let mut shadow_elements = 0usize;
-            for geometry in &geometries {
-                let path = style::round_rectangle(&geometry.path, line.rounding);
-                if geometry.filled() && fill.pattern != 0 {
-                    shadow_elements = shadow_elements.saturating_add(path.elements().len());
-                }
-                if geometry.stroked() && line.pattern != 0 {
-                    let mut stroke = line.stroke();
-                    stroke.width = nominal_weight;
-                    shadow_elements = shadow_elements.saturating_add(dash_elements(&path, &stroke)?);
-                }
-                if shadow_elements > 4_000_000 {
-                    return Err("scene path limit (shadow dash expansion)".into());
-                }
-            }
-            let shadow_fill = if fill.pattern != 0 { transform * &combined_fill } else { BezPath::new() };
-            for geometry in &geometries {
-                let path = style::round_rectangle(&geometry.path, line.rounding);
-                if geometry.stroked() && line.pattern != 0 {
-                    let mut stroke = line.stroke();
-                    stroke.width = nominal_weight;
-                    shadow_strokes.extend(
-                        (transform * kurbo::stroke(path.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-5))
-                            .elements()
-                            .iter()
-                            .copied(),
-                    );
-                }
-            }
-            if !shadow_fill.elements().is_empty() || !shadow_strokes.elements().is_empty() {
-                let offset = if options.fit && number(e, scope, "ShapeShdwType", 1.) == 0. {
-                    // FT-01: type zero inherits the page shadow, not dormant local offsets.
-                    (number(e, parent, "ShdwOffsetX", 0.), number(e, parent, "ShdwOffsetY", 0.))
-                } else {
-                    (number(e, scope, "ShapeShdwOffsetX", 0.), number(e, scope, "ShapeShdwOffsetY", 0.))
-                };
-                let blur = number(e, scope, "ShapeShdwBlur", 0.).max(0.);
-                let shade = color(e, scope, "ShdwForegnd", "ShdwForegndTrans");
-                scene.ops.push(crate::shadow::outer(&shadow_fill, &shadow_strokes, offset, blur, shade, 96. * options.scale)?);
-            }
-        }
-        if fill.pattern != 0 && !combined_fill.elements().is_empty() {
-            let gradient = gradient(e, scope);
-            let paint = if fill.pattern == 1 && gradient.is_none() {
-                Paint::Solid(fill.foreground)
-            } else {
-                Paint::Pattern { fill: fill.clone(), gradient, bounds: Rect::new(0., 0., width, height), transform }
-            };
-            scene.ops.push(Op::Path { even_odd: true, path: transform * combined_fill, paint });
-        }
-        for geometry in geometries {
             let path = style::round_rectangle(&geometry.path, line.rounding);
-            // Line ends belong to open paths: Visio draws none on a closed one, whatever
-            // BeginArrow and EndArrow say (private corpus field/vahegan-2026-10-26
-            // closed-arrow.vsdx, MisterDiagram#105).
-            // https://learn.microsoft.com/en-us/office/client-developer/visio/endarrow-cell-line-format-section
-            let closed = path.elements().iter().any(|el| matches!(el, kurbo::PathEl::ClosePath));
-            let line = if closed { Line { begin_arrow: 0, end_arrow: 0, ..line.clone() } } else { line.clone() };
-            if !path.elements().is_empty() && (geometry.filled() && fill.pattern != 0 || geometry.stroked() && line.pattern != 0) {
-                let bounds = if geometry.stroked() && line.pattern != 0 {
-                    let mut solid = line.stroke();
-                    solid.width = nominal_weight;
-                    solid.dash_pattern.clear();
-                    solid.start_cap = kurbo::Cap::Round;
-                    solid.end_cap = kurbo::Cap::Round;
-                    if filled_marker(line.begin_arrow) {
-                        solid.start_cap = kurbo::Cap::Butt;
-                    }
-                    if filled_marker(line.end_arrow) {
-                        solid.end_cap = kurbo::Cap::Butt;
-                    }
-                    let b = (transform * kurbo::stroke(path.elements().iter().copied(), &solid, &kurbo::StrokeOpts::default(), 1e-5)).bounding_box();
-                    if line.cap == 2 && !path.elements().iter().any(|e| matches!(e, kurbo::PathEl::ClosePath)) {
-                        let extra = nominal_weight * (std::f64::consts::FRAC_1_SQRT_2 - 0.5);
-                        b.inflate(extra, extra)
-                    } else {
-                        b
-                    }
-                } else {
-                    (transform * &path).bounding_box()
-                };
-                scene.ops.push(Op::Bounds(bounds));
+            if geometry.filled() && fill.pattern != 0 {
+                shadow_elements = shadow_elements.saturating_add(path.elements().len());
             }
-            if geometry.stroked() && line.pattern != 0 && line.weight > 0. {
+            if geometry.stroked() && line.pattern != 0 {
                 let mut stroke = line.stroke();
+                stroke.width = nominal_weight;
+                shadow_elements = shadow_elements.saturating_add(dash_elements(&path, &stroke)?);
+            }
+            if shadow_elements > 4_000_000 {
+                return Err("scene path limit (shadow dash expansion)".into());
+            }
+        }
+        let shadow_fill = if fill.pattern != 0 { transform * &combined_fill } else { BezPath::new() };
+        for geometry in &geometries {
+            let path = style::round_rectangle(&geometry.path, line.rounding);
+            if geometry.stroked() && line.pattern != 0 {
+                let mut stroke = line.stroke();
+                stroke.width = nominal_weight;
+                shadow_strokes.extend(
+                    (transform * kurbo::stroke(path.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-5))
+                        .elements()
+                        .iter()
+                        .copied(),
+                );
+            }
+        }
+        if !shadow_fill.elements().is_empty() || !shadow_strokes.elements().is_empty() {
+            let offset = if options.fit && number(e, scope, "ShapeShdwType", 1.) == 0. {
+                // FT-01: type zero inherits the page shadow, not dormant local offsets.
+                (number(e, parent, "ShdwOffsetX", 0.), number(e, parent, "ShdwOffsetY", 0.))
+            } else {
+                (number(e, scope, "ShapeShdwOffsetX", 0.), number(e, scope, "ShapeShdwOffsetY", 0.))
+            };
+            let blur = number(e, scope, "ShapeShdwBlur", 0.).max(0.);
+            let shade = color(e, scope, "ShdwForegnd", "ShdwForegndTrans");
+            has_shadow = true;
+            scene.ops.push(crate::shadow::outer(&shadow_fill, &shadow_strokes, offset, blur, shade, 96. * options.scale)?);
+        }
+    }
+    if fill.pattern != 0 && !combined_fill.elements().is_empty() {
+        let gradient = gradient(e, scope);
+        let resolved_paint = if fill.pattern == 1 && gradient.is_none() {
+            Paint::Solid(fill.foreground)
+        } else {
+            Paint::Pattern { fill: fill.clone(), gradient, bounds: Rect::new(0., 0., width, height), transform }
+        };
+        scene.ops.push(Op::Path { even_odd: true, path: transform * combined_fill, paint: resolved_paint.clone() });
+        paint = Some(resolved_paint);
+    }
+    for geometry in &geometries {
+        let path = style::round_rectangle(&geometry.path, line.rounding);
+        // Line ends belong to open paths: Visio draws none on a closed one, whatever
+        // BeginArrow and EndArrow say (private corpus field/vahegan-2026-10-26
+        // closed-arrow.vsdx, MisterDiagram#105).
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/endarrow-cell-line-format-section
+        let closed = path.elements().iter().any(|el| matches!(el, kurbo::PathEl::ClosePath));
+        let line = if closed { Line { begin_arrow: 0, end_arrow: 0, ..line.clone() } } else { line.clone() };
+        if !path.elements().is_empty() && (geometry.filled() && fill.pattern != 0 || geometry.stroked() && line.pattern != 0) {
+            let bounds = if geometry.stroked() && line.pattern != 0 {
+                let mut solid = line.stroke();
+                solid.width = nominal_weight;
+                solid.dash_pattern.clear();
+                solid.start_cap = kurbo::Cap::Round;
+                solid.end_cap = kurbo::Cap::Round;
                 if filled_marker(line.begin_arrow) {
-                    stroke.start_cap = kurbo::Cap::Butt;
+                    solid.start_cap = kurbo::Cap::Butt;
                 }
                 if filled_marker(line.end_arrow) {
-                    stroke.end_cap = kurbo::Cap::Butt;
+                    solid.end_cap = kurbo::Cap::Butt;
                 }
-                // Marker units and setbacks are physical page lengths. The nominal
-                // pen remains independent of page scale and the raster hairline floor.
-                let physical_path = transform * &path;
-                let shaft = style::marker_shaft(
-                    &physical_path,
-                    style::marker_begin_setback(line.begin_arrow, line.begin_size, weight, scale.determinant().abs().sqrt()),
-                    style::marker_setback(line.end_arrow, line.end_size, weight),
-                );
-                let physical_scale = scale.determinant().abs().sqrt();
-                stroke.width *= physical_scale;
-                stroke.dash_offset *= physical_scale;
-                for dash in &mut stroke.dash_pattern {
-                    *dash *= physical_scale;
-                }
-                let pdf_weight = pdf_pen(weight, line.compound == 1);
-                if line.compound == 1 || pdf_weight != stroke.width {
-                    scene.pdf_stroke(
-                        PdfStroke { path: shaft.clone(), stroke: vector_stroke(&stroke, pdf_weight)?, compound: line.compound == 1 },
-                        budget,
-                    )?;
-                }
-                if line.compound == 1 {
-                    // Double lines have a transparent central third, not a white overpaint.
-                    // https://learn.microsoft.com/en-us/office/client-developer/visio/compoundtype-cell-line-format-section
-
-                    if dash_elements(&shaft, &stroke)?.saturating_mul(2) > 4_000_000 {
-                        return Err("scene path limit (compound dash expansion)".into());
-                    }
-                    let svg_stroke = if weight > 0. && stroke.width == weight {
-                        None
-                    } else {
-                        Some(vector_stroke(&stroke, if weight > 0. { weight } else { 0.75 / 72. })?)
-                    };
-                    let mut outline = kurbo::stroke(shaft.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-5);
-                    stroke.width /= 3.;
-                    let inner = kurbo::stroke(shaft.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-5).reverse_subpaths();
-                    outline.extend(inner.elements().iter().copied());
-                    // SVG keeps the nominal pen even when raster output needs a pixel floor.
-                    // Compound strokes are already outlines, so retain a separate vector outline.
-                    if let Some(mut svg_stroke) = svg_stroke {
-                        if dash_elements(&shaft, &svg_stroke)?.saturating_mul(2) > 4_000_000 {
-                            return Err("scene path limit (compound SVG dash expansion)".into());
-                        }
-                        let mut svg_path = kurbo::stroke(shaft.elements().iter().copied(), &svg_stroke, &kurbo::StrokeOpts::default(), 1e-5);
-                        svg_stroke.width /= 3.;
-                        let svg_inner =
-                            kurbo::stroke(shaft.elements().iter().copied(), &svg_stroke, &kurbo::StrokeOpts::default(), 1e-5).reverse_subpaths();
-                        svg_path.extend(svg_inner.elements().iter().copied());
-                        scene.ops.push(Op::HairlineMarker { path: outline, svg_path, color: line.color });
-                    } else {
-                        scene.ops.push(Op::Path { even_odd: false, path: outline, paint: Paint::Solid(line.color) });
-                    }
-                } else if weight == 0. && (line.begin_arrow != 0 || line.end_arrow != 0) {
-                    let svg_weight = 0.75 / 72.;
-                    let svg_path = style::marker_shaft(
-                        &physical_path,
-                        style::marker_begin_setback(line.begin_arrow, line.begin_size, svg_weight, physical_scale),
-                        style::marker_setback(line.end_arrow, line.end_size, svg_weight),
-                    );
-                    scene.ops.push(Op::HairlineStroke { path: shaft, svg_path, stroke, svg_width: svg_weight, color: line.color });
-                } else if weight <= 0. || stroke.width != weight {
-                    // The SVG override is independent of the export scale's raster floor.
-                    // https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section
-                    let svg_width = if weight > 0. { weight } else { 0.75 / 72. };
-                    scene.ops.push(Op::HairlineStroke { path: shaft.clone(), svg_path: shaft, stroke, svg_width, color: line.color });
+                let b = (transform * kurbo::stroke(path.elements().iter().copied(), &solid, &kurbo::StrokeOpts::default(), 1e-5)).bounding_box();
+                if line.cap == 2 && !path.elements().iter().any(|e| matches!(e, kurbo::PathEl::ClosePath)) {
+                    let extra = nominal_weight * (std::f64::consts::FRAC_1_SQRT_2 - 0.5);
+                    b.inflate(extra, extra)
                 } else {
-                    scene.ops.push(Op::Stroke { path: shaft, stroke, color: line.color });
+                    b
                 }
-                let endpoints: Vec<Point> = physical_path
-                    .elements()
-                    .iter()
-                    .filter_map(|el| match el {
-                        kurbo::PathEl::MoveTo(p) | kurbo::PathEl::LineTo(p) | kurbo::PathEl::QuadTo(_, p) | kurbo::PathEl::CurveTo(_, _, p) => {
-                            Some(*p)
-                        }
-                        _ => None,
-                    })
-                    .collect();
-                for (kind, size, pair, reverse) in [
-                    (line.begin_arrow, line.begin_size, endpoints.get(..2), true),
-                    (line.end_arrow, line.end_size, endpoints.get(endpoints.len().saturating_sub(2)..), false),
-                ] {
-                    if let Some([a, b]) = pair {
-                        let (tip, dir) = if reverse { (*a, (*a - *b).atan2()) } else { (*b, (*b - *a).atan2()) };
-                        let svg_arrows = if weight == 0. { style::arrow(kind, size, 0.75 / 72., tip, dir) } else { Vec::new() };
-                        for (index, arrow) in style::arrow(kind, size, weight, tip, dir).into_iter().enumerate() {
-                            let outline = |arrow: &style::ArrowPart, weight| {
-                                if arrow.stroke {
-                                    kurbo::stroke(
-                                        arrow.path.elements().iter().copied(),
-                                        &kurbo::Stroke::new(style::marker_weight(weight)).with_caps(kurbo::Cap::Round).with_join(kurbo::Join::Round),
-                                        &kurbo::StrokeOpts::default(),
-                                        1e-5,
-                                    )
-                                } else {
-                                    arrow.path.clone()
-                                }
+            } else {
+                (transform * &path).bounding_box()
+            };
+            scene.ops.push(Op::Bounds(bounds));
+        }
+        if geometry.stroked() && line.pattern != 0 && line.weight > 0. {
+            let mut stroke = line.stroke();
+            if filled_marker(line.begin_arrow) {
+                stroke.start_cap = kurbo::Cap::Butt;
+            }
+            if filled_marker(line.end_arrow) {
+                stroke.end_cap = kurbo::Cap::Butt;
+            }
+            // Marker units and setbacks are physical page lengths. The nominal
+            // pen remains independent of page scale and the raster hairline floor.
+            let physical_path = transform * &path;
+            let shaft = style::marker_shaft(
+                &physical_path,
+                style::marker_begin_setback(line.begin_arrow, line.begin_size, weight, scale.determinant().abs().sqrt()),
+                style::marker_setback(line.end_arrow, line.end_size, weight),
+            );
+            let physical_scale = scale.determinant().abs().sqrt();
+            stroke.width *= physical_scale;
+            stroke.dash_offset *= physical_scale;
+            for dash in &mut stroke.dash_pattern {
+                *dash *= physical_scale;
+            }
+            let pdf_weight = pdf_pen(weight, line.compound == 1);
+            if line.compound == 1 || pdf_weight != stroke.width {
+                scene.pdf_stroke(
+                    PdfStroke { path: shaft.clone(), stroke: vector_stroke(&stroke, pdf_weight)?, compound: line.compound == 1 },
+                    budget,
+                )?;
+            }
+            if line.compound == 1 {
+                // Double lines have a transparent central third, not a white overpaint.
+                // https://learn.microsoft.com/en-us/office/client-developer/visio/compoundtype-cell-line-format-section
+
+                if dash_elements(&shaft, &stroke)?.saturating_mul(2) > 4_000_000 {
+                    return Err("scene path limit (compound dash expansion)".into());
+                }
+                let svg_stroke = if weight > 0. && stroke.width == weight {
+                    None
+                } else {
+                    Some(vector_stroke(&stroke, if weight > 0. { weight } else { 0.75 / 72. })?)
+                };
+                let mut outline = kurbo::stroke(shaft.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-5);
+                stroke.width /= 3.;
+                let inner = kurbo::stroke(shaft.elements().iter().copied(), &stroke, &kurbo::StrokeOpts::default(), 1e-5).reverse_subpaths();
+                outline.extend(inner.elements().iter().copied());
+                // SVG keeps the nominal pen even when raster output needs a pixel floor.
+                // Compound strokes are already outlines, so retain a separate vector outline.
+                if let Some(mut svg_stroke) = svg_stroke {
+                    if dash_elements(&shaft, &svg_stroke)?.saturating_mul(2) > 4_000_000 {
+                        return Err("scene path limit (compound SVG dash expansion)".into());
+                    }
+                    let mut svg_path = kurbo::stroke(shaft.elements().iter().copied(), &svg_stroke, &kurbo::StrokeOpts::default(), 1e-5);
+                    svg_stroke.width /= 3.;
+                    let svg_inner =
+                        kurbo::stroke(shaft.elements().iter().copied(), &svg_stroke, &kurbo::StrokeOpts::default(), 1e-5).reverse_subpaths();
+                    svg_path.extend(svg_inner.elements().iter().copied());
+                    scene.ops.push(Op::HairlineMarker { path: outline, svg_path, color: line.color });
+                } else {
+                    scene.ops.push(Op::Path { even_odd: false, path: outline, paint: Paint::Solid(line.color) });
+                }
+            } else if weight == 0. && (line.begin_arrow != 0 || line.end_arrow != 0) {
+                let svg_weight = 0.75 / 72.;
+                let svg_path = style::marker_shaft(
+                    &physical_path,
+                    style::marker_begin_setback(line.begin_arrow, line.begin_size, svg_weight, physical_scale),
+                    style::marker_setback(line.end_arrow, line.end_size, svg_weight),
+                );
+                scene.ops.push(Op::HairlineStroke { path: shaft, svg_path, stroke, svg_width: svg_weight, color: line.color });
+            } else if weight <= 0. || stroke.width != weight {
+                // The SVG override is independent of the export scale's raster floor.
+                // https://learn.microsoft.com/en-us/office/client-developer/visio/lineweight-cell-line-format-section
+                let svg_width = if weight > 0. { weight } else { 0.75 / 72. };
+                scene.ops.push(Op::HairlineStroke { path: shaft.clone(), svg_path: shaft, stroke, svg_width, color: line.color });
+            } else {
+                scene.ops.push(Op::Stroke { path: shaft, stroke, color: line.color });
+            }
+            let endpoints: Vec<Point> = physical_path
+                .elements()
+                .iter()
+                .filter_map(|el| match el {
+                    kurbo::PathEl::MoveTo(p) | kurbo::PathEl::LineTo(p) | kurbo::PathEl::QuadTo(_, p) | kurbo::PathEl::CurveTo(_, _, p) => Some(*p),
+                    _ => None,
+                })
+                .collect();
+            for (kind, size, pair, reverse) in [
+                (line.begin_arrow, line.begin_size, endpoints.get(..2), true),
+                (line.end_arrow, line.end_size, endpoints.get(endpoints.len().saturating_sub(2)..), false),
+            ] {
+                if let Some([a, b]) = pair {
+                    let (tip, dir) = if reverse { (*a, (*a - *b).atan2()) } else { (*b, (*b - *a).atan2()) };
+                    let svg_arrows = if weight == 0. { style::arrow(kind, size, 0.75 / 72., tip, dir) } else { Vec::new() };
+                    for (index, arrow) in style::arrow(kind, size, weight, tip, dir).into_iter().enumerate() {
+                        let outline = |arrow: &style::ArrowPart, weight| {
+                            if arrow.stroke {
+                                kurbo::stroke(
+                                    arrow.path.elements().iter().copied(),
+                                    &kurbo::Stroke::new(style::marker_weight(weight)).with_caps(kurbo::Cap::Round).with_join(kurbo::Join::Round),
+                                    &kurbo::StrokeOpts::default(),
+                                    1e-5,
+                                )
+                            } else {
+                                arrow.path.clone()
+                            }
+                        };
+                        if arrow.filled || arrow.stroke {
+                            let path = outline(&arrow, weight);
+                            // Native export bounds use the logical butt-ended outline;
+                            // the painted open marker retains its round caps and joins.
+                            let bounds = if arrow.stroke {
+                                kurbo::stroke(
+                                    arrow.path.elements().iter().copied(),
+                                    &kurbo::Stroke::new(style::marker_weight(weight)),
+                                    &kurbo::StrokeOpts::default(),
+                                    1e-5,
+                                )
+                                .bounding_box()
+                            } else {
+                                path.bounding_box()
                             };
-                            if arrow.filled || arrow.stroke {
-                                let path = outline(&arrow, weight);
-                                // Native export bounds use the logical butt-ended outline;
-                                // the painted open marker retains its round caps and joins.
-                                let bounds = if arrow.stroke {
-                                    kurbo::stroke(
-                                        arrow.path.elements().iter().copied(),
-                                        &kurbo::Stroke::new(style::marker_weight(weight)),
-                                        &kurbo::StrokeOpts::default(),
-                                        1e-5,
-                                    )
-                                    .bounding_box()
-                                } else {
-                                    path.bounding_box()
-                                };
-                                scene.ops.push(Op::Bounds(bounds));
-                                if arrow.stroke {
-                                    scene.pdf_stroke(
-                                        PdfStroke {
-                                            path: arrow.path.clone(),
-                                            stroke: kurbo::Stroke::new(pdf_pen(weight, false))
-                                                .with_caps(kurbo::Cap::Round)
-                                                .with_join(kurbo::Join::Round),
-                                            compound: false,
-                                        },
-                                        budget,
-                                    )?;
-                                }
-                                if let Some(svg_arrow) = svg_arrows.get(index) {
-                                    scene.ops.push(Op::HairlineMarker { path, svg_path: outline(svg_arrow, 0.75 / 72.), color: line.color });
-                                } else {
-                                    scene.ops.push(Op::Path { even_odd: false, path, paint: Paint::Solid(line.color) });
-                                }
+                            scene.ops.push(Op::Bounds(bounds));
+                            if arrow.stroke {
+                                scene.pdf_stroke(
+                                    PdfStroke {
+                                        path: arrow.path.clone(),
+                                        stroke: kurbo::Stroke::new(pdf_pen(weight, false)).with_caps(kurbo::Cap::Round).with_join(kurbo::Join::Round),
+                                        compound: false,
+                                    },
+                                    budget,
+                                )?;
+                            }
+                            if let Some(svg_arrow) = svg_arrows.get(index) {
+                                scene.ops.push(Op::HairlineMarker { path, svg_path: outline(svg_arrow, 0.75 / 72.), color: line.color });
+                            } else {
+                                scene.ops.push(Op::Path { even_odd: false, path, paint: Paint::Solid(line.color) });
                             }
                         }
                     }
                 }
             }
         }
-        if let Some((source, foreign)) = foreign_source(e, scope)? {
-            let owner = match source {
-                Scope::MasterShape { master, .. } => {
-                    e.document.masters.iter().find(|m| m.id == master).map(|m| m.part.as_str()).ok_or("foreign master part missing")?
-                }
-                _ => part,
+    }
+    let content_start = scene.ops.len();
+    if let Some((source, foreign)) = foreign_source(e, scope)? {
+        let owner = match source {
+            Scope::MasterShape { master, .. } => {
+                e.document.masters.iter().find(|m| m.id == master).map(|m| m.part.as_str()).ok_or("foreign master part missing")?
+            }
+            _ => part,
+        };
+        foreign_image(e, scope, owner, foreign, transform, width, height, &mut scene, ForeignMode::Render(options.cached_fallback))?;
+    }
+    let foreign_end = scene.ops.len();
+    if number(e, scope, "HideText", 0.) == 0. {
+        let body = e.text_body(scope).map_err(|error| e.render_error(scope, "text", error))?;
+        if body.paragraphs.iter().flat_map(|p| &p.runs).any(|r| !r.text.is_empty()) {
+            let block = e.text_block(scope).map_err(|error| e.render_error(scope, "text block", error))?;
+            let drawing_scale = scale.determinant().abs().sqrt().max(1e-12);
+            let original_height = block.height * drawing_scale;
+            let measured = misterdiagram_model::text::TextHost::measure(&misterdiagram_text::Host, &block.body, Some(block.width * drawing_scale))
+                .map_err(|error| e.render_error(scope, "text metrics (TxtWidth/Char.Size)", error))?;
+            let height = original_height.max(measured.1);
+            let shift = match block.body.body.anchor.unwrap_or(misterdiagram_model::text::Anchor::Middle) {
+                misterdiagram_model::text::Anchor::Top => 0.,
+                misterdiagram_model::text::Anchor::Bottom => height - original_height,
+                _ => (height - original_height) * 0.5,
             };
-            foreign_image(e, scope, owner, foreign, transform, width, height, scene, ForeignMode::Render(options.cached_fallback))?;
-        }
-        if number(e, scope, "HideText", 0.) == 0. {
-            let body = e.text_body(scope).map_err(|error| e.render_error(scope, "text", error))?;
-            if body.paragraphs.iter().flat_map(|p| &p.runs).any(|r| !r.text.is_empty()) {
-                let block = e.text_block(scope).map_err(|error| e.render_error(scope, "text block", error))?;
-                let drawing_scale = scale.determinant().abs().sqrt().max(1e-12);
-                let original_height = block.height * drawing_scale;
-                let measured =
-                    misterdiagram_model::text::TextHost::measure(&misterdiagram_text::Host, &block.body, Some(block.width * drawing_scale))
-                        .map_err(|error| e.render_error(scope, "text metrics (TxtWidth/Char.Size)", error))?;
-                let height = original_height.max(measured.1);
-                let shift = match block.body.body.anchor.unwrap_or(misterdiagram_model::text::Anchor::Middle) {
-                    misterdiagram_model::text::Anchor::Top => 0.,
-                    misterdiagram_model::text::Anchor::Bottom => height - original_height,
-                    _ => (height - original_height) * 0.5,
-                };
-                // W5 and grouped witnesses: cancel reflection parity across the full ancestry.
-                // Keep the transformed off-centre block center fixed, including TxtAngle.
-                // https://learn.microsoft.com/en-us/office/client-developer/visio/flipx-cell-shape-transform-section
-                // https://learn.microsoft.com/en-us/office/client-developer/visio/flipy-cell-shape-transform-section
-                let (flip_x, flip_y) = e.text_reflections(scope).map_err(|error| e.render_error(scope, "text reflections", error))?;
-                let flip_x = if flip_x { -1. } else { 1. };
-                let flip_y = if flip_y { -1. } else { 1. };
-                let counter_flip = Affine::translate((block.width * 0.5, block.height * 0.5))
-                    * Affine::scale_non_uniform(flip_x, flip_y)
-                    * Affine::translate((-block.width * 0.5, -block.height * 0.5));
-                let text_transform = scale * block.to_page * counter_flip * Affine::scale(1. / drawing_scale) * Affine::translate((0., -shift));
-                let layout = misterdiagram_text::layout_for_export(
-                    &block.body,
-                    &Opts { rect: Rect::new(0., 0., block.width * drawing_scale, height), fields: &NoFields, prompt_color: None, no_shrink: false },
-                )
-                .map_err(|error| e.render_error(scope, "text layout (TxtWidth/Char.Size)", error))?;
-                if !layout.runs.is_empty() {
-                    let text_only = line.pattern == 0 && fill.pattern == 0;
-                    if !text_only && height > original_height {
-                        let x = block.width * drawing_scale * 0.5;
-                        scene.ops.push(Op::Bounds(text_transform.transform_rect_bbox(Rect::new(x, 0., x, height))));
-                    }
-                    let export_bounds = if text_only { text_export_bounds(&layout) } else { None };
-                    if let Some((rect, color)) = text_background(e, scope, &layout) {
-                        scene.ops.push(Op::TextBackground { rect, transform: text_transform, color });
-                    }
-                    scene.ops.push(Op::Text { layout, transform: text_transform, export_bounds });
+            // W5 and grouped witnesses: cancel reflection parity across the full ancestry.
+            // Keep the transformed off-centre block center fixed, including TxtAngle.
+            // https://learn.microsoft.com/en-us/office/client-developer/visio/flipx-cell-shape-transform-section
+            // https://learn.microsoft.com/en-us/office/client-developer/visio/flipy-cell-shape-transform-section
+            let (flip_x, flip_y) = e.text_reflections(scope).map_err(|error| e.render_error(scope, "text reflections", error))?;
+            let flip_x = if flip_x { -1. } else { 1. };
+            let flip_y = if flip_y { -1. } else { 1. };
+            let counter_flip = Affine::translate((block.width * 0.5, block.height * 0.5))
+                * Affine::scale_non_uniform(flip_x, flip_y)
+                * Affine::translate((-block.width * 0.5, -block.height * 0.5));
+            let text_transform = scale * block.to_page * counter_flip * Affine::scale(1. / drawing_scale) * Affine::translate((0., -shift));
+            let layout = misterdiagram_text::layout_for_export(
+                &block.body,
+                &Opts { rect: Rect::new(0., 0., block.width * drawing_scale, height), fields: &NoFields, prompt_color: None, no_shrink: false },
+            )
+            .map_err(|error| e.render_error(scope, "text layout (TxtWidth/Char.Size)", error))?;
+            text_body = Some(block.body);
+            if !layout.runs.is_empty() {
+                let text_only = line.pattern == 0 && fill.pattern == 0;
+                if !text_only && height > original_height {
+                    let x = block.width * drawing_scale * 0.5;
+                    scene.ops.push(Op::Bounds(text_transform.transform_rect_bbox(Rect::new(x, 0., x, height))));
                 }
+                let export_bounds = if text_only { text_export_bounds(&layout) } else { None };
+                if let Some((rect, color)) = text_background(e, scope, &layout) {
+                    scene.ops.push(Op::TextBackground { rect, transform: text_transform, color });
+                }
+                scene.ops.push(Op::Text { layout, transform: text_transform, export_bounds });
             }
         }
-        budget.charge_ops(scene.ops.get(first_op..).ok_or("scene operation range")?)?;
-        if mode == 1. {
-            shapes(e, &shape.shapes, parent, part, scale, options, scene, depth + 1, budget)?;
-        }
     }
-    Ok(())
+    budget.charge_ops(&scene.ops)?;
+    let mut sections = Vec::new();
+    for geometry in geometries {
+        let path = transform * style::round_rectangle(&geometry.path, line.rounding);
+        budget.charge(
+            std::mem::size_of_val(path.elements()).saturating_mul(2).saturating_add(std::mem::size_of::<misterdiagram_geom::GeometryPath>() * 2),
+        )?;
+        sections.push(misterdiagram_geom::GeometryPath { path, flags: geometry.flags });
+    }
+    let bounds = transform.transform_rect_bbox(Rect::new(0., 0., width, height));
+    let physical_scale = scale.determinant().abs().sqrt();
+    let mut stroke = line.stroke();
+    stroke.width *= physical_scale;
+    stroke.dash_offset *= physical_scale;
+    for dash in &mut stroke.dash_pattern {
+        *dash *= physical_scale;
+    }
+    let connections = Vec::new();
+    let one_d = shape.shape_type.as_deref() != Some("Foreign") && e.cell(scope, "BeginX").is_some();
+    let node = EvaluatedShape {
+        scope,
+        id: shape.id,
+        master: shape.master,
+        master_shape: shape.master_shape,
+        group: !shape.shapes.is_empty(),
+        children_first: mode == 2.,
+        hidden_own: false,
+        sections,
+        paint,
+        line: Some(line),
+        stroke: Some(stroke),
+        nominal_weight: weight,
+        bounds,
+        transform,
+        drawing_scale: physical_scale,
+        one_d,
+        connections,
+        text_body,
+        has_shadow,
+        content_start,
+        foreign_end,
+        drawing: scene,
+        children: Vec::new(),
+    };
+    node.charge_metadata(budget)?;
+    Ok(node)
 }
 /// ForeignData inherits from the corresponding master shape, with local data first.
 /// Its relationship belongs to the provider part; placement cells belong to the instance.
@@ -1440,6 +1543,7 @@ fn paint_foreign(
                 }
                 Op::Bounds(b) => Op::Bounds(m.transform_rect_bbox(b)),
                 Op::Image { pixels, transform } => Op::Image { pixels, transform: m * transform },
+                Op::RasterImage { pixels, transform } => Op::RasterImage { pixels, transform: m * transform },
                 Op::Text { layout, transform, export_bounds } => Op::Text { layout, transform: m * transform, export_bounds },
                 Op::TextBackground { rect, transform, color } => Op::TextBackground { rect, transform: m * transform, color },
             });

@@ -16,11 +16,14 @@ impl SceneBudget {
     pub fn new(bytes: usize) -> Self {
         Self { remaining: bytes, operations: 0 }
     }
+    pub fn charge_bytes(&mut self, bytes: usize) -> Result<(), String> {
+        self.charge(bytes)
+    }
     pub(super) fn charge(&mut self, bytes: usize) -> Result<(), String> {
         self.remaining = self.remaining.checked_sub(bytes).ok_or("export scene memory limit")?;
         Ok(())
     }
-    pub(crate) fn charge_ops(&mut self, ops: &[Op]) -> Result<(), String> {
+    pub fn charge_ops(&mut self, ops: &[Op]) -> Result<(), String> {
         self.operations = self.operations.saturating_add(ops.len());
         if self.operations > 200_000 {
             return Err("export operation limit".into());
@@ -29,7 +32,7 @@ impl SceneBudget {
         self.charge(std::mem::size_of_val(ops).saturating_mul(2))?;
         for op in ops {
             match op {
-                Op::Image { pixels, .. } => self.charge(pixels.as_raw().capacity())?,
+                Op::Image { pixels, .. } | Op::RasterImage { pixels, .. } => self.charge(pixels.as_raw().capacity())?,
                 Op::Path { path, paint, .. } => {
                     self.charge(std::mem::size_of_val(path.elements()).saturating_mul(2))?;
                     if let Paint::Pattern { gradient: Some(g), .. } = paint {

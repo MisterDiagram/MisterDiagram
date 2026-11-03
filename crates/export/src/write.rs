@@ -2,14 +2,18 @@
 //! crates/pptx/src/write.rs, 90058395b78be26bb7ea7b4914a9f113c28d979d.
 //! Copyright (c) 2026 ArtCraft Team and the DeckCraft contributors.
 //! SPDX-License-Identifier: MIT OR Apache-2.0
+use crate::model::Page;
 use misterdiagram_color::Rgba;
 use misterdiagram_opc::{
     NS_A, NS_P, NS_R, PackageOut, RelsOut,
     xml::{A, W},
 };
-use misterdiagram_render::scene::{Options, Scene};
+use misterdiagram_render::scene::{EvaluatedPage, Options, Scene};
 
 mod content;
+mod dml;
+mod media;
+mod shapes;
 mod theme;
 
 const CT_PRES: &str = "application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml";
@@ -30,28 +34,48 @@ const XML_STORAGE_FACTOR: usize = 4;
 
 pub struct Export {
     pub bytes: Vec<u8>,
+    pub pages: usize,
     pub warnings: Vec<String>,
 }
 
 /// Package already evaluated foreground scenes in their input order.
 /// Backgrounds, visibility and cached fallbacks are resolved by the renderer.
 /// ECMA-376 Part 1, 19.2.1.26 (presentation) and 19.3.1.38 (sld).
-pub fn render(scenes: &[Scene], colors: &[Rgba; 12], options: Options) -> Result<Export, String> {
-    render_limited(scenes, colors, options, 256 * 1024 * 1024)
+pub fn render(scenes: Vec<EvaluatedPage>, colors: &[Rgba; 12], options: Options) -> Result<Export, String> {
+    let mut pixel_budget = misterdiagram_render::scene::SceneBudget::default();
+    let pages = scenes
+        .into_iter()
+        .map(|source| {
+            let view = canvas(&source.scene, options)?;
+            let pixels = raster_options(&source.scene, options)?;
+            let mut page = Page::with_options(source, pixels, &mut pixel_budget)?;
+            page.presentation_canvas = Some(view);
+            Ok(page)
+        })
+        .collect::<Result<Vec<_>, String>>()?;
+    let mut output = render_limited(&pages, colors, options, 256 * 1024 * 1024)?;
+    for page in pages {
+        for warning in page.canvas.warnings {
+            if output.warnings.len() < 1000 {
+                output.warnings.push(warning);
+            }
+        }
+    }
+    Ok(output)
 }
-fn render_limited(scenes: &[Scene], colors: &[Rgba; 12], options: Options, limit: usize) -> Result<Export, String> {
+fn render_limited(scenes: &[Page], colors: &[Rgba; 12], options: Options, limit: usize) -> Result<Export, String> {
     if scenes.is_empty() || scenes.len() > 4096 {
         return Err("PPTX requires 1 to 4096 foreground pages".into());
     }
     let first = scenes.first().ok_or("no foreground page")?;
-    let (width, height, _) = canvas(first, options)?;
-    // ST_SlideSizeCoordinate is restricted to 1..56 inches. Refuse instead of
-    // silently changing the first page's required physical size.
-    if !(1. ..=56.).contains(&width) || !(1. ..=56.).contains(&height) {
-        return Err("PPTX slide size must be between 1 and 56 inches".into());
-    }
+    let (original_width, original_height, _) = output_canvas(first, options)?;
+    let (width, height) = slide_size(original_width, original_height)?;
     let mut pkg = PackageOut::default();
-    let mut warnings = vec!["PPTX package preview: native shape properties, groups and connector glue are not implemented yet".into()];
+    let mut media = media::Media::default();
+    let mut warnings = vec!["PPTX: connector presets and glue await connector export".into()];
+    if original_width.max(original_height) / original_width.min(original_height) > 56. {
+        warnings.push("PPTX: page aspect ratio exceeds 56:1; short canvas side padded to one inch".into());
+    }
     let mut rels = RelsOut::default();
     let master = rels.add("slideMaster", "slideMasters/slideMaster1.xml", false);
     let mut slides = Vec::new();
@@ -60,16 +84,31 @@ fn render_limited(scenes: &[Scene], colors: &[Rgba; 12], options: Options, limit
         retained = retained.checked_add(SLIDE_METADATA).ok_or("PPTX package limit")?;
         let remaining = limit.checked_sub(retained).ok_or("PPTX package limit")? / XML_STORAGE_FACTOR;
         let remaining = remaining.min(32 * 1024 * 1024);
-        let (w, h, view) = canvas(scene, options)?;
+        let (w, h, view) = output_canvas(scene, options)?;
+        for substitution in &scene.substitutions {
+            content::warn(&mut warnings, &format!("PPTX page {}: {}", index + 1, substitution.name()));
+        }
         let scale = (width / w).min(height / h);
         if (w - width).abs() > 1e-9 || (h - height).abs() > 1e-9 {
-            warnings.push(format!("PPTX page {}: scaled by {scale:.9} to fit the first foreground page", index + 1));
+            warnings.push(format!("PPTX page {}: scaled by {scale:.9} to fit the presentation canvas (DrawingML sides 1 to 56 inches)", index + 1));
         }
         let view = kurbo::Affine::translate(((width - w * scale) / 2., (height - h * scale) / 2.)) * kurbo::Affine::scale(scale) * view;
         let mut w = W::new();
         root_open(&mut w, "p:sld", A::new());
         tree_open(&mut w);
-        content::write(&mut w, scene, view, &mut warnings, remaining)?;
+        let mut slide_rels = RelsOut::default();
+        slide_rels.add("slideLayout", "../slideLayouts/slideLayout1.xml", false);
+        let mut media_remaining = limit.checked_sub(retained).ok_or("PPTX package limit")?;
+        let media_before = media_remaining;
+        shapes::write(
+            &mut w,
+            scene,
+            view,
+            &mut warnings,
+            remaining,
+            &mut shapes::Pictures { media: &mut media, package: &mut pkg, rels: &mut slide_rels, remaining: &mut media_remaining },
+        )?;
+        retained = retained.checked_add(media_before - media_remaining).ok_or("PPTX package limit")?;
         tree_close(&mut w);
         color_override(&mut w);
         w.close("p:sld");
@@ -81,8 +120,6 @@ fn render_limited(scenes: &[Scene], colors: &[Rgba; 12], options: Options, limit
         }
         let part = format!("ppt/slides/slide{}.xml", index + 1);
         pkg.xml_part(&part, CT_SLIDE, bytes);
-        let mut slide_rels = RelsOut::default();
-        slide_rels.add("slideLayout", "../slideLayouts/slideLayout1.xml", false);
         pkg.rels(&part, &slide_rels);
         slides.push(rels.add("slide", &format!("slides/slide{}.xml", index + 1), false));
     }
@@ -110,7 +147,11 @@ fn render_limited(scenes: &[Scene], colors: &[Rgba; 12], options: Options, limit
     root.add("extended-properties", "docProps/app.xml", false);
     pkg.rels("", &root);
     warnings.truncate(1000);
-    Ok(Export { bytes: pkg.finish().map_err(|e| e.to_string())?, warnings })
+    Ok(Export { pages: scenes.len(), bytes: pkg.finish().map_err(|e| e.to_string())?, warnings })
+}
+
+fn output_canvas(page: &Page, options: Options) -> Result<(f64, f64, kurbo::Affine), String> {
+    page.presentation_canvas.map(Ok).unwrap_or_else(|| canvas(&page.canvas, options))
 }
 
 fn canvas(scene: &Scene, options: Options) -> Result<(f64, f64, kurbo::Affine), String> {
@@ -119,10 +160,46 @@ fn canvas(scene: &Scene, options: Options) -> Result<(f64, f64, kurbo::Affine), 
         let dpi = 96. * options.scale;
         Ok((w / dpi, h / dpi, kurbo::Affine::scale(1. / dpi) * view))
     } else {
-        scene.page_canvas(options)?;
+        scene.canvas(raster_options(scene, options)?)?;
         let (w, h) = scene.page_size;
+        if !w.is_finite() || !h.is_finite() || w <= 0. || h <= 0. || w > 1e6 || h > 1e6 {
+            return Err("PPTX invalid page size".into());
+        }
         Ok((w, h, page_flip(h)))
     }
+}
+
+/// A1 scales oversized canvases before any foreign-pixel allocation. Validation
+/// still uses the renderer's scene guards, at the resulting presentation density.
+fn raster_options(scene: &Scene, options: Options) -> Result<Options, String> {
+    if !options.scale.is_finite() || options.scale <= 0. || options.scale > 100. {
+        return Err("render scale outside (0,100]".into());
+    }
+    if options.fit {
+        return Ok(options);
+    }
+    match scene.canvas(options) {
+        Ok(_) => return Ok(options),
+        Err(error) if error == "render pixel limit" => {}
+        Err(error) => return Err(error),
+    }
+    let longest = scene.bounds.width().max(scene.bounds.height());
+    let factor = if longest > 56. { 56. / longest } else { 1. };
+    Ok(Options { scale: options.scale * factor, ..options })
+}
+
+/// ST_SlideSizeCoordinate, ECMA-376 Part 1 section 19.7.17. Keep legal
+/// pages exact; otherwise uniformly fit the nearest legal canvas. Ratios above
+/// 56:1 need empty padding on the shorter side because no uniform scale can put
+/// both sides in range. The content is never stretched or silently cropped.
+fn slide_size(width: f64, height: f64) -> Result<(f64, f64), String> {
+    if !width.is_finite() || !height.is_finite() || width <= 0. || height <= 0. {
+        return Err("PPTX invalid page size".into());
+    }
+    let minimum = 1. / width.min(height);
+    let maximum = 56. / width.max(height);
+    let scale = if minimum <= maximum { 1f64.clamp(minimum, maximum) } else { maximum };
+    Ok(((width * scale).clamp(1., 56.), (height * scale).clamp(1., 56.)))
 }
 
 /// The only page-space Y flip: Visio inches to top-left DrawingML inches.
@@ -233,14 +310,27 @@ mod tests {
     fn aggregate_xml_budget_is_shared_between_slides() {
         let doc = misterdiagram_model::skeleton::document(false);
         let opts = Options::default();
-        let scene = misterdiagram_render::scene::page(&doc, 0, opts).unwrap();
+        let scene = Page::from_evaluated(misterdiagram_render::scene::evaluated::page(&doc, 0, opts, &mut Default::default()).unwrap()).unwrap();
         let colors = [Rgba::BLACK; 12];
         let one = render_limited(std::slice::from_ref(&scene), &colors, opts, 256 * 1024).unwrap();
         let package = misterdiagram_opc::Package::open(&one.bytes).unwrap();
         let slide = package.get("ppt/slides/slide1.xml").unwrap().len();
         let limit = FIXED_STORAGE + SLIDE_METADATA + XML_STORAGE_FACTOR * slide;
         assert!(render_limited(std::slice::from_ref(&scene), &colors, opts, limit).is_ok());
-        assert!(render_limited(&[scene.clone(), scene], &colors, opts, limit).is_err());
+        let second = Page::from_evaluated(misterdiagram_render::scene::evaluated::page(&doc, 0, opts, &mut Default::default()).unwrap()).unwrap();
+        assert!(render_limited(&[scene, second], &colors, opts, limit).is_err());
+    }
+    #[test]
+    fn legal_slide_bounds_keep_uniform_scaling() {
+        assert_eq!(slide_size(8.5, 11.).unwrap(), (8.5, 11.));
+        let (w, h) = slide_size(0.085, 0.11).unwrap();
+        assert_eq!(w, 1.);
+        assert!((h - 0.11 / 0.085).abs() < 1e-12);
+        assert_eq!(slide_size(112., 28.).unwrap(), (56., 14.));
+        assert_eq!(slide_size(1000., 1.).unwrap(), (56., 1.));
+        for (w, h) in [(0., 1.), (f64::NAN, 1.), (1., f64::INFINITY)] {
+            assert!(slide_size(w, h).is_err());
+        }
     }
     #[test]
     fn page_corners_flip_once_and_convert_to_emu() {
