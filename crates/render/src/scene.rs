@@ -12,7 +12,7 @@ use std::{collections::BTreeMap, sync::Arc};
 mod budget;
 pub mod evaluated;
 pub use budget::SceneBudget;
-pub use evaluated::{ConnectionSite, EvaluatedPage, EvaluatedShape};
+pub use evaluated::{ConnectionSite, EvaluatedPage, EvaluatedShape, EvaluatedTextBlock};
 
 pub const MAX_PIXELS: usize = 32 * 1024 * 1024;
 #[derive(Clone, Debug)]
@@ -616,7 +616,7 @@ fn page_evaluated_prepared(
         let p = document.pages.iter().find(|p| p.id == id).ok_or("missing page")?;
         let scope = Scope::Page(id);
         let ratio = evaluator.render_number(scope, "PageScale")? / evaluator.render_number(scope, "DrawingScale")?.max(1e-12);
-        let nodes = shapes(evaluator, &p.shapes, scope, &p.part, Affine::scale(ratio), options, 0, budget)?;
+        let nodes = shapes(evaluator, &p.shapes, scope, &p.part, Affine::scale(ratio), options, 0, budget, retain)?;
         for node in nodes {
             if retain {
                 node.charge_copy(budget)?;
@@ -677,7 +677,7 @@ pub fn master_prepared(evaluator: &mut Evaluator<'_>, index: usize, options: Opt
     let mut scene = Scene { fit_empty: false, warnings: vec![], ops: vec![], pdf_strokes: BTreeMap::new(), bounds: Rect::ZERO, page_size: (1., 1.) };
     let scope = Scope::Master(m.id);
     let ratio = evaluator.render_number(scope, "PageScale")? / evaluator.render_number(scope, "DrawingScale")?.max(1e-12);
-    for node in shapes(evaluator, &m.shapes, scope, &m.part, Affine::scale(ratio), options, 0, &mut SceneBudget::default())? {
+    for node in shapes(evaluator, &m.shapes, scope, &m.part, Affine::scale(ratio), options, 0, &mut SceneBudget::default(), false)? {
         node.append_to(&mut scene)?;
     }
     fallback_warnings(evaluator, &mut scene);
@@ -894,6 +894,7 @@ fn shapes(
     options: Options,
     depth: usize,
     budget: &mut SceneBudget,
+    retain: bool,
 ) -> Result<Vec<EvaluatedShape>, String> {
     if depth > 128 {
         return Err("shape depth limit".into());
@@ -929,14 +930,14 @@ fn shapes(
         // and mode2 paints it in front. Leaf shapes ignore this group property.
         let mode = if shape.shapes.is_empty() { 1. } else { number(e, scope, "DisplayMode", 1.) };
         let mut children =
-            if mode == 0. || mode == 2. { shapes(e, &shape.shapes, parent, part, scale, options, depth + 1, budget)? } else { Vec::new() };
+            if mode == 0. || mode == 2. { shapes(e, &shape.shapes, parent, part, scale, options, depth + 1, budget, retain)? } else { Vec::new() };
         let mut node = if mode == 0. {
             EvaluatedShape::hidden(scope, shape, scale, budget)?
         } else {
-            evaluate_shape(e, shape, scope, parent, part, scale, options, mode, budget)?
+            evaluate_shape(e, shape, scope, parent, part, scale, options, mode, budget, retain)?
         };
         if mode == 1. {
-            children = shapes(e, &shape.shapes, parent, part, scale, options, depth + 1, budget)?;
+            children = shapes(e, &shape.shapes, parent, part, scale, options, depth + 1, budget, retain)?;
         }
         node.children = children;
         result.push(node);
@@ -953,10 +954,12 @@ fn evaluate_shape(
     options: Options,
     mode: f64,
     budget: &mut SceneBudget,
+    retain: bool,
 ) -> Result<EvaluatedShape, String> {
     let mut scene =
         Scene { fit_empty: false, warnings: Vec::new(), ops: Vec::new(), pdf_strokes: BTreeMap::new(), bounds: Rect::ZERO, page_size: (1., 1.) };
     let mut text_body = None;
+    let mut text_block = None;
     let mut paint = None;
     let mut has_shadow = false;
     let transform = scale * e.shape_to_page(scope).map_err(|error| e.render_error(scope, "transform", error))?;
@@ -1244,45 +1247,72 @@ fn evaluate_shape(
     if number(e, scope, "HideText", 0.) == 0. {
         let body = e.text_body(scope).map_err(|error| e.render_error(scope, "text", error))?;
         if body.paragraphs.iter().flat_map(|p| &p.runs).any(|r| !r.text.is_empty()) {
-            let block = e.text_block(scope).map_err(|error| e.render_error(scope, "text block", error))?;
-            let drawing_scale = scale.determinant().abs().sqrt().max(1e-12);
-            let original_height = block.height * drawing_scale;
-            let measured = misterdiagram_model::text::TextHost::measure(&misterdiagram_text::Host, &block.body, Some(block.width * drawing_scale))
-                .map_err(|error| e.render_error(scope, "text metrics (TxtWidth/Char.Size)", error))?;
-            let height = original_height.max(measured.1);
-            let shift = match block.body.body.anchor.unwrap_or(misterdiagram_model::text::Anchor::Middle) {
-                misterdiagram_model::text::Anchor::Top => 0.,
-                misterdiagram_model::text::Anchor::Bottom => height - original_height,
-                _ => (height - original_height) * 0.5,
-            };
-            // W5 and grouped witnesses: cancel reflection parity across the full ancestry.
-            // Keep the transformed off-centre block center fixed, including TxtAngle.
-            // https://learn.microsoft.com/en-us/office/client-developer/visio/flipx-cell-shape-transform-section
-            // https://learn.microsoft.com/en-us/office/client-developer/visio/flipy-cell-shape-transform-section
-            let (flip_x, flip_y) = e.text_reflections(scope).map_err(|error| e.render_error(scope, "text reflections", error))?;
-            let flip_x = if flip_x { -1. } else { 1. };
-            let flip_y = if flip_y { -1. } else { 1. };
-            let counter_flip = Affine::translate((block.width * 0.5, block.height * 0.5))
-                * Affine::scale_non_uniform(flip_x, flip_y)
-                * Affine::translate((-block.width * 0.5, -block.height * 0.5));
-            let text_transform = scale * block.to_page * counter_flip * Affine::scale(1. / drawing_scale) * Affine::translate((0., -shift));
-            let layout = misterdiagram_text::layout_for_export(
-                &block.body,
-                &Opts { rect: Rect::new(0., 0., block.width * drawing_scale, height), fields: &NoFields, prompt_color: None, no_shrink: false },
-            )
-            .map_err(|error| e.render_error(scope, "text layout (TxtWidth/Char.Size)", error))?;
-            text_body = Some(block.body);
-            if !layout.runs.is_empty() {
-                let text_only = line.pattern == 0 && fill.pattern == 0;
-                if !text_only && height > original_height {
-                    let x = block.width * drawing_scale * 0.5;
-                    scene.ops.push(Op::Bounds(text_transform.transform_rect_bbox(Rect::new(x, 0., x, height))));
+            let result = (|| -> Result<(), String> {
+                let block = e.text_block(scope).map_err(|error| e.render_error(scope, "text block", error))?;
+                let drawing_scale = scale.determinant().abs().sqrt().max(1e-12);
+                let original_height = block.height * drawing_scale;
+                let measured =
+                    misterdiagram_model::text::TextHost::measure(&misterdiagram_text::Host, &block.body, Some(block.width * drawing_scale))
+                        .map_err(|error| e.render_error(scope, "text metrics (TxtWidth/Char.Size)", error))?;
+                let height = original_height.max(measured.1);
+                let shift = match block.body.body.anchor.unwrap_or(misterdiagram_model::text::Anchor::Middle) {
+                    misterdiagram_model::text::Anchor::Top => 0.,
+                    misterdiagram_model::text::Anchor::Bottom => height - original_height,
+                    _ => (height - original_height) * 0.5,
+                };
+                // W5 and grouped witnesses: cancel reflection parity across the full ancestry.
+                // Keep the transformed off-centre block center fixed, including TxtAngle.
+                // https://learn.microsoft.com/en-us/office/client-developer/visio/flipx-cell-shape-transform-section
+                // https://learn.microsoft.com/en-us/office/client-developer/visio/flipy-cell-shape-transform-section
+                let (flip_x, flip_y) = e.text_reflections(scope).map_err(|error| e.render_error(scope, "text reflections", error))?;
+                let flip_x = if flip_x { -1. } else { 1. };
+                let flip_y = if flip_y { -1. } else { 1. };
+                let counter_flip = Affine::translate((block.width * 0.5, block.height * 0.5))
+                    * Affine::scale_non_uniform(flip_x, flip_y)
+                    * Affine::translate((-block.width * 0.5, -block.height * 0.5));
+                let text_transform = scale * block.to_page * counter_flip * Affine::scale(1. / drawing_scale) * Affine::translate((0., -shift));
+                let layout = misterdiagram_text::layout_for_export(
+                    &block.body,
+                    &Opts { rect: Rect::new(0., 0., block.width * drawing_scale, height), fields: &NoFields, prompt_color: None, no_shrink: false },
+                )
+                .map_err(|error| e.render_error(scope, "text layout (TxtWidth/Char.Size)", error))?;
+                text_block = Some(EvaluatedTextBlock {
+                    rect: Rect::new(0., 0., block.width * drawing_scale, original_height),
+                    to_page: text_transform * Affine::translate((0., shift)),
+                    layout_rect: Rect::new(0., 0., block.width * drawing_scale, height),
+                });
+                text_body = Some(block.body);
+                if !layout.runs.is_empty() {
+                    let text_only = line.pattern == 0 && fill.pattern == 0;
+                    if !text_only && height > original_height {
+                        let x = block.width * drawing_scale * 0.5;
+                        scene.ops.push(Op::Bounds(text_transform.transform_rect_bbox(Rect::new(x, 0., x, height))));
+                    }
+                    let export_bounds = if text_only { text_export_bounds(&layout) } else { None };
+                    if let Some((rect, color)) = text_background(e, scope, &layout) {
+                        scene.ops.push(Op::TextBackground { rect, transform: text_transform, color });
+                    }
+                    scene.ops.push(Op::Text { layout, transform: text_transform, export_bounds });
                 }
-                let export_bounds = if text_only { text_export_bounds(&layout) } else { None };
-                if let Some((rect, color)) = text_background(e, scope, &layout) {
-                    scene.ops.push(Op::TextBackground { rect, transform: text_transform, color });
+                Ok(())
+            })();
+            if let Err(error) = result {
+                if !retain {
+                    return Err(error);
                 }
-                scene.ops.push(Op::Text { layout, transform: text_transform, export_bounds });
+                // Preserve bounded saved/evaluated runs when layout fails. Normal
+                // rendering still returns its original error; only the retained
+                // vector form can carry text without a raster layout.
+                let drawing_scale = scale.determinant().abs().sqrt().max(1e-12);
+                let rect = Rect::new(0., 0., width * 72. * drawing_scale, height * 72. * drawing_scale);
+                let mut to_page =
+                    transform * Affine::translate((0., height)) * Affine::scale_non_uniform(1. / (72. * drawing_scale), -1. / (72. * drawing_scale));
+                if to_page.determinant() > 0. {
+                    to_page *= Affine::translate((rect.width(), 0.)) * Affine::scale_non_uniform(-1., 1.);
+                }
+                text_block = Some(EvaluatedTextBlock { rect, to_page, layout_rect: rect });
+                text_body = Some(body);
+                scene.warnings.push(format!("shape {}: text layout failed; saved text retained for editable export ({error})", shape.id));
             }
         }
     }
@@ -1324,6 +1354,7 @@ fn evaluate_shape(
         one_d,
         connections,
         text_body,
+        text_block,
         has_shadow,
         content_start,
         foreign_end,

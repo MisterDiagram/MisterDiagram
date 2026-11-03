@@ -479,9 +479,9 @@ uniform scaling with a warning; extreme aspect ratios add padding on the short
 side. Other page sizes fit centered, with their scale reported.
 
 Shapes use evaluated custom geometry, native groups, resolved solid and gradient
-fills, line styles and mapped arrowheads. Text currently uses glyph outlines.
+fills, line styles, mapped arrowheads and editable text with resolved run formatting.
 Pattern fills use foreground colour; shadows are omitted, compound lines use a
 single outer weight, and alternate fills are approximate. Foreign objects are
-embedded PNG pictures, preserving the renderer's pixels and clipping. Editable
-text, preset connectors with attachment, full foreign-object acceptance and the
-PowerPoint acceptance check remain pending.
+embedded PNG pictures, preserving the renderer's pixels and clipping. Preset
+connectors with attachment, full foreign-object acceptance and the PowerPoint
+acceptance check remain pending.

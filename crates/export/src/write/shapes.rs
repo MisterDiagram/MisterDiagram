@@ -2,7 +2,7 @@
 //! crates/pptx/src/write/shapes.rs, 90058395b78be26bb7ea7b4914a9f113c28d979d.
 //! Copyright (c) 2026 ArtCraft Team and the DeckCraft contributors.
 //! SPDX-License-Identifier: MIT OR Apache-2.0
-use super::{content, dml, emu};
+use super::{content, dml, emu, text};
 use crate::model::Page;
 use kurbo::{Affine, Rect, Shape as _};
 use misterdiagram_opc::xml::{A, W};
@@ -103,6 +103,13 @@ fn shape(
             bounds = Some(bounds.map_or(b, |old: Rect| old.union(b)));
         }
         let bounds = bounds.unwrap_or_else(|| view.transform_rect_bbox(node.bounds));
+        let text = node.text_body.as_ref().zip(node.text_block.as_ref());
+        let placement = text.map(|(_, block)| text::placement(block, view)).transpose()?;
+        let inline = placement.is_some_and(|(b, angle, _)| {
+            angle.abs() < 1e-9
+                && [b.x0 - bounds.x0, b.y0 - bounds.y0, b.x1 - bounds.x1, b.y1 - bounds.y1].iter().all(|v| v.abs() < 1e-9)
+                && node.drawing.ops.iter().all(|op| matches!(op, Op::Text { .. } | Op::Bounds(_)))
+        });
         w.open0("p:sp");
         w.open0("p:nvSpPr");
         w.empty("p:cNvPr", A::new().a("id", next(id)?).a("name", format!("Shape {}", node.id)));
@@ -115,6 +122,9 @@ fn shape(
         dml::fill(w, node.paint.as_ref(), view, bounds)?;
         dml::line(w, node, view.determinant().abs().sqrt())?;
         w.close("p:spPr");
+        if inline && let (Some((body, _)), Some((_, angle, scale))) = (text, placement) {
+            text::body(w, body, scale, angle, limit)?;
+        }
         w.close("p:sp");
         if let Some(line) = &node.line
             && [line.begin_arrow, line.end_arrow].into_iter().any(|i| i != 0 && dml::arrow(i).1)
@@ -122,14 +132,15 @@ fn shape(
             content::warn(warnings, "PPTX: arrowhead mapped to its nearest DrawingML shape");
         }
         let mut clip = None;
+        let mut text_written = inline;
         for op in &node.drawing.ops {
             match op {
                 Op::Clip { path, .. } => clip = Some(path),
                 Op::Pop => clip = None,
-                Op::Text { layout, transform, .. } => {
-                    content::warn(warnings, "PPTX: text uses glyph paths until editable text export is implemented");
-                    for (path, color) in misterdiagram_render::scene::text_paths(layout, view * *transform) {
-                        content::path_shape(w, id, &path, color, None, limit)?;
+                Op::Text { .. } => {
+                    if !text_written && let (Some((body, _)), Some((bounds, angle, scale))) = (text, placement) {
+                        text_shape(w, next(id)?, node.id, body, bounds, angle, scale, limit)?;
+                        text_written = true;
                     }
                 }
                 Op::TextBackground { rect, transform, color } => {
@@ -145,6 +156,10 @@ fn shape(
                 }
                 _ => {}
             }
+        }
+        // Retained fallback text has no Op::Text when the raster layout failed.
+        if !text_written && let (Some((body, _)), Some((bounds, angle, scale))) = (text, placement) {
+            text_shape(w, next(id)?, node.id, body, bounds, angle, scale, limit)?;
         }
     }
     if !node.children_first {
@@ -206,5 +221,48 @@ fn picture(w: &mut W, id: &mut u32, width: u32, height: u32, transform: Affine, 
     w.close("a:ln");
     w.close("p:spPr");
     w.close("p:pic");
+    Ok(())
+}
+
+/// A distinct saved text rectangle stays editable without changing its size to
+/// compensate for PowerPoint's independent line-breaking engine.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/txtpinx-cell-text-transform-section
+fn text_shape(
+    w: &mut W,
+    id: u32,
+    source: u32,
+    body: &misterdiagram_model::text::TextBody,
+    bounds: Rect,
+    angle: f64,
+    scale: f64,
+    limit: usize,
+) -> Result<(), String> {
+    if w.s.len().saturating_add(8192) > limit {
+        return Err("PPTX text shape limit".into());
+    }
+    w.open0("p:sp");
+    w.open0("p:nvSpPr");
+    w.empty("p:cNvPr", A::new().a("id", id).a("name", format!("Text {source}")));
+    w.empty("p:cNvSpPr", A::new().a("txBox", 1));
+    w.empty0("p:nvPr");
+    w.close("p:nvSpPr");
+    w.open0("p:spPr");
+    xfrm(w, bounds, false)?;
+    content::geometry(
+        w,
+        &[misterdiagram_geom::GeometryPath {
+            path: bounds.to_path(1e-5),
+            flags: misterdiagram_geom::GeometryFlags { no_fill: true, no_line: true, ..Default::default() },
+        }],
+        Affine::IDENTITY,
+        bounds,
+    )?;
+    w.empty0("a:noFill");
+    w.open0("a:ln");
+    w.empty0("a:noFill");
+    w.close("a:ln");
+    w.close("p:spPr");
+    text::body(w, body, scale, angle, limit)?;
+    w.close("p:sp");
     Ok(())
 }

@@ -11,6 +11,16 @@ pub struct ConnectionSite {
     pub position: Point,
     pub normal: misterdiagram_geom::Vec2,
 }
+/// Unexpanded text rectangle in layout points and its y-up page transform.
+/// The raster layout may overflow this rectangle; exporters keep the saved box.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/txtwidth-cell-text-transform-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/txtheight-cell-text-transform-section
+#[derive(Clone, Copy, Debug)]
+pub struct EvaluatedTextBlock {
+    pub rect: Rect,
+    pub to_page: Affine,
+    pub layout_rect: Rect,
+}
 /// The renderer and exporters consume this form without evaluating cells again.
 /// Geometry sections retain flags and baked group transforms. TextLayout and
 /// decoded foreign pixels are retained in drawing.ops beside their transforms.
@@ -35,6 +45,7 @@ pub struct EvaluatedShape {
     pub one_d: bool,
     pub connections: Vec<ConnectionSite>,
     pub text_body: Option<TextBody>,
+    pub text_block: Option<EvaluatedTextBlock>,
     pub has_shadow: bool,
     /// Foreign content and text follow native geometry in the own-shape projection.
     pub content_start: usize,
@@ -83,6 +94,7 @@ impl EvaluatedShape {
             one_d: false,
             connections: Vec::new(),
             text_body: None,
+            text_block: None,
             has_shadow: false,
             content_start: 0,
             foreign_end: 0,

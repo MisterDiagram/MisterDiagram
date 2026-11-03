@@ -31,6 +31,7 @@ reader sheet limits after XML escaping, and preserves opaque part payloads exact
 | `crates/export/src/write/theme.rs` | [storytold/deckcraft](https://github.com/storytold/deckcraft), ArtCraft Team and contributors | `crates/pptx/src/write/theme.rs` (retargeted package/path/theme writer) | `90058395b78be26bb7ea7b4914a9f113c28d979d` | MIT OR Apache-2.0 |
 | `crates/export/src/write/shapes.rs` | [storytold/deckcraft](https://github.com/storytold/deckcraft), ArtCraft Team and contributors | `crates/pptx/src/write/shapes.rs` (retargeted native shape/style writer) | `90058395b78be26bb7ea7b4914a9f113c28d979d` | MIT OR Apache-2.0 |
 | `crates/export/src/write/dml.rs` | [storytold/deckcraft](https://github.com/storytold/deckcraft), ArtCraft Team and contributors | `crates/pptx/src/write/dml.rs` (retargeted native shape/style writer) | `90058395b78be26bb7ea7b4914a9f113c28d979d` | MIT OR Apache-2.0 |
+| `crates/export/src/write/text.rs` | [storytold/deckcraft](https://github.com/storytold/deckcraft), ArtCraft Team and contributors | `crates/pptx/src/write/dml.rs` (retargeted editable text writer) | `90058395b78be26bb7ea7b4914a9f113c28d979d` | MIT OR Apache-2.0 |
 | `crates/vsdx/tests/reader_memory.rs`, `crates/vsdx/tests/support/hostile_package.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/1a/vsdx_review_1a.rs` (selected memory tests and synthetic package recipe) | `107ee4c3423dd4154bd3c59f60362801f638eabf` | MIT OR Apache-2.0, user-authorized port |
 | `crates/vsdx/tests/authored_strings.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/1b/vsdx_review_1b.rs` (selected synthetic test) | `3ce1a4740bf3e44463f1e35babc42ff46562f4e5` | MIT OR Apache-2.0, user-authorized port |
 | `crates/engine/tests/route_ownership.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/3a/engine_review_3a.rs` (selected synthetic tests) | `3ce1a4740bf3e44463f1e35babc42ff46562f4e5` | MIT OR Apache-2.0, user-authorized port |
@@ -434,8 +435,8 @@ raster pixel-allocation refusal; export retries that guard at presentation densi
 when an oversized canvas needs it. All path, operation and coordinate guards run
 before that point, and ordinary raster rendering keeps its original limit.
 Evaluated metadata, retained copies, paths,
-text, pixels, XML and ZIP capacity are bounded. Text remains glyph outlines until
-the editable-text milestone; connector presets/glue remain a separate milestone.
+text, pixels, XML and ZIP capacity are bounded. Native editable text is implemented;
+connector presets/glue remain a separate milestone.
 
 Foreign media primitives are implemented here because the all-witness model gate
 includes the three image drawings. Natural rectangular PNG/JPEG images keep their
@@ -450,3 +451,25 @@ stale native-geometry PDF overrides are discarded from that foreign projection.
 Both forms become native pictures with explicit
 transforms and PNG parts deduplicated by SHA-256 of dimensions and pixel content.
 Part D still owns the complete foreign-object acceptance and fuzz extension.
+
+Editable text uses the retained logical TextBody for native paragraphs and runs,
+and the same TextLayout as the renderer for output-model raster QA. The retained
+text block stores both the saved rectangle and the layout overflow rectangle.
+Only the saved rectangle is serialized. An axis-aligned coincident block joins
+its shape when this preserves paint order; otherwise a separate transparent
+custom-geometry shape carries the body. Its rectangle and body rotation come
+from the evaluated transform, including TxtAngle and inherited reflections.
+No text box is padded, enlarged or shrunk to compensate for PowerPoint wrapping.
+Whole-page presentation scaling also scales type, margins, spacing and tabs.
+
+Character and paragraph properties are explicit, including font family names
+from Visio evaluation, colours with alpha, style resets, bullets and tab stops.
+Fields become evaluated text runs; soft breaks retain their logical boundaries.
+Visio font-relative SpLine is written as point spacing using the paragraph's
+largest nominal font size. Native PowerPoint line breaking remains its own.
+If bounded saved text cannot be laid out, retained vector evaluation carries it
+with a warning and a shape-sized fallback text rectangle. Ordinary render error
+behaviour remains unchanged. Resource or serialization failures refuse cleanly.
+The independent text manifest comes directly from evaluated bodies before the
+writer runs; python-pptx checks paragraphs, logical runs, text, faces and style
+flags, including the required bold/italic source defect.

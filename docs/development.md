@@ -34,6 +34,12 @@ SVG and PDF validation needs a local `.venv` with `pypdf` installed. PPTX packag
 and LibreOffice (`soffice --headless --convert-to pdf`). Use a repository-local
 LibreOffice user profile and fresh output folders.
 
+For native PPTX text readback, build `cargo build -p misterdiagram-export --example
+text_manifest` and the release CLI, then run `.venv/bin/python
+tools/mcp/check_pptx_text.py --out corpus/_state/text-readback corpus/generated`.
+The output folder must be new. The evaluator manifest and python-pptx reading
+compare paragraph/run boundaries, text, font names and bold/italic properties.
+
 ## Fonts
 
 Carlito, Caladea, Arimo, Tinos and Cousine are embedded (SIL Open Font License 1.1) and are

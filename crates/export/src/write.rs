@@ -14,6 +14,7 @@ mod content;
 mod dml;
 mod media;
 mod shapes;
+mod text;
 mod theme;
 
 const CT_PRES: &str = "application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml";

@@ -2798,9 +2798,10 @@ Reference: [THEME](https://learn.microsoft.com/en-us/office/client-developer/vis
 ## PowerPoint export in progress
 
 Native custom-geometry shapes and groups, resolved solid/gradient paints, physical
-line dashes and mapped arrowheads are implemented. Editable text, preset connector
-glue, full foreign-object acceptance and final PowerPoint acceptance remain pending; text currently uses
-glyph outlines. No repair-free or attachment acceptance is claimed.
+line dashes, mapped arrowheads and native editable text are implemented. Preset
+connector glue, full foreign-object acceptance and final PowerPoint acceptance
+remain pending. PowerPoint lays text out independently; differences in wrapping
+are recorded during acceptance without changing saved text boxes or type sizes. No repair-free or attachment acceptance is claimed.
 
 DrawingML has no alternate fill rule. Section sets requiring it use separate
 paths with hole contours unfilled, so overlapping and nested regions can differ.

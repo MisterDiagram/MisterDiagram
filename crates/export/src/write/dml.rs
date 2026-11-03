@@ -13,7 +13,7 @@ pub(super) fn solid(w: &mut W, c: Rgba) {
     color(w, c);
     w.close("a:solidFill");
 }
-fn color(w: &mut W, c: Rgba) {
+pub(super) fn color(w: &mut W, c: Rgba) {
     w.open("a:srgbClr", A::new().a("val", c.hex()));
     w.val("a:alpha", u32::from(c.a) * 100_000 / 255);
     w.close("a:srgbClr");
