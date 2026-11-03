@@ -3,17 +3,17 @@
 > **Drafted:** 2026-10-11 from the observed app (visio-observed.md) and Microsoft's documentation · **Target:** Microsoft Visio Standard 2021 16.0.20430 (Professional rows marked Pro) · **Status:** M4 authoring milestone met under the dated closure-2 rulings; remaining evaluation, routing and rendering gaps are recorded. Format follows the storytold apps' `docs/parity-checklist.md`: area, feature, priority, Core Y/N, status D/P/M.
 
 <!-- SUMMARY -->
-**Weighted breadth parity: 51%** over 45 Core=Y features.
+**Weighted breadth parity: 52%** over 45 Core=Y features.
 
 | Priority | Features | Done | Partial | Missing | Parity |
 |---|---|---|---|---|---|
 | P0 | 27 | 8 | 19 | 0 | 65% |
-| P1 | 15 | 1 | 4 | 10 | 20% |
+| P1 | 15 | 1 | 5 | 9 | 23% |
 | P2 | 3 | 0 | 0 | 3 | 0% |
 
 | Area | Parity |
 |---|---|
-| Files | 50% |
+| Files | 56% |
 | Pages | 50% |
 | Shapes | 63% |
 | Stencils | 61% |
@@ -51,7 +51,7 @@ Core=N rows (excluded from milestone scoring):
 | Files | Open .vsdm/.vssm/.vstm (drop macros, keep the rest) | P1 | Y | P |
 | Files | Export SVG (with Visio extension namespace), PNG, JPEG, EMF/WMF, PDF (vector, text, links) | P0 | Y | P |
 | Files | Export DWG/DXF; import DWG/DXF as a CAD underlay or converted shapes | P1 | Y | M |
-| Files | Export to PowerPoint (one page per slide, native shapes) and Word | P1 | Y | M |
+| Files | Export to PowerPoint (one page per slide, native shapes) and Word | P1 | Y | P |
 | Files | Print: page setup, fit to pages, headers and footers | P1 | N | M |
 | Pages | Multiple pages, background pages, page size and orientation, drawing scale and units | P0 | Y | P |
 | Pages | Rulers, grid, dynamic grid, guides, snap and glue settings | P0 | N | M |
@@ -463,15 +463,7 @@ partial rendering rows, scores and denominators remain unchanged.
   `field/format-pictures-2026-11-02/`. Date/locale and compound-prefix gaps remain.
 
 
-| Supplemental foreign-picture coverage | Status | Regression and witness |
-|---|---|---|
-| WMF detection, playback and foreign frame | P | `wmf`, `vendor_patterns`, foreign CLI and glue tests; private `field/brief65-2026-11-02/` |
-
-M5.114 progress: WMF format refusals become bounded playback, including mislabeled
-EMF parts. Two source seeds cover placeable detection and window scaling. The
-physical-extent native rectangle passes at 192/384 DPI; 96 DPI and additional
-mapping/export-bound diagnostics remain open. Existing scored denominators and
-broader foreign-picture parity remain unchanged.
+Supplemental foreign-picture coverage is recorded in [file-format-parity.md](file-format-parity.md#supplemental-foreign-picture-coverage).
 
 Progress M5.116: shared fit-to-drawing export and explicit margins added to CLI and MCP; native pixel fidelity remains partial (see gaps.md).
 
@@ -482,3 +474,5 @@ Progress M5.116: shared fit-to-drawing export and explicit margins added to CLI 
 - M5.119: Brief 66 review fixes for render validation, shared PDF export limits and strict structural sheet diagnostics; added public, empty-page, pattern-margin and inherited-picture controls.
 
 - M5.120: bounded THEME colour investigation recorded; required native configurations unavailable, no colour-form implementation (#88 remains open).
+
+- M5.126: Export to PowerPoint is P: native geometry/groups, text, preset connector glue and PNG pictures pass local package/model/readback checks. Native PowerPoint open/render/drag acceptance remains pending. Pattern/even-odd fills, shadows, compound lines, arrow approximations, page scaling, fitted routes, dropped jumps and synthetic sites are named in [gaps.md](gaps.md#powerpoint-export-partial). Word export remains missing.

@@ -51,6 +51,7 @@ export of the same file, measured by the test harness; Visio's exports stay out 
   zero blanks or guard kills; the remaining 64 are named gaps. PDF text extracts
   with ligatures and combining marks intact, and SVG text is `<text>` that can be searched,
   selected and edited.
+- **Export PowerPoint** with native shapes, groups, editable text, attached preset connectors and pictures; [picture limitations and pending native acceptance](docs/gaps.md#powerpoint-export-partial) are explicit.
 - **Write** .vsdx, .vssx and .vstx, and build documents from scratch. Visio 2021 opened all
   230 files of the acceptance set, five of them built from scratch, with no repair beyond a
   few disclosed metadata rewrites, and its COM dumps of the reopened files show zero

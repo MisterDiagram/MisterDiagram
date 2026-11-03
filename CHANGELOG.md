@@ -2,13 +2,15 @@
 
 ## Unreleased
 
+- **Connected drawing export checks:** Repeatable office, SAN and fabric drawings check editable PowerPoint exports. Native PowerPoint and Visio acceptance remains pending.
+
 - **PowerPoint connectors and pictures:** Export attached preset connectors and embedded pictures. Warnings identify dropped line jumps and routes fitted to PowerPoint presets.
 
 - **PowerPoint text:** Edit exported labels, paragraphs and formatted runs. Text keeps its saved position and size, including evaluated fields and cached text.
 
 - **PowerPoint shapes:** Keep native groups, geometry sections, resolved fills and line styles. Small or oversized pages scale to fit PowerPoint, with warnings for picture approximations.
 
-- **PowerPoint package preview:** Export evaluated drawing paths to `.pptx` through the CLI or MCP. The package foundation is extended by native shapes, text, connectors and pictures in subsequent milestones.
+- **PowerPoint pages:** Export one slide per foreground page through the CLI or MCP, including referenced backgrounds and page-size scaling warnings.
 
 ## 0.1.0-alpha.25
 

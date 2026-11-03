@@ -2795,7 +2795,7 @@ implementation or saturation seed. The missing Office/data-graphic coverage
 prevents accepting the candidate; #88 is not closed.
 Reference: [THEME](https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function).
 
-## PowerPoint export in progress
+## PowerPoint export: partial
 
 Native custom-geometry shapes and groups, resolved solid/gradient paints, physical
 line dashes, mapped arrowheads and native editable text are implemented. Preset connector glue and embedded foreign pictures are implemented; final
@@ -2830,3 +2830,5 @@ Whole-shape glue uses synthetic connection sites at the evaluated endpoints;
 Connection rows follow the four rectangle-order sites. Glue to a 1-D target uses
 a transparent site carrier grouped with it. PowerPoint may re-solve routes after
 movement; its independent render and drag acceptance remain pending.
+
+The combined PowerPoint/Word checklist row remains P. Word export is unimplemented. The general M5 gate uses the office, SAN and fabric witnesses and still requires native PowerPoint open/render/drag and Visio unrepaired-open acceptance; local package/model/readback success does not close that gate.

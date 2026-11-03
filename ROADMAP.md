@@ -1,13 +1,21 @@
 # MisterDiagram roadmap
 
-Status: pre-alpha, M0 through M4 met (M4: 2026-10-15). Phase 5 is in progress; P5a is accepted. PowerPoint export and the M5 gate remain open. Target: Visio Standard 2021.
+Status: pre-alpha, M0 through M4 met (M4: 2026-10-15). Phase 5 is in progress; P5a is accepted. PowerPoint export is implemented with named picture limitations; native PowerPoint acceptance and the M5 gate remain open. Target: Visio Standard 2021.
 
 Phase 0 establishes the workspace, conventions, oracle scripts and private corpus. Phases 1
 through 5 add reading and ShapeSheet evaluation, rendering, writing, authoring, and exports.
 M0 closed at 1473b0d. M1 code closed at e7dfbd4 after all acceptance commands and two
 clean independent frozen verification passes.
 
+## M5 gate
+
+Charles's 2026-11-02 ruling: a drawing with glued connectors built entirely through MCP, exported to pptx that PowerPoint opens without repair with every connector attached, and to .vsdx that Visio opens unrepaired; `cargo xtask parity` shows every Core=Y P0 row D or P, with the P rows named in `gaps.md`.
+
+The office network, SAN topology and fabric page are three witnesses. The SAN does not define the gate. Local export checks are repeatable with `tools/mcp/export_acceptance.py`; PowerPoint open/render/drag and Visio unrepaired-open checks remain the native acceptance block.
+
 ## Progress
+
+- 2026-11-03: M5.122 through M5.126 implement native PPTX shapes, editable text, preset connector attachments, pictures and fresh MCP export acceptance. The shared evaluated form keeps renderer pixels unchanged; the named approximations and pending native acceptance remain in gaps.md.
 
 - 2026-10-29: M5.89 (#87) corrects stored Themed Character values and indexed text contrast. In the reporter's two files, every themed Character color row resolves to RGB(70,114,196) and the inherited-Arial labels draw in Calibri on one line, as in Visio. Three synthetic regressions cover the rules, with native root-default and formula controls. General theme/text parity remains partial, including twelve absent-cell defaults in a 270-result synthetic probe.
 

@@ -17731,3 +17731,15 @@ saved Width or Height unit. Broader date, currency and locale gaps remain open.
 References: [FORMAT](https://learn.microsoft.com/en-us/office/client-developer/visio/format-function),
 [FORMATEX](https://learn.microsoft.com/en-us/office/client-developer/visio/formatex-function),
 [Width](https://learn.microsoft.com/en-us/office/client-developer/visio/width-cell-shape-transform-section).
+
+## Supplemental foreign-picture coverage
+
+| Supplemental foreign-picture coverage | Status | Regression and witness |
+|---|---|---|
+| WMF detection, playback and foreign frame | P | `wmf`, `vendor_patterns`, foreign CLI and glue tests; private `field/brief65-2026-11-02/` |
+
+M5.114 progress: WMF format refusals become bounded playback, including mislabeled
+EMF parts. Two source seeds cover placeable detection and window scaling. The
+physical-extent native rectangle passes at 192/384 DPI; 96 DPI and additional
+mapping/export-bound diagnostics remain open. Existing scored denominators and
+broader foreign-picture parity remain unchanged.

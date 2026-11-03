@@ -163,3 +163,21 @@ native preset types, every attachment target/index, guide references and PNG bli
 The field renderer also writes `drawing.pptx` beside each drawing's PNGs and records
 its outcomes separately in `pptx.tsv`, preserving the existing PNG comparison rows.
 Mutation fuzz exercises PPTX export after successful import.
+
+### M5 export acceptance
+
+Build the CLI and test-build exporter helpers, then run the fresh MCP acceptance:
+
+```sh
+cargo build --release -p misterdiagram-cli
+cargo build --release -p misterdiagram-export --examples
+.venv/bin/python tools/mcp/export_acceptance.py
+```
+
+The output folder `corpus/_state/m5-export/` must be new (`--out` selects another
+fresh path). Each recipe runs in a fresh MCP stdio process and saves a VSDX;
+a fresh MCP process opens that drawing and exports its PPTX. The exact same PPTX
+is inspected for slides, text and attachment indexes and converted by LibreOffice.
+The `model_check` helper compares evaluated renderer pixels with exporter intent.
+The one-page `report.md` and detailed `report.json` explicitly leave native
+PowerPoint and Visio acceptance pending. No PowerPoint process or VM is started.

@@ -68,7 +68,7 @@ page. Every mutating command uses the engine's strict write-and-reimport path.
 | open | `{"name":"open","arguments":{"path":"drawing.vsdx"}}` | Replaces the active document; returns page count and macro-removal flag. |
 | save | `{"name":"save","arguments":{"path":"drawing.vsdx"}}` | Saves VSDX, VSSX or VSTX by extension; returns bytes and warnings. |
 | export | `{"name":"export","arguments":{"path":"drawing.svg","page":1}}` | VSDX, PNG, SVG, PDF or PPTX by extension. VSDX takes only path. Image/PDF exports accept `fit: true` and optional `margin: "5 mm"`. PDF and PPTX without page include foreground pages. SVG defaults to editable text; `text_outlines: true` preserves glyph paths. |
-| render | `{"name":"render","arguments":{"path":"drawing.png","page":1,"scale":2}}` | Renders PNG, SVG or PDF at the requested scale. `fit: true` uses the foreground drawing crop; optional `margin` is a physical measurement string. SVG defaults to editable text; optional boolean `text_outlines` selects glyph paths. |
+| render | `{"name":"render","arguments":{"path":"drawing.png","page":1,"scale":2}}` | Renders PNG, SVG, PDF or PPTX; scale controls raster output. `fit: true` uses the foreground drawing crop; optional `margin` is a physical measurement string. SVG defaults to editable text; optional boolean `text_outlines` selects glyph paths. |
 | list_commands | `{"name":"list_commands","arguments":{}}` | Lists command IDs, labels, schemas and enabled state. |
 | run_command | `{"name":"run_command","arguments":{"command":"shape.draw.rect","params":{"x":1,"y":2,"width":2,"height":1}}}` | Creates a rectangle and returns its ID. Any registered engine command is available. |
 | batch | `{"name":"batch","arguments":{"commands":[{"command":"shape.draw.rect","as":"cedar","params":{"x":1,"y":2,"width":2,"height":1}},{"command":"shape.text","params":{"id":"$cedar","text":"Cedar"}}]}}` | Creates and labels a rectangle as one undo step. Returns results and the reference map. |
@@ -470,7 +470,7 @@ Visio's resize operation adds page margins, normally a quarter inch on each side
 Those margins are not automatically part of this export crop. Native SVG export
 uses the physical resized page instead; that behavior differs from `fit: true`.
 
-### PPTX export in progress
+### PPTX export
 
 PPTX writes one slide per foreground page and composites referenced backgrounds
 behind foreground shapes. A selected page exports alone. The first exported
@@ -485,3 +485,5 @@ single outer weight, and alternate fills are approximate. Foreign objects are
 embedded PNG pictures, preserving the renderer's pixels and clipping. Preset connectors carry explicit site attachments. Line jumps are dropped and
 routes beyond the preset family are fitted, with warnings. The native PowerPoint
 open, render and drag acceptance check remains pending.
+
+Fresh MCP acceptance for the office, SAN and fabric witnesses is available through `tools/mcp/export_acceptance.py`. It writes local package, model, text and glue results under `corpus/_state/m5-export/`; PowerPoint and Visio acceptance are separate.

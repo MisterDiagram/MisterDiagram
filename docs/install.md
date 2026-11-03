@@ -149,7 +149,7 @@ misterdiagram render drawing.vsdx --page 1 drawing.png
 misterdiagram run --batch two-boxes.json --save two-boxes.vsdx
 ```
 
-`render` also writes `.svg` and `.pdf`. `QUICKSTART.txt` in the archive has the
+`render` also writes `.svg`, `.pdf` and `.pptx`. PDF and PPTX export all foreground pages when `--page` is omitted. PPTX supports editable shapes and text, with [named picture limitations](gaps.md#powerpoint-export-partial); native PowerPoint acceptance is pending. `QUICKSTART.txt` in the archive has the
 `two-boxes.json` script. `misterdiagram commands` lists every authoring command with its
 parameters; the [README](../README.md) and [docs/mcp.md](mcp.md) cover the rest.
 
