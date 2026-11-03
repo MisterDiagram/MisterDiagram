@@ -30,7 +30,9 @@ Python 3.11 or newer is required for the full test suite. The Rust package-compa
 tests print a skip reason when no Python 3 executable is available; setting
 `MISTERDIAGRAM_REQUIRE_PYTHON=1` makes absence a failure. `cargo xtask ci` and
 GitHub Actions set it, so these comparisons cannot silently skip in CI.
-SVG and PDF validation needs a local `.venv` with `pypdf` installed.
+SVG and PDF validation needs a local `.venv` with `pypdf` installed. PPTX package validation also uses `python-pptx` 1.0.2
+and LibreOffice (`soffice --headless --convert-to pdf`). Use a repository-local
+LibreOffice user profile and fresh output folders.
 
 ## Fonts
 

@@ -67,7 +67,7 @@ page. Every mutating command uses the engine's strict write-and-reimport path.
 | --- | --- | --- |
 | open | `{"name":"open","arguments":{"path":"drawing.vsdx"}}` | Replaces the active document; returns page count and macro-removal flag. |
 | save | `{"name":"save","arguments":{"path":"drawing.vsdx"}}` | Saves VSDX, VSSX or VSTX by extension; returns bytes and warnings. |
-| export | `{"name":"export","arguments":{"path":"drawing.svg","page":1}}` | VSDX, PNG, SVG or PDF by extension. VSDX takes only path. Image/PDF exports accept `fit: true` and optional `margin: "5 mm"`. PDF without page includes foreground pages. SVG defaults to editable text; `text_outlines: true` preserves glyph paths. |
+| export | `{"name":"export","arguments":{"path":"drawing.svg","page":1}}` | VSDX, PNG, SVG, PDF or PPTX by extension. VSDX takes only path. Image/PDF exports accept `fit: true` and optional `margin: "5 mm"`. PDF and PPTX without page include foreground pages. SVG defaults to editable text; `text_outlines: true` preserves glyph paths. |
 | render | `{"name":"render","arguments":{"path":"drawing.png","page":1,"scale":2}}` | Renders PNG, SVG or PDF at the requested scale. `fit: true` uses the foreground drawing crop; optional `margin` is a physical measurement string. SVG defaults to editable text; optional boolean `text_outlines` selects glyph paths. |
 | list_commands | `{"name":"list_commands","arguments":{}}` | Lists command IDs, labels, schemas and enabled state. |
 | run_command | `{"name":"run_command","arguments":{"command":"shape.draw.rect","params":{"x":1,"y":2,"width":2,"height":1}}}` | Creates a rectangle and returns its ID. Any registered engine command is available. |
@@ -469,3 +469,14 @@ For multipage PDF, each foreground page is fitted independently.
 Visio's resize operation adds page margins, normally a quarter inch on each side.
 Those margins are not automatically part of this export crop. Native SVG export
 uses the physical resized page instead; that behavior differs from `fit: true`.
+
+### PPTX package preview
+
+The initial PPTX writer emits one slide per foreground page and composes referenced
+background paths behind its foreground paths. A selected page exports alone. The
+first exported page sets the slide size; other sizes are scaled uniformly to fit
+and the export reports each scale. The first size must be between 1 and 56 inches.
+This package preview writes evaluated paths, with text as glyph outlines. Native
+groups, editable text runs, connector glue and media are pending. Pattern and
+gradient fills currently use foreground colour; images and clipping are omitted
+with warnings. It is not yet the completed PowerPoint export feature.

@@ -173,8 +173,8 @@ pub(crate) fn export(s: &mut Session, p: &Value) -> Result<Value> {
     use misterdiagram_render::{pdf, raster, scene, svg};
     let path = path(p, "path")?;
     let ext = extension(path)?;
-    if !matches!(ext.as_str(), "png" | "svg" | "pdf") {
-        return Err(operation("export extension must be png, svg or pdf"));
+    if !matches!(ext.as_str(), "png" | "svg" | "pdf" | "pptx") {
+        return Err(operation("export extension must be png, svg, pdf or pptx"));
     }
     let scale = match p.get("scale") {
         None => 1.,
@@ -194,12 +194,13 @@ pub(crate) fn export(s: &mut Session, p: &Value) -> Result<Value> {
         .with_fit(fit, margin)
         .map_err(operation)?;
     let mut budget = scene::SceneBudget::default();
-    let scenes = if ext == "pdf" && page.is_none() {
+    let scenes = if matches!(ext.as_str(), "pdf" | "pptx") && page.is_none() {
         scene::foreground_pages_budgeted(&s.document, options, &mut budget).map_err(operation)?
     } else {
         vec![scene::page_budgeted(&s.document, page.unwrap_or(s.selection.page), options, &mut budget).map_err(operation)?]
     };
     let first = scenes.first().ok_or_else(|| operation("no foreground page"))?;
+    let mut export_warnings = Vec::new();
     let bytes = match ext.as_str() {
         "png" => {
             let image = raster::render(first, options).map_err(operation)?;
@@ -209,10 +210,17 @@ pub(crate) fn export(s: &mut Session, p: &Value) -> Result<Value> {
         }
         "svg" => svg::render(first, options).map_err(operation)?.into_bytes(),
         "pdf" => pdf::render(&scenes, options).map_err(operation)?,
+        "pptx" => {
+            let selected = page.map(Ok).unwrap_or_else(|| scene::default_page_index(&s.document)).map_err(operation)?;
+            let colors = misterdiagram_export::colors(&s.document, selected).map_err(operation)?;
+            let output = misterdiagram_export::render(&scenes, &colors, options).map_err(operation)?;
+            export_warnings = output.warnings;
+            output.bytes
+        }
         _ => return Err(operation("unsupported export extension")),
     };
     atomic_write(path, &bytes)?;
-    let warnings: Vec<_> = scenes.iter().flat_map(|s| s.warnings.iter()).take(1000).collect();
+    let warnings: Vec<_> = scenes.iter().flat_map(|s| s.warnings.iter()).chain(export_warnings.iter()).take(1000).collect();
     Ok(json!({"bytes":bytes.len(),"pages":scenes.len(),"warnings":warnings}))
 }
 struct Temporary(PathBuf);

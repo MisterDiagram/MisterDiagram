@@ -127,11 +127,11 @@ pub fn convert(args: &[OsString], out: &mut impl Write, memory: MemoryLimits) ->
     let extension = std::path::Path::new(output_path).extension().and_then(|e| e.to_str()).unwrap_or("").to_ascii_lowercase();
     let command = match extension.as_str() {
         "vsdx" | "vssx" | "vstx" => "file.save",
-        "png" | "svg" | "pdf" => "file.export",
-        _ => return Err("convert output must be vsdx, vssx, vstx, png, svg or pdf".into()),
+        "png" | "svg" | "pdf" | "pptx" => "file.export",
+        _ => return Err("convert output must be vsdx, vssx, vstx, png, svg, pdf or pptx".into()),
     };
     if fit && command != "file.export" {
-        return Err("usage: --fit requires PNG, SVG or PDF output".into());
+        return Err("usage: --fit requires PNG, SVG, PDF or PPTX output".into());
     }
     let mut session = Session::with_memory_limits(memory);
     session.execute("file.open", &json!({"path":input})).map_err(|e| e.to_string())?;

@@ -43,7 +43,7 @@ const TOOLS: &[(&str, &str, &str)] = &[
     (
         "export",
         "file.export",
-        "Use for deliverables in VSDX, PNG, SVG or PDF; equivalent to run_command file.save/file.export. Use render for previews.",
+        "Use for deliverables in VSDX, PNG, SVG, PDF or PPTX; equivalent to run_command file.save/file.export. Use render for previews.",
     ),
     (
         "render",

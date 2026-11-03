@@ -19,6 +19,18 @@ fn theme_property(requested: &str) -> String {
     if cell.starts_with("char.") { cell.split('[').next().unwrap_or(&cell).to_owned() } else { cell }
 }
 impl Themes {
+    /// Resolve the selected document colour scheme without copying theme styles.
+    /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/43361fc1-8acc-410f-a853-c36ff053682d
+    pub fn resolved_color_scheme(&self, id: u32) -> Result<Option<[Rgba; 12]>, Error> {
+        let Some((_, scheme)) = self.component("clrScheme", id) else { return Ok(None) };
+        let mut colors = [Rgba::BLACK; 12];
+        for (out, slot) in
+            colors.iter_mut().zip(["dk1", "lt1", "dk2", "lt2", "accent1", "accent2", "accent3", "accent4", "accent5", "accent6", "hlink", "folHlink"])
+        {
+            *out = color(scheme.child(slot).ok_or(Error::Ref)?, Some(scheme), Rgba::BLACK, 0)?;
+        }
+        Ok(Some(colors))
+    }
     /// Read theme parts without importing any built-in visual theme into the program.
     /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/43361fc1-8acc-410f-a853-c36ff053682d
     pub fn from_document(document: &Document) -> Result<Self, Error> {
@@ -760,5 +772,19 @@ mod tests {
         let e = xml::parse(b"<clrScheme><dk1><schemeClr val='dk1'/></dk1></clrScheme>").unwrap();
         assert_eq!(quick_color(&e.root, 0, 0), Err(Error::Limit));
         assert_eq!(quick_color(&e.root, u32::MAX, 0), Err(Error::Ref));
+    }
+    #[test]
+    fn exported_scheme_resolves_slots_and_rejects_cycles() {
+        let mut xml = String::from("<theme><clrScheme>");
+        for slot in ["dk1", "lt1", "dk2", "lt2", "accent1", "accent2", "accent3", "accent4", "accent5", "accent6", "hlink", "folHlink"] {
+            xml.push_str(&format!("<{slot}><srgbClr val='123456'/></{slot}>"));
+        }
+        xml.push_str("<schemeID schemeEnum='42'/></clrScheme></theme>");
+        let themes = Themes { themes: vec![Themes::parse(xml.as_bytes()).unwrap()] };
+        assert_eq!(themes.resolved_color_scheme(42).unwrap(), Some([Rgba::rgb(18, 52, 86); 12]));
+        assert_eq!(themes.resolved_color_scheme(0).unwrap(), None);
+        let cyclic = xml.replacen("<srgbClr val='123456'/>", "<schemeClr val='dk1'/>", 1);
+        let themes = Themes { themes: vec![Themes::parse(cyclic.as_bytes()).unwrap()] };
+        assert_eq!(themes.resolved_color_scheme(42), Err(Error::Limit));
     }
 }

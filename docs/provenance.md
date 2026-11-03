@@ -14,6 +14,14 @@ Every implemented element, cell and function cites its reference page in its doc
 
 ## 3. Third-party projects consulted
 
+PPTX package foundation: ECMA-376 Part 1, fifth edition (December 2016),
+section 19.7.17, page 2703, from
+https://ecma-international.org/wp-content/uploads/ECMA-376-1_5th_edition_december_2016.zip
+was consulted to verify the explicit 914,400..51,206,400 EMU slide-size bounds
+and section 20.1.10.35 for the 0..20,116,800 EMU line-width bounds.
+The standard supplies format constraints only; no illustrative assets are used.
+
+
 Brief 66 (2026-11-03): search snippets from the
 [Visio theme colour reference](https://visualsignals.typepad.co.uk/files/visio2013themecolorsreference.pdf)
 and a [theme-variant question](https://stackoverflow.com/questions/51052565/visio-accessing-custom-color-variant-from-macro)

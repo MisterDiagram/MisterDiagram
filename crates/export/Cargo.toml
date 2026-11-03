@@ -11,3 +11,10 @@ workspace = true
 [dependencies]
 misterdiagram-render.workspace = true
 misterdiagram-vsdx.workspace = true
+misterdiagram-model.workspace = true
+misterdiagram-opc.workspace = true
+misterdiagram-color.workspace = true
+misterdiagram-geom.workspace = true
+misterdiagram-theme.workspace = true
+misterdiagram-sheet.workspace = true
+kurbo.workspace = true

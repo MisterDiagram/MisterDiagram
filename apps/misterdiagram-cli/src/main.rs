@@ -91,14 +91,14 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
     }
     let [input, output] = positional.as_slice() else {
         return Err(
-            "usage: render FILE [--page N] [--scale S] [--text-outlines] [--fit [--margin M]] OUT.{png,svg,pdf}; render --masters STENCIL OUT.png"
+            "usage: render FILE [--page N] [--scale S] [--text-outlines] [--fit [--margin M]] OUT.{png,svg,pdf,pptx}; render --masters STENCIL OUT.png"
                 .into(),
         );
     };
     let path = Path::new(output);
     let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("").to_ascii_lowercase();
-    if !matches!(extension.as_str(), "png" | "svg" | "pdf") {
-        return Err("usage: render output extension must be png, svg or pdf".into());
+    if !matches!(extension.as_str(), "png" | "svg" | "pdf" | "pptx") {
+        return Err("usage: render output extension must be png, svg, pdf or pptx".into());
     }
     if masters && (extension != "png" || page.is_some()) {
         return Err("usage: master contact sheets require PNG and no page selector".into());
@@ -128,9 +128,9 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
         }
         return Ok(());
     }
-    options.page_canvas = matches!(extension.as_str(), "svg" | "pdf");
+    options.page_canvas = matches!(extension.as_str(), "svg" | "pdf" | "pptx");
     let mut budget = scene::SceneBudget::default();
-    let scenes = if extension == "pdf" && page.is_none() {
+    let scenes = if matches!(extension.as_str(), "pdf" | "pptx") && page.is_none() {
         scene::foreground_pages_budgeted(&doc, options, &mut budget)?
     } else {
         vec![scene::page_budgeted(&doc, page.map(Ok).unwrap_or_else(|| scene::default_page_index(&doc))?, options, &mut budget)?]
@@ -145,7 +145,15 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
         "png" => raster::render(first, options)?.save(path).map_err(|e| e.to_string()),
         "svg" => std::fs::write(path, svg::render(first, options)?).map_err(|e| e.to_string()),
         "pdf" => std::fs::write(path, pdf::render(&scenes, options)?).map_err(|e| e.to_string()),
-        _ => Err("render output extension must be png, svg or pdf".into()),
+        "pptx" => {
+            let colors = misterdiagram_export::colors(&doc, page.map(Ok).unwrap_or_else(|| scene::default_page_index(&doc))?)?;
+            let output = misterdiagram_export::render(&scenes, &colors, options)?;
+            for warning in &output.warnings {
+                let _ = writeln!(std::io::stderr().lock(), "warning: {warning}");
+            }
+            std::fs::write(path, output.bytes).map_err(|e| e.to_string())
+        }
+        _ => Err("render output extension must be png, svg, pdf or pptx".into()),
     }
 }
 /// `misterdiagram 0.1.0-alpha.25 (0123456789ab, aarch64-apple-darwin)`; the commit comes from the
@@ -161,8 +169,8 @@ fn execute(args: &[std::ffi::OsString], out: &mut impl Write) -> Result<(), Stri
     let (arguments, stencil_path) = settings::stencil_path(&arguments, std::env::var_os("MISTERDIAGRAM_STENCIL_PATH"))?;
     let args = arguments.as_slice();
     match args.first().and_then(|a| a.to_str()) {
-        Some("--help") if args.len() == 1 => writeln!(out, "misterdiagram: info, sheet, render, convert, run, commands, describe, corpus check, mcp\nrender FILE [--page N] [--scale S] [--text-outlines] [--fit [--margin M]] OUT.{{png,svg,pdf}}\nconvert IN OUT [--text-outlines] [--fit [--margin M]]\nSVG uses editable text by default; --text-outlines writes glyph paths.\n--fit crops all formats to foreground drawing content; --margin adds a physical length (for example 5 mm) on each side.").map_err(|e|e.to_string()),
-        Some("render" | "convert") if args.len()==2 && args.get(1).is_some_and(|a|a=="--help") => writeln!(out, "render FILE [--page N] [--scale S] [--text-outlines] [--fit [--margin M]] OUT.{{png,svg,pdf}}\nconvert IN OUT [--text-outlines] [--fit [--margin M]]\nSVG uses editable text by default; --text-outlines writes glyph paths.\n--fit crops all formats to foreground drawing content; --margin adds a physical length (for example 5 mm) on each side.").map_err(|e|e.to_string()),
+        Some("--help") if args.len() == 1 => writeln!(out, "misterdiagram: info, sheet, render, convert, run, commands, describe, corpus check, mcp\nrender FILE [--page N] [--scale S] [--text-outlines] [--fit [--margin M]] OUT.{{png,svg,pdf,pptx}}\nconvert IN OUT [--text-outlines] [--fit [--margin M]]\nSVG uses editable text by default; --text-outlines writes glyph paths.\n--fit crops all formats to foreground drawing content; --margin adds a physical length (for example 5 mm) on each side.").map_err(|e|e.to_string()),
+        Some("render" | "convert") if args.len()==2 && args.get(1).is_some_and(|a|a=="--help") => writeln!(out, "render FILE [--page N] [--scale S] [--text-outlines] [--fit [--margin M]] OUT.{{png,svg,pdf,pptx}}\nconvert IN OUT [--text-outlines] [--fit [--margin M]]\nSVG uses editable text by default; --text-outlines writes glyph paths.\n--fit crops all formats to foreground drawing content; --margin adds a physical length (for example 5 mm) on each side.").map_err(|e|e.to_string()),
         Some("--version") if args.len() == 1 => {
             writeln!(out, "{}", version_line(option_env!("MISTERDIAGRAM_COMMIT"), env!("MISTERDIAGRAM_TARGET"))).map_err(|e| e.to_string())
         }

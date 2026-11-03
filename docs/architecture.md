@@ -26,6 +26,9 @@ reader sheet limits after XML escaping, and preserves opaque part payloads exact
 
 | Local path | Source repo | Source path | Commit | Licence |
 |---|---|---|---|---|
+| `crates/export/src/write.rs` | [storytold/deckcraft](https://github.com/storytold/deckcraft), ArtCraft Team and contributors | `crates/pptx/src/write.rs` (retargeted package/path/theme writer) | `90058395b78be26bb7ea7b4914a9f113c28d979d` | MIT OR Apache-2.0 |
+| `crates/export/src/write/content.rs` | [storytold/deckcraft](https://github.com/storytold/deckcraft), ArtCraft Team and contributors | `crates/pptx/src/custgeom.rs` (retargeted package/path/theme writer) | `90058395b78be26bb7ea7b4914a9f113c28d979d` | MIT OR Apache-2.0 |
+| `crates/export/src/write/theme.rs` | [storytold/deckcraft](https://github.com/storytold/deckcraft), ArtCraft Team and contributors | `crates/pptx/src/write/theme.rs` (retargeted package/path/theme writer) | `90058395b78be26bb7ea7b4914a9f113c28d979d` | MIT OR Apache-2.0 |
 | `crates/vsdx/tests/reader_memory.rs`, `crates/vsdx/tests/support/hostile_package.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/1a/vsdx_review_1a.rs` (selected memory tests and synthetic package recipe) | `107ee4c3423dd4154bd3c59f60362801f638eabf` | MIT OR Apache-2.0, user-authorized port |
 | `crates/vsdx/tests/authored_strings.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/1b/vsdx_review_1b.rs` (selected synthetic test) | `3ce1a4740bf3e44463f1e35babc42ff46562f4e5` | MIT OR Apache-2.0, user-authorized port |
 | `crates/engine/tests/route_ownership.rs` | craft-apps, Charles Hood | `scope/visio/review/repros/3a/engine_review_3a.rs` (selected synthetic tests) | `3ce1a4740bf3e44463f1e35babc42ff46562f4e5` | MIT OR Apache-2.0, user-authorized port |
@@ -389,3 +392,14 @@ glue maps that frame to the image rectangle and clips it to the foreign shape.
 The port adds bounded record bodies, object-slot reuse, mapping state updates,
 packed DIB splitting and propagation of scene/operation-budget failures.
 The existing layer rules and resource caps are unchanged.
+
+## PPTX package foundation
+
+L4 export uses L3 render's evaluated scenes and L0 OPC's PackageOut, RelsOut and
+XML writer. It does not evaluate geometry or text again. The initial package
+preview projects path operations into custom geometry, baking transforms into
+coordinates; a single page flip converts y-up inches to y-down coordinates, then
+914,400 EMU per inch. It has no shape style blocks or theme colour references.
+The per-shape shared evaluated form, grouping and logical text required for the
+complete exporter remain pending. This foundation is not a tagged-ops exception.
+XML coordinates and per-slide/package storage are capped.

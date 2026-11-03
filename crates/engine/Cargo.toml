@@ -15,6 +15,7 @@ test-panic-injection = []
 workspace = true
 
 [dependencies]
+misterdiagram-export.workspace = true
 misterdiagram-model.workspace = true
 misterdiagram-opc.workspace = true
 zip.workspace = true

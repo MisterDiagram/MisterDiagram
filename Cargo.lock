@@ -670,6 +670,7 @@ version = "0.1.0-alpha.25"
 dependencies = [
  "misterdiagram-corpus",
  "misterdiagram-engine",
+ "misterdiagram-export",
  "misterdiagram-geom",
  "misterdiagram-mcp",
  "misterdiagram-opc",
@@ -719,6 +720,7 @@ dependencies = [
  "image",
  "kurbo",
  "log",
+ "misterdiagram-export",
  "misterdiagram-geom",
  "misterdiagram-model",
  "misterdiagram-opc",
@@ -739,7 +741,14 @@ dependencies = [
 name = "misterdiagram-export"
 version = "0.1.0-alpha.25"
 dependencies = [
+ "kurbo",
+ "misterdiagram-color",
+ "misterdiagram-geom",
+ "misterdiagram-model",
+ "misterdiagram-opc",
  "misterdiagram-render",
+ "misterdiagram-sheet",
+ "misterdiagram-theme",
  "misterdiagram-vsdx",
 ]
 

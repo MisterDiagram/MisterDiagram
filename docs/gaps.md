@@ -2794,3 +2794,17 @@ The investigation stops at the brief's bound with no production colour-form
 implementation or saturation seed. The missing Office/data-graphic coverage
 prevents accepting the candidate; #88 is not closed.
 Reference: [THEME](https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function).
+
+## PowerPoint package preview
+
+PPTX packaging and path preview are in progress. Full PowerPoint export remains
+missing until native shapes/groups, editable text, preset connector glue, media
+and the independent rendering/structure gates are complete. The preview reports
+foreground-only pattern/gradient paints, glyph-outline text and omitted media/
+clipping. Later page sizes scale uniformly to the first exported page. PowerPoint
+repair-free opening and attachment acceptance remain unmeasured.
+
+The generated scaled-page witness has a renderer canvas of 0.085 by 0.11 inches.
+PPTX requires each slide dimension to be at least one inch (ECMA-376 Part 1
+19.7.17). Exact first-page size and all-witness export therefore remain unresolved;
+the writer refuses this case without silently resizing it.

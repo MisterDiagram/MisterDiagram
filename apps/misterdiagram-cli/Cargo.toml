@@ -15,6 +15,7 @@ test-panic-injection = ["misterdiagram-mcp/test-panic-injection"]
 [lints]
 workspace = true
 [dependencies]
+misterdiagram-export.workspace = true
 misterdiagram-render.workspace = true
 misterdiagram-text.workspace = true
 misterdiagram-opc.workspace = true

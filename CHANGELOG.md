@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **PowerPoint package preview:** Export evaluated drawing paths to `.pptx` through the CLI or MCP. Native groups, editable text, connector attachment and media are still pending; warnings identify preview limitations.
+
 ## 0.1.0-alpha.25
 
 Brief 66 ([#83](https://github.com/MisterDiagram/MisterDiagram/issues/83), [#87](https://github.com/MisterDiagram/MisterDiagram/issues/87), [#88](https://github.com/MisterDiagram/MisterDiagram/issues/88), [#100](https://github.com/MisterDiagram/MisterDiagram/issues/100)): exports crop to the drawing and measurement text on plainly drawn shapes
