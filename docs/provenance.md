@@ -14,6 +14,14 @@ Every implemented element, cell and function cites its reference page in its doc
 
 ## 3. Third-party projects consulted
 
+Brief 66 (2026-11-03): search snippets from the
+[Visio theme colour reference](https://visualsignals.typepad.co.uk/files/visio2013themecolorsreference.pdf)
+and a [theme-variant question](https://stackoverflow.com/questions/51052565/visio-accessing-custom-color-variant-from-macro)
+surfaced an Office selector lead. Neither page nor any code or asset was opened
+or copied, and the selector lead was not used. Microsoft documentation and
+original native observations govern the recorded investigation; no THEME
+colour implementation was delivered.
+
 Brief 37 (2026-10-23): the private field observation README and read-only
 [MisterDiagram issue 84](https://github.com/MisterDiagram/MisterDiagram/issues/84),
 [issue 85](https://github.com/MisterDiagram/MisterDiagram/issues/85),

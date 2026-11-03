@@ -5,6 +5,7 @@
 - **Crop exports to the drawing** (#87). Use `--fit` for PNG, SVG and PDF, with an optional physical `--margin`; MCP render and export accept the same options.
 - **Unit labels:** FORMAT now supplies implicit cell units when a drawing omits saved unit attributes, including square-inch area labels. (#83)
 - **Sheet inspection:** Undecodable pictures now produce warnings after the cell dump and a successful exit status; broken relationships and resource failures remain errors. (#100)
+- **Theme colours:** Colour-valued THEME remains unsupported; native observations and the remaining compatibility limits are documented. (#88)
 
 ## 0.1.0-alpha.24
 

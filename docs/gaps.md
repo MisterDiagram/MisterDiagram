@@ -2769,3 +2769,28 @@ this distinction; no tester document is required.
 Reference: [ForeignData](https://learn.microsoft.com/en-us/office/client-developer/visio/foreigndata-element-shapesheet_type-complextypevisio-xml).
 
 Brief 66 review correction: render usage errors are rejected before input I/O; CLI and engine PDF exports share the foreground-page limit and retained-scene budget. Sheet inspection still rejects broken primary foreign relationships or missing parts, and decodes zero-size objects for diagnostics. Original unknown-format recovery warnings remain successful.
+
+## THEME colour investigation (#88, Brief 66)
+
+Still open. The bounded native sweep records 1,938 colour results and 34
+controls in private `field/brief66-2026-11-03/theme-native`; the candidate and
+per-row comparisons are in `theme-attempt.json` and `theme-comparisons.json`.
+Colour results agree in the fill cell and the User cell. Two built-in themes
+apply successfully in all four variants. The requested Office selector was
+rejected, and this installed Visio Standard cannot apply a data graphic.
+Those configurations are missing evidence, not successful tests.
+
+The earlier luminance-preserving hypothesis is false: RGB(80,48,48),
+RGB(159,96,96) and RGB(207,175,175) all produce RGB(253,0,0). Black, white
+and both tested greys all produce RGB(128,128,128). One candidate matches all
+1,938 captured colours: for chromatic inputs, round hue to the 240-step grid,
+set saturation to 240 and luminance to 119, then use integer HLS conversion;
+map achromatic inputs to 128 in each channel. No dependence on the observed
+theme properties appeared in this subset. This is a hypothesis, not a rule
+validated over the full requested sweep. The named FillColor control returns
+RGB(150,175,207); the numeric control records a native #VALUE! error.
+
+The investigation stops at the brief's bound with no production colour-form
+implementation or saturation seed. The missing Office/data-graphic coverage
+prevents accepting the candidate; #88 is not closed.
+Reference: [THEME](https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function).
