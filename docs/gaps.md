@@ -2798,12 +2798,13 @@ Reference: [THEME](https://learn.microsoft.com/en-us/office/client-developer/vis
 ## PowerPoint export: partial
 
 Native custom-geometry shapes and groups, resolved solid/gradient paints, physical
-line dashes, mapped arrowheads and native editable text are implemented. Preset connector glue and embedded foreign pictures are implemented; final
-PowerPoint acceptance remains pending. PowerPoint lays text out independently; differences in wrapping
+line dashes, mapped arrowheads and native editable text are implemented. Preset connector glue and embedded foreign pictures are implemented; PowerPoint 2021
+acceptance passed on 2026-11-04 (fifteen exports open without repair, connectors attached
+through a move; ceilings in the craft-apps acceptance record). PowerPoint lays text out independently; differences in wrapping
 are recorded during acceptance without changing saved text boxes or type sizes.
 Separate 2-D text carriers now share a group with their shape, preserving glue
-IDs and placement so shapes and their labels move together. The final native
-movement check after this correction remains pending; the checklist stays P.
+IDs and placement so shapes and their labels move together. The native
+movement check passed on 2026-11-04; the checklist row stays P because Word export is missing.
 
 DrawingML has no alternate fill rule. Section sets requiring it use separate
 paths with hole contours unfilled, so overlapping and nested regions can differ.

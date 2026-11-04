@@ -20,13 +20,14 @@ and .vstx files (and their macro-enabled .vsdm, .vssm and .vstm variants with th
 dropped), evaluates the ShapeSheet the way Visio does, renders pages and stencils to PNG, SVG and
 PDF, writes files that Visio opens without repair, and authors drawings from commands: shapes,
 masters, shape data, glued connectors with orthogonal routing and line jumps. Everything it
-claims is measured against Visio 2021's own output on the same files. PowerPoint export is next.
+claims is measured against Visio 2021's own output on the same files, and the PowerPoint export
+against PowerPoint 2021.
 Anyone who wants a GUI on top is welcome to build one: the licence is MIT or Apache-2.0, and the
 core is the part that has to be right. It is built in the mould of the Craft apps (deckcraft,
 vectorcraft and their siblings) and shares their conventions.
 
-**Download:** [MisterDiagram 0.1.0-alpha.25](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-alpha.25),
-the twenty-fourth alpha (exports crop to the drawing, unit labels on plainly drawn shapes, sheet dumps warn instead of failing), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+**Download:** [MisterDiagram 0.1.0-beta.1](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-beta.1),
+the first beta (PowerPoint export with editable text and attached connectors; M5 met), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -35,7 +36,7 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
-## What works today (2026-11-03, 0.1.0-alpha.25)
+## What works today (2026-11-04, 0.1.0-beta.1)
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
@@ -51,7 +52,7 @@ export of the same file, measured by the test harness; Visio's exports stay out 
   zero blanks or guard kills; the remaining 64 are named gaps. PDF text extracts
   with ligatures and combining marks intact, and SVG text is `<text>` that can be searched,
   selected and edited.
-- **Export PowerPoint** with native shapes, groups, editable text, attached preset connectors and pictures; [picture limitations and pending native acceptance](docs/gaps.md#powerpoint-export-partial) are explicit.
+- **Export PowerPoint** with native shapes, groups, editable text, attached preset connectors and pictures; PowerPoint 2021 opens the acceptance set without repair and keeps connectors and labels with their shapes when they move; the [named approximations](docs/gaps.md#powerpoint-export-partial) are explicit.
 - **Write** .vsdx, .vssx and .vstx, and build documents from scratch. Visio 2021 opened all
   230 files of the acceptance set, five of them built from scratch, with no repair beyond a
   few disclosed metadata rewrites, and its COM dumps of the reopened files show zero
@@ -75,8 +76,8 @@ export of the same file, measured by the test harness; Visio's exports stay out 
   editable geometry via `stencil.open {"builtin":"network"}`.
 
 
-M4 met its plan gates on 2026-10-15. Phase 5 is in progress and P5a is accepted;
-PowerPoint export remains next. CI runs all eight gates on Linux, Windows and
+M4 met its plan gates on 2026-10-15 and M5 on 2026-11-04 (PowerPoint export, the first beta).
+CI runs all eight gates on Linux, Windows and
 macOS, plus an Ubuntu check at the declared Rust minimum.
 
 Known gaps are listed in [docs/gaps.md](docs/gaps.md). All 85 native-opened field
@@ -86,34 +87,37 @@ date labels, milestone positions and two caption colours, stored ActiveX versus 
 master cells still differ. THEMEVAL
 retains 2,550 unequal secondary backgrounds and dormant gradient angles.
 Container/list formulas, text wrapping, larger-page routing, legacy formats,
-EMF+, compound line patterns, shadows, PowerPoint export and masters with several
+EMF+, compound line patterns, shadows, PowerPoint pattern fills and masters with several
 top-level shapes remain limited. Large-drawing authoring is slow
 ([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39); measurements in docs/gaps.md).
 From Microsoft's template catalogue, filed and open: `THEME()` with a colour argument (#88) and the Text Callout cycle (#91). From the first batch
-of real company files, filed and open: SVG import (#103). SVG export does not write Visio's
+of real company files, filed and open: SVG import (#103). From the 2026-11-03 batch: a WMF
+wrapping an EMF (#112), metafile text in SVG (#113), a font-name switch (#114), two `THEME()`
+resolutions (#115, #116) and SVG bullets (#117). SVG export does not write Visio's
 `v:` extension data, which Visio reads when it imports an SVG. The bundled symbol face covers the dingbat, geometric, arrow and
 pictograph blocks; Segoe UI Symbol's mathematics and Windows icon ranges, and the Wingdings
 and Webdings symbol-charset fonts, are not covered (docs/gaps.md). Where a connector does reroute, the path is this router's, not Visio's: all
 three connectors that rerouted on the witness drawings differ from Visio's path (two take the
 other side of the obstacle, one bends elsewhere); the 28 of 29 geometry witnesses still hold.
 
-## New in 0.1.0-alpha.25
+## New in 0.1.0-beta.1
 
-- Exports crop to the drawing (#87). `--fit` on `render` and `export` (and the MCP render and
-  export tools) trims PNG, SVG and PDF output to the foreground shapes the way Visio's PNG export
-  does, with no page margin; `--margin "0.25 in"` adds one on every side. The same crop drives all
-  three formats, and an empty page keeps its size with a warning.
-- Unit labels on plainly drawn shapes (#83). `FORMAT` now knows the implicit unit of a cell that
-  saves no unit attribute (inches for lengths, degrees for angles, points for text size and
-  line weight), so a drawn 2 by 2 in rectangle's `FORMAT(Width,"0.00 u")` reads `2.00 in.` and
-  its area `4.00 in.^2`, as in Visio 2021 (alpha.24 printed `2.00 ` and `4.00 `).
-- `sheet` finishes a dump with warnings (#100). An embedded picture that cannot be decoded is
-  reported after the cell dump with the same warning text `render` prints, and the command
-  exits 0; broken package relationships and resource limits are still errors.
+- PowerPoint export. `convert IN OUT.pptx`, `render FILE OUT.pptx` and the MCP export tool write
+  one slide per foreground page with native shapes and groups, editable text, connectors glued to
+  their shapes with PowerPoint's own connector presets, and embedded pictures. Shapes and their
+  labels move together.
+- M5 met. The office, SAN and fabric drawings built through MCP open in PowerPoint 2021 without
+  repair with all 18, 80 and 20 connectors attached, and in Visio 2021 unrepaired with the same
+  Connects counts. Fifteen exports checked in PowerPoint; PowerPoint's render of each is within a
+  few levels of ours (the radial gradient is the largest difference).
+- What PowerPoint cannot hold is named in [docs/gaps.md](docs/gaps.md#powerpoint-export-partial)
+  and warned at export: pattern fills become their foreground colour, shadows are omitted,
+  compound lines become one line, a route with more bends than a preset carries is fitted and
+  line jumps are dropped, and a page outside PowerPoint's 1 to 56 inch slide range is scaled.
 
-Against alpha.24, no corpus line and no field row moves: the crop is a new option, the unit
-labels only appear where no unit attribute is saved, and the `sheet` change is an exit status;
-routes, theme and hostile results are unchanged.
+Against alpha.25, no render number moves: the corpus check gains the PowerPoint lines (183 of 230
+generated pages exact against the exporter's own raster, 47 named substitutions, label groups 80/3),
+field rows are unchanged, and routes, theme and hostile results are unchanged.
 
 ## Testers wanted
 
@@ -205,9 +209,8 @@ dated in [ROADMAP.md](ROADMAP.md).
 
 ## What is coming
 
-- Phase 5b: PowerPoint export. The MCP server and layout commands are available;
-  the semantic SAN and office drawings pass Visio repair, route and render acceptance and
-  their human review (2026-10-20).
+- Fidelity after the first beta: the open tester findings (#112 to #117), Word export, and
+  the carried gaps below.
 - Carried gaps, named in [docs/gaps.md](docs/gaps.md): the three-crossing packing shift,
   unwitnessed WalkPreference values, theme.apply (Visio refused the variant call under
   COM), connector stroke rendering, and export mapping for small images.

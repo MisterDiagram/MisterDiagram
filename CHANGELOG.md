@@ -1,6 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-beta.1
+
+The first beta: M5, the last planned milestone, is met. A drawing built entirely through MCP with
+glued connectors exports to a PowerPoint file that PowerPoint 2021 opens without repair, with every
+connector attached and labels that move with their shapes, and to a .vsdx that Visio 2021 opens
+unrepaired. Fifteen exports were checked in PowerPoint on 2026-11-04; the approximations PowerPoint
+forces (pattern fills, shadows, compound lines, routes fitted to its connector presets, line jumps
+dropped) are named in docs/gaps.md. From here the work is fidelity: the open tester findings
+(#112 to #117) and the carried gaps.
 
 - **Connected drawing export checks:** Repeatable office, SAN and fabric drawings check editable PowerPoint exports. Checks include package, text, attachment and shared label-group readback.
 

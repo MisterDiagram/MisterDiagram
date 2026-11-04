@@ -11,9 +11,11 @@ clean independent frozen verification passes.
 
 Charles's 2026-11-02 ruling: a drawing with glued connectors built entirely through MCP, exported to pptx that PowerPoint opens without repair with every connector attached, and to .vsdx that Visio opens unrepaired; `cargo xtask parity` shows every Core=Y P0 row D or P, with the P rows named in `gaps.md`.
 
-The office network, SAN topology and fabric page are three witnesses. The SAN does not define the gate. Local export checks are repeatable with `tools/mcp/export_acceptance.py`; PowerPoint open/render/drag and Visio unrepaired-open checks remain the native acceptance block.
+The office network, SAN topology and fabric page are three witnesses. The SAN does not define the gate. Local export checks are repeatable with `tools/mcp/export_acceptance.py`; PowerPoint open/render/drag and Visio unrepaired-open checks passed on 2026-11-04: M5 met (0.1.0-beta.1).
 
 ## Progress
+
+- 2026-11-04: M5 met at M5.127 and released as 0.1.0-beta.1. PowerPoint 2021 opens all fifteen acceptance exports without repair; the office and SAN decks keep every connector attached and labels with their shapes through a move; Visio 2021 opens the three MCP-authored drawings unrepaired with Connects 18/80/20.
 
 - 2026-11-03: M5.122 through M5.126 implement native PPTX shapes, editable text, preset connector attachments, pictures and fresh MCP export acceptance. The shared evaluated form keeps renderer pixels unchanged; the named approximations and pending native acceptance remain in gaps.md.
 
