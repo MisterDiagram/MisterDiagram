@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Foreground page exports:** Fixed a case where convert and MCP export picked a background page when it was listed first in the file. Page numbers now follow Visio's order: foreground pages first, then background pages.
+
 ## 0.1.0-beta.1
 
 The first beta: M5, the last planned milestone, is met. A drawing built entirely through MCP with

@@ -254,7 +254,7 @@ args+=(--cmd 'layout.tree={"root":1,"edges":[[1,2],[2,3],[3,4],[4,7],[4,5],[4,6]
 The same script is [tools/examples/office-network.sh](tools/examples/office-network.sh).
 It saves `target/office-network/office-network.vsdx` and renders the image above.
 Check it with `python3 tools/check-layout.py target/office-network/office-network.vsdx --cli target/debug/misterdiagram --root 1 --fit-page`.
-`run` commits each command separately. Page numbers are one-based, shape IDs are
+`run` commits each command separately. Page numbers are one-based in Visio's order (foreground pages first, then background pages), shape IDs are
 document IDs, lengths use inches and angles use radians. `commands` and `describe`
 print the command schemas. `misterdiagram mcp` serves the same engine over stdio;
 see [the tools and examples](docs/mcp.md).

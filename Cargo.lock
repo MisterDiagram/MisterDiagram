@@ -668,6 +668,8 @@ dependencies = [
 name = "misterdiagram-cli"
 version = "0.1.0-beta.1"
 dependencies = [
+ "hayro-syntax",
+ "image",
  "misterdiagram-corpus",
  "misterdiagram-engine",
  "misterdiagram-export",

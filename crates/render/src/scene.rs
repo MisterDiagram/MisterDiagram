@@ -519,11 +519,7 @@ fn gradient(e: &mut Evaluator<'_>, scope: Scope) -> Option<style::Gradient> {
 /// The default export selects the first foreground page; background pages are composited by BackPage.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
 pub fn default_page_index(document: &Document) -> Result<usize, String> {
-    document
-        .pages
-        .iter()
-        .position(|p| !p.attributes.get("Background").is_some_and(|s| s == "1" || s == "true"))
-        .ok_or_else(|| "no foreground pages".into())
+    document.page_order().next().filter(|(_, page)| !page.is_background()).map(|(index, _)| index).ok_or_else(|| "no foreground pages".into())
 }
 pub fn page(document: &Document, index: usize, options: Options) -> Result<Scene, String> {
     page_budgeted(document, index, options, &mut SceneBudget::default())
@@ -1701,7 +1697,7 @@ pub fn validate_foreign_parts(document: &Document, selection: misterdiagram_vsdx
         Some(
             document
                 .pages
-                .get(usize::try_from(n.checked_sub(1).ok_or("page ordinal must start at 1")?).map_err(|_| "page ordinal too large")?)
+                .get(document.page_index(usize::try_from(n).map_err(|_| "page ordinal too large")?).ok_or("page ordinal not found")?)
                 .ok_or("page ordinal not found")?
                 .id,
         )

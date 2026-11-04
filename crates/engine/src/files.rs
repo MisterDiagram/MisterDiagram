@@ -134,7 +134,7 @@ pub(crate) fn open(s: &mut Session, p: &Value) -> Result<Value> {
     s.advance_revision()?;
     s.saved_revision = Some(s.revision);
     s.document = Arc::new(document);
-    s.selection = Selection::default();
+    s.selection = Selection { page: s.document.page_index(1).unwrap_or(0), shapes: Vec::new() };
     s.path = Some(path.to_owned());
     s.route_warnings.clear();
     s.undo.clear();
@@ -180,12 +180,7 @@ pub(crate) fn export(s: &mut Session, p: &Value) -> Result<Value> {
         None => 1.,
         Some(v) => v.as_f64().filter(|v| v.is_finite() && *v > 0. && *v <= 100.).ok_or_else(|| operation("scale must be in (0,100]"))?,
     };
-    let page = p
-        .get("page")
-        .map(|v| {
-            v.as_u64().and_then(|v| usize::try_from(v).ok()).and_then(|v| v.checked_sub(1)).ok_or_else(|| operation("page is a one-based ordinal"))
-        })
-        .transpose()?;
+    let page = p.get("page").map(|_| crate::edit::page_index(s, p)).transpose()?;
     let text_outlines =
         p.get("text_outlines").map(|v| v.as_bool().ok_or_else(|| operation("text_outlines must be boolean"))).transpose()?.unwrap_or(false);
     let fit = p.get("fit").map(|v| v.as_bool().ok_or_else(|| operation("fit must be boolean"))).transpose()?.unwrap_or(false);
@@ -202,7 +197,15 @@ pub(crate) fn export(s: &mut Session, p: &Value) -> Result<Value> {
     let scenes = if ext == "pdf" && page.is_none() {
         scene::foreground_pages_budgeted(&s.document, options, &mut budget).map_err(operation)?
     } else {
-        vec![scene::page_budgeted(&s.document, page.unwrap_or(s.selection.page), options, &mut budget).map_err(operation)?]
+        vec![
+            scene::page_budgeted(
+                &s.document,
+                page.map(Ok).unwrap_or_else(|| scene::default_page_index(&s.document)).map_err(operation)?,
+                options,
+                &mut budget,
+            )
+            .map_err(operation)?,
+        ]
     };
     let first = scenes.first().ok_or_else(|| operation("no foreground page"))?;
     let bytes = match ext.as_str() {

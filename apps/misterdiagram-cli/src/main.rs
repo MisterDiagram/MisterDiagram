@@ -50,7 +50,7 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
                     if page.is_some() {
                         return Err("usage: --page may be given once".into());
                     }
-                    page = Some(value.parse::<usize>().map_err(|_| "invalid page")?.checked_sub(1).ok_or("page is one-based")?);
+                    page = Some(value.parse::<usize>().map_err(|_| "invalid page")?);
                 } else {
                     if scale_seen {
                         return Err("usage: --scale may be given once".into());
@@ -128,6 +128,7 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
         }
         return Ok(());
     }
+    let page = page.map(|ordinal| doc.page_index(ordinal).ok_or("page ordinal does not exist")).transpose()?;
     options.page_canvas = matches!(extension.as_str(), "svg" | "pdf" | "pptx");
     if extension == "pptx" {
         let output = misterdiagram_export::document(&doc, page, options)?;

@@ -20,12 +20,13 @@ pub(crate) fn add(s: &mut Session, p: &Value) -> Result<Value> {
         doc.pages.push(misterdiagram_model::skeleton::page(id, &title, metric));
         selection.page = doc.pages.len() - 1;
         selection.shapes.clear();
-        Ok(json!({"page":selection.page+1,"id":id}))
+        Ok(json!({"page":doc.page_ordinal(selection.page),"id":id}))
     })
 }
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.page.delete
 pub(crate) fn delete(s: &mut Session, p: &Value) -> Result<Value> {
     let index = page_index(s, p)?;
+    let ordinal = page_ordinal(s, index)?;
     s.edit_document(|doc, selection| {
         if doc.pages.len() <= 1 {
             return Err(operation("cannot delete the last page"));
@@ -38,7 +39,7 @@ pub(crate) fn delete(s: &mut Session, p: &Value) -> Result<Value> {
             }
         }
         if selection.page == index {
-            selection.page = index.min(doc.pages.len() - 1);
+            selection.page = doc.page_index(ordinal.min(doc.pages.len())).ok_or_else(|| operation("page missing"))?;
             selection.shapes.clear();
         } else if selection.page > index {
             selection.page -= 1;
@@ -69,12 +70,15 @@ pub(crate) fn rename(s: &mut Session, p: &Value) -> Result<Value> {
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.page.index
 pub(crate) fn reorder(s: &mut Session, p: &Value) -> Result<Value> {
     let index = page_index(s, p)?;
-    let destination = usize::try_from(uint(p, "index")?).map_err(operation)?.checked_sub(1).ok_or_else(|| operation("index is one-based"))?;
-    if s.document.pages.get(index).is_some_and(|p| p.attributes.get("Background").is_some_and(|v| v == "1" || v == "true")) {
+    let destination = s
+        .document
+        .page_index(usize::try_from(uint(p, "index")?).map_err(operation)?)
+        .ok_or_else(|| operation("destination page ordinal does not exist"))?;
+    if s.document.pages.get(index).is_some_and(|p| p.is_background()) {
         return Err(operation("background pages cannot be reordered"));
     }
-    if destination >= s.document.pages.len() {
-        return Err(operation("destination page index does not exist"));
+    if s.document.pages.get(destination).is_some_and(|p| p.is_background()) {
+        return Err(operation("destination must be a foreground page"));
     }
     s.edit_document(|doc, selection| {
         let selected = doc.pages.get(selection.page).map(|p| p.id);
@@ -123,7 +127,11 @@ pub(crate) fn background(s: &mut Session, p: &Value) -> Result<Value> {
     let index = page_index(s, p)?;
     let background = match p.get("background") {
         None | Some(Value::Null) => None,
-        _ => Some(usize::try_from(uint(p, "background")?).map_err(operation)?.checked_sub(1).ok_or_else(|| operation("background is one-based"))?),
+        _ => Some(
+            s.document
+                .page_index(usize::try_from(uint(p, "background")?).map_err(operation)?)
+                .ok_or_else(|| operation("background page ordinal does not exist"))?,
+        ),
     };
     if background == Some(index) {
         return Err(operation("page cannot be its own background"));

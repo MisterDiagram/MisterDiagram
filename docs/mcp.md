@@ -59,7 +59,9 @@ failures return `isError: true` with an error message; protocol errors use the
 JSON-RPC error member. Older protocol revisions 2025-03-26 and 2024-11-05 are
 also recognized. The existing ping and resource discovery methods remain.
 
-Coordinates are inches, y-up. `page` is a one-based ordinal; shape IDs are
+Export and render without `page` select the first foreground page; PDF and PPTX include every foreground page.
+
+Coordinates are inches, y-up. `page` is a one-based ordinal in Visio's order (foreground pages first, then background pages); shape IDs are
 page-scoped IDs, not vector indices. The default page is the session's current
 page. Every mutating command uses the engine's strict write-and-reimport path.
 

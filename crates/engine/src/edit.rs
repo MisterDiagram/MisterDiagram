@@ -23,19 +23,18 @@ pub(crate) fn name<'a>(p: &'a Value, key: &str) -> Result<&'a str> {
         .ok_or_else(|| operation(format!("missing or invalid {key}")))
 }
 pub(crate) fn page_index(s: &Session, p: &Value) -> Result<usize> {
-    let index = p
-        .get("page")
-        .map(|_| {
-            uint(p, "page")
-                .and_then(|v| usize::try_from(v).map_err(operation))
-                .and_then(|v| v.checked_sub(1).ok_or_else(|| operation("page is one-based")))
-        })
-        .transpose()?
-        .unwrap_or(s.selection.page);
-    if index >= s.document.pages.len() {
-        return Err(operation("page index does not exist"));
-    }
+    let index = match p.get("page") {
+        Some(_) => {
+            let ordinal = usize::try_from(uint(p, "page")?).map_err(operation)?;
+            s.document.page_index(ordinal).ok_or_else(|| operation("page ordinal does not exist"))?
+        }
+        None => s.selection.page,
+    };
+    s.document.pages.get(index).ok_or_else(|| operation("page index does not exist"))?;
     Ok(index)
+}
+pub(crate) fn page_ordinal(s: &Session, index: usize) -> Result<usize> {
+    s.document.page_ordinal(index).ok_or_else(|| operation("page index does not exist"))
 }
 pub(crate) fn page_mut(doc: &mut Document, index: usize) -> Result<&mut Page> {
     doc.pages.get_mut(index).ok_or_else(|| operation("page index does not exist"))

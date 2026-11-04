@@ -299,7 +299,7 @@ pub(crate) fn tree(s: &mut Session, p: &Value) -> Result<Value> {
         let existing = links.get(&(a.min(b), a.max(b))).map(Vec::as_slice).unwrap_or(&[]);
         let connector = match existing {
             [] => {
-                let result = crate::masters::drop_master(s, &json!({"page":index+1,"master":"Dynamic connector"}))?;
+                let result = crate::masters::drop_master(s, &json!({"page":page_ordinal(s, index)?,"master":"Dynamic connector"}))?;
                 uint(&result, "id")?
             }
             [id] => *id,
@@ -315,7 +315,7 @@ pub(crate) fn tree(s: &mut Session, p: &Value) -> Result<Value> {
         })?;
         connectors.push(json!({"parent":a,"child":b,"connector":connector}));
     }
-    crate::glue::reroute(s, &json!({"page":index+1}))?;
+    crate::glue::reroute(s, &json!({"page":page_ordinal(s, index)?}))?;
     // Existing obstacles may force the generic router away from the witnessed
     // midpoint path. Refuse that placement rather than publish off-grid detours.
     let themes = misterdiagram_theme::Themes::from_document(s.document()).map_err(operation)?;

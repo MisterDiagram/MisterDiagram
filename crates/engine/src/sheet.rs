@@ -254,8 +254,13 @@ pub(crate) fn set_cell(s: &mut Session, p: &Value) -> Result<Value> {
         && address.cell != prior_cell
         && let Scope::PageShape { page, shape } = scope
     {
-        let page =
-            s.document.pages.iter().position(|p| p.id == page).and_then(|i| i.checked_add(1)).ok_or_else(|| operation("route page missing"))?;
+        let page = s
+            .document
+            .pages
+            .iter()
+            .position(|p| p.id == page)
+            .and_then(|i| s.document.page_ordinal(i))
+            .ok_or_else(|| operation("route page missing"))?;
         crate::glue::reroute(s, &json!({"page":page,"id":shape}))?;
     }
     Ok(result)

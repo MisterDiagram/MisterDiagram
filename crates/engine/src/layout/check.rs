@@ -381,7 +381,7 @@ pub(crate) fn check(s: &mut Session, p: &Value) -> Result<Value> {
     }
     violations.extend(shared.violations);
     Ok(
-        json!({"page":index+1,"shapes":nodes.len(),"connectors":routes.len(),"violations":violations,"count":violations.len(),"shared_segments":stats}),
+        json!({"page":page_ordinal(s, index)?,"shapes":nodes.len(),"connectors":routes.len(),"violations":violations,"count":violations.len(),"shared_segments":stats}),
     )
 }
 

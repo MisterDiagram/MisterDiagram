@@ -319,3 +319,16 @@ fn inspection_collects_each_selected_foreign_warning() {
     assert!(scene::validate_foreign_parts(&doc, Selection::Document).unwrap().is_empty());
     assert!(scene::validate_foreign_parts(&doc, Selection::Page(0)).is_err());
 }
+
+#[test]
+fn page_inspection_validates_the_ordinal_not_the_file_position() {
+    use misterdiagram_vsdx::dump::Selection;
+    let mut doc = document(false, false);
+    doc.pages[0].attributes.insert("Background".into(), "1".into());
+    doc.pages.push(skeleton::page(12, "Foreground", false));
+    assert!(scene::validate_foreign_parts(&doc, Selection::Page(1)).unwrap().is_empty());
+    assert_eq!(scene::validate_foreign_parts(&doc, Selection::Page(2)).unwrap().len(), 1);
+    doc.parts.remove("visio/embeddings/original.bin");
+    assert!(scene::validate_foreign_parts(&doc, Selection::Page(1)).unwrap().is_empty());
+    assert!(scene::validate_foreign_parts(&doc, Selection::Page(2)).is_err());
+}

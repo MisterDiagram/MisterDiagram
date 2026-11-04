@@ -191,7 +191,7 @@ pub(crate) fn document(s: &mut Session, p: &Value) -> Result<Value> {
     let mut e = Evaluator::new(&s.document).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
     let mut budget = Budget(64 * 1024);
     let mut pages = Vec::new();
-    for (index, page) in s.document.pages.iter().enumerate() {
+    for (ordinal, (index, page)) in s.document.page_order().enumerate() {
         if page_filter.is_some_and(|f| f != index) {
             continue;
         }
@@ -203,7 +203,7 @@ pub(crate) fn document(s: &mut Session, p: &Value) -> Result<Value> {
         }
         let layers = section(&mut e, Scope::Page(page.id), "Layer", &mut budget)?;
 
-        let mut value = json!({"page":index+1,"id":page.id,"name":page.name,"name_u":page.name_u});
+        let mut value = json!({"page":ordinal+1,"id":page.id,"name":page.name,"name_u":page.name_u});
         budget.charge(&value)?;
         value["layers"] = layers;
         value["shapes"] = json!(shapes);
@@ -212,7 +212,9 @@ pub(crate) fn document(s: &mut Session, p: &Value) -> Result<Value> {
         }
         pages.push(value);
     }
-    bounded(json!({"pages":pages,"selection":{"page":s.selection.page+1,"ids":s.selection.shapes.iter().map(|id| id.0).collect::<Vec<_>>()}}))
+    bounded(
+        json!({"pages":pages,"selection":{"page":s.document.page_ordinal(s.selection.page),"ids":s.selection.shapes.iter().map(|id| id.0).collect::<Vec<_>>()}}),
+    )
 }
 /// Evaluated XForm, text, Shape Data, connection rows and glue, plus requested cells.
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.shape.cellsu
@@ -226,7 +228,7 @@ pub(crate) fn shape(s: &mut Session, p: &Value) -> Result<Value> {
     let page = s.document.pages.get(index).ok_or_else(|| operation("page missing"))?;
     let mut value = summary(&mut e, scope, &filter, &page.connects, &mut budget)?;
     if !filter.minimal {
-        value["page"] = json!(index + 1);
+        value["page"] = json!(page_ordinal(s, index)?);
     }
     bounded(value)
 }

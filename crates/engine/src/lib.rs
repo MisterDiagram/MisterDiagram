@@ -338,7 +338,7 @@ impl Session {
                 self.dirty = false;
             }
             if self.selection.page >= self.document.pages.len() {
-                self.selection.page = 0;
+                self.selection.page = self.document.page_index(1).unwrap_or(0);
                 self.selection.shapes.clear();
             }
             self.read_reservations = before.read_reservations.clone();

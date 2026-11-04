@@ -478,3 +478,5 @@ Progress M5.116: shared fit-to-drawing export and explicit margins added to CLI 
 - M5.126: Export to PowerPoint is P: native geometry/groups, text, preset connector glue and PNG pictures pass local package/model/readback checks. Native PowerPoint open/render/drag acceptance passed on 2026-11-04. Pattern/even-odd fills, shadows, compound lines, arrow approximations, page scaling, fitted routes, dropped jumps and synthetic sites are named in [gaps.md](gaps.md#powerpoint-export-partial). Word export remains missing.
 
 - M5.127: Separate PowerPoint labels share their shape's group, preserving placement and glue targets. Immediate-parent readback and a sibling-emission source defect guard movement; native acceptance of this correction passed on 2026-11-04 (0.1.0-beta.1); the row stays P because Word export is missing.
+
+- M5.129: Pages remain P. User page ordinals follow foreground pages first, then background pages, preserving file order in each group. Writer-generated interleavings and background-first CLI/engine/MCP exports protect page selection; background chains and pixel fidelity retain their existing limits.

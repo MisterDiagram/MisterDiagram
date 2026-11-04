@@ -78,7 +78,7 @@ fn selected(doc: &Document, selection: Selection) -> Result<Vec<(Scope, u32, Str
     let page = match selection {
         Selection::Page(n) => Some(
             doc.pages
-                .get(usize::try_from(n.checked_sub(1).ok_or("page ordinal must start at 1")?).map_err(|_| "page ordinal too large")?)
+                .get(doc.page_index(usize::try_from(n).map_err(|_| "page ordinal too large")?).ok_or("page ordinal not found")?)
                 .ok_or("page ordinal not found")?
                 .id,
         ),

@@ -206,7 +206,7 @@ pub(super) fn inspect(s: &Session, p: &Value) -> Result<Report> {
         }
         routes.push(Route { id, bus: bus_style(style), lines });
     }
-    compare(index + 1, &routes, segment_count)
+    compare(page_ordinal(s, index)?, &routes, segment_count)
 }
 #[cfg(test)]
 mod tests {

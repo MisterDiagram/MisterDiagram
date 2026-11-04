@@ -5,6 +5,9 @@ agents. There is no installer and no window. These notes cover the alpha binarie
 [Releases page](https://github.com/MisterDiagram/MisterDiagram/releases); building from source
 is at the end.
 
+Page numbers are one-based in Visio's order (foreground pages first, then background pages).
+Default PNG and SVG exports select the first foreground page; PDF and PPTX include every foreground page.
+
 ## 1. Download
 
 Pick the archive for your machine from the latest release:

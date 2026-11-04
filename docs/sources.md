@@ -398,7 +398,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.drawrectangle> | `crates/engine/src/shapes.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.drop> | `crates/engine/src/composition.rs`, `crates/engine/src/masters.rs`, `tools/oracle/b25/dell-instance-witness.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.export> | `apps/misterdiagram-cli/src/author.rs`, `apps/misterdiagram-corpus/src/render_population.rs`, `crates/engine/src/files.rs`, `crates/render/src/scene.rs`, `crates/render/tests/export_canvas.rs`, `crates/render/tests/fit.rs`, `crates/render/tests/output.rs`, `crates/render/tests/text_export_bounds.rs` |
-| <https://learn.microsoft.com/en-us/office/vba/api/visio.page.index> | `crates/engine/src/pages.rs` |
+| <https://learn.microsoft.com/en-us/office/vba/api/visio.page.index> | `apps/misterdiagram-cli/tests/page_order.rs`, `crates/engine/src/pages.rs`, `crates/model/src/lib.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.nameu> | `crates/engine/src/pages.rs` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.settheme> | `tools/oracle/make-corpus.ps1` |
 | <https://learn.microsoft.com/en-us/office/vba/api/visio.page.setthemevariant> | `tools/oracle/make-corpus.ps1` |

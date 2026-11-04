@@ -281,3 +281,24 @@ fn indirect_endpoint_references_see_new_glue_points_and_triggers() {
         assert_eq!(shape_xml(o.s.document(), 0, 2), untouched);
     }
 }
+
+#[test]
+fn route_style_edit_keeps_same_id_connectors_on_other_ordinals_unchanged() {
+    let mut doc = skeleton::document(false);
+    let points = [(0., 0.), (2., 0.), (2., 2.), (6., 2.), (6., 0.)];
+    let mut shape = line(1, 1., 1., 0., &points);
+    set(&mut shape.sheet, "ShapeRouteStyle", 1.);
+    doc.pages[0].shapes.push(shape.clone());
+    let mut other = skeleton::page(10, "Other foreground", false);
+    other.shapes.push(shape);
+    doc.pages.push(other);
+    let mut background = skeleton::page(99, "Backdrop", false);
+    background.attributes.insert("Background".into(), "1".into());
+    doc.pages.insert(0, background);
+    let mut opened = Opened::new(&doc, "page-order");
+    let before_target = opened.s.document().pages[1].shapes[0].sheet.sections.clone();
+    let before_other = opened.s.document().pages[2].clone();
+    run(&mut opened.s, "sheet.set", json!({"page":1,"id":1,"name":"ShapeRouteStyle","value":2}));
+    assert_ne!(opened.s.document().pages[1].shapes[0].sheet.sections, before_target);
+    assert_eq!(opened.s.document().pages[2], before_other);
+}

@@ -22,7 +22,7 @@ fn pages_background_scale_and_layers_are_transactional() {
     run(&mut s, "page.scale", json!({"page":1,"page_scale":1,"drawing_scale":10}));
     run(&mut s, "page.rename", json!({"page":1,"name":"Network"}));
     run(&mut s, "page.add", json!({"name":"Details"}));
-    run(&mut s, "page.reorder", json!({"page":3,"index":1}));
+    run(&mut s, "page.reorder", json!({"page":2,"index":1}));
     assert_eq!(s.document().pages[0].name, "Details");
     run(&mut s, "page.delete", json!({"page":3}));
     assert!(!s.document().pages[1].attributes.contains_key("BackPage"));

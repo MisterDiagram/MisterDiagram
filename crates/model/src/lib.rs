@@ -419,3 +419,58 @@ pub struct Document {
 pub mod text;
 
 pub mod skeleton;
+
+impl Page {
+    /// Whether this page is a background, independent of its package position.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
+    pub fn is_background(&self) -> bool {
+        self.attributes.get("Background").is_some_and(|value| value == "1" || value == "true")
+    }
+}
+impl Document {
+    /// Page ordinals visit foreground pages first, then backgrounds, preserving
+    /// file order within each group. Returned indexes still address `pages`.
+    /// https://learn.microsoft.com/en-us/office/vba/api/visio.page.index
+    pub fn page_order(&self) -> impl Iterator<Item = (usize, &Page)> {
+        self.pages
+            .iter()
+            .enumerate()
+            .filter(|(_, page)| !page.is_background())
+            .chain(self.pages.iter().enumerate().filter(|(_, page)| page.is_background()))
+    }
+
+    /// Map a one-based user page ordinal to its internal file index.
+    pub fn page_index(&self, ordinal: usize) -> Option<usize> {
+        self.page_order().nth(ordinal.checked_sub(1)?).map(|(index, _)| index)
+    }
+
+    /// Map an internal file index to its one-based user page ordinal.
+    pub fn page_ordinal(&self, index: usize) -> Option<usize> {
+        self.pages.get(index)?;
+        self.page_order().position(|(candidate, _)| candidate == index)?.checked_add(1)
+    }
+}
+
+#[cfg(test)]
+mod page_order_tests {
+    use super::*;
+    #[test]
+    fn ordinal_mapping_is_bounded_for_empty_and_background_only_documents() {
+        let mut doc = Document::default();
+        assert_eq!(doc.page_index(1), None);
+        assert_eq!(doc.page_ordinal(0), None);
+        for id in [9, 2, 17] {
+            let mut page = skeleton::page(id, "Backdrop", false);
+            page.attributes.insert("Background".into(), "1".into());
+            doc.pages.push(page);
+        }
+        assert_eq!(doc.page_order().map(|(_, p)| p.id).collect::<Vec<_>>(), [9, 2, 17]);
+        for index in 0..3 {
+            assert_eq!(doc.page_index(index + 1), Some(index));
+            assert_eq!(doc.page_ordinal(index), Some(index + 1));
+        }
+        assert_eq!(doc.page_index(0), None);
+        assert_eq!(doc.page_index(usize::MAX), None);
+        assert_eq!(doc.page_ordinal(usize::MAX), None);
+    }
+}

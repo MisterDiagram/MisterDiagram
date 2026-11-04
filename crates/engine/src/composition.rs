@@ -22,7 +22,7 @@ fn style(s: &mut Session, p: &Value, id: &Value, page: usize) -> Result<()> {
             value.clone()
         };
         args["id"] = id.clone();
-        args["page"] = json!(page + 1);
+        args["page"] = json!(page_ordinal(s, page)?);
         s.execute(command, &args)?;
     }
     Ok(())
@@ -65,6 +65,7 @@ pub(crate) fn execute(s: &mut Session, command: &str, p: &Value) -> Result<Value
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.page.drop
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.cell.glueto
 fn connector(s: &mut Session, p: &Value, page: usize) -> Result<Value> {
+    let ordinal = page_ordinal(s, page)?;
     let from = uint(p, "from")?;
     let to = uint(p, "to")?;
     if from == to {
@@ -75,16 +76,16 @@ fn connector(s: &mut Session, p: &Value, page: usize) -> Result<Value> {
     if explicit && (glue != "static" || p.get("from_point").is_none() || p.get("to_point").is_none()) {
         return Err(operation("explicit connection points require glue static and both from_point and to_point"));
     }
-    let result = s.execute("master.drop", &json!({"master":"Dynamic connector","page":page+1,"x":0,"y":0}))?;
+    let result = s.execute("master.drop", &json!({"master":"Dynamic connector","page":ordinal,"x":0,"y":0}))?;
     let id = result.get("id").ok_or_else(|| operation("connector drop did not return id"))?;
     if explicit {
         s.execute(
             "connect.static",
-            &json!({"page":page+1,"id":id,"end":"begin","target":from,"point":p.get("from_point").ok_or_else(|| operation("from_point missing"))?}),
+            &json!({"page":ordinal,"id":id,"end":"begin","target":from,"point":p.get("from_point").ok_or_else(|| operation("from_point missing"))?}),
         )?;
         s.execute(
             "connect.static",
-            &json!({"page":page+1,"id":id,"end":"end","target":to,"point":p.get("to_point").ok_or_else(|| operation("to_point missing"))?}),
+            &json!({"page":ordinal,"id":id,"end":"end","target":to,"point":p.get("to_point").ok_or_else(|| operation("to_point missing"))?}),
         )?;
     } else {
         let page_data = s.document.pages.get(page).ok_or_else(|| operation("page missing"))?;
@@ -102,32 +103,32 @@ fn connector(s: &mut Session, p: &Value, page: usize) -> Result<Value> {
             // before changing either endpoint, avoiding transient orthogonal
             // routes which could fail before the final ports are installed.
             for link in parallel.into_iter().map(|v| json!(v)).chain(std::iter::once(id.clone())) {
-                s.execute("sheet.set", &json!({"page":page+1,"id":link,"name":"ShapeRouteStyle","value":2}))?;
+                s.execute("sheet.set", &json!({"page":ordinal,"id":link,"name":"ShapeRouteStyle","value":2}))?;
             }
         }
         if glue == "dynamic" {
             for (end, target) in [("begin", from), ("end", to)] {
-                s.execute("connect.dynamic", &json!({"page":page+1,"id":id,"end":end,"target":target}))?;
+                s.execute("connect.dynamic", &json!({"page":ordinal,"id":id,"end":end,"target":target}))?;
             }
         } else {
-            s.execute("connect.sides", &json!({"page":page+1,"id":id,"source":from,"target":to}))?;
+            s.execute("connect.sides", &json!({"page":ordinal,"id":id,"source":from,"target":to}))?;
         }
         let newest = id.as_u64().and_then(|v| u32::try_from(v).ok()).ok_or_else(|| operation("connector id missing"))?;
         for edit in crate::layout::parallel_plan(s, page, from, to, newest)? {
             if let Some(id) = edit.get("style") {
-                s.execute("sheet.set", &json!({"page":page+1,"id":id,"name":"ShapeRouteStyle","value":2}))?;
+                s.execute("sheet.set", &json!({"page":ordinal,"id":id,"name":"ShapeRouteStyle","value":2}))?;
             } else {
                 let point = if let Some(point) = edit.get("point").filter(|p| p.is_string()) {
                     point.clone()
                 } else {
-                    s.execute("shape.connection.add", &json!({"page":page+1,"id":edit.get("target"),"x":edit.get("x"),"y":edit.get("y")}))?
+                    s.execute("shape.connection.add", &json!({"page":ordinal,"id":edit.get("target"),"x":edit.get("x"),"y":edit.get("y")}))?
                         .get("cell")
                         .cloned()
                         .ok_or_else(|| operation("connection cell missing"))?
                 };
                 s.execute(
                     "connect.static",
-                    &json!({"page":page+1,"id":edit.get("id"),"end":edit.get("end"),"target":edit.get("target"),"point":point}),
+                    &json!({"page":ordinal,"id":edit.get("id"),"end":edit.get("end"),"target":edit.get("target"),"point":point}),
                 )?;
             }
         }

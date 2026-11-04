@@ -529,7 +529,7 @@ pub(crate) fn fan(s: &mut Session, p: &Value) -> Result<Value> {
         }
         Ok(json!(placed))
     })?;
-    crate::glue::reroute(s, &json!({"page":index+1}))?;
+    crate::glue::reroute(s, &json!({"page":page_ordinal(s, index)?}))?;
     let selected = std::iter::once(hub).chain(spokes.iter().copied()).collect::<Vec<_>>();
     let connectors = assignments.iter().map(|(_, _, id, _)| *id).collect::<Vec<_>>();
     let themes = misterdiagram_theme::Themes::from_document(&s.document).map_err(operation)?;
