@@ -1,6 +1,9 @@
 # Releasing a build
 
-The steps for a pre-release, in order. Each one is a gate for the next.
+The steps for a release, in order. Each one is a gate for the next. Alpha and beta builds are
+published as full GitHub releases marked Latest, not as pre-releases: a pre-release can never be
+Latest, so the repo sidebar would show only tags and `releases/latest` would return 404. The
+version string (`0.1.0-beta.N`) and the release title carry the maturity.
 
 1. **Version bump, its own commit.** `version` in Cargo.toml, `cargo update --workspace`
    for Cargo.lock, a CHANGELOG.md entry in user terms (what changed, which issues, known
@@ -15,9 +18,11 @@ The steps for a pre-release, in order. Each one is a gate for the next.
    `releases/tag/v<version>` and names the version; the "What works today" heading carries the
    date and version; the known gaps match the CHANGELOG. A README that still links the previous
    release is a release not finished.
-5. **Tag and publish.** Push `v<version>` to srv and GitHub; release.yml drafts the pre-release
+5. **Tag and publish.** Push `v<version>` to srv and GitHub; release.yml drafts the release
    with the CHANGELOG entry as notes; check the draft's assets and SHA256SUMS against the
-   dispatch artifacts; publish on Charles's go.
+   dispatch artifacts; publish on Charles's go with
+   `gh release edit v<version> --draft=false --latest`, then confirm
+   `gh api repos/MisterDiagram/MisterDiagram/releases/latest --jq .tag_name` names it.
 6. **Install** the release binary in `~/.local/bin`, keeping the previous one as
    `misterdiagram-<commit>`.
 7. **Tell people:** the issues the release fixes, the ArtCraft thread and Discord, on

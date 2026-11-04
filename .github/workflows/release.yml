@@ -4,7 +4,9 @@ name: release
 # arm64) and SHA256SUMS. Every binary is smoke-tested on a native runner before packaging and
 # again after unpacking its archive (tools/ci/smoke.py). A manual run (workflow_dispatch) uploads
 # the archives as workflow artifacts and makes no release; a pushed v* tag also makes a DRAFT
-# pre-release, which a maintainer reviews and publishes by hand. Unsigned (see docs/install.md).
+# release, which a maintainer reviews and publishes by hand as Latest (docs/release.md). Alpha and
+# beta builds are full releases, not GitHub pre-releases: a pre-release can never be Latest, so the
+# repo sidebar and releases/latest would show nothing. Unsigned (see docs/install.md).
 on:
   push:
     tags: ['v*']
@@ -196,7 +198,7 @@ jobs:
           if-no-files-found: error
 
   draft:
-    name: draft pre-release
+    name: draft release
     # Only a pushed tag drafts a release; a manual run, even on a tag ref, never does.
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     needs: [identity, checksums]
@@ -216,5 +218,5 @@ jobs:
         run: |
           (cd dist && sha256sum -c --strict SHA256SUMS)
           python3 tools/ci/package.py notes "$GITHUB_REF_NAME" > notes.md
-          gh release create "$GITHUB_REF_NAME" --draft --prerelease --verify-tag \
+          gh release create "$GITHUB_REF_NAME" --draft --verify-tag \
             --title "MisterDiagram ${{ needs.identity.outputs.version }}" --notes-file notes.md dist/*
