@@ -43,23 +43,50 @@ def site_point(target,site,guides):
 
 
 def inspect(path, manifest):
-    expected=[]; pages={}; slides=None
+    expected=[]; labels=[]; pages={}; slides=None
     for line in manifest.read_text().splitlines():
         f=line.split('\t')
         if f[0]=='S': slides=int(f[1])
         elif f[0]=='P':pages[int(f[1])]=(int(f[2]),int(f[3]))
+        elif f[0]=='L':labels.append(tuple(map(int,f[1:])))
         elif f[0]=='C':expected.append(tuple(map(int,f[1:])))
         else: raise ValueError('unknown intent row')
     prs=Presentation(path)
     assert len(prs.slides)==slides
-    actual=[]; total_pictures=0
+    actual=[]; total_pictures=0; labelled=0; grouped_labels=0
     for pi,slide in enumerate(prs.slides,1):
         shapes=list(nodes(slide.shapes)); byid={s.shape_id:s for s in shapes}
         assert len(byid)==len(shapes),'duplicate shape ids'
+        page_labels=[row for row in labels if row[0]==pi]
+        label_ids=[row[2] for row in page_labels]
+        actual_labels={s.shape_id for s in shapes if s._element.find(qn('p:txBody')) is not None}
+        assert len(set(label_ids))==len(label_ids),'duplicate label intent'
+        assert set(label_ids)==actual_labels,'label coverage differs from intent TSV'
+        for _,shape_id,text_id,group_id,one_d in page_labels:
+            shape=byid[shape_id];text=byid[text_id]
+            assert shape._element.tag in (qn('p:cxnSp'),qn('p:sp'))
+            assert text.has_text_frame,'label has no text frame'
+            shape_parent=shape._element.getparent();text_parent=text._element.getparent()
+            assert shape_parent is text_parent,'shape and label do not share an immediate parent'
+            if group_id:
+                assert group_id in byid,'expected label group missing'
+                group=byid[group_id]
+                assert group._element.tag==qn('p:grpSp') and shape_parent is group._element,'label parent differs from intent TSV'
+            else:
+                assert shape_parent is slide.shapes._spTree,'unexpected label wrapper'
+            if not one_d and shape_id!=text_id:
+                assert group_id,'separate 2-D label is not grouped'
+                grouped_labels+=1
+            labelled+=not one_d
         pictures=0; connections=0
         for s in shapes:
             el=s._element
             assert not el.xpath('./p:style'),'style reference'
+            if el.tag==qn('p:grpSp'):
+                xf=el.xpath('./p:grpSpPr/a:xfrm')[0]
+                assert not any(xf.get(k) not in (None,'0','false') for k in ('rot','flipH','flipV')),'nonidentity group rotation'
+                assert dict(xf.find(qn('a:off')).attrib)==dict(xf.find(qn('a:chOff')).attrib),'group offset changes coordinates'
+                assert dict(xf.find(qn('a:ext')).attrib)==dict(xf.find(qn('a:chExt')).attrib),'group scale changes coordinates'
             if el.tag==qn('p:pic'):
                 assert s.image.blob.startswith(b'\x89PNG\r\n\x1a\n'),'picture must embed PNG'
                 pictures+=1
@@ -94,7 +121,7 @@ def inspect(path, manifest):
         assert (pictures,connections)==pages[pi],f'page {pi}: pictures/glue {(pictures,connections)} != {pages[pi]}'
         total_pictures+=pictures
     assert sorted(actual)==sorted(expected),'attachment target/index differs from intent TSV'
-    return dict(slides=slides,glued_ends=len(actual),pictures=total_pictures)
+    return dict(slides=slides,glued_ends=len(actual),pictures=total_pictures,labelled_shapes=labelled,grouped_labels=grouped_labels)
 
 
 def main():
@@ -119,7 +146,7 @@ def main():
         for cmd in [[str(a.manifest_binary),str(path),str(tsv)],[str(a.cli),'render',str(path),str(pptx)]]:
             subprocess.run(cmd,check=True,capture_output=True,timeout=120)
         rows.append(dict(input=str(path),**inspect(pptx,tsv)))
-    result=dict(files=len(rows),glued_ends=sum(x['glued_ends'] for x in rows),pictures=sum(x['pictures'] for x in rows),results=rows)
+    result=dict(files=len(rows),glued_ends=sum(x['glued_ends'] for x in rows),pictures=sum(x['pictures'] for x in rows),labelled_shapes=sum(x['labelled_shapes'] for x in rows),grouped_labels=sum(x['grouped_labels'] for x in rows),results=rows)
     (a.out/'report.json').write_text(json.dumps(result,indent=2)+'\n')
     print(json.dumps({k:v for k,v in result.items() if k!='results'}))
 

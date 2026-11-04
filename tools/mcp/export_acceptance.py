@@ -87,16 +87,16 @@ def main():
     report = dict(passed=passed, total=len(results), native_acceptance='Pending Claude Code and Charles: PowerPoint and Visio', results=results)
     (out/'report.json').write_text(json.dumps(report, indent=2)+'\n')
     lines = ['# M5 export acceptance', '', f'{passed}/{len(results)} drawings pass the local export gates.', '',
-             '| Drawing | Slides/PDF pages | Glued ends | Text blocks/paragraphs/runs | Output-model pixels |',
-             '|---|---:|---:|---|---|']
+             '| Drawing | Slides/PDF pages | Glued ends | Labels grouped/2-D | Text blocks/paragraphs/runs | Output-model pixels |',
+             '|---|---:|---:|---:|---|---|']
     for row in results:
         if row['passed']:
             text = row['text']
-            lines.append(f'| {row["name"]} | {row["slides"]}/{row["pdf_pages"]} | {row["glue"]["glued_ends"]} | {text["blocks"]}/{text["paragraphs"]}/{text["runs"]} | identical |')
+            lines.append(f'| {row["name"]} | {row["slides"]}/{row["pdf_pages"]} | {row["glue"]["glued_ends"]} | {row["glue"]["grouped_labels"]}/{row["glue"]["labelled_shapes"]} | {text["blocks"]}/{text["paragraphs"]}/{text["runs"]} | identical |')
         else:
-            lines.append(f'| {row["name"]} | FAIL | | | See report.json |')
+            lines.append(f'| {row["name"]} | FAIL | | | | See report.json |')
     lines += ['', 'Each drawing was built from a fresh MCP process and exported through MCP.',
-              'python-pptx checks package, text and attachment indexes; LibreOffice checks PDF page counts.',
+              'python-pptx checks package, text, attachment indexes and immediate shape/label parents; LibreOffice checks PDF page counts.',
               'PowerPoint open, render and drag acceptance and Visio unrepaired-open acceptance remain pending.',
               'The three drawings are witnesses of the general M5 gate, not its definition.']
     (out/'report.md').write_text('\n'.join(lines)+'\n')

@@ -11,6 +11,8 @@ pub struct Report {
     pub files: usize,
     pub pages: usize,
     pub identical: usize,
+    pub labelled_shapes: usize,
+    pub grouped_labels: usize,
     pub excluded: Vec<String>,
     pub failures: Vec<String>,
 }
@@ -30,6 +32,7 @@ impl fmt::Display for Report {
             self.excluded.len(),
             self.failures.len()
         )?;
+        writeln!(f, "PPTX labels: {} labelled 2-D shapes, {} grouped separate labels", self.labelled_shapes, self.grouped_labels)?;
         for name in &self.excluded {
             writeln!(f, "PPTX excluded: {name}")?;
         }
@@ -55,6 +58,9 @@ pub fn file(path: &Path) -> Result<Report, String> {
         let page = evaluated::page(&doc, index, options, &mut budget)?;
         let source = misterdiagram_render::raster::render(&page.scene, options)?;
         let model = crate::model::Page::with_options(page, options, &mut budget)?;
+        let (labelled, grouped) = check_labels(&model, options)?;
+        report.labelled_shapes += labelled;
+        report.grouped_labels += grouped;
         let connector_only = model.substitutions.iter().all(|s| matches!(s, crate::model::Substitution::Jumps | crate::model::Substitution::Route));
         if !model.substitutions.is_empty() && !connector_only {
             report.excluded.push(format!(
@@ -114,6 +120,8 @@ pub fn generated(root: &Path) -> Result<Report, String> {
                 report.files += r.files;
                 report.pages += r.pages;
                 report.identical += r.identical;
+                report.labelled_shapes += r.labelled_shapes;
+                report.grouped_labels += r.grouped_labels;
                 report.excluded.extend(r.excluded);
                 report.failures.extend(r.failures);
             }
@@ -127,4 +135,76 @@ pub fn generated(root: &Path) -> Result<Report, String> {
         report.failures.push(format!("PPTX substitution count {} exceeds frozen {}", report.excluded.len(), MAX_SUBSTITUTED_PAGES));
     }
     Ok(report)
+}
+
+/// Check serialized membership, not merely the intent count. This makes a
+/// writer-only sibling defect fail the same corpus command as the raster gate.
+pub fn check_labels(page: &crate::model::Page, options: Options) -> Result<(usize, usize), String> {
+    use misterdiagram_opc::{Package, xml::El};
+    use std::collections::{BTreeMap, BTreeSet};
+    fn collect<'a>(node: &'a El, parent: Option<u32>, depth: usize, out: &mut BTreeMap<u32, (Option<u32>, &'a El)>) -> Result<(), String> {
+        if depth > 129 || out.len() > 200_000 {
+            return Err("PPTX label readback limit".into());
+        }
+        for child in node.elements() {
+            let property = match child.local() {
+                "sp" => "nvSpPr",
+                "cxnSp" => "nvCxnSpPr",
+                "grpSp" => "nvGrpSpPr",
+                "pic" => "nvPicPr",
+                _ => continue,
+            };
+            let id = child.path(&[property, "cNvPr"]).and_then(|c| c.u32("id")).ok_or("PPTX label readback id")?;
+            if out.insert(id, (parent, child)).is_some() {
+                return Err("PPTX duplicate slide id".into());
+            }
+            if child.is("grpSp") {
+                let xf = child.path(&["grpSpPr", "xfrm"]).ok_or("PPTX group transform missing")?;
+                for (a, b, names) in [("off", "chOff", ["x", "y"]), ("ext", "chExt", ["cx", "cy"])] {
+                    let a = xf.child(a).ok_or("PPTX group coordinate missing")?;
+                    let b = xf.child(b).ok_or("PPTX group coordinate missing")?;
+                    for name in names {
+                        if a.attr(name).is_none() || a.attr(name) != b.attr(name) {
+                            return Err("PPTX group changes child coordinates".into());
+                        }
+                    }
+                }
+                collect(child, Some(id), depth + 1, out)?;
+            }
+        }
+        Ok(())
+    }
+    let export = crate::write::render_limited(std::slice::from_ref(page), &[misterdiagram_color::Rgba::BLACK; 12], options, 256 * 1024 * 1024)?;
+    let package = Package::open(&export.bytes).map_err(|e| e.to_string())?;
+    let xml = package.xml("ppt/slides/slide1.xml").ok_or("PPTX label slide XML missing")?;
+    let tree = xml.root.path(&["cSld", "spTree"]).ok_or("PPTX shape tree missing")?;
+    let mut nodes = BTreeMap::new();
+    collect(tree, None, 0, &mut nodes)?;
+    let actual: BTreeSet<_> = nodes.iter().filter(|(_, (_, n))| n.child("txBody").is_some()).map(|(id, _)| *id).collect();
+    let expected: BTreeSet<_> = page.labels.nodes.values().filter_map(|n| n.text_id).collect();
+    if actual != expected {
+        return Err("PPTX label coverage differs from intent".into());
+    }
+    let mut labelled = 0;
+    let mut grouped = 0;
+    for label in page.labels.nodes.values() {
+        let Some(text_id) = label.text_id else {
+            continue;
+        };
+        let (shape_parent, _) = nodes.get(&label.shape_id).ok_or("PPTX labelled shape missing")?;
+        let (text_parent, _) = nodes.get(&text_id).ok_or("PPTX label missing")?;
+        if *shape_parent != label.parent_id || shape_parent != text_parent {
+            return Err("PPTX shape and label parent differs from intent".into());
+        }
+        if !label.one_d {
+            labelled += 1;
+            if text_id != label.shape_id {
+                if label.group_id.is_none() {
+                    return Err("PPTX separate label has no group".into());
+                }
+                grouped += 1;
+            }
+        }
+    }
+    Ok((labelled, grouped))
 }

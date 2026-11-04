@@ -6,6 +6,7 @@ use misterdiagram_render::{
 };
 use std::collections::BTreeSet;
 pub mod connectors;
+pub mod labels;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Substitution {
@@ -34,6 +35,7 @@ pub struct Page {
     pub shapes: Vec<EvaluatedShape>,
     pub substitutions: BTreeSet<Substitution>,
     pub connections: connectors::Connections,
+    pub labels: labels::Plan,
 }
 impl Page {
     pub fn from_evaluated(page: EvaluatedPage) -> Result<Self, String> {
@@ -46,10 +48,11 @@ impl Page {
             convert(shape, &mut substitutions, &mut page.scene.warnings, 0)?;
         }
         let connections = connectors::Connections::prepare(&mut page.shapes, &page.connects, &mut substitutions, &mut page.scene.warnings, budget)?;
+        let labels = labels::Plan::prepare(&page.shapes, &connections, page.scene.page_size.1, budget)?;
         // This is only the canvas, never the source scene replayed for QA.
         page.scene.ops = Vec::new();
         page.scene.pdf_strokes.clear();
-        Ok(Self { presentation_canvas: None, canvas: page.scene, shapes: page.shapes, substitutions, connections })
+        Ok(Self { presentation_canvas: None, canvas: page.scene, shapes: page.shapes, substitutions, connections, labels })
     }
     /// Rebuild paints from export sections and styles, independently of the
     /// renderer's discarded geometry operations. A model-path defect therefore

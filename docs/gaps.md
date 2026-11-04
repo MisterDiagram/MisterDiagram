@@ -2800,7 +2800,10 @@ Reference: [THEME](https://learn.microsoft.com/en-us/office/client-developer/vis
 Native custom-geometry shapes and groups, resolved solid/gradient paints, physical
 line dashes, mapped arrowheads and native editable text are implemented. Preset connector glue and embedded foreign pictures are implemented; final
 PowerPoint acceptance remains pending. PowerPoint lays text out independently; differences in wrapping
-are recorded during acceptance without changing saved text boxes or type sizes. No repair-free or attachment acceptance is claimed.
+are recorded during acceptance without changing saved text boxes or type sizes.
+Separate 2-D text carriers now share a group with their shape, preserving glue
+IDs and placement so shapes and their labels move together. The final native
+movement check after this correction remains pending; the checklist stays P.
 
 DrawingML has no alternate fill rule. Section sets requiring it use separate
 paths with hole contours unfilled, so overlapping and nested regions can differ.

@@ -32,6 +32,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let expected = page.connects.len();
         let model = misterdiagram_export::model::Page::with_options(page, options, &mut budget)?;
         writeln!(w, "P\t{}\t{}\t{}", i + 1, pictures(&model.shapes, 0)?, expected)?;
+        for label in model.labels.nodes.values() {
+            if let Some(text) = label.text_id {
+                writeln!(w, "L\t{}\t{}\t{text}\t{}\t{}", i + 1, label.shape_id, label.parent_id.unwrap_or(0), u8::from(label.one_d))?;
+            }
+        }
         let mut count = 0;
         for (scope, route) in &model.connections.routes {
             let id = model.connections.ids.get(scope).ok_or("connector id")?;

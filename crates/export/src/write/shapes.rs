@@ -22,10 +22,9 @@ pub(super) fn write(
     limit: usize,
     pictures: &mut Pictures<'_>,
 ) -> Result<(), String> {
-    let mut id =
-        page.connections.targets.values().chain(page.connections.ids.values()).copied().max().unwrap_or(1).checked_add(1).ok_or("PPTX id limit")?;
+    let mut id = page.labels.next_id;
     for node in &page.shapes {
-        shape(w, node, &page.connections, view, &mut id, warnings, limit, pictures, 0)?;
+        shape(w, node, &page.connections, &page.labels, view, &mut id, warnings, limit, pictures, 0)?;
     }
     Ok(())
 }
@@ -37,13 +36,26 @@ fn next(id: &mut u32) -> Result<u32, String> {
     *id = id.checked_add(1).ok_or("PPTX shape id limit")?;
     Ok(value)
 }
-fn group_bounds(node: &EvaluatedShape, depth: usize) -> Result<Rect, String> {
+fn group_bounds(node: &EvaluatedShape, connections: &crate::model::connectors::Connections, depth: usize) -> Result<Rect, String> {
     if depth > 128 {
         return Err("PPTX group depth limit".into());
     }
-    let mut bounds = (!node.hidden_own).then_some(node.bounds);
+    let visible = !node.hidden_own || connections.attached.contains(&node.scope);
+    let mut bounds = visible.then_some(node.bounds);
+    if visible {
+        for section in node.sections.iter().filter(|s| !s.flags.no_show) {
+            let path = section.path.bounding_box();
+            bounds = Some(bounds.map_or(path, |old| old.union(path)));
+        }
+    }
+    if visible && let Some(block) = &node.text_block {
+        let view = crate::write::page_flip(0.);
+        let (carrier, _, _) = text::placement(block, view)?;
+        let text = block.to_page.transform_rect_bbox(block.rect).union(view.transform_rect_bbox(carrier));
+        bounds = Some(bounds.map_or(text, |old| old.union(text)));
+    }
     for child in &node.children {
-        let b = group_bounds(child, depth + 1)?;
+        let b = group_bounds(child, connections, depth + 1)?;
         bounds = Some(bounds.map_or(b, |old| old.union(b)));
     }
     Ok(bounds.unwrap_or(Rect::ZERO))
@@ -66,6 +78,7 @@ fn shape(
     w: &mut W,
     node: &EvaluatedShape,
     connections: &crate::model::connectors::Connections,
+    labels: &crate::model::labels::Plan,
     view: Affine,
     id: &mut u32,
     warnings: &mut Vec<String>,
@@ -87,20 +100,21 @@ fn shape(
         return Err("PPTX slide XML limit".into());
     }
     let carrier = node.one_d && connections.targets.get(&node.scope) != connections.ids.get(&node.scope);
-    if node.group || carrier {
+    let label = labels.nodes.get(&node.scope).ok_or("PPTX label plan missing")?;
+    if let Some(group_id) = label.group_id {
         w.open0("p:grpSp");
         w.open0("p:nvGrpSpPr");
-        w.empty("p:cNvPr", A::new().a("id", next(id)?).a("name", format!("Group {}", node.id)));
+        w.empty("p:cNvPr", A::new().a("id", group_id).a("name", format!("Group {}", node.id)));
         w.empty0("p:cNvGrpSpPr");
         w.empty0("p:nvPr");
         w.close("p:nvGrpSpPr");
         w.open0("p:grpSpPr");
-        xfrm(w, view.transform_rect_bbox(group_bounds(node, 0)?), true)?;
+        xfrm(w, view.transform_rect_bbox(group_bounds(node, connections, 0)?), true)?;
         w.close("p:grpSpPr");
     }
     if node.children_first {
         for child in &node.children {
-            shape(w, child, connections, view, id, warnings, limit, pictures, depth + 1)?;
+            shape(w, child, connections, labels, view, id, warnings, limit, pictures, depth + 1)?;
         }
     }
     if !node.hidden_own || connections.attached.contains(&node.scope) {
@@ -113,12 +127,7 @@ fn shape(
         let bounds = bounds.unwrap_or_else(|| view.transform_rect_bbox(node.bounds));
         let text = node.text_body.as_ref().zip(node.text_block.as_ref());
         let placement = text.map(|(_, block)| text::placement(block, view)).transpose()?;
-        let inline = !node.one_d
-            && placement.is_some_and(|(b, angle, _)| {
-                angle.abs() < 1e-9
-                    && [b.x0 - bounds.x0, b.y0 - bounds.y0, b.x1 - bounds.x1, b.y1 - bounds.y1].iter().all(|v| v.abs() < 1e-9)
-                    && node.drawing.ops.iter().all(|op| matches!(op, Op::Text { .. } | Op::Bounds(_)))
-            });
+        let inline = label.inline;
         if let Some(route) = connections.routes.get(&node.scope) {
             super::connectors::write(w, node, route, connections, view)?;
             if carrier {
@@ -175,7 +184,7 @@ fn shape(
                 Op::Pop => clip = None,
                 Op::Text { .. } => {
                     if !text_written && let (Some((body, _)), Some((bounds, angle, scale))) = (text, placement) {
-                        text_shape(w, next(id)?, node.id, body, bounds, angle, scale, limit)?;
+                        text_shape(w, label.text_id.ok_or("PPTX text id missing")?, node.id, body, bounds, angle, scale, limit)?;
                         text_written = true;
                     }
                 }
@@ -195,15 +204,15 @@ fn shape(
         }
         // Retained fallback text has no Op::Text when the raster layout failed.
         if !text_written && let (Some((body, _)), Some((bounds, angle, scale))) = (text, placement) {
-            text_shape(w, next(id)?, node.id, body, bounds, angle, scale, limit)?;
+            text_shape(w, label.text_id.ok_or("PPTX text id missing")?, node.id, body, bounds, angle, scale, limit)?;
         }
     }
     if !node.children_first {
         for child in &node.children {
-            shape(w, child, connections, view, id, warnings, limit, pictures, depth + 1)?;
+            shape(w, child, connections, labels, view, id, warnings, limit, pictures, depth + 1)?;
         }
     }
-    if node.group || carrier {
+    if label.group_id.is_some() {
         w.close("p:grpSp");
     }
     Ok(())

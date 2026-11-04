@@ -13,7 +13,7 @@ use misterdiagram_render::scene::EvaluatedTextBlock;
 /// a physical rectangle plus independent DrawingML text rotation.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/txtangle-cell-text-transform-section
 /// https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.bodyproperties.rotation
-pub(super) fn placement(block: &EvaluatedTextBlock, view: Affine) -> Result<(Rect, f64, f64), String> {
+pub(crate) fn placement(block: &EvaluatedTextBlock, view: Affine) -> Result<(Rect, f64, f64), String> {
     let m = view * block.to_page;
     let [a, b, c, d, _, _] = m.as_coeffs();
     let sx = a.hypot(b);

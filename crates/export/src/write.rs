@@ -15,7 +15,7 @@ mod content;
 mod dml;
 mod media;
 mod shapes;
-mod text;
+pub(crate) mod text;
 mod theme;
 
 const CT_PRES: &str = "application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml";
@@ -65,7 +65,7 @@ pub fn render(scenes: Vec<EvaluatedPage>, colors: &[Rgba; 12], options: Options)
     }
     Ok(output)
 }
-fn render_limited(scenes: &[Page], colors: &[Rgba; 12], options: Options, limit: usize) -> Result<Export, String> {
+pub(crate) fn render_limited(scenes: &[Page], colors: &[Rgba; 12], options: Options, limit: usize) -> Result<Export, String> {
     if scenes.is_empty() || scenes.len() > 4096 {
         return Err("PPTX requires 1 to 4096 foreground pages".into());
     }
@@ -205,7 +205,7 @@ fn slide_size(width: f64, height: f64) -> Result<(f64, f64), String> {
 }
 
 /// The only page-space Y flip: Visio inches to top-left DrawingML inches.
-fn page_flip(height: f64) -> kurbo::Affine {
+pub(crate) fn page_flip(height: f64) -> kurbo::Affine {
     kurbo::Affine::new([1., 0., 0., -1., 0., height])
 }
 

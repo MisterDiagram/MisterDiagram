@@ -155,7 +155,13 @@ fn saved_text_rectangle_is_not_expanded_for_overflow_and_rotation_is_independent
     let (_, pkg) = export(&d);
     let xml = pkg.xml("ppt/slides/slide1.xml").unwrap();
     let tree = xml.root.path(&["cSld", "spTree"]).unwrap();
-    let text = tree.children_named("sp").find(|s| s.child("txBody").is_some()).unwrap();
+    let group = tree.child("grpSp").unwrap();
+    let text = group.children_named("sp").find(|s| s.child("txBody").is_some()).unwrap();
+    assert_eq!(group.children_named("sp").count(), 2);
+    assert_eq!(group.child("sp").unwrap().path(&["nvSpPr", "cNvPr"]).unwrap().attr("id"), Some("2"));
+    let group_xf = group.path(&["grpSpPr", "xfrm"]).unwrap();
+    assert_eq!(group_xf.child("off").unwrap().attr("x"), group_xf.child("chOff").unwrap().attr("x"));
+    assert_eq!(group_xf.child("ext").unwrap().attr("cx"), group_xf.child("chExt").unwrap().attr("cx"));
     assert_eq!(text.path(&["nvSpPr", "cNvPr"]).unwrap().attr("name"), Some("Text 1"));
     let xf = text.path(&["spPr", "xfrm"]).unwrap();
     assert!(xf.attr("rot").is_none());
@@ -271,5 +277,80 @@ fn drawingml_paragraph_metric_limits_refuse_invalid_packages() {
         props.margin_right = Some(right);
         props.indent = Some(indent);
         assert!(misterdiagram_export::render(vec![page], &colors, opts).is_err(), "{left}, {right}, {indent}");
+    }
+}
+
+#[test]
+fn separate_labels_share_the_leaf_group_and_keep_glue_targets_and_coordinates() {
+    // TxtPinX/Y can place a saved label outside every edge of the shape box.
+    // ECMA-376 Part 1, 19.3.1.22: identity group child space preserves placement.
+    for (x, y, angle) in [(-3., 0.5, 0.), (5., 0.5, 0.), (1., -3., 0.), (1., 4., 0.), (4., 3., 0.7)] {
+        let mut d = document("Moves with its shape");
+        let s = &mut d.pages[0].shapes[0];
+        for (name, value) in [("TxtPinX", x.to_string()), ("TxtPinY", y.to_string()), ("TxtAngle", angle.to_string())] {
+            set(s, name, &value);
+        }
+        d.pages[0].shapes.push(skeleton::rectangle(2, 7., 4., 1., 1., "Inline").unwrap());
+        skeleton::glue_dynamic(&mut d.pages[0], 3, 2, [1, 2], [[5., 4.5], [7., 4.5]]).unwrap();
+        let (_, pkg) = export(&d);
+        let xml = pkg.xml("ppt/slides/slide1.xml").unwrap();
+        let tree = xml.root.path(&["cSld", "spTree"]).unwrap();
+        let group = tree.child("grpSp").unwrap();
+        let members: Vec<_> = group.children_named("sp").collect();
+        assert_eq!(members.len(), 2);
+        assert_eq!(members[0].path(&["nvSpPr", "cNvPr"]).unwrap().attr("id"), Some("2"));
+        assert_eq!(members[1].path(&["nvSpPr", "cNvPr"]).unwrap().attr("name"), Some("Text 1"));
+        let start = tree.child("cxnSp").unwrap().path(&["nvCxnSpPr", "cNvCxnSpPr", "stCxn"]).unwrap();
+        assert_eq!(start.attr("id"), Some("2"));
+        assert_eq!(start.attr("idx"), Some("4"));
+        let xf = group.path(&["grpSpPr", "xfrm"]).unwrap();
+        for (a, b, names) in [("off", "chOff", ["x", "y"]), ("ext", "chExt", ["cx", "cy"])] {
+            for name in names {
+                assert_eq!(xf.child(a).unwrap().attr(name), xf.child(b).unwrap().attr(name));
+            }
+        }
+        let rect = |xf: &misterdiagram_opc::xml::El| {
+            let off = xf.child("off").unwrap();
+            let ext = xf.child("ext").unwrap();
+            let (x, y) = (off.f64("x").unwrap(), off.f64("y").unwrap());
+            kurbo::Rect::new(x, y, x + ext.f64("cx").unwrap(), y + ext.f64("cy").unwrap())
+        };
+        let outer = rect(xf).inflate(1., 1.);
+        for member in members {
+            let b = rect(member.path(&["spPr", "xfrm"]).unwrap());
+            assert_eq!(outer.union(b), outer);
+        }
+        // Inline leaf remains a single shape, with no text-only wrapper.
+        assert_eq!(tree.children_named("sp").count(), 1);
+    }
+}
+#[test]
+fn nested_labels_background_ids_and_scaled_pages_keep_distinct_parent_intent() {
+    let mut d = document("Offset");
+    set(&mut d.pages[0].shapes[0], "TxtPinX", "4");
+    let mut group = skeleton::rectangle(10, 1., 1., 8., 6., "Inline group").unwrap();
+    group.shape_type = Some("Group".into());
+    group.shapes = std::mem::take(&mut *d.pages[0].shapes);
+    d.pages[0].shapes.push(group);
+    let mut bg = d.pages[0].clone();
+    bg.id = 9;
+    bg.attributes.insert("Background".into(), "1".into());
+    d.pages[0].attributes.insert("BackPage".into(), "9".into());
+    d.pages.push(bg);
+    for c in &mut d.pages[0].sheet.cells {
+        if c.name == "PageWidth" || c.name == "PageHeight" {
+            c.value = Some("0.5".into());
+        }
+    }
+    let options = Options { page_canvas: true, ..Default::default() };
+    let page = scene::evaluated::page(&d, 0, options, &mut SceneBudget::default()).unwrap();
+    let model = misterdiagram_export::model::Page::from_evaluated(page).unwrap();
+    assert_eq!(misterdiagram_export::qa::check_labels(&model, options).unwrap(), (4, 2));
+    let (_, pkg) = export(&d);
+    let xml = pkg.xml("ppt/slides/slide1.xml").unwrap();
+    let groups: Vec<_> = xml.root.path(&["cSld", "spTree"]).unwrap().children_named("grpSp").collect();
+    assert_eq!(groups.len(), 2);
+    for g in groups {
+        assert_eq!(g.children_named("grpSp").count(), 1);
     }
 }

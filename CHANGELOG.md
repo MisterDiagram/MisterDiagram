@@ -2,11 +2,11 @@
 
 ## Unreleased
 
-- **Connected drawing export checks:** Repeatable office, SAN and fabric drawings check editable PowerPoint exports. Native PowerPoint and Visio acceptance remains pending.
+- **Connected drawing export checks:** Repeatable office, SAN and fabric drawings check editable PowerPoint exports. Checks include package, text, attachment and shared label-group readback.
 
 - **PowerPoint connectors and pictures:** Export attached preset connectors and embedded pictures. Warnings identify dropped line jumps and routes fitted to PowerPoint presets.
 
-- **PowerPoint text:** Edit exported labels, paragraphs and formatted runs. Text keeps its saved position and size, including evaluated fields and cached text.
+- **PowerPoint text:** Edit exported labels, paragraphs and formatted runs. Text keeps its saved position and size, including evaluated fields and cached text. Shapes and their labels move together.
 
 - **PowerPoint shapes:** Keep native groups, geometry sections, resolved fills and line styles. Small or oversized pages scale to fit PowerPoint, with warnings for picture approximations.
 

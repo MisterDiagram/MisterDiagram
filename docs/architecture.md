@@ -458,7 +458,15 @@ and the same TextLayout as the renderer for output-model raster QA. The retained
 text block stores both the saved rectangle and the layout overflow rectangle.
 Only the saved rectangle is serialized. An axis-aligned coincident block joins
 its shape when this preserves paint order; otherwise a separate transparent
-custom-geometry shape carries the body. Its rectangle and body rotation come
+custom-geometry shape carries the body. A separate 2-D label and its shape share
+a native group, reusing an existing group when present. The group bounds include
+the saved text rectangle, and equal parent/child coordinate boxes preserve all
+positions. Inline text receives no additional wrapper. Stable shape IDs and
+connection sites stay on the shape inside the group; label/group IDs are reserved
+separately before pictures or text backgrounds allocate IDs. The PX-12 manifest
+records shape, label and immediate parent IDs before XML emission. Independent
+readback checks complete label coverage and identity group transforms, so shapes
+and their labels move together. Its rectangle and body rotation come
 from the evaluated transform, including TxtAngle and inherited reflections.
 No text box is padded, enlarged or shrunk to compensate for PowerPoint wrapping.
 Whole-page presentation scaling also scales type, margins, spacing and tabs.

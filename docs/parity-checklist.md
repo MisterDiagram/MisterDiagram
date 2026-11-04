@@ -476,3 +476,5 @@ Progress M5.116: shared fit-to-drawing export and explicit margins added to CLI 
 - M5.120: bounded THEME colour investigation recorded; required native configurations unavailable, no colour-form implementation (#88 remains open).
 
 - M5.126: Export to PowerPoint is P: native geometry/groups, text, preset connector glue and PNG pictures pass local package/model/readback checks. Native PowerPoint open/render/drag acceptance remains pending. Pattern/even-odd fills, shadows, compound lines, arrow approximations, page scaling, fitted routes, dropped jumps and synthetic sites are named in [gaps.md](gaps.md#powerpoint-export-partial). Word export remains missing.
+
+- M5.127: Separate PowerPoint labels share their shape's group, preserving placement and glue targets. Immediate-parent readback and a sibling-emission source defect guard movement; the export row stays P pending native acceptance of this correction.
