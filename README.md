@@ -16,8 +16,9 @@ It reads and writes Visio drawings, stencils and templates, renders them to PNG,
 and exports them to PowerPoint. Each claim below has been measured against what Visio 2021 (and
 PowerPoint 2021, for the export) does with the same file.
 
-**Download:** [MisterDiagram 0.1.0-beta.1](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-beta.1),
-the first beta, for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+**Download:** [MisterDiagram 0.1.0-beta.2](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-beta.2),
+the second beta (background-first drawings export their foreground page), for macOS
+(universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -47,7 +48,7 @@ shapes, search and open stencils, drop masters, connect shapes, read and set Sha
 and run any engine command or a batch of them. [docs/mcp.md](docs/mcp.md) lists them with examples, including the office, SAN and
 fabric drawings the tests build.
 
-## What works today (2026-11-04, 0.1.0-beta.1)
+## What works today (2026-11-04, 0.1.0-beta.2)
 
 - **Open** .vsdx, .vssx and .vstx files, and the macro-enabled .vsdm, .vssm and .vstm (the VBA
   is dropped). Every stencil and template that ships with Visio 2021 opens.
@@ -125,6 +126,8 @@ Rendering is close to Visio, but it is not complete appearance or cell parity. T
   and compound line patterns are limited.
 - When a connector reroutes, it takes this router's path, which can differ from the one Visio
   would pick.
+- Centre and radial gradient fills (the background stencil's Center Gradient, for one) are
+  drawn from a corner instead of as a centred glow; the fix is next.
 - PowerPoint export approximates what PowerPoint cannot hold: pattern fills, shadows, compound
   lines and line jumps ([details](docs/gaps.md#powerpoint-export-partial)).
 - Authoring large drawings is slow ([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39)).
@@ -148,7 +151,9 @@ docs/gaps.md). From Microsoft's template catalogue, filed and open: `THEME()` wi
 argument (#88) and the Text Callout cycle (#91). From the first batch of real company files,
 filed and open: SVG import (#103). From the 2026-11-03 batch: a WMF wrapping an EMF (#112),
 metafile text in SVG (#113), a font-name switch (#114), two `THEME()` resolutions (#115, #116)
-and SVG bullets (#117). SVG export does not write Visio's `v:` extension data, which Visio
+and SVG bullets (#117). Centre and radial gradient presets are drawn from a corner instead of
+as Visio's centred glow, and a gradient whose master deletes inherited stop rows reports
+`#REF!` stop warnings. SVG export does not write Visio's `v:` extension data, which Visio
 reads when it imports an SVG. The bundled symbol face covers the dingbat, geometric, arrow and
 pictograph blocks; Segoe UI Symbol's mathematics and Windows icon ranges, and the Wingdings and
 Webdings symbol-charset fonts, are not covered (docs/gaps.md). Where a connector does reroute,
@@ -158,21 +163,16 @@ elsewhere); the 28 of 29 geometry witnesses still hold.
 
 </details>
 
-## New in 0.1.0-beta.1
+## New in 0.1.0-beta.2
 
-- PowerPoint export. `convert IN OUT.pptx`, `render FILE OUT.pptx` and the MCP export tool write
-  one slide per foreground page with native shapes and groups, editable text, connectors glued to
-  their shapes with PowerPoint's own connector presets, and embedded pictures. Shapes and their
-  labels move together.
-- M5 met. The office, SAN and fabric drawings built through MCP open in PowerPoint 2021 without
-  repair with all their connectors attached, and in Visio 2021 unrepaired.
-- What PowerPoint cannot hold is warned at export: pattern fills become their foreground colour,
-  shadows are omitted, compound lines become one line, a route with more bends than a preset
-  carries is fitted and line jumps are dropped, and a page outside PowerPoint's 1 to 56 inch
-  slide range is scaled.
+- Page order follows Visio: foreground pages first, then background pages. A drawing whose file
+  lists its background page first (Visio does this when a background shape such as Center
+  Gradient is dropped on a page) now converts, renders and exports its foreground page, with the
+  background behind it. Before, `convert` and the MCP export tool could write the background page
+  alone. `--page N` and every MCP page number count in the same order.
 
-Against alpha.25, no render number moves; field rows, routes, theme and hostile results are
-unchanged. The full list of changes is in [CHANGELOG.md](CHANGELOG.md).
+Against beta.1, no corpus, field, route, theme or hostile number moves. The full list of changes
+is in [CHANGELOG.md](CHANGELOG.md).
 
 ## Testers wanted
 

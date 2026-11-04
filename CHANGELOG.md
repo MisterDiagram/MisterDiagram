@@ -1,8 +1,15 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-beta.2
+
+A fix release for one tester report (#87): a drawing whose file lists a background page first now
+converts and exports its foreground page, as Visio shows it, instead of the background alone.
 
 - **Foreground page exports:** Fixed a case where convert and MCP export picked a background page when it was listed first in the file. Page numbers now follow Visio's order: foreground pages first, then background pages.
+
+Known gap: centre and radial gradient fills, such as the background stencil's Center Gradient, are
+drawn from a corner instead of as Visio's centred glow, and some report `#REF!` gradient-stop
+warnings on export. The fix is next.
 
 ## 0.1.0-beta.1
 
