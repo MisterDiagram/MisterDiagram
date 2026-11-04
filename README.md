@@ -4,10 +4,6 @@
 
 *Your diagrams, as requested.* (Visio files without Visio!)
 
-Formerly DiagramCraft; renamed on 2026-10-16 out of respect for
-[DiagramCraft](https://github.com/DiagramCraft/diagram-craft), an older open-source diagram
-editor with that name.
-
 Tell Claude what you want drawn, in plain English, and get a real Visio .vsdx back.
 MisterDiagram has no GUI. Its interface is an MCP server (and a CLI for scripts), and its output
 is a file that opens in Visio without a repair prompt. "Make a flowchart of our onboarding
@@ -15,19 +11,13 @@ process", "draw the org chart for these twelve people", "a network diagram with 
 firewall each and a VPN between them" become shapes dropped from stencils, glued connectors
 routed the way Visio routes them, and a .vsdx you can hand to whoever still has Visio.
 
-Under the hood it is a clean-room, headless Rust core of Microsoft Visio. It opens .vsdx, .vssx
-and .vstx files (and their macro-enabled .vsdm, .vssm and .vstm variants with the VBA payload
-dropped), evaluates the ShapeSheet the way Visio does, renders pages and stencils to PNG, SVG and
-PDF, writes files that Visio opens without repair, and authors drawings from commands: shapes,
-masters, shape data, glued connectors with orthogonal routing and line jumps. Everything it
-claims is measured against Visio 2021's own output on the same files, and the PowerPoint export
-against PowerPoint 2021.
-Anyone who wants a GUI on top is welcome to build one: the licence is MIT or Apache-2.0, and the
-core is the part that has to be right. It is built in the mould of the Craft apps (deckcraft,
-vectorcraft and their siblings) and shares their conventions.
+Underneath is a clean-room, headless Rust implementation of Visio's file format and ShapeSheet.
+It reads and writes Visio drawings, stencils and templates, renders them to PNG, SVG and PDF,
+and exports them to PowerPoint. Each claim below has been measured against what Visio 2021 (and
+PowerPoint 2021, for the export) does with the same file.
 
 **Download:** [MisterDiagram 0.1.0-beta.1](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-beta.1),
-the first beta (PowerPoint export with editable text and attached connectors; M5 met), for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
+the first beta, for macOS (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 
@@ -36,7 +26,49 @@ warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
 *MisterDiagram's own renders. Each label gives the mean per-pixel distance from Visio 2021's PNG
 export of the same file, measured by the test harness; Visio's exports stay out of the repository.*
 
+## Use it with Claude
+
+1. Download the archive for your platform and unpack it. [docs/install.md](docs/install.md)
+   walks through the first-run warnings on macOS and Windows.
+2. Register the server with Claude Code, using the full path to the binary:
+
+   ```sh
+   claude mcp add misterdiagram -- /full/path/to/misterdiagram mcp
+   ```
+
+   Any MCP client works the same way: `misterdiagram mcp` speaks MCP over stdin and stdout.
+   [docs/install.md](docs/install.md#6-use-it-from-an-ai-agent-mcp) has the setup for other
+   clients and for Windows paths.
+3. Ask for a drawing, and say where to save it: "draw our two-office network with a firewall in
+   each and save it as offices.vsdx", then "export it to PNG" or "export it to PowerPoint".
+
+The server has seventeen tools: open, save, render and export documents, inspect documents and
+shapes, search and open stencils, drop masters, connect shapes, read and set ShapeSheet cells,
+and run any engine command or a batch of them. [docs/mcp.md](docs/mcp.md) lists them with examples, including the office, SAN and
+fabric drawings the tests build.
+
 ## What works today (2026-11-04, 0.1.0-beta.1)
+
+- **Open** .vsdx, .vssx and .vstx files, and the macro-enabled .vsdm, .vssm and .vstm (the VBA
+  is dropped). Every stencil and template that ships with Visio 2021 opens.
+- **Evaluate** the ShapeSheet the way Visio does, with inheritance from masters, style sheets
+  and document defaults.
+- **Render** pages and stencils to PNG, SVG and PDF, close to Visio's own export. Text in SVG
+  and PDF stays real text you can search and select.
+- **Write** drawings Visio opens without a repair prompt, including drawings built from scratch.
+- **Draw** shapes, stencil masters, shape data, hyperlinks and layers, with connectors glued to
+  their shapes and routed the way Visio routes them, line jumps included. Tree, row and fan
+  layout place the shapes for you. A built-in network stencil has eleven device masters.
+- **Export to PowerPoint** with native shapes, editable text, and connectors that stay attached
+  when you move a shape. What PowerPoint cannot hold is named and warned at export.
+- **Script** the same commands from the CLI, so a drawing generated from data can be rebuilt
+  when the data changes.
+
+M4 met its plan gates on 2026-10-15 and M5 on 2026-11-04. CI runs all eight gates on Linux,
+Windows and macOS, plus an Ubuntu check at the declared Rust minimum.
+
+<details>
+<summary>The measurements behind these claims</summary>
 
 - **Open** every one of the 1,181 stencils and templates that ship with Visio 2021, plus a
   generated drawing corpus, with zero errors and zero panics under mutation fuzzing.
@@ -45,14 +77,20 @@ export of the same file, measured by the test harness; Visio's exports stay out 
   masters, style sheets and document defaults, with dirty-set recalculation. The full
   oracle check passes its fixed floors, including 62,415/67,866 cached text metrics
   and 54,548/58,180 COM text metrics.
-- **Render** PNG, SVG and vector PDF. All aggregate feature groups of the test corpus pass their fixed
-  pixel ceilings against Visio's own 96 dpi export. Individual connector comparisons
-  remain above their ceilings and are tracked as a renderer gap. All 1,108 masters in the
-  review stencil set render. The vendor inventory renders 6,678/6,742 masters with
-  zero blanks or guard kills; the remaining 64 are named gaps. PDF text extracts
-  with ligatures and combining marks intact, and SVG text is `<text>` that can be searched,
-  selected and edited.
-- **Export PowerPoint** with native shapes, groups, editable text, attached preset connectors and pictures; PowerPoint 2021 opens the acceptance set without repair and keeps connectors and labels with their shapes when they move; the [named approximations](docs/gaps.md#powerpoint-export-partial) are explicit.
+- **Render** PNG, SVG and vector PDF. All aggregate feature groups of the test corpus pass their
+  fixed pixel ceilings against Visio's own 96 dpi export. Individual connector comparisons
+  remain above their ceilings and are tracked as a renderer gap: they are measured and reported
+  as informational until the connector stroke rendering gap closes, and route acceptance is
+  cell and geometry equality with Visio plus the unchanged group ceilings. All 1,108 masters in
+  the review stencil set render. The vendor inventory renders 6,678/6,742 masters with zero
+  blanks or guard kills; the remaining 64 are named gaps. PDF text extracts with ligatures and
+  combining marks intact, and SVG text is `<text>` that can be searched, selected and edited.
+- **Export PowerPoint**: PowerPoint 2021 opens the acceptance set without repair and keeps
+  connectors and labels with their shapes when they move. The office, SAN and fabric drawings
+  built through MCP open with all 18, 80 and 20 connectors attached. Fifteen exports were checked
+  in PowerPoint; its render of each is within a few levels of ours (the radial gradient is the
+  largest difference). In the corpus check, 183 of 230 generated pages are exact against the
+  exporter's own raster, with 47 named substitutions and label groups 80/3.
 - **Write** .vsdx, .vssx and .vstx, and build documents from scratch. Visio 2021 opened all
   230 files of the acceptance set, five of them built from scratch, with no repair beyond a
   few disclosed metadata rewrites, and its COM dumps of the reopened files show zero
@@ -62,43 +100,63 @@ export of the same file, measured by the test harness; Visio's exports stay out 
   points, static and dynamic glue, and connector routing. Routes match Visio's own on 28 of
   29 witness drawings (obstacles, route styles, page preferences and line jumps) within one
   millionth of an inch; the one gap is a 1/64 in packing shift where three connectors cross.
-  The 24-switch, 40-connector topology keeps every route when Visio re-saves it,
-  and its equal-size export matches ours inside the pixel ceilings. Current office,
-  SAN and fabric examples retain 18/80/20 Connects after Visio re-save with zero
-  repair or route differences. Office and SAN pass layout checks; fabric retains
-  its documented box and heading crossings.
-- **Automate** through sixteen MCP tools or CLI scripts: atomic reference batches,
-  styled creation, connector creation, built-in network masters, tree/row/fan
-  layout and layout checks. Filtered inspection bounds reply sizes. Unsaved-change
-  protection, panic recovery and bounded malformed-line recovery keep sessions usable.
-  CLI scripts can rebuild drawings from data with `run --batch FILE`.
-  The built-in network stencil provides eleven semantic device masters as native
-  editable geometry via `stencil.open {"builtin":"network"}`.
+  The 24-switch, 40-connector topology keeps every route when Visio re-saves it, and its
+  equal-size export matches ours inside the pixel ceilings. The office, SAN and fabric examples
+  retain 18/80/20 Connects after Visio re-save with zero repair or route differences. Office
+  and SAN pass layout checks; fabric retains its documented box and heading crossings.
+- **Automate** through seventeen MCP tools or CLI scripts: atomic reference batches, styled
+  creation, connector creation, built-in network masters, tree/row/fan layout and layout
+  checks. Filtered inspection bounds reply sizes. Unsaved-change protection, panic recovery
+  and bounded malformed-line recovery keep sessions usable. CLI scripts can rebuild drawings
+  from data with `run --batch FILE`. The built-in network stencil provides eleven semantic
+  device masters as native editable geometry via `stencil.open {"builtin":"network"}`.
 
+The rulings behind each gate are dated in [ROADMAP.md](ROADMAP.md).
 
-M4 met its plan gates on 2026-10-15 and M5 on 2026-11-04 (PowerPoint export, the first beta).
-CI runs all eight gates on Linux, Windows and
-macOS, plus an Ubuntu check at the declared Rust minimum.
+</details>
 
-Known gaps are listed in [docs/gaps.md](docs/gaps.md). All 85 native-opened field
-files now render, but this is not complete appearance or cell parity. Timeline
-date labels, milestone positions and two caption colours, stored ActiveX versus live-control appearance,
-3D rotation, fine equipment details, repeated-master strict evaluation and some
-master cells still differ. THEMEVAL
-retains 2,550 unequal secondary backgrounds and dormant gradient angles.
-Container/list formulas, text wrapping, larger-page routing, legacy formats,
-EMF+, compound line patterns, shadows, PowerPoint pattern fills and masters with several
-top-level shapes remain limited. Large-drawing authoring is slow
-([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39); measurements in docs/gaps.md).
-From Microsoft's template catalogue, filed and open: `THEME()` with a colour argument (#88) and the Text Callout cycle (#91). From the first batch
-of real company files, filed and open: SVG import (#103). From the 2026-11-03 batch: a WMF
-wrapping an EMF (#112), metafile text in SVG (#113), a font-name switch (#114), two `THEME()`
-resolutions (#115, #116) and SVG bullets (#117). SVG export does not write Visio's
-`v:` extension data, which Visio reads when it imports an SVG. The bundled symbol face covers the dingbat, geometric, arrow and
-pictograph blocks; Segoe UI Symbol's mathematics and Windows icon ranges, and the Wingdings
-and Webdings symbol-charset fonts, are not covered (docs/gaps.md). Where a connector does reroute, the path is this router's, not Visio's: all
-three connectors that rerouted on the witness drawings differ from Visio's path (two take the
-other side of the obstacle, one bends elsewhere); the 28 of 29 geometry witnesses still hold.
+## Known gaps
+
+Rendering is close to Visio, but it is not complete appearance or cell parity. The main limits:
+
+- Some details still differ from Visio: timeline labels, 3D rotation, shadows, fine equipment
+  details and a few theme colours.
+- Container and list formulas, text wrapping, routing on larger pages, legacy formats, EMF+
+  and compound line patterns are limited.
+- When a connector reroutes, it takes this router's path, which can differ from the one Visio
+  would pick.
+- PowerPoint export approximates what PowerPoint cannot hold: pattern fills, shadows, compound
+  lines and line jumps ([details](docs/gaps.md#powerpoint-export-partial)).
+- Authoring large drawings is slow ([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39)).
+- Open tester reports: [#112 to #117](https://github.com/MisterDiagram/MisterDiagram/issues)
+  (metafiles, theme colours, fonts and bullets), plus #88, #91 and #103.
+
+Every gap, with its measurements, is in [docs/gaps.md](docs/gaps.md).
+
+<details>
+<summary>The full list</summary>
+
+All 85 native-opened field files now render, but this is not complete appearance or cell
+parity. Timeline date labels, milestone positions and two caption colours, stored ActiveX
+versus live-control appearance, 3D rotation, fine equipment details, repeated-master strict
+evaluation and some master cells still differ. THEMEVAL retains 2,550 unequal secondary
+backgrounds and dormant gradient angles. Container/list formulas, text wrapping, larger-page
+routing, legacy formats, EMF+, compound line patterns, shadows, PowerPoint pattern fills and
+masters with several top-level shapes remain limited. Large-drawing authoring is slow
+([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39); measurements in
+docs/gaps.md). From Microsoft's template catalogue, filed and open: `THEME()` with a colour
+argument (#88) and the Text Callout cycle (#91). From the first batch of real company files,
+filed and open: SVG import (#103). From the 2026-11-03 batch: a WMF wrapping an EMF (#112),
+metafile text in SVG (#113), a font-name switch (#114), two `THEME()` resolutions (#115, #116)
+and SVG bullets (#117). SVG export does not write Visio's `v:` extension data, which Visio
+reads when it imports an SVG. The bundled symbol face covers the dingbat, geometric, arrow and
+pictograph blocks; Segoe UI Symbol's mathematics and Windows icon ranges, and the Wingdings and
+Webdings symbol-charset fonts, are not covered (docs/gaps.md). Where a connector does reroute,
+the path is this router's, not Visio's: all three connectors that rerouted on the witness
+drawings differ from Visio's path (two take the other side of the obstacle, one bends
+elsewhere); the 28 of 29 geometry witnesses still hold.
+
+</details>
 
 ## New in 0.1.0-beta.1
 
@@ -107,35 +165,30 @@ other side of the obstacle, one bends elsewhere); the 28 of 29 geometry witnesse
   their shapes with PowerPoint's own connector presets, and embedded pictures. Shapes and their
   labels move together.
 - M5 met. The office, SAN and fabric drawings built through MCP open in PowerPoint 2021 without
-  repair with all 18, 80 and 20 connectors attached, and in Visio 2021 unrepaired with the same
-  Connects counts. Fifteen exports checked in PowerPoint; PowerPoint's render of each is within a
-  few levels of ours (the radial gradient is the largest difference).
-- What PowerPoint cannot hold is named in [docs/gaps.md](docs/gaps.md#powerpoint-export-partial)
-  and warned at export: pattern fills become their foreground colour, shadows are omitted,
-  compound lines become one line, a route with more bends than a preset carries is fitted and
-  line jumps are dropped, and a page outside PowerPoint's 1 to 56 inch slide range is scaled.
+  repair with all their connectors attached, and in Visio 2021 unrepaired.
+- What PowerPoint cannot hold is warned at export: pattern fills become their foreground colour,
+  shadows are omitted, compound lines become one line, a route with more bends than a preset
+  carries is fitted and line jumps are dropped, and a page outside PowerPoint's 1 to 56 inch
+  slide range is scaled.
 
-Against alpha.25, no render number moves: the corpus check gains the PowerPoint lines (183 of 230
-generated pages exact against the exporter's own raster, 47 named substitutions, label groups 80/3),
-field rows are unchanged, and routes, theme and hostile results are unchanged.
+Against alpha.25, no render number moves; field rows, routes, theme and hostile results are
+unchanged. The full list of changes is in [CHANGELOG.md](CHANGELOG.md).
 
 ## Testers wanted
 
 MisterDiagram has been checked against Visio 2021 on drawings its own scripts made. Real
-drawings are the next test, and that needs people who use Visio at work. Alpha binaries for
+drawings are the next test, and that needs people who use Visio at work. Beta binaries for
 macOS, Windows and Linux are on the
 [Releases page](https://github.com/MisterDiagram/MisterDiagram/releases);
 [docs/install.md](docs/install.md) covers download, checksums, the first-run warnings for
-unsigned binaries and MCP setup. Building from source (see Try it below) works too. The most
-useful things to try:
+unsigned binaries and MCP setup. The most useful things to try:
 
 - Open your own .vsdx, .vssx and .vstx files with `info` and `render`. Tell us which files
   fail to open and where a render differs from what Visio shows.
 - If you have Visio, open the files MisterDiagram writes and tell us whether Visio repairs
   anything or draws them differently.
-- Point an AI agent at the MCP server (in Claude Code:
-  `claude mcp add misterdiagram -- /path/to/misterdiagram mcp`) and ask it for a network or
-  SAN drawing. Tell us what it could not do, or did wrong.
+- Point an AI agent at the MCP server ([setup above](#use-it-with-claude)) and ask it for a
+  network or SAN drawing. Tell us what it could not do, or did wrong.
 - Try vendor stencils (network, storage, server) and tell us which masters fail to drop,
   glue or render.
 
@@ -144,28 +197,32 @@ with the command you ran and what you expected. Please do not attach drawings th
 customer names, addresses or other private data: a small file that shows the same problem,
 or a screenshot and a description, is enough.
 
-## Try it
+## Command line
 
 ```sh
-cargo build --release
-cargo run --release -p misterdiagram-cli -- info drawing.vsdx
-cargo run --release -p misterdiagram-cli -- sheet drawing.vsdx --page 1
-cargo run --release -p misterdiagram-cli -- render drawing.vsdx --page 1 out.png
+misterdiagram info drawing.vsdx
+misterdiagram sheet drawing.vsdx --page 1
+misterdiagram render drawing.vsdx --page 1 out.png
+misterdiagram convert drawing.vsdx out.pptx
 ```
 
 `info` lists the package parts. `sheet` prints every evaluated cell in the same columns as a
-Visio COM dump, so the two diff directly. `render` also takes `.svg` and `.pdf` output names,
-and `--masters stencil.vssx` draws a contact sheet of a stencil. `render` and `convert`
-accept `--fit` to crop PNG, SVG and PDF to foreground drawing content, including
-off-page shapes. Add `--margin "0.25 in"` or `--margin "5 mm"` for padding on every
-side. No page margin is added automatically. An empty fitted page keeps its
-original page size and reports a warning. Prebuilt binaries are on the
-[Releases page](https://github.com/MisterDiagram/MisterDiagram/releases) (see
-[docs/install.md](docs/install.md)); building from source needs Rust stable with edition 2024. There is no GUI and none is planned in this repo.
+Visio COM dump, so the two diff directly. `render` also takes `.svg`, `.pdf` and `.pptx` output
+names, and `--masters stencil.vssx` draws a contact sheet of a stencil. `render` and `convert`
+accept `--fit` to crop PNG, SVG and PDF to foreground drawing content, including off-page
+shapes. Add `--margin "0.25 in"` or `--margin "5 mm"` for padding on every side. No page margin
+is added automatically. An empty fitted page keeps its original page size and reports a warning.
 
 Session retention defaults to a 2 GiB ceiling; use `--memory-limit <MiB>` or
 `MISTERDIAGRAM_MEMORY_LIMIT` (the flag wins) to change it without changing any per-file
 admission bound.
+
+To build from source you need Rust stable with edition 2024:
+
+```sh
+cargo build --release
+target/release/misterdiagram info drawing.vsdx
+```
 
 ### Generate a drawing
 
@@ -202,11 +259,6 @@ document IDs, lengths use inches and angles use radians. `commands` and `describ
 print the command schemas. `misterdiagram mcp` serves the same engine over stdio;
 see [the tools and examples](docs/mcp.md).
 
-Individual connector pixel comparisons are measured and reported as informational
-until the connector stroke rendering gap closes; route acceptance is cell and geometry
-equality with Visio plus the unchanged group ceilings. The rulings behind each gate are
-dated in [ROADMAP.md](ROADMAP.md).
-
 ## What is coming
 
 - Fidelity after the first beta: the open tester findings (#112 to #117), Word export, and
@@ -216,6 +268,18 @@ dated in [ROADMAP.md](ROADMAP.md).
   COM), connector stroke rendering, and export mapping for small images.
 
 See [ROADMAP.md](ROADMAP.md) for the milestones and the numbers each one has to reach.
+
+## Status
+
+Beta. Milestones M0 to M5 (reading, evaluation, rendering, writing, authoring and routing, then
+MCP, layout and PowerPoint export) are met and independently reviewed, each under dated gate
+rulings recorded in the roadmap. The commands and MCP tools are settled; the work from here is
+correctness and fidelity, driven by tester reports. There is no GUI and none is planned in this
+repo, but anyone is welcome to build one on top: the core is the part that has to be right.
+
+The canonical repository is
+[github.com/MisterDiagram/MisterDiagram](https://github.com/MisterDiagram/MisterDiagram).
+Issues, discussion and pull requests go to this repository.
 
 ## How it is built
 
@@ -228,17 +292,13 @@ private for that reason, and the scripts to regenerate it with your own Visio ar
 Visio's output, with floors that only rise. Details are in
 [docs/provenance.md](docs/provenance.md).
 
-Code reused from the Craft apps is MIT OR Apache-2.0 and is listed per file in
+It is built in the mould of the Craft apps (deckcraft, vectorcraft and their siblings) and
+shares their conventions. Code reused from them is MIT OR Apache-2.0 and is listed per file in
 [ATTRIBUTION.md](ATTRIBUTION.md).
 
-## Status and handover
-
-Pre-alpha. Milestones M0 to M4 (reading, evaluation, rendering, writing, authoring and
-routing) are met and independently reviewed, each under dated gate rulings recorded in the
-roadmap. Phase 5 adds MCP and layout; its human review of the example drawings passed on
-2026-10-20. The canonical repository is
-[github.com/MisterDiagram/MisterDiagram](https://github.com/MisterDiagram/MisterDiagram).
-Issues, discussion and pull requests go to this repository.
+The project was called DiagramCraft until 2026-10-16, when it was renamed out of respect for
+[DiagramCraft](https://github.com/DiagramCraft/diagram-craft), an older open-source diagram
+editor with that name.
 
 MisterDiagram is not affiliated with, endorsed by or sponsored by Microsoft.
 Microsoft Visio is a trademark of Microsoft Corporation.
