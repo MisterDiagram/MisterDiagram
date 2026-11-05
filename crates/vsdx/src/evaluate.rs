@@ -459,6 +459,53 @@ impl<'a> Evaluator<'a> {
         }
         value
     }
+    /// Resolve a colour against the evaluator palette, preserving a saved colour
+    /// when a formula returns an unregistered palette identity.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/colors-element-visiodocument_type-complextypevisio-xml
+    pub fn color_rgb(&mut self, scope: Scope, name: &str) -> Option<[u8; 3]> {
+        let value = self.evaluate(scope, name);
+        let text_background = name.eq_ignore_ascii_case("TextBkgnd");
+        // Text backgrounds historically accept logical zero/one, unlike paint colours.
+        let value = match value {
+            Value::Bool(value) if text_background => Value::Number(f64::from(u8::from(value))),
+            value => value,
+        };
+        if text_background && matches!(value, Value::Number(0. | 255.)) {
+            return None;
+        }
+        let decode = |value: &Value| match value {
+            Value::Color { rgb, .. } => Some(*rgb),
+            Value::Number(n) if n.is_finite() && (0. ..=f64::from(u32::MAX)).contains(n) && n.fract() == 0. => {
+                let index = (*n as u32).checked_sub(u32::from(text_background))?;
+                self.palette.get(&index).copied().or_else(|| misterdiagram_sheet::functions::default_color(index))
+            }
+            _ => None,
+        };
+        if let Some(rgb) = decode(&value) {
+            return Some(rgb);
+        }
+        // Errors and other nonnumeric values are not missing palette identities.
+        // Keep their existing paint/default handling and diagnostics unchanged.
+        if !matches!(value, Value::Number(_)) {
+            return None;
+        }
+        let saved = self.cell(scope, name).and_then(|cell| {
+            let source = self.local_inh_cell(scope, &name.to_ascii_lowercase()).unwrap_or(cell);
+            let text = source.value.as_deref().filter(|value| !value.trim().is_empty() && *value != "Themed")?;
+            parse_color(text).or_else(|| decode(&self.cached_named_cell(scope, &name.to_ascii_lowercase(), source)))
+        });
+        self.fallback_warning(
+            scope,
+            name,
+            &Error::Value,
+            if saved.is_some() {
+                "unresolved colour palette index; used the value saved in the file"
+            } else {
+                "unresolved colour palette index; no usable saved colour"
+            },
+        );
+        saved
+    }
     /// Inject a theme resolver from the application composition layer.
     pub fn with_theme_host(mut self, host: &'a dyn misterdiagram_sheet::host::ThemeHost) -> Self {
         self.theme_host = Some(host);
@@ -469,7 +516,7 @@ impl<'a> Evaluator<'a> {
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/fillgradient-section
     pub fn theme_fill_gradient_stop_count(&mut self, scope: Scope) -> Result<Option<usize>, Error> {
         let Some(host) = self.theme_host else { return Ok(Some(0)) };
-        let mut context = BoundContext { evaluator: self, scope, origin: scope, cached: Value::Number(0.) };
+        let mut context = BoundContext { evaluator: self, scope, origin: scope, cached: Value::Number(0.), legacy_failure: false };
         host.fill_gradient_stop_count(&mut context)
     }
     pub fn with_text_host(mut self, host: &'a dyn misterdiagram_model::text::TextHost) -> Self {
@@ -1028,7 +1075,7 @@ impl<'a> Evaluator<'a> {
                         && cell.units.as_deref() != Some("STR")
                         && !string_cells::is_string(&key.name, cell) =>
                     {
-                        self.compute_formula(scope, origin, cached, "THEMEVAL()")
+                        self.compute_formula(scope, origin, &key.name, cached, "THEMEVAL()")
                     }
                     None | Some("No Formula") => self.cached_named_cell(scope, &key.name, cell),
                     // A detached Inh with V imports as a constant with no native formula.
@@ -1036,7 +1083,7 @@ impl<'a> Evaluator<'a> {
                     // https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
                     Some("Inh") if cell.value.is_some() => self.cached_named_cell(scope, &key.name, cell),
                     Some("Inh") => Value::Error(Error::Ref),
-                    Some(formula) => self.compute_formula(scope, origin, cached, formula),
+                    Some(formula) => self.compute_formula(scope, origin, &key.name, cached, formula),
                 }
             }
         } else {
@@ -1217,7 +1264,7 @@ impl<'a> Evaluator<'a> {
         self.arguments.push(args.iter().map(|(n, v)| (n.to_ascii_lowercase(), v.clone())).collect());
         let result = match formula.as_deref() {
             None | Some("No Formula") => self.cached_named_cell(target, &key.name, cell),
-            Some(f) => self.compute_formula(target, origin, cached, f),
+            Some(f) => self.compute_formula(target, origin, &key.name, cached, f),
         };
         self.arguments.pop();
         self.argument_bytes -= bytes;
@@ -1264,12 +1311,12 @@ impl<'a> Evaluator<'a> {
     /// Frozen host formulas therefore retain that final value until their host is implemented.
     /// Ordinary unsupported functions never take this path. References still register dependencies.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
-    fn compute_formula(&mut self, scope: Scope, origin: Scope, cached: Value, formula: &str) -> Value {
+    fn compute_formula(&mut self, scope: Scope, origin: Scope, cell_name: &str, cached: Value, formula: &str) -> Value {
         let expr = match misterdiagram_sheet::parse(formula) {
             Ok(expr) => expr,
             Err(e) => return Value::Error(Error::Parse(e.to_string())),
         };
-        match hook_references_with_host(&expr, self.defer_text_metrics, self.glue_host.as_deref()) {
+        match hook_references_with_host(&expr, self.defer_text_metrics, self.glue_host.as_deref(), false) {
             Ok(Some(references)) => {
                 for reference in references {
                     if let Ok(reference) = self.remap_master_reference(scope, origin, reference) {
@@ -1279,8 +1326,40 @@ impl<'a> Evaluator<'a> {
                 cached
             }
             Ok(None) => {
-                let mut context = BoundContext { evaluator: self, scope, origin, cached };
-                misterdiagram_sheet::evaluate(&expr, &mut context)
+                let mut context = BoundContext { evaluator: self, scope, origin, cached: cached.clone(), legacy_failure: false };
+                let value = misterdiagram_sheet::evaluate(&expr, &mut context);
+                // Unmeasured legacy properties preserve the complete saved expression,
+                // never the inner THEME call's caller cache (which would double tint it).
+                let legacy_failure = context.legacy_failure
+                    || matches!(&value, Value::Error(Error::Unsupported(property)) if property.starts_with("legacy THEME property "));
+                if legacy_failure
+                    && value.error().is_some()
+                    && cached.error().is_none()
+                    && self.cell(scope, cell_name).is_some_and(|cell| {
+                        self.local_inh_cell(scope, cell_name)
+                            .unwrap_or(cell)
+                            .value
+                            .as_deref()
+                            .is_some_and(|value| !value.trim().is_empty() && value != "Themed")
+                    })
+                {
+                    // Canonical host deferral is also used by strict evaluation,
+                    // but it cannot conceal an unrelated unknown function.
+                    match hook_references_with_host(&expr, self.defer_text_metrics, self.glue_host.as_deref(), true) {
+                        Err(error) => return Value::Error(error),
+                        Ok(Some(references)) => {
+                            for reference in references {
+                                if let Ok(reference) = self.remap_master_reference(scope, origin, reference) {
+                                    self.add_dependency(scope, &reference);
+                                }
+                            }
+                        }
+                        Ok(None) => {}
+                    }
+                    cached
+                } else {
+                    value
+                }
             }
             Err(e) => Value::Error(e),
         }
@@ -1674,12 +1753,13 @@ fn split_reference(s: &str) -> Result<Vec<&str>, Error> {
 }
 // Only parsed call nodes select the frozen host fallback. Quoted strings and reference names do not.
 fn hook_references(expr: &misterdiagram_sheet::Expr, defer_text: bool) -> Result<Option<Vec<&str>>, Error> {
-    hook_references_with_host(expr, defer_text, None)
+    hook_references_with_host(expr, defer_text, None, false)
 }
 fn hook_references_with_host<'e>(
     expr: &'e misterdiagram_sheet::Expr,
     defer_text: bool,
     host: Option<&dyn misterdiagram_sheet::HostHooks>,
+    defer_legacy: bool,
 ) -> Result<Option<Vec<&'e str>>, Error> {
     use misterdiagram_sheet::Expr;
     let mut pending = vec![(expr, 0usize)];
@@ -1700,7 +1780,8 @@ fn hook_references_with_host<'e>(
                 pending.push((b, depth + 1));
             }
             Expr::Call { name, args } => {
-                let hook = misterdiagram_sheet::is_hook(name) || defer_text && misterdiagram_sheet::is_text_metric(name);
+                let hook =
+                    misterdiagram_sheet::is_hook(name) || defer_text && misterdiagram_sheet::is_text_metric(name) || defer_legacy && name == "THEME";
                 has_hook |= hook && !host.is_some_and(|host| host.supports(name));
                 if !hook && !misterdiagram_sheet::functions::IMPLEMENTED.contains(&name.as_str()) {
                     unsupported.get_or_insert_with(|| name.clone());
@@ -1720,6 +1801,7 @@ struct BoundContext<'a, 'd> {
     evaluator: &'a mut Evaluator<'d>,
     scope: Scope,
     cached: Value,
+    legacy_failure: bool,
 }
 impl BoundContext<'_, '_> {
     fn reference(&self, reference: &str) -> Result<String, Error> {
@@ -1728,6 +1810,7 @@ impl BoundContext<'_, '_> {
 }
 impl Context for BoundContext<'_, '_> {
     fn error_handled(&mut self) {
+        self.legacy_failure = false;
         self.evaluator.failure_cell = None;
     }
     fn hook(&mut self, name: &str, args: &[Value]) -> Value {
@@ -1791,10 +1874,12 @@ impl Context for BoundContext<'_, '_> {
         defaults::cell(self.scope, prototype).map(|cell| self.evaluator.cached_cell(cell)).unwrap_or(Value::Error(Error::Value))
     }
     fn theme(&mut self, name: &str, args: &[Value]) -> Value {
-        match self.evaluator.theme_host {
+        let value = match self.evaluator.theme_host {
             Some(host) => host.theme(name, args, self),
             None => misterdiagram_sheet::host::no_theme(name, args, self),
-        }
+        };
+        self.legacy_failure |= matches!(&value, Value::Error(Error::Unsupported(property)) if property.starts_with("legacy THEME property "));
+        value
     }
     fn enter_eval(&mut self) -> bool {
         if self.evaluator.eval_depth >= 128 || self.evaluator.eval_work >= 100000 {
@@ -2847,7 +2932,8 @@ mod tests {
         let mut e = Evaluator::new(&doc).unwrap();
         assert_eq!(e.cached_cell(&cell("FillForegnd", "#CC0000", None)), Value::Number(26.));
         assert_eq!(e.cached_cell(&cell("Font", "Example", None)), Value::Number(0.));
-        let mut ctx = BoundContext { evaluator: &mut e, scope: Scope::Document, origin: Scope::Document, cached: Value::Number(0.) };
+        let mut ctx =
+            BoundContext { evaluator: &mut e, scope: Scope::Document, origin: Scope::Document, cached: Value::Number(0.), legacy_failure: false };
         assert_eq!(ctx.color(26), Some([204, 0, 0]));
         assert_eq!(ctx.color_index([204, 0, 0]), Some(26));
         assert_eq!(ctx.font(0), Some("Example".into()));

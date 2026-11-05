@@ -494,3 +494,5 @@ Progress M5.116: shared fit-to-drawing export and explicit margins added to CLI 
   Unmeasured directions, transformed presentation contours and multirow linear
   angles remain explicit gaps. Reference:
   [Gradient direction](https://learn.microsoft.com/en-us/office/client-developer/visio/fillgradientdir-cell-gradient-properties-section).
+
+- M5.136, Themes: remains P. Legacy fill selectors and no-theme defaults now follow measured scalar results; unknown properties retain canonical saved values. Modern theme variants and the colour-argument overload remain partial. Tests: `legacy_theme_fill`. Reference: https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function

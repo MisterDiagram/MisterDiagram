@@ -26,7 +26,7 @@ fn every_generated_page_has_exact_model_pixels_or_named_substitutions() {
     }
     let report = misterdiagram_export::qa::generated(&root).unwrap();
     println!("{report}");
-    assert_eq!(report.files, 230);
+    assert_eq!(report.files, 233);
     assert!(report.passed(), "{report}");
 }
 

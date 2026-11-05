@@ -235,6 +235,18 @@ the other measured files use 2012/main. Container inspection accepts both exact 
 
 ## Observed, undocumented
 
+- Legacy `THEME()` reads `User.msvThemeColors` and `User.msvThemeEffects`,
+  independently of `QuickStyleFillColor` and `QuickStyleFillMatrix`. Synthetic
+  native controls in `theme/quickstyle-none`, `theme/legacy-fill` and `theme/no-theme-fill`
+  plus the private default-theme control distinguish it from `THEMEVAL()`.
+  A sweep of colour 100 and 200 through 206 with matrices 100 and 1 through 6
+  retains the legacy default colours. Selectors 36/16 supply white/light-grey,
+  pattern 30 and an enabled gradient even without a modern theme part.
+  The initial modern background-style hypothesis is therefore rejected.
+  Reopening a package with its modern theme part removed restores that part
+  natively; legacy scalar queries still return the same values.
+  Reference: [THEME](https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function).
+
 ### Legacy line queries with modern themes (M5.98)
 
 Synthetic Visio 2021 packages in `field/legacy-theme-2026-10-30/native/`

@@ -128,7 +128,7 @@ impl<'a> Evaluator<'a> {
                 name: "FORMAT".into(),
                 args: vec![misterdiagram_sheet::Expr::Reference(reference.clone()), misterdiagram_sheet::Expr::Text(format)],
             };
-            let mut context = super::BoundContext { evaluator: self, scope, origin: scope, cached: Value::Text(saved.into()) };
+            let mut context = super::BoundContext { evaluator: self, scope, origin: scope, cached: Value::Text(saved.into()), legacy_failure: false };
             let formatted = misterdiagram_sheet::evaluate(&expression, &mut context);
             if matches!(formatted, Value::Error(Error::Unsupported(_))) {
                 saved.into()

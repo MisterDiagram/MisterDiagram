@@ -128,8 +128,8 @@ pub fn generated(root: &Path) -> Result<Report, String> {
             Err(e) => report.failures.push(format!("{}: {e}", path.display())),
         }
     }
-    if report.files != 230 {
-        report.failures.push(format!("generated PPTX witness count: {} instead of 230", report.files));
+    if report.files != 233 {
+        report.failures.push(format!("generated PPTX witness count: {} instead of 233", report.files));
     }
     if report.excluded.len() > MAX_SUBSTITUTED_PAGES {
         report.failures.push(format!("PPTX substitution count {} exceeds frozen {}", report.excluded.len(), MAX_SUBSTITUTED_PAGES));

@@ -61,7 +61,7 @@ impl Themes {
     /// Adjust low-contrast quick-style colors against the theme background.
     /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/68bb0221-d8a1-476e-a132-8c60a49cea63
     fn contrast_variant(&self, name: &str, args: &[Value], value: Value, cx: &mut dyn Context) -> Result<Value, Error> {
-        if !matches!(name, "THEMEVAL" | "THEME") {
+        if name != "THEMEVAL" {
             return Ok(value);
         }
         let cell = theme_property(&args.first().map(Value::text).unwrap_or_else(|| cx.host_cell()));
@@ -155,6 +155,9 @@ impl Themes {
         value.map(|n| Value::Number(f64::from(n))).ok_or(Error::Ref)
     }
     fn resolve(&self, name: &str, args: &[Value], cx: &mut dyn Context) -> Result<Value, Error> {
+        if name == "THEME" && crate::legacy::handles(args) {
+            return crate::legacy::resolve(args, cx);
+        }
         if name == "THEMEPROP" {
             return self.property(args, cx);
         }
@@ -445,7 +448,16 @@ impl ThemeHost for Themes {
     }
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/themeval-function
     fn theme(&self, name: &str, args: &[Value], context: &mut dyn Context) -> Value {
-        self.resolve(name, args, context).and_then(|value| self.contrast_variant(name, args, value, context)).unwrap_or_else(Value::Error)
+        let result = self.resolve(name, args, context).and_then(|value| match value {
+            Value::Error(error) => Err(error),
+            value => self.contrast_variant(name, args, value, context),
+        });
+        match result {
+            Err(Error::Value | Error::Unsupported(_)) if name == "THEME" && matches!(args.first(), Some(Value::Text(_))) => {
+                Value::Error(Error::Unsupported(format!("legacy THEME property {}", args.first().map(Value::text).unwrap_or_default())))
+            }
+            result => result.unwrap_or_else(Value::Error),
+        }
     }
 }
 /// Font style overrides select a face or a major/minor font-scheme placeholder.
@@ -538,7 +550,7 @@ fn quick_color(colors: &El, index: u32, variant: u32) -> Result<Rgba, Error> {
     .ok_or(Error::Ref)?;
     color(element, Some(colors), Rgba::BLACK, 0)
 }
-fn color_value(c: Rgba, cx: &mut dyn Context) -> Result<Value, Error> {
+pub(super) fn color_value(c: Rgba, cx: &mut dyn Context) -> Result<Value, Error> {
     let rgb = [c.r, c.g, c.b];
     let index = cx.color_index(rgb).ok_or(Error::Limit)?;
     Ok(Value::Color { index, rgb, hsl: None })

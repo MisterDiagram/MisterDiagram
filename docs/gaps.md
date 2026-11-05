@@ -1,5 +1,29 @@
 # Gaps
 
+## Legacy fill formulas (M5.136)
+
+Legacy `THEME()` fill properties use the measured User selectors independently
+of modern quick styles. Missing or zero legacy selectors use the measured
+default scalar colours; colour selector 36 and effect selector 16 resolve the
+light gradient. `THEMEVAL()` and its modern variant tables retain their existing
+selection rules. Unknown legacy properties preserve the completed saved
+expression without a warning and without applying a surrounding colour transform
+to the saved value twice. Unresolved palette identities preserve saved RGB
+values with a warning. Other legacy themes and the colour-argument overload
+remain partial. Tests: `legacy_theme_fill`. Reference:
+[THEME](https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function).
+
+
+## Page aspect and offset limitation (Brief 67 session 4)
+
+A foreground page can differ slightly in aspect ratio from the native export,
+leaving content offset by roughly (-1, 15) pixels after size resampling. The
+Brief 67 session 4 ruling permits one private field row to use the baseline's
+best integer alignment within 30 pixels on each axis, reusing that shift for
+the candidate with the existing 0.05 distance allowance. The ordinary field
+comparison still reports the unshifted failure. A general page-offset fix or
+alignment-aware field gate remains for a later brief; no witness is changed.
+
 ## Field page pairing (M5.135)
 
 Field comparisons pair foreground-first page ordinals with witness images while

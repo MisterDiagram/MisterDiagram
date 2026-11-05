@@ -463,16 +463,8 @@ fn line_weight(e: &mut Evaluator<'_>, scope: Scope) -> f64 {
     }
 }
 fn color(e: &mut Evaluator<'_>, scope: Scope, name: &str, trans: &str) -> Rgba {
-    let mut c = match e.evaluate(scope, name) {
-        Value::Color { rgb: [r, g, b], .. } => Rgba::rgb(r, g, b),
-        Value::Number(n) if n.is_finite() && n >= 0. && n <= f64::from(u32::MAX) => {
-            e.document.colors.get(&(n as u32)).and_then(|s| Rgba::from_hex(s)).unwrap_or_else(|| {
-                let [r, g, b] = misterdiagram_sheet::functions::default_color(n as u32).unwrap_or([0, 0, 0]);
-                Rgba::rgb(r, g, b)
-            })
-        }
-        _ => Rgba::BLACK,
-    };
+    let [r, g, b] = e.color_rgb(scope, name).unwrap_or([0, 0, 0]);
+    let mut c = Rgba::rgb(r, g, b);
     c.a = ((1. - number(e, scope, trans, 0.).clamp(0., 1.)) * 255.).round() as u8;
     c
 }
@@ -487,7 +479,12 @@ fn gradient(e: &mut Evaluator<'_>, scope: Scope) -> Option<style::Gradient> {
     let mut fallback = Vec::new();
     let rows = e.section_row_indices(scope, "FillGradient", 0);
     let direction = number(e, scope, "FillGradientDir", 0.);
-    let smooth = rows.len() == 2 && (0. ..=9.).contains(&direction) && direction.fract() == 0.;
+    let effective_rows = if legacy_two_stored_stops(e, scope) { 2 } else { rows.len() };
+    let legacy_effect = number(e, scope, "User.msvThemeEffects", 0.) == 16.;
+    let legacy_endpoint = legacy_effect
+        && e.effective_formula(scope, "FillGradientStops.GradientStopPosition[3]")
+            .and_then(|formula| misterdiagram_sheet::parse(&formula).ok())
+            .is_some_and(|expr| legacy_third_stop(&expr, 0));
     for index in rows {
         let one = index.checked_add(1)?;
         let suffix = if index == 0 { String::new() } else { format!("[{one}]") };
@@ -518,12 +515,75 @@ fn gradient(e: &mut Evaluator<'_>, scope: Scope) -> Option<style::Gradient> {
         return None;
     }
     stops.sort_by(|a, b| a.0.total_cmp(&b.0));
+    // Identical coincident stops do not add a blend segment. Native legacy
+    // fills can retain a third row repeating the first endpoint verbatim.
+    let before = stops.len();
+    if legacy_endpoint {
+        stops.dedup();
+    }
+    let effective_rows = effective_rows.saturating_sub(before.saturating_sub(stops.len()));
+    let smooth = effective_rows == 2 && (0. ..=9.).contains(&direction) && direction.fract() == 0.;
     Some(style::Gradient {
         stops,
         geometry: style::GradientGeometry::from_direction(direction),
         angle: number(e, scope, "FillGradientAngle", 0.),
         smooth,
     })
+}
+/// Legacy fill formulas with two stored rows use the native two-stop ramp.
+/// Scoped modern default slots do not add rows to these legacy fills.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/fillgradient-section
+fn legacy_two_stored_stops(e: &Evaluator<'_>, scope: Scope) -> bool {
+    let mut rows = [false; 2];
+    let mut legacy = false;
+    for named in e.named_cells(scope) {
+        let (Some(section), Some(row)) = (named.section, named.row) else { continue };
+        if !section.name.eq_ignore_ascii_case("FillGradient") || section.index.unwrap_or(0) != 0 {
+            continue;
+        }
+        let index = row.index.or_else(|| section.rows.iter().position(|r| std::ptr::eq(r, row)).and_then(|i| u32::try_from(i).ok()));
+        let Some(present) = index.and_then(|i| usize::try_from(i).ok()).and_then(|i| rows.get_mut(i)) else { return false };
+        *present = true;
+        legacy |= named.cell.name == "GradientStopColor"
+            && e.effective_formula(scope, &named.name)
+                .and_then(|f| misterdiagram_sheet::parse(&f).ok())
+                .is_some_and(|expr| legacy_fill_color_call(&expr, 0));
+    }
+    rows == [true, true] && legacy
+}
+fn legacy_fill_color_call(expr: &misterdiagram_sheet::Expr, depth: usize) -> bool {
+    use misterdiagram_sheet::Expr;
+    if depth > 64 {
+        return false;
+    }
+    match expr {
+        Expr::Call { name, args } => {
+            name == "THEME"
+                && args.len() == 1
+                && matches!(args.first(), Some(Expr::Text(property)) if property.eq_ignore_ascii_case("FillColor") || property.eq_ignore_ascii_case("FillColor2"))
+                || args.iter().any(|arg| legacy_fill_color_call(arg, depth + 1))
+        }
+        Expr::Unary(_, value) | Expr::Qualified(value, _) => legacy_fill_color_call(value, depth + 1),
+        Expr::Binary(_, a, b) => legacy_fill_color_call(a, depth + 1) || legacy_fill_color_call(b, depth + 1),
+        _ => false,
+    }
+}
+/// Recognize the legacy third endpoint without treating arbitrary authored rows as unused.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function
+fn legacy_third_stop(expr: &misterdiagram_sheet::Expr, depth: usize) -> bool {
+    use misterdiagram_sheet::Expr;
+    if depth > 64 {
+        return false;
+    }
+    match expr {
+        Expr::Call { name, args } if name == "THEME" && args.len() == 1 => {
+            matches!(args.first(), Some(Expr::Text(property)) if property.eq_ignore_ascii_case("FillGradStop3Position"))
+        }
+        Expr::Call { name, args } if matches!(name.as_str(), "GUARD" | "THEMEGUARD") && args.len() == 1 => {
+            args.first().is_some_and(|arg| legacy_third_stop(arg, depth + 1))
+        }
+        _ => false,
+    }
 }
 /// Background pages paint before the foreground. PageScale/DrawingScale convert drawing units.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml
@@ -1636,15 +1696,8 @@ fn paint_foreign(
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/textbkgnd-cell-text-block-format-section
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/textbkgndtrans-cell-text-block-format-section
 fn text_background(e: &mut Evaluator<'_>, scope: Scope, layout: &TextLayout) -> Option<(Rect, Rgba)> {
-    let value = e.evaluate(scope, "TextBkgnd").numeric().ok()?;
-    if value == 0. || value == 255. {
-        return None;
-    }
-    // Serialization resolves the evaluator's dynamic palette as well as document
-    // colours. RGB()+1 and theme formulas may allocate an index absent from the file.
-    let cell = e.cell(scope, "TextBkgnd")?;
-    let literal = e.serialized_number(scope, "TextBkgnd", cell, value).ok()?;
-    let mut color = Rgba::from_hex(&literal)?;
+    let [r, g, b] = e.color_rgb(scope, "TextBkgnd")?;
+    let mut color = Rgba::rgb(r, g, b);
     color.a = ((1. - number(e, scope, "TextBkgndTrans", 0.).clamp(0., 1.)) * 255.).round() as u8;
     let rect = layout.lines.iter().map(|line| Rect::new(line.extent.0, line.top, line.extent.1, line.bottom)).reduce(|a, b| a.union(b))?;
     Some((rect, color))

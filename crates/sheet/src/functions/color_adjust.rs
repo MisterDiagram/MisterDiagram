@@ -76,10 +76,22 @@ fn office(value: &Value, amount: f64, context: &mut dyn Context) -> Result<Value
         return Ok(color::intern([0; 3], None, context));
     }
     // Office works from RGB at full precision, not the rounded 240-step legacy grid.
-    let [h, s, l] = color::components(&Value::Color { index: 0, rgb, hsl: None }, context).ok_or(Error::Value)?;
-    let h = h / 240.0;
-    let s = s / 240.0;
-    let l = l / 240.0;
+    let [r, g, b] = rgb.map(f64::from);
+    let max = r.max(g).max(b);
+    let min = r.min(g).min(b);
+    let delta = max - min;
+    let [_, s, l] = color::components(&Value::Color { index: 0, rgb, hsl: None }, context).ok_or(Error::Value)?;
+    let s = s / 240.;
+    let l = l / 240.;
+    let h = if delta == 0. {
+        0.
+    } else if max == r {
+        ((g - b) / delta).rem_euclid(6.) / 6.
+    } else if max == g {
+        ((b - r) / delta + 2.) / 6.
+    } else {
+        ((r - g) / delta + 4.) / 6.
+    };
     let amount = amount.clamp(-100.0, 100.0) / 100.0;
     let l = if amount >= 0.0 { l + (1.0 - l) * amount } else { l * (1.0 + amount) };
     let upper = if l < 0.5 { l * (1.0 + s) } else { l + s - l * s };

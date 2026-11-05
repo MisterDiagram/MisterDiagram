@@ -130,7 +130,7 @@ impl Evaluator<'_> {
         }
     }
     fn range_scalar(&mut self, scope: Scope, origin: Scope, expr: &Expr) -> Range {
-        let mut context = BoundContext { evaluator: self, scope, origin, cached: Value::Error(Error::Cycle) };
+        let mut context = BoundContext { evaluator: self, scope, origin, cached: Value::Error(Error::Cycle), legacy_failure: false };
         match misterdiagram_sheet::evaluate(expr, &mut context).numeric() {
             Ok(n) => Range::point(n),
             Err(Error::Cycle) => Range::UNKNOWN,

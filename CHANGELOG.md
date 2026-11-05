@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Themed fills:** Legacy fill formulas retain their light gradients and default colours. Unknown legacy properties preserve the complete saved value, and unresolved palette colours retain a usable saved colour with a warning.
+
 - **Embedded pictures:** Pictures wrapped in older metafiles now use their complete embedded drawing. Incomplete embedded data keeps the fallback picture with a shape-specific warning. Thin lines in non-placeable pictures keep their device width when enlarged.
 
 ## 0.1.0-beta.3
