@@ -119,8 +119,11 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/facename-element-facenames_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/facenames-element-visiodocument_type-complextypevisio-xml> | `crates/engine/tests/authoring.rs`, `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs`, `crates/sheet/src/eval.rs`, `crates/vsdx/src/write.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fieldpicture-function> | `crates/sheet/src/functions/constructors.rs`, `crates/vsdx/tests/string_cell_evaluation.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/fill-gradient-section> | `crates/export/tests/styles.rs`, `crates/render/src/style.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fillforegnd-cell-fill-format-section> | `crates/engine/src/content.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/fillgradient-section> | `crates/export/src/write/dml.rs`, `crates/render/src/scene.rs`, `crates/render/src/style.rs`, `crates/render/tests/gradient_slots.rs`, `crates/sheet/src/host.rs`, `crates/vsdx/src/evaluate.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/fillgradient-section> | `crates/export/src/write/dml.rs`, `crates/render/src/scene.rs`, `crates/render/tests/gradient_slots.rs`, `crates/sheet/src/host.rs`, `crates/vsdx/src/evaluate.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/fillgradientangle-cell-gradient-properties-section> | `crates/render/tests/gradient_presets.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/fillgradientdir-cell-gradient-properties-section> | `crates/export/tests/styles.rs`, `crates/render/src/style.rs`, `crates/render/tests/gradient_presets.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fillpattern-cell-fill-format-section> | `crates/engine/src/content.rs`, `crates/render/src/style.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/find-function> | `crates/sheet/src/functions/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/fld-element-text_type-complextypevisio-xml> | `crates/vsdx/src/evaluate/text.rs`, `crates/vsdx/src/lib.rs` |
@@ -458,6 +461,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/b81d9641-31a2-4f60-9b74-eba256dd58e2> | `crates/sheet/src/functions/theme.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/bd72b8b3-fbf7-4463-ad23-cd8a5cc4acfd> | `crates/sheet/src/functions/theme.rs`, `crates/theme/src/resolve.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/c5e4da4b-c1d0-4cdd-a418-04fccbc098ae> | `crates/vsdx/src/evaluate.rs` |
+| <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/e19c498a-5277-4add-9953-8b85cb2af250> | `crates/render/src/style.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/f91b1356-cff1-4c71-8a04-247007cbe4c9> | `crates/sheet/src/language.rs`, `tools/oracle/accept_report.py` |
 | <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/9d33df18-7aee-4a4e-b4f6-5a01e5aea5a1> | `crates/opc/src/opc.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/> | `crates/render/src/metafile/mod.rs` |

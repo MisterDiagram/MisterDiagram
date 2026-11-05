@@ -485,7 +485,10 @@ fn gradient(e: &mut Evaluator<'_>, scope: Scope) -> Option<style::Gradient> {
     let themed_count = e.theme_fill_gradient_stop_count(scope).ok().flatten();
     let mut stops = Vec::new();
     let mut fallback = Vec::new();
-    for index in e.section_row_indices(scope, "FillGradient", 0) {
+    let rows = e.section_row_indices(scope, "FillGradient", 0);
+    let direction = number(e, scope, "FillGradientDir", 0.);
+    let smooth = rows.len() == 2 && (0. ..=9.).contains(&direction) && direction.fract() == 0.;
+    for index in rows {
         let one = index.checked_add(1)?;
         let suffix = if index == 0 { String::new() } else { format!("[{one}]") };
         let position_name = format!("FillGradientStops.GradientStopPosition{suffix}");
@@ -515,7 +518,12 @@ fn gradient(e: &mut Evaluator<'_>, scope: Scope) -> Option<style::Gradient> {
         return None;
     }
     stops.sort_by(|a, b| a.0.total_cmp(&b.0));
-    Some(style::Gradient { stops, radial: number(e, scope, "FillGradientDir", 0.) != 0., angle: number(e, scope, "FillGradientAngle", 0.) })
+    Some(style::Gradient {
+        stops,
+        geometry: style::GradientGeometry::from_direction(direction),
+        angle: number(e, scope, "FillGradientAngle", 0.),
+        smooth,
+    })
 }
 /// Background pages paint before the foreground. PageScale/DrawingScale convert drawing units.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/page-element-pages_type-complextypevisio-xml

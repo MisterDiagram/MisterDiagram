@@ -1,5 +1,26 @@
 # Gaps
 
+## Gradient presets (M5.132)
+
+Directions 0 through 9 have measured two-stop square and 2:1 controls across
+fill patterns 25 through 41. Circle and rectangle fills carry one shared anchor
+into bitmap, SVG, PDF and presentation output. The centered vignette and both
+edge presets now follow the native images. Two effective section rows select
+the measured smooth blend; trimming unused theme slots does not select it.
+
+Directions 10 through 13 and other unmeasured values retain the previous corner
+fallback. The established multirow linear angle behavior is retained to keep
+existing linear and theme witnesses byte-identical; the fresh three/ten-row
+controls show a remaining clockwise physical-angle mismatch. Presentation
+output writes circle or rectangle paths and transformed focus insets. Its
+flattened bounding box can still approximate rotated rectangular contours or
+nonuniformly transformed circular contours. Focus agreement alone does not
+establish contour fidelity for those cases. No line-gradient claim is made.
+
+Tests: `gradient_presets`, `preset_focus_and_type_survive_serialization_and_shape_transforms`,
+`two_row_smooth_blend_is_carried_into_serialized_stops`. Reference:
+[Gradient direction](https://learn.microsoft.com/en-us/office/client-developer/visio/fillgradientdir-cell-gradient-properties-section).
+
 ## Deleted inherited rows (M5.131)
 
 Deleted rows are excluded from effective cells, sheet output and gradient stops,
@@ -9,8 +30,8 @@ Gradient stops retain their row indices and the existing theme stop-count rule.
 The shared row identity check covers indexed, named and sparse rows. Tests:
 `deleted_rows` and `gradient_slots`.
 
-Radial gradient direction and focus remain partial; this correction only removes
-stops that were already deleted. Reference:
+This row-deletion correction only removes stops that were already deleted.
+Direction and focus coverage is recorded under M5.132 above. Reference:
 [Row](https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml).
 
 ## Alternate fill across geometry sections (M5.109)
@@ -2823,9 +2844,10 @@ DrawingML has no alternate fill rule. Section sets requiring it use separate
 paths with hole contours unfilled, so overlapping and nested regions can differ.
 The private witness is `field/flip-fill-2026-11-01/native-fill2/fill.vsdx`.
 Visio fill patterns 2 through 40 use their foreground solid (explicit gradients
-retain their stops); warnings name the pattern index. Radial/path gradients use
-the nearest DrawingML circle falloff while keeping the renderer's transformed
-focus. Shadows are omitted and
+retain their stops); warnings name the pattern index. Measured radial and rectangular presets use DrawingML `path="circle"` or
+`path="rect"` with `fillToRect` from the shared transformed anchor. Unmeasured
+path presets keep the previous circular fallback; rotated rectangular contours
+and nonuniform circular transforms remain approximations. Shadows are omitted and
 compound lines use the single outer weight. Arrowheads map all 45 indexes to
 DrawingML types; unsupported ends use an approximate triangle, never disappear.
 The source table marks approximations and maps seven native sizes to three bands.

@@ -17743,3 +17743,28 @@ EMF parts. Two source seeds cover placeable detection and window scaling. The
 physical-extent native rectangle passes at 192/384 DPI; 96 DPI and additional
 mapping/export-bound diagnostics remain open. Existing scored denominators and
 broader foreign-picture parity remain unchanged.
+
+
+### Observed, undocumented: two-row gradient presets (M5.132)
+
+Private synthetic evidence: `corpus/_state/brief68/gradient-native/presets.vsdx`,
+680 rectangles and 17 native PNGs, with readback in `gradient-readback/`.
+All enabled pattern 25 through 41 outputs are identical for matching direction,
+angle and dimensions. Directions 1, 2, 3, 6 and 7 focus at bottom-right,
+bottom-left, center, top-right and top-left. Directions 4 and 5 focus at the
+**top** and **bottom** edge centers respectively, opposite the edge descriptions
+in the [published direction table](https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/e19c498a-5277-4add-9953-8b85cb2af250).
+The renderer follows the native files. Directions 8 and 9 use rectangular
+falloff from bottom-right and bottom-left. Circular distance is measured in
+physical shape coordinates and normalized to the farthest bounding-box corner.
+
+`gradient-controls/controls.vsdx` isolates two effective rows from ten rows
+with repeated endpoint stops. Two rows use a normalized Gaussian blend and
+gamma-2.2 colors; ten rows use linear channel interpolation.
+`gradient-multi/presets.vsdx` confirms the linear blend with three and ten rows.
+Row count is taken before theme slot filtering. The two-row angle sweep uses
+clockwise physical angles. The existing multirow linear sampler is preserved
+because its protected theme witnesses would otherwise change; its angular
+mismatch remains listed in gaps. Existing native generated linear and radial
+images re-export byte-identically in the control run. These observations do not
+change an oracle, tolerance, or the closed inherited-row rules.

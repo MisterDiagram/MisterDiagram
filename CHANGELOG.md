@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Gradient direction:** Centered, corner and edge gradients now keep their focus, and rectangular gradients keep their shape across exports. Two-stop fills retain their smooth color blend.
+
 - **Gradient stops:** Deleted inherited stops no longer add extra colors or missing-cell warnings during export. Deleted rows also stay absent when reading inherited shape and style cells.
 
 ## 0.1.0-beta.2

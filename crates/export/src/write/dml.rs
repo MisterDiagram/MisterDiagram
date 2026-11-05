@@ -26,10 +26,11 @@ pub(super) fn fill(w: &mut W, paint: Option<&Paint>, view: Affine, output_bounds
         Some(Paint::Solid(c)) => solid(w, *c),
         Some(Paint::Pattern { fill: f, gradient: None, .. }) => solid(w, f.foreground),
         Some(Paint::Pattern { gradient: Some(g), transform, bounds, .. }) => {
-            if g.stops.is_empty() || g.stops.len() > 4096 {
+            if !g.valid() {
                 return Err("PPTX gradient stop limit".into());
             }
-            let (angle, stops) = if g.radial { (0., g.stops.clone()) } else { linear_gradient(g, view * *transform, *bounds, output_bounds)? };
+            let (angle, stops) =
+                if g.geometry.anchor().is_some() { (0., gradient_stops(g)) } else { linear_gradient(g, view * *transform, *bounds, output_bounds)? };
             w.open("a:gradFill", A::new().a("rotWithShape", 0).a("flip", "none"));
             w.open0("a:gsLst");
             for (position, c) in &stops {
@@ -38,11 +39,12 @@ pub(super) fn fill(w: &mut W, paint: Option<&Paint>, view: Affine, output_bounds
                 w.close("a:gs");
             }
             w.close("a:gsLst");
-            if g.radial {
-                w.open("a:path", A::new().a("path", "circle"));
-                // The renderer samples this corner, in the paint's local box.
+            if let Some(anchor) = g.geometry.anchor() {
+                let kind = if matches!(g.geometry, misterdiagram_render::style::GradientGeometry::Rectangle { .. }) { "rect" } else { "circle" };
+                w.open("a:path", A::new().a("path", kind));
+                // Transform the same local anchor used by every paint sampler.
                 // ECMA-376 20.1.8.31 defines these insets as the focus rectangle.
-                let focus = view * *transform * kurbo::Point::new(bounds.x1, bounds.y0);
+                let focus = view * *transform * kurbo::Point::new(bounds.x0 + anchor.x * bounds.width(), bounds.y1 - anchor.y * bounds.height());
                 let x = if output_bounds.width() > 1e-12 { (focus.x - output_bounds.x0) / output_bounds.width() } else { 0.5 };
                 let y = if output_bounds.height() > 1e-12 { (focus.y - output_bounds.y0) / output_bounds.height() } else { 0.5 };
                 w.empty(
@@ -73,9 +75,14 @@ fn linear_gradient(
     output: kurbo::Rect,
 ) -> Result<(f64, Vec<(f64, Rgba)>), String> {
     let (sin, cos) = g.angle.sin_cos();
-    let divisor = (cos.abs() + sin.abs()).max(1e-12);
-    let x = cos / bounds.width().max(1e-12) / divisor;
-    let y = sin / bounds.height().max(1e-12) / divisor;
+    let (x, y) = if g.smooth {
+        let divisor = (bounds.width() * cos.abs() + bounds.height() * sin.abs()).max(1e-12);
+        (cos / divisor, -sin / divisor)
+    } else {
+        let divisor = (cos.abs() + sin.abs()).max(1e-12);
+        (cos / bounds.width().max(1e-12) / divisor, sin / bounds.height().max(1e-12) / divisor)
+    };
+    let source = gradient_stops(g);
     let [a, b, c, d, _, _] = matrix.inverse().as_coeffs();
     let k = kurbo::Vec2::new(a * x + b * y, c * x + d * y);
     let center = 0.5 + k.dot(output.center() - matrix * bounds.center());
@@ -86,22 +93,39 @@ fn linear_gradient(
     let mut stops = Vec::new();
     let left = center - span / 2.;
     let right = center + span / 2.;
-    if !g.stops.iter().any(|(t, _)| (*t - left).abs() < 1e-12) {
+    if !source.iter().any(|(t, _)| (*t - left).abs() < 1e-12) {
         stops.push((0., g.at(left.clamp(0., 1.))));
     }
-    for &(t, color) in &g.stops {
+    for &(t, color) in &source {
         let position = 0.5 + (t - center) / span;
         if (-1e-12..=1. + 1e-12).contains(&position) {
             stops.push((position.clamp(0., 1.), color));
         }
     }
-    if !g.stops.iter().any(|(t, _)| (*t - right).abs() < 1e-12) {
+    if !source.iter().any(|(t, _)| (*t - right).abs() < 1e-12) {
         stops.push((1., g.at(right.clamp(0., 1.))));
     }
     if stops.len() < 2 {
         return Err("PPTX gradient stop domain".into());
     }
     Ok((k.atan2().to_degrees().rem_euclid(360.) * 60000., stops))
+}
+
+/// Bound the smooth two-stop colour curve with explicit DrawingML stops.
+/// Intermediate stops preserve the shared sampler's blend instead of asking
+/// the consumer to choose its own two-stop interpolation mode.
+fn gradient_stops(g: &misterdiagram_render::style::Gradient) -> Vec<(f64, Rgba)> {
+    if !g.smooth || g.stops.len() != 2 {
+        return g.stops.clone();
+    }
+    let Some(&(start, _)) = g.stops.first() else { return Vec::new() };
+    let Some(&(end, _)) = g.stops.last() else { return Vec::new() };
+    (0..=64)
+        .map(|i| {
+            let t = start + (end - start) * f64::from(i) / 64.;
+            (t, g.at(t))
+        })
+        .collect()
 }
 
 fn integer(n: f64) -> Result<i64, String> {

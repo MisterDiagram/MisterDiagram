@@ -207,3 +207,78 @@ fn radial_focus_follows_flips_and_baked_rotation() {
         assert_eq!(actual, expected);
     }
 }
+
+/// All measured presets serialize the same local anchor as the renderer.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/fillgradientdir-cell-gradient-properties-section
+#[test]
+fn preset_focus_and_type_survive_serialization_and_shape_transforms() {
+    let anchors = [(1., 1.), (0., 1.), (0.5, 0.5), (0.5, 0.), (0.5, 1.), (1., 0.), (0., 0.), (1., 1.), (0., 1.)];
+    for (index, (ax, ay)) in anchors.into_iter().enumerate() {
+        for (rotation, flip_x, flip_y) in [(0., false, false), (0., true, false), (0., false, true), (std::f64::consts::FRAC_PI_4, false, false)] {
+            let mut doc = skeleton::document(false);
+            let mut shape = skeleton::rectangle(1, 3., 3., 2., 1., "").unwrap();
+            for (name, value) in [
+                ("FillGradientEnabled", "1".into()),
+                ("FillGradientDir", (index + 1).to_string()),
+                ("Angle", rotation.to_string()),
+                ("FlipX", u8::from(flip_x).to_string()),
+                ("FlipY", u8::from(flip_y).to_string()),
+            ] {
+                set(&mut shape, name, &value);
+            }
+            doc.pages[0].shapes.push(shape);
+            let pkg = package(&doc);
+            let slide = pkg.xml("ppt/slides/slide1.xml").unwrap();
+            let path = slide.root.find("gradFill").unwrap().child("path").unwrap();
+            assert_eq!(path.attr("path"), Some(if index >= 7 { "rect" } else { "circle" }));
+            let focus = path.child("fillToRect").unwrap();
+            let actual: [i64; 4] = ["l", "t", "r", "b"].map(|name| focus.attr(name).unwrap().parse().unwrap());
+            let x: f64 = if flip_x { 1. - ax } else { ax };
+            let y: f64 = if flip_y { 1. - ay } else { ay };
+            // Independent rotated 2:1 bounding-box geometry, not the writer helper.
+            let (x, y) = if rotation == 0. { (x, y) } else { ((2. * x + y) / 3., (2. - 2. * x + y) / 3.) };
+            let expected = [x, y, 1. - x, 1. - y].map(|n| (n * 100000.).round() as i64);
+            assert_eq!(actual, expected, "direction {} rotation {rotation}", index + 1);
+        }
+    }
+}
+
+/// Explicit two-row colour ramps carry bounded sampled stops into the package.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/fill-gradient-section
+#[test]
+fn two_row_smooth_blend_is_carried_into_serialized_stops() {
+    let mut doc = skeleton::document(false);
+    let mut shape = skeleton::rectangle(1, 3., 3., 2., 1., "").unwrap();
+    set(&mut shape, "FillGradientEnabled", "1");
+    set(&mut shape, "FillGradientDir", "3");
+    shape.sheet.sections.push(Section {
+        name: "FillGradient".into(),
+        rows: (0..10)
+            .map(|index| Row {
+                index: Some(index),
+                deleted: index >= 2,
+                cells: if index < 2 {
+                    [
+                        ("GradientStopPosition", if index == 0 { "0" } else { "1" }),
+                        ("GradientStopColor", if index == 0 { "#FFFFFF" } else { "#000080" }),
+                        ("GradientStopColorTrans", "0"),
+                    ]
+                    .into_iter()
+                    .map(|(name, value)| Cell { name: name.into(), value: Some(value.into()), ..Default::default() })
+                    .collect()
+                } else {
+                    vec![]
+                },
+                ..Default::default()
+            })
+            .collect(),
+        ..Default::default()
+    });
+    doc.pages[0].shapes.push(shape);
+    let pkg = package(&doc);
+    let slide = pkg.xml("ppt/slides/slide1.xml").unwrap();
+    let stops: Vec<_> = slide.root.find("gsLst").unwrap().children_named("gs").collect();
+    assert_eq!(stops.len(), 65);
+    assert_eq!(stops[32].attr("pos"), Some("50000"));
+    assert_eq!(stops[32].child("srgbClr").unwrap().attr("val"), Some("BABACC"));
+}

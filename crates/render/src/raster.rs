@@ -93,16 +93,15 @@ pub(crate) fn pattern(paint: &Paint, view: Affine, path: &BezPath) -> Result<(im
     if local.as_coeffs().iter().any(|n| !n.is_finite()) {
         return Err("singular paint transform".into());
     }
+    if gradient.as_ref().is_some_and(|g| !g.valid()) {
+        return Err("invalid gradient paint".into());
+    }
     let image = image::RgbaImage::from_fn(w as u32, h as u32, |px, py| {
         let p = local * kurbo::Point::new(x + f64::from(px) + 0.5, y + f64::from(py) + 0.5);
         let nx = (p.x - bounds.x0) / bounds.width().max(1e-12);
         let ny = 1. - (p.y - bounds.y0) / bounds.height().max(1e-12);
         let c = if let Some(gradient) = gradient {
-            if gradient.radial {
-                gradient.at(((1. - nx) * bounds.width()).hypot((1. - ny) * bounds.height()) / bounds.width().hypot(bounds.height()).max(1e-12))
-            } else {
-                gradient.sample(nx, ny)
-            }
+            gradient.sample_sized(nx, ny, bounds.width(), bounds.height())
         } else {
             fill.sample(nx, ny, (x + f64::from(px)) as i32, (y + f64::from(py)) as i32)
         };

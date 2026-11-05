@@ -122,33 +122,86 @@ impl Fill {
         )
     }
 }
+/// Effective gradient geometry in normalized shape coordinates, Y downward.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/fillgradientdir-cell-gradient-properties-section
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum GradientGeometry {
+    Linear,
+    Circle { anchor: Point },
+    Rectangle { anchor: Point },
+}
+impl GradientGeometry {
+    /// Native square and rectangular controls pin directions 0 through 9.
+    /// The two edge presets use top (4) and bottom (5) in the observed files.
+    /// Unmeasured directions retain the previous bottom-right circular fallback.
+    /// https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/e19c498a-5277-4add-9953-8b85cb2af250
+    pub fn from_direction(direction: f64) -> Self {
+        let anchor = match direction {
+            0. => return Self::Linear,
+            2. | 9. => Point::new(0., 1.),
+            3. => Point::new(0.5, 0.5),
+            4. => Point::new(0.5, 0.),
+            5. => Point::new(0.5, 1.),
+            6. => Point::new(1., 0.),
+            7. => Point::new(0., 0.),
+            _ => Point::new(1., 1.),
+        };
+        if matches!(direction, 8. | 9.) { Self::Rectangle { anchor } } else { Self::Circle { anchor } }
+    }
+    pub fn anchor(self) -> Option<Point> {
+        match self {
+            Self::Linear => None,
+            Self::Circle { anchor } | Self::Rectangle { anchor } => Some(anchor),
+        }
+    }
+}
 /// Gradient stops carry independent transparency, sorted and bounded by the host.
-/// https://learn.microsoft.com/en-us/office/client-developer/visio/fillgradient-section
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/fill-gradient-section
 #[derive(Clone, Debug)]
 pub struct Gradient {
     pub stops: Vec<(f64, Rgba)>,
-    pub radial: bool,
+    pub geometry: GradientGeometry,
     pub angle: f64,
+    /// Two effective section rows use the native smooth, gamma-adjusted blend.
+    /// Theme slot filtering alone does not select this two-row rendering path.
+    pub smooth: bool,
 }
 impl Gradient {
+    pub fn valid(&self) -> bool {
+        !self.stops.is_empty()
+            && self.stops.len() <= 4096
+            && self.stops.iter().all(|(position, _)| position.is_finite())
+            && self.angle.is_finite()
+            && self.geometry.anchor().is_none_or(|p| p.x.is_finite() && p.y.is_finite() && (0. ..=1.).contains(&p.x) && (0. ..=1.).contains(&p.y))
+    }
     pub fn sample(&self, x: f64, y: f64) -> Rgba {
-        if self.stops.is_empty()
-            || self.stops.len() > 4096
-            || self.stops.iter().any(|(position, _)| !position.is_finite())
-            || !x.is_finite()
-            || !y.is_finite()
-            || !self.angle.is_finite()
-        {
+        self.sample_sized(x, y, 1., 1.)
+    }
+    /// Shared physical-distance field for raster, SVG and PDF paints.
+    pub fn sample_sized(&self, x: f64, y: f64, width: f64, height: f64) -> Rgba {
+        if !self.valid() || !x.is_finite() || !y.is_finite() || !width.is_finite() || !height.is_finite() || width <= 0. || height <= 0. {
             return Rgba::TRANSPARENT;
         }
-        let t = if self.radial {
-            (x - 0.5).hypot(y - 0.5) * 2.
-        } else {
-            let (sin, cos) = self.angle.sin_cos();
-            0.5 + ((x - 0.5) * cos + (0.5 - y) * sin) / (cos.abs() + sin.abs()).max(1e-12)
-        }
-        .clamp(0., 1.);
-        self.at(t)
+        let t = match self.geometry {
+            GradientGeometry::Linear => {
+                let (sin, cos) = self.angle.sin_cos();
+                if self.smooth {
+                    // Native two-row fills use a physical clockwise ramp. Keep
+                    // the established multirow/theme ramp unchanged.
+                    0.5 + ((x - 0.5) * width * cos + (y - 0.5) * height * sin) / (width * cos.abs() + height * sin.abs()).max(1e-12)
+                } else {
+                    0.5 + ((x - 0.5) * cos + (0.5 - y) * sin) / (cos.abs() + sin.abs()).max(1e-12)
+                }
+            }
+            GradientGeometry::Circle { anchor } => {
+                ((anchor.x - x) * width).hypot((anchor.y - y) * height)
+                    / (anchor.x.max(1. - anchor.x) * width).hypot(anchor.y.max(1. - anchor.y) * height).max(1e-12)
+            }
+            GradientGeometry::Rectangle { anchor } => {
+                ((anchor.x - x).abs() / anchor.x.max(1. - anchor.x)).max((anchor.y - y).abs() / anchor.y.max(1. - anchor.y))
+            }
+        };
+        self.at(t.clamp(0., 1.))
     }
     pub fn at(&self, t: f64) -> Rgba {
         if !t.is_finite() {
@@ -170,12 +223,33 @@ impl Gradient {
             };
             if t <= b && b > a {
                 let f = (t - a) / (b - a);
-                let mix = |a: u8, b: u8| (f64::from(a) * (1. - f) + f64::from(b) * f).round() as u8;
-                return Rgba::rgba(mix(ca.r, cb.r), mix(ca.g, cb.g), mix(ca.b, cb.b), mix(ca.a, cb.a));
+                let f = if self.smooth { smooth_blend(f) } else { f };
+                let mix = |a: u8, b: u8| {
+                    if self.smooth {
+                        (((f64::from(a) / 255.).powf(2.2) * (1. - f) + (f64::from(b) / 255.).powf(2.2) * f).powf(1. / 2.2) * 255.).round() as u8
+                    } else {
+                        (f64::from(a) * (1. - f) + f64::from(b) * f).round() as u8
+                    }
+                };
+                return Rgba::rgba(
+                    mix(ca.r, cb.r),
+                    mix(ca.g, cb.g),
+                    mix(ca.b, cb.b),
+                    (f64::from(ca.a) * (1. - f) + f64::from(cb.a) * f).round() as u8,
+                );
             }
         }
         self.stops.last().map(|(_, c)| *c).unwrap_or(Rgba::TRANSPARENT)
     }
+}
+fn smooth_blend(t: f64) -> f64 {
+    let cdf = |x: f64| {
+        let z = x / std::f64::consts::SQRT_2;
+        let t = 1. / (1. + 0.3275911 * z.abs());
+        let erf = 1. - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * (-z * z).exp();
+        (1. + erf.copysign(z)) * 0.5
+    };
+    ((cdf(4. * t - 2.) - cdf(-2.)) / (cdf(2.) - cdf(-2.))).clamp(0., 1.)
 }
 /// A uniform line weight controls dash lengths. The three seven-pattern families
 /// differ in their short/long segment lengths, measured in the synthetic line group.
@@ -644,7 +718,10 @@ mod tests {
             }
         }
         assert_eq!(Fill { pattern: 25, foreground: Rgba::BLACK, background: Rgba::WHITE }.sample(f64::NAN, 0., 0, 0), Rgba::TRANSPARENT);
-        assert_eq!(Gradient { stops: vec![(f64::NAN, Rgba::BLACK)], radial: false, angle: 0. }.sample(0., 0.), Rgba::TRANSPARENT);
+        assert_eq!(
+            Gradient { stops: vec![(f64::NAN, Rgba::BLACK)], geometry: GradientGeometry::Linear, angle: 0., smooth: false }.sample(0., 0.),
+            Rgba::TRANSPARENT
+        );
         assert!(arrow(u32::MAX, 0, 1., Point::ZERO, 0.).is_empty());
         assert!(arrow(1, 0, f64::NAN, Point::ZERO, 0.).is_empty());
     }

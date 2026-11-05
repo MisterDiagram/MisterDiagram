@@ -487,3 +487,10 @@ Progress M5.116: shared fit-to-drawing export and explicit margins added to CLI 
   while retaining theme counts and sparse explicit stops. Rendering remains P;
   radial direction and focus are separate gaps. Reference:
   [Row](https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml).
+
+- M5.132: Fill and export rows remain P. `gradient_presets` covers the measured
+  circle/rectangle anchors, physical distance, two-row blend and hostile values.
+  Serialized presentation tests cover all measured anchors, flips and rotation.
+  Unmeasured directions, transformed presentation contours and multirow linear
+  angles remain explicit gaps. Reference:
+  [Gradient direction](https://learn.microsoft.com/en-us/office/client-developer/visio/fillgradientdir-cell-gradient-properties-section).
