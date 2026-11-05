@@ -1,10 +1,18 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-beta.3
+
+The rest of the fix for #87: gradients now follow Visio's direction presets, measured against
+Visio 2021, and deleted inherited gradient stops no longer raise `#REF!` warnings. The Center
+Gradient background from that report now renders within a fraction of a level of Visio's image.
 
 - **Gradient direction:** Centered, corner and edge gradients now keep their focus, and rectangular gradients keep their shape across exports. Two-stop fills retain their smooth color blend.
 
 - **Gradient stops:** Deleted inherited stops no longer add extra colors or missing-cell warnings during export. Deleted rows also stay absent when reading inherited shape and style cells.
+
+Known gaps: gradient directions 10 to 13 keep the previous corner fallback, gradients with more
+than two stops keep a small angle difference, and PowerPoint approximates the gradient contour on
+rotated or unevenly stretched shapes (docs/gaps.md).
 
 ## 0.1.0-beta.2
 

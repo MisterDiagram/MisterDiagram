@@ -16,8 +16,8 @@ It reads and writes Visio drawings, stencils and templates, renders them to PNG,
 and exports them to PowerPoint. Each claim below has been measured against what Visio 2021 (and
 PowerPoint 2021, for the export) does with the same file.
 
-**Download:** [MisterDiagram 0.1.0-beta.2](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-beta.2),
-the second beta (background-first drawings export their foreground page), for macOS
+**Download:** [MisterDiagram 0.1.0-beta.3](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-beta.3),
+the third beta (gradients drawn the way Visio draws them), for macOS
 (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
@@ -48,7 +48,7 @@ shapes, search and open stencils, drop masters, connect shapes, read and set Sha
 and run any engine command or a batch of them. [docs/mcp.md](docs/mcp.md) lists them with examples, including the office, SAN and
 fabric drawings the tests build.
 
-## What works today (2026-11-04, 0.1.0-beta.2)
+## What works today (2026-11-05, 0.1.0-beta.3)
 
 - **Open** .vsdx, .vssx and .vstx files, and the macro-enabled .vsdm, .vssm and .vstm (the VBA
   is dropped). Every stencil and template that ships with Visio 2021 opens.
@@ -126,8 +126,6 @@ Rendering is close to Visio, but it is not complete appearance or cell parity. T
   and compound line patterns are limited.
 - When a connector reroutes, it takes this router's path, which can differ from the one Visio
   would pick.
-- Centre and radial gradient fills (the background stencil's Center Gradient, for one) are
-  drawn from a corner instead of as a centred glow; the fix is next.
 - PowerPoint export approximates what PowerPoint cannot hold: pattern fills, shadows, compound
   lines and line jumps ([details](docs/gaps.md#powerpoint-export-partial)).
 - Authoring large drawings is slow ([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39)).
@@ -151,9 +149,9 @@ docs/gaps.md). From Microsoft's template catalogue, filed and open: `THEME()` wi
 argument (#88) and the Text Callout cycle (#91). From the first batch of real company files,
 filed and open: SVG import (#103). From the 2026-11-03 batch: a WMF wrapping an EMF (#112),
 metafile text in SVG (#113), a font-name switch (#114), two `THEME()` resolutions (#115, #116)
-and SVG bullets (#117). Centre and radial gradient presets are drawn from a corner instead of
-as Visio's centred glow, and a gradient whose master deletes inherited stop rows reports
-`#REF!` stop warnings. SVG export does not write Visio's `v:` extension data, which Visio
+and SVG bullets (#117). Gradient directions 10 to 13 keep a corner fallback, and gradients
+with more than two stops keep a small angle difference from Visio.
+SVG export does not write Visio's `v:` extension data, which Visio
 reads when it imports an SVG. The bundled symbol face covers the dingbat, geometric, arrow and
 pictograph blocks; Segoe UI Symbol's mathematics and Windows icon ranges, and the Wingdings and
 Webdings symbol-charset fonts, are not covered (docs/gaps.md). Where a connector does reroute,
@@ -163,16 +161,19 @@ elsewhere); the 28 of 29 geometry witnesses still hold.
 
 </details>
 
-## New in 0.1.0-beta.2
+## New in 0.1.0-beta.3
 
-- Page order follows Visio: foreground pages first, then background pages. A drawing whose file
-  lists its background page first (Visio does this when a background shape such as Center
-  Gradient is dropped on a page) now converts, renders and exports its foreground page, with the
-  background behind it. Before, `convert` and the MCP export tool could write the background page
-  alone. `--page N` and every MCP page number count in the same order.
+- Gradients follow Visio. The ten direction presets (centre, corners and edges) were measured in
+  Visio 2021 on 680 shapes; the worst average difference is 1.9 levels out of 255. The same focus
+  carries into PNG, SVG, PDF and PowerPoint, and a two-stop gradient blends the way Visio blends
+  it.
+- Deleted inherited rows stay deleted. When a master or style deletes a row it would otherwise
+  pass down (gradient stops, geometry, text formatting), MisterDiagram drops it too, so the
+  background stencil's Center Gradient no longer reports 24 `#REF!` warnings.
 
-Against beta.1, no corpus, field, route, theme or hostile number moves. The full list of changes
-is in [CHANGELOG.md](CHANGELOG.md).
+Against beta.2, all 691 corpus lines are unchanged. Six of 123 field images change: three move
+closer to Visio (by up to 7.1 levels) and two move away by less than 0.01. The full list of
+changes is in [CHANGELOG.md](CHANGELOG.md).
 
 ## Testers wanted
 
