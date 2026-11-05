@@ -11,6 +11,7 @@
 
 mod bytes;
 mod dib;
+mod embedded;
 mod emf;
 pub mod header;
 mod wmf;
@@ -38,6 +39,7 @@ pub struct Imported {
 }
 /// Most objects an import makes (a hostile file can't exhaust memory with them).
 const MAX_NODES: usize = 100_000;
+pub(crate) const EMBEDDED_ALLOCATION_LIMIT: &str = "export scene memory limit: embedded EMF allocation";
 /// Objects and clips reaching further than this from the origin (points, well inside the canvas)
 /// are left out: they come from damaged or hostile coordinates.
 const LIMIT: f64 = 1e6;
@@ -188,6 +190,9 @@ pub(crate) struct Player {
     dev_to_doc: Affine,
     /// Millimetres per device pixel (EMF's fixed mapping modes).
     mm_per_px: f64,
+    /// A non-placeable WMF's one-pixel pen in picture points after shape placement.
+    wmf_cosmetic_width: Option<f64>,
+    wmf_placement: Option<Affine>,
     dc: Dc,
     saved: Vec<Dc>,
     objects: Vec<Option<Obj>>,
@@ -274,6 +279,8 @@ impl Player {
             kind,
             dev_to_doc,
             mm_per_px,
+            wmf_cosmetic_width: None,
+            wmf_placement: None,
             dc: Dc::default(),
             saved: vec![],
             objects: vec![],
@@ -533,7 +540,13 @@ impl Player {
         // Geometric pens, and other pens wider than 1, have a width in logical units; the others
         // are one pixel wide.
         let w = p.width * self.scale();
-        let width = if w > 0.0 && w.is_finite() && (p.style & PS_GEOMETRIC != 0 || p.width > 1.0) { w } else { HAIRLINE };
+        let width = if let Some(pixel) = self.wmf_cosmetic_width {
+            if w > 0.0 && w.is_finite() { w.max(pixel) } else { pixel }
+        } else if w > 0.0 && w.is_finite() && (p.style & PS_GEOMETRIC != 0 || p.width > 1.0) {
+            w
+        } else {
+            HAIRLINE
+        };
         let mut st = kurbo::Stroke::new(width);
         // Round caps and joins unless the style asks for others.
         st.start_cap = match p.style & 0xf00 {
@@ -548,7 +561,7 @@ impl Player {
             _ => kurbo::Join::Round,
         };
         st.miter_limit = self.dc.miter;
-        let unit = width.max(HAIRLINE);
+        let unit = width.max(self.wmf_cosmetic_width.unwrap_or(HAIRLINE));
         let pattern: Vec<f64> = match kind {
             1 => vec![3.0 * unit, unit],
             2 => vec![unit, unit],
@@ -616,7 +629,24 @@ impl Player {
             if !self.check_dashes(&bp, &st) {
                 return;
             }
-            let outline = kurbo::stroke(bp.elements().iter().copied(), &st, &kurbo::StrokeOpts::default(), 0.01);
+            let outline = if let Some(placement) = self.wmf_placement.filter(|_| self.dc.pen.width <= 1.) {
+                // Expand cosmetic pens in the final physical space, then return to picture
+                // coordinates. An anisotropic shape transform must not stretch a device pixel.
+                let scale = placement.determinant().abs().sqrt();
+                let mut placed = st;
+                placed.width *= scale;
+                placed.dash_offset *= scale;
+                for dash in &mut placed.dash_pattern {
+                    *dash *= scale;
+                }
+                let placed_path = placement * &bp;
+                if !self.check_dashes(&placed_path, &placed) {
+                    return;
+                }
+                placement.inverse() * kurbo::stroke(placed_path.elements().iter().copied(), &placed, &kurbo::StrokeOpts::default(), 0.01 * scale)
+            } else {
+                kurbo::stroke(bp.elements().iter().copied(), &st, &kurbo::StrokeOpts::default(), 0.01)
+            };
             self.push(Op::Path { even_odd: false, path: outline, paint: Paint::Solid(rgb(self.dc.pen.color)) });
         }
     }
@@ -973,6 +1003,34 @@ pub fn import(bytes: &[u8]) -> Result<Imported, String> {
     }
 }
 
+/// Resolve non-placeable WMF pens using the consuming shape's physical placement.
+/// Other metafiles retain their established device mapping.
+/// https://learn.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-createpen
+pub(crate) fn import_placed(bytes: &[u8], transform: Affine, width: f64, height: f64, cached: bool) -> Result<Imported, String> {
+    if sniff(bytes) == Some(Kind::Wmf) && !bytes.starts_with(&header::PLACEABLE_KEY.to_le_bytes()) {
+        let frame = header::wmf_frame(bytes)?;
+        if let Some([left, top, right, bottom]) = frame.rect {
+            let point_area = ((right - left) * (bottom - top)).abs() * (72. / frame.inch).powi(2);
+            let scale = (transform.determinant().abs() * width.abs() * height.abs() / point_area).sqrt();
+            let pixel = 1. / (96. * scale);
+            if pixel.is_finite() && pixel > 0. && pixel <= LIMIT {
+                let [a, b, c, d, _, _] = transform.as_coeffs();
+                let placement = Affine::new([a, b, c, d, 0., 0.])
+                    * Affine::scale_non_uniform(
+                        width / ((right - left).abs() * 72. / frame.inch),
+                        -height / ((bottom - top).abs() * 72. / frame.inch),
+                    );
+                if placement.inverse().as_coeffs().iter().any(|v| !v.is_finite()) {
+                    return Err("WMF placement transform limit".into());
+                }
+                let imported = wmf::play_placed(bytes, pixel, placement)?;
+                return if cached { validate_cached_picture(imported) } else { Ok(imported) };
+            }
+        }
+    }
+    if cached { import_cached_picture(bytes) } else { import(bytes) }
+}
+
 /// Cached OLE presentations may combine a binary mask with XOR/OR colour pixels.
 /// The ordinary strict importer retains its established unsupported-operation policy.
 /// https://learn.microsoft.com/en-us/windows/win32/gdi/ternary-raster-operations
@@ -985,6 +1043,9 @@ pub(crate) fn import_cached_picture(bytes: &[u8]) -> Result<Imported, String> {
         Some(Kind::Wmf) => wmf::play(bytes)?,
         None => return Err("invalid metafile header".into()),
     };
+    validate_cached_picture(imported)
+}
+fn validate_cached_picture(imported: Imported) -> Result<Imported, String> {
     if imported.warnings.iter().any(|warning| warning == SKIPPED_ROPS || warning == BAD_IMAGE) {
         return Err("cached EMF has unsupported or damaged bitmap drawing".into());
     }

@@ -169,9 +169,16 @@ fn play_budgeted(bytes: &[u8], budget: super::SceneBudget) -> Result<Imported, S
     play_options(bytes, budget, false)
 }
 fn play_options(bytes: &[u8], budget: super::SceneBudget, recover_masks: bool) -> Result<Imported, String> {
+    play_limits(bytes, budget, recover_masks, super::MAX_NODES)
+}
+pub(super) fn play_embedded(bytes: &[u8], budget: super::SceneBudget, operations: usize) -> Result<Imported, String> {
+    play_limits(bytes, budget, false, operations)
+}
+fn play_limits(bytes: &[u8], budget: super::SceneBudget, recover_masks: bool, operations: usize) -> Result<Imported, String> {
     let (dev_to_doc, mm_per_px, artboard) = frame(bytes).ok_or("the EMF header is damaged")?;
     let mut p = Player::new(Kind::Emf, dev_to_doc, mm_per_px, artboard);
     p.budget = budget;
+    p.operation_limit = operations;
     let mut at = 0usize;
     let mut ended = false;
     while let Some(head) = bytes.get(at..at + 8) {

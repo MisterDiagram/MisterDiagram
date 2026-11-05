@@ -17768,3 +17768,25 @@ because its protected theme witnesses would otherwise change; its angular
 mismatch remains listed in gaps. Existing native generated linear and radial
 images re-export byte-identically in the control run. These observations do not
 change an oracle, tolerance, or the closed inherited-row rules.
+
+
+### Observed, undocumented: embedded EMF comment selection (M5.134)
+
+Synthetic native imports at 96 dpi in `corpus/_state/brief67/native-variants`
+and `native-public-writer` select an embedded EMF when the consecutive comment
+sequence starts immediately after the WMF header and the additive sum of every
+16-bit word in the complete WMF is zero. The checksum adjustment is stored in
+the first comment. The other comment checksums are zero. The resulting PNG is
+byte-identical to importing the inner EMF directly. A sequence after window
+setup records, or the reference's complemented XOR of the inner EMF, selects
+the fallback rectangle. This differs from the
+[MS-WMF 2.3.6.25 checksum description](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/cfc88064-d86d-4b52-9374-3ce27d456179).
+Both per-chunk and whole-stream ByteCount forms are accepted in these controls;
+our writer uses the actual record data length.
+
+Truncating the final chunk while retaining the original checksum selects the
+fallback rectangle. A separate malformed control with the checksum repaired
+after truncation produces corrupt native output. Its receipt remains in
+`corpus/_state/brief67/native-a-final`; the bounded reader rejects that incomplete
+stream and keeps the fallback, as required by the incomplete-input contract.
+No native output or comparison threshold was changed.

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Embedded pictures:** Pictures wrapped in older metafiles now use their complete embedded drawing. Incomplete embedded data keeps the fallback picture with a shape-specific warning. Thin lines in non-placeable pictures keep their device width when enlarged.
+
 ## 0.1.0-beta.3
 
 The rest of the fix for #87: gradients now follow Visio's direction presets, measured against

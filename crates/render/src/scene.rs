@@ -1571,7 +1571,7 @@ fn paint_foreign(
 ) -> Result<(), String> {
     let bytes = &e.document.parts.get(target).ok_or("missing foreign part")?.bytes;
     if crate::metafile::sniff(bytes).is_some() {
-        let imported = if cached_picture { crate::metafile::import_cached_picture(bytes)? } else { crate::metafile::import(bytes)? };
+        let imported = crate::metafile::import_placed(bytes, transform, w, h, cached_picture)?;
         let m = transform
             * Affine::translate((x, y + h))
             * Affine::scale_non_uniform(w / imported.frame.width().max(1e-12), -h / imported.frame.height().max(1e-12))
@@ -1581,7 +1581,16 @@ fn paint_foreign(
         if !imported.ops.iter().any(|op| matches!(op, Op::Path { .. } | Op::Stroke { .. } | Op::Image { .. } | Op::Text { .. })) {
             scene.warnings.push(format!("foreign object {scope:?} {} produced no drawing", target));
         }
-        scene.warnings.extend(imported.warnings);
+        scene.warnings.extend(imported.warnings.into_iter().map(|warning| {
+            if warning == "WMF comment EMF incomplete, playing the WMF fallback" {
+                match scope {
+                    Scope::PageShape { shape, .. } | Scope::MasterShape { shape, .. } => format!("shape {shape}: {warning}"),
+                    _ => warning,
+                }
+            } else {
+                warning
+            }
+        }));
         for op in imported.ops {
             scene.ops.push(match op {
                 Op::Path { even_odd, path, paint } => Op::Path { even_odd, path: m * path, paint },
@@ -1756,6 +1765,10 @@ pub fn validate_foreign_parts(document: &Document, selection: misterdiagram_vsdx
 
 #[cfg(test)]
 mod relationship_tests {
+    #[test]
+    fn embedded_allocation_failure_cannot_be_recovered_as_a_placeholder() {
+        assert!(super::foreign_resource_failure(crate::metafile::EMBEDDED_ALLOCATION_LIMIT));
+    }
     #[test]
     fn foreign_relationship_ignores_extension_ids() {
         let rel = misterdiagram_vsdx::parse_xml(br#"<Rel xmlns='http://schemas.microsoft.com/office/visio/2012/main' xmlns:r='http://schemas.openxmlformats.org/officeDocument/2006/relationships' xmlns:x='urn:extension' r:id='correct' x:id='wrong' id='unqualified'/>"#).unwrap();

@@ -2871,3 +2871,20 @@ a transparent site carrier grouped with it. PowerPoint may re-solve routes after
 movement; its independent render and drag acceptance remain pending.
 
 The combined PowerPoint/Word checklist row remains P. Word export is unimplemented. The general M5 gate uses the office, SAN and fabric witnesses and still requires native PowerPoint open/render/drag and Visio unrepaired-open acceptance; local package/model/readback success does not close that gate.
+
+
+## Wrapped EMF pictures and non-placeable WMF pens (M5.134)
+
+Complete, consecutive embedded EMF comments select the inner picture and frame.
+Incomplete comment data selects the WMF fallback with a shape-numbered warning
+from both rendering and sheet inspection. Counts, remaining bytes and aggregate
+size are bounded and checked; inner decoder resource refusals remain errors.
+Non-placeable width-0 and width-1 pens are expanded with the consuming shape's
+physical mapping, with a one-pixel minimum at the canonical 96 dpi export.
+The native 13 by 10 inch horizontal and vertical controls measure within one
+pixel. Higher export scales scale the canonical stroke as with other drawn paths.
+Placeable WMF and ordinary EMF playback keep their existing mapping.
+
+The comment checksum and record placement follow the synthetic native witness
+recorded under Observed, undocumented. Other WMF escapes and EMF+ remain outside
+this change. See the [embedded comment record reference](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/cfc88064-d86d-4b52-9374-3ce27d456179).

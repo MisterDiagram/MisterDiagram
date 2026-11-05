@@ -58,13 +58,30 @@ pub(super) fn play(bytes: &[u8]) -> Result<Imported, String> {
     play_budgeted(bytes, super::SceneBudget::default(), super::MAX_NODES)
 }
 fn play_budgeted(bytes: &[u8], budget: super::SceneBudget, operations: usize) -> Result<Imported, String> {
+    play_options(bytes, budget, operations, None)
+}
+pub(super) fn play_placed(bytes: &[u8], pixel: f64, placement: Affine) -> Result<Imported, String> {
+    play_options(bytes, super::SceneBudget::default(), super::MAX_NODES, Some((pixel, placement)))
+}
+fn play_options(bytes: &[u8], mut budget: super::SceneBudget, operations: usize, pixel: Option<(f64, Affine)>) -> Result<Imported, String> {
     let frame = header::wmf_frame(bytes)?;
+    let embedded = super::embedded::read(bytes, frame.start, &mut budget)?;
+    if let super::embedded::Embedded::Complete(data) = embedded {
+        return super::emf::play_embedded(&data, budget, operations);
+    }
     let k = 72. / frame.inch;
     let logical = frame.rect.map(|[l, t, r, b]| Rect::new(l, t, r, b));
     let artboard = logical.map_or(Rect::new(0., 0., 1., 1.), |r| Rect::new(0., 0., r.width().abs() * k, r.height().abs() * k));
     let mut p = Player::new(Kind::Wmf, Affine::scale(k), 25.4 / frame.inch, artboard);
     p.budget = budget;
     p.operation_limit = operations;
+    if let Some((width, placement)) = pixel {
+        p.wmf_cosmetic_width = Some(width);
+        p.wmf_placement = Some(placement);
+    }
+    if matches!(embedded, super::embedded::Embedded::Incomplete) {
+        p.warn(super::embedded::INCOMPLETE);
+    }
     p.set_map_mode(8);
     if let Some(r) = logical {
         p.set_window_org(r.x0, r.y0);
@@ -290,11 +307,35 @@ fn record(p: &mut Player, function: u16, body: &[u8]) -> Option<()> {
 }
 
 #[cfg(test)]
+#[path = "../../tests/support/wmf_embedded.rs"]
+mod embedded_recipe;
+#[cfg(test)]
+use recipe as base_wmf;
+#[cfg(test)]
 #[path = "../../tests/support/wmf.rs"]
 mod recipe;
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn cosmetic_dash_expansion_is_bounded_after_anisotropic_placement() {
+        let mut records = recipe::setup();
+        records.extend([
+            recipe::record(0x02fa, &[1, 0, 0, 0, 0]),
+            recipe::record(0x012d, &[2]),
+            recipe::record(0x0214, &[0, 0]),
+            recipe::record(0x0213, &[0, 30]),
+        ]);
+        let bytes = recipe::file(&records, None);
+        let result = play_options(&bytes, super::super::SceneBudget::default(), 16, Some((0.75, Affine::scale_non_uniform(100., 0.01))));
+        assert!(result.err().is_some_and(|e| e.starts_with("metafile operation limit:") && e.contains("dash pieces")));
+    }
+    #[test]
+    fn complete_embedded_stream_preserves_resource_refusals() {
+        let bytes = embedded_recipe::wrapper(&embedded_recipe::triangle(), 80, false);
+        assert!(play_budgeted(&bytes, super::super::SceneBudget::new(1), 100_000).err().unwrap().starts_with("export scene memory limit"));
+        assert_eq!(play_budgeted(&bytes, super::super::SceneBudget::default(), 0).err().unwrap(), "metafile operation limit");
+    }
     #[test]
     fn resource_failures_propagate_during_records_and_final_line_flush() {
         let bytes = recipe::rectangle();
