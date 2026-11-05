@@ -85,7 +85,16 @@ fn real_theme_white_stop_and_implicit_themed_slots_are_distinct() {
         ..Default::default()
     });
     document.pages[0].shapes.push(shape);
-    let rendered = scene::page(&document, 0, scene::Options::default()).unwrap();
+    assert_three_theme_stops(&document);
+    // Also cover genuinely implicit rows, with no section provider in any style.
+    for style in &mut document.styles {
+        style.sheet.sections.retain(|section| section.name != "FillGradient");
+    }
+    assert_three_theme_stops(&document);
+}
+
+fn assert_three_theme_stops(document: &misterdiagram_model::Document) {
+    let rendered = scene::page(document, 0, scene::Options::default()).unwrap();
     let gradient = rendered
         .ops
         .iter()
@@ -95,4 +104,60 @@ fn real_theme_white_stop_and_implicit_themed_slots_are_distinct() {
         })
         .unwrap();
     assert_eq!(gradient.stops, vec![(0., Rgba::rgb(128, 16, 32)), (0., Rgba::rgb(16, 32, 128)), (0., Rgba::WHITE)]);
+}
+
+/// Deleted stop rows never enter the gradient or its cached fallback path.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml
+#[test]
+fn deleted_gradient_rows_are_absent_from_scene_and_warnings() {
+    for deleted in [vec![2, 3, 4, 5, 6, 7, 8, 9], vec![0, 2, 3, 4, 5, 6, 7, 8, 9], (0..10).collect()] {
+        let mut document = skeleton::document(false);
+        let mut shape = skeleton::rectangle(1, 1., 1., 2., 1., "").unwrap();
+        shape.sheet.cells.push(literal("FillGradientEnabled", "1"));
+        let mut rows = vec![stop(0, "0", "#ffffff"), stop(1, "1", "#000080")];
+        rows.retain(|row| !deleted.contains(&row.index.unwrap()));
+        rows.extend(deleted.iter().map(|index| Row { index: Some(*index), deleted: true, ..Default::default() }));
+        shape.sheet.sections.push(Section { name: "FillGradient".into(), rows, ..Default::default() });
+        document.pages[0].shapes.push(shape);
+        let drawing = scene::page(&document, 0, scene::Options::default()).unwrap();
+        assert!(!drawing.warnings.iter().any(|w| w.contains("FillGradientStops")), "{:?}", drawing.warnings);
+        let stops: Vec<_> = drawing
+            .ops
+            .iter()
+            .filter_map(|op| match op {
+                scene::Op::Path { paint: scene::Paint::Pattern { gradient: Some(g), .. }, .. } => Some(g.stops.len()),
+                _ => None,
+            })
+            .collect();
+        let expected = 10 - deleted.len();
+        if expected == 0 {
+            assert!(stops.is_empty());
+        } else {
+            assert_eq!(stops, vec![expected]);
+        }
+    }
+}
+
+/// Sparse authored stops beyond the historical ten-slot limit remain visible.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml
+#[test]
+fn sparse_stop_after_ten_is_not_lost() {
+    let mut document = skeleton::document(false);
+    let mut shape = skeleton::rectangle(1, 1., 1., 2., 1., "").unwrap();
+    shape.sheet.cells.push(literal("FillGradientEnabled", "1"));
+    let mut rows = vec![stop(0, "0", "#ffffff"), stop(12, "1", "#000080")];
+    rows.extend((1..10).map(|index| Row { index: Some(index), deleted: true, ..Default::default() }));
+    shape.sheet.sections.push(Section { name: "FillGradient".into(), rows, ..Default::default() });
+    document.pages[0].shapes.push(shape);
+    let drawing = scene::page(&document, 0, scene::Options::default()).unwrap();
+    let stops = drawing
+        .ops
+        .iter()
+        .find_map(|op| match op {
+            scene::Op::Path { paint: scene::Paint::Pattern { gradient: Some(g), .. }, .. } => Some(&g.stops),
+            _ => None,
+        })
+        .unwrap();
+    assert_eq!(stops, &vec![(0., Rgba::WHITE), (1., Rgba::rgb(0, 0, 128))]);
+    assert!(!drawing.warnings.iter().any(|w| w.contains("FillGradientStops")));
 }

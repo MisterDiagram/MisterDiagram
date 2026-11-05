@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Gradient stops:** Deleted inherited stops no longer add extra colors or missing-cell warnings during export. Deleted rows also stay absent when reading inherited shape and style cells.
+
 ## 0.1.0-beta.2
 
 A fix release for one tester report (#87): a drawing whose file lists a background page first now

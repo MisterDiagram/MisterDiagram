@@ -1,5 +1,18 @@
 # Gaps
 
+## Deleted inherited rows (M5.131)
+
+Deleted rows are excluded from effective cells, sheet output and gradient stops,
+including deletions in a master or selected style. A selected style can remove an
+older style-provided row without removing an explicit master or shape override.
+Gradient stops retain their row indices and the existing theme stop-count rule.
+The shared row identity check covers indexed, named and sparse rows. Tests:
+`deleted_rows` and `gradient_slots`.
+
+Radial gradient direction and focus remain partial; this correction only removes
+stops that were already deleted. Reference:
+[Row](https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml).
+
 ## Alternate fill across geometry sections (M5.109)
 
 Eligible Geometry sections form a single alternate (even-odd) fill. Nesting and

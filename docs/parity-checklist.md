@@ -480,3 +480,10 @@ Progress M5.116: shared fit-to-drawing export and explicit margins added to CLI 
 - M5.127: Separate PowerPoint labels share their shape's group, preserving placement and glue targets. Immediate-parent readback and a sibling-emission source defect guard movement; native acceptance of this correction passed on 2026-11-04 (0.1.0-beta.1); the row stays P because Word export is missing.
 
 - M5.129: Pages remain P. User page ordinals follow foreground pages first, then background pages, preserving file order in each group. Writer-generated interleavings and background-first CLI/engine/MCP exports protect page selection; background chains and pixel fidelity retain their existing limits.
+
+- M5.131: The ShapeSheet model row remains D. `deleted_rows` covers inherited
+  deletions across section types, selected-style precedence, cached evaluation,
+  row reintroduction and hostile indices. `gradient_slots` excludes deleted stops
+  while retaining theme counts and sparse explicit stops. Rendering remains P;
+  radial direction and focus are separate gaps. Reference:
+  [Row](https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml).

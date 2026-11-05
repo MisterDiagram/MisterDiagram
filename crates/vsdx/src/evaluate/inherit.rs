@@ -11,6 +11,7 @@ use std::{
 pub(super) struct Inheritance<'a> {
     local_cells: BTreeMap<Key, &'a Cell>,
     defaults: RefCell<BTreeMap<(Scope, Option<Category>), bool>>,
+    enabled_styles: BTreeMap<(Scope, Category), bool>,
     origins: BTreeMap<Key, Scope>,
     errors: BTreeMap<Scope, Error>,
     pub(super) masters: BTreeMap<Scope, Scope>,
@@ -317,6 +318,12 @@ impl<'a> Evaluator<'a> {
                 if !style_enabled(&style_sheet, cat) {
                     continue;
                 }
+                // The selected style replaces inherited style providers, including
+                // their row deletions, while explicit master cells retain priority.
+                // https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml
+                effective.cells.retain(|name, entry| {
+                    category(name) != Some(cat) || !matches!(entry.origin, Scope::Style(_) | Scope::Document) || self.defaults_allowed(parent, name)
+                });
                 for (name, entry) in &style_sheet.cells {
                     // Original split-chain native control: shapes read these flags
                     // from their selected fill style. An intermediate style with
@@ -392,17 +399,24 @@ impl<'a> Evaluator<'a> {
                         }
                     }
                     if row.deleted {
-                        effective.cells.retain(|_, entry| {
-                            !(same_section(entry.named.section, section)
-                                && super::section_prefix(section).ok().is_some_and(|prefix| {
-                                    entry
-                                        .named
-                                        .name
-                                        .to_ascii_lowercase()
-                                        .strip_prefix(&format!("{}.", prefix.to_ascii_lowercase()))
-                                        .is_some_and(|tail| row_matches(&section.name, row, position, tail))
-                                }))
-                        });
+                        let named_rows = effective.named_rows.get(&section_key);
+                        effective.cells.retain(|_, entry| !same_row(&entry.named, section, row, position, named_rows));
+                        if row.name.is_none()
+                            && let Some(rows) = effective.named_rows.get_mut(&section_key)
+                        {
+                            let removed: BTreeSet<_> = rows
+                                .iter()
+                                .filter(|source| named_row_index(rows, &source.name) == row.index)
+                                .map(|source| source.name.clone())
+                                .collect();
+                            rows.retain(|source| {
+                                let keep = !removed.contains(&source.name);
+                                if !keep {
+                                    row_name_bytes = row_name_bytes.saturating_sub(source.name.len());
+                                }
+                                keep
+                            });
+                        }
                     }
                 }
                 if section.name == "Geometry" {
@@ -440,6 +454,11 @@ impl<'a> Evaluator<'a> {
         // copies proportional to name length. Charge each persisted effective sheet
         // against the same aggregate logical-name bound used by the final index.
         count.charge(&effective, self.effective_cell_cap, self.sheets.len())?;
+        if matches!(scope, Scope::Style(_)) {
+            for cat in [Category::Line, Category::Fill, Category::Text] {
+                self.inheritance.enabled_styles.insert((scope, cat), style_enabled(&effective, cat));
+            }
+        }
         visiting.remove(&scope);
         let effective = Rc::new(effective);
         memo.insert(scope, effective.clone());
@@ -474,43 +493,49 @@ impl<'a> Evaluator<'a> {
         let mut pending = vec![scope];
         let mut seen = BTreeSet::new();
         let lower = name.to_ascii_lowercase();
-        while let Some(current) = pending.pop() {
-            if !seen.insert(current) {
-                continue;
-            }
-            if seen.len() > 128 {
-                return false;
-            }
-            if let Some(sheet) = self.sheets.get(&current) {
-                for section in &sheet.sections {
-                    let Ok(prefix) = super::section_prefix(section) else {
-                        return false;
-                    };
-                    let prefix = format!("{}.", prefix.to_ascii_lowercase());
-                    let Some(tail) = lower.strip_prefix(&prefix) else {
-                        continue;
-                    };
-                    if section.deleted {
-                        return false;
-                    }
-                    for (position, row) in section.rows.iter().enumerate() {
-                        if section.name == "Field" && row.index.is_none() {
-                            continue;
+        while let Some(start) = pending.pop() {
+            let mut current = Some(start);
+            let mut styles = Vec::new();
+            // Explicit cells on the entire master chain precede style providers.
+            // The instance's selected style precedes a master's selected style.
+            while let Some(scope) = current {
+                if !seen.insert(scope) {
+                    break;
+                }
+                if seen.len() > 128 {
+                    return false;
+                }
+                if let Some(sheet) = self.sheets.get(&scope) {
+                    for section in &sheet.sections {
+                        let Ok(prefix) = super::section_prefix(section) else {
+                            return false;
+                        };
+                        let prefix = format!("{}.", prefix.to_ascii_lowercase());
+                        let Some(tail) = lower.strip_prefix(&prefix) else { continue };
+                        if section.deleted {
+                            return false;
                         }
-                        if row_matches(&section.name, row, position, tail) {
-                            return !row.deleted;
+                        for (position, row) in section.rows.iter().enumerate() {
+                            if section.name == "Field" && row.index.is_none() {
+                                continue;
+                            }
+                            if row_matches(&section.name, row, position, tail) {
+                                return !row.deleted;
+                            }
                         }
                     }
                 }
+                if let Some(cat) = category
+                    && let Some(style) = self.style_link(scope, cat)
+                {
+                    let provider = Scope::Style(style);
+                    if self.inheritance.enabled_styles.get(&(provider, cat)) != Some(&false) {
+                        styles.push(provider);
+                    }
+                }
+                current = self.inheritance.masters.get(&scope).copied();
             }
-            if let Some(cat) = category
-                && let Some(style) = self.style_link(current, cat)
-            {
-                pending.push(Scope::Style(style));
-            }
-            if let Some(master) = self.inheritance.masters.get(&current) {
-                pending.push(*master);
-            }
+            pending.extend(styles.into_iter().rev());
         }
         true
     }
@@ -646,6 +671,47 @@ fn same_section(original: Option<&Section>, local: &Section) -> bool {
     original.is_some_and(|s| s.name.eq_ignore_ascii_case(&local.name) && s.index.unwrap_or(0) == local.index.unwrap_or(0))
 }
 
+/// Match source row identity independently of its cell-name spelling.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml
+fn same_row(named: &NamedCell<'_>, section: &Section, row: &Row, position: usize, named_rows: Option<&Vec<NamedRow>>) -> bool {
+    if !same_section(named.section, section) {
+        return false;
+    }
+    let (Some(source_section), Some(source)) = (named.section, named.row) else { return false };
+    if !indexed_row_names(&section.name)
+        && let Some(name) = &row.name
+    {
+        return source.name.as_ref().is_some_and(|n| n.eq_ignore_ascii_case(name));
+    }
+    let index = row.index.or_else(|| u32::try_from(position).ok());
+    let merged_index = source.name.as_ref().and_then(|name| named_row_index(named_rows?, name));
+    let source_index = merged_index
+        .or(source.index)
+        .or_else(|| source_section.rows.iter().position(|r| std::ptr::eq(r, source)).and_then(|i| u32::try_from(i).ok()));
+    index.is_some() && index == source_index
+}
+
+fn named_row_index(rows: &[NamedRow], name: &str) -> Option<u32> {
+    let used: BTreeSet<_> = rows.iter().filter_map(|row| row.index).collect();
+    let mut next = 0u32;
+    for row in rows {
+        let index = if let Some(index) = row.index {
+            index
+        } else {
+            while used.contains(&next) {
+                next = next.checked_add(1)?;
+            }
+            let index = next;
+            next = next.checked_add(1)?;
+            index
+        };
+        if row.name.eq_ignore_ascii_case(name) {
+            return Some(index);
+        }
+    }
+    None
+}
+
 fn merge_geometry<'a>(geometry: &mut BTreeMap<u32, BTreeMap<u32, GeometryRow<'a>>>, section: &'a Section) -> Result<(), BuildError> {
     let rows = geometry.entry(section.index.unwrap_or(0)).or_default();
     for (position, row) in section.rows.iter().enumerate() {
@@ -675,8 +741,15 @@ fn merge_geometry<'a>(geometry: &mut BTreeMap<u32, BTreeMap<u32, GeometryRow<'a>
     Ok(())
 }
 
+// These sections use IX in their universal cell names even if an input also has N.
+fn indexed_row_names(section: &str) -> bool {
+    matches!(section, "Geometry" | "Character" | "Paragraph" | "Field" | "Layer" | "FillGradient" | "LineGradient")
+}
+
 fn row_matches(section: &str, row: &Row, position: usize, tail: &str) -> bool {
-    if let Some(name) = &row.name {
+    if !indexed_row_names(section)
+        && let Some(name) = &row.name
+    {
         let name = name.to_ascii_lowercase();
         return tail == name || tail.strip_prefix(&name).is_some_and(|s| s.starts_with('.'));
     }
@@ -695,6 +768,15 @@ fn row_matches(section: &str, row: &Row, position: usize, tail: &str) -> bool {
         } else {
             index == 0
         };
+    }
+    if let Some((_, suffix)) = tail.rsplit_once('[') {
+        return suffix.strip_suffix(']').and_then(|s| s.parse::<u32>().ok()) == Some(one);
+    }
+    if section == "Connection" && !tail.chars().any(|c| c.is_ascii_digit()) {
+        return index == 0;
+    }
+    if let Some(index) = tail.strip_prefix("row_").and_then(|s| s.split('.').next()).and_then(|s| s.parse::<u32>().ok()) {
+        return index == one;
     }
     tail.trim_start_matches(|c: char| c.is_ascii_alphabetic()).parse::<u32>().ok() == Some(one)
 }

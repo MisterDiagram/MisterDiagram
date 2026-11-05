@@ -447,7 +447,10 @@ impl<'a> Evaluator<'a> {
                 }
             }
         }
-        if style && let Some(cell) = defaults::cell(scope, key_name) {
+        if style
+            && self.defaults_allowed(scope, key_name)
+            && let Some(cell) = defaults::cell(scope, key_name)
+        {
             let saved = self.cached_named_cell(scope, key_name, cell);
             if saved.error().is_none() {
                 self.fallback_warning(scope, name, error, "used the style cell default (no usable saved value)");
@@ -677,6 +680,38 @@ impl<'a> Evaluator<'a> {
         }
         let section = cell.attributes.get("ComSection")?.parse::<u16>().ok()?;
         self.formatting_rows(scope).contains_key(&(section, row)).then_some(cell)
+    }
+    /// Effective row indices include scoped baseline rows unless an inherited deletion hides them.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml
+    pub fn section_row_indices(&self, scope: Scope, section_name: &str, section_index: u32) -> Vec<u32> {
+        if section_name.len() > 65536 {
+            return Vec::new();
+        }
+        let mut indices: BTreeSet<_> = self
+            .named_cells(scope)
+            .iter()
+            .filter_map(|named| {
+                let (section, row) = (named.section?, named.row?);
+                if !section.name.eq_ignore_ascii_case(section_name) || section.index.unwrap_or(0) != section_index {
+                    return None;
+                }
+                self.effective_row_index(scope, section, row)
+                    .or(row.index)
+                    .or_else(|| section.rows.iter().position(|r| std::ptr::eq(r, row)).and_then(|i| u32::try_from(i).ok()))
+            })
+            .collect();
+        let section = Section { name: section_name.into(), index: Some(section_index), ..Default::default() };
+        if let Ok(prefix) = section_prefix(&section) {
+            let prefix = format!("{prefix}.");
+            for default in defaults::CELLS.iter().filter(|c| c.kind == defaults::kind(scope) && c.cell.name.starts_with(&prefix)) {
+                if self.baseline_cell(scope, &default.cell.name).is_some()
+                    && let Some(index) = default.cell.attributes.get("ComRow").and_then(|s| s.parse::<u32>().ok())
+                {
+                    indices.insert(index);
+                }
+            }
+        }
+        indices.into_iter().collect()
     }
     fn formatting_rows(&self, scope: Scope) -> BTreeMap<(u16, u32), (&'a Section, &'a Row)> {
         let mut rows = BTreeMap::new();

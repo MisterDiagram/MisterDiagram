@@ -485,8 +485,9 @@ fn gradient(e: &mut Evaluator<'_>, scope: Scope) -> Option<style::Gradient> {
     let themed_count = e.theme_fill_gradient_stop_count(scope).ok().flatten();
     let mut stops = Vec::new();
     let mut fallback = Vec::new();
-    for index in 0..10 {
-        let suffix = if index == 0 { String::new() } else { format!("[{}]", index + 1) };
+    for index in e.section_row_indices(scope, "FillGradient", 0) {
+        let one = index.checked_add(1)?;
+        let suffix = if index == 0 { String::new() } else { format!("[{one}]") };
         let position_name = format!("FillGradientStops.GradientStopPosition{suffix}");
         let color_name = format!("FillGradientStops.GradientStopColor{suffix}");
         let trans_name = format!("FillGradientStops.GradientStopColorTrans{suffix}");
@@ -503,12 +504,15 @@ fn gradient(e: &mut Evaluator<'_>, scope: Scope) -> Option<style::Gradient> {
         }
         // Theme metadata distinguishes genuine white-at-zero stops from unused slots.
         // Explicit cell overrides remain part of the gradient beyond the theme's list.
-        if !themed || themed_count.is_none_or(|count| index < count) {
+        if !themed || themed_count.is_none_or(|count| usize::try_from(index).is_ok_and(|index| index < count)) {
             stops.push((position, c));
         }
     }
     if stops.is_empty() {
         stops = fallback;
+    }
+    if stops.is_empty() {
+        return None;
     }
     stops.sort_by(|a, b| a.0.total_cmp(&b.0));
     Some(style::Gradient { stops, radial: number(e, scope, "FillGradientDir", 0.) != 0., angle: number(e, scope, "FillGradientAngle", 0.) })

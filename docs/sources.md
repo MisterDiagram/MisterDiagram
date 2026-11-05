@@ -279,10 +279,10 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/round-function-visioshapesheet> | `crates/sheet/src/functions/numeric.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/rounding-cell-line-format-section> | `crates/render/src/style.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/routestyle-cell-page-layout-section> | `crates/engine/src/layout/shared.rs`, `crates/route/src/orthogonal.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml> | `crates/model/src/lib.rs`, `crates/model/src/skeleton_defaults.rs`, `crates/vsdx/src/evaluate/path.rs`, `crates/vsdx/src/write/model.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/row-element-geometry-sectionvisio-xml> | `crates/model/src/lib.rs`, `crates/model/src/skeleton_defaults.rs`, `crates/render/tests/gradient_slots.rs`, `crates/vsdx/src/evaluate.rs`, `crates/vsdx/src/evaluate/inherit.rs`, `crates/vsdx/src/evaluate/path.rs`, `crates/vsdx/src/write/model.rs`, `crates/vsdx/tests/deleted_rows.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/sat-function> | `crates/sheet/src/functions/color.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/scratch-section> | `crates/vsdx/src/evaluate.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/section-element-sheet_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs`, `crates/model/src/skeleton_defaults.rs`, `crates/vsdx/src/lib.rs`, `crates/vsdx/src/limits.rs`, `crates/vsdx/src/write/model.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/section-element-sheet_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs`, `crates/model/src/skeleton_defaults.rs`, `crates/vsdx/src/lib.rs`, `crates/vsdx/src/limits.rs`, `crates/vsdx/src/write/model.rs`, `crates/vsdx/tests/deleted_rows.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/setatref-function> | `crates/sheet/src/functions/references.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/setatrefeval-function> | `crates/sheet/src/functions/references.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/setatrefexpr-function> | `crates/sheet/src/functions/references.rs` |
