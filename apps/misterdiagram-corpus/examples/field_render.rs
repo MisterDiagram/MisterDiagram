@@ -154,7 +154,9 @@ fn protect_inputs(root: &Path, output: &Path) -> Result<(), String> {
     Ok(())
 }
 fn run() -> Result<bool, String> {
-    let args = std::env::args().skip(1).collect::<Vec<_>>();
+    run_with_args(&std::env::args().skip(1).collect::<Vec<_>>())
+}
+fn run_with_args(args: &[String]) -> Result<bool, String> {
     if !(3..=4).contains(&args.len()) {
         return Err("usage: field_render FOLDER BASELINE.tsv|- OUTPUT.tsv [IMAGE_DIRECTORY]".into());
     }
@@ -261,8 +263,8 @@ fn run() -> Result<bool, String> {
                     row.error = "no pages".into();
                     rows.push(row);
                 }
-                for index in 0..document.pages.len() {
-                    let mut row = new_row(index + 1);
+                for (ordinal, (index, _)) in document.page_order().enumerate() {
+                    let mut row = new_row(ordinal + 1);
                     let options = scene::Options { cached_fallback: true, ..Default::default() };
                     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                         let scene = scene::page(&document, index, options)?;
@@ -284,7 +286,7 @@ fn run() -> Result<bool, String> {
                         Ok(result) => result,
                         Err(_) => Err("panic rendering page".into()),
                     };
-                    let witness = witness_dir.join(format!("page{}.png", index + 1));
+                    let witness = witness_dir.join(format!("page{}.png", ordinal + 1));
                     let witness = if witness.is_file() {
                         let pixels = raster::decode(&fs::read(witness).map_err(|e| e.to_string())?)?;
                         row.visio = format!("{}x{}", pixels.width(), pixels.height());
@@ -298,7 +300,7 @@ fn run() -> Result<bool, String> {
                             row.ours = format!("{}x{}", image.width(), image.height());
                             if let Some(dir) = images {
                                 fs::create_dir_all(dir.join(stem)).map_err(|e| e.to_string())?;
-                                let png = dir.join(stem).join(format!("page{}.png", index + 1));
+                                let png = dir.join(stem).join(format!("page{}.png", ordinal + 1));
                                 protect_inputs(root, &png)?;
                                 image.save(png).map_err(|e| e.to_string())?;
                             }
@@ -389,6 +391,67 @@ fn main() -> std::process::ExitCode {
 #[cfg(test)]
 mod tests {
     use super::*;
+    /// Pair native foreground-first ordinals while rendering raw package indexes.
+    /// https://learn.microsoft.com/en-us/office/vba/api/visio.page.index
+    #[test]
+    fn interleaved_pages_pair_witnesses_rows_and_output_names() {
+        use misterdiagram_model::skeleton;
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/debug").join(format!("field-order-test-{}", std::process::id()));
+        fs::create_dir_all(root.join("inputs/files")).unwrap();
+        let mut document = skeleton::document(false);
+        document.pages.clear();
+        for (index, background) in [true, false, true, false].into_iter().enumerate() {
+            let mut page = skeleton::page(index as u32, &format!("Sheet {index}"), false);
+            if background {
+                page.attributes.insert("Background".into(), "1".into());
+            }
+            page.shapes.push(skeleton::rectangle(1, 1., 1., 0.5 + index as f64 * 0.25, 0.5, "").unwrap());
+            document.pages.push(page);
+        }
+        let bytes = misterdiagram_vsdx::write(&document).unwrap().bytes;
+        // Round-trip before rendering so the witness and field gate share saved inputs.
+        let document = misterdiagram_vsdx::import(&bytes).unwrap();
+        let options = scene::Options { cached_fallback: true, ..Default::default() };
+        let expected = [1, 3, 0, 2].map(|index| raster::render(&scene::page(&document, index, options).unwrap(), options).unwrap());
+        assert!(expected.windows(2).all(|pair| pair[0] != pair[1]));
+        let mut single = skeleton::document(false);
+        single.pages[0].shapes.push(skeleton::rectangle(1, 1., 1., 0.5, 0.5, "").unwrap());
+        let single = misterdiagram_vsdx::write(&single).unwrap().bytes;
+        // Exercise the actual fixed-population gate, including its existing refusals.
+        for index in 0..95 {
+            let stem = format!("sample{index}");
+            let witness = root.join("inputs/visio").join(&stem);
+            fs::create_dir_all(&witness).unwrap();
+            let data: &[u8] = if index == 0 {
+                &bytes
+            } else if index < 85 {
+                &single
+            } else {
+                b"invalid zip"
+            };
+            fs::write(root.join("inputs/files").join(format!("{stem}.vsdx")), data).unwrap();
+            if index < 85 {
+                fs::write(witness.join("resaved.vsdx"), data).unwrap();
+            }
+            if index == 0 {
+                for (ordinal, image) in expected.iter().enumerate() {
+                    image.save(witness.join(format!("page{}.png", ordinal + 1))).unwrap();
+                }
+            }
+        }
+        let args = [root.join("inputs"), "-".into(), root.join("rows.tsv"), root.join("images")].map(|p| p.to_string_lossy().into_owned());
+        assert!(run_with_args(&args).unwrap());
+        let rows = baseline(&root.join("rows.tsv")).unwrap();
+        for (ordinal, image) in expected.iter().enumerate() {
+            let row = &rows[&("sample0".into(), ordinal + 1)];
+            assert_eq!(row.distance, Some(0.));
+            assert_eq!(row.ours, row.visio);
+            let output = fs::read(root.join("images/sample0").join(format!("page{}.png", ordinal + 1))).unwrap();
+            assert_eq!(&raster::decode(&output).unwrap(), image);
+        }
+        assert_eq!(rows.keys().filter(|(stem, _)| stem == "sample0").count(), 4);
+        fs::remove_dir_all(root).unwrap();
+    }
     #[test]
     fn output_protection_preserves_existing_baselines_and_witnesses() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/debug").join(format!("field-gate-test-{}", std::process::id()));

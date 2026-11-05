@@ -1,5 +1,14 @@
 # Gaps
 
+## Field page pairing (M5.135)
+
+Field comparisons pair foreground-first page ordinals with witness images while
+rendering the corresponding package index. Background pages remain in the
+comparison after foreground pages. The interleaved-page regression verifies
+row numbers, image names and pixels through the complete field gate. Rendering
+and distance limits are unchanged. Reference:
+[Page.Index](https://learn.microsoft.com/en-us/office/vba/api/visio.page.index).
+
 ## Gradient presets (M5.132)
 
 Directions 0 through 9 have measured two-stop square and 2:1 controls across
