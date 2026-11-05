@@ -16,8 +16,8 @@ It reads and writes Visio drawings, stencils and templates, renders them to PNG,
 and exports them to PowerPoint. Each claim below has been measured against what Visio 2021 (and
 PowerPoint 2021, for the export) does with the same file.
 
-**Download:** [MisterDiagram 0.1.0-beta.3](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-beta.3),
-the third beta (gradients drawn the way Visio draws them), for macOS
+**Download:** [MisterDiagram 0.1.0-beta.4](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-beta.4),
+the fourth beta (older metafiles and legacy theme fills drawn the way Visio draws them), for macOS
 (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
@@ -48,7 +48,7 @@ shapes, search and open stencils, drop masters, connect shapes, read and set Sha
 and run any engine command or a batch of them. [docs/mcp.md](docs/mcp.md) lists them with examples, including the office, SAN and
 fabric drawings the tests build.
 
-## What works today (2026-11-05, 0.1.0-beta.3)
+## What works today (2026-11-05, 0.1.0-beta.4)
 
 - **Open** .vsdx, .vssx and .vstx files, and the macro-enabled .vsdm, .vssm and .vstm (the VBA
   is dropped). Every stencil and template that ships with Visio 2021 opens.
@@ -129,8 +129,8 @@ Rendering is close to Visio, but it is not complete appearance or cell parity. T
 - PowerPoint export approximates what PowerPoint cannot hold: pattern fills, shadows, compound
   lines and line jumps ([details](docs/gaps.md#powerpoint-export-partial)).
 - Authoring large drawings is slow ([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39)).
-- Open tester reports: [#112 to #117](https://github.com/MisterDiagram/MisterDiagram/issues)
-  (metafiles, theme colours, fonts and bullets), plus #88, #91 and #103.
+- Open tester reports: [#113, #114 and #117](https://github.com/MisterDiagram/MisterDiagram/issues)
+  (metafile text in SVG, font names and bullets), plus #88, #91 and #103.
 
 Every gap, with its measurements, is in [docs/gaps.md](docs/gaps.md).
 
@@ -147,9 +147,10 @@ masters with several top-level shapes remain limited. Large-drawing authoring is
 ([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39); measurements in
 docs/gaps.md). From Microsoft's template catalogue, filed and open: `THEME()` with a colour
 argument (#88) and the Text Callout cycle (#91). From the first batch of real company files,
-filed and open: SVG import (#103). From the 2026-11-03 batch: a WMF wrapping an EMF (#112),
-metafile text in SVG (#113), a font-name switch (#114), two `THEME()` resolutions (#115, #116)
-and SVG bullets (#117). Gradient directions 10 to 13 keep a corner fallback, and gradients
+filed and open: SVG import (#103). From the 2026-11-03 batch, still open: metafile text in
+SVG (#113), a font-name switch (#114) and SVG bullets (#117). One field page sits about 15 px
+off Visio's image (a small aspect difference). Gradient directions 10 to 13 keep a corner
+fallback, and gradients
 with more than two stops keep a small angle difference from Visio.
 SVG export does not write Visio's `v:` extension data, which Visio
 reads when it imports an SVG. The bundled symbol face covers the dingbat, geometric, arrow and
@@ -161,19 +162,24 @@ elsewhere); the 28 of 29 geometry witnesses still hold.
 
 </details>
 
-## New in 0.1.0-beta.3
+## New in 0.1.0-beta.4
 
-- Gradients follow Visio. The ten direction presets (centre, corners and edges) were measured in
-  Visio 2021 on 680 shapes; the worst average difference is 1.9 levels out of 255. The same focus
-  carries into PNG, SVG, PDF and PowerPoint, and a two-stop gradient blends the way Visio blends
-  it.
-- Deleted inherited rows stay deleted. When a master or style deletes a row it would otherwise
-  pass down (gradient stops, geometry, text formatting), MisterDiagram drops it too, so the
-  background stencil's Center Gradient no longer reports 24 `#REF!` warnings.
+- Older metafiles play their embedded drawing. A WMF that carries an EMF in escape comment
+  records (the way some converters save a picture) now plays that EMF instead of the coarse
+  WMF fallback, so lines come out at their real width; an incomplete wrapper keeps the fallback
+  with a warning that names the shape. Thin pens in a non-placeable WMF keep their device width
+  when the picture is enlarged.
+- Legacy theme fills resolve like Visio. A shape that picks its fill through the older `THEME()`
+  selectors keeps its light gradient and default colours instead of taking an accent colour or
+  no fill at all; a colour that resolves to an unknown palette index falls back to the saved
+  colour with a warning. Measured against Visio 2021 on witnessed documents, including one with
+  no theme part.
 
-Against beta.2, all 691 corpus lines are unchanged. Six of 123 field images change: three move
-closer to Visio (by up to 7.1 levels) and two move away by less than 0.01. The full list of
-changes is in [CHANGELOG.md](CHANGELOG.md).
+Against beta.3, three theme fixtures join the corpus and 364 fill-colour comparisons against
+Visio's own cached values now match; no existing comparison moves the other way. Five of 123
+field images change: four move closer to Visio (by up to 0.9 levels) and one moves away by 0.07
+because of a page offset recorded in docs/gaps.md. The full list of changes is in
+[CHANGELOG.md](CHANGELOG.md).
 
 ## Testers wanted
 
@@ -262,7 +268,7 @@ see [the tools and examples](docs/mcp.md).
 
 ## What is coming
 
-- Fidelity after the first beta: the open tester findings (#112 to #117), Word export, and
+- Fidelity after the first beta: the open tester findings (#113, #114, #117), Word export, and
   the carried gaps below.
 - Carried gaps, named in [docs/gaps.md](docs/gaps.md): the three-crossing packing shift,
   unwitnessed WalkPreference values, theme.apply (Visio refused the variant call under

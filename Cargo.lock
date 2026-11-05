@@ -666,7 +666,7 @@ dependencies = [
 
 [[package]]
 name = "misterdiagram-cli"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "hayro-syntax",
  "image",
@@ -687,14 +687,14 @@ dependencies = [
 
 [[package]]
 name = "misterdiagram-color"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "misterdiagram-corpus"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "image",
  "kurbo",
@@ -717,7 +717,7 @@ dependencies = [
 
 [[package]]
 name = "misterdiagram-engine"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "hayro-syntax",
  "image",
@@ -742,7 +742,7 @@ dependencies = [
 
 [[package]]
 name = "misterdiagram-export"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "image",
  "kurbo",
@@ -759,7 +759,7 @@ dependencies = [
 
 [[package]]
 name = "misterdiagram-fonts"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "harfrust",
  "kurbo",
@@ -770,7 +770,7 @@ dependencies = [
 
 [[package]]
 name = "misterdiagram-geom"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "kurbo",
  "serde",
@@ -778,7 +778,7 @@ dependencies = [
 
 [[package]]
 name = "misterdiagram-mcp"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "log",
  "misterdiagram-engine",
@@ -787,7 +787,7 @@ dependencies = [
 
 [[package]]
 name = "misterdiagram-model"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "chrono",
  "misterdiagram-color",
@@ -800,7 +800,7 @@ dependencies = [
 
 [[package]]
 name = "misterdiagram-opc"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "log",
  "quick-xml",
@@ -810,7 +810,7 @@ dependencies = [
 
 [[package]]
 name = "misterdiagram-render"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "base64",
  "hayro-syntax",
@@ -832,7 +832,7 @@ dependencies = [
 
 [[package]]
 name = "misterdiagram-route"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "misterdiagram-geom",
  "misterdiagram-model",
@@ -844,7 +844,7 @@ dependencies = [
 
 [[package]]
 name = "misterdiagram-sheet"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "misterdiagram-color",
  "misterdiagram-geom",
@@ -854,7 +854,7 @@ dependencies = [
 
 [[package]]
 name = "misterdiagram-text"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "misterdiagram-color",
  "misterdiagram-fonts",
@@ -867,7 +867,7 @@ dependencies = [
 
 [[package]]
 name = "misterdiagram-theme"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "misterdiagram-color",
  "misterdiagram-model",
@@ -877,7 +877,7 @@ dependencies = [
 
 [[package]]
 name = "misterdiagram-vsdx"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "image",
  "misterdiagram-color",
@@ -1686,7 +1686,7 @@ checksum = "9440ea3e5aeabb0ac63af70daf835274065238cdd0cec83418f417eae38bacee"
 
 [[package]]
 name = "xtask"
-version = "0.1.0-beta.3"
+version = "0.1.0-beta.4"
 dependencies = [
  "serde_json",
  "sha2",

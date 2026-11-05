@@ -1,10 +1,20 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-beta.4
+
+The three wrong-picture fixes from the 2026-11-03 tester batch (#112, #115, #116): a WMF that
+wraps an EMF now plays the embedded drawing at its real line widths, and two legacy `THEME()`
+fill resolutions no longer lose or recolour a fill. Measured against Visio 2021 on witnessed
+documents.
 
 - **Themed fills:** Legacy fill formulas retain their light gradients and default colours. Unknown legacy properties preserve the complete saved value, and unresolved palette colours retain a usable saved colour with a warning.
 
 - **Embedded pictures:** Pictures wrapped in older metafiles now use their complete embedded drawing. Incomplete embedded data keeps the fallback picture with a shape-specific warning. Thin lines in non-placeable pictures keep their device width when enlarged.
+
+Known gaps: the other three reports from that batch stay open (metafile text goes to SVG as
+outlines, #113; SVG names a fallback face beside the document's, #114; SVG bullets are text
+runs, #117), and one field page sits about 15 px off Visio's image because of a small aspect
+difference (docs/gaps.md).
 
 ## 0.1.0-beta.3
 
