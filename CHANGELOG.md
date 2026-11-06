@@ -1,12 +1,24 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-beta.5
+
+The rest of the 2026-11-03 tester batch (#113, #114, #117), all in SVG export: text inside
+embedded EMF and WMF pictures is now real, searchable SVG text, as Visio's own SVG export
+writes it; `--font-names exact` names only the document's face for pipelines that register
+their own fonts; and round bullets go out as paths at their laid-out size, so a viewer without
+the paragraph face no longer draws its own bullet. PNG, PDF and PowerPoint output is
+byte-identical to beta.4.
 
 - **SVG embedded text:** Text in embedded drawings is searchable and editable; symbol-font and glyph-index records keep their outlines with a shape-specific warning (#113).
 
 - **SVG font names:** `--font-names exact` writes only the document face for pipelines with registered fonts; the default keeps metric fallbacks (#114).
 
 - **SVG bullets:** Round bullets keep their laid-out shape and size as paths while paragraph text stays editable (#117).
+
+Known gaps: embedded-picture text in a symbol font or by glyph index stays as outlines (with a
+warning that names the shape); a viewer without the picture's face substitutes its own, as any
+SVG viewer does; PDF text extraction does not see embedded-picture text; one field page sits
+about 15 px off Visio's image because of a small aspect difference (docs/gaps.md).
 
 ## 0.1.0-beta.4
 
