@@ -32,6 +32,7 @@ impl SceneBudget {
         self.charge(std::mem::size_of_val(ops).saturating_mul(2))?;
         for op in ops {
             match op {
+                Op::MetaText(record) => record.charge(self)?,
                 Op::Image { pixels, .. } | Op::RasterImage { pixels, .. } => self.charge(pixels.as_raw().capacity())?,
                 Op::Path { path, paint, .. } => {
                     self.charge(std::mem::size_of_val(path.elements()).saturating_mul(2))?;

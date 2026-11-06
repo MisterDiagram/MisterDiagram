@@ -31,3 +31,4 @@ hayro-syntax = { version = "0.7.2", default-features = false, features = ["std",
 image.workspace = true
 zip.workspace = true
 misterdiagram-geom.workspace = true
+misterdiagram-model.workspace = true

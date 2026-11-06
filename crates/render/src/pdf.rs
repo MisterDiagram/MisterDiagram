@@ -94,7 +94,7 @@ pub fn render(scenes: &[Scene], options: Options) -> Result<Vec<u8>, String> {
                 continue;
             }
             match op {
-                Op::Bounds(_) => {}
+                Op::Bounds(_) | Op::MetaText(_) => {}
                 Op::TextBackground { rect, transform, color } => {
                     if let Some(p) = path(&(view * *transform * kurbo::Shape::to_path(rect, 1e-5))) {
                         surface.set_fill(Some(fill(*color)));

@@ -675,6 +675,7 @@ dependencies = [
  "misterdiagram-export",
  "misterdiagram-geom",
  "misterdiagram-mcp",
+ "misterdiagram-model",
  "misterdiagram-opc",
  "misterdiagram-render",
  "misterdiagram-text",

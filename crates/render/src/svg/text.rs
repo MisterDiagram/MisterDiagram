@@ -5,7 +5,7 @@ use misterdiagram_geom::Affine;
 use misterdiagram_text::{GlyphRun, TextLayout};
 use std::fmt::Write as _;
 
-fn escape(out: &mut String, value: &str) {
+pub(super) fn escape(out: &mut String, value: &str) {
     for c in value.chars() {
         match c {
             '&' => out.push_str("&amp;"),
@@ -47,7 +47,7 @@ fn metric_twin(requested: &str, measured: &str) -> bool {
     };
     twins.iter().any(|twin| measured.eq_ignore_ascii_case(twin))
 }
-fn font_family(out: &mut String, requested: &str, measured: &str, names: FontNames) {
+pub(super) fn font_family(out: &mut String, requested: &str, measured: &str, names: FontNames) {
     quoted_family(out, requested);
     if names == FontNames::Fallback && metric_twin(requested, measured) {
         out.push_str(", ");

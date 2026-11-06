@@ -129,7 +129,7 @@ fn render_background(scene: &Scene, options: Options, white: bool, canvas: (u16,
     }
     for op in &scene.ops {
         match op {
-            Op::Bounds(_) => {}
+            Op::Bounds(_) | Op::MetaText(_) => {}
             Op::TextBackground { rect, transform, color } => {
                 ctx.set_transform(view * *transform);
                 ctx.set_paint(peniko::Color::from_rgba8(color.r, color.g, color.b, color.a));

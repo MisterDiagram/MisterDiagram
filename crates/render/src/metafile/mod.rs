@@ -15,7 +15,7 @@ mod embedded;
 mod emf;
 pub mod header;
 mod wmf;
-use crate::scene::{Op, Paint, SceneBudget};
+use crate::scene::{MetaText, Op, Paint, SceneBudget, TextAnchor};
 use dib::Rgba;
 pub use header::{Kind, sniff};
 use kurbo::{Affine, BezPath, PathEl, Point, Rect, Shape as _, Vec2};
@@ -119,6 +119,7 @@ pub(crate) struct FontObj {
     pub escapement: f64,
     pub weight: i32,
     pub italic: bool,
+    pub charset: u8,
     pub face: String,
 }
 
@@ -893,14 +894,14 @@ impl Player {
     }
 
     /// Text at `at` (logical; the current position with TA_UPDATECP) in the current font.
-    pub fn text(&mut self, at: Point, s: &str) {
+    /// https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/dd585d0a-5d7c-4034-963a-1141af836972
+    pub fn text(&mut self, at: Point, s: &str, options: u32, clip: Option<Rect>) {
         if !self.check_expansion(s.chars().count()) {
             return;
         }
+        let original = s;
         let s: String = s.chars().filter(|c| *c != '\0').collect();
-        if s.trim().is_empty() {
-            return;
-        }
+
         let align = self.dc.text_align;
         let at = if align & 1 != 0 { self.pos } else { at };
         let f = self.dc.font.clone();
@@ -936,6 +937,43 @@ impl Player {
             * Affine::rotate(if angle.is_finite() { angle } else { 0. })
             * Affine::translate((x, drop))
             * Affine::scale(size / face.upem.max(1.));
+        let record = MetaText {
+            text: original.into(),
+            family: if f.face.trim().is_empty() { "Arial".into() } else { f.face.trim().into() },
+            measured_family: face.family.to_string(),
+            weight: f.weight,
+            italic: f.italic,
+            size,
+            transform: Affine::translate(origin.to_vec2())
+                * Affine::rotate(if angle.is_finite() { angle } else { 0. })
+                * Affine::translate((0., drop)),
+            anchor: match align & 6 {
+                6 => TextAnchor::Middle,
+                2 => TextAnchor::End,
+                _ => TextAnchor::Start,
+            },
+            color: rgb(self.dc.text_color),
+            clip: clip.map(|r| (r, self.xf())),
+            dc_clips: self.dc.clips.iter().map(|c| (c.path.clone(), c.rule == FillRule::EvenOdd)).collect(),
+            outline_ops: 0,
+            outlines_only: f.charset == 2 || options & 0x10 != 0 || s.chars().any(|c| ('\u{e000}'..='\u{f8ff}').contains(&c)),
+            shape: None,
+        };
+        let index = self.out.len();
+        if index >= self.operation_limit {
+            self.failure = Some("metafile operation limit".into());
+            return;
+        }
+        let op = Op::MetaText(Box::new(record));
+        if let Err(error) = self.budget.charge_ops(std::slice::from_ref(&op)) {
+            self.failure = Some(error);
+            return;
+        }
+        // An annotation is not a draw call: do not duplicate the device-context clips.
+        self.out.push(op);
+        if s.trim().is_empty() {
+            return;
+        }
         let mut x = 0.;
         for glyph in glyphs {
             if self.failure.is_some() {
@@ -944,6 +982,10 @@ impl Player {
             let path = m * Affine::translate((x + f64::from(glyph.x_offset), -f64::from(glyph.y_offset))) * db.outline(&face, glyph.gid).as_ref();
             self.push(Op::Path { even_odd: false, path, paint: Paint::Solid(rgb(self.dc.text_color)) });
             x += f64::from(glyph.x_advance);
+        }
+        let count = self.out.len().saturating_sub(index).saturating_sub(1);
+        if let Some(Op::MetaText(record)) = self.out.get_mut(index) {
+            record.outline_ops = count;
         }
     }
 
@@ -961,10 +1003,11 @@ impl Player {
             ));
         }
         let out = std::mem::take(&mut self.out);
-        if self.emf_plus && !out.is_empty() {
+        let legacy_empty = out.iter().all(|op| matches!(op, Op::MetaText(_)));
+        if self.emf_plus && !legacy_empty {
             self.warnings.push("EMF+ comment payloads are not rendered; classic EMF fallback retained".into());
         }
-        if out.is_empty() && self.emf_plus {
+        if legacy_empty && self.emf_plus {
             self.warnings.push("the picture is drawn with EMF+ records, which aren't read yet: nothing was imported".into());
         }
         Imported { ops: out, frame: self.frame, warnings: self.warnings }

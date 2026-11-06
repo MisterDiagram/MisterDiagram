@@ -237,9 +237,11 @@ fn record(p: &mut Player, function: u16, body: &[u8]) -> Option<()> {
             r.skip(2)?;
             let weight = i32::from(r.i16()?);
             let italic = r.bytes(1)?.first().is_some_and(|b| *b != 0);
-            r.skip(7)?;
+            r.skip(2)?;
+            let charset = *r.bytes(1)?.first()?;
+            r.skip(4)?;
             let face: Vec<u8> = r.rest().iter().take(32).take_while(|b| **b != 0).copied().collect();
-            p.create(Obj::Font(FontObj { height, escapement, weight, italic, face: ansi(&face) }));
+            p.create(Obj::Font(FontObj { height, escapement, weight, italic, charset, face: ansi(&face) }));
         }
         0x00F7 | 0x06FF => p.create(Obj::Other),
         0x01F9 | 0x0142 => p.create(Obj::Brush(BrushObj::Pattern)),
@@ -251,21 +253,25 @@ fn record(p: &mut Player, function: u16, body: &[u8]) -> Option<()> {
             let s = ansi(r.bytes(n)?);
             r.skip(n % 2)?;
             let at = point_yx(&mut r)?;
-            p.text(at, &s);
+            p.text(at, &s, 0, None);
         }
         0x0A32 => {
             let at = point_yx(&mut r)?;
             let n = usize::try_from(r.i16()?).ok()?;
             let opts = r.u16()?;
             // ETO_OPAQUE or ETO_CLIPPED: a rectangle comes first.
-            if opts & 0x6 != 0 {
-                r.skip(8)?;
-            }
+            // https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/7d07c44a-a828-4b82-9af0-e0a81cced5a8
+            let clip = if opts & 0x6 != 0 {
+                let rectangle = Rect::new(f64::from(r.i16()?), f64::from(r.i16()?), f64::from(r.i16()?), f64::from(r.i16()?));
+                (opts & 4 != 0).then_some(rectangle)
+            } else {
+                None
+            };
             if !p.check_expansion(n) {
                 return Some(());
             }
             let s = ansi(r.bytes(n)?);
-            p.text(at, &s);
+            p.text(at, &s, u32::from(opts), clip);
         }
         0x0F43 => {
             let rop = r.u32()?;

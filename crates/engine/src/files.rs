@@ -233,7 +233,10 @@ pub(crate) fn export(s: &mut Session, p: &Value) -> Result<Value> {
         _ => return Err(operation("unsupported export extension")),
     };
     atomic_write(path, &bytes)?;
-    let warnings: Vec<_> = scenes.iter().flat_map(|s| s.warnings.iter()).take(1000).collect();
+    let mut warnings: Vec<_> = scenes.iter().flat_map(|s| s.warnings.iter().cloned()).take(1000).collect();
+    if ext == "svg" {
+        warnings.extend(svg::warnings(first, options).into_iter().take(1000usize.saturating_sub(warnings.len())));
+    }
     Ok(json!({"bytes":bytes.len(),"pages":scenes.len(),"warnings":warnings}))
 }
 struct Temporary(PathBuf);

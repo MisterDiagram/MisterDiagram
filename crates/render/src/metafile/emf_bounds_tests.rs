@@ -51,7 +51,8 @@ fn small_text_and_dashes_remain_drawable() {
     let mut p = player();
     record(&mut p, 84, &text(8)).unwrap();
     assert!(p.failure.is_none());
-    assert_eq!(p.out.len(), 8);
+    assert_eq!(p.out.iter().filter(|op| matches!(op, crate::scene::Op::Path { .. })).count(), 8);
+    assert_eq!(p.out.iter().filter(|op| matches!(op,crate::scene::Op::MetaText(r) if r.outline_ops==8)).count(), 1);
     let mut p = player();
     dotted(&mut p, 2, 10);
     assert!(p.failure.is_none());

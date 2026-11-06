@@ -165,7 +165,14 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
     let first = scenes.first().ok_or("no foreground pages")?;
     match extension.as_str() {
         "png" => raster::render(first, options)?.save(path).map_err(|e| e.to_string()),
-        "svg" => std::fs::write(path, svg::render(first, options)?).map_err(|e| e.to_string()),
+        "svg" => {
+            let bytes = svg::render(first, options)?;
+            std::fs::write(path, bytes).map_err(|e| e.to_string())?;
+            for warning in svg::warnings(first, options) {
+                let _ = writeln!(std::io::stderr().lock(), "warning: {warning}");
+            }
+            Ok(())
+        }
         "pdf" => std::fs::write(path, pdf::render(&scenes, options)?).map_err(|e| e.to_string()),
         _ => Err("render output extension must be png, svg, pdf or pptx".into()),
     }

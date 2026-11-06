@@ -10,6 +10,8 @@ use misterdiagram_vsdx::evaluate::{Evaluator, Scope};
 use std::{collections::BTreeMap, sync::Arc};
 
 mod budget;
+mod metatext;
+pub use metatext::{MetaText, TextAnchor};
 pub mod evaluated;
 pub use budget::SceneBudget;
 pub use evaluated::{ConnectionSite, EvaluatedConnect, EvaluatedPage, EvaluatedShape, EvaluatedTextBlock};
@@ -22,6 +24,8 @@ pub enum Paint {
 }
 #[derive(Clone, Debug)]
 pub enum Op {
+    /// SVG semantics for the following unchanged legacy glyph operations.
+    MetaText(Box<MetaText>),
     Bounds(Rect),
     Clip {
         path: BezPath,
@@ -278,6 +282,7 @@ impl Scene {
         for (index, op) in self.ops.iter().enumerate() {
             let pdf = self.pdf_strokes.get(&index);
             match op {
+                Op::MetaText(record) => record.validate(self.ops.get(index.saturating_add(1)..).unwrap_or_default())?,
                 Op::Path { path, .. }
                 | Op::Stroke { path, .. }
                 | Op::Clip { path, .. }
@@ -846,7 +851,7 @@ fn finish_bounds_from(scene: &mut Scene, crop: bool, start: usize) -> bool {
                 continue;
             }
             // Geometry and foreign objects carry logical bounds separately from their device strokes.
-            Op::Path { .. } | Op::Stroke { .. } | Op::HairlineMarker { .. } | Op::HairlineStroke { .. } => continue,
+            Op::MetaText(_) | Op::Path { .. } | Op::Stroke { .. } | Op::HairlineMarker { .. } | Op::HairlineStroke { .. } => continue,
             Op::Image { pixels, transform } | Op::RasterImage { pixels, transform } => {
                 transform.transform_rect_bbox(Rect::new(0., 0., f64::from(pixels.width()), f64::from(pixels.height())))
             }
@@ -1532,6 +1537,35 @@ fn foreign_image(
     let x = number(e, scope, "ImgOffsetX", 0.);
     let y = number(e, scope, "ImgOffsetY", 0.);
     if w == 0. || h == 0. || width == 0. || height == 0. {
+        // Native SVG retains searchable records inside zero-width image viewports.
+        // Keep metadata only: dormant pictures still produce no drawing or diagnostics.
+        if let Ok(target) = foreign_target(e.document, part, foreign)
+            && let Some(part) = e.document.parts.get(target)
+            && crate::metafile::sniff(&part.bytes).is_some()
+            && let Ok(imported) = crate::metafile::import(&part.bytes)
+        {
+            let w = if width == 0. { 0. } else { w };
+            let h = if height == 0. { 0. } else { h };
+            let m = transform
+                * Affine::translate((x, y + h))
+                * Affine::scale_non_uniform(w / imported.frame.width().max(1e-12), -h / imported.frame.height().max(1e-12))
+                * Affine::translate((-imported.frame.x0, -imported.frame.y0));
+            let shape = match scope {
+                Scope::PageShape { page, shape } => Some((page, shape)),
+                Scope::MasterShape { master, shape } => Some((master, shape)),
+                _ => None,
+            };
+            for op in imported.ops {
+                if let Op::MetaText(record) = op {
+                    let mut record = record.placed(m, shape);
+                    record.outline_ops = 0;
+                    // Dormant malformed geometry must remain an ignored picture.
+                    if record.validate(&[]).is_ok() {
+                        scene.ops.push(Op::MetaText(Box::new(record)));
+                    }
+                }
+            }
+        }
         return Ok(());
     }
     let clip = foreign_clip(e, scope, width, height, transform)?;
@@ -1673,6 +1707,14 @@ fn paint_foreign(
         }));
         for op in imported.ops {
             scene.ops.push(match op {
+                Op::MetaText(record) => Op::MetaText(Box::new(record.placed(
+                    m,
+                    match scope {
+                        Scope::PageShape { page, shape } => Some((page, shape)),
+                        Scope::MasterShape { master, shape } => Some((master, shape)),
+                        _ => None,
+                    },
+                ))),
                 Op::Path { even_odd, path, paint } => Op::Path { even_odd, path: m * path, paint },
                 Op::Clip { path, even_odd } => Op::Clip { path: m * path, even_odd },
                 Op::Pop => Op::Pop,

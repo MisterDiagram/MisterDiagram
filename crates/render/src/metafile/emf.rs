@@ -69,6 +69,7 @@ fn polys(r: &mut Reader, wide: bool) -> Option<Vec<Vec<Point>>> {
 }
 
 /// A LOGFONTW → the font.
+/// https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/1cd7cb7a-1a7c-48d2-b4a4-c218f9d12100
 fn font(r: &mut Reader) -> Option<FontObj> {
     let height = f64::from(r.i32()?);
     r.skip(4)?;
@@ -76,9 +77,11 @@ fn font(r: &mut Reader) -> Option<FontObj> {
     r.skip(4)?;
     let weight = r.i32()?;
     let italic = r.bytes(1)?.first().is_some_and(|b| *b != 0);
-    r.skip(7)?;
+    r.skip(2)?;
+    let charset = *r.bytes(1)?.first()?;
+    r.skip(4)?;
     let units: Vec<u16> = (0..32).map_while(|_| r.u16()).take_while(|c| *c != 0).collect();
-    Some(FontObj { height, escapement, weight, italic, face: String::from_utf16_lossy(&units) })
+    Some(FontObj { height, escapement, weight, italic, charset, face: String::from_utf16_lossy(&units) })
 }
 
 /// The bitmap of an image record: its BITMAPINFO and bits at the offsets the record gives.
@@ -368,6 +371,9 @@ fn record(p: &mut Player, kind: u32, rec: &[u8]) -> Option<()> {
             let at = point32(&mut r)?;
             let n = r.u32()? as usize;
             let off = r.u32()?;
+            // https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/dd585d0a-5d7c-4034-963a-1141af836972
+            let options = r.u32()?;
+            let clip = if options & 4 != 0 && options & 0x100 == 0 { Some(rect(&mut r)?) } else { None };
             // EmrText.nChars is charged before decoding or allocating the record string.
             // https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/
             if !p.check_expansion(n) {
@@ -379,7 +385,7 @@ fn record(p: &mut Player, kind: u32, rec: &[u8]) -> Option<()> {
             } else {
                 slice(rec, off, u32::try_from(n).ok()?)?.iter().map(|b| char::from(*b)).collect()
             };
-            p.text(at, &s);
+            p.text(at, &s, options, clip);
         }
         93 | 94 => p.create_at(r.u32()?, Obj::Brush(BrushObj::Pattern)),
         95 => {

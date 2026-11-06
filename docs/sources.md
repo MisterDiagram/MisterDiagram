@@ -466,6 +466,8 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/openspecs/sharepoint_protocols/ms-vsdx/f91b1356-cff1-4c71-8a04-247007cbe4c9> | `crates/sheet/src/language.rs`, `tools/oracle/accept_report.py` |
 | <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/9d33df18-7aee-4a4e-b4f6-5a01e5aea5a1> | `crates/opc/src/opc.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/> | `crates/render/src/metafile/mod.rs`, `crates/render/tests/support/wmf_embedded.rs` |
+| <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/1cd7cb7a-1a7c-48d2-b4a4-c218f9d12100> | `crates/render/src/metafile/emf.rs` |
+| <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/dd585d0a-5d7c-4034-963a-1141af836972> | `crates/render/src/metafile/mod.rs`, `crates/render/src/scene/metatext.rs`, `crates/render/src/svg/metatext.rs`, `crates/render/tests/metafile_text.rs`, `crates/render/tests/support/emf_text.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/e4a35c41-e8e3-43f9-bc07-a18e99bb866d> | `crates/route/src/foreign_glue.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/> | `crates/render/src/metafile/mod.rs`, `crates/render/src/metafile/wmf.rs`, `crates/render/tests/support/wmf.rs`, `crates/render/tests/wmf.rs` |
 | <https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/28fbdde6-22ee-4e49-b162-abf826f5bc00> | `crates/render/src/metafile/header.rs` |

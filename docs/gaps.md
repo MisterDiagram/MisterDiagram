@@ -2928,3 +2928,15 @@ Placeable WMF and ordinary EMF playback keep their existing mapping.
 The comment checksum and record placement follow the synthetic native witness
 recorded under Observed, undocumented. Other WMF escapes and EMF+ remain outside
 this change. See the [embedded comment record reference](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-wmf/cfc88064-d86d-4b52-9374-3ce27d456179).
+
+## SVG metafile text (#113)
+
+Text records in embedded drawings export as editable SVG text, using the document face
+and the selected font-name policy. Record alignment, rotation, colour and clipping travel
+with each text element. Symbol-font records, private-use characters and glyph indexes stay
+as their previous glyph paths because their codes are not portable text; editable SVG
+reports their count once per shape. `--text-outlines` retains all previous paths. Raster,
+PDF and presentation exports keep their previous glyph rendering, and embedded-picture
+strings remain unavailable to PDF text extraction. Extended metafile-plus text is outside
+this feature. Zero-extent embedded drawings retain searchable records with collapsed
+transforms and no visible ink.

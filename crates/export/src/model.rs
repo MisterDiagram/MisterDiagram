@@ -299,6 +299,13 @@ fn flatten_foreign(page: &mut EvaluatedPage, options: misterdiagram_render::scen
         if depth > 128 {
             return Err("PPTX foreign depth limit".into());
         }
+        if n.foreign_end > n.content_start
+            && n.drawing.ops.get(n.content_start..n.foreign_end).ok_or("PPTX foreign range")?.iter().all(|op| matches!(op, Op::MetaText(_)))
+        {
+            // Zero-extent images retain SVG metadata but need no raster allocation.
+            n.drawing.ops.drain(n.content_start..n.foreign_end);
+            n.foreign_end = n.content_start;
+        }
         if n.foreign_end > n.content_start {
             let ops = n.drawing.ops.get(n.content_start..n.foreign_end).ok_or("PPTX foreign range")?;
             if natural_image_clip(ops) {

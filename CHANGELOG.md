@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **SVG embedded text:** Text in embedded drawings is searchable and editable; symbol-font and glyph-index records keep their outlines with a shape-specific warning (#113).
+
 - **SVG font names:** `--font-names exact` writes only the document face for pipelines with registered fonts; the default keeps metric fallbacks (#114).
 
 - **SVG bullets:** Round bullets keep their laid-out shape and size as paths while paragraph text stays editable (#117).

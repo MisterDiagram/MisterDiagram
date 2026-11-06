@@ -3,6 +3,7 @@ use crate::scene::{Op, Options, Paint, Scene, text_paths};
 use base64::Engine as _;
 use misterdiagram_geom::Affine;
 use std::fmt::Write as _;
+mod metatext;
 mod text;
 use text::text;
 fn matrix(m: Affine) -> String {
@@ -86,9 +87,26 @@ pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
             scene.page_size.0, scene.page_size.1
         );
     }
-    for (i, op) in scene.ops.iter().enumerate() {
+    let mut legacy_index = 0usize;
+    let mut skip = 0usize;
+    let mut record_index = 0usize;
+    for op in &scene.ops {
+        if let Op::MetaText(record) = op {
+            if !options.text_outlines && !record.outlines_only {
+                metatext::write(&mut out, record, view, record_index, options.font_names)?;
+                skip = record.outline_ops;
+            }
+            record_index = record_index.saturating_add(1);
+            continue;
+        }
+        let i = legacy_index;
+        legacy_index = legacy_index.saturating_add(1);
+        if skip > 0 {
+            skip -= 1;
+            continue;
+        }
         match op {
-            Op::Bounds(_) => {}
+            Op::Bounds(_) | Op::MetaText(_) => {}
             Op::TextBackground { rect, transform, color } => {
                 write!(out, "<rect data-text-background=\"true\" x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" transform=\"{}\" fill=\"#{:02x}{:02x}{:02x}\" fill-opacity=\"{}\"/>",
                     rect.x0, rect.y0, rect.width(), rect.height(), matrix(view * *transform),
@@ -167,4 +185,28 @@ pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
     }
     out.push_str("</svg>");
     Ok(out)
+}
+
+/// Format-specific diagnostics do not enter the shared scene warning census.
+pub fn warnings(scene: &Scene, options: Options) -> Vec<String> {
+    if options.text_outlines {
+        return Vec::new();
+    }
+    let mut counts = std::collections::BTreeMap::<(u32, u32), usize>::new();
+    for op in &scene.ops {
+        if let Op::MetaText(record) = op
+            && record.outlines_only
+            && let Some(shape) = record.shape
+        {
+            if let Some(count) = counts.get_mut(&shape) {
+                *count = count.saturating_add(1);
+            } else if counts.len() < 1000 {
+                counts.insert(shape, 1);
+            }
+        }
+    }
+    counts
+        .into_iter()
+        .map(|((_, shape), count)| format!("shape {shape}: {count} metafile text records kept as outlines (symbol font or glyph indexes)"))
+        .collect()
 }
