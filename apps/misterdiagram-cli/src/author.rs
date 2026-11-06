@@ -99,8 +99,9 @@ pub fn run(args: &[OsString], out: &mut impl Write, memory: MemoryLimits, stenci
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.document.saveas
 /// https://learn.microsoft.com/en-us/office/vba/api/visio.page.export
 pub fn convert(args: &[OsString], out: &mut impl Write, memory: MemoryLimits) -> Result<(), String> {
-    let usage = "usage: convert IN OUT [--text-outlines] [--fit [--margin M]]";
+    let usage = "usage: convert IN OUT [--text-outlines] [--font-names fallback|exact] [--fit [--margin M]]";
     let mut text_outlines = false;
+    let mut font_names = None;
     let mut fit = false;
     let mut margin = None;
     let mut positional = Vec::new();
@@ -108,6 +109,12 @@ pub fn convert(args: &[OsString], out: &mut impl Write, memory: MemoryLimits) ->
     while let Some(arg) = args.get(i) {
         match arg.to_str() {
             Some("--text-outlines") if !text_outlines => text_outlines = true,
+            Some("--font-names") if font_names.is_none() => {
+                let value = args.get(i + 1).and_then(|s| s.to_str()).ok_or(usage)?;
+                value.parse::<misterdiagram_render::scene::FontNames>().map_err(|e| format!("usage: {e}"))?;
+                font_names = Some(value);
+                i += 1;
+            }
             Some("--fit") if !fit => fit = true,
             Some("--margin") if margin.is_none() => {
                 margin = Some(args.get(i + 1).and_then(|s| s.to_str()).ok_or(usage)?);
@@ -138,6 +145,7 @@ pub fn convert(args: &[OsString], out: &mut impl Write, memory: MemoryLimits) ->
     let mut params = json!({"path":output_path});
     if command == "file.export" {
         params["text_outlines"] = json!(text_outlines);
+        params["font_names"] = json!(font_names.unwrap_or("fallback"));
         params["fit"] = json!(fit);
         if let Some(margin) = margin {
             params["margin"] = json!(margin);

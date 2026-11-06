@@ -496,3 +496,5 @@ Progress M5.116: shared fit-to-drawing export and explicit margins added to CLI 
   [Gradient direction](https://learn.microsoft.com/en-us/office/client-developer/visio/fillgradientdir-cell-gradient-properties-section).
 
 - M5.136, Themes: remains P. Legacy fill selectors and no-theme defaults now follow measured scalar results; unknown properties retain canonical saved values. Modern theme variants and the colour-argument overload remain partial. Tests: `legacy_theme_fill`. Reference: https://learn.microsoft.com/en-us/office/client-developer/visio/theme-function
+
+- M5.138: SVG export remains P. Exact font names are available across CLI, engine and MCP; round bullets use the raster glyph paths with the paragraph gap preserved. Tests: `svg_text` public surfaces, three-item list, transformed bullet paths, custom/numbered exclusions and wrapped lines. Reference: https://www.w3.org/TR/SVG11/text.html#TextElement

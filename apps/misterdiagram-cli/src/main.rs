@@ -41,6 +41,7 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
     let mut fit = false;
     let mut margin = None;
     let mut scale_seen = false;
+    let mut font_names_seen = false;
     let mut i = 1;
     while let Some(arg) = args.get(i) {
         match arg.to_str() {
@@ -74,6 +75,19 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
                 margin = Some(args.get(i + 1).and_then(|s| s.to_str()).ok_or("usage: --margin requires a measurement")?);
                 i += 1;
             }
+            Some("--font-names") => {
+                if font_names_seen {
+                    return Err("usage: --font-names may be given once".into());
+                }
+                font_names_seen = true;
+                options.font_names = args
+                    .get(i + 1)
+                    .and_then(|s| s.to_str())
+                    .ok_or("usage: --font-names requires fallback or exact")?
+                    .parse()
+                    .map_err(|e| format!("usage: {e}"))?;
+                i += 1;
+            }
             Some("--text-outlines") => {
                 if options.text_outlines {
                     return Err("usage: --text-outlines may be given once".into());
@@ -91,7 +105,7 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
     }
     let [input, output] = positional.as_slice() else {
         return Err(
-            "usage: render FILE [--page N] [--scale S] [--text-outlines] [--fit [--margin M]] OUT.{png,svg,pdf,pptx}; render --masters STENCIL OUT.png"
+            "usage: render FILE [--page N] [--scale S] [--text-outlines] [--font-names fallback|exact] [--fit [--margin M]] OUT.{png,svg,pdf,pptx}; render --masters STENCIL OUT.png"
                 .into(),
         );
     };
@@ -169,8 +183,8 @@ fn execute(args: &[std::ffi::OsString], out: &mut impl Write) -> Result<(), Stri
     let (arguments, stencil_path) = settings::stencil_path(&arguments, std::env::var_os("MISTERDIAGRAM_STENCIL_PATH"))?;
     let args = arguments.as_slice();
     match args.first().and_then(|a| a.to_str()) {
-        Some("--help") if args.len() == 1 => writeln!(out, "misterdiagram: info, sheet, render, convert, run, commands, describe, corpus check, mcp\nrender FILE [--page N] [--scale S] [--text-outlines] [--fit [--margin M]] OUT.{{png,svg,pdf,pptx}}\nconvert IN OUT [--text-outlines] [--fit [--margin M]]\nSVG uses editable text by default; --text-outlines writes glyph paths.\n--fit crops all formats to foreground drawing content; --margin adds a physical length (for example 5 mm) on each side.").map_err(|e|e.to_string()),
-        Some("render" | "convert") if args.len()==2 && args.get(1).is_some_and(|a|a=="--help") => writeln!(out, "render FILE [--page N] [--scale S] [--text-outlines] [--fit [--margin M]] OUT.{{png,svg,pdf,pptx}}\nconvert IN OUT [--text-outlines] [--fit [--margin M]]\nSVG uses editable text by default; --text-outlines writes glyph paths.\n--fit crops all formats to foreground drawing content; --margin adds a physical length (for example 5 mm) on each side.").map_err(|e|e.to_string()),
+        Some("--help") if args.len() == 1 => writeln!(out, "misterdiagram: info, sheet, render, convert, run, commands, describe, corpus check, mcp\nrender FILE [--page N] [--scale S] [--text-outlines] [--font-names fallback|exact] [--fit [--margin M]] OUT.{{png,svg,pdf,pptx}}\nconvert IN OUT [--text-outlines] [--font-names fallback|exact] [--fit [--margin M]]\nSVG uses editable text by default; --text-outlines writes glyph paths. --font-names exact names only the document face.\n--fit crops all formats to foreground drawing content; --margin adds a physical length (for example 5 mm) on each side.").map_err(|e|e.to_string()),
+        Some("render" | "convert") if args.len()==2 && args.get(1).is_some_and(|a|a=="--help") => writeln!(out, "render FILE [--page N] [--scale S] [--text-outlines] [--font-names fallback|exact] [--fit [--margin M]] OUT.{{png,svg,pdf,pptx}}\nconvert IN OUT [--text-outlines] [--font-names fallback|exact] [--fit [--margin M]]\nSVG uses editable text by default; --text-outlines writes glyph paths. --font-names exact names only the document face.\n--fit crops all formats to foreground drawing content; --margin adds a physical length (for example 5 mm) on each side.").map_err(|e|e.to_string()),
         Some("--version") if args.len() == 1 => {
             writeln!(out, "{}", version_line(option_env!("MISTERDIAGRAM_COMMIT"), env!("MISTERDIAGRAM_TARGET"))).map_err(|e| e.to_string())
         }

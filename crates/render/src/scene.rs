@@ -91,6 +91,23 @@ pub struct Scene {
     pub bounds: Rect,
     pub page_size: (f64, f64),
 }
+/// Family naming for editable SVG text.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum FontNames {
+    #[default]
+    Fallback,
+    Exact,
+}
+impl std::str::FromStr for FontNames {
+    type Err = String;
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value {
+            "fallback" => Ok(Self::Fallback),
+            "exact" => Ok(Self::Exact),
+            _ => Err("font_names must be fallback or exact".into()),
+        }
+    }
+}
 #[derive(Clone, Copy, Debug)]
 pub struct Options {
     /// Use the foreground drawing crop for every export format.
@@ -99,6 +116,8 @@ pub struct Options {
     pub margin: f64,
     /// SVG only: retain the historical glyph path serialization.
     pub text_outlines: bool,
+    /// SVG only: exact names the document face alone; fallback adds its metric twin.
+    pub font_names: FontNames,
     pub scale: f64,
     pub print: bool,
     pub crop: bool,
@@ -118,6 +137,7 @@ impl Default for Options {
             fit: false,
             margin: 0.,
             text_outlines: false,
+            font_names: FontNames::Fallback,
             scale: 1.,
             print: false,
             crop: true,

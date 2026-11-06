@@ -183,11 +183,24 @@ pub(crate) fn export(s: &mut Session, p: &Value) -> Result<Value> {
     let page = p.get("page").map(|_| crate::edit::page_index(s, p)).transpose()?;
     let text_outlines =
         p.get("text_outlines").map(|v| v.as_bool().ok_or_else(|| operation("text_outlines must be boolean"))).transpose()?.unwrap_or(false);
+    let font_names = p
+        .get("font_names")
+        .map(|v| v.as_str().ok_or_else(|| operation("font_names must be fallback or exact"))?.parse::<scene::FontNames>().map_err(operation))
+        .transpose()?
+        .unwrap_or_default();
     let fit = p.get("fit").map(|v| v.as_bool().ok_or_else(|| operation("fit must be boolean"))).transpose()?.unwrap_or(false);
     let margin = p.get("margin").map(|v| v.as_str().ok_or_else(|| operation("margin must be a measurement string"))).transpose()?;
-    let options = scene::Options { scale, text_outlines, page_canvas: ext != "png", visio_export: true, cached_fallback: true, ..Default::default() }
-        .with_fit(fit, margin)
-        .map_err(operation)?;
+    let options = scene::Options {
+        scale,
+        text_outlines,
+        font_names,
+        page_canvas: ext != "png",
+        visio_export: true,
+        cached_fallback: true,
+        ..Default::default()
+    }
+    .with_fit(fit, margin)
+    .map_err(operation)?;
     if ext == "pptx" {
         let output = misterdiagram_export::document(&s.document, page, options).map_err(operation)?;
         atomic_write(path, &output.bytes)?;

@@ -468,6 +468,13 @@ previous rule's placement with the new stop).
 
 ## SVG editable text (#102)
 
+The SVG-only `--font-names exact` flag (`font_names: "exact"` on exports and previews)
+names the document face alone for consumers with registered fonts (#114). The default
+`fallback` also names the measured metric twin. Default round bullets use their laid-out
+glyph paths, preserving size, colour, opacity and the paragraph gap while the paragraph
+stays editable (#117). Custom bullet strings and automatic numbers remain text. PNG, PDF,
+presentation exports and `--text-outlines` retain their previous output.
+
 SVG exports and previews emit one `<text>` per text block and one `<tspan>` per line, with
 style `<tspan>`s inside; requested font names survive substitute and symbol fallback (a font
 Visio does not have is named Calibri, as Visio's own SVG names it; see Missing fonts); the

@@ -157,7 +157,7 @@ pub fn render(scene: &Scene, options: Options) -> Result<String, String> {
                     for deco in layout.decos.iter().filter(|d| d.behind) {
                         path(&mut out, &(view * *transform * kurbo::Shape::to_path(&deco.rect, 1e-5)), deco.color);
                     }
-                    text(&mut out, layout, view * *transform)?;
+                    text(&mut out, layout, view * *transform, options.font_names)?;
                 }
             }
         }

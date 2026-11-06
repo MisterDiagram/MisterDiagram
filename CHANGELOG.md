@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- **SVG font names:** `--font-names exact` writes only the document face for pipelines with registered fonts; the default keeps metric fallbacks (#114).
+
+- **SVG bullets:** Round bullets keep their laid-out shape and size as paths while paragraph text stays editable (#117).
+
 ## 0.1.0-beta.4
 
 The three wrong-picture fixes from the 2026-11-03 tester batch (#112, #115, #116): a WMF that

@@ -253,3 +253,91 @@ fn empty_paragraphs_keep_every_visible_svg_baseline() {
         }
     }
 }
+
+#[test]
+fn round_bullets_use_raster_outlines_and_keep_text_gaps() {
+    use misterdiagram_model::text::{Align, Bullet};
+    use misterdiagram_render::{raster, scene::text_paths};
+    for (align, rtl) in [(Align::Left, false), (Align::Center, false), (Align::Right, false), (Align::Right, true)] {
+        let mut body = TextBody::default();
+        for value in ["First item", "Second item", "Third item"] {
+            let mut p = Paragraph::new(value);
+            p.props.bullet = Some(Bullet::Char { char: "•".into() });
+            p.props.bullet_tab = Some(24.);
+            p.props.bullet_size = Some(1.5);
+            p.props.bullet_color = Some(misterdiagram_color::Rgba { r: 42, g: 80, b: 130, a: 127 });
+            p.props.align = Some(align);
+            p.props.rtl = Some(rtl);
+            body.paragraphs.push(p);
+        }
+        let mut s = scene(&body);
+        let Op::Text { layout, transform, .. } = &mut s.ops[0] else { panic!("text scene") };
+        *transform = Affine::rotate(0.2) * *transform;
+        for run in layout.runs.iter_mut().filter(|r| r.cells.is_empty()) {
+            run.alpha = 0.6;
+        }
+        let before = raster::render(&s, Options::default()).unwrap();
+        let xml = xml(&s);
+        assert_eq!(xml.matches('•').count(), 0);
+        assert_eq!(xml.matches("<text ").count(), 1);
+        let doc = resvg::usvg::roxmltree::Document::parse(&xml).unwrap();
+        let paths: Vec<_> = doc.descendants().filter(|n| n.has_tag_name("path")).collect();
+        assert_eq!(paths.len(), 3);
+        let Op::Text { layout, transform, .. } = &s.ops[0] else { panic!("text scene") };
+        let mut bullets = layout.clone();
+        bullets.runs.retain(|r| r.cells.is_empty());
+        bullets.decos.clear();
+        let expected = text_paths(&bullets, s.canvas(Options::default()).unwrap().2 * *transform);
+        for (node, (path, color)) in paths.iter().zip(expected) {
+            assert_eq!(node.attribute("d"), Some(path.to_svg().as_str()));
+            assert_eq!(node.attribute("fill"), Some("#2a5082"));
+            assert_eq!(node.attribute("fill-opacity").unwrap().parse::<f64>().unwrap(), f64::from(color.a) / 255.);
+            assert!(!node.ancestors().any(|n| n.has_tag_name("text")));
+        }
+        for run in layout.runs.iter().filter(|r| !r.cells.is_empty()) {
+            let node = doc.descendants().find(|n| n.is_text() && n.text().is_some_and(|t| t.contains(run.svg.text.as_str()))).unwrap();
+            let span = node.parent().unwrap();
+            let line = span.parent().unwrap();
+            let x: f64 = line.attribute("x").unwrap().parse().unwrap();
+            let dx: f64 = span.attribute("dx").unwrap().parse().unwrap();
+            let left = layout.lines[run.svg.line].edges.iter().map(|e| e.0).reduce(f64::min).unwrap();
+            assert!((x + dx - left).abs() < 1e-9, "{align:?} {rtl}: {x} + {dx} != {left}");
+        }
+        assert_eq!(before, raster::render(&s, Options { font_names: misterdiagram_render::scene::FontNames::Exact, ..Default::default() }).unwrap());
+    }
+}
+
+#[test]
+fn custom_and_numbered_bullets_and_literal_round_text_stay_text() {
+    use misterdiagram_model::text::Bullet;
+    let mut body = TextBody::default();
+    for bullet in
+        [Bullet::Char { char: "◆".into() }, Bullet::Char { char: "••".into() }, Bullet::AutoNum { scheme: "arabicPeriod".into(), start_at: 1 }]
+    {
+        let mut p = Paragraph::new("literal • remains");
+        p.props.bullet = Some(bullet);
+        body.paragraphs.push(p);
+    }
+    let xml = xml(&scene(&body));
+    assert!(!xml.contains("<path"));
+    assert!(xml.contains('◆'));
+    assert!(xml.contains("••"));
+    assert!(xml.contains("1."));
+    assert_eq!(xml.matches("literal • remains").count(), 3);
+}
+
+#[test]
+fn wrapped_bullet_has_one_outline_and_continuations_stay_text() {
+    use misterdiagram_model::text::Bullet;
+    let mut body = TextBody::default();
+    let mut p = Paragraph::new(&"A long original item with several words ".repeat(5));
+    p.props.bullet = Some(Bullet::Char { char: "•".into() });
+    body.paragraphs.push(p);
+    let s = scene(&body);
+    let Op::Text { layout, .. } = &s.ops[0] else { panic!("text scene") };
+    assert!(layout.lines.len() >= 3);
+    let xml = xml(&s);
+    assert_eq!(xml.matches("<path").count(), 1);
+    assert_eq!(xml.matches("<text ").count(), 1);
+    assert!(!xml.contains('•'));
+}

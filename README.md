@@ -86,6 +86,7 @@ Windows and macOS, plus an Ubuntu check at the declared Rust minimum.
   the review stencil set render. The vendor inventory renders 6,678/6,742 masters with zero
   blanks or guard kills; the remaining 64 are named gaps. PDF text extracts with ligatures and
   combining marks intact, and SVG text is `<text>` that can be searched, selected and edited.
+  Use `--font-names exact` to name only the document face.
 - **Export PowerPoint**: PowerPoint 2021 opens the acceptance set without repair and keeps
   connectors and labels with their shapes when they move. The office, SAN and fabric drawings
   built through MCP open with all 18, 80 and 20 connectors attached. Fifteen exports were checked

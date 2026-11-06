@@ -1,5 +1,6 @@
 //! Editable SVG text names the requested face and its actually measured metric twin.
 //! https://www.w3.org/TR/SVG11/text.html#TextElement
+use crate::scene::FontNames;
 use misterdiagram_geom::Affine;
 use misterdiagram_text::{GlyphRun, TextLayout};
 use std::fmt::Write as _;
@@ -46,17 +47,17 @@ fn metric_twin(requested: &str, measured: &str) -> bool {
     };
     twins.iter().any(|twin| measured.eq_ignore_ascii_case(twin))
 }
-fn font_family(out: &mut String, requested: &str, measured: &str) {
+fn font_family(out: &mut String, requested: &str, measured: &str, names: FontNames) {
     quoted_family(out, requested);
-    if metric_twin(requested, measured) {
+    if names == FontNames::Fallback && metric_twin(requested, measured) {
         out.push_str(", ");
         quoted_family(out, measured);
     }
 }
-fn style(out: &mut String, run: &GlyphRun, decorations: bool) -> Result<(), String> {
+fn style(out: &mut String, run: &GlyphRun, decorations: bool, names: FontNames) -> Result<(), String> {
     write!(out, " letter-spacing=\"{}\"", run.svg.spacing).map_err(|e| e.to_string())?;
     out.push_str(" font-family=\"");
-    font_family(out, &run.svg.family, &run.face.family);
+    font_family(out, &run.svg.family, &run.face.family, names);
     let c = run.color;
     write!(
         out,
@@ -83,15 +84,37 @@ fn advance(run: &GlyphRun, value: &str) -> f64 {
         / run.face.upem.max(1.)
         + run.svg.spacing * value.chars().count() as f64
 }
-pub(super) fn text(out: &mut String, layout: &TextLayout, m: Affine) -> Result<(), String> {
-    text_limited(out, layout, m, 256 * 1024 * 1024)
+pub(super) fn text(out: &mut String, layout: &TextLayout, m: Affine, names: FontNames) -> Result<(), String> {
+    text_limited(out, layout, m, names, 256 * 1024 * 1024)
 }
 fn room(out: &str, family: &str, fragment: &str, limit: usize) -> Result<(), String> {
     let extra = family.len().saturating_mul(8).saturating_add(fragment.len().saturating_mul(6)).saturating_add(2048);
     if out.len().saturating_add(extra) > limit { Err("SVG output limit".into()) } else { Ok(()) }
 }
-fn text_limited(out: &mut String, layout: &TextLayout, m: Affine, limit: usize) -> Result<(), String> {
+fn round_bullet(run: &GlyphRun) -> bool {
+    run.cells.is_empty() && run.svg.text == "•"
+}
+fn bullet_paths(out: &mut String, layout: &TextLayout, transform: Affine, limit: usize) -> Result<(), String> {
+    let db = misterdiagram_fonts::FontDb::global();
+    for run in layout.runs.iter().filter(|run| round_bullet(run)) {
+        let scale = run.size / run.face.upem.max(1.);
+        let mut color = run.color;
+        color.a = (f64::from(color.a) * run.alpha.clamp(0., 1.)).round() as u8;
+        for &(gid, x, y) in &run.glyphs {
+            let outline = db.outline(&run.face, gid);
+            if !outline.elements().is_empty() {
+                super::path(out, &(transform * Affine::translate((x, y)) * Affine::scale(scale) * outline.as_ref()), color);
+                if out.len() > limit {
+                    return Err("SVG output limit".into());
+                }
+            }
+        }
+    }
+    Ok(())
+}
+fn text_limited(out: &mut String, layout: &TextLayout, m: Affine, names: FontNames, limit: usize) -> Result<(), String> {
     let Some(first) = layout.lines.first() else { return Ok(()) };
+    bullet_paths(out, layout, m, limit)?;
     // Factor rotation explicitly while retaining the writer's existing canvas mapping.
     let [a, b, ..] = m.as_coeffs();
     let angle = b.atan2(a);
@@ -102,11 +125,18 @@ fn text_limited(out: &mut String, layout: &TextLayout, m: Affine, limit: usize) 
         angle.to_degrees()
     )
     .map_err(|e| e.to_string())?;
-    let start = |run: Option<&GlyphRun>, line: &misterdiagram_text::LineInfo| run.and_then(|r| r.glyphs.first()).map_or(line.extent.0, |g| g.1);
+    let start = |run: Option<&GlyphRun>, line: &misterdiagram_text::LineInfo| {
+        run.map_or(line.extent.0, |r| {
+            let x = r.glyphs.first().map_or(line.extent.0, |g| g.1);
+            // The omitted bullet used to advance the SVG cursor. Move its initial
+            // origin by that advance so the paragraph retains its original dx gap.
+            x + if round_bullet(r) { advance(r, &r.svg.text) } else { 0. }
+        })
+    };
     write!(out, " x=\"{}\" y=\"{}\"", start(layout.runs.first(), first), first.baseline).map_err(|e| e.to_string())?;
     if let Some(run) = layout.runs.first() {
         room(out, &run.svg.family, "", limit)?;
-        style(out, run, false)?;
+        style(out, run, false, names)?;
     }
     // Every line is anchored at its visual left edge, which the layout already computed;
     // renderers disagree on what `text-anchor="end"` means under `direction="rtl"` (usvg 0.47
@@ -122,6 +152,9 @@ fn text_limited(out: &mut String, layout: &TextLayout, m: Affine, limit: usize) 
         let mut cursor = x;
         while let Some(run) = layout.runs.get(run_index).filter(|r| r.svg.line == i) {
             run_index += 1;
+            if round_bullet(run) {
+                continue;
+            }
             let mut ci = run.chars.0;
             for fragment in run.svg.text.split('\t') {
                 if !fragment.is_empty() {
@@ -135,7 +168,7 @@ fn text_limited(out: &mut String, layout: &TextLayout, m: Affine, limit: usize) 
                     room(out, &run.svg.family, fragment, limit)?;
                     write!(out, "<tspan unicode-bidi=\"isolate\" direction=\"{}\"", if line.rtl { "rtl" } else { "ltr" })
                         .map_err(|e| e.to_string())?;
-                    style(out, run, true)?;
+                    style(out, run, true, names)?;
                     let offset = run.svg.baseline_shift;
                     write!(out, " dx=\"{}\" baseline-shift=\"{offset}\">", rx - cursor).map_err(|e| e.to_string())?;
                     // usvg 0.47 runs bidi with an LTR base whatever `direction` says; the
@@ -180,7 +213,7 @@ mod tests {
         )
         .unwrap();
         let mut out = String::new();
-        assert!(text_limited(&mut out, &layout, Affine::IDENTITY, 32768).unwrap_err().contains("limit"));
+        assert!(text_limited(&mut out, &layout, Affine::IDENTITY, FontNames::Fallback, 32768).unwrap_err().contains("limit"));
         assert!(out.len() < 32768);
     }
     #[test]
@@ -196,7 +229,7 @@ mod tests {
             ("Courier New", "Liberation Mono"),
         ] {
             let mut out = String::new();
-            font_family(&mut out, requested, twin);
+            font_family(&mut out, requested, twin, FontNames::Fallback);
             assert_eq!(out, format!("&apos;{requested}&apos;, &apos;{twin}&apos;"));
         }
         for (requested, measured) in [
@@ -208,17 +241,17 @@ mod tests {
             ("Arial", "Arial"),
         ] {
             let mut out = String::new();
-            font_family(&mut out, requested, measured);
+            font_family(&mut out, requested, measured, FontNames::Fallback);
             assert_eq!(out, format!("&apos;{requested}&apos;"));
         }
     }
     #[test]
     fn css_family_quoting_precedes_xml_escaping() {
         let mut out = String::new();
-        font_family(&mut out, "Original, 'Face' \\\"\n\r\u{c}<>&", "Carlito");
+        font_family(&mut out, "Original, 'Face' \\\"\n\r\u{c}<>&", "Carlito", FontNames::Fallback);
         assert_eq!(out, r#"&apos;Original, \&apos;Face\&apos; \\&quot;\a \d \c &lt;&gt;&amp;&apos;"#);
         let mut tab = String::new();
-        font_family(&mut tab, "Original\tFace", "Carlito");
+        font_family(&mut tab, "Original\tFace", "Carlito", FontNames::Fallback);
         let tab_xml = format!("<text font-family=\"{tab}\"/>");
         let tab_doc = resvg::usvg::roxmltree::Document::parse(&tab_xml).unwrap();
         assert_eq!(tab_doc.root_element().attribute("font-family"), Some("'Original\\9 Face'"));
