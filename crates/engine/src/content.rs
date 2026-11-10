@@ -177,6 +177,8 @@ fn color(value: &str, name: &str) -> Result<Cell> {
     let rgb = u32::from_str_radix(hex, 16).map_err(operation)?;
     Ok(cell(name, &format!("#{hex}"), Some(&format!("RGB({},{},{})", (rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255))))
 }
+/// Authored Font literals use the registered face name, with no formula.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section
 fn font(doc: &mut Document, name: &str) -> Result<Cell> {
     if name.is_empty() || name.len() > 1024 {
         return Err(operation("invalid font family"));
@@ -188,8 +190,8 @@ fn font(doc: &mut Document, name: &str) -> Result<Cell> {
         let id = doc.face_names.keys().max().map_or(Some(0), |v| v.checked_add(1)).ok_or_else(|| operation("font ID limit"))?;
         doc.face_names.insert(id, name.into());
     }
-    let ordinal = doc.face_names.values().position(|v| v.eq_ignore_ascii_case(name)).ok_or_else(|| operation("font missing"))?;
-    Ok(cell("Font", &ordinal.to_string(), None))
+    let face = doc.face_names.values().find(|v| v.eq_ignore_ascii_case(name)).ok_or_else(|| operation("font missing"))?;
+    Ok(cell("Font", face, None))
 }
 fn character(doc: &mut Document, p: &Value, old_style: u32) -> Result<Vec<Cell>> {
     let mut cells = vec![];

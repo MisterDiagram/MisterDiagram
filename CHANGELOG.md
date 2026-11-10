@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Fonts set by commands now open correctly in Visio:** Saved drawings retain the fonts you choose. Older files keep their existing font values until you reapply the font.
+
 - **Smaller MCP lookups:** Compact command lists and page outlines reduce inspection replies. Fetch selected schemas, find labels directly, and copy resolved fill, line and text styles.
 
 ## 0.1.0-beta.5

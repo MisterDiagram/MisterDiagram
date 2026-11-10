@@ -1339,6 +1339,19 @@ fidelity and two extreme-stroke cases above carry into Phase 3 as counted gaps.
 
 ## G9: Phase 3 writing and from-scratch acceptance
 
+Authored Font values (M5.142, #56): formatting commands now write literal face
+names without formulas and keep the faces registered in `FaceNames`. The Visio
+witness of 2026-11-09 has four cases: numeric Font values resolved to the default
+face; adding FaceName ID attributes did not change that result; face-name values
+resolved the requested fonts; and a natively authored drawing also stored names.
+A FaceName ID attribute is not read for this resolution, and its existing removal
+by the writer is unchanged. Untouched numeric and named Font cells retain their
+source spelling. Files authored by 0.1.0-beta.5 and earlier keep numeric cells
+until the font is reapplied through text formatting. Public `font_names` tests
+cover authored literals, preservation of other shapes, composition, paragraph
+runs and imported masters. Reference:
+[Font cell](https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section).
+
 M3.1 provides the typed skeleton, observed style/cell sets and an authored
 connector master with fresh UUIDs. Tests: `skeleton_parts_styles_and_fresh_connector_identity`,
 `skeleton_cell_set_matches_blank_and_probe_observations`,

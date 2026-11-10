@@ -29,7 +29,7 @@ fn part_name(doc: &Document) -> Result<String> {
 fn cells_mut(sheet: &mut Sheet) -> impl Iterator<Item = &mut misterdiagram_model::Cell> {
     sheet.cells.iter_mut().chain(sheet.sections.iter_mut().flat_map(|s| s.cells.iter_mut().chain(s.rows.iter_mut().flat_map(|r| r.cells.iter_mut()))))
 }
-fn copy_fonts(doc: &mut Document, source: &Document) -> Result<BTreeMap<u32, u32>> {
+fn copy_fonts(doc: &mut Document, source: &Document) -> Result<BTreeMap<u32, String>> {
     let mut map = BTreeMap::new();
     for (ordinal, name) in source.face_names.values().enumerate() {
         if !doc.face_names.values().any(|v| v.eq_ignore_ascii_case(name)) {
@@ -39,24 +39,26 @@ fn copy_fonts(doc: &mut Document, source: &Document) -> Result<BTreeMap<u32, u32
             let id = doc.face_names.keys().max().map_or(Some(0), |v| v.checked_add(1)).ok_or_else(|| operation("font ID limit"))?;
             doc.face_names.insert(id, name.clone());
         }
-        let destination = doc.face_names.values().position(|v| v.eq_ignore_ascii_case(name)).ok_or_else(|| operation("font mapping missing"))?;
-        map.insert(u32::try_from(ordinal).map_err(operation)?, u32::try_from(destination).map_err(operation)?);
+        let destination = doc.face_names.values().find(|v| v.eq_ignore_ascii_case(name)).ok_or_else(|| operation("font mapping missing"))?;
+        map.insert(u32::try_from(ordinal).map_err(operation)?, destination.clone());
     }
     Ok(map)
 }
-fn map_fonts(sheet: &mut Sheet, fonts: &BTreeMap<u32, u32>) {
+/// Active master imports resolve source font ordinals to face-name literals.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section
+fn map_fonts(sheet: &mut Sheet, fonts: &BTreeMap<u32, String>) {
     for c in cells_mut(sheet) {
         if c.name == "Font"
             && let Some(new) = c.value.as_deref().and_then(|v| v.parse::<u32>().ok()).and_then(|id| fonts.get(&id))
         {
-            c.value = Some(new.to_string());
+            c.value = Some(new.clone());
             if c.formula.as_deref().is_some_and(|f| f.parse::<u32>().is_ok()) {
                 c.formula = None;
             }
         }
     }
 }
-fn copy_styles(doc: &mut Document, source: &Document, fonts: &BTreeMap<u32, u32>) -> Result<BTreeMap<u32, u32>> {
+fn copy_styles(doc: &mut Document, source: &Document, fonts: &BTreeMap<u32, String>) -> Result<BTreeMap<u32, u32>> {
     let mut map = BTreeMap::new();
     let mut copies = vec![];
     let mut next = doc.styles.iter().map(|s| s.id).max().unwrap_or(0).checked_add(1).ok_or_else(|| operation("style ID overflow"))?;
@@ -123,7 +125,7 @@ fn rewrite_shapes(
     shapes: &mut [Shape],
     ids: &BTreeMap<u32, u32>,
     styles: &BTreeMap<u32, u32>,
-    fonts: &BTreeMap<u32, u32>,
+    fonts: &BTreeMap<u32, String>,
     depth: usize,
 ) -> Result<()> {
     if depth > 128 {
