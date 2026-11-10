@@ -13,9 +13,9 @@ fn command(s: &mut Server, name: &str, p: Value) -> Value {
     call(s, "run_command", json!({"command":name,"params":p}))
 }
 #[test]
-fn compact_defaults_are_only_mcp_shortcuts() {
+fn compact_defaults_allow_explicit_full_forms() {
     let mut s = Server::new(Box::new(Headless::new()));
-    let full = command(&mut s, "engine.commands", json!({}));
+    let full = command(&mut s, "engine.commands", json!({"detail":"full"}));
     let short = call(&mut s, "list_commands", json!({}));
     assert_eq!(short.as_array().unwrap().len(), full.as_array().unwrap().len());
     assert!(short.as_array().unwrap().iter().all(|c| c["params"].is_array()));
@@ -27,7 +27,7 @@ fn compact_defaults_are_only_mcp_shortcuts() {
     let outline = call(&mut s, "inspect_document", json!({}));
     assert!(outline["pages"][0]["links"].is_array());
     assert!(outline["pages"][0].get("layers").is_none());
-    let full_doc = command(&mut s, "document.inspect", json!({}));
+    let full_doc = command(&mut s, "document.inspect", json!({"sections":["listing"]}));
     assert!(full_doc["pages"][0]["layers"].is_object());
     assert!(full_doc["pages"][0]["connects"].is_array());
     assert!(full_doc["pages"][0]["shapes"][0]["bounds"].is_object());

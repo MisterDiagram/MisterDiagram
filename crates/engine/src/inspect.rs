@@ -99,6 +99,19 @@ struct Filter {
 }
 impl Filter {
     fn parse(p: &Value, document: bool) -> Result<Self> {
+        let listing = p.get("sections").and_then(Value::as_array).is_some_and(|names| names.iter().any(|n| n == "listing"));
+        if listing {
+            if !document {
+                return Err(operation("invalid inspection section"));
+            }
+            if p.get("sections").and_then(Value::as_array).is_some_and(|names| names.len() != 1) {
+                return Err(operation("listing cannot be combined with other sections"));
+            }
+            if p.get("cells").is_some() {
+                return Err(operation("listing cannot be combined with cells"));
+            }
+        }
+        let explicit_sections = p.get("sections").is_some() && !listing;
         let requested = match p.get("cells") {
             None => Vec::new(),
             Some(Value::Array(names)) if names.len() <= 256 => names
@@ -112,7 +125,7 @@ impl Filter {
                 .collect::<Result<Vec<_>>>()?,
             _ => return Err(operation("cells must contain at most 256 cell names")),
         };
-        let sections = match p.get("sections") {
+        let sections = match p.get("sections").filter(|_| !listing) {
             Some(Value::Array(names)) if names.len() <= 8 => names
                 .iter()
                 .map(|n| {
@@ -133,9 +146,9 @@ impl Filter {
         Ok(Self {
             sections,
             requested,
-            minimal: p.get("cells").is_some() || p.get("sections").is_some(),
-            detailed: !document || p.get("sections").is_some(),
-            explicit_sections: p.get("sections").is_some(),
+            minimal: p.get("cells").is_some() || explicit_sections,
+            detailed: !document || explicit_sections,
+            explicit_sections,
             cells_present: p.get("cells").is_some(),
         })
     }

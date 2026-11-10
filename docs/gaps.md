@@ -9,6 +9,12 @@ native application reports for such absent cells remains an open question; the
 evaluator is unchanged. Reference:
 [Text Transform](https://learn.microsoft.com/en-us/office/client-developer/visio/text-transform-section).
 
+M5.143 extends compact defaults to MCP command calls and batches, with an explicit
+`listing` section for the legacy document reply. Engine, CLI and resource defaults
+remain unchanged. Synthetic `inspection_listing` and `compact_routes` tests cover
+alias equality, nesting, malformed containers and explicit overrides. Reference:
+[inspection and command contracts](mcp.md).
+
 ## Legacy fill formulas (M5.136)
 
 Legacy `THEME()` fill properties use the measured User selectors independently

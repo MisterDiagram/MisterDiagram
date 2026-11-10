@@ -58,17 +58,17 @@ const TOOLS: &[(&str, &str, &str)] = &[
     (
         "run_command",
         "engine.execute",
-        "Use for any registered command, especially operations without a dedicated shortcut; dedicated tools expose the same engine behavior.",
+        "Use for any registered command, especially operations without a dedicated shortcut; dedicated tools expose the same engine behavior. document.inspect and engine.commands return their compact forms unless you pass sections, cells, detail or ids.",
     ),
     (
         "batch",
         "engine.batch",
-        "Use instead of repeated run_command calls for an atomic interactive edit with references and one undo step; equivalent to run_command engine.batch. Use a CLI script for hundreds of data-generated commands.",
+        "Use instead of repeated run_command calls for an atomic interactive edit with references and one undo step; equivalent to run_command engine.batch. Use a CLI script for hundreds of data-generated commands. Inspection items get the same compact defaults as run_command.",
     ),
     (
         "inspect_document",
         "document.inspect",
-        "Compact document outline by default. Filter by page, find or ids; request sections or cells for detail, including style for copying formats.",
+        "Compact document outline by default. Filter by page, find or ids; request sections or cells for detail, including style for copying formats. sections listing returns the detailed listing.",
     ),
     (
         "inspect_shape",
@@ -116,6 +116,43 @@ pub fn tool_definitions() -> Result<Value, String> {
         .collect::<Result<Vec<_>, String>>()
         .map(Value::Array)
 }
+// A malformed container leaves the entire call unchanged, including earlier
+// batch items whose legacy inspection might fail before the malformed item.
+fn compact_defaults(command: &str, params: &mut Value, depth: usize) -> bool {
+    if depth > 3 {
+        return true;
+    }
+    let Some(p) = params.as_object_mut() else { return false };
+    match command {
+        "document.inspect" if !p.contains_key("sections") && !p.contains_key("cells") => {
+            p.insert("sections".into(), json!(["outline"]));
+        }
+        "engine.commands" if !p.contains_key("detail") && !p.contains_key("ids") => {
+            p.insert("detail".into(), json!("summary"));
+        }
+        "engine.execute" => return compact_item(params, depth + 1),
+        "engine.batch" => {
+            let Some(items) = p.get_mut("commands").and_then(Value::as_array_mut) else { return false };
+            return items.iter_mut().all(|item| compact_item(item, depth + 1));
+        }
+        _ => {}
+    }
+    true
+}
+fn compact_item(item: &mut Value, depth: usize) -> bool {
+    if depth > 3 {
+        return true;
+    }
+    let Some(item) = item.as_object_mut() else { return false };
+    let Some(command) = item.get("command").and_then(Value::as_str).map(str::to_owned) else { return false };
+    if let Some(params) = item.get_mut("params") {
+        return compact_defaults(&command, params, depth);
+    }
+    if matches!(command.as_str(), "document.inspect" | "engine.commands" | "engine.execute" | "engine.batch") {
+        return compact_defaults(&command, item.entry("params").or_insert_with(|| json!({})), depth);
+    }
+    true
+}
 pub fn call_tool(b: &mut dyn Backend, name: &str, args: &Value) -> ToolResult {
     ToolResult((|| {
         let (_, command, _) = TOOLS.iter().find(|(n, _, _)| *n == name).ok_or_else(|| format!("unknown tool: {name}"))?;
@@ -124,11 +161,8 @@ pub fn call_tool(b: &mut dyn Backend, name: &str, args: &Value) -> ToolResult {
         }
         let mut command = *command;
         let mut params = args.clone();
-        if name == "list_commands" && args.get("detail").is_none() && args.get("ids").is_none() {
-            params["detail"] = json!("summary");
-        }
-        if name == "inspect_document" && args.get("sections").is_none() && args.get("cells").is_none() {
-            params["sections"] = json!(["outline"]);
+        if !compact_defaults(command, &mut params, 0) {
+            params = args.clone();
         }
         if name == "connect" {
             let mode = args

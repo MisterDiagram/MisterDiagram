@@ -504,3 +504,5 @@ Progress M5.116: shared fit-to-drawing export and explicit margins added to CLI 
 - M5.141: Automation remains D. Compact registry/outline queries, normalized label search, ordered shape IDs and reusable resolved styles have synthetic engine and MCP coverage. Inspection budgets and engine defaults remain fixed. Reference: https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml
 
 - M5.142: ShapeSheet formatting remains P. Authored Font cells and active master font remapping use face names; untouched imported values retain their bytes. Tests: `font_names` authoring, preservation, composition and master import. Reference: https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section
+
+- M5.143: Automation remains D. MCP command calls and batch items share compact inspection defaults; explicit listing retains the legacy document reply. Tests: `inspection_listing` and `compact_routes`. Reference: [MCP command contracts](mcp.md).
