@@ -169,7 +169,7 @@ fn undo_redo_restores_document_and_new_edits_clear_redo() {
 
 #[cfg(unix)]
 #[test]
-fn saving_preserves_private_permissions_and_creates_private_files() {
+fn saving_preserves_existing_permissions_and_uses_creation_mode() {
     use std::os::unix::fs::PermissionsExt;
     let dir = output("permissions");
     let path = dir.join("private.vsdx");
@@ -184,7 +184,10 @@ fn saving_preserves_private_permissions_and_creates_private_files() {
     let new = dir.join("new.vsdx");
     let _ = std::fs::remove_file(&new);
     session.execute("file.save", &json!({"path":new})).unwrap();
-    assert_eq!(std::fs::metadata(&new).unwrap().permissions().mode() & 0o777, 0o600);
+    let control = dir.join("plain-created");
+    let _ = std::fs::remove_file(&control);
+    std::fs::File::create(&control).unwrap();
+    assert_eq!(std::fs::metadata(&new).unwrap().permissions().mode() & 0o777, std::fs::metadata(&control).unwrap().permissions().mode() & 0o777);
 }
 
 #[test]

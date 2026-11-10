@@ -123,7 +123,9 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
     }
     if masters {
         let (image, report) = contact::render(&doc)?;
-        image.save(path).map_err(|e| e.to_string())?;
+        let mut bytes = std::io::Cursor::new(Vec::new());
+        image.write_to(&mut bytes, image::ImageFormat::Png).map_err(|e| e.to_string())?;
+        misterdiagram_engine::atomic_write(path, bytes.get_ref()).map_err(|e| e.to_string())?;
         let mut stderr = std::io::stderr().lock();
         for warning in &report.warnings {
             let _ = writeln!(stderr, "warning: {warning}");
@@ -149,7 +151,7 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
         for warning in &output.warnings {
             let _ = writeln!(std::io::stderr().lock(), "warning: {warning}");
         }
-        return std::fs::write(path, output.bytes).map_err(|e| e.to_string());
+        return misterdiagram_engine::atomic_write(path, &output.bytes).map_err(|e| e.to_string());
     }
     let mut budget = scene::SceneBudget::default();
     let scenes = if extension == "pdf" && page.is_none() {
@@ -164,16 +166,24 @@ fn render(args: &[std::ffi::OsString]) -> Result<(), String> {
     }
     let first = scenes.first().ok_or("no foreground pages")?;
     match extension.as_str() {
-        "png" => raster::render(first, options)?.save(path).map_err(|e| e.to_string()),
+        "png" => {
+            let image = raster::render(first, options)?;
+            let mut bytes = std::io::Cursor::new(Vec::new());
+            image.write_to(&mut bytes, image::ImageFormat::Png).map_err(|e| e.to_string())?;
+            misterdiagram_engine::atomic_write(path, bytes.get_ref()).map_err(|e| e.to_string())
+        }
         "svg" => {
             let bytes = svg::render(first, options)?;
-            std::fs::write(path, bytes).map_err(|e| e.to_string())?;
+            misterdiagram_engine::atomic_write(path, bytes.as_bytes()).map_err(|e| e.to_string())?;
             for warning in svg::warnings(first, options) {
                 let _ = writeln!(std::io::stderr().lock(), "warning: {warning}");
             }
             Ok(())
         }
-        "pdf" => std::fs::write(path, pdf::render(&scenes, options)?).map_err(|e| e.to_string()),
+        "pdf" => {
+            let bytes = pdf::render(&scenes, options)?;
+            misterdiagram_engine::atomic_write(path, &bytes).map_err(|e| e.to_string())
+        }
         _ => Err("render output extension must be png, svg, pdf or pptx".into()),
     }
 }

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **Safer output files:** rendering publishes each completed output atomically, so a
+  failed write leaves an existing file intact. Destination symlinks are replaced
+  and their old targets are left untouched. New renders, saves and exports use
+  the usual file permissions from your process umask (0644 under umask 022);
+  existing files keep their permissions. New saves and exports previously used 0600.
+
 - **Line breaks follow Visio at punctuation:** labels now keep text together after
   closing braces, vertical bars, exclamation marks, question marks, ellipses and
   hyphens (U+2010), and wrap after backslashes and within letter-or-digit sequences

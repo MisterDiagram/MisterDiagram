@@ -1,5 +1,15 @@
 # Gaps
 
+## Atomic render publication (M5.146)
+
+CLI PNG, SVG, PDF, presentation and master contact-sheet outputs now use the
+engine's shared atomic publisher after encoding completes. Destination symlinks
+are replaced; their targets retain their bytes. Existing permissions are kept,
+and new renders, saves and exports use the normal process creation mode.
+Synthetic `atomic_render` tests cover each route, permission preservation,
+publication errors and blank contact sheets. Directory synchronization after
+rename and platform-specific replacement semantics remain outside this change.
+
 ## Compact inspection (M5.141)
 
 Command summaries, page outlines, label search, ordered IDs and resolved style

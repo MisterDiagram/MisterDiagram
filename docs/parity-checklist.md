@@ -510,3 +510,8 @@ Progress M5.116: shared fit-to-drawing export and explicit margins added to CLI 
 - M5.145: Text fidelity remains P. Recorded punctuation opportunities now follow the
   three #118 rules, covered by direct opportunities and measured-width wrapping
   tests. Five observed rows remain open in [gaps](gaps.md#punctuation-line-breaks-118-m5145).
+
+- M5.146: Export rows retain their existing scores. All five CLI render routes use
+  the shared atomic publisher, with synthetic `atomic_render` coverage for
+  symlinks, permissions, failed publication and contact-sheet failure output.
+  Reference: [CLI output contract](install.md#5-first-commands).

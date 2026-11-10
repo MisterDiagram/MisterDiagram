@@ -245,9 +245,11 @@ impl Drop for Temporary {
         let _ = std::fs::remove_file(&self.0);
     }
 }
-/// Publish a complete output on the same filesystem as the destination.
-/// No destination is truncated before the writer or renderer succeeds.
-fn atomic_write(path: &Path, bytes: &[u8]) -> Result<()> {
+/// Publish fully encoded bytes through a sibling temporary file, sync and rename.
+/// Existing destination permissions are preserved; new files use the process's normal
+/// creation permissions. A destination symlink is replaced, leaving its target untouched.
+/// A failure before rename leaves the destination intact and removes the temporary file.
+pub fn atomic_write(path: &Path, bytes: &[u8]) -> Result<()> {
     static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
     let parent = path.parent().filter(|p| !p.as_os_str().is_empty()).unwrap_or_else(|| Path::new("."));
     if path.file_name().is_none() {
@@ -263,11 +265,6 @@ fn atomic_write(path: &Path, bytes: &[u8]) -> Result<()> {
         let temp = parent.join(format!(".misterdiagram-{}-{n}.tmp", std::process::id()));
         let mut open = std::fs::OpenOptions::new();
         open.write(true).create_new(true);
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::OpenOptionsExt;
-            open.mode(0o600);
-        }
         let mut file = match open.open(&temp) {
             Ok(f) => f,
             Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => continue,

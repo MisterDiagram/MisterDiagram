@@ -30,6 +30,7 @@ mod stencil_path;
 mod stencil_path_tests;
 mod stencils;
 pub use cmd::{command_specs, find_command};
+pub use files::atomic_write;
 use misterdiagram_model::{Document, ShapeId};
 pub use retention::MemoryLimits;
 use serde_json::Value;
