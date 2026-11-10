@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- **Line breaks follow Visio at punctuation:** labels now keep text together after
+  closing braces, vertical bars, exclamation marks, question marks, ellipses and
+  hyphens (U+2010), and wrap after backslashes and within letter-or-digit sequences
+  separated by a slash or hyphen before a digit (#118). Long words still break at
+  the last character that fits.
+
 ## 0.1.0-beta.6
 
 Cheaper agent sessions and a font fix. An MCP client that looks things up before each edit used

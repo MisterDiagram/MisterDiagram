@@ -471,3 +471,87 @@ fn native_script_boundary_widths() {
         assert!((actual - expected).abs() < 1e-6, "{font}/{pos}/{kind}: {actual} vs {expected}");
     }
 }
+
+#[test]
+fn witnessed_punctuation_break_opportunities() {
+    let uax = |text: &str| {
+        let mut allowed = vec![false; text.chars().count() + 1];
+        let mut mandatory = allowed.clone();
+        for (byte, kind) in unicode_linebreak::linebreaks(text) {
+            let i = text[..byte].chars().count();
+            allowed[i] = true;
+            mandatory[i] = kind == unicode_linebreak::BreakOpportunity::Mandatory;
+        }
+        (allowed, mandatory)
+    };
+    for prev in ['}', '|', '!', '?', '\u{2026}', '\u{2010}'] {
+        for next in ['a', '1', '(', prev] {
+            let text = format!("a{prev}{next}b");
+            // Same-character non-Latin pairs retain UAX #14; it already forbids these breaks.
+            assert!(!break_opportunities(&text).0[2], "{text:?}");
+        }
+    }
+    for next in ['a', '1', '(', '\\'] {
+        let text = format!("a\\{next}b");
+        assert!(break_opportunities(&text).0[2], "{text:?}");
+    }
+    assert!(!break_opportunities("a}\u{24f}").0[2]);
+    assert!(break_opportunities("a\\\u{24f}").0[2]);
+    for text in ["a/1", "1/1", "a-1", "1-1"] {
+        assert!(break_opportunities(text).0[2], "{text:?}");
+    }
+    for text in [
+        " -1",
+        "(-1",
+        "--1",
+        "//1",
+        "-1",
+        "/1",
+        "a b",
+        "a-b",
+        "a/b",
+        "a_b",
+        "a:b",
+        "a]b",
+        "!\u{b}a",
+        "!\na",
+        "!日",
+        "a\tb",
+        "a\u{2013}b",
+        "a\u{2014}b",
+        "",
+        "!",
+        "a\\\u{250}",
+        "a}\u{250}",
+        "a} ",
+    ] {
+        let actual = break_opportunities(text);
+        let expected = uax(text);
+        assert_eq!(actual, expected, "{text:?}");
+    }
+}
+
+#[test]
+fn witnessed_punctuation_wraps_at_seventy_percent_width() {
+    for punctuation in ['}', '\\'] {
+        let text = format!("abcdefgh{punctuation}ijklmnop");
+        let mut body = TextBody {
+            body: BodyProps { inset_l: Some(0.), inset_r: Some(0.), inset_t: Some(0.), inset_b: Some(0.), ..Default::default() },
+            ..Default::default()
+        };
+        body.paragraphs.push(Paragraph::new(&text));
+        body.paragraphs[0].runs[0].props = RunProps { font: Some("Liberation Sans".into()), size: Some(12.), ..Default::default() };
+        let wide = layout(&body, &Opts { rect: Rect::new(0., 0., 1000., 1000.), fields: &NoFields, prompt_color: None, no_shrink: true }).unwrap();
+        let width = wide.content_width * 0.70;
+        let wrapped = layout(&body, &Opts { rect: Rect::new(0., 0., width, 1000.), fields: &NoFields, prompt_color: None, no_shrink: true }).unwrap();
+        assert!(wrapped.lines.len() > 1);
+        let first = &wrapped.lines[0];
+        let line: String = text.chars().skip(first.start).take(first.end - first.start).collect();
+        if punctuation == '}' {
+            assert_ne!(line, "abcdefgh}");
+            assert!(first.end > 9, "mid-word fallback: {line:?}");
+        } else {
+            assert_eq!(line, "abcdefgh\\");
+        }
+    }
+}

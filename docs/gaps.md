@@ -1223,6 +1223,31 @@ oracle2 is99.192198%, and theme-only COM is99.875218%. Theme cached accuracy is9
 remaining font IDs, style/color details and effect completeness must be judged alongside
 rendered output. No raster fidelity claim. Theme and text host counts are reported separately.
 
+## Punctuation line breaks (#118, M5.145)
+
+Recorded synthetic layout observations refine the UAX #14 opportunities only
+when the next character is U+0021 through U+024F and the break is not mandatory:
+
+- Clear the opportunity after U+007D (closing brace), U+007C (vertical bar),
+  U+0021 (exclamation mark), U+003F (question mark), U+2026 (ellipsis), or
+  U+2010 (hyphen).
+- Set the opportunity after U+005C (backslash).
+- Set the opportunity after U+002F (slash) or U+002D (hyphen-minus) before an
+  ASCII digit, only when the preceding character is an ASCII letter or digit.
+
+The mid-word fallback already matches: a word that does not fit breaks at the
+last character that fits. The fit threshold also matches across 65 synthetic
+shapes around TEXTWIDTH. Mandatory breaks, trailing no-break spaces and other
+opportunities retain their previous behavior. Public tests:
+`witnessed_punctuation_break_opportunities` and
+`witnessed_punctuation_wraps_at_seventy_percent_width`.
+
+Five observed rows remain open: U+2011 and U+00A0 have the same layout but are
+written with another character in Visio's SVG export; a soft hyphen (U+00AD)
+is drawn as a hyphen at the break; U+200B has a remaining break difference;
+and CJK fallback width differs between a local build and the release build.
+The CJK result remains an open question and was not investigated here.
+
 ## G6: M2.4 text fidelity work
 
 The P2-followup embedded Latin pack resolves the missing Calibri-substitute resource.

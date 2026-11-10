@@ -783,6 +783,25 @@ fn break_opportunities(text: &str) -> (Vec<bool>, Vec<bool>) {
             }
         }
     }
+    // Observed punctuation rules (#118); keep mandatory and non-Latin boundaries from UAX #14.
+    let chars: Vec<char> = text.chars().collect();
+    for (offset, pair) in chars.windows(2).enumerate() {
+        let i = offset + 1;
+        let (Some(&prev), Some(&next)) = (pair.first(), pair.get(1)) else { continue };
+        if mandatory.get(i).copied().unwrap_or(false) || !('\u{21}'..='\u{24f}').contains(&next) {
+            continue;
+        }
+        if let Some(opportunity) = allowed.get_mut(i) {
+            match prev {
+                '}' | '|' | '!' | '?' | '\u{2026}' | '\u{2010}' => *opportunity = false,
+                '\\' => *opportunity = true,
+                '/' | '-' if next.is_ascii_digit() && i.checked_sub(2).and_then(|j| chars.get(j)).is_some_and(char::is_ascii_alphanumeric) => {
+                    *opportunity = true;
+                }
+                _ => {}
+            }
+        }
+    }
     (allowed, mandatory)
 }
 

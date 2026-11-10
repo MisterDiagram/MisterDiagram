@@ -506,3 +506,7 @@ Progress M5.116: shared fit-to-drawing export and explicit margins added to CLI 
 - M5.142: ShapeSheet formatting remains P. Authored Font cells and active master font remapping use face names; untouched imported values retain their bytes. Tests: `font_names` authoring, preservation, composition and master import. Reference: https://learn.microsoft.com/en-us/office/client-developer/visio/font-cell-character-section
 
 - M5.143: Automation remains D. MCP command calls and batch items share compact inspection defaults; explicit listing retains the legacy document reply. Tests: `inspection_listing` and `compact_routes`. Reference: [MCP command contracts](mcp.md).
+
+- M5.145: Text fidelity remains P. Recorded punctuation opportunities now follow the
+  three #118 rules, covered by direct opportunities and measured-width wrapping
+  tests. Five observed rows remain open in [gaps](gaps.md#punctuation-line-breaks-118-m5145).
