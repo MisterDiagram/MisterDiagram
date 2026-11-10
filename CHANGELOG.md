@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Smaller MCP lookups:** Compact command lists and page outlines reduce inspection replies. Fetch selected schemas, find labels directly, and copy resolved fill, line and text styles.
+
 ## 0.1.0-beta.5
 
 The rest of the 2026-11-03 tester batch (#113, #114, #117), all in SVG export: text inside

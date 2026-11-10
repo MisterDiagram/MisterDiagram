@@ -108,7 +108,7 @@ Windows and macOS, plus an Ubuntu check at the declared Rust minimum.
   and SAN pass layout checks; fabric retains its documented box and heading crossings.
 - **Automate** through seventeen MCP tools or CLI scripts: atomic reference batches, styled
   creation, connector creation, built-in network masters, tree/row/fan layout and layout
-  checks. Filtered inspection bounds reply sizes. Unsaved-change protection, panic recovery
+  checks. Compact command lists, page outlines and label search keep lookups small. Unsaved-change protection, panic recovery
   and bounded malformed-line recovery keep sessions usable. CLI scripts can rebuild drawings
   from data with `run --batch FILE`. The built-in network stencil provides eleven semantic
   device masters as native editable geometry via `stencil.open {"builtin":"network"}`.

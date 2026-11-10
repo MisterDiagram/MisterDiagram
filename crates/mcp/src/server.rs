@@ -313,7 +313,7 @@ mod tests {
     fn aggregate_and_escaped_responses_obey_the_framing_cap() {
         let mut s = Server::new(Box::new(Headless::new()));
         let requests = (0..200)
-            .map(|id| json!({"jsonrpc":"2.0","id":id,"method":"tools/call","params":{"name":"list_commands","arguments":{}}}))
+            .map(|id| json!({"jsonrpc":"2.0","id":id,"method":"tools/call","params":{"name":"list_commands","arguments":{"detail":"full"}}}))
             .collect::<Vec<_>>();
         let reply = s.handle_line(&serde_json::to_string(&requests).unwrap()).unwrap();
         assert!(reply.len() < MAX_MESSAGE as usize);

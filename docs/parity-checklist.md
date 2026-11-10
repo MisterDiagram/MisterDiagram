@@ -500,3 +500,5 @@ Progress M5.116: shared fit-to-drawing export and explicit margins added to CLI 
 - M5.138: SVG export remains P. Exact font names are available across CLI, engine and MCP; round bullets use the raster glyph paths with the paragraph gap preserved. Tests: `svg_text` public surfaces, three-item list, transformed bullet paths, custom/numbered exclusions and wrapped lines. Reference: https://www.w3.org/TR/SVG11/text.html#TextElement
 
 - M5.139: SVG export remains P. Embedded text records are editable with alignment and record clips; symbol, private-use and glyph-index records retain paths with SVG-only diagnostics. Tests: `metafile_text` and `svg_metafile`. Reference: https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-emf/dd585d0a-5d7c-4034-963a-1141af836972
+
+- M5.141: Automation remains D. Compact registry/outline queries, normalized label search, ordered shape IDs and reusable resolved styles have synthetic engine and MCP coverage. Inspection budgets and engine defaults remain fixed. Reference: https://learn.microsoft.com/en-us/office/client-developer/visio/shape-element-shapes_type-complextypevisio-xml

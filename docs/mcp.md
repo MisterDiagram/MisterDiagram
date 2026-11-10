@@ -71,11 +71,11 @@ page. Every mutating command uses the engine's strict write-and-reimport path.
 | save | `{"name":"save","arguments":{"path":"drawing.vsdx"}}` | Saves VSDX, VSSX or VSTX by extension; returns bytes and warnings. |
 | export | `{"name":"export","arguments":{"path":"drawing.svg","page":1}}` | VSDX, PNG, SVG, PDF or PPTX by extension. VSDX takes only path. Image/PDF exports accept `fit: true` and optional `margin: "5 mm"`. PDF and PPTX without page include foreground pages. SVG defaults to editable text; `text_outlines: true` preserves glyph paths; `font_names: "exact"` names only the document face (`"fallback"` is the default). |
 | render | `{"name":"render","arguments":{"path":"drawing.png","page":1,"scale":2}}` | Renders PNG, SVG, PDF or PPTX; scale controls raster output. `fit: true` uses the foreground drawing crop; optional `margin` is a physical measurement string. SVG defaults to editable text; optional boolean `text_outlines` selects glyph paths; `font_names` accepts `"fallback"` (default) or `"exact"` for the document face alone. |
-| list_commands | `{"name":"list_commands","arguments":{}}` | Lists command IDs, labels, schemas and enabled state. |
+| list_commands | `{"name":"list_commands","arguments":{}}` | Compact IDs, labels, parameter names and required names. Pass `ids` for selected full schemas or `detail:"full"` for all schemas. |
 | run_command | `{"name":"run_command","arguments":{"command":"shape.draw.rect","params":{"x":1,"y":2,"width":2,"height":1}}}` | Creates a rectangle and returns its ID. Any registered engine command is available. |
 | batch | `{"name":"batch","arguments":{"commands":[{"command":"shape.draw.rect","as":"cedar","params":{"x":1,"y":2,"width":2,"height":1}},{"command":"shape.text","params":{"id":"$cedar","text":"Cedar"}}]}}` | Creates and labels a rectangle as one undo step. Returns results and the reference map. |
-| inspect_document | `{"name":"inspect_document","arguments":{"page":1}}` | Pages, layers, flattened shapes, inherited text/data, bounds and Connects. |
-| inspect_shape | `{"name":"inspect_shape","arguments":{"page":1,"id":1,"cells":["Width","PinX"]}}` | Only id, bounds and the requested cells; optional sections select other groups. |
+| inspect_document | `{"name":"inspect_document","arguments":{"page":1}}` | Compact page outline with shape IDs, rounded bounds, optional labels/names and connector links. `find`, `ids`, `sections` and `cells` narrow or expand detail. |
+| inspect_shape | `{"name":"inspect_shape","arguments":{"page":1,"id":1,"cells":["Width","PinX"]}}` | Only id, bounds and requested cells; optional sections include `style`, whose fill/line/text objects can be passed to format commands. |
 | sheet_get | `{"name":"sheet_get","arguments":{"id":1,"name":"Width"}}` | Evaluated value, cached value, formula and units. |
 | sheet_set | `{"name":"sheet_set","arguments":{"id":1,"name":"Width","formula":"2 in"}}` | Changes a cell and publishes its dependencies. GUARD requires force. |
 | stencil_list | `{"name":"stencil_list","arguments":{}}` | Lists stencil index, name, canonical display path and master count. Index 0 is the document stencil. |
@@ -145,19 +145,47 @@ and `shape.inspect` appear in CLI `commands` and `describe` with schemas.
 extra undo boundary, and rejects self-invocation. Inspection is read-only.
 Bounds are page-space alignment boxes including group transforms, not painted
 ink. Cell values are evaluated strings with formula, cache and units retained.
-Up to 256 cell names can be requested. With `cells` and no `sections`, shape
-inspection returns exactly `id`, `bounds` and `cells`. Both inspection tools
-accept `sections`: an array of `xform`, `text`, `connection_points`, `data`,
-`glue`, `cells`. Explicit sections select only those groups in addition to id
-and bounds; `text` includes text transforms, `glue` includes Connects, and
-`cells` includes the requested names. An empty sections array requests identities
-and bounds only. Document inspection retains its page/layer/selection envelope.
-Omitting both filters retains the default summary.
+Up to 256 cell names can be requested. `cells` are returned beside any explicitly
+listed sections. Alone, `cells` returns `id`, `bounds` and `cells`. Both inspection
+tools accept up to eight `sections`: `xform`, `text`, `connection_points`, `data`,
+`glue`, `cells`, and `style`. Document inspection also accepts `outline`, alone.
+Explicit `text` includes only text-transform cells that exist; a shape with none
+omits `text_cells`. An empty sections array requests identities and bounds only.
+`style` contains `fill`, `line` and `text` objects using the corresponding format
+command parameters. Add the destination `id` and pass each object unchanged to
+copy a style. Colours are resolved lowercase sRGB; line weight and text size are
+points rounded to four decimals. Text style uses the first effective formatting rows.
+
+The MCP `inspect_document` tool defaults to `sections:["outline"]` when neither
+`sections` nor `cells` is supplied. Each outline page has `page`, `id`, `name`,
+`shapes` and `links`, with selection retained. Shape bounds are `[x,y,width,height]`
+in page inches, rounded to four decimals; nonempty text and universal names,
+master IDs and non-default shape types appear only when applicable. Links group
+connector begin/end targets into one record per connector. The engine's
+`document.inspect` default retains its detailed page/layer/selection envelope.
+
+Document `find` accepts 1 to 256 characters, searches text and universal names
+case-insensitively, and folds whitespace runs to spaces. Pages without matches
+remain with empty shape arrays. Alternatively, `ids` selects 1 to 256 shape IDs
+in the requested order, requires `page`, and cannot be combined with `find`.
+Filtering happens before shape details consume the inspection budget. Targeted
+`find`/`ids` queries omit page layers and include only page Connects touching the
+returned shapes.
+
+The MCP `list_commands` tool defaults to `detail:"summary"` when neither `detail`
+nor `ids` is supplied. Each summary has `id`, `label`, `params` (names in schema
+order) and `required`; disabled commands also have `enabled:false` and a reason.
+Pass 1 to 128 command `ids` for full schemas in that order, optionally with
+`detail:"summary"`. Unknown IDs are errors. Engine `engine.commands`, CLI
+`commands`/`describe`, and command resources retain full schemas by default.
+
+Cheap lookups: list command IDs once, fetch only the schemas you need with `ids`,
+outline a page, `find` a label, then read `style` before copying formatting.
 
 Inspection has a 65,536-byte (64 KiB) serialized JSON budget. Every MCP tool
 result, including errors, has a 1,048,576-byte (1 MiB) serialized content-envelope
 budget, including JSON escaping. Exceeding either budget returns an error naming
-the applicable `cells`, `sections`, `page`, `query`/`limit` filters or batch size.
+the applicable `page`, `find`, `ids`, `cells`, `sections`, `query`/`limit` filters or batch size.
 Results are never silently truncated. Select fewer sections or a single shape,
 or split a large batch. The engine checks the escaped-result budget before
 publishing session changes, so oversized command and batch results roll back
@@ -335,7 +363,8 @@ its ordinary boxes and headings; a, c and d pass. These boxes are not containers
 Use MCP for interactive edits, inspection and the render-and-look loop. Use
 `render` for previews; use `export` for deliverables. Both reach the same export
 engine, but naming the intent makes a tool transcript easier to follow.
-`list_commands` returns each command's `params` as a JSON object. Every parameter
+`list_commands` with `ids` or `detail:"full"` returns each command's `params`
+as a JSON schema object. Its default summary returns parameter names. Every schema parameter
 has a description stating its units and coordinate anchor where applicable.
 In particular, rectangle/ellipse x/y are the bottom-left corner in page inches;
 master.drop x/y are the pin in page inches. This documents existing behavior.

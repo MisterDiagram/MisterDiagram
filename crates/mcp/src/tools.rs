@@ -50,7 +50,11 @@ const TOOLS: &[(&str, &str, &str)] = &[
         "file.export",
         "Use for PNG, SVG or PDF previews in the render-and-look loop; equivalent to run_command file.export. Use export for deliverables.",
     ),
-    ("list_commands", "engine.commands", "Use to discover command schemas before run_command; equivalent to run_command engine.commands."),
+    (
+        "list_commands",
+        "engine.commands",
+        "Lists every command id with its parameter names. Pass ids for the full schemas of the commands you will use; detail full returns all schemas (about 70 KB).",
+    ),
     (
         "run_command",
         "engine.execute",
@@ -64,9 +68,13 @@ const TOOLS: &[(&str, &str, &str)] = &[
     (
         "inspect_document",
         "document.inspect",
-        "Use for a document overview with page/sections/cells filters; equivalent to run_command document.inspect. Use inspect_shape for one shape.",
+        "Compact document outline by default. Filter by page, find or ids; request sections or cells for detail, including style for copying formats.",
     ),
-    ("inspect_shape", "shape.inspect", "Use for focused shape inspection with cells/sections filters; equivalent to run_command shape.inspect."),
+    (
+        "inspect_shape",
+        "shape.inspect",
+        "Use for focused shape inspection with cells/sections filters; style returns parameters for copying formats. Equivalent to run_command shape.inspect.",
+    ),
     ("sheet_get", "sheet.get", "Use for one evaluated ShapeSheet cell with formula/cache/units; equivalent to run_command sheet.get."),
     ("sheet_set", "sheet.set", "Use for a direct ShapeSheet cell edit; equivalent to run_command sheet.set."),
     (
@@ -116,6 +124,12 @@ pub fn call_tool(b: &mut dyn Backend, name: &str, args: &Value) -> ToolResult {
         }
         let mut command = *command;
         let mut params = args.clone();
+        if name == "list_commands" && args.get("detail").is_none() && args.get("ids").is_none() {
+            params["detail"] = json!("summary");
+        }
+        if name == "inspect_document" && args.get("sections").is_none() && args.get("cells").is_none() {
+            params["sections"] = json!(["outline"]);
+        }
         if name == "connect" {
             let mode = args
                 .get("mode")

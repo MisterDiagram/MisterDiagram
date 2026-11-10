@@ -91,7 +91,7 @@ fn lifecycle_and_all_seventeen_tools_honor_parameters() {
     assert_eq!(stencils["stencils"][1]["name"], "original.vssx");
     assert_eq!(call(&mut s, "stencil_close", json!({"stencil":1}))["closed"], 1);
     assert_eq!(call(&mut s, "stencil_list", json!({}))["stencils"].as_array().unwrap().len(), 1);
-    let doc = call(&mut s, "inspect_document", json!({}));
+    let doc = command(&mut s, "document.inspect", json!({}));
     let failed = rpc(
         &mut s,
         "tools/call",
@@ -103,7 +103,7 @@ fn lifecycle_and_all_seventeen_tools_honor_parameters() {
     );
     assert_eq!(failed["isError"], true);
     assert!(failed.to_string().contains("index 2 (command 3)"));
-    assert_eq!(call(&mut s, "inspect_document", json!({})), doc, "failed batch must restore full inspection");
+    assert_eq!(command(&mut s, "document.inspect", json!({})), doc, "failed batch must restore full inspection");
 }
 
 #[test]

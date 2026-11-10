@@ -335,6 +335,15 @@ impl<'a> Evaluator<'a> {
         out.sort_by(|a, b| a.pos.total_cmp(&b.pos));
         out
     }
+    /// Resolve the first effective formatting rows using the renderer's text rules,
+    /// independently of which rows the text's run markers select.
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/character-section
+    /// https://learn.microsoft.com/en-us/office/client-developer/visio/paragraph-section
+    pub fn first_text_style(&mut self, scope: Scope) -> (RunProps, ParaProps) {
+        let character = self.section_row_indices(scope, "Character", 0).first().copied().unwrap_or(0);
+        let paragraph = self.section_row_indices(scope, "Paragraph", 0).first().copied().unwrap_or(0);
+        (self.run_props(scope, character), self.para_props(scope, paragraph, 0))
+    }
     /// Parse cp/pp/tp run markers and field display text, preserving the formatting of every run.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/cp-element-text_type-complextypevisio-xml
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/pp-element-text_type-complextypevisio-xml

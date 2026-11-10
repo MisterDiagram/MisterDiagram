@@ -1,5 +1,14 @@
 # Gaps
 
+## Compact inspection (M5.141)
+
+Command summaries, page outlines, label search, ordered IDs and resolved style
+queries are implemented with synthetic tests in `inspect_compact` and MCP
+`compact`. Explicit text inspection omits absent text-transform cells. What the
+native application reports for such absent cells remains an open question; the
+evaluator is unchanged. Reference:
+[Text Transform](https://learn.microsoft.com/en-us/office/client-developer/visio/text-transform-section).
+
 ## Legacy fill formulas (M5.136)
 
 Legacy `THEME()` fill properties use the measured User selectors independently
