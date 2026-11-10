@@ -1,10 +1,34 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-beta.6
 
-- **Fonts set by commands now open correctly in Visio:** Saved drawings retain the fonts you choose. Older files keep their existing font values until you reapply the font.
+Cheaper agent sessions and a font fix. An MCP client that looks things up before each edit used
+to receive every command schema (about 70 KB) and a detailed page listing each time; lookups
+are now compact by default, and fonts set by a command open in Visio as the font you chose
+(#56, the font item; witnessed in Visio 2021).
 
-- **Smaller MCP lookups:** Compact command lists and page outlines reduce inspection replies. Fetch selected schemas, find labels directly, and copy resolved fill, line and text styles. Command calls and batches now use the same compact inspection defaults, with explicit options for full listings.
+- **Smaller MCP lookups:** `list_commands` returns each command id with its parameter names
+  (about 9 KB); pass `ids` for the full schemas of the commands you will use.
+  `inspect_document` returns a page outline (ids, bounds, text, connector links); `find`
+  returns the shapes with a given label, `ids` the shapes you name, and the `style` section
+  the fill, line and text values in the form the format commands accept, for copying a look.
+  `run_command` and `batch` items that call `document.inspect` or `engine.commands` get the
+  same compact defaults. The full forms stay available: `detail:"full"` and
+  `sections:["listing"]`. The CLI, the engine and the MCP resources keep their full defaults.
+- **Fonts set by commands now open correctly in Visio:** a font chosen through `format.text`
+  or a drawing command is saved by name, as Visio saves it. Files authored by beta.5 and
+  earlier keep their old value until the font is applied again; untouched content is not
+  rewritten.
+
+Measured on nine scripted agent edits against three real drawings, MCP replies total 82% fewer
+bytes than beta.5 (2.94 MB to 0.53 MB); a page of 248 shapes that was over the inspection
+budget now outlines in 18 KB. How much of that reaches the bill depends on the client: one that
+puts every tool reply in the model's context gains the most. Rendered output (PNG, SVG, PDF,
+PowerPoint) is byte-identical to beta.5 on every witness.
+Known gaps: an MCP client written against beta.5 that relied on the detailed default of
+`list_commands`, `inspect_document`, or `run_command` with the two inspection commands must
+ask for the full form by name; inspection is not paginated; text can still wrap inside a long
+word where Visio keeps it whole (#118).
 
 ## 0.1.0-beta.5
 
