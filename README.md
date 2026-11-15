@@ -16,8 +16,8 @@ It reads and writes Visio drawings, stencils and templates, renders them to PNG,
 and exports them to PowerPoint. Each claim below has been measured against what Visio 2021 (and
 PowerPoint 2021, for the export) does with the same file.
 
-**Download:** [MisterDiagram 0.1.0-beta.6](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-beta.6),
-the sixth beta (compact MCP lookups for cheaper agent sessions, fonts by name), for macOS
+**Download:** [MisterDiagram 0.1.0-beta.7](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-beta.7),
+the seventh beta (line breaks that follow Visio, safer output files), for macOS
 (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
@@ -48,7 +48,7 @@ shapes, search and open stencils, drop masters, connect shapes, read and set Sha
 and run any engine command or a batch of them. [docs/mcp.md](docs/mcp.md) lists them with examples, including the office, SAN and
 fabric drawings the tests build.
 
-## What works today (2026-11-10, 0.1.0-beta.6)
+## What works today (2026-11-15, 0.1.0-beta.7)
 
 - **Open** .vsdx, .vssx and .vstx files, and the macro-enabled .vsdm, .vssm and .vstm (the VBA
   is dropped). Every stencil and template that ships with Visio 2021 opens.
@@ -130,9 +130,8 @@ Rendering is close to Visio, but it is not complete appearance or cell parity. T
 - PowerPoint export approximates what PowerPoint cannot hold: pattern fills, shadows, compound
   lines and line jumps ([details](docs/gaps.md#powerpoint-export-partial)).
 - Authoring large drawings is slow ([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39)).
-- Open tester reports: [#88, #91, #103 and #118](https://github.com/MisterDiagram/MisterDiagram/issues)
-  (a `THEME()` colour argument, the Text Callout cycle, SVG import, text wrapping inside a
-  long word).
+- Open tester reports: [#88, #91 and #103](https://github.com/MisterDiagram/MisterDiagram/issues)
+  (a `THEME()` colour argument, the Text Callout cycle, SVG import).
 
 Every gap, with its measurements, is in [docs/gaps.md](docs/gaps.md).
 
@@ -149,8 +148,9 @@ masters with several top-level shapes remain limited. Large-drawing authoring is
 ([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39); measurements in
 docs/gaps.md). From Microsoft's template catalogue, filed and open: `THEME()` with a colour
 argument (#88) and the Text Callout cycle (#91). From the first batch of real company files,
-filed and open: SVG import (#103). The 2026-11-03 batch (#112 to #117) is closed. Text can wrap inside a long word at `_`, `:`
-or `}` where Visio keeps it on one line (#118). Text in
+filed and open: SVG import (#103). The 2026-11-03 batch (#112 to #117) is closed. A
+drawing that already holds an error formula (`#DIV/0!`, `#CYCLE!`) can refuse edits, and SVG
+export of a very large page can stop at the render pixel limit (both reported on #87). Text in
 an embedded picture that uses a symbol font or glyph indexes stays as outlines in SVG. One
 field page sits about 15 px off Visio's image (a small aspect difference). Gradient
 directions 10 to 13 keep a corner fallback, and gradients
@@ -165,23 +165,19 @@ elsewhere); the 28 of 29 geometry witnesses still hold.
 
 </details>
 
-## New in 0.1.0-beta.6
+## New in 0.1.0-beta.7
 
-- MCP lookups are compact. `list_commands` returns command ids with parameter names (about
-  9 KB where it was 70 KB) and full schemas only for the `ids` you ask for; `inspect_document`
-  returns a page outline, finds shapes by label with `find`, and reports fill, line and text
-  values through the `style` section in the form the format commands accept. `run_command` and
-  `batch` get the same defaults; `detail:"full"` and `sections:["listing"]` return the full
-  forms.
-- Fonts set by a command open in Visio as the font you chose. The font is saved by name, as
-  Visio saves it (witnessed in Visio 2021); files from earlier builds keep their old value
-  until the font is applied again.
+- Line breaks follow Visio at punctuation (#118). Labels keep text together after `}`, `|`,
+  `!`, `?`, an ellipsis and the hyphen U+2010, and can wrap after `\`, and after `/` or `-`
+  before a digit. A word that does not fit still breaks at the last character that fits.
+- `render` publishes each output by writing a temporary file and renaming it, so a failed
+  write leaves an existing file intact; a destination symlink is replaced, not followed.
+- zip 9.5 and quick-xml 0.41, with a daily advisory check on the repository.
 
-Against beta.5, nine scripted agent edits on three real drawings draw 82% fewer bytes of MCP
-replies (2.94 MB to 0.53 MB), and a 248-shape page that was over the inspection budget outlines
-in 18 KB. The saving on a model bill depends on the client. PNG, SVG, PDF and PowerPoint
-output is byte-identical on every witness (all 123 field images, all 698 corpus lines). The
-full list of changes is in [CHANGELOG.md](CHANGELOG.md).
+Against Visio 2021 on 186 synthetic shapes, 182 break where Visio breaks (148 on beta.6), and
+the five blocks of the drawing in #118 all match. Against beta.6, written packages are
+byte-identical and only five timeline pages with dates change in the field render. The full
+list of changes is in [CHANGELOG.md](CHANGELOG.md).
 
 ## Testers wanted
 

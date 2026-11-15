@@ -1,24 +1,32 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-beta.7
 
-- **Dependency update:** zip 9.5 addresses GHSA-m665-v7pm-7grj, and quick-xml 0.41
-  addresses RUSTSEC-2026-0194 and RUSTSEC-2026-0195. The two quick-xml issues were
-  not reachable through MisterDiagram's own parsing; this update keeps the
-  dependency current and the advisory check clean. Four refusal messages for
-  malformed packages are reworded; written packages keep their bytes.
+Line breaks that follow Visio, safer output files and current dependencies.
 
-- **Safer output files:** rendering publishes each completed output atomically, so a
-  failed write leaves an existing file intact. Destination symlinks are replaced
-  and their old targets are left untouched. New renders, saves and exports use
-  the usual file permissions from your process umask (0644 under umask 022);
-  existing files keep their permissions. New saves and exports previously used 0600.
+- **Line breaks follow Visio at punctuation (#118):** labels keep text together after `}`, `|`,
+  `!`, `?`, an ellipsis and the hyphen U+2010, and can wrap after `\`, and after `/` or `-`
+  when a digit follows a letter or digit (dates such as 1/1/2026). A word that does not fit
+  still breaks at the last character that fits, as in Visio.
+- **Safer output files:** `render` writes each output to a temporary file and renames it, so a
+  failed write leaves an existing file intact. A destination symlink is replaced and the file
+  it pointed at is left untouched. New renders, saves and exports get the usual permissions
+  from your umask (0644 under umask 022) where saves and exports used 0600; existing files
+  keep their permissions.
+- **Dependency update:** zip 9.5 addresses GHSA-m665-v7pm-7grj, and quick-xml 0.41 addresses
+  RUSTSEC-2026-0194 and RUSTSEC-2026-0195. The two quick-xml issues were not reachable through
+  MisterDiagram's own parsing. Four refusal messages for malformed packages are reworded;
+  written packages keep their bytes. A daily advisory check now runs on the repository.
 
-- **Line breaks follow Visio at punctuation:** labels now keep text together after
-  closing braces, vertical bars, exclamation marks, question marks, ellipses and
-  hyphens (U+2010), and wrap after backslashes and within letter-or-digit sequences
-  separated by a slash or hyphen before a digit (#118). Long words still break at
-  the last character that fits.
+Measured against Visio 2021 (16.0.20527) on 186 synthetic shapes: 182 break where Visio breaks
+(148 on beta.6), and the five blocks of the drawing in #118 all match (three on beta.6). Against
+beta.6, five timeline pages with dates move by under 0.05 in distance to Visio's image (three
+closer, two further) and every other field page is unchanged; the corpus check improves on 14
+text-metric totals and no render line changes. Written packages are byte-identical.
+Known gaps: at a soft hyphen (U+00AD) the break is taken without the hyphen Visio draws, and a
+zero-width space (U+200B) is not yet matched; a drawing that already holds an error formula
+(`#DIV/0!`, `#CYCLE!`) can refuse edits, and SVG export of a very large page can stop at the
+render pixel limit (both reported on #87).
 
 ## 0.1.0-beta.6
 
