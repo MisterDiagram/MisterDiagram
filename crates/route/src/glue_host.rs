@@ -53,12 +53,20 @@ fn bounds(e: &mut Evaluator<'_>, page: u32, shape: u32) -> Result<BoxShape, Stri
         let col = |name: &str| misterdiagram_vsdx::evaluate::cell_name(sec, row, 0, &cell(name, 0, None)).map_err(|e| e.to_string());
         let x = number(e, scope, &named.name)?;
         let y = number(e, scope, &col("Y")?)?;
-        // Missing ordinary connection direction/type cells read as zero here only.
+        // Missing connection direction/type cells read as zero here only.
         // Resolved names include inherited cells; present errors still use number().
         // https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section
         let mut optional = |column: &str| {
+            let abcd = row.row_type.as_deref() == Some("ConnectionABCD");
+            let column = match (abcd, column) {
+                (true, "DirX") => "A",
+                (true, "DirY") => "B",
+                (true, "Type") => "C",
+                _ => column,
+            };
             let name = col(column)?;
-            if matches!(row.row_type.as_deref(), None | Some("Connection")) && !present.contains(&name.to_ascii_lowercase()) {
+            if matches!(row.row_type.as_deref(), None | Some("Connection") | Some("ConnectionABCD")) && !present.contains(&name.to_ascii_lowercase())
+            {
                 Ok(0.)
             } else {
                 number(e, scope, &name)
@@ -691,7 +699,11 @@ mod tests {
             if row_type == "Connection" {
                 row.cells.retain(|cell| cell.name != "Y");
             }
-            assert_eq!(bounds(&mut Evaluator::new(&doc).unwrap(), 0, 1).err().unwrap(), "#REF!");
+            if row_type == "ConnectionABCD" {
+                assert_eq!(bounds(&mut Evaluator::new(&doc).unwrap(), 0, 1).unwrap().points[0].1, [0., 0.]);
+            } else {
+                assert_eq!(bounds(&mut Evaluator::new(&doc).unwrap(), 0, 1).err().unwrap(), "#REF!");
+            }
             if row_type != "Connection" {
                 doc.pages[0].shapes[0].sheet.sections.last_mut().unwrap().rows[0]
                     .cells
@@ -704,6 +716,81 @@ mod tests {
             doc.pages[0].shapes[0].sheet.sections.last_mut().unwrap().rows[0].cells.push(cell(column, 1000001, None));
             assert_eq!(bounds(&mut Evaluator::new(&doc).unwrap(), 0, 1).err().unwrap(), "glue coordinate limit");
         }
+    }
+    // Contributor-original ABCD rows for the connection-points-section contract.
+    fn abcd_row(master: bool, named: bool) -> Document {
+        let mut doc = partial_row(master, false);
+        let convert = |row: &mut misterdiagram_model::Row| {
+            row.row_type = Some("ConnectionABCD".into());
+            row.name = named.then(|| "Port".into());
+        };
+        convert(&mut doc.pages[0].shapes[0].sheet.sections.last_mut().unwrap().rows[0]);
+        if master {
+            convert(&mut doc.masters[0].shapes[0].sheet.sections.last_mut().unwrap().rows[0]);
+        }
+        doc
+    }
+    #[test]
+    fn abcd_rows_read_direction_and_kind_from_abc_without_reading_d() {
+        for named in [false, true] {
+            for (a, b, c) in [(-1., 0., 0.), (0., 1., 0.), (-1., 0.5, 2.), (-1., 0., 1.)] {
+                let mut doc = abcd_row(false, named);
+                let row = &mut doc.pages[0].shapes[0].sheet.sections.last_mut().unwrap().rows[0];
+                row.cells.extend([cell("A", a, None), cell("B", b, None), cell("C", c, None), cell("D", 0, Some("Height/0".into()))]);
+                // Legacy column names must not shadow the ABCD values.
+                row.cells.extend([cell("DirX", 9, None), cell("DirY", 9, None), cell("Type", 1, None)]);
+                let actual = bounds(&mut Evaluator::new(&doc).unwrap(), 0, 1).unwrap();
+                if c == 1. {
+                    assert!(actual.points.is_empty());
+                } else {
+                    assert_eq!(actual.points.len(), 1);
+                    assert_eq!(actual.points[0].1, [a, b]);
+                }
+            }
+            for missing in ["A", "B", "C"] {
+                let mut doc = abcd_row(false, named);
+                let row = &mut doc.pages[0].shapes[0].sheet.sections.last_mut().unwrap().rows[0];
+                row.cells.extend(["A", "B", "C"].into_iter().filter(|name| *name != missing).map(|name| cell(name, 0, None)));
+                assert_eq!(bounds(&mut Evaluator::new(&doc).unwrap(), 0, 1).unwrap().points[0].1, [0., 0.]);
+            }
+        }
+    }
+    #[test]
+    fn abcd_rows_inherit_nonzero_direction_and_kind() {
+        for named in [false, true] {
+            for kind in [0, 1, 2] {
+                let mut doc = abcd_row(true, named);
+                let local = &doc.pages[0].shapes[0].sheet.sections.last().unwrap().rows[0];
+                assert!(local.cells.iter().all(|cell| !matches!(cell.name.as_str(), "A" | "B" | "C")));
+                let row = &mut doc.masters[0].shapes[0].sheet.sections.last_mut().unwrap().rows[0];
+                row.cells.extend([cell("A", -1, None), cell("B", 0.5, None), cell("C", kind, None)]);
+                let actual = bounds(&mut Evaluator::new(&doc).unwrap(), 0, 1).unwrap();
+                if kind == 1 {
+                    assert!(actual.points.is_empty());
+                } else {
+                    assert_eq!(actual.points.len(), 1);
+                    assert_eq!(actual.points[0].1, [-1., 0.5]);
+                }
+            }
+        }
+    }
+    #[test]
+    fn abcd_rows_present_errors_and_limits_remain_strict() {
+        for master in [false, true] {
+            for named in [false, true] {
+                for column in ["A", "B", "C"] {
+                    for (value, formula, expected) in [(0, Some("Height/0".into()), "#DIV/0!"), (1000001, None, "glue coordinate limit")] {
+                        let mut doc = abcd_row(master, named);
+                        let shape = if master { &mut doc.masters[0].shapes[0] } else { &mut doc.pages[0].shapes[0] };
+                        shape.sheet.sections.last_mut().unwrap().rows[0].cells.push(cell(column, value, formula));
+                        assert_eq!(bounds(&mut Evaluator::new(&doc).unwrap(), 0, 1).err().unwrap(), expected);
+                    }
+                }
+            }
+        }
+        let mut doc = abcd_row(false, false);
+        doc.pages[0].shapes[0].sheet.sections.last_mut().unwrap().rows[0].cells.retain(|cell| cell.name != "Y");
+        assert_eq!(bounds(&mut Evaluator::new(&doc).unwrap(), 0, 1).err().unwrap(), "#REF!");
     }
     #[test]
     fn predecessor_endpoint_memo_rejects_assignment_effects() {

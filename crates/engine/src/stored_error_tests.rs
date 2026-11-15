@@ -320,3 +320,162 @@ fn connection_rows_stored_direction_error_keeps_saved_value() {
         assert_eq!(cell(&patch(&s, str::to_owned), 1, "Connections.DirX"), original);
     }
 }
+
+// Both row forms share the same glue contract; these drawings are original.
+// https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section
+fn abcd_connection(master: bool, named: bool, full: bool, perimeter: bool) -> Session {
+    let mut s = partial_connection(master, false, perimeter);
+    let doc = Arc::make_mut(&mut s.document);
+    let convert = |shape: &mut misterdiagram_model::Shape, values: bool| {
+        let row = shape
+            .sheet
+            .sections
+            .iter_mut()
+            .find(|section| section.name == "Connection")
+            .unwrap()
+            .rows
+            .iter_mut()
+            .find(|row| row.index == Some(1))
+            .unwrap();
+        row.row_type = Some("ConnectionABCD".into());
+        row.attributes.insert("T".into(), "ConnectionABCD".into());
+        if named {
+            row.name = Some("Port".into());
+            row.attributes.insert("N".into(), "Port".into());
+        }
+        if values {
+            row.cells.extend([("A", -1), ("B", 0), ("C", 0), ("D", 0)].map(|(name, value)| misterdiagram_model::Cell {
+                name: name.into(),
+                value: Some(value.to_string()),
+                ..Default::default()
+            }));
+        }
+    };
+    convert(&mut doc.pages[0].shapes[0], full && !master);
+    if master {
+        convert(&mut doc.masters[0].shapes[0], full);
+    }
+    patch(&s, |xml| {
+        if !master {
+            return xml.to_owned();
+        }
+        // Import explicit inherited rows after the authoring writer omits them.
+        let x = if perimeter { "0" } else { "0.2" };
+        let name = if named { r#" N="Port""# } else { "" };
+        let section = format!(
+            r#"<Section N="Connection"><Row IX="0" T="Connection"><Cell N="X" F="Inh" V="0.75"/><Cell N="Y" F="Inh" V="0.5"/></Row><Row IX="1" T="ConnectionABCD"{name}><Cell N="X" F="Inh" V="{x}"/><Cell N="Y" F="Inh" V="0.3"/></Row></Section>"#
+        );
+        assert!(!xml.split_once("</Shape>").unwrap().0.contains(r#"<Section N="Connection">"#));
+        xml.replacen("<Text>", &format!("{section}<Text>"), 1)
+    })
+}
+#[test]
+fn abcd_rows_static_glue_moves_and_roundtrips_without_added_cells() {
+    for master in [false, true] {
+        for named in [false, true] {
+            for full in [false, true] {
+                let mut s = abcd_connection(master, named, full, full);
+                let original = connection_section(&s);
+                for column in ["A", "B", "C"] {
+                    let name = if named { format!("Connections.Port.{column}") } else { format!("Connections.{column}[2]") };
+                    if full {
+                        assert_eq!(number(&s, 1, &name), if column == "A" { -1. } else { 0. });
+                    } else {
+                        assert_eq!(
+                            s.execute("sheet.get", &json!({"id":1,"name":name})).unwrap_err().to_string(),
+                            "cell does not exist; add its section and row first"
+                        );
+                    }
+                }
+                let reply = run(&mut s, "shape.draw.line", json!({"x1":6,"y1":3,"x2":7,"y2":3}));
+                let id = reply["id"].as_u64().unwrap() as u32;
+                let point = if named { "Connections.Port.X" } else { "Connections.X2" };
+                run(&mut s, "connect.static", json!({"id":id,"end":"end","target":1,"point":point}));
+                assert!((number(&s, id, "EndX") - if full { 2.0 } else { 2.2 }).abs() < 1e-9);
+                assert!((number(&s, id, "EndY") - 5.3).abs() < 1e-9);
+                run(&mut s, "shape.move", json!({"id":1,"x":3.25,"y":5.5}));
+                assert_eq!(number(&s, 3, "BeginX"), 3.25);
+                assert_eq!(number(&s, 3, "BeginY"), 5.5);
+                assert!((number(&s, id, "EndX") - if full { 2.5 } else { 2.7 }).abs() < 1e-9);
+                assert!((number(&s, id, "EndY") - 5.3).abs() < 1e-9);
+                assert_eq!(connection_section(&s), original);
+                assert_eq!(connection_section(&patch(&s, str::to_owned)), original);
+            }
+        }
+    }
+}
+#[test]
+fn abcd_rows_dynamic_glue_matches_ordinary_direction_and_kind() {
+    for (a, b, c) in [(-1., 0., 0.), (0., 1., 0.), (-1., 0.5, 2.), (-1., 0., 1.)] {
+        let mut abcd = abcd_connection(false, false, true, true);
+        let row = &mut Arc::make_mut(&mut abcd.document).pages[0].shapes[0]
+            .sheet
+            .sections
+            .iter_mut()
+            .find(|section| section.name == "Connection")
+            .unwrap()
+            .rows[1];
+        for (name, value) in [("A", a), ("B", b), ("C", c)] {
+            row.cells.iter_mut().find(|cell| cell.name == name).unwrap().value = Some(value.to_string());
+        }
+        let mut ordinary = abcd.clone();
+        let row = &mut Arc::make_mut(&mut ordinary.document).pages[0].shapes[0]
+            .sheet
+            .sections
+            .iter_mut()
+            .find(|section| section.name == "Connection")
+            .unwrap()
+            .rows[1];
+        row.row_type = Some("Connection".into());
+        row.attributes.insert("T".into(), "Connection".into());
+        for cell in &mut row.cells {
+            cell.name = match cell.name.as_str() {
+                "A" => "DirX",
+                "B" => "DirY",
+                "C" => "Type",
+                "D" => "AutoGen",
+                other => other,
+            }
+            .into();
+        }
+        let mut endpoints = vec![];
+        for mut s in [abcd, ordinary] {
+            run(&mut s, "connect.dynamic", json!({"id":3,"end":"begin","target":1}));
+            let before = [number(&s, 3, "BeginX"), number(&s, 3, "BeginY")];
+            run(&mut s, "shape.move", json!({"id":1,"x":3.25,"y":5.5}));
+            endpoints.push((before, [number(&s, 3, "BeginX"), number(&s, 3, "BeginY")]));
+        }
+        assert_eq!(endpoints[0], endpoints[1]);
+    }
+}
+#[test]
+fn abcd_rows_present_failing_cells_refuse_and_restore() {
+    for named in [false, true] {
+        for column in ["A", "B", "C"] {
+            let mut s = abcd_connection(false, named, true, true);
+            let name = if named { format!("Connections.Port.{column}") } else { format!("Connections.{column}[2]") };
+            refused(&mut s, json!({"id":1,"name":name,"formula":"Height/0"}), "#DIV/0!");
+        }
+    }
+}
+#[test]
+fn abcd_rows_stored_a_error_keeps_saved_value_and_formula() {
+    for error in [false, true] {
+        let s = abcd_connection(false, false, true, true);
+        let mut s = patch(&s, |xml| {
+            xml.replacen(
+                r#"<Cell N="A" V="-1"/>"#,
+                if error { r##"<Cell E="#DIV/0!" F="Height/0" N="A" V="-1"/>"## } else { r#"<Cell F="Height/0" N="A" V="-1"/>"# },
+                1,
+            )
+        });
+        let original = cell(&s, 1, "Connections.A[2]");
+        assert_eq!(original.formula.as_deref(), Some("Height/0"));
+        run(&mut s, "connect.dynamic", json!({"id":3,"end":"begin","target":1}));
+        run(&mut s, "shape.move", json!({"id":1,"x":3.25,"y":5.5}));
+        assert!((number(&s, 3, "BeginX") - 2.5).abs() < 1e-9);
+        assert!((number(&s, 3, "BeginY") - 5.3).abs() < 1e-9);
+        assert_eq!(cell(&s, 1, "Connections.A[2]"), original);
+        assert_eq!(cell(&patch(&s, str::to_owned), 1, "Connections.A[2]"), original);
+    }
+}

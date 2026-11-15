@@ -532,3 +532,8 @@ Progress M5.116: shared fit-to-drawing export and explicit margins added to CLI 
   in ordinary connection rows no longer block edits. Synthetic `connection_rows`
   tests cover inheritance, movement, glue, unchanged storage and present errors.
   Reference: [connection points](https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section).
+
+- M5.152: Connection-point scores remain unchanged. Both connection row forms
+  supply direction and type during glue preparation; synthetic `abcd_rows` tests
+  cover inherited values, errors, movement, glue and unchanged storage.
+  Reference: [connection points](https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section).
