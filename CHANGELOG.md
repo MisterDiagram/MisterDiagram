@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- SVG and PDF exports keep the size of large pages, with existing per-side and image limits (#120).
 - Drawings with stored error formulas can be inspected and edited using their saved values (#119). New or rewritten failing formulas still refuse edits.
 
 ## 0.1.0-beta.7

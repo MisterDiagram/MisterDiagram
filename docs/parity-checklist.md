@@ -523,3 +523,7 @@ Progress M5.116: shared fit-to-drawing export and explicit margins added to CLI 
 - M5.149: Formula and automation scores remain unchanged. Stored-error recovery
   preserves source cells while keeping new errors strict; synthetic `stored_errors`
   tests cover publication, inspection, warnings and history. Reference: [stored error limits](gaps.md#stored-error-cells-119-m5149).
+
+- M5.150: Vector export scores remain unchanged. Physical SVG/PDF canvases keep
+  per-side limits while raster and fitted outputs retain their caps; original
+  `vector_page_limits` tests cover dimensions and mixed content. Reference: [vector page limits](gaps.md#vector-page-size-120-m5150).

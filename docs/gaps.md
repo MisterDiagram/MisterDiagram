@@ -1,5 +1,14 @@
 # Gaps
 
+## Vector page size (#120, M5.150)
+
+SVG and PDF use the physical page size without the raster canvas area cap. Each
+side remains limited to 65,535 pixels, about 682 inches at 96 dpi and scale 1.
+Fitted output, PNG and embedded raster content retain their existing limits;
+presentation export keeps its existing page scaling. Original `vector_page_limits`
+tests cover page dimensions, retained limits, shadows and embedded pictures.
+Reference: [PageWidth](https://learn.microsoft.com/en-us/office/client-developer/visio/pagewidth-cell-page-properties-section).
+
 ## Stored error cells (#119, M5.149)
 
 Edits retry once after strict publication fails, using saved values only for cells

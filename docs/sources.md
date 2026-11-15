@@ -243,7 +243,7 @@ that the page was consulted during this session.
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pages-elementvisio-xml> | `crates/vsdx/src/write/format.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pagescale-cell-page-properties-section> | `crates/engine/src/pages.rs`, `crates/render/src/scene.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pagesheet-element-page_type-complextypevisio-xml> | `crates/model/src/lib.rs`, `crates/model/src/skeleton.rs` |
-| <https://learn.microsoft.com/en-us/office/client-developer/visio/pagewidth-cell-page-properties-section> | `crates/engine/src/pages.rs`, `crates/render/src/scene.rs` |
+| <https://learn.microsoft.com/en-us/office/client-developer/visio/pagewidth-cell-page-properties-section> | `crates/engine/src/pages.rs`, `crates/render/src/scene.rs`, `crates/render/tests/vector_page_limits.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/par-function> | `crates/route/src/static_glue.rs`, `crates/sheet/src/functions/points.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/paragraph-section> | `crates/vsdx/src/evaluate/text.rs` |
 | <https://learn.microsoft.com/en-us/office/client-developer/visio/pathlength-function> | `crates/sheet/src/eval.rs`, `crates/sheet/src/functions/path_queries.rs`, `crates/vsdx/src/evaluate/path.rs` |

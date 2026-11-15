@@ -67,7 +67,7 @@ pub fn render(scenes: &[Scene], options: Options) -> Result<Vec<u8>, String> {
             let (w, h, view) = scene.canvas(options)?;
             (f64::from(w) * 0.75 / options.scale, f64::from(h) * 0.75 / options.scale, view)
         };
-        let pattern_view = if options.page_canvas && !options.fit { scene.canvas(options)?.2 } else { pixel_view };
+        let pattern_view = if options.page_canvas && !options.fit { scene.pattern_canvas(options)?.2 } else { pixel_view };
         let view = Affine::scale(72. / (96. * options.scale)) * pixel_view;
         let size = Size::from_wh(width as f32, height as f32).ok_or("PDF page size")?;
         let mut page = pdf.start_page_with(krilla::page::PageSettings::new(size));

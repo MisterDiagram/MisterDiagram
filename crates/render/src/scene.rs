@@ -198,8 +198,13 @@ impl Scene {
             let (w, h, view) = self.fit_canvas(options)?;
             Ok((w.ceil() as u16, h.ceil() as u16, view))
         } else {
-            self.canvas_bounds(options, self.bounds)
+            // Raster consumers, including presentation export, retain their pixel cap.
+            self.canvas_bounds(Options { page_canvas: false, ..options }, self.bounds)
         }
+    }
+    /// Drawing-space transform for vector pattern placement, without raster area limits.
+    pub(crate) fn pattern_canvas(&self, options: Options) -> Result<(u16, u16, Affine), String> {
+        self.canvas_bounds(options, self.bounds)
     }
     /// Native PNG drawing extent, shared by all fitted output formats. Padding
     /// translates the existing drawing view without rescaling its geometry.
@@ -438,7 +443,7 @@ impl Scene {
         let text_extent = |v: f64| (v * dpi + 0.5 - 1e-7).floor().max(1.);
         let w = if text_x { text_extent(b.width()) } else { extent(b.width()) };
         let h = if text_y { text_extent(b.height()) } else { extent(b.height()) };
-        if w > f64::from(u16::MAX) || h > f64::from(u16::MAX) || w * h > MAX_PIXELS as f64 {
+        if w > f64::from(u16::MAX) || h > f64::from(u16::MAX) || ((!options.page_canvas || options.fit) && w * h > MAX_PIXELS as f64) {
             return Err("render pixel limit".into());
         }
         let sx = if w > 2. && b.width() > 0. { (w - 2.) / b.width() } else { dpi };
