@@ -18,7 +18,7 @@ Line breaks that follow Visio, safer output files and current dependencies.
   MisterDiagram's own parsing. Four refusal messages for malformed packages are reworded;
   written packages keep their bytes. A daily advisory check now runs on the repository.
 
-Measured against Visio 2021 (16.0.20527) on 186 synthetic shapes: 182 break where Visio breaks
+Measured against Visio 2021 (16.0.20527) on 186 synthetic shapes: 181 break where Visio breaks
 (148 on beta.6), and the five blocks of the drawing in #118 all match (three on beta.6). Against
 beta.6, five timeline pages with dates move by under 0.05 in distance to Visio's image (three
 closer, two further) and every other field page is unchanged; the corpus check improves on 14

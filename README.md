@@ -174,7 +174,7 @@ elsewhere); the 28 of 29 geometry witnesses still hold.
   write leaves an existing file intact; a destination symlink is replaced, not followed.
 - zip 9.5 and quick-xml 0.41, with a daily advisory check on the repository.
 
-Against Visio 2021 on 186 synthetic shapes, 182 break where Visio breaks (148 on beta.6), and
+Against Visio 2021 on 186 synthetic shapes, 181 break where Visio breaks (148 on beta.6), and
 the five blocks of the drawing in #118 all match. Against beta.6, written packages are
 byte-identical and only five timeline pages with dates change in the field render. The full
 list of changes is in [CHANGELOG.md](CHANGELOG.md).
