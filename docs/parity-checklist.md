@@ -527,3 +527,8 @@ Progress M5.116: shared fit-to-drawing export and explicit margins added to CLI 
 - M5.150: Vector export scores remain unchanged. Physical SVG/PDF canvases keep
   per-side limits while raster and fitted outputs retain their caps; original
   `vector_page_limits` tests cover dimensions and mixed content. Reference: [vector page limits](gaps.md#vector-page-size-120-m5150).
+
+- M5.151: Connection-point scores remain unchanged. Missing direction and type cells
+  in ordinary connection rows no longer block edits. Synthetic `connection_rows`
+  tests cover inheritance, movement, glue, unchanged storage and present errors.
+  Reference: [connection points](https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section).

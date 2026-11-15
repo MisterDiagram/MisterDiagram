@@ -171,7 +171,7 @@ fn stored_errors_save_and_export_report_unique_fallbacks() {
 }
 
 #[test]
-fn stored_errors_partial_connection_row_without_direction_remains_refused() {
+fn stored_errors_partial_connection_row_without_direction_allows_edits() {
     let s = division(false);
     let mut s = patch(&s, |xml| {
         let (before, connection) = xml.split_once("<Section N=\"Connection\">").unwrap();
@@ -182,11 +182,141 @@ fn stored_errors_partial_connection_row_without_direction_remains_refused() {
     let errors = publication::stored_errors(&s.document).unwrap();
     assert!(!errors.is_empty());
     let mut candidate = s.document().clone();
-    assert_eq!(
-        misterdiagram_route::GlueHost::prepare_with_stored_errors(s.document(), &mut candidate, false, Arc::new(errors)).err().unwrap(),
-        "#REF!"
-    );
-    let before = bytes(&s);
-    assert_eq!(s.execute("shape.text", &json!({"id":2,"text":"changed"})).unwrap_err().to_string(), "#DIV/0!");
-    assert_eq!(bytes(&s), before);
+    misterdiagram_route::GlueHost::prepare_with_stored_errors(s.document(), &mut candidate, false, Arc::new(errors)).unwrap();
+    let original = cell(&s, 1, "Connections.Y1");
+    run(&mut s, "shape.text", json!({"id":2,"text":"changed"}));
+    run(&mut s, "shape.move", json!({"id":1,"x":3.25,"y":5.5}));
+    assert_eq!(number(&s, 3, "BeginX"), 3.25);
+    assert_eq!(number(&s, 3, "BeginY"), 5.5);
+    assert_eq!(cell(&s, 1, "Connections.Y1"), original);
+}
+
+// Contributor-original connection rows; no package fixture is required.
+// https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section
+fn partial_connection(master: bool, directions: bool, perimeter: bool) -> Session {
+    let mut s = control(true);
+    let doc = Arc::make_mut(&mut s.document);
+    let shape = &mut doc.pages[0].shapes[0];
+    let section = shape.sheet.sections.iter_mut().find(|section| section.name == "Connection").unwrap();
+    let mut cells = vec![
+        misterdiagram_model::Cell { name: "X".into(), value: Some(if perimeter { "0" } else { "0.2" }.into()), ..Default::default() },
+        misterdiagram_model::Cell { name: "Y".into(), value: Some("0.3".into()), ..Default::default() },
+    ];
+    if directions {
+        cells.extend(["DirX", "DirY"].map(|name| misterdiagram_model::Cell { name: name.into(), value: Some("0".into()), ..Default::default() }));
+    }
+    section.rows.push(misterdiagram_model::Row { index: Some(1), row_type: Some("Connection".into()), cells, ..Default::default() });
+    if master {
+        let mut source = shape.clone();
+        source.id = 10;
+        doc.masters[0].shapes = vec![source].into();
+        shape.master = Some(doc.masters[0].id);
+        shape.master_shape = Some(10);
+        for row in &mut shape.sheet.sections.iter_mut().find(|section| section.name == "Connection").unwrap().rows {
+            for cell in &mut row.cells {
+                cell.formula = Some("Inh".into());
+            }
+        }
+    }
+    patch(&s, |xml| {
+        if !master {
+            return xml.to_owned();
+        }
+        // Import explicit local Inh cells, which the normal authoring writer omits.
+        let x = if perimeter { "0" } else { "0.2" };
+        let directions = if directions { r#"<Cell N="DirX" F="Inh" V="0"/><Cell N="DirY" F="Inh" V="0"/>"# } else { "" };
+        let section = format!(
+            r#"<Section N="Connection"><Row IX="0" T="Connection"><Cell N="X" F="Inh" V="0.75"/><Cell N="Y" F="Inh" V="0.5"/></Row><Row IX="1" T="Connection"><Cell N="X" F="Inh" V="{x}"/><Cell N="Y" F="Inh" V="0.3"/>{directions}</Row></Section>"#
+        );
+        assert!(!xml.split_once("</Shape>").unwrap().0.contains(r#"<Section N="Connection">"#));
+        xml.replacen("<Text>", &format!("{section}<Text>"), 1)
+    })
+}
+fn connection_section(s: &Session) -> misterdiagram_model::Section {
+    s.document.pages[0].shapes[0].sheet.sections.iter().find(|section| section.name == "Connection").unwrap().clone()
+}
+#[test]
+fn connection_rows_partial_static_glue_moves_and_roundtrips() {
+    for master in [false, true] {
+        for directions in [false, true] {
+            let mut s = partial_connection(master, directions, false);
+            let original = connection_section(&s);
+            for name in
+                if directions { vec!["Connections.Type[2]"] } else { vec!["Connections.DirX[2]", "Connections.DirY[2]", "Connections.Type[2]"] }
+            {
+                assert_eq!(
+                    s.execute("sheet.get", &json!({"id":1,"name":name})).unwrap_err().to_string(),
+                    "cell does not exist; add its section and row first"
+                );
+            }
+            let reply = run(&mut s, "shape.draw.line", json!({"x1":6,"y1":3,"x2":7,"y2":3}));
+            let id = reply["id"].as_u64().unwrap() as u32;
+            run(&mut s, "connect.static", json!({"id":id,"end":"end","target":1,"point":"Connections.X2"}));
+            assert!((number(&s, id, "EndX") - 2.2).abs() < 1e-9);
+            assert!((number(&s, id, "EndY") - 5.3).abs() < 1e-9);
+            run(&mut s, "shape.move", json!({"id":1,"x":3.25,"y":5.5}));
+            assert_eq!(number(&s, 3, "BeginX"), 3.25);
+            assert_eq!(number(&s, 3, "BeginY"), 5.5);
+            assert!((number(&s, id, "EndX") - 2.7).abs() < 1e-9);
+            assert!((number(&s, id, "EndY") - 5.3).abs() < 1e-9);
+            assert_eq!(connection_section(&s), original);
+            let reopened = patch(&s, str::to_owned);
+            assert_eq!(connection_section(&reopened), original);
+        }
+    }
+}
+#[test]
+fn connection_rows_partial_dynamic_glue_matches_explicit_zero() {
+    for master in [false, true] {
+        let partial = partial_connection(master, false, true);
+        let mut explicit = partial.clone();
+        let row = &mut Arc::make_mut(&mut explicit.document).pages[0].shapes[0]
+            .sheet
+            .sections
+            .iter_mut()
+            .find(|section| section.name == "Connection")
+            .unwrap()
+            .rows[1];
+        row.cells.extend(["DirX", "DirY", "Type"].map(|name| misterdiagram_model::Cell {
+            name: name.into(),
+            value: Some("0".into()),
+            ..Default::default()
+        }));
+        let mut endpoints = vec![];
+        for mut s in [partial, explicit] {
+            run(&mut s, "connect.dynamic", json!({"id":3,"end":"begin","target":1}));
+            let before = [number(&s, 3, "BeginX"), number(&s, 3, "BeginY")];
+            run(&mut s, "shape.move", json!({"id":1,"x":3.25,"y":5.5}));
+            endpoints.push((before, [number(&s, 3, "BeginX"), number(&s, 3, "BeginY")]));
+        }
+        assert_eq!(endpoints[0], endpoints[1]);
+        assert!((endpoints[0].1[0] - 2.5).abs() < 1e-9);
+        assert!((endpoints[0].1[1] - 5.3).abs() < 1e-9);
+    }
+}
+#[test]
+fn connection_rows_present_direction_error_refuses_and_restores() {
+    for name in ["Connections.DirX", "Connections.DirY", "Connections.Type"] {
+        let mut s = partial_connection(false, false, false);
+        refused(&mut s, json!({"id":1,"name":name,"formula":"Height/0"}), "#DIV/0!");
+    }
+}
+#[test]
+fn connection_rows_stored_direction_error_keeps_saved_value() {
+    for error in [false, true] {
+        let mut s = partial_connection(false, true, true);
+        s = patch(&s, |xml| {
+            xml.replacen(
+                "<Cell N=\"DirX\" V=\"0\"/>",
+                if error { "<Cell E=\"#DIV/0!\" F=\"Height/0\" N=\"DirX\" V=\"1\"/>" } else { "<Cell F=\"Height/0\" N=\"DirX\" V=\"1\"/>" },
+                1,
+            )
+        });
+        let original = cell(&s, 1, "Connections.DirX");
+        assert_eq!(original.formula.as_deref(), Some("Height/0"));
+        run(&mut s, "shape.move", json!({"id":1,"x":3.25,"y":5.5}));
+        assert_eq!(number(&s, 3, "BeginX"), 3.25);
+        assert_eq!(cell(&s, 1, "Connections.DirX"), original);
+        assert_eq!(cell(&patch(&s, str::to_owned), 1, "Connections.DirX"), original);
+    }
 }

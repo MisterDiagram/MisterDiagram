@@ -39,7 +39,9 @@ fn bounds(e: &mut Evaluator<'_>, page: u32, shape: u32) -> Result<BoxShape, Stri
         max.y = max.y.max(p.y);
     }
     let mut points = vec![];
-    for named in e.resolved_named_cells(scope) {
+    let resolved = e.resolved_named_cells(scope);
+    let present: std::collections::HashSet<_> = resolved.iter().map(|n| n.name.to_ascii_lowercase()).collect();
+    for named in resolved {
         if named.cell.name != "X" || !named.section.is_some_and(|s| s.name == "Connection") {
             continue;
         }
@@ -51,9 +53,20 @@ fn bounds(e: &mut Evaluator<'_>, page: u32, shape: u32) -> Result<BoxShape, Stri
         let col = |name: &str| misterdiagram_vsdx::evaluate::cell_name(sec, row, 0, &cell(name, 0, None)).map_err(|e| e.to_string());
         let x = number(e, scope, &named.name)?;
         let y = number(e, scope, &col("Y")?)?;
-        let dx = number(e, scope, &col("DirX")?)?;
-        let dy = number(e, scope, &col("DirY")?)?;
-        let kind = number(e, scope, &col("Type")?)?;
+        // Missing ordinary connection direction/type cells read as zero here only.
+        // Resolved names include inherited cells; present errors still use number().
+        // https://learn.microsoft.com/en-us/office/client-developer/visio/connection-points-section
+        let mut optional = |column: &str| {
+            let name = col(column)?;
+            if matches!(row.row_type.as_deref(), None | Some("Connection")) && !present.contains(&name.to_ascii_lowercase()) {
+                Ok(0.)
+            } else {
+                number(e, scope, &name)
+            }
+        };
+        let dx = optional("DirX")?;
+        let dy = optional("DirY")?;
+        let kind = optional("Type")?;
         // Whole-shape glue walks the perimeter. Interior rows remain available
         // to explicit static glue, but must not stop dynamic walking (#60, #69).
         // Witness: Brief26b interior-one/two/cylinder and vendor-recalculated.
@@ -601,6 +614,97 @@ impl GlueHost {
 #[cfg(test)]
 mod tests {
     use super::*;
+    // Contributor-original rows exercising the connection-points-section contract.
+    fn partial_row(master: bool, directions: bool) -> Document {
+        use misterdiagram_model::{Row, Section};
+        let mut doc = drawing();
+        let shape = &mut doc.pages[0].shapes[0];
+        let mut cells = vec![cell("X", 0, None), cell("Y", 0.3, None)];
+        if directions {
+            cells.extend([cell("DirX", 0, None), cell("DirY", 0, None)]);
+        }
+        shape.sheet.sections.push(Section {
+            name: "Connection".into(),
+            rows: vec![Row { index: Some(1), row_type: Some("Connection".into()), cells, ..Default::default() }],
+            ..Default::default()
+        });
+        if master {
+            let mut source = shape.clone();
+            source.id = 10;
+            doc.masters[0].shapes = vec![source].into();
+            shape.master = Some(doc.masters[0].id);
+            shape.master_shape = Some(10);
+        }
+        doc
+    }
+    #[test]
+    fn connection_rows_missing_optional_cells_use_zero() {
+        for master in [false, true] {
+            for directions in [false, true] {
+                for row_type in [None, Some("Connection")] {
+                    for named in [false, true] {
+                        let mut doc = partial_row(master, directions);
+                        let row = &mut doc.pages[0].shapes[0].sheet.sections.last_mut().unwrap().rows[0];
+                        row.row_type = row_type.map(str::to_owned);
+                        row.name = named.then(|| "Port".into());
+                        let actual = bounds(&mut Evaluator::new(&doc).unwrap(), 0, 1).unwrap();
+                        assert!(!actual.points.is_empty());
+                        assert!(actual.points.iter().all(|(_, direction)| direction == &[0., 0.]));
+                    }
+                }
+            }
+        }
+        for missing in ["DirX", "DirY", "Type"] {
+            let mut doc = partial_row(false, false);
+            let row = &mut doc.pages[0].shapes[0].sheet.sections.last_mut().unwrap().rows[0];
+            row.cells.extend(["DirX", "DirY", "Type"].into_iter().filter(|name| *name != missing).map(|name| cell(name, 0, None)));
+            assert_eq!(bounds(&mut Evaluator::new(&doc).unwrap(), 0, 1).unwrap().points[0].1, [0., 0.]);
+        }
+    }
+    #[test]
+    fn connection_rows_inherit_direction_and_type() {
+        for kind in [0, 1, 2] {
+            let mut doc = partial_row(true, false);
+            let row = &mut doc.masters[0].shapes[0].sheet.sections.last_mut().unwrap().rows[0];
+            row.cells.extend([cell("DirX", 1, None), cell("DirY", 0.5, None), cell("Type", kind, None)]);
+            let actual = bounds(&mut Evaluator::new(&doc).unwrap(), 0, 1).unwrap();
+            if kind == 1 {
+                assert!(actual.points.is_empty());
+            } else {
+                assert_eq!(actual.points.len(), 1);
+                assert_eq!(actual.points[0].1, [1., 0.5]);
+            }
+        }
+    }
+    #[test]
+    fn connection_rows_present_errors_and_other_absences_remain_strict() {
+        for column in ["DirX", "DirY", "Type"] {
+            let mut doc = partial_row(false, false);
+            let row = &mut doc.pages[0].shapes[0].sheet.sections.last_mut().unwrap().rows[0];
+            row.cells.push(cell(column, 0, Some("Height/0".into())));
+            assert_eq!(bounds(&mut Evaluator::new(&doc).unwrap(), 0, 1).err().unwrap(), "#DIV/0!");
+        }
+        for row_type in ["Connection", "ConnectionABCD", "Unrecognized"] {
+            let mut doc = partial_row(false, false);
+            let row = &mut doc.pages[0].shapes[0].sheet.sections.last_mut().unwrap().rows[0];
+            row.row_type = Some(row_type.into());
+            if row_type == "Connection" {
+                row.cells.retain(|cell| cell.name != "Y");
+            }
+            assert_eq!(bounds(&mut Evaluator::new(&doc).unwrap(), 0, 1).err().unwrap(), "#REF!");
+            if row_type != "Connection" {
+                doc.pages[0].shapes[0].sheet.sections.last_mut().unwrap().rows[0]
+                    .cells
+                    .extend(["DirX", "DirY", "Type"].map(|name| cell(name, 0, None)));
+                assert!(bounds(&mut Evaluator::new(&doc).unwrap(), 0, 1).is_ok());
+            }
+        }
+        for column in ["DirX", "DirY", "Type"] {
+            let mut doc = partial_row(false, false);
+            doc.pages[0].shapes[0].sheet.sections.last_mut().unwrap().rows[0].cells.push(cell(column, 1000001, None));
+            assert_eq!(bounds(&mut Evaluator::new(&doc).unwrap(), 0, 1).err().unwrap(), "glue coordinate limit");
+        }
+    }
     #[test]
     fn predecessor_endpoint_memo_rejects_assignment_effects() {
         let mut d = misterdiagram_model::skeleton::document(false);
