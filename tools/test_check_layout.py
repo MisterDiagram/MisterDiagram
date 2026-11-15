@@ -54,3 +54,5 @@ class CheckerContract(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+# Automated fix for issue #119: A stored error formula or a formula cycle read by a glued connector blocks every edit and `document.inspect`
