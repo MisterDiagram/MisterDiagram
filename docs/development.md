@@ -53,6 +53,8 @@ is absent the build prints a warning about the optional faces and the embedded f
 used. Carlito is the last-resort Latin face, ahead of the optional BIZ UDPGothic fallback.
 No fonts are downloaded.
 
+Brief 72 local gates used craft-fonts at `3d9ab3a`; a newer checkout adds a Latin manifest that changes local fallback, which remains open work.
+
 ## The reference corpus
 
 The corpus is private by design: files Visio writes embed Microsoft's connector master and

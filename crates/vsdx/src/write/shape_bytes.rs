@@ -56,7 +56,9 @@ fn spans_with_budget(bytes: &[u8], namespace_limit: usize) -> Result<BTreeMap<u3
                     let key = std::str::from_utf8(a.key.as_ref()).map_err(|e| error(e.to_string()))?;
                     if key == "xmlns" || key.starts_with("xmlns:") {
                         let prefix = key.strip_prefix("xmlns:").unwrap_or("");
-                        let value = a.unescape_value().map_err(|e| error(e.to_string()))?;
+                        // Keep the pre-upgrade decode/unescape behavior, including literal whitespace.
+                        let raw = reader.decoder().decode(&a.value).map_err(|e| error(e.to_string()))?;
+                        let value = quick_xml::escape::unescape(&raw).map_err(|e| error(e.to_string()))?;
                         if namespaces.bindings.get(prefix).is_some_and(|v| v.as_ref() == value) {
                             continue;
                         }
@@ -74,7 +76,8 @@ fn spans_with_budget(bytes: &[u8], namespace_limit: usize) -> Result<BTreeMap<u3
                             ns.bytes.checked_sub(prior).and_then(|n| n.checked_add(added)).ok_or_else(|| error("shape namespace byte limit"))?;
                         ns.bindings.insert(Rc::from(prefix), Rc::from(value.as_ref()));
                     } else if key == "ID" {
-                        id = a.unescape_value().map_err(|e| error(e.to_string()))?.parse::<u32>().ok();
+                        let raw = reader.decoder().decode(&a.value).map_err(|e| error(e.to_string()))?;
+                        id = quick_xml::escape::unescape(&raw).map_err(|e| error(e.to_string()))?.parse::<u32>().ok();
                     }
                 }
                 let qname = e.name();

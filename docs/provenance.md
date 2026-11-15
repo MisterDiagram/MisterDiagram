@@ -115,6 +115,17 @@ M5.97: [W3C SVG 1.1 Second Edition, section 10.5](https://www.w3.org/TR/SVG11/te
 x/y/dx/dy to preserve absolute line baselines through empty text spans. No
 implementation, asset or example drawing was copied.
 
+M5.147: the installed [zip 9.5.0 API documentation and source](https://docs.rs/crate/zip/9.5.0/source/)
+(MIT, consulted 2026-11-10) was used to adapt `ZipFile::name` to its
+`Result<Cow<str>>` return type, preserve the existing CP437 fallback and inspect
+ZIP directory/entry diagnostics. No implementation code or asset was copied.
+
+M5.147: the installed [quick-xml attribute API documentation and source](https://docs.rs/quick-xml/0.41.0/quick_xml/events/attributes/struct.Attribute.html)
+(MIT, versions 0.38.4 and 0.41.0, consulted 2026-11-10) was used to replace
+three deprecated attribute-decoding calls with explicit decoding and unescaping.
+The replacement preserves the prior literal-whitespace behavior; the new
+normalization methods would change it. No implementation code was copied.
+
 ## 4. Excluded content
 
 This repository never contains Microsoft's shipped stencils, templates, fonts, icons or

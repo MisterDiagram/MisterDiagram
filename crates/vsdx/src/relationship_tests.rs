@@ -75,7 +75,7 @@ fn indexed_relationships_keep_package_case_insensitive_lookup() {
             let mut part = input.by_index(i).unwrap();
             let mut text = String::new();
             part.read_to_string(&mut text).unwrap();
-            if part.name().ends_with(".rels") {
+            if part.name().unwrap().ends_with(".rels") {
                 let mut changed = String::new();
                 let mut pieces = text.split("Target='");
                 changed.push_str(pieces.next().unwrap());
@@ -88,7 +88,7 @@ fn indexed_relationships_keep_package_case_insensitive_lookup() {
                 }
                 text = changed;
             }
-            output.start_file(part.name(), zip::write::SimpleFileOptions::default()).unwrap();
+            output.start_file(part.name().unwrap(), zip::write::SimpleFileOptions::default()).unwrap();
             output.write_all(text.as_bytes()).unwrap();
         }
         let doc = import(&output.finish().unwrap().into_inner()).unwrap();

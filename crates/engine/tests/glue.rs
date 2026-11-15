@@ -273,10 +273,10 @@ fn engine_save_reports_import_repairs_and_reopens_cleanly() {
         let mut part = source.by_index(i).unwrap();
         let mut bytes = vec![];
         part.read_to_end(&mut bytes).unwrap();
-        if part.name() == "visio/pages/page1.xml" {
+        if part.name().unwrap() == "visio/pages/page1.xml" {
             bytes = String::from_utf8(bytes).unwrap().replace("ID=\"6\"", "ID=\"5\"").replace("ToSheet=\"6\"", "ToSheet=\"99\"").into_bytes();
         }
-        archive.start_file(part.name(), zip::write::SimpleFileOptions::default()).unwrap();
+        archive.start_file(part.name().unwrap(), zip::write::SimpleFileOptions::default()).unwrap();
         archive.write_all(&bytes).unwrap();
     }
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(format!("../../target/debug/messy-save-{}", std::process::id()));

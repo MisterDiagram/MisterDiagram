@@ -100,7 +100,7 @@ impl Package {
             if f.is_dir() {
                 continue;
             }
-            let name = f.name().trim_start_matches('/').to_string();
+            let name = f.name().map_err(|e| zip_error("ZIP entry", e))?.trim_start_matches('/').to_string();
             let declared = f.size();
             if declared > MAX_PART {
                 return Err(OpcError::InvalidPackage(format!("oversized part {name} ({declared} bytes)")));
@@ -517,6 +517,25 @@ mod tests {
         for bytes in [b"PK".as_slice(), b"PK\x05\x06\x00\x00".as_slice()] {
             let Err(error) = Package::open(bytes) else { panic!("truncated ZIP accepted") };
             assert!(error.to_string().contains("ZIP directory:"));
+        }
+    }
+    #[test]
+    fn malformed_zip_headers_keep_context_and_bounded_messages() {
+        let mut archive = zip::ZipWriter::new(Cursor::new(Vec::new()));
+        archive.start_file("a".repeat(4096), zip::write::SimpleFileOptions::default()).unwrap();
+        archive.write_all(b"original synthetic contents").unwrap();
+        let mut bytes = archive.finish().unwrap().into_inner();
+        // Keep the directory and long name intact, but invalidate the local header.
+        bytes[0] = b'X';
+        let Err(error) = Package::open(&bytes) else { panic!("invalid ZIP local header accepted") };
+        let message = error.to_string();
+        assert!(message.starts_with("invalid OPC package: ZIP entry:"), "{message}");
+        assert!(message.len() <= 512, "{} bytes", message.len());
+        for bytes in [b"PK".as_slice(), b"PK\x05\x06\x00\x00".as_slice()] {
+            let Err(error) = Package::open(bytes) else { panic!("truncated ZIP accepted") };
+            let message = error.to_string();
+            assert!(message.starts_with("invalid OPC package: ZIP directory:"), "{message}");
+            assert!(message.len() <= 512, "{} bytes", message.len());
         }
     }
     #[test]

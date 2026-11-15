@@ -20,7 +20,7 @@ fn entries(b: &[u8]) -> Vec<(String, Vec<u8>)> {
     (0..z.len())
         .map(|i| {
             let mut f = z.by_index(i).expect("entry");
-            let n = f.name().to_string();
+            let n = f.name().unwrap().to_string();
             let mut d = vec![];
             f.read_to_end(&mut d).expect("read");
             (n, d)

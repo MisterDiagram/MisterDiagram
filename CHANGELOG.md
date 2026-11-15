@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **Dependency update:** zip 9.5 addresses GHSA-m665-v7pm-7grj, and quick-xml 0.41
+  addresses RUSTSEC-2026-0194 and RUSTSEC-2026-0195. The two quick-xml issues were
+  not reachable through MisterDiagram's own parsing; this update keeps the
+  dependency current and the advisory check clean. Four refusal messages for
+  malformed packages are reworded; written packages keep their bytes.
+
 - **Safer output files:** rendering publishes each completed output atomically, so a
   failed write leaves an existing file intact. Destination symlinks are replaced
   and their old targets are left untouched. New renders, saves and exports use

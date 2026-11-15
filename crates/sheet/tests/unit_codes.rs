@@ -82,13 +82,13 @@ fn local_corpus_unit_codes_are_listed() -> Result<(), Box<dyn std::error::Error>
         }
         for index in 0..zip.len() {
             let entry = zip.by_index(index)?;
-            if !entry.name().ends_with(".xml") {
+            if !entry.name()?.ends_with(".xml") {
                 continue;
             }
             if entry.size() > 512 * 1024 * 1024 {
                 return Err("XML part exceeds cap".into());
             }
-            let name = entry.name().to_owned();
+            let name = entry.name()?.into_owned();
             let mut xml = Reader::from_reader(BufReader::new(entry.take(512 * 1024 * 1024 + 1)));
             let mut buffer = Vec::new();
             loop {
@@ -99,7 +99,8 @@ fn local_corpus_unit_codes_are_listed() -> Result<(), Box<dyn std::error::Error>
                             if attr.key.as_ref() != b"U" {
                                 continue;
                             }
-                            let code = attr.decode_and_unescape_value(xml.decoder())?.into_owned();
+                            let raw = xml.decoder().decode(&attr.value)?;
+                            let code = quick_xml::escape::unescape(&raw)?.into_owned();
                             if !known.contains(&code) {
                                 unknown.entry(code.clone()).or_insert_with(|| format!("{}#{name}", path.display()));
                             }

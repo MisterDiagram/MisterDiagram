@@ -21,8 +21,8 @@ fn input(shapes: &str, connects: &str, master: bool) -> Vec<u8> {
         let mut part = input.by_index(i).unwrap();
         let mut bytes = Vec::new();
         part.read_to_end(&mut bytes).unwrap();
-        out.start_file(part.name(), zip::write::SimpleFileOptions::default()).unwrap();
-        out.write_all(if part.name() == path { replacement.as_bytes() } else { &bytes }).unwrap();
+        out.start_file(part.name().unwrap(), zip::write::SimpleFileOptions::default()).unwrap();
+        out.write_all(if part.name().unwrap() == path { replacement.as_bytes() } else { &bytes }).unwrap();
     }
     out.finish().unwrap().into_inner()
 }

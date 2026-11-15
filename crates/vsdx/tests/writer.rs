@@ -1122,7 +1122,7 @@ fn original_unreferenced_page_relationships_survive_plain_save() {
         let mut file = archive.by_index(i).unwrap();
         let mut bytes = Vec::new();
         file.read_to_end(&mut bytes).unwrap();
-        files.insert(file.name().to_owned(), bytes);
+        files.insert(file.name().unwrap().into_owned(), bytes);
     }
     for path in ["_rels/.rels", "visio/pages/_rels/pages.xml.rels", "visio/pages/_rels/page1.xml.rels"] {
         let xml = files

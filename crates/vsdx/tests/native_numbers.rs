@@ -117,13 +117,13 @@ fn untouched_converted_import_preserves_original_literal_spelling() {
         let mut part = input.by_index(i).unwrap();
         let mut bytes = Vec::new();
         part.read_to_end(&mut bytes).unwrap();
-        if part.name() == "visio/pages/page1.xml" {
+        if part.name().unwrap() == "visio/pages/page1.xml" {
             let xml = String::from_utf8(bytes).unwrap();
             let changed = xml.replace("80.00064000512001", "00080.0006400051200");
             assert_ne!(xml, changed);
             bytes = changed.into_bytes();
         }
-        output.start_file(part.name(), zip::write::SimpleFileOptions::default()).unwrap();
+        output.start_file(part.name().unwrap(), zip::write::SimpleFileOptions::default()).unwrap();
         output.write_all(&bytes).unwrap();
     }
     let imported = import(&output.finish().unwrap().into_inner()).unwrap();

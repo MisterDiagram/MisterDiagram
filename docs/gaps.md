@@ -1,5 +1,18 @@
 # Gaps
 
+## Package reader dependencies (M5.147)
+
+The ZIP reader uses zip 9.5, including the fix for GHSA-m665-v7pm-7grj.
+The XML reader uses quick-xml 0.41; production does not use NsReader, and its
+attribute loops disable duplicate checks, so the two reported issues were not reachable.
+Quick-xml 0.42 changes the reader API and is not taken here.
+Package limits remain at their existing checks after opening the directory.
+Malformed-package tests and corpus checks cover the upgrade; four refusal
+messages change wording. Dependency advisories are checked in the audit workflow
+and before release. The synthetic
+`malformed_zip_headers_keep_context_and_bounded_messages` test checks directory
+and entry error context and the 512-byte diagnostic bound.
+
 ## Atomic render publication (M5.146)
 
 CLI PNG, SVG, PDF, presentation and master contact-sheet outputs now use the

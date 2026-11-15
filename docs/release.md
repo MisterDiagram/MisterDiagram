@@ -9,7 +9,7 @@ version string (`0.1.0-beta.N`) and the release title carry the maturity.
    for Cargo.lock, a CHANGELOG.md entry in user terms (what changed, which issues, known
    gaps), and the version examples in docs/install.md, docs/mcp.md and
    apps/misterdiagram-cli/src/main.rs. `cargo xtask ci` passes on the tree before the
-   commit.
+   commit. `cargo audit` reports no vulnerability.
 2. **Second-model verification** of the work since the last release against its frozen
    rubric; findings fixed and re-verified before anything is tagged.
 3. **Prove the workflow without a release:** a workflow_dispatch run of release.yml on the

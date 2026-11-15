@@ -515,3 +515,7 @@ Progress M5.116: shared fit-to-drawing export and explicit margins added to CLI 
   the shared atomic publisher, with synthetic `atomic_render` coverage for
   symlinks, permissions, failed publication and contact-sheet failure output.
   Reference: [CLI output contract](install.md#5-first-commands).
+
+- M5.147: Package coverage retains its existing scores. The zip 9.5 and quick-xml 0.41 readers keep
+  package limits and write bytes, with malformed-package and corpus verification.
+  Reference: [release checks](release.md).
