@@ -164,6 +164,11 @@ impl Writer<'_> {
                 _ => {}
             }
         }
+        if let Some(source) = self.evaluator.stored_source(scope, name) {
+            formula = source.formula.clone();
+            value = source.value.clone();
+            err = source.error.clone();
+        }
         for (key, v) in [("N", Some(c.name.clone())), ("V", value), ("F", formula), ("U", c.units.clone()), ("E", err)] {
             set(&mut e, key, v);
         }

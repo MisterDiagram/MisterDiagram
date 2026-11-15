@@ -165,6 +165,7 @@ fn endpoint(b: &BoxShape, other: &BoxShape, vertical: bool) -> Result<Point, Str
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/walkpreference-cell-glue-info-section
 #[derive(Default)]
 pub struct GlueHost {
+    pub(crate) stored_errors: Option<std::sync::Arc<misterdiagram_vsdx::evaluate::StoredErrors>>,
     pub(crate) outcomes: BTreeMap<(u32, u32), Option<String>>,
     pub(crate) unaffected: bool,
     points: BTreeMap<Key, Point>,
@@ -216,14 +217,23 @@ impl GlueHost {
     /// routing. Imported or restored documents use the full validation path.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/eventxfmod-cell-events-section
     pub fn prepare_scoped(before: &Document, doc: &mut Document, validated: bool) -> Result<Self, String> {
-        Self::prepare_inner(before, doc, validated, None)
+        Self::prepare_inner(before, doc, validated, None, None)
+    }
+    /// Retry glue preparation using only unchanged predecessor errors.
+    pub fn prepare_with_stored_errors(
+        before: &Document,
+        doc: &mut Document,
+        validated: bool,
+        stored: std::sync::Arc<misterdiagram_vsdx::evaluate::StoredErrors>,
+    ) -> Result<Self, String> {
+        Self::prepare_inner(before, doc, validated, None, Some(stored))
     }
     pub(crate) fn force(&mut self, doc: &mut Document, force: (usize, Option<u32>)) -> Result<(), String> {
         // Preparation may already have advanced glue triggers for this edit.
         // Compare the forced pass to that prepared state, so it cannot advance
         // the same target change twice or discard reasons on another page.
         let prepared = doc.clone();
-        let extra = Self::prepare_inner(&prepared, doc, false, Some(force))?;
+        let extra = Self::prepare_inner(&prepared, doc, false, Some(force), self.stored_errors.clone())?;
         self.unaffected &= extra.unaffected;
         self.points.extend(extra.points);
         self.triggers.extend(extra.triggers);
@@ -233,16 +243,23 @@ impl GlueHost {
         self.outcomes.extend(extra.outcomes);
         Ok(())
     }
-    fn prepare_inner(before: &Document, doc: &mut Document, validated: bool, force: Option<(usize, Option<u32>)>) -> Result<Self, String> {
+    fn prepare_inner(
+        before: &Document,
+        doc: &mut Document,
+        validated: bool,
+        force: Option<(usize, Option<u32>)>,
+        stored: Option<std::sync::Arc<misterdiagram_vsdx::evaluate::StoredErrors>>,
+    ) -> Result<Self, String> {
         if force.is_none() && validated && crate::scope::unaffected(before, doc) {
-            return Ok(Self { unaffected: true, ..Self::default() });
+            return Ok(Self { unaffected: true, stored_errors: stored, ..Self::default() });
         }
         let themes = misterdiagram_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
         let old_themes = misterdiagram_theme::Themes::from_document(before).map_err(|e| e.to_string())?;
         let text = misterdiagram_text::Host;
-        let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&text);
-        let mut old = Evaluator::new(before).map_err(|e| e.to_string())?.with_theme_host(&old_themes).with_text_host(&text);
-        let mut host = Self { unaffected: crate::scope::empty_routes(doc), ..Self::default() };
+        let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&text).with_stored_errors(stored.clone());
+        let mut old =
+            Evaluator::new(before).map_err(|e| e.to_string())?.with_theme_host(&old_themes).with_text_host(&text).with_stored_errors(stored.clone());
+        let mut host = Self { unaffected: crate::scope::empty_routes(doc), stored_errors: stored.clone(), ..Self::default() };
         let mut current_bounds = TargetBounds::default();
         let mut prior_bounds = TargetBounds::default();
         let mut obstacles_memo = crate::orthogonal::ObstacleBounds::default();
@@ -543,7 +560,12 @@ impl GlueHost {
         }
         let mut centers = Vec::new();
         if !affected.is_empty() && force.is_none() {
-            let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&text).with_glue_host(&mut host);
+            let mut e = Evaluator::new(doc)
+                .map_err(|e| e.to_string())?
+                .with_theme_host(&themes)
+                .with_text_host(&text)
+                .with_stored_errors(stored.clone())
+                .with_glue_host(&mut host);
             for (index, id) in affected {
                 let page = doc.pages.get(index).ok_or("glue page missing")?;
                 let scope = Scope::PageShape { page: page.id, shape: id };

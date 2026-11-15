@@ -279,9 +279,7 @@ pub(crate) fn document(s: &mut Session, p: &Value) -> Result<Value> {
     let targeted = ids.is_some() || find.is_some();
     let themes = misterdiagram_theme::Themes::from_document(&s.document).map_err(operation)?;
     let mut e = Evaluator::new(&s.document).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
-    if filter.has("style") {
-        e = e.with_cached_fallback();
-    }
+    e = e.with_cached_fallback();
     let mut budget = Budget(64 * 1024);
     let mut pages = Vec::new();
     for (ordinal, (index, page)) in s.document.page_order().enumerate() {
@@ -369,9 +367,7 @@ pub(crate) fn shape(s: &mut Session, p: &Value) -> Result<Value> {
     let filter = Filter::parse(p, false)?;
     let themes = misterdiagram_theme::Themes::from_document(&s.document).map_err(operation)?;
     let mut e = Evaluator::new(&s.document).map_err(operation)?.with_theme_host(&themes).with_text_host(&misterdiagram_text::Host);
-    if filter.has("style") {
-        e = e.with_cached_fallback();
-    }
+    e = e.with_cached_fallback();
     let mut budget = Budget(64 * 1024);
     let page = s.document.pages.get(index).ok_or_else(|| operation("page missing"))?;
     let mut value = summary(&mut e, scope, &filter, &page.connects, &mut budget)?;

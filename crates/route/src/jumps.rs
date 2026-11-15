@@ -61,12 +61,13 @@ pub(crate) fn apply(
         return Ok(());
     }
     let pages = touched.iter().filter_map(|(index, _)| doc.pages.get(*index).map(|p| (*index, p.id))).collect::<BTreeMap<_, _>>();
-    let connectors = collect(doc, Some(host), &pages)?;
+    let stored = host.stored_errors.clone();
+    let connectors = collect(doc, Some(host), &pages, stored.clone())?;
     // A page-wide request has no unselected crossing neighbor to compare.
     if connectors.iter().all(|c| touched.contains(&(c.page, c.id))) {
         return decorate(doc, &connectors, routed);
     }
-    let previous = collect(before, None, &pages)?;
+    let previous = collect(before, None, &pages, stored)?;
     let mut recipients = routed.clone();
     for c in &connectors {
         if touched.contains(&(c.page, c.id)) {
@@ -80,10 +81,15 @@ pub(crate) fn apply(
     }
     decorate(doc, &connectors, &recipients)
 }
-fn collect(doc: &Document, host: Option<&mut GlueHost>, pages: &BTreeMap<usize, u32>) -> Result<Vec<Connector>, String> {
+fn collect(
+    doc: &Document,
+    host: Option<&mut GlueHost>,
+    pages: &BTreeMap<usize, u32>,
+    stored: Option<std::sync::Arc<misterdiagram_vsdx::evaluate::StoredErrors>>,
+) -> Result<Vec<Connector>, String> {
     let themes = misterdiagram_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
     let text = misterdiagram_text::Host;
-    let mut e = Evaluator::new(doc).map_err(|v| v.to_string())?.with_theme_host(&themes).with_text_host(&text);
+    let mut e = Evaluator::new(doc).map_err(|v| v.to_string())?.with_theme_host(&themes).with_text_host(&text).with_stored_errors(stored);
     if let Some(host) = host {
         e = e.with_glue_host(host);
     }

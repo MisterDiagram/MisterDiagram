@@ -158,6 +158,12 @@ pub(crate) fn save(s: &mut Session, p: &Value) -> Result<Value> {
         written.warnings.push(format!("page {page} connector {id}: {limit}; obstacle-free fallback route"));
         written.warning_count = written.warning_count.saturating_add(1);
     }
+    let prior_count = written.warnings.len();
+    let (saved_warnings, saved_count) = crate::recovery::saved_warnings(&s.document)?;
+    written.warning_count = written.warning_count.saturating_add(saved_count.saturating_sub(saved_warnings.len()));
+    written.warnings.extend(saved_warnings);
+    crate::recovery::unique(&mut written.warnings);
+    written.warning_count = written.warning_count.saturating_sub(prior_count).saturating_add(written.warnings.len());
     let saved_generation = s.save_generation.checked_add(1).ok_or_else(|| operation("save generation limit"))?;
     atomic_write(&absolute, &written.bytes)?;
     s.save_generation = saved_generation;
@@ -202,9 +208,10 @@ pub(crate) fn export(s: &mut Session, p: &Value) -> Result<Value> {
     .with_fit(fit, margin)
     .map_err(operation)?;
     if ext == "pptx" {
-        let output = misterdiagram_export::document(&s.document, page, options).map_err(operation)?;
+        let mut output = misterdiagram_export::document(&s.document, page, options).map_err(operation)?;
         atomic_write(path, &output.bytes)?;
-        return Ok(json!({"bytes":output.bytes.len(),"pages":output.pages,"warnings":output.warnings}));
+        crate::recovery::unique(&mut output.warnings);
+        return Ok(json!({"bytes":output.bytes.len(),"pages":output.pages,"warning_count":output.warnings.len(),"warnings":output.warnings}));
     }
     let mut budget = scene::SceneBudget::default();
     let scenes = if ext == "pdf" && page.is_none() {
@@ -237,7 +244,8 @@ pub(crate) fn export(s: &mut Session, p: &Value) -> Result<Value> {
     if ext == "svg" {
         warnings.extend(svg::warnings(first, options).into_iter().take(1000usize.saturating_sub(warnings.len())));
     }
-    Ok(json!({"bytes":bytes.len(),"pages":scenes.len(),"warnings":warnings}))
+    crate::recovery::unique(&mut warnings);
+    Ok(json!({"bytes":bytes.len(),"pages":scenes.len(),"warning_count":warnings.len(),"warnings":warnings}))
 }
 struct Temporary(PathBuf);
 impl Drop for Temporary {

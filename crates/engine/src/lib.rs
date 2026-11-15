@@ -21,6 +21,8 @@ mod network;
 mod pages;
 #[cfg(test)]
 mod panic_tests;
+mod publication;
+mod recovery;
 mod reference_cleanup;
 mod retention;
 mod shapes;
@@ -29,6 +31,8 @@ mod stencil_path;
 #[cfg(test)]
 mod stencil_path_tests;
 mod stencils;
+#[cfg(test)]
+mod stored_error_tests;
 pub use cmd::{command_specs, find_command};
 pub use files::atomic_write;
 use misterdiagram_model::{Document, ShapeId};
@@ -315,18 +319,23 @@ impl Session {
                     Arc::make_mut(&mut self.document).parts.insert("docProps/app.xml".into(), part);
                 }
                 let validated = self.routing_validated.upgrade().is_some_and(|d| Arc::ptr_eq(&d, &before.document));
-                let mut glue = misterdiagram_route::GlueHost::prepare_scoped(&before.document, Arc::make_mut(&mut self.document), validated)
-                    .map_err(operation)?;
-                misterdiagram_route::reroute(&before.document, Arc::make_mut(&mut self.document), &mut glue, None).map_err(operation)?;
+                let candidate = self.document.clone();
+                let attempt = publication::prepare(&before.document, Arc::make_mut(&mut self.document), validated, None);
+                let (written, glue) = match attempt {
+                    Ok(output) => output,
+                    Err(first_error) => {
+                        let errors = publication::stored_errors(&before.document);
+                        match errors {
+                            Ok(errors) if !errors.is_empty() => {
+                                self.document = candidate;
+                                publication::prepare(&before.document, Arc::make_mut(&mut self.document), validated, Some(Arc::new(errors)))
+                                    .map_err(|_| first_error)?
+                            }
+                            _ => return Err(first_error),
+                        }
+                    }
+                };
                 self.apply_route_outcomes(&glue);
-                let theme = misterdiagram_theme::Themes::from_document(&self.document).map_err(operation)?;
-                let written = misterdiagram_vsdx::write::write_parts_with_glue_host(
-                    &self.document,
-                    Some(&theme),
-                    Some(&misterdiagram_text::Host),
-                    Some(&mut glue),
-                )
-                .map_err(operation)?;
                 let held_nodes = self.retained_xml_nodes();
                 let document =
                     misterdiagram_vsdx::import_written_parts(written, held_nodes).map_err(|error| retention::admission_error(error, held_nodes))?;

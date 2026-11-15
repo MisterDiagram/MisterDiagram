@@ -148,9 +148,8 @@ masters with several top-level shapes remain limited. Large-drawing authoring is
 ([#39](https://github.com/MisterDiagram/MisterDiagram/issues/39); measurements in
 docs/gaps.md). From Microsoft's template catalogue, filed and open: `THEME()` with a colour
 argument (#88) and the Text Callout cycle (#91). From the first batch of real company files,
-filed and open: SVG import (#103). The 2026-11-03 batch (#112 to #117) is closed. A
-drawing that already holds an error formula (`#DIV/0!`, `#CYCLE!`) can refuse edits, and SVG
-export of a very large page can stop at the render pixel limit (both reported on #87). Text in
+filed and open: SVG import (#103). The 2026-11-03 batch (#112 to #117) is closed. SVG
+export of a very large page can stop at the render pixel limit (reported on #87). Text in
 an embedded picture that uses a symbol font or glyph indexes stays as outlines in SVG. One
 field page sits about 15 px off Visio's image (a small aspect difference). Gradient
 directions 10 to 13 keep a corner fallback, and gradients

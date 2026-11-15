@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Drawings with stored error formulas can be inspected and edited using their saved values (#119). New or rewritten failing formulas still refuse edits.
+
 ## 0.1.0-beta.7
 
 Line breaks that follow Visio, safer output files and current dependencies.

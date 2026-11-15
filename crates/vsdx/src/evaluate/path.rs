@@ -399,7 +399,7 @@ impl Evaluator<'_> {
         result
     }
     fn path_segments(&mut self, scope: Scope, reference: &str) -> Result<Vec<Segment>, Error> {
-        let (scope, name) = self.reference_target(scope, reference)?;
+        let (scope, name) = self.checked_reference_target(scope, reference)?;
         let lower = name.to_ascii_lowercase();
         let index = lower
             .strip_prefix("geometry")
@@ -407,7 +407,13 @@ impl Evaluator<'_> {
             .and_then(|s| s.parse::<u32>().ok())
             .and_then(|n| n.checked_sub(1))
             .ok_or(Error::Ref)?;
-        let rows = self.effective_geometry(scope, index)?;
+        let rows = match self.effective_geometry(scope, index) {
+            Ok(rows) => rows,
+            Err(error) => {
+                self.mark_missing_reference(scope, &name);
+                return Err(error);
+            }
+        };
         if rows.len() > MAX_ROWS {
             return Err(Error::Limit);
         }
@@ -417,10 +423,11 @@ impl Evaluator<'_> {
             let row_index = row.index;
             let prefix = format!("Geometry{}.{{}}{row_index}", index.checked_add(1).ok_or(Error::Limit)?);
             let cell = |this: &mut Self, column: &str| -> Result<f64, Error> {
+                let name = prefix.replace("{}", column);
                 if !row.cells.iter().any(|c| c.name == column) {
+                    this.mark_missing_reference(scope, &name);
                     return Err(Error::Ref);
                 }
-                let name = prefix.replace("{}", column);
                 this.resolve(scope, &name).numeric()
             };
             let row_type = row.row_type.ok_or(Error::Ref)?;

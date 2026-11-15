@@ -80,8 +80,8 @@ impl Evaluator<'_> {
         destination: Option<&str>,
         destination_parent: bool,
     ) -> Result<(f64, f64), Error> {
-        let source = source.map(|r| self.reference_target(current, r).map(|v| v.0)).transpose()?.unwrap_or(current);
-        let destination = destination.map(|r| self.reference_target(current, r).map(|v| v.0)).transpose()?.unwrap_or(current);
+        let source = source.map(|r| self.checked_reference_target(current, r).map(|v| v.0)).transpose()?.unwrap_or(current);
+        let destination = destination.map(|r| self.checked_reference_target(current, r).map(|v| v.0)).transpose()?.unwrap_or(current);
         let source = if source_parent { self.parents.get(&source).copied().unwrap_or(source) } else { source };
         let destination = if destination_parent { self.parents.get(&destination).copied().unwrap_or(destination) } else { destination };
         if matches!(source, Scope::Document | Scope::Style(_)) || matches!(destination, Scope::Document | Scope::Style(_)) {
@@ -104,8 +104,8 @@ impl Evaluator<'_> {
         if !angle.is_finite() {
             return Err(Error::Num);
         }
-        let source = self.reference_target(current, source)?.0;
-        let destination = self.reference_target(current, destination)?.0;
+        let source = self.checked_reference_target(current, source)?.0;
+        let destination = self.checked_reference_target(current, destination)?.0;
         let destination = if parent { self.parents.get(&destination).copied().unwrap_or(destination) } else { destination };
         if matches!(source, Scope::Document | Scope::Style(_)) || matches!(destination, Scope::Document | Scope::Style(_)) {
             return Err(Error::Ref);

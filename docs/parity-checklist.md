@@ -519,3 +519,7 @@ Progress M5.116: shared fit-to-drawing export and explicit margins added to CLI 
 - M5.147: Package coverage retains its existing scores. The zip 9.5 and quick-xml 0.41 readers keep
   package limits and write bytes, with malformed-package and corpus verification.
   Reference: [release checks](release.md).
+
+- M5.149: Formula and automation scores remain unchanged. Stored-error recovery
+  preserves source cells while keeping new errors strict; synthetic `stored_errors`
+  tests cover publication, inspection, warnings and history. Reference: [stored error limits](gaps.md#stored-error-cells-119-m5149).

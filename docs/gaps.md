@@ -1,5 +1,16 @@
 # Gaps
 
+## Stored error cells (#119, M5.149)
+
+Edits retry once after strict publication fails, using saved values only for cells
+that already evaluated to errors before the edit and whose formula text is unchanged.
+Recovered cells retain their formula, saved value and error attribute. New errors,
+rewritten failing formulas and errors without usable saved values remain refused.
+Inspection uses saved values in every section; save and export replies report recovery
+warnings. Cycle iteration and formula repair remain outside this change. Synthetic
+`stored_errors` tests cover strictness, preservation, connector movement and history.
+Reference: [Cell](https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml).
+
 ## Package reader dependencies (M5.147)
 
 The ZIP reader uses zip 9.5, including the fix for GHSA-m665-v7pm-7grj.

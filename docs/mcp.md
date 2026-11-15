@@ -522,3 +522,10 @@ routes beyond the preset family are fitted, with warnings. The native PowerPoint
 open, render and drag acceptance check remains pending.
 
 Fresh MCP acceptance for the office, SAN and fabric witnesses is available through `tools/mcp/export_acceptance.py`. It writes local package, model, text and glue results under `corpus/_state/m5-export/`; PowerPoint and Visio acceptance are separate.
+
+Stored error cells keep their saved values during inspection and, after a strict
+publication failure, during edits when their formula text is unchanged from before
+the transaction. Their formula, saved value and error attribute are preserved. New
+errors, rewritten failing formulas and errors without usable saved values remain
+refused. Save and export replies list recovery warnings once per cell and include
+`warning_count`; edit replies keep their existing fields.

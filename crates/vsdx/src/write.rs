@@ -56,7 +56,7 @@ pub fn write_with_glue_host<'a>(
     text: Option<&'a dyn misterdiagram_model::text::TextHost>,
     glue: Option<&'a mut dyn misterdiagram_sheet::HostHooks>,
 ) -> Result<Written, WriteError> {
-    let parts = build_parts_with_glue_host(doc, theme, text, glue)?;
+    let parts = build_parts_with_glue_host(doc, theme, text, glue, None)?;
     let bytes = zip_parts::bytes(&parts.files)?;
     Ok(Written { bytes, warnings: parts.warnings, warning_count: parts.warning_count })
 }
@@ -68,7 +68,20 @@ pub fn write_parts_with_glue_host<'a>(
     text: Option<&'a dyn misterdiagram_model::text::TextHost>,
     glue: Option<&'a mut dyn misterdiagram_sheet::HostHooks>,
 ) -> Result<WrittenParts, WriteError> {
-    let parts = build_parts_with_glue_host(doc, theme, text, glue)?;
+    let parts = build_parts_with_glue_host(doc, theme, text, glue, None)?;
+    zip_parts::admit(&parts.files)?;
+    Ok(parts)
+}
+/// Retry serialization with only unchanged errors classified before the edit.
+/// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
+pub fn write_parts_with_stored_errors<'a>(
+    doc: &'a Document,
+    theme: Option<&'a dyn misterdiagram_sheet::host::ThemeHost>,
+    text: Option<&'a dyn misterdiagram_model::text::TextHost>,
+    glue: Option<&'a mut dyn misterdiagram_sheet::HostHooks>,
+    stored: std::sync::Arc<crate::evaluate::StoredErrors>,
+) -> Result<WrittenParts, WriteError> {
+    let parts = build_parts_with_glue_host(doc, theme, text, glue, Some(stored))?;
     zip_parts::admit(&parts.files)?;
     Ok(parts)
 }
@@ -77,9 +90,10 @@ fn build_parts_with_glue_host<'a>(
     theme: Option<&'a dyn misterdiagram_sheet::host::ThemeHost>,
     text: Option<&'a dyn misterdiagram_model::text::TextHost>,
     glue: Option<&'a mut dyn misterdiagram_sheet::HostHooks>,
+    stored: Option<std::sync::Arc<crate::evaluate::StoredErrors>>,
 ) -> Result<WrittenParts, WriteError> {
     validate::document(doc)?;
-    let mut evaluator = Evaluator::new(doc).map_err(|e| error(e.to_string()))?.with_internal_cache_units();
+    let mut evaluator = Evaluator::new(doc).map_err(|e| error(e.to_string()))?.with_internal_cache_units().with_stored_errors(stored);
     if let Some(h) = theme {
         evaluator = evaluator.with_theme_host(h);
     }

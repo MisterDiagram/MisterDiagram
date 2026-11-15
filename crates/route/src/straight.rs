@@ -75,8 +75,14 @@ pub fn reroute(before: &Document, doc: &mut Document, host: &mut GlueHost, force
     let themes = misterdiagram_theme::Themes::from_document(doc).map_err(|e| e.to_string())?;
     let old_themes = misterdiagram_theme::Themes::from_document(before).map_err(|e| e.to_string())?;
     let text = misterdiagram_text::Host;
-    let mut e = Evaluator::new(doc).map_err(|e| e.to_string())?.with_theme_host(&themes).with_text_host(&text).with_glue_host(host);
-    let mut old = Evaluator::new(before).map_err(|e| e.to_string())?.with_theme_host(&old_themes).with_text_host(&text);
+    let stored = host.stored_errors.clone();
+    let mut e = Evaluator::new(doc)
+        .map_err(|e| e.to_string())?
+        .with_theme_host(&themes)
+        .with_text_host(&text)
+        .with_stored_errors(stored.clone())
+        .with_glue_host(host);
+    let mut old = Evaluator::new(before).map_err(|e| e.to_string())?.with_theme_host(&old_themes).with_text_host(&text).with_stored_errors(stored);
     let mut routes = vec![];
     let mut lane_routes = Vec::new();
     let mut lane_context = Vec::new();

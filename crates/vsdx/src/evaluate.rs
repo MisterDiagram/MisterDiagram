@@ -13,7 +13,9 @@ mod interval;
 mod lookup;
 mod path;
 mod relationships;
+mod stored;
 mod string_cells;
+pub use stored::StoredErrors;
 mod text;
 mod transform;
 mod units;
@@ -66,6 +68,10 @@ pub struct Evaluator<'a> {
     defer_text_metrics: bool,
     internal_cache_units: bool,
     cached_fallback: bool,
+    stored_errors: Option<std::sync::Arc<StoredErrors>>,
+    stored_used: BTreeSet<Key>,
+    stored_blocked: BTreeSet<Key>,
+    stored_new_error: bool,
     fallbacks: Vec<String>,
     fallback_count: usize,
     /// Text fields already reported: field text is rebuilt on every measurement, and one
@@ -161,6 +167,10 @@ impl<'a> Evaluator<'a> {
             defer_text_metrics: false,
             internal_cache_units: false,
             cached_fallback: false,
+            stored_errors: None,
+            stored_used: BTreeSet::new(),
+            stored_blocked: BTreeSet::new(),
+            stored_new_error: false,
             fallbacks: Vec::new(),
             fallback_count: 0,
             field_fallbacks: BTreeSet::new(),
@@ -369,13 +379,16 @@ impl<'a> Evaluator<'a> {
         self.fallbacks.clear();
         self.fallback_count = 0;
         self.field_fallbacks.clear();
+        self.stored_used.clear();
+        self.stored_blocked.clear();
+        self.stored_new_error = false;
     }
     /// Substitute the file's saved value for a cell this evaluator cannot compute, and
     /// record each substitution. Renders of unedited files then show what Visio last drew
     /// where a function is still missing (MisterDiagram#78: CONTAINERSHEETREF, LISTORDER).
     /// Geometry and Connections may use a numeric cache alongside an error attribute;
     /// style cells without a usable cache use their default. Other uncached errors remain
-    /// errors. Oracle comparisons, route hosts and the writer never enable this.
+    /// errors. Oracle comparisons stay strict; edit publication uses a separate restricted policy.
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/cell-elementvisio-xml
     pub fn with_cached_fallback(mut self) -> Self {
         self.cached_fallback = true;
@@ -423,15 +436,14 @@ impl<'a> Evaluator<'a> {
                 | "txtangle"
         )
     }
-    fn fallback_to_cached(&mut self, scope: Scope, key_name: &str, name: &str, value: Value) -> Value {
-        let Value::Error(error) = &value else { return value };
+    fn saved_value(&self, scope: Scope, key_name: &str) -> Option<Value> {
         let style = inherit::style_cell(key_name);
         let geometry = key_name.starts_with("geometry") || key_name.starts_with("connections.") || Self::transform_cell(key_name);
         if let Some(cell) = self.cell(scope, key_name) {
             let source = self.local_inh_cell(scope, key_name).unwrap_or(cell);
             if source.value.is_some() && ((style || geometry) || (cell.error.is_none() && source.error.is_none())) {
                 if source.value.as_ref().is_some_and(|v| v.len() > 65536) {
-                    return value;
+                    return None;
                 }
                 let source = Cell {
                     name: source.name.clone(),
@@ -442,10 +454,18 @@ impl<'a> Evaluator<'a> {
                 };
                 let saved = self.cached_named_cell(scope, key_name, &source);
                 if saved.error().is_none() {
-                    self.fallback_warning(scope, name, error, "used the value saved in the file");
-                    return saved;
+                    return Some(saved);
                 }
             }
+        }
+        None
+    }
+    fn fallback_to_cached(&mut self, scope: Scope, key_name: &str, name: &str, value: Value) -> Value {
+        let Value::Error(error) = &value else { return value };
+        let style = inherit::style_cell(key_name);
+        if let Some(saved) = self.saved_value(scope, key_name) {
+            self.fallback_warning(scope, name, error, "used the value saved in the file");
+            return saved;
         }
         if style
             && self.defaults_allowed(scope, key_name)
@@ -1008,6 +1028,9 @@ impl<'a> Evaluator<'a> {
         self.context_epoch.set(self.context_epoch.get().saturating_add(1));
     }
     fn evaluate_inner(&mut self, scope: Scope, name: &str) -> Value {
+        if self.stored_errors.is_some() { self.evaluate_stored(scope, name) } else { self.evaluate_inner_impl(scope, name) }
+    }
+    fn evaluate_inner_impl(&mut self, scope: Scope, name: &str) -> Value {
         if name.len() > 65536 || self.active.len() >= 128 || self.work >= 100_000 {
             self.mark_context_dependent();
             return Value::Error(Error::Limit);
@@ -1113,8 +1136,14 @@ impl<'a> Evaluator<'a> {
             return Err(Error::Limit);
         }
         crate::evaluate::validate_formula(formula)?;
-        let (scope, name) = self.reference_target(scope, reference)?;
-        let key = self.canonical_key(scope, &name).ok_or(Error::Ref)?;
+        let (scope, name) = self.checked_reference_target(scope, reference)?;
+        let key = match self.canonical_key(scope, &name) {
+            Some(key) => key,
+            None => {
+                self.mark_missing_reference(scope, &name);
+                return Err(Error::Ref);
+            }
+        };
         let old = self.overrides.get(&key).map_or(0, String::len);
         let bytes = self.override_bytes.saturating_sub(old).saturating_add(formula.len());
         if bytes > 64 * 1024 * 1024 {
@@ -1218,6 +1247,21 @@ impl<'a> Evaluator<'a> {
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/evalcell-function
     /// https://learn.microsoft.com/en-us/office/client-developer/visio/arg-function
     pub fn eval_cell(&mut self, scope: Scope, reference: &str, args: &[(String, Value)]) -> Value {
+        if self.stored_errors.is_none() {
+            return self.eval_cell_inner(scope, reference, args);
+        }
+        let parent_failure = self.stored_new_error;
+        self.stored_new_error = false;
+        let result = self.eval_cell_inner(scope, reference, args);
+        match self.checked_reference_target(scope, reference) {
+            Ok((target, name)) => self.recover_stored_result(target, &name, result, parent_failure),
+            Err(_) => {
+                self.stored_new_error = parent_failure || (result.error().is_some() && self.stored_new_error);
+                result
+            }
+        }
+    }
+    fn eval_cell_inner(&mut self, scope: Scope, reference: &str, args: &[(String, Value)]) -> Value {
         if self.eval_depth == 0 {
             self.work = 0;
             self.eval_work = 0;
@@ -1487,7 +1531,12 @@ impl<'a> Evaluator<'a> {
                 self.note_result(scope, &name, &value, diagnostic_serial);
                 value
             }
-            Err(e) => Value::Error(e),
+            Err(e) => {
+                if self.stored_errors.as_ref().is_some_and(|old| old.reference_existed(scope, reference)) {
+                    self.stored_new_error = true;
+                }
+                Value::Error(e)
+            }
         }
     }
     pub fn reference_target(&self, mut scope: Scope, reference: &str) -> Result<(Scope, String), Error> {
@@ -1672,7 +1721,7 @@ pub(crate) fn connection_name(index: u32, column: &str) -> Result<String, Error>
 /// Formatting [1], explicit User/Prop.Value and Controls.X are alternate
 /// spellings of an existing cell, not additional retained cell entries.
 /// https://learn.microsoft.com/en-us/office/client-developer/visio/about-cell-references
-fn indexed_key(cells: &BTreeMap<Key, &Cell>, scope: Scope, name: &str) -> Option<Key> {
+fn indexed_key<C: std::borrow::Borrow<Cell>>(cells: &BTreeMap<Key, C>, scope: Scope, name: &str) -> Option<Key> {
     let mut key = Key { scope, name: name.to_ascii_lowercase() };
     if cells.contains_key(&key) {
         return Some(key);
@@ -1690,7 +1739,7 @@ fn indexed_key(cells: &BTreeMap<Key, &Cell>, scope: Scope, name: &str) -> Option
         None
     }?;
     key.name = base.to_owned();
-    let cell = cells.get(&key)?;
+    let cell = cells.get(&key)?.borrow();
     if formatting && key.name != format!("{section}.{}", cell.name.to_ascii_lowercase()) {
         return None;
     }
@@ -1804,6 +1853,13 @@ struct BoundContext<'a, 'd> {
     legacy_failure: bool,
 }
 impl BoundContext<'_, '_> {
+    fn checked_reference(&mut self, reference: &str) -> Result<String, Error> {
+        let result = self.reference(reference);
+        if result.is_err() {
+            self.evaluator.mark_missing_reference(self.origin, reference);
+        }
+        result
+    }
     fn reference(&self, reference: &str) -> Result<String, Error> {
         self.evaluator.remap_master_reference(self.scope, self.origin, reference)
     }
@@ -1812,6 +1868,7 @@ impl Context for BoundContext<'_, '_> {
     fn error_handled(&mut self) {
         self.legacy_failure = false;
         self.evaluator.failure_cell = None;
+        self.evaluator.stored_new_error = false;
     }
     fn hook(&mut self, name: &str, args: &[Value]) -> Value {
         let cell = self.host_cell();
@@ -1894,7 +1951,7 @@ impl Context for BoundContext<'_, '_> {
         self.evaluator.eval_depth = self.evaluator.eval_depth.saturating_sub(1);
     }
     fn resolve(&mut self, reference: &str) -> Value {
-        match self.reference(reference) {
+        match self.checked_reference(reference) {
             Ok(r) => self.evaluator.resolve(self.scope, &r),
             Err(e) => Value::Error(e),
         }
@@ -1911,7 +1968,7 @@ impl Context for BoundContext<'_, '_> {
         }
     }
     fn formula_exists(&mut self, reference: &str) -> Value {
-        let reference = match self.reference(reference) {
+        let reference = match self.checked_reference(reference) {
             Ok(r) => r,
             Err(e) => return Value::Error(e),
         };
@@ -1921,21 +1978,21 @@ impl Context for BoundContext<'_, '_> {
         }
     }
     fn path_length(&mut self, reference: &str, segment: Option<usize>) -> Value {
-        let reference = match self.reference(reference) {
+        let reference = match self.checked_reference(reference) {
             Ok(r) => r,
             Err(e) => return Value::Error(e),
         };
         Value::from(self.evaluator.path_length(self.scope, &reference, segment))
     }
     fn nearest_point_on_path(&mut self, reference: &str, x: f64, y: f64) -> Value {
-        let reference = match self.reference(reference) {
+        let reference = match self.checked_reference(reference) {
             Ok(r) => r,
             Err(e) => return Value::Error(e),
         };
         Value::from(self.evaluator.path_nearest(self.scope, &reference, x, y))
     }
     fn path_point(&mut self, reference: &str, travel: f64, offset: f64, segment: Option<usize>) -> Value {
-        let reference = match self.reference(reference) {
+        let reference = match self.checked_reference(reference) {
             Ok(r) => r,
             Err(e) => return Value::Error(e),
         };
@@ -1949,7 +2006,7 @@ impl Context for BoundContext<'_, '_> {
         }
     }
     fn path_angle(&mut self, reference: &str, travel: f64, segment: Option<usize>) -> Value {
-        let reference = match self.reference(reference) {
+        let reference = match self.checked_reference(reference) {
             Ok(r) => r,
             Err(e) => return Value::Error(e),
         };
@@ -1959,11 +2016,11 @@ impl Context for BoundContext<'_, '_> {
         }
     }
     fn transform_angle(&mut self, angle: f64, source: &str, destination: &str, parent: bool) -> Value {
-        let source = match self.reference(source) {
+        let source = match self.checked_reference(source) {
             Ok(r) => r,
             Err(e) => return Value::Error(e),
         };
-        let destination = match self.reference(destination) {
+        let destination = match self.checked_reference(destination) {
             Ok(r) => r,
             Err(e) => return Value::Error(e),
         };
@@ -1977,11 +2034,11 @@ impl Context for BoundContext<'_, '_> {
         destination: Option<&str>,
         destination_parent: bool,
     ) -> Value {
-        let source = match source.map(|r| self.reference(r)).transpose() {
+        let source = match source.map(|r| self.checked_reference(r)).transpose() {
             Ok(r) => r,
             Err(e) => return Value::Error(e),
         };
-        let destination = match destination.map(|r| self.reference(r)).transpose() {
+        let destination = match destination.map(|r| self.checked_reference(r)).transpose() {
             Ok(r) => r,
             Err(e) => return Value::Error(e),
         };
@@ -1991,10 +2048,11 @@ impl Context for BoundContext<'_, '_> {
         }
     }
     fn set_formula(&mut self, reference: &str, formula: &str) -> Result<(), Error> {
-        self.evaluator.set_formula(self.scope, &self.reference(reference)?, formula)
+        let reference = self.checked_reference(reference)?;
+        self.evaluator.set_formula(self.scope, &reference, formula)
     }
     fn eval_cell(&mut self, reference: &str, args: &[(String, Value)]) -> Value {
-        match self.reference(reference) {
+        match self.checked_reference(reference) {
             Ok(r) => self.evaluator.eval_cell(self.scope, &r, args),
             Err(e) => Value::Error(e),
         }
@@ -2012,7 +2070,8 @@ impl Context for BoundContext<'_, '_> {
         }
     }
     fn shape_text(&mut self, reference: &str) -> Value {
-        let (scope, name) = match self.evaluator.reference_target(self.scope, &self.reference(reference).unwrap_or_default()) {
+        let reference = self.checked_reference(reference).unwrap_or_default();
+        let (scope, name) = match self.evaluator.checked_reference_target(self.scope, &reference) {
             Ok(v) => v,
             Err(e) => return Value::Error(e),
         };
@@ -2023,8 +2082,8 @@ impl Context for BoundContext<'_, '_> {
     }
     fn shape_text_flags(&mut self, reference: &str, flags: u32) -> Value {
         let result = (|| {
-            let reference = self.reference(reference)?;
-            let (scope, name) = self.evaluator.reference_target(self.scope, &reference)?;
+            let reference = self.checked_reference(reference)?;
+            let (scope, name) = self.evaluator.checked_reference_target(self.scope, &reference)?;
             if !name.eq_ignore_ascii_case("TheText") {
                 return Err(Error::Ref);
             }
@@ -2034,8 +2093,8 @@ impl Context for BoundContext<'_, '_> {
     }
     fn text_metric(&mut self, reference: &str, width: Option<f64>, height: bool) -> Value {
         let result = (|| {
-            let reference = self.reference(reference)?;
-            let (scope, name) = self.evaluator.reference_target(self.scope, &reference)?;
+            let reference = self.checked_reference(reference)?;
+            let (scope, name) = self.evaluator.checked_reference_target(self.scope, &reference)?;
             if !name.eq_ignore_ascii_case("TheText") {
                 return Err(Error::Ref);
             }
