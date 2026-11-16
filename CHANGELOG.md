@@ -1,9 +1,28 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-beta.8
 
-- SVG and PDF exports keep the size of large pages, with existing per-side and image limits (#120).
-- Drawings with stored error formulas can be inspected and edited using their saved values (#119). New or rewritten failing formulas still refuse edits. Connection points saved in either row form, including those without direction or type cells, no longer block edits.
+Drawings that already hold formula errors can be edited, and large pages export to SVG and PDF.
+
+- **Stored formula errors no longer block edits (#119):** a drawing that already holds a
+  formula evaluating to an error (`#DIV/0!`, `#REF!`) or a formula cycle can be inspected and
+  edited. Such a cell keeps its formula and its saved value, as in Visio, and `save` and
+  `export` list each one as a warning. An edit that creates a new failing formula, or rewrites
+  one, is still refused.
+- **Connection points in either row form:** connection points saved without direction or type
+  cells, and those saved in the `A` to `D` row form, no longer block every edit on the page.
+- **SVG and PDF take the page size (#120):** `render` to SVG or PDF keeps the size of a large
+  page (a 60 x 62 in page was refused at the 32 megapixel limit). The limit is now 65,535 px
+  per side at 96 dpi, about 682 in. PNG output and pictures inside vector output keep their
+  limits.
+
+Measured against Visio 2021 (16.0.20527) on synthetic drawings: saved values, moved connector
+ends and glue positions match. On 307 real drawings that open, one added rectangle is accepted
+on 292 (290 on beta.7). For drawings without stored errors, written packages and rendered
+output are byte-identical to beta.7 (all 698 corpus lines, all 123 field images), and edits
+take the same time.
+Known gaps: 15 of those 307 drawings still refuse edits (10 with repeated master inheritance,
+4 with a missing reference, 1 on a master shape ID); a stored error is kept, not recalculated.
 
 ## 0.1.0-beta.7
 

@@ -16,8 +16,8 @@ It reads and writes Visio drawings, stencils and templates, renders them to PNG,
 and exports them to PowerPoint. Each claim below has been measured against what Visio 2021 (and
 PowerPoint 2021, for the export) does with the same file.
 
-**Download:** [MisterDiagram 0.1.0-beta.7](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-beta.7),
-the seventh beta (line breaks that follow Visio, safer output files), for macOS
+**Download:** [MisterDiagram 0.1.0-beta.8](https://github.com/MisterDiagram/MisterDiagram/releases/tag/v0.1.0-beta.8),
+the eighth beta (edits on drawings with stored formula errors, large pages to SVG and PDF), for macOS
 (universal), Windows (x64 and arm64) and Linux (x64 and arm64). The
 binaries are unsigned; [docs/install.md](docs/install.md) covers checksums, the first-run
 warnings and MCP setup. Testers wanted: see [below](#testers-wanted).
@@ -48,7 +48,7 @@ shapes, search and open stencils, drop masters, connect shapes, read and set Sha
 and run any engine command or a batch of them. [docs/mcp.md](docs/mcp.md) lists them with examples, including the office, SAN and
 fabric drawings the tests build.
 
-## What works today (2026-11-15, 0.1.0-beta.7)
+## What works today (2026-11-15, 0.1.0-beta.8)
 
 - **Open** .vsdx, .vssx and .vstx files, and the macro-enabled .vsdm, .vssm and .vstm (the VBA
   is dropped). Every stencil and template that ships with Visio 2021 opens.
@@ -163,19 +163,19 @@ elsewhere); the 28 of 29 geometry witnesses still hold.
 
 </details>
 
-## New in 0.1.0-beta.7
+## New in 0.1.0-beta.8
 
-- Line breaks follow Visio at punctuation (#118). Labels keep text together after `}`, `|`,
-  `!`, `?`, an ellipsis and the hyphen U+2010, and can wrap after `\`, and after `/` or `-`
-  before a digit. A word that does not fit still breaks at the last character that fits.
-- `render` publishes each output by writing a temporary file and renaming it, so a failed
-  write leaves an existing file intact; a destination symlink is replaced, not followed.
-- zip 9.5 and quick-xml 0.41, with a daily advisory check on the repository.
+- A drawing that already holds a formula error or a formula cycle can be inspected and edited
+  (#119). The cell keeps its formula and saved value, as in Visio; a new failing formula is
+  still refused.
+- Connection points saved without direction or type cells, or in the `A` to `D` row form, no
+  longer block edits.
+- `render` to SVG or PDF keeps the size of a large page, up to 65,535 px per side at 96 dpi
+  (#120).
 
-Against Visio 2021 on 186 synthetic shapes, 181 break where Visio breaks (148 on beta.6), and
-the five blocks of the drawing in #118 all match. Against beta.6, written packages are
-byte-identical and only five timeline pages with dates change in the field render. The full
-list of changes is in [CHANGELOG.md](CHANGELOG.md).
+On 307 real drawings that open, one added rectangle is accepted on 292 (290 on beta.7). For
+drawings without stored errors, output is byte-identical to beta.7. The full list of changes
+is in [CHANGELOG.md](CHANGELOG.md).
 
 ## Testers wanted
 
